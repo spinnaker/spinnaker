@@ -16,11 +16,9 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent
-import com.netflix.spinnaker.kork.discovery.InstanceStatus
-import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.notifications.AlwaysUnlockedNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.nhaarman.mockito_kotlin.any
@@ -44,10 +42,7 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
   val policy: PromotionPolicy = mock()
 
   subject(CachingMode.GROUP) {
-    DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), NoopRegistry())
-      .also {
-        it.onApplicationEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.DOWN, InstanceStatus.UP)))
-      }
+    DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), NoopRegistry(), 5000, AlwaysUnlockedNotificationClusterLock())
   }
 
   fun resetMocks() = reset(executionRepository, policy)
@@ -76,7 +71,7 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
       afterGroup(::resetMocks)
 
       on("promote schedule") {
-        subject.promote()
+        subject.tick()
 
         it("promotes all policy-selected candidate executions via status update") {
           verify(executionRepository).updateStatus(execution1.type, execution1.id, ExecutionStatus.NOT_STARTED)

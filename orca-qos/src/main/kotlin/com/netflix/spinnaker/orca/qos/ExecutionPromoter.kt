@@ -16,38 +16,31 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.discovery.InstanceStatus.UP
-import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent.AGENT_MDC_KEY
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import java.util.concurrent.atomic.AtomicBoolean
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.beans.factory.BeanInitializationException
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.ApplicationListener
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 
 /**
  * Marker interface if someone wants to override the default promoter.
  */
 interface ExecutionPromoter
 
-@Component
-@ConditionalOnProperty("pollers.qos.enabled")
 class DefaultExecutionPromoter(
   private val executionLauncher: ExecutionLauncher,
   private val executionRepository: ExecutionRepository,
   private val policies: List<PromotionPolicy>,
-  private val registry: Registry
-) : ExecutionPromoter, ApplicationListener<RemoteStatusChangedEvent> {
+  private val registry: Registry,
+  private val pollingIntervalMs: Long,
+  clusterLock: NotificationClusterLock
+) : ExecutionPromoter, AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(ExecutionPromoter::class.java)
-  private val discoveryActivated = AtomicBoolean()
 
   private val elapsedTimeId = registry.createId("qos.promoter.elapsedTime")
   private val promotedId = registry.createId("qos.promoter.executionsPromoted")
@@ -58,61 +51,44 @@ class DefaultExecutionPromoter(
     }
   }
 
-  override fun onApplicationEvent(event: RemoteStatusChangedEvent) =
-    event.source.let { e ->
-      if (e.status == UP) {
-        log.info("Instance is ${e.status}... ${javaClass.simpleName} starting")
-        discoveryActivated.set(true)
-      } else if (e.previousStatus == UP) {
-        log.info("Instance is ${e.status}... ${javaClass.simpleName} stopping")
-        discoveryActivated.set(false)
-      }
-    }
-
-  @Scheduled(fixedDelayString = "\${pollers.qos.promote-interval-ms:5000}")
-  fun promote() {
-    if (!discoveryActivated.get()) {
-      return
-    }
-
+  @VisibleForTesting
+  public override fun tick() {
     registry.timer(elapsedTimeId).record {
-      try {
-        MDC.put(AGENT_MDC_KEY, this.javaClass.simpleName)
-        executionRepository.retrieveBufferedExecutions()
-          .sortedByDescending { it.buildTime }
-          .let {
-            // TODO rz - This is all temporary mess and isn't meant to live long-term. I'd like to calculate until
-            // result.finalized==true or the end of the list, then be able to pass all contributing source & reason pairs
-            // into a log, with a zipped summary that would be saved into an execution's system notifications.
-            var lastResult: PromotionResult? = null
-            var candidates = it
-            policies.forEach { policy ->
-              val result = policy.apply(candidates)
-              if (result.finalized) {
-                return@let result
-              }
-              candidates = result.candidates
-              lastResult = result
+      executionRepository.retrieveBufferedExecutions()
+        .sortedByDescending { it.buildTime }
+        .let {
+          // TODO rz - This is all temporary mess and isn't meant to live long-term. I'd like to calculate until
+          // result.finalized==true or the end of the list, then be able to pass all contributing source & reason pairs
+          // into a log, with a zipped summary that would be saved into an execution's system notifications.
+          var lastResult: PromotionResult? = null
+          var candidates = it
+          policies.forEach { policy ->
+            val result = policy.apply(candidates)
+            if (result.finalized) {
+              return@let result
             }
-            lastResult ?: PromotionResult(
-              candidates = candidates,
-              finalized = true,
-              reason = "No promotion policy resulted in an action"
-            )
+            candidates = result.candidates
+            lastResult = result
           }
-          .also { result ->
-            result.candidates.forEach {
-              log.info("Promoting execution {} for work: {}", value("executionId", it.id), result.reason)
-              executionRepository.updateStatus(it.type, it.id, NOT_STARTED)
-              executionLauncher.start(it)
-            }
-            registry.counter(promotedId).increment(result.candidates.size.toLong())
+          lastResult ?: PromotionResult(
+            candidates = candidates,
+            finalized = true,
+            reason = "No promotion policy resulted in an action"
+          )
+        }
+        .also { result ->
+          result.candidates.forEach {
+            log.info("Promoting execution {} for work: {}", value("executionId", it.id), result.reason)
+            executionRepository.updateStatus(it.type, it.id, NOT_STARTED)
+            executionLauncher.start(it)
           }
-      } finally {
-        MDC.remove(AGENT_MDC_KEY)
-      }
+          registry.counter(promotedId).increment(result.candidates.size.toLong())
+        }
     }
   }
 
   private class NoPromotionPolicies(message: String) : BeanInitializationException(message)
+
+  override fun getPollingInterval() = pollingIntervalMs
+  override fun getNotificationType(): String = this.javaClass.simpleName
 }
