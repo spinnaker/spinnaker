@@ -82,7 +82,7 @@ public class UpsertLambdaEventSourceAtomicOperation
             .withFunctionName(cache.getFunctionArn())
             .withBatchSize(description.getBatchsize())
             .withEnabled(description.getEnabled())
-            .withStartingPosition("LATEST")
+            .withStartingPosition(description.getStartingPosition())
             .withEventSourceArn(description.getEventSourceArn());
 
     CreateEventSourceMappingResult result = client.createEventSourceMapping(request);

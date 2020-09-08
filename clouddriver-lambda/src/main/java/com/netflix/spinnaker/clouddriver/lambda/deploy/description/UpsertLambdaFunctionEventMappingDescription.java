@@ -28,4 +28,5 @@ public class UpsertLambdaFunctionEventMappingDescription extends AbstractLambdaF
   Boolean enabled = false;
   String eventSourceArn = null;
   String uuid = null;
+  String startingPosition = null;
 }
