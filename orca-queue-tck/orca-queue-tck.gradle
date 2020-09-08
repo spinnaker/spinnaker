@@ -29,7 +29,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-test")
   implementation(project(":keiko-mem"))
   implementation(project(":keiko-spring"))
-  implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("junit:junit")
   implementation("org.springframework:spring-test")
 

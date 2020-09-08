@@ -23,7 +23,7 @@ dependencies {
   testImplementation(project(":orca-queue"))
   testImplementation(project(":orca-clouddriver"))
 
-  testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
+  testImplementation(project(":keiko-mem"))
   testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
 
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")

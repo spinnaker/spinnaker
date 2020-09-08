@@ -21,7 +21,7 @@ dependencies {
   implementation(project(":orca-api"))
   implementation(project(":orca-queue"))
   implementation(project(":orca-web"))
-  implementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
+  implementation(project(":keiko-mem"))
 
   // Test framework dependencies
   api("org.junit.jupiter:junit-jupiter-api")

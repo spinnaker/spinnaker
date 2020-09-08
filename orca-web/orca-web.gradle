@@ -33,6 +33,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("net.logstash.logback:logstash-logback-encoder")
 
+  implementation(project(":keiko-spring"))
+
   implementation(project(":orca-api"))
   implementation(project(":orca-applications"))
   implementation(project(":orca-bakery"))
@@ -91,7 +93,7 @@ dependencies {
   testImplementation("cglib:cglib-nodep")
   testImplementation("org.objenesis:objenesis")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
-  testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
+  testImplementation(project(":keiko-mem"))
 
   testImplementation(project(":orca-api-tck"))
   testImplementation("dev.minutest:minutest")
