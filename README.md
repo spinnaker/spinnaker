@@ -40,6 +40,7 @@ The following high level diagram shows how events flow through `echo`:
 * Slack
 * Bearychat
 * Google Chat
+* Microsoft Teams
 * sms (via Twilio)
 * PagerDuty
 
