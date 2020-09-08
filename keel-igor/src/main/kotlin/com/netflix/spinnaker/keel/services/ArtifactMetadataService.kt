@@ -12,7 +12,6 @@ import com.netflix.spinnaker.model.Build
 import io.github.resilience4j.retry.annotation.Retry
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import retrofit2.HttpException
 
 /**
  * Provides functionality to convert build metadata, which is coming from internal service, to artifact metadata (via igor).
@@ -80,7 +79,7 @@ class ArtifactMetadataService(
 
 
   // this method will be invoked whenever the retry will fail
-  fun fallback( buildNumber: String, commitId: String, e: Exception)
+  suspend fun fallback( buildNumber: String, commitId: String, e: Exception)
   : ArtifactMetadata? {
     log.error("fallback: received an error while calling artifact service for build number $buildNumber and commit id $commitId", e)
     throw e
