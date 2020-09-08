@@ -31,6 +31,8 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation "javax.inject:javax.inject:1"
 
+  implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   testImplementation "org.spockframework:spock-core"

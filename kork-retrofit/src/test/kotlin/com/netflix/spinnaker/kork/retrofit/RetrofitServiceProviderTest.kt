@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.kork.retrofit
 
+import brave.Tracing
+import brave.http.HttpTracing
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.RetrofitConfiguration
@@ -82,13 +84,17 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
 private open class TestConfiguration {
 
   @Bean
-  open fun okHttpClient(): OkHttpClient {
-    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList())
+  open fun httpTracing(): HttpTracing =
+    HttpTracing.newBuilder(Tracing.newBuilder().build()).build()
+
+  @Bean
+  open fun okHttpClient(httpTracing: HttpTracing): OkHttpClient {
+    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList(), httpTracing)
   }
 
   @Bean
   open fun okHttpClientProvider(okHttpClient: OkHttpClient): OkHttpClientProvider {
-    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())))
+    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient, OkHttpClientConfigurationProperties())))
   }
 
   @Bean

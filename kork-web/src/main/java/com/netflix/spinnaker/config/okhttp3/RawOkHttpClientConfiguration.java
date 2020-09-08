@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config.okhttp3;
 
+import brave.Tracing;
+import brave.http.HttpTracing;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.util.List;
 import okhttp3.Interceptor;
@@ -29,6 +31,12 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(OkHttpClientConfigurationProperties.class)
 class RawOkHttpClientConfiguration {
 
+  @Bean
+  @ConditionalOnMissingBean
+  public HttpTracing httpTracing() {
+    return HttpTracing.newBuilder(Tracing.newBuilder().build()).build();
+  }
+
   /**
    * Default {@link OkHttpClient} that is correctly configured for service-to-service communication.
    */
@@ -36,7 +44,9 @@ class RawOkHttpClientConfiguration {
   @ConditionalOnMissingBean
   OkHttpClient okhttp3Client(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      List<Interceptor> interceptors) {
-    return new RawOkHttpClientFactory().create(okHttpClientConfigurationProperties, interceptors);
+      List<Interceptor> interceptors,
+      HttpTracing httpTracing) {
+    return new RawOkHttpClientFactory()
+        .create(okHttpClientConfigurationProperties, interceptors, httpTracing);
   }
 }

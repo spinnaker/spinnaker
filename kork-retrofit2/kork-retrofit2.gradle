@@ -7,6 +7,7 @@ dependencies {
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.okhttp3:logging-interceptor:4.2.1"
+  implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testRuntimeOnly "cglib:cglib-nodep"

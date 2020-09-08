@@ -8,6 +8,7 @@ ext {
   versions = [
     aws              : "1.11.820",
     bouncycastle     : "1.61",
+    brave            : "5.12.3",
     groovy           : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
@@ -152,5 +153,6 @@ dependencies {
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE")
     api("org.threeten:threeten-extra:1.0")
+    api("io.zipkin.brave:brave-instrumentation-okhttp3:${versions.brave}")
   }
 }

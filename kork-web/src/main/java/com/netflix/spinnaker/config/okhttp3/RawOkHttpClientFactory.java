@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config.okhttp3;
 
+import brave.http.HttpTracing;
+import brave.okhttp3.TracingInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,10 @@ import okhttp3.Dispatcher;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 
+/**
+ * Builds an {@link OkHttpClient} that should be can be used as-is or as a foundation for more
+ * custom OkHttpClient needs.
+ */
 public class RawOkHttpClientFactory {
 
   /**
@@ -32,8 +38,11 @@ public class RawOkHttpClientFactory {
    */
   public OkHttpClient create(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      List<Interceptor> interceptors) {
-    Dispatcher dispatcher = new Dispatcher();
+      List<Interceptor> interceptors,
+      HttpTracing httpTracing) {
+
+    Dispatcher dispatcher = zipkinHttpTracingDispatcher(httpTracing);
+
     dispatcher.setMaxRequests(okHttpClientConfigurationProperties.getMaxRequests());
     dispatcher.setMaxRequestsPerHost(okHttpClientConfigurationProperties.getMaxRequestsPerHost());
 
@@ -46,6 +55,7 @@ public class RawOkHttpClientFactory {
             .retryOnConnectionFailure(
                 okHttpClientConfigurationProperties.getRetryOnConnectionFailure())
             .dispatcher(dispatcher)
+            .addNetworkInterceptor(zipkinTracingInterceptor(httpTracing))
             .connectionPool(
                 new ConnectionPool(
                     okHttpClientConfigurationProperties.getConnectionPool().getMaxIdleConnections(),
@@ -59,5 +69,17 @@ public class RawOkHttpClientFactory {
     }
 
     return okHttpClientBuilder.build();
+  }
+
+  private static Dispatcher zipkinHttpTracingDispatcher(HttpTracing httpTracing) {
+    return new Dispatcher(
+        httpTracing
+            .tracing()
+            .currentTraceContext()
+            .executorService(new Dispatcher().executorService()));
+  }
+
+  private static Interceptor zipkinTracingInterceptor(HttpTracing httpTracing) {
+    return TracingInterceptor.create(httpTracing);
   }
 }

@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.kork.retrofit
 
+import brave.Tracing
+import brave.http.HttpTracing
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
@@ -42,7 +44,7 @@ import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
-class Retrofit2ServiceProviderTest   : JUnit5Minutests {
+class Retrofit2ServiceProviderTest : JUnit5Minutests {
 
   fun tests() = rootContext {
     derivedContext<ApplicationContextRunner>("no configuration") {
@@ -56,9 +58,14 @@ class Retrofit2ServiceProviderTest   : JUnit5Minutests {
 
       test("initializes service client provider") {
         run { ctx: AssertableApplicationContext ->
+          val endpoint = DefaultServiceEndpoint("retrofit2", "https://www.test.com")
           expect {
-            that(ctx.getBeansOfType(ServiceClientProvider::class.java)).get { size }.isEqualTo(1)
-            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit2Service::class.java, DefaultServiceEndpoint("retrofit2", "https://www.test.com"))).isA<Retrofit2Service>()
+            that(ctx.getBeansOfType(ServiceClientProvider::class.java))
+              .get { size }
+              .isEqualTo(1)
+
+            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit2Service::class.java, endpoint))
+              .isA<Retrofit2Service>()
           }
         }
       }
@@ -76,13 +83,16 @@ class Retrofit2ServiceProviderTest   : JUnit5Minutests {
 
 }
 
-
 @Configuration
 private open class TestConfiguration {
 
   @Bean
-  open fun okHttpClient(): OkHttpClient {
-    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList())
+  open fun httpTracing(): HttpTracing =
+    HttpTracing.create(Tracing.newBuilder().build())
+
+  @Bean
+  open fun okHttpClient(httpTracing: HttpTracing): OkHttpClient {
+    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList(), httpTracing)
   }
 
   @Bean

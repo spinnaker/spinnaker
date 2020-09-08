@@ -9,6 +9,7 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
 
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
