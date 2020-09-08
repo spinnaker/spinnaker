@@ -22,4 +22,5 @@ class TaggedImage {
     String registry
     String repository
     String tag
+    Map<String,String> newtLabels
 }

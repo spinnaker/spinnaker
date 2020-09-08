@@ -192,6 +192,14 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
         if (keelService.isPresent()) {
           String imageReference = image.repository + ":" + image.tag
+          Map <String, String> metadata = [fullname: imageReference, registry: image.account, tag: image.tag]
+          if (image.newtLabels != null) {
+            Optional.ofNullable(image.newtLabels.get("buildNumber"))
+              .ifPresent({ buildNumber -> metadata.put("buildNumber", buildNumber.toString()) })
+            Optional.ofNullable(image.newtLabels.get("commitId"))
+              .ifPresent({ commitId -> metadata.put("commitId", commitId.toString()) })
+          }
+
           Artifact artifact = Artifact.builder()
             .type("DOCKER")
             .customKind(false)
@@ -199,7 +207,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             .version(image.tag)
             .location(image.account)
             .reference(imageId)
-            .metadata([fullname: imageReference, registry: image.account, tag: image.tag],)
+            .metadata(metadata)
             .provenance(image.registry)
             .build()
 
