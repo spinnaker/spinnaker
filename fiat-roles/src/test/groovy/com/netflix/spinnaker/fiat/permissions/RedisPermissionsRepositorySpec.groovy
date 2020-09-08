@@ -45,6 +45,9 @@ import java.time.ZoneId
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class RedisPermissionsRepositorySpec extends Specification {
 
@@ -103,27 +106,51 @@ class RedisPermissionsRepositorySpec extends Specification {
 
   static class PausableRedisClientDelegate implements RedisClientDelegate {
     private final RedisClientDelegate delegate
-    private CountDownLatch pauseLatch = null
+    private final AtomicReference<CountDownLatch> pauseLatch = new AtomicReference<>()
+    private final ReadWriteLock latchLock = new ReentrantReadWriteLock()
+    private final AtomicReference<CountDownLatch> pausedNotification = new AtomicReference<>()
 
     PausableRedisClientDelegate(RedisClientDelegate delegate) {
       this.delegate = delegate
     }
 
-    void pause() {
-      pauseLatch = new CountDownLatch(1)
+    void pause(CountDownLatch pausedNotification) {
+      latchLock.writeLock().lock()
+      try {
+        pauseLatch.set(new CountDownLatch(1))
+        this.pausedNotification.set(pausedNotification)
+      } finally {
+        latchLock.writeLock().unlock()
+      }
     }
 
     void resume() {
-      if (pauseLatch != null) {
-        pauseLatch.countDown()
-        pauseLatch = null
+      latchLock.writeLock().lock()
+      try {
+        if (pauseLatch.get() != null) {
+          pauseLatch.get().countDown()
+          pauseLatch.set(null)
+          pausedNotification.set(null)
+        }
+      } finally {
+        latchLock.writeLock().unlock()
       }
     }
 
     @Delegate
     private RedisClientDelegate getDelegate() {
-      if (pauseLatch != null) {
-        pauseLatch.await()
+      latchLock.readLock().lock()
+      CountDownLatch latch = null
+      try {
+        latch = pauseLatch.get()
+        if (latch != null) {
+          pausedNotification.get()?.countDown()
+        }
+      } finally {
+        latchLock.readLock().unlock()
+      }
+      if (latch != null) {
+        latch.await()
       }
       return delegate
     }
@@ -151,9 +178,8 @@ class RedisPermissionsRepositorySpec extends Specification {
     def latch = new CountDownLatch(1)
 
     when:
-    redisClientDelegate.pause()
+    redisClientDelegate.pause(latch)
     def result = exec.submit {
-      latch.countDown()
       repo.get("foo")
     }
 
