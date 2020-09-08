@@ -19,25 +19,32 @@ package com.netflix.spinnaker.kork.retrofit;
 
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import okhttp3.logging.HttpLoggingInterceptor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
 
 @Configuration
-@ConditionalOnProperty(value = "retrofit.enabled", havingValue = "true", matchIfMissing = true)
-public class RetrofitServiceFactoryAutoConfiguration {
+@ConditionalOnProperty(value = "retrofit2.enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(Retrofit2ConfigurationProperties.class)
+public class Retrofit2ServiceFactoryAutoConfiguration {
 
   @Bean
-  @Order(Ordered.LOWEST_PRECEDENCE)
-  ServiceClientFactory serviceClientFactory(
-      RestAdapter.LogLevel retrofitLogLevel,
-      OkHttpClientProvider clientProvider,
-      RequestInterceptor spinnakerRequestInterceptor) {
-    return new RetrofitServiceFactory(
-        retrofitLogLevel, clientProvider, spinnakerRequestInterceptor);
+  @Order(Ordered.LOWEST_PRECEDENCE - 1)
+  ServiceClientFactory serviceClientFactory2(OkHttpClientProvider clientProvider) {
+    return new Retrofit2ServiceFactory(clientProvider);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  HttpLoggingInterceptor httpLoggingInterceptor(
+      Retrofit2ConfigurationProperties retrofit2ConfigurationProperties) {
+    HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+    httpLoggingInterceptor.level(retrofit2ConfigurationProperties.getLogLevel());
+    return httpLoggingInterceptor;
   }
 }

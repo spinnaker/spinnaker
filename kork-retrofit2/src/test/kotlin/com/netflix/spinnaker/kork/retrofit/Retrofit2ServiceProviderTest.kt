@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.retrofit
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.RetrofitConfiguration
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory
@@ -36,22 +35,21 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Callback
-import retrofit.http.GET
-import retrofit.http.Path
+import retrofit2.Call
+import retrofit2.http.Headers
+import retrofit2.http.GET
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
-class RetrofitServiceProviderTest  : JUnit5Minutests {
+class Retrofit2ServiceProviderTest   : JUnit5Minutests {
 
   fun tests() = rootContext {
     derivedContext<ApplicationContextRunner>("no configuration") {
       fixture {
         ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(
-            RetrofitServiceFactoryAutoConfiguration::class.java,
-            RetrofitConfiguration::class.java,
+            Retrofit2ServiceFactoryAutoConfiguration::class.java,
             TestConfiguration::class.java
           ))
       }
@@ -60,7 +58,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
         run { ctx: AssertableApplicationContext ->
           expect {
             that(ctx.getBeansOfType(ServiceClientProvider::class.java)).get { size }.isEqualTo(1)
-            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit1Service::class.java, DefaultServiceEndpoint("retrofit1", "https://www.test.com"))).isA<Retrofit1Service>()
+            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit2Service::class.java, DefaultServiceEndpoint("retrofit2", "https://www.test.com"))).isA<Retrofit2Service>()
           }
         }
       }
@@ -77,6 +75,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
   }
 
 }
+
 
 @Configuration
 private open class TestConfiguration {
@@ -108,12 +107,10 @@ private open class TestConfiguration {
   }
 
 }
+interface Retrofit2Service {
 
-interface Retrofit1Service {
-
-  @GET("/users/{user}/something")
-  fun getSomething(@Path("user") user: String?, callback: Callback<List<*>?>?)
+  @Headers("Accept: application/json")
+  @GET("something/{paramId}")
+  fun getSomething(@retrofit2.http.Path("paramId") paramId: String?): Call<*>?
 
 }
-
-

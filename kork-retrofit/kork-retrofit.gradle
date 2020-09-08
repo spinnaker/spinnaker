@@ -16,4 +16,5 @@ dependencies {
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
+
 }

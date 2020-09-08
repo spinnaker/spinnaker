@@ -54,6 +54,7 @@ include(
   "kork-secrets-gcp",
   "kork-security",
   "kork-retrofit",
+  "kork-retrofit2",
   "kork-sql",
   "kork-sql-test",
   "kork-stackdriver",

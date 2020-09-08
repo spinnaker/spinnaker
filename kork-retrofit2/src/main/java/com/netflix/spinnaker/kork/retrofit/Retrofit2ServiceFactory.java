@@ -17,47 +17,41 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import retrofit.Endpoint;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import java.util.Objects;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @NonnullByDefault
-class RetrofitServiceFactory implements ServiceClientFactory {
+public class Retrofit2ServiceFactory implements ServiceClientFactory {
 
-  private final RestAdapter.LogLevel retrofitLogLevel;
   private final OkHttpClientProvider clientProvider;
-  private final RequestInterceptor spinnakerRequestInterceptor;
 
-  RetrofitServiceFactory(
-      RestAdapter.LogLevel retrofitLogLevel,
-      OkHttpClientProvider clientProvider,
-      RequestInterceptor spinnakerRequestInterceptor) {
-    this.retrofitLogLevel = retrofitLogLevel;
+  public Retrofit2ServiceFactory(OkHttpClientProvider clientProvider) {
     this.clientProvider = clientProvider;
-    this.spinnakerRequestInterceptor = spinnakerRequestInterceptor;
   }
 
   @Override
   public <T> T create(Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
-    Endpoint endpoint = newFixedEndpoint(serviceEndpoint.getBaseUrl());
-    return new RestAdapter.Builder()
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setConverter(new JacksonConverter(objectMapper))
-        .setEndpoint(endpoint)
-        .setClient(new Ok3Client(clientProvider.getClient(serviceEndpoint)))
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(type))
+    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint);
+
+    return new Retrofit.Builder()
+        .baseUrl(Objects.requireNonNull(HttpUrl.parse(serviceEndpoint.getBaseUrl())))
+        .client(okHttpClient)
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .build()
         .create(type);
+  }
+
+  @Override
+  public boolean supports(Class<?> type, ServiceEndpoint serviceEndpoint) {
+    return type.getMethods()[0].getReturnType().getName().equalsIgnoreCase(Call.class.getName());
   }
 }
