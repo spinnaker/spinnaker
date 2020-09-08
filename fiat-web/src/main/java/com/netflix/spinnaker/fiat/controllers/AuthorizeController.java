@@ -307,18 +307,25 @@ public class AuthorizeController {
         if (unrestricted.isPresent()) {
           log.debug(
               "Falling back to unrestricted user permissions for user {}", authenticatedUserId);
-          userPermission = unrestricted.get().setId(authenticatedUserId);
+          userPermission =
+              new UserPermission().setId(authenticatedUserId).merge(unrestricted.get());
         }
       }
+      log.debug(
+          "Returning fallback permissions (user: {}, accounts: {}, roles: {})",
+          userId,
+          (userPermission != null) ? userPermission.getAccounts() : Collections.emptyList(),
+          (userPermission != null)
+              ? userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList())
+              : Collections.emptyList());
+    } else {
+      log.debug(
+          "Not populating fallback. userId: {}, authenticatedUserId: {}, allowPermissionResolverFallback: {}, defaultToUnrestrictedUser: {}",
+          userId,
+          authenticatedUserId,
+          configProps.isAllowPermissionResolverFallback(),
+          configProps.isDefaultToUnrestrictedUser());
     }
-
-    log.debug(
-        "Returning fallback permissions (user: {}, accounts: {}, roles: {})",
-        userId,
-        (userPermission != null) ? userPermission.getAccounts() : Collections.emptyList(),
-        (userPermission != null)
-            ? userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList())
-            : Collections.emptyList());
 
     registry
         .counter(

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -88,11 +89,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private final List<Resource> resources;
   private final RedisPermissionRepositoryConfigProps configProps;
   private final RetryRegistry retryRegistry;
+  private final AtomicReference<String> fallbackLastModified = new AtomicReference<>(null);
 
   private final LoadingCache<String, UserPermission> unrestrictedPermission =
       Caffeine.newBuilder()
           .expireAfterAccess(Duration.ofSeconds(10))
-          .build(k -> reloadUnrestricted());
+          .build(k -> reloadUnrestricted(k));
 
   private final String prefix;
 
@@ -127,9 +129,21 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         retryRegistry);
   }
 
-  private UserPermission reloadUnrestricted() {
+  private UserPermission reloadUnrestricted(String cacheKey) {
     return getFromRedis(UNRESTRICTED)
-        .orElseThrow(() -> new PermissionRepositoryException("Failed to read unrestricted user"));
+        .map(
+            p -> {
+              log.debug("reloaded user {} for key {} as {}", UNRESTRICTED, cacheKey, p);
+              return p;
+            })
+        .orElseThrow(
+            () -> {
+              log.error(
+                  "loading user {} for key {} failed, no permissions returned",
+                  UNRESTRICTED,
+                  cacheKey);
+              return new PermissionRepositoryException("Failed to read unrestricted user");
+            });
   }
 
   private UserPermission getUnrestrictedUserPermission() {
@@ -140,10 +154,41 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                 clock,
                 configProps.getRepository().getCheckLastModifiedTimeout()),
             c -> c.get(unrestrictedLastModifiedKey()));
-    if (serverLastModified == null) {
+    if (serverLastModified == null || serverLastModified.isEmpty()) {
+      log.debug(
+          "no last modified time available in redis for user {} using default of {}",
+          UNRESTRICTED,
+          NO_LAST_MODIFIED);
       serverLastModified = NO_LAST_MODIFIED;
     }
-    return unrestrictedPermission.get(serverLastModified);
+
+    try {
+      UserPermission userPermission = unrestrictedPermission.get(serverLastModified);
+      if (userPermission != null && !serverLastModified.equals(NO_LAST_MODIFIED)) {
+        fallbackLastModified.set(serverLastModified);
+      }
+      return userPermission;
+    } catch (Throwable ex) {
+      log.error(
+          "failed reading user {} from cache for key {}", UNRESTRICTED, serverLastModified, ex);
+      String fallback = fallbackLastModified.get();
+      if (fallback != null) {
+        UserPermission fallbackPermission = unrestrictedPermission.getIfPresent(fallback);
+        if (fallbackPermission != null) {
+          log.warn(
+              "serving fallback permission for user {} from key {} as {}",
+              UNRESTRICTED,
+              fallback,
+              fallbackPermission);
+          return fallbackPermission;
+        }
+        log.warn("no fallback entry remaining in cache for key {}", fallback);
+      }
+      if (ex instanceof RuntimeException) {
+        throw (RuntimeException) ex;
+      }
+      throw new IntegrationException(ex);
+    }
   }
 
   @Override
@@ -162,7 +207,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                     .computeIfAbsent(resource.getResourceType(), key -> new HashMap<>())
                     .put(resource.getName(), objectMapper.writeValueAsString(resource));
               } catch (JsonProcessingException jpe) {
-                log.error("Serialization exception writing " + permission.getId() + " entry.", jpe);
+                log.error("Serialization exception writing {} entry.", permission.getId(), jpe);
               }
             });
 
@@ -219,11 +264,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         String lastModified = serverTime.get().get().get(0);
         redisClientDelegate.withCommandsClient(
             c -> {
+              log.debug("set last modified for user {} to {}", UNRESTRICTED, lastModified);
               c.set(unrestrictedLastModifiedKey(), lastModified);
             });
       }
     } catch (Exception e) {
-      log.error("Storage exception writing " + permission.getId() + " entry.", e);
+      log.error("Storage exception writing {} entry.", permission.getId(), e);
     }
     return this;
   }
@@ -246,6 +292,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       boolean userExists =
           UNRESTRICTED.equals(id) || redisRead(timeoutContext, c -> c.sismember(allUsersKey(), id));
       if (!userExists) {
+        log.debug("request for user {} not found in redis", id);
         return Optional.empty();
       }
       UserPermission userPermission = new UserPermission().setId(id);
@@ -256,17 +303,18 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             Map<String, String> resourcePermissions = hgetall(timeoutContext, userKey);
             userPermission.addResources(extractResources(resourceType, resourcePermissions));
           });
-      userPermission.setAdmin(redisRead(timeoutContext, c -> c.sismember(adminKey(), id)));
       if (!UNRESTRICTED.equals(id)) {
+        userPermission.setAdmin(redisRead(timeoutContext, c -> c.sismember(adminKey(), id)));
         userPermission.merge(getUnrestrictedUserPermission());
       }
       return Optional.of(userPermission);
-    } catch (SpinnakerException se) {
-      throw se;
-    } catch (Exception e) {
+    } catch (Throwable t) {
       String message = String.format("Storage exception reading %s entry.", id);
-      log.error(message, e);
-      throw new PermissionReadException(message, e);
+      log.error(message, t);
+      if (t instanceof SpinnakerException) {
+        throw (SpinnakerException) t;
+      }
+      throw new PermissionReadException(message, t);
     }
   }
 
