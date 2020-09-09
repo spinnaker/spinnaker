@@ -190,6 +190,19 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     }
   }
 
+  /**
+   * @param username the username to check
+   * @return whether a permission is currently cached for the username
+   */
+  @SuppressWarnings("unused")
+  public boolean hasCachedPermission(String username) {
+    if (!fiatStatus.isEnabled()) {
+      return true;
+    }
+
+    return permissionsCache.getIfPresent(username) != null;
+  }
+
   public boolean hasPermission(
       String username, Serializable resourceName, String resourceType, Object authorization) {
     if (!fiatStatus.isEnabled()) {
@@ -253,6 +266,12 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return hasPermission(getUsername(authentication), resourceName, resourceType, authorization);
   }
 
+  /**
+   * Invalidates the cached permissions for a user.
+   *
+   * @param username the username of the user to invalidate from the local cache.
+   */
+  @SuppressWarnings("unused")
   public void invalidatePermission(String username) {
     permissionsCache.invalidate(username);
   }
