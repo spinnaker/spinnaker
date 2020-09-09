@@ -5,6 +5,13 @@ import org.gradle.api.Project
 class Flags {
 
   /**
+   * Whether or not the {@code targetJava11} property was set.
+   */
+  static boolean targetJava11(Project project) {
+    return Boolean.valueOf(project.findProperty("targetJava11")?.toString())
+  }
+
+  /**
    * Whether cross-compilation should be enabled.
    *
    * Determined by the project property 'enableCrossCompilerPlugin', and
