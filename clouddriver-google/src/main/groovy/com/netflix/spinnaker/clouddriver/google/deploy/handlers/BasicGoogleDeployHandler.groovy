@@ -47,6 +47,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
@@ -257,6 +258,24 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def hasBackendServices = (instanceMetadata &&
       instanceMetadata.containsKey(BACKEND_SERVICE_NAMES)) || sslLoadBalancers || tcpLoadBalancers
 
+
+    String sourcePolicyJson = instanceMetadata[LOAD_BALANCING_POLICY]
+    def loadBalancingPolicy = description.loadBalancingPolicy
+    GoogleHttpLoadBalancingPolicy policy
+    if (loadBalancingPolicy?.balancingMode) {
+      policy = loadBalancingPolicy
+    } else if (sourcePolicyJson) {
+      policy = objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy)
+    } else {
+      log.warn("No load balancing policy found in the operation description or the source server group, adding defaults")
+      policy = new GoogleHttpLoadBalancingPolicy(
+        balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
+        maxUtilization: 0.80,
+        capacityScaler: 1.0,
+        namedPorts: [new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT)]
+      )
+    }
+
     // Resolve and queue the backend service updates, but don't execute yet.
     // We need to resolve this information to set metadata in the template so enable can know about the
     // load balancing policy this server group was configured with.
@@ -271,9 +290,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       def globalLbNames = sslLoadBalancers.collect { it.name } + tcpLoadBalancers.collect { it.name } + GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project, this)
       instanceMetadata[GLOBAL_LOAD_BALANCER_NAMES] = globalLbNames.join(",")
 
-      String sourcePolicyJson = instanceMetadata[LOAD_BALANCING_POLICY]
-      def loadBalancingPolicy = description.loadBalancingPolicy
-
       backendServices.each { String backendServiceName ->
         BackendService backendService = timeExecute(
             compute.backendServices().get(project, backendServiceName),
@@ -281,20 +297,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
             TAG_SCOPE, SCOPE_GLOBAL)
 
         Backend backendToAdd
-        GoogleHttpLoadBalancingPolicy policy
-        if (loadBalancingPolicy?.balancingMode) {
-          policy = loadBalancingPolicy
-        } else if (sourcePolicyJson) {
-          policy = objectMapper.readValue(sourcePolicyJson, GoogleHttpLoadBalancingPolicy)
-        } else {
-          log.warn("No load balancing policy found in the operation description or the source server group, adding defaults")
-          policy = new GoogleHttpLoadBalancingPolicy(
-              balancingMode: GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION,
-              maxUtilization: 0.80,
-              capacityScaler: 1.0,
-              namedPorts: [new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT)]
-          )
-        }
         GCEUtil.updateMetadataWithLoadBalancingPolicy(policy, instanceMetadata, objectMapper)
         backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy)
 
@@ -326,12 +328,19 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
       instanceMetadata[REGIONAL_LOAD_BALANCER_NAMES] = existingRegionalLbs.join(",")
 
+      def internalHttpLbBackendServices = internalHttpLoadBalancers.collect { Utils.getBackendServicesFromInternalHttpLoadBalancerView(it) }.flatten().collect { it.name }
+
       ilbServices.each { String backendServiceName ->
         BackendService backendService = timeExecute(
             compute.regionBackendServices().get(project, region, backendServiceName),
             "compute.regionBackendServices.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
-        Backend backendToAdd = new Backend()
+        Backend backendToAdd
+        if (internalHttpLbBackendServices.contains(backendServiceName)) {
+          backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy)
+        } else {
+          backendToAdd = new Backend();
+        }
         if (isRegional) {
           backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
         } else {
@@ -504,7 +513,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         }
         namedPorts = sourceServerGroup?.namedPorts?.collect { name, port -> new NamedPort(name: name, port: port) }
       } else {
-        def loadBalancingPolicy = description?.loadBalancingPolicy
         if (loadBalancingPolicy?.namedPorts != null)  {
           namedPorts = description?.loadBalancingPolicy?.namedPorts
         } else if (loadBalancingPolicy?.listeningPort) {
