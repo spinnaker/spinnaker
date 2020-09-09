@@ -16,8 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security
 
+import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsLoader
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+
 interface AmazonAccountsSynchronizer {
 
-  List<? extends NetflixAmazonCredentials> synchronize
-
+  List<? extends NetflixAmazonCredentials> synchronize(
+    CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
+    CredentialsConfig credentialsConfig, AccountCredentialsRepository accountCredentialsRepository,
+    DefaultAccountConfigurationProperties defaultAccountConfigurationProperties,
+    CatsModule catsModule)
 }
