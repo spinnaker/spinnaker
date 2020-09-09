@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.config.ProxyConfigurationProperties
+import com.netflix.spinnaker.gate.api.extension.ProxyConfigProvider
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.squareup.okhttp.Request
 import com.squareup.okhttp.RequestBody
@@ -40,40 +40,70 @@ import org.springframework.web.bind.annotation.RequestMethod.PUT
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
+import javax.annotation.PostConstruct
 
 @RestController
 @RequestMapping(value = ["/proxies"])
-class ProxyController(
+public class ProxyController(
   val objectMapper: ObjectMapper,
   val registry: Registry,
-  val proxyConfigurationProperties: ProxyConfigurationProperties
+  val proxyConfigProviders: List<ProxyConfigProvider>
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
+  private val proxies = mutableListOf<Proxy>()
+
   val proxyInvocationsId = registry.createId("proxy.invocations")
+
+  @PostConstruct
+  fun postConstruct() {
+    proxyConfigProviders.forEach {
+      it.proxyConfigs.forEach { proxyConfig ->
+        try {
+          val proxy = Proxy(proxyConfig)
+
+          // initialize the `okHttpClient` for each proxy
+          proxy.init()
+
+          proxies.add(proxy)
+        } catch (e: Exception) {
+          log.error("Failed to initialize proxy (id: ${proxyConfig.id})", e)
+        }
+      }
+    }
+  }
 
   @RequestMapping(value = ["/{proxy}/**"], method = [DELETE, GET, POST, PUT])
   fun any(
-    @PathVariable(value = "proxy") proxy: String,
+    @PathVariable(value = "proxy") proxyId: String,
     @RequestParam requestParams: Map<String, String>,
     httpServletRequest: HttpServletRequest
   ): ResponseEntity<Any> {
-    return request(proxy, requestParams, httpServletRequest)
+    return request(proxyId, requestParams, httpServletRequest)
+  }
+
+  @RequestMapping(method = [GET])
+  fun list() : List<SimpleProxyConfig> {
+    return proxies.map { SimpleProxyConfig(
+      it.config.id,
+      it.config.uri
+    ) }
   }
 
   private fun request(
-    proxy: String,
+    proxyId: String,
     requestParams: Map<String, String>,
     request: HttpServletRequest
   ): ResponseEntity<Any> {
-    val proxyConfig = proxyConfigurationProperties
-      .proxies
-      .find { it.id.equals(proxy, true) } ?: throw InvalidRequestException("No proxy config found with id '$proxy'")
+    val proxy = proxies
+      .find { it.config.id.equals(proxyId, true) }
+      ?: throw InvalidRequestException("No proxy config found with id '$proxyId'")
+    val proxyConfig = proxy.config
 
     val proxyPath = request
       .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)
       .toString()
-      .substringAfter("/proxies/$proxy")
+      .substringAfter("/proxies/$proxyId")
 
     val proxiedUrlBuilder = Request.Builder().url(proxyConfig.uri + proxyPath).build().httpUrl().newBuilder()
     for ((key, value) in requestParams) {
@@ -97,7 +127,7 @@ class ProxyController(
         null
       }
 
-      val response = proxyConfig.okHttpClient.newCall(
+      val response = proxy.okHttpClient.newCall(
         Request.Builder().url(proxiedUrl).method(method, body).build()
       ).execute()
       statusCode = response.code()
@@ -114,7 +144,7 @@ class ProxyController(
 
     registry.counter(
       proxyInvocationsId
-        .withTag("proxy", proxy)
+        .withTag("proxy", proxyId)
         .withTag("method", request.method)
         .withTag("status", "${statusCode.toString()[0]}xx")
         .withTag("statusCode", statusCode.toString())
@@ -142,4 +172,6 @@ class ProxyController(
 
     return ResponseEntity(responseObj, httpHeaders, status)
   }
+
+  data class SimpleProxyConfig(val id: String, val uri: String)
 }
