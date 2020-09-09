@@ -103,7 +103,8 @@ class DockerMonitorSpec extends Specification {
       registry: "registry",
       repository: "repository",
       digest: "digest",
-      newtLabels: ["buildNumber": "111", "commitId": "ab12c3"]
+      buildNumber: "111",
+      commitId: "ab12c3"
     )
 
     when:
