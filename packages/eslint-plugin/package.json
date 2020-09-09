@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/eslint-plugin",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "eslint-plugin.js",
   "license": "Apache-2.0",
   "scripts": {
@@ -14,8 +14,8 @@
     "jest": "^25.2.4"
   },
   "peerDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.26.0",
-    "@typescript-eslint/parser": "^2.26.0",
+    "@typescript-eslint/eslint-plugin": "^4.1.0",
+    "@typescript-eslint/parser": "^4.1.0",
     "eslint": ">=5",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-react-hooks": "^3.0.0"
