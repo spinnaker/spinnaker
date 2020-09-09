@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 @ConfigurationProperties("fiat.redis")
 public class RedisPermissionRepositoryConfigProps {
 
-  private String prefix = "fiat";
+  private String prefix = "spinnaker:fiat";
 
   @NestedConfigurationProperty private Repository repository = new Repository();
 
