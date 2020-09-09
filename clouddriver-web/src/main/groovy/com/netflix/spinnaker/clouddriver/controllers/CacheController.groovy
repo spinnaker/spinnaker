@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.cats.cache.AgentIntrospection
 import com.netflix.spinnaker.cats.cache.CacheIntrospectionStore
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheStatus
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -45,7 +45,7 @@ class CacheController {
     }?.handle(onDemandType, cloudProvider, data)
 
     def cacheStatus = onDemandCacheResult?.status
-    def httpStatus = (cacheStatus == OnDemandCacheUpdater.OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
+    def httpStatus = (cacheStatus == OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
 
     return new ResponseEntity(
       [
