@@ -16,22 +16,14 @@
 
 package com.netflix.spinnaker.front50.config;
 
-import static retrofit.RestAdapter.LogLevel.BASIC;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.front50.echo.EchoService;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import okhttp3.OkHttpClient;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoints;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
 
 /** echo service configuration */
 @Configuration
@@ -39,20 +31,10 @@ import retrofit.converter.JacksonConverter;
 public class EchoConfiguration {
   @Bean
   EchoService echoService(
-      OkHttpClientProvider okHttpClientProvider,
+      ServiceClientProvider serviceClientProvider,
       @Value("${services.echo.base-url}") String baseUrl) {
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", baseUrl));
     ObjectMapper objectMapper = new ObjectMapper();
-    JacksonConverter jacksonConverter = new JacksonConverter(objectMapper);
-
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(baseUrl))
-        .setClient(new Ok3Client(okHttpClient))
-        .setConverter(jacksonConverter)
-        .setLogLevel(BASIC)
-        .setLog(new Slf4jRetrofitLogger(EchoService.class))
-        .build()
-        .create(EchoService.class);
+    return serviceClientProvider.getService(
+        EchoService.class, new DefaultServiceEndpoint("echo", baseUrl), objectMapper);
   }
 }
