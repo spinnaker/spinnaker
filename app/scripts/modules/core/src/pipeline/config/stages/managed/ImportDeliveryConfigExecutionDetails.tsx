@@ -8,15 +8,12 @@ import { SETTINGS } from 'core/config';
 
 const NOT_FOUND = 'Not found';
 
-// Turn off linter for the block below because it wants CamelCase property names.
-/* eslint-disable @typescript-eslint/camelcase */
 const ERROR_MESSAGE_MAP = {
   missing_property: 'The following property is missing:',
   invalid_type: 'The type of the following property is invalid:',
   invalid_format: 'The format of the following property is invalid:',
   invalid_value: 'The value of the following property is invalid:',
 };
-/* eslint-enable */
 
 interface IDeliveryConfigImportErrorDetails {
   error: 'missing_property' | 'invalid_type' | 'invalid_format' | 'invalid_value';

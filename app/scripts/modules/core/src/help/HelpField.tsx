@@ -30,7 +30,7 @@ function HelpFieldContents(props: Pick<IHelpFieldProps, 'id' | 'fallback' | 'con
 export function HelpField(props: IHelpFieldProps) {
   const { content, expand, fallback, id, label, placement } = props;
 
-  const [popoverShownStart, setPopoverShownStart] = React.useState();
+  const [popoverShownStart, setPopoverShownStart] = React.useState<number>();
   const onShow = (): void => setPopoverShownStart(Date.now());
   const onHide = (): void => {
     if (Date.now() - popoverShownStart > 500) {

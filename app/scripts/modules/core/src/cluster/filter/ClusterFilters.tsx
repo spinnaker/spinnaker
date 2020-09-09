@@ -3,6 +3,7 @@ import { useOnStateChanged, StateDeclaration } from '@uirouter/react';
 import { compact, uniq, map } from 'lodash';
 
 import { Application } from 'core/application';
+import { IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { FilterCheckbox, ISortFilter, digestDependentFilters } from 'core/filterModel';
 import { robotToHuman, useDataSource, useObservable } from 'core/presentation';
@@ -35,7 +36,7 @@ interface IClusterHeaders {
 
 export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
   const { serverGroups } = app;
-  const { data: serverGroupData, loaded: clustersLoaded } = useDataSource(serverGroups);
+  const { data: serverGroupData, loaded: clustersLoaded } = useDataSource<IServerGroup[]>(serverGroups);
 
   const [tags, setTags] = React.useState(ClusterState.filterModel.asFilterModel.tags);
   const [sortFilter, setSortFilter] = React.useState<ISortFilter>(ClusterState.filterModel.asFilterModel.sortFilter);

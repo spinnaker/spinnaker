@@ -225,7 +225,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
 
   const platformHealthOnlyShowOverride =
     application.attributes && application.attributes.platformHealthOnlyShowOverride;
-  const [verified, setVerified] = useState();
+  const [verified, setVerified] = useState<boolean>();
 
   const taskMonitor = useTaskMonitor(
     {

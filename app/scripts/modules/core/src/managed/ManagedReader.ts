@@ -105,10 +105,10 @@ export class ManagedReader {
       .then((response: IManagedResourceEventHistoryResponse) => {
         response.forEach(event => {
           if (event.delta) {
-            (event as IManagedResourceEvent).delta = transformManagedResourceDiff(event.delta);
+            ((event as unknown) as IManagedResourceEvent).delta = transformManagedResourceDiff(event.delta);
           }
         });
-        return response as IManagedResourceEventHistory;
+        return (response as unknown) as IManagedResourceEventHistory;
       });
   }
 }

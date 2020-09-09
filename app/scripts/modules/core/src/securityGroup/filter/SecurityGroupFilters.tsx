@@ -9,6 +9,7 @@ import { FilterCheckbox } from 'core/filterModel/FilterCheckBox';
 import { FilterSearch } from 'core/cluster/filter/FilterSearch';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { SecurityGroupState } from 'core/state';
+import { ISecurityGroup } from 'core/domain';
 
 export interface ISecurityGroupFiltersProps {
   app: Application;
@@ -54,7 +55,7 @@ const poolBuilder = (securityGroups: any[]): IPoolItem[] => {
 
 export const SecurityGroupFilters = ({ app }: ISecurityGroupFiltersProps) => {
   const { securityGroups } = app;
-  const { data: securityGroupData, loaded: securityGroupsLoaded } = useDataSource(securityGroups);
+  const { data: securityGroupData, loaded: securityGroupsLoaded } = useDataSource<ISecurityGroup[]>(securityGroups);
 
   const [tags, setTags] = React.useState(SecurityGroupState.filterModel.asFilterModel.tags);
   const [sortFilter, setSortFilter] = React.useState<ISortFilter>(

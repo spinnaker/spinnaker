@@ -109,7 +109,7 @@ export interface IAuthenticateCognitoActionConfig {
 }
 
 export interface IForwardConfig {
-  targetGroups?: { targetGroupArn: string; weight: number }[];
+  targetGroups?: Array<{ targetGroupArn: string; weight: number }>;
   targetGroupStickinessConfig?: any;
 }
 

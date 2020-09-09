@@ -5,18 +5,14 @@ import { IPluginMetaData, PluginRegistry } from './plugin.registry';
 import { Registry } from 'core/registry';
 import { mock } from 'angular';
 
-type TestPluginRegistry = PluginRegistry & {
-  load(pluginMetaData: IPluginMetaData): Promise<any>;
-  loadModuleFromUrl(url: string): Promise<any>;
-};
-
 const fakePromise = (result: any = undefined) => () => new Promise(resolve => resolve(result));
 
 describe('PluginRegistry', () => {
-  let pluginRegistry: TestPluginRegistry;
+  let pluginRegistry: PluginRegistry;
   let loadModuleFromUrlSpy: jasmine.Spy;
   beforeEach(() => {
     pluginRegistry = new PluginRegistry() as any;
+    // @ts-ignore
     loadModuleFromUrlSpy = spyOn(pluginRegistry, 'loadModuleFromUrl');
   });
 
@@ -64,6 +60,7 @@ describe('PluginRegistry', () => {
     });
 
     it('should load all registered plugins', () => {
+      // @ts-ignore
       const loadSpy = spyOn(pluginRegistry, 'load').and.callFake(fakePromise());
       const plugin1 = { id: 'foo', version: '1.0.0' };
       const plugin2 = { id: 'bar', version: '1.0.0' };
