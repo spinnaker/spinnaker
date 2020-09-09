@@ -153,8 +153,8 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       if (loginDebounceEnabled) {
         final Duration debounceWindow = Duration.ofSeconds(dynamicConfigService.getConfig(Long, 'x509.loginDebounce.debounceWindowSeconds', TimeUnit.MINUTES.toSeconds(5)))
         final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
-        UserPermission.View fiatPermission = AuthenticatedRequest.allowAnonymous { fiatPermissionEvaluator.getPermission(email) }
-        shouldLogin = fiatPermission == null ||
+        boolean needsCachedPermission = !fiatPermissionEvaluator.hasCachedPermission(email)
+        shouldLogin = needsCachedPermission ||
           lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
       } else {
         shouldLogin = true

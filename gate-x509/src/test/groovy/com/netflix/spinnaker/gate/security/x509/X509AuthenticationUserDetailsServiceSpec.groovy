@@ -54,6 +54,7 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.handleLogin(email, cert)
 
     then: "should not call login"
+    1 * fiatPermissionEvaluator.hasCachedPermission(email) >> true
     0 * perms.login(email)
 
     when: "subsequent login after debounce window"
@@ -61,10 +62,11 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
+    1 * fiatPermissionEvaluator.hasCachedPermission(email) >> true
     1 * perms.login(email)
 
     when: "login with no cached permission"
-    fiatPermissionEvaluator.getPermission(email) >> null
+    fiatPermissionEvaluator.hasCachedPermission(email) >> false
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
