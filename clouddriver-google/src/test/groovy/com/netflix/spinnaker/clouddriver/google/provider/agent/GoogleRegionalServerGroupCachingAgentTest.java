@@ -425,7 +425,8 @@ final class GoogleRegionalServerGroupCachingAgentTest {
 
     GoogleRegionalServerGroupCachingAgent cachingAgent =
         createCachingAgent(new StubComputeFactory().create());
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
 
     assertThat(pendingRequests).hasSize(1);
     assertThat(getOnlyElement(pendingRequests))
@@ -448,7 +449,8 @@ final class GoogleRegionalServerGroupCachingAgentTest {
 
     GoogleRegionalServerGroupCachingAgent cachingAgent =
         createCachingAgent(new StubComputeFactory().create());
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
 
     assertThat(pendingRequests).hasSize(1);
     assertThat(getOnlyElement(pendingRequests))
@@ -565,7 +567,8 @@ final class GoogleRegionalServerGroupCachingAgentTest {
         ImmutableMap.of(
             "serverGroupName", "myservergroup-v001", "account", ACCOUNT_NAME, "region", REGION));
 
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
     assertThat(pendingRequests).hasSize(1);
     assertThat(pendingRequests).extracting(map -> map.get("processedCount")).containsExactly(0);
 

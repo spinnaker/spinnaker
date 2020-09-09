@@ -29,7 +29,7 @@ public interface AgentScheduler<T extends AgentLock> {
   default void unschedule(Agent agent) {}
 
   /**
-   * @return True iff this scheduler supports synchronization between LoadData and OnDemand cache
+   * @return True if this scheduler supports synchronization between LoadData and OnDemand cache
    *     updates.
    */
   default boolean isAtomic() {

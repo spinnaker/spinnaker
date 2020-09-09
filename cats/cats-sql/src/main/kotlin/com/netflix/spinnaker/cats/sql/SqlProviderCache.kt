@@ -17,9 +17,10 @@ import org.slf4j.MDC
 @ExperimentalContracts
 class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache {
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   companion object {
     private const val ALL_ID = "_ALL_" // this implementation ignores this entirely
-    private val log = LoggerFactory.getLogger(javaClass)
   }
 
   init {

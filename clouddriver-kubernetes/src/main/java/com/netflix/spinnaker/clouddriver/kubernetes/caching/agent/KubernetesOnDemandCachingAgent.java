@@ -328,10 +328,7 @@ public abstract class KubernetesOnDemandCachingAgent extends KubernetesCachingAg
   }
 
   @Override
-  // The raw Map is required by the method we're overriding; suppress the warning until the
-  // interface adds type bounds.
-  @SuppressWarnings("rawtypes")
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     if (!handlePendingOnDemandRequests()) {
       return ImmutableList.of();
     }

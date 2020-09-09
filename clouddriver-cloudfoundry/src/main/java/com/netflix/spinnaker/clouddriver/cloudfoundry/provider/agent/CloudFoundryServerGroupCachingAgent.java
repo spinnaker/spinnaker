@@ -191,7 +191,7 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     Collection<String> keys =
         providerCache.filterIdentifiers(
             ON_DEMAND.getNs(), Keys.getServerGroupKey(this.getAccountName(), "*", "*"));

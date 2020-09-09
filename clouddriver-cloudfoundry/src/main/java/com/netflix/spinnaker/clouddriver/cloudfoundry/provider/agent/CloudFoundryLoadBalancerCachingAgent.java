@@ -218,7 +218,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     Collection<String> keys =
         providerCache.filterIdentifiers(ON_DEMAND.getNs(), Keys.getAllLoadBalancers());
     return providerCache.getAll(ON_DEMAND.getNs(), keys, RelationshipCacheFilter.none()).stream()

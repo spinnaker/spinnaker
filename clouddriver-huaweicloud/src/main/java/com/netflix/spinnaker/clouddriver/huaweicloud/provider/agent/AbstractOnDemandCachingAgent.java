@@ -61,7 +61,7 @@ public abstract class AbstractOnDemandCachingAgent extends AbstractHuaweiCloudCa
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     Collection<CacheData> datas = providerCache.getAll(ON_DEMAND.ns);
     if (HuaweiCloudUtils.isEmptyCollection(datas)) {
       return Collections.emptyList();
@@ -81,7 +81,7 @@ public abstract class AbstractOnDemandCachingAgent extends AbstractHuaweiCloudCa
               Map<String, String> details = Keys.parse(cacheData.getId());
               Map<String, Object> attributes = cacheData.getAttributes();
 
-              return new HashMap() {
+              return new HashMap<String, Object>() {
                 {
                   put("details", details);
                   put("moniker", convertOnDemandDetails(details));

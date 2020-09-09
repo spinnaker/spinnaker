@@ -59,7 +59,7 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return new LinkedList<>();
   }
 

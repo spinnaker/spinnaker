@@ -522,7 +522,7 @@ public class TitusV2ClusterCachingAgent
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     Set<String> keys =
         providerCache.getIdentifiers("onDemand").stream()
             .filter(
@@ -537,7 +537,7 @@ public class TitusV2ClusterCachingAgent
     return fetchPendingOnDemandRequests(providerCache, keys);
   }
 
-  private Collection<Map> fetchPendingOnDemandRequests(
+  private Collection<Map<String, Object>> fetchPendingOnDemandRequests(
       ProviderCache providerCache, Collection<String> keys) {
     return providerCache.getAll("onDemand", keys, RelationshipCacheFilter.none()).stream()
         .map(
@@ -554,8 +554,8 @@ public class TitusV2ClusterCachingAgent
   }
 
   @Override
-  public Map pendingOnDemandRequest(ProviderCache providerCache, String id) {
-    Collection<Map> pendingOnDemandRequests =
+  public Map<String, Object> pendingOnDemandRequest(ProviderCache providerCache, String id) {
+    Collection<Map<String, Object>> pendingOnDemandRequests =
         fetchPendingOnDemandRequests(providerCache, Collections.singletonList(id));
     return pendingOnDemandRequests.isEmpty()
         ? Collections.emptyMap()

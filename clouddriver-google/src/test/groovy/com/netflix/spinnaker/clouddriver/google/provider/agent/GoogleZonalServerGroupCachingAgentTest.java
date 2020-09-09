@@ -314,7 +314,8 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
     GoogleZonalServerGroupCachingAgent cachingAgent =
         createCachingAgent(new StubComputeFactory().create());
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
 
     assertThat(pendingRequests).hasSize(1);
     assertThat(getOnlyElement(pendingRequests))
@@ -337,7 +338,8 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
     GoogleZonalServerGroupCachingAgent cachingAgent =
         createCachingAgent(new StubComputeFactory().create());
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
 
     assertThat(pendingRequests).hasSize(1);
     assertThat(getOnlyElement(pendingRequests))
@@ -454,7 +456,8 @@ final class GoogleZonalServerGroupCachingAgentTest {
         ImmutableMap.of(
             "serverGroupName", "myservergroup-v001", "account", ACCOUNT_NAME, "region", REGION));
 
-    Collection<Map> pendingRequests = cachingAgent.pendingOnDemandRequests(providerCache);
+    Collection<Map<String, Object>> pendingRequests =
+        cachingAgent.pendingOnDemandRequests(providerCache);
     assertThat(pendingRequests).hasSize(1);
     assertThat(pendingRequests).extracting(map -> map.get("processedCount")).containsExactly(0);
 

@@ -39,7 +39,23 @@ public interface OnDemandMetricsSupportable {
 
   <T> T cacheWrite(Supplier<T> closure);
 
+  default void cacheWrite(Runnable closure) {
+    cacheWrite(
+        () -> {
+          closure.run();
+          return null;
+        });
+  }
+
   <T> T cacheEvict(Supplier<T> closure);
+
+  default void cacheEvict(Runnable closure) {
+    cacheEvict(
+        () -> {
+          closure.run();
+          return null;
+        });
+  }
 
   void countError();
 

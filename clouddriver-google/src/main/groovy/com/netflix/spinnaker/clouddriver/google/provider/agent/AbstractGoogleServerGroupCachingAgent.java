@@ -288,7 +288,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
       ProviderCache providerCache, String serverGroupName);
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     List<String> ownedKeys =
         providerCache.getIdentifiers(ON_DEMAND.getNs()).stream()
             .filter(this::keyOwnedByThisAgent)

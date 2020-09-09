@@ -89,10 +89,11 @@ public interface OnDemandAgent {
   @Nullable
   OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data);
 
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache);
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache);
 
-  default Map pendingOnDemandRequest(ProviderCache providerCache, String id) {
-    Collection<Map> pendingOnDemandRequests = pendingOnDemandRequests(providerCache);
+  default Map<String, Object> pendingOnDemandRequest(ProviderCache providerCache, String id) {
+    Collection<Map<String, Object>> pendingOnDemandRequests =
+        pendingOnDemandRequests(providerCache);
     return pendingOnDemandRequests.stream()
         .filter(m -> id.equals(m.get("id")))
         .findFirst()

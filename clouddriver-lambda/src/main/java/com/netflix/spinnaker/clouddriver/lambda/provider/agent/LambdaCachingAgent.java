@@ -333,7 +333,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return null;
   }
 

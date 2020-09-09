@@ -382,7 +382,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
     Collection<String> keys = providerCache.filterIdentifiers(
       ON_DEMAND.ns,
       Keys.getLoadBalancerKey("*", "*", "*", "*", "*")

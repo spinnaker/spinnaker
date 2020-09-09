@@ -303,7 +303,7 @@ class CloudFoundryServerGroupCachingAgentTest {
                     "processedTime", processedTime)
                 .toJavaMap());
 
-    Collection<Map> result =
+    Collection<Map<String, Object>> result =
         cloudFoundryServerGroupCachingAgent.pendingOnDemandRequests(mockProviderCache);
 
     assertThat(result).isEqualTo(expectedResult);

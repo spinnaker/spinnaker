@@ -129,7 +129,7 @@ abstract class AbstractAmazonLoadBalancerCachingAgent implements CachingAgent, O
   abstract CacheResult loadDataInternal(ProviderCache providerCache)
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 

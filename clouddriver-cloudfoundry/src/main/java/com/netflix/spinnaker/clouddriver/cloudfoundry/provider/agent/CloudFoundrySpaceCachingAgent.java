@@ -95,7 +95,7 @@ public class CloudFoundrySpaceCachingAgent extends AbstractCloudFoundryCachingAg
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return null;
   }
 }

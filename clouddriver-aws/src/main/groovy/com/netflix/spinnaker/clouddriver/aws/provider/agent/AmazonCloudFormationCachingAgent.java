@@ -114,7 +114,7 @@ public class AmazonCloudFormationCachingAgent
   }
 
   @Override
-  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return Collections.emptyList();
   }
 

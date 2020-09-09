@@ -68,7 +68,7 @@ class OracleSecurityGroupCachingAgent extends AbstractOracleCachingAgent impleme
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 
