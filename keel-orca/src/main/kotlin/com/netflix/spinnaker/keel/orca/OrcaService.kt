@@ -97,14 +97,14 @@ data class GeneralErrorsDetails(
   val stackTrace: String?,
   val responseBody: String?,
   val kind: String?,
-  val error: String,
-  val errors: List<String>
+  val error: String?,
+  val errors: List<String>?
 )
 
 data class OrcaException(
-  val exceptionType: String,
-  val shouldRetry: Boolean,
-  val details: GeneralErrorsDetails
+  val exceptionType: String?,
+  val shouldRetry: Boolean?,
+  val details: GeneralErrorsDetails?
 )
 
 data class ClouddriverException(

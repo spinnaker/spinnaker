@@ -65,7 +65,10 @@ class OrcaTaskMonitorAgent(
                     // when we get not found exception from orca, we shouldn't try to get the status anymore
                     taskTrackingRepository.delete(it.id)
                   }
-                  else -> throw e
+                  else -> log.warn(
+                    "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" ,
+                    e
+                  )
                 }
                 null
               }
@@ -111,7 +114,7 @@ class OrcaTaskMonitorAgent(
 
       // find the first exception and return
       if (context?.exception != null) {
-        return context.exception.details.errors.joinToString(",")
+        return context.exception.details?.errors?.joinToString(",")
       }
 
       if (context?.clouddriverException != null) {
