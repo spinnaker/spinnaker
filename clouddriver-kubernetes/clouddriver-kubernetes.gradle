@@ -3,7 +3,21 @@ plugins {
 }
 
 tasks.compileGroovy.enabled = false
-sourceSets.main.java.srcDirs = ['src/main/java']
+
+sourceSets {
+  main {
+    java.srcDirs = ['src/main/java']
+  }
+  integration {
+    java.srcDirs = ["src/integration/java"]
+    resources.srcDirs = ["src/integration/resources"]
+  }
+}
+
+configurations {
+  integrationImplementation.extendsFrom testImplementation
+  integrationRuntime.extendsFrom testRuntime
+}
 
 tasks.withType(JavaCompile) {
   options.compilerArgs += [
@@ -77,4 +91,29 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+
+
+  integrationImplementation project(":clouddriver-web")
+  integrationImplementation "org.springframework.boot:spring-boot-starter-test"
+  integrationImplementation "org.testcontainers:testcontainers"
+  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "org.testcontainers:junit-jupiter"
+  integrationImplementation "mysql:mysql-connector-java"
+  integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
+    // Exclude groovy pulled in by rest-assured, so we use kork's version
+    exclude group: "org.codehaus.groovy", module: "groovy"
+  }
+  integrationImplementation "org.yaml:snakeyaml"
+}
+
+task integrationTest(type: Test) {
+  description = 'Runs kubernetes provider integration tests.'
+  group = 'verification'
+
+  environment "PROJECT_ROOT", project.rootDir.toString()
+  useJUnitPlatform()
+
+  testClassesDirs = sourceSets.integration.output.classesDirs
+  classpath = sourceSets.integration.runtimeClasspath
+  shouldRunAfter test
 }

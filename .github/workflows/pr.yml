@@ -26,3 +26,5 @@ jobs:
           ${{ runner.os }}-gradle-
     - name: Build
       run: ./gradlew -PenableCrossCompilerPlugin=true build
+    - name: Integration Tests
+      run: ./gradlew --info integrationTest

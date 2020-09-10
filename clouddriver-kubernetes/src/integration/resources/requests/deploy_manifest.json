@@ -1,0 +1,21 @@
+[
+  {
+    "deployManifest": {
+      "enableTraffic": true,
+      "optionalArtifacts": [],
+      "cloudProvider": "kubernetes",
+      "trafficManagement": {
+        "options": {
+          "enableTraffic": false
+        },
+        "enabled": false
+      },
+      "moniker": {},
+      "source": "text",
+      "account": "",
+      "skipExpressionEvaluation": false,
+      "requiredArtifacts": [],
+      "manifests": []
+    }
+  }
+]

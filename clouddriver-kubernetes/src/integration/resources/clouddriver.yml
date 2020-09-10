@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: clouddriver
+
+kubernetes:
+  kubectl:
+    executable: ${PROJECT_ROOT}/clouddriver-kubernetes/src/integration/resources/kubectl-wrapper.sh  # Using a wrapper around the kubectl binary provided by the k3s docker container
+  enabled: true
+  primaryAccount: account1
+  accounts:
+    - name: account1
+      requiredGroupMembership: []
+      providerVersion: V2
+      permissions: {}
+      dockerRegistries: []
+      configureImagePullSecrets: true
+      cacheThreads: 1
+      namespaces: []
+      omitNamespaces: []
+      kinds: []
+      omitKinds: []
+      customResources: []
+      cachingPolicies: []
+      liveManifestCalls: false
+      oauthScopes: []
+      oAuthScopes: []
+      onlySpinnakerManaged: true
+      metrics: false
+      kubeconfigFile: ${PROJECT_ROOT}/clouddriver-kubernetes/build/kubeconfigs/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
+    - name: account2
+      requiredGroupMembership: []
+      providerVersion: V2
+      permissions: {}
+      dockerRegistries: []
+      configureImagePullSecrets: true
+      cacheThreads: 1
+      namespaces:
+      - default
+      omitNamespaces: []
+      kinds: []
+      omitKinds: []
+      customResources: []
+      cachingPolicies: []
+      liveManifestCalls: false
+      oauthScopes: []
+      oAuthScopes: []
+      onlySpinnakerManaged: true
+      metrics: false
+      kubeconfigFile: ${PROJECT_ROOT}/clouddriver-kubernetes/build/kubeconfigs/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
+
+sql:
+  enabled: true
+  taskRepository:
+    enabled: true
+  cache:
+    enabled: true
+    readBatchSize: 500
+    writeBatchSize: 300
+  scheduler:
+    enabled: true
+  connectionPools:
+    default:
+      default: true
+      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+    tasks:
+      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+  migration:
+    jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+
+redis:
+  enabled: false
+  cache:
+    enabled: false
+  scheduler:
+    enabled: false
+  taskRepository:
+    enabled: false
+
+services:
+  fiat:
+    baseUrl: http://fiat.net
+  front50:
+    baseUrl: http://front50.net
