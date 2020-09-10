@@ -529,7 +529,8 @@ class SqlArtifactRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.transaction { config ->
         val txn = DSL.using(config)
-        txn
+        log.debug("markAsSuccessfullyDeployedTo: start transaction. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        val currentUpdates = txn
           .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
@@ -540,8 +541,11 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.timestamp())
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
           .execute()
+
+        log.debug("# of records marked CURRENT: $currentUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+
         // update old "CURRENT" to "PREVIOUS
-        txn
+        val previousUpdates = txn
           .update(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
@@ -551,6 +555,8 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
           .execute()
+
+        log.debug("# of records marked PREVIOUS: $previousUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
         // update any past artifacts that were "APPROVED" to be "SKIPPED"
         // because the new version takes precedence
         val approvedButOld = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
@@ -559,7 +565,9 @@ class SqlArtifactRepository(
           .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
           .filter { isOlder(artifact, it, version) }
 
-        txn
+        log.debug("# of approvedButOld: ${approvedButOld.size}. ${artifact.name}. version: $version. env: $targetEnvironment")
+
+        val skippedUpdates = txn
           .update(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
@@ -569,8 +577,12 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(*approvedButOld.toTypedArray()))
           .execute()
+
+        log.debug("# of records marked SKIPPED: $skippedUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
       }
     }
+
+    log.debug("markAsSuccessfullyDeployedTo complete. name: ${artifact.name}. version: $version. env: $targetEnvironment")
   }
 
   override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> {
