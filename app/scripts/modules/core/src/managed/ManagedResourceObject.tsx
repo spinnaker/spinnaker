@@ -8,7 +8,7 @@ import { IManagedResourceSummary, IManagedEnviromentSummary, IManagedArtifactSum
 import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
-import { getResourceIcon } from './resources/resourceRegistry';
+import { getResourceIcon, getExperimentalDisplayLink } from './resources/resourceRegistry';
 import { getArtifactVersionDisplayName } from './displayNames';
 import { StatusBubble } from './StatusBubble';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
@@ -60,8 +60,14 @@ const getNativeResourceRoutingInfo = (
 export const ManagedResourceObject = memo(
   ({ application, resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
     const { kind, displayName } = resource;
+
     const routingInfo = getNativeResourceRoutingInfo(resource) ?? { state: '', params: {} };
-    const route = useSref(routingInfo.state, routingInfo.params);
+    const routeProps = useSref(routingInfo.state, routingInfo.params);
+
+    const displayLink = getExperimentalDisplayLink(resource);
+    const displayLinkProps = displayLink && { href: displayLink, target: '_blank', rel: 'noopener noreferrer' };
+
+    const linkProps = routeProps.href ? routeProps : displayLinkProps;
 
     const current =
       artifactVersionsByState?.current &&
@@ -88,7 +94,7 @@ export const ManagedResourceObject = memo(
     return (
       <ObjectRow
         icon={getResourceIcon(kind)}
-        title={route ? <a {...route}>{displayName}</a> : displayName}
+        title={linkProps ? <a {...linkProps}>{displayName}</a> : displayName}
         depth={depth}
         content={resourceStatus}
         metadata={
