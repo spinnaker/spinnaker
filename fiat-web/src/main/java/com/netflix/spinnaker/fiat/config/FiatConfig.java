@@ -46,7 +46,7 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    List<String> pathVarsToTag = ImmutableList.of("accountName", "applicationName", "resourceName");
+    var pathVarsToTag = ImmutableList.of("accountName", "applicationName", "resourceName");
     List<String> exclude = ImmutableList.of("BasicErrorController");
     MetricsInterceptor interceptor =
         new MetricsInterceptor(this.registry, "controller.invocations", pathVarsToTag, exclude);
