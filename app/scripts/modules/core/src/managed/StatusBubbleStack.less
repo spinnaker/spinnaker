@@ -1,3 +1,10 @@
+.StatusBubbleStack {
+  // We want to create a new stacking context so that all
+  // the bubbles go in front/behind other elements as a unit
+  // vs. each individual bubble having its own stacking.
+  transform: translate(0px, 0px);
+}
+
 .StatusBubbleContainer {
   background-color: var(--color-alabaster);
   border-radius: 50%;
