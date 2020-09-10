@@ -14,13 +14,26 @@ class MonitorRemoteStageTask : RetryableTask {
   // now (remote stage updates context via a callback).  Specific context details will need to be
   // flushed out with some collaboration from Deck/UI folks.
   override fun execute(stage: StageExecution): TaskResult {
-    val remoteStatus = stage.context["remote.status"] as ExecutionStatus
-    val outputs = stage.context["remote.result"] as MutableMap<String, Any>
+    var remoteStatus: ExecutionStatus = ExecutionStatus.RUNNING
+    var outputs: MutableMap<String, Any> = mutableMapOf()
+
+    if (stage.context.containsKey(REMOTE_STATUS)) {
+      remoteStatus = stage.context[REMOTE_STATUS] as ExecutionStatus
+      if (stage.context.containsKey(REMOTE_RESULT)) {
+        outputs = stage.context[REMOTE_RESULT] as MutableMap<String, Any>
+      }
+    }
 
     return if (remoteStatus == ExecutionStatus.SUCCEEDED || remoteStatus == ExecutionStatus.TERMINAL) {
       TaskResult.builder(remoteStatus).context(outputs).build()
     } else {
       TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
     }
+  }
+
+  companion object {
+    const val REMOTE_PREFIX = "remote"
+    const val REMOTE_STATUS = "$REMOTE_PREFIX.status"
+    const val REMOTE_RESULT = "$REMOTE_PREFIX.result"
   }
 }
