@@ -6,6 +6,7 @@ dependencies {
   implementation project(":gate-core")
 
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.netflix.spectator:spectator-api"

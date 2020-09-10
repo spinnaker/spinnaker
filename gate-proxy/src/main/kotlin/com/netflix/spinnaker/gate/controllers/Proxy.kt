@@ -16,18 +16,12 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.api.extension.ProxyConfig
-import com.squareup.okhttp.OkHttpClient
+import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.security.KeyStore
-import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
 
 internal class Proxy(val config: ProxyConfig) {
   companion object {
@@ -36,80 +30,21 @@ internal class Proxy(val config: ProxyConfig) {
 
   var okHttpClient = OkHttpClient()
 
-  fun init() {
-    with(config) {
-      okHttpClient.setConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS)
-      okHttpClient.setReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS)
-      okHttpClient.setWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS)
+  /**
+   * Initialize the underlying [OkHttpClient].
+   */
+  fun init(okHttpClientProvider: OkHttpClientProvider) : Proxy {
+    val okHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint(
+      "proxy__${config.id}", config.uri, config.additionalAttributes
+    ))
 
-      if (skipHostnameVerification) {
-        okHttpClient = okHttpClient.setHostnameVerifier({ hostname, _ ->
-          logger.warn("Skipping hostname verification on request to $hostname (id: $id)")
-          true
-        })
-      }
+    this.okHttpClient = okHttpClient
+      .newBuilder()
+      .connectTimeout(config.connectTimeoutMs, TimeUnit.MILLISECONDS)
+      .readTimeout(config.readTimeoutMs, TimeUnit.MILLISECONDS)
+      .writeTimeout(config.writeTimeoutMs, TimeUnit.MILLISECONDS)
+      .build()
 
-      if (!keyStore.isNullOrEmpty()) {
-        val keyStorePassword = if (!keyStorePassword.isNullOrEmpty()) {
-          keyStorePassword
-        } else if (!keyStorePasswordFile.isNullOrEmpty()) {
-          File(keyStorePasswordFile).readText()
-        } else {
-          throw IllegalStateException("No `keyStorePassword` or `keyStorePasswordFile` specified (id: $id)")
-        }
-
-        val kStore = KeyStore.getInstance(keyStoreType)
-
-        File(this.keyStore).inputStream().use {
-          kStore.load(it, keyStorePassword!!.toCharArray())
-        }
-
-        val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-        kmf.init(kStore, keyStorePassword!!.toCharArray())
-
-        val keyManagers = kmf.keyManagers
-        var trustManagers: Array<TrustManager>? = null
-
-        if (!trustStore.isNullOrEmpty()) {
-          if (trustStore.equals("*")) {
-            trustManagers = arrayOf(TrustAllTrustManager())
-          } else {
-            val trustStorePassword = if (!trustStorePassword.isNullOrEmpty()) {
-              trustStorePassword
-            } else if (!trustStorePasswordFile.isNullOrEmpty()) {
-              File(trustStorePasswordFile).readText()
-            } else {
-              throw IllegalStateException("No `trustStorePassword` or `trustStorePasswordFile` specified (id: $id)")
-            }
-
-            val tStore = KeyStore.getInstance(trustStoreType)
-            File(this.trustStore).inputStream().use {
-              tStore.load(it, trustStorePassword!!.toCharArray())
-            }
-
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-            tmf.init(tStore)
-
-            trustManagers = tmf.trustManagers
-          }
-        }
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(keyManagers, trustManagers, null)
-
-        okHttpClient = okHttpClient.setSslSocketFactory(sslContext.socketFactory)
-      }
-    }
+    return this
   }
-}
-
-class TrustAllTrustManager : X509TrustManager {
-  override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {
-    // do nothing
-  }
-  override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {
-    // do nothing
-  }
-
-  override fun getAcceptedIssuers() = null
 }
