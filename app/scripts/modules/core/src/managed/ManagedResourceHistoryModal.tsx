@@ -62,12 +62,12 @@ const viewConfigurationByEventType = {
     level: 'info',
   },
   ResourceDeltaDetected: {
-    displayName: 'Drift detected',
+    displayName: 'Difference detected',
     iconClass: 'icon-md-delta-detected',
     level: 'info',
   },
   ResourceDeltaResolved: {
-    displayName: 'Drift resolved',
+    displayName: 'Difference resolved',
     iconClass: 'icon-md-delta-resolved',
     level: 'info',
   },

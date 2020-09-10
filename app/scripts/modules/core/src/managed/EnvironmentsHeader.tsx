@@ -30,7 +30,7 @@ const environmentHeaderInfo: {
   running: {
     description: null,
     icon: 'runManagement',
-    title: (info: string) => `Spinnaker is continuously managing ${info} resources.`,
+    title: (info: string) => `Spinnaker is managing ${info} resources.`,
   },
   paused: {
     description: 'Any actions made will take effect once management is resumed.',

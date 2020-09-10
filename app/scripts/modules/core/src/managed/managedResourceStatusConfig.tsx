@@ -37,11 +37,10 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>Action is being taken to resolve a drift from the declarative configuration.</b>
+          <b>Spinnaker is taking action to resolve a difference from this resource's desired state.</b>
         </p>
         <p>
-          Check this resource's History to see details and track the work currently in progress.{' '}
-          <LearnMoreLink resourceSummary={resourceSummary} />
+          You can click History to see more. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -52,11 +51,10 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>Spinnaker has started continuously managing this resource.</b>
+          <b>Spinnaker has started managing this resource.</b>
         </p>
         <p>
-          If its actual configuration drifts from the declarative configuration, Spinnaker will automatically correct
-          it. Changes made in the UI will be stomped in favor of the declarative configuration.{' '}
+          If a difference from the desired state is detected, Spinnaker will act to correct it.{' '}
           <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
@@ -68,11 +66,11 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>A drift from the declarative configuration was detected.</b>
+          <b>Spinnaker detected a difference from the desired state.</b>
         </p>
         <p>
-          Spinnaker will automatically take action to bring this resource back to its desired state. Check the History
-          to see details and track progress. <LearnMoreLink resourceSummary={resourceSummary} />
+          In a moment, Spinnaker will take action to bring this resource back to its desired state. You can click
+          History to see more. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -87,8 +85,8 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
           <b>Waiting for a temporary issue to pass.</b>
         </p>
         <p>
-          Something required for management is temporarily experiencing issues. Automatic action can't be taken right
-          now, but will likely resume soon. Check the History for details.{' '}
+          Something required for management is temporarily experiencing issues. Spinnaker can't take action right now,
+          but should be able to soon. You can click History to see more.{' '}
           <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
@@ -104,8 +102,8 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
           <b>Waiting for a missing dependency to become available.</b>
         </p>
         <p>
-          Something required for management isn't ready yet. Automatic action can't be taken right now, but will resume
-          once the necessary dependencies exist. Check the History for details.{' '}
+          Something required for management isn't ready yet. Spinnaker can't take action right now, but will resume once
+          the missing dependencies exist. You can click History to see more.{' '}
           <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
@@ -120,9 +118,9 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
           <b>Something went wrong.</b>
         </p>
         <p>
-          Spinnaker is configured to continuously manage this resource, but something went wrong trying to check its
-          current state. Automatic action can't be taken right now, and manual intervention might be required. Check the
-          History for details. <LearnMoreLink resourceSummary={resourceSummary} />
+          Something went wrong while trying to check this resource's current state. Spinnaker can't take action right
+          now, and manual intervention might be required. You can click History to see more.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -133,10 +131,10 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>Spinnaker is continuously managing this resource.</b>
+          <b>Spinnaker is managing this resource.</b>
         </p>
         <p>
-          Changes made in the UI will be stomped in favor of the declarative configuration.{' '}
+          If a difference from the desired state is detected, Spinnaker will act to correct it.{' '}
           <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
@@ -148,17 +146,17 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary, application: Application) => (
       <>
         <p>
-          <b>Continuous management is paused.</b>
+          <b>Management is paused.</b>
         </p>
         {application.isManagementPaused && (
           <p>
-            Spinnaker is configured to continuously manage this resource, but management for the entire application is
-            temporarily paused. <LearnMoreLink resourceSummary={resourceSummary} />
+            Spinnaker is configured to manage this resource, but management for the entire application is temporarily
+            paused. <LearnMoreLink resourceSummary={resourceSummary} />
           </p>
         )}
         {!application.isManagementPaused && (
           <p>
-            Spinnaker is configured to continuously manage this resource, but management has been temporarily paused.{' '}
+            Spinnaker is configured to manage this resource, but management has been temporarily paused.{' '}
             <LearnMoreLink resourceSummary={resourceSummary} />
           </p>
         )}
@@ -171,12 +169,11 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>Continuous management was just resumed.</b>
+          <b>Management was just resumed.</b>
         </p>
         <p>
-          Management was resumed after being temporarily paused. If Spinnaker detects that a drift from the declarative
-          configuration occurred while paused, it will take automatic action to resolve the drift.{' '}
-          <LearnMoreLink resourceSummary={resourceSummary} />
+          Management was resumed after being temporarily paused. If Spinnaker detects that a difference from the desired
+          state occurred while paused, it will act to correct it. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -187,12 +184,11 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
     popoverContents: (resourceSummary: IManagedResourceSummary) => (
       <>
         <p>
-          <b>A drift from the declarative configuration was detected, but Spinnaker hasn't been able to correct it.</b>
+          <b>Spinnaker detected a difference from the desired state, but hasn't been able to correct it.</b>
         </p>
         <p>
-          Spinnaker has been trying to correct a detected drift, but taking automatic action hasn't helped. Manual
-          intervention might be required. Check the History for details.{' '}
-          <LearnMoreLink resourceSummary={resourceSummary} />
+          Spinnaker has been trying to correct a difference, but taking action hasn't helped. Manual intervention might
+          be required. You can click History to see more. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -206,8 +202,8 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
           <b>Unable to determine resource status.</b>
         </p>
         <p>
-          Spinnaker is configured to continuously manage this resource, but its current status can't be calculated right
-          now. <LearnMoreLink resourceSummary={resourceSummary} />
+          Spinnaker is configured to manage this resource, but can't calculate its current status.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),

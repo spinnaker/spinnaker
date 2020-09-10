@@ -40,10 +40,10 @@ export const ManagedResourceDetailsIndicator = ({
   const helpText = (
     <>
       <p>
-        <b>Spinnaker is continuously managing this resource.</b>
+        <b>Spinnaker is managing this resource.</b>
       </p>
       <p>
-        Changes made in the UI will be stomped in favor of the existing declarative configuration.{' '}
+        If a difference from the desired state is detected, Spinnaker will act to correct it.{' '}
         <a
           target="_blank"
           onClick={() => logClick('Learn More', id)}

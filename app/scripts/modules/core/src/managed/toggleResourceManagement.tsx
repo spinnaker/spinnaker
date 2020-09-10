@@ -21,8 +21,8 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleCo
         <div className="horizontal top sp-padding-m alert alert-warning">
           <i className="fa fa-exclamation-triangle sp-margin-m-right sp-margin-xs-top" />
           <span>
-            Pausing management will not interrupt the action Spinnaker is currently performing to resolve the drift in
-            configuration.
+            Pausing management will not interrupt the action Spinnaker is currently performing to resolve the difference
+            from desired state.
           </span>
         </div>
       </p>
@@ -85,17 +85,14 @@ const PopoverToggleBodyText = ({ resourceSummary }: { resourceSummary: IManagedR
   if (isPaused) {
     return (
       <>
-        <p>Spinnaker will resume taking action to resolve drift from the declarative configuration.</p>
+        <p>Spinnaker will resume taking action to correct differences from the desired state.</p>
         <MultiRegionWarning resourceSummary={resourceSummary} />
       </>
     );
   } else {
     return (
       <>
-        <p>
-          While a resource is paused, Spinnaker will not take action to resolve drift from the declarative
-          configuration.
-        </p>
+        <p>While a resource is paused, Spinnaker will not take action to correct differences from the desired state.</p>
         {viewConfigurationByStatus[status]?.pauseWarning}
         <MultiRegionWarning resourceSummary={resourceSummary} />
       </>
@@ -125,7 +122,7 @@ const BodyText = ({ resourceSummary }: { resourceSummary: IManagedResourceSummar
   return (
     <>
       <p>
-        🌈 <b>Spinnaker is continuously managing this resource.</b>
+        🌈 <b>Spinnaker is managing this resource.</b>
       </p>
       <p>
         If you need to temporarily stop Spinnaker from managing this resource — for example, if something is wrong and
