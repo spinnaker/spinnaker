@@ -18,7 +18,7 @@ class MonitorRemoteStageTask : RetryableTask {
     var outputs: MutableMap<String, Any> = mutableMapOf()
 
     if (stage.context.containsKey(REMOTE_STATUS)) {
-      remoteStatus = stage.context[REMOTE_STATUS] as ExecutionStatus
+      remoteStatus = ExecutionStatus.valueOf((stage.context[REMOTE_STATUS] as String).toUpperCase())
       if (stage.context.containsKey(REMOTE_RESULT)) {
         outputs = stage.context[REMOTE_RESULT] as MutableMap<String, Any>
       }
