@@ -20,7 +20,6 @@ import static java.util.Collections.emptySet;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -188,7 +187,7 @@ public interface StageExecution {
 
   @Data
   @NoArgsConstructor
-  class LastModifiedDetails implements Serializable {
+  class LastModifiedDetails {
     @NonNull private String user;
 
     @NonNull private Collection<String> allowedAccounts = emptySet();

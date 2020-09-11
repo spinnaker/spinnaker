@@ -26,9 +26,9 @@ public interface CancellableStage {
 
   class Result {
     private final String stageId;
-    private final Map details;
+    private final Map<String, Object> details;
 
-    public Result(StageExecution stage, Map details) {
+    public Result(StageExecution stage, Map<String, Object> details) {
       this.stageId = stage.getId();
       this.details = details;
     }
@@ -37,7 +37,7 @@ public interface CancellableStage {
       return stageId;
     }
 
-    public final Map getDetails() {
+    public final Map<String, Object> getDetails() {
       return details;
     }
   }

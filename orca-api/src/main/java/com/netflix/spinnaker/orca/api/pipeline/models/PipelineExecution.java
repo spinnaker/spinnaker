@@ -20,7 +20,6 @@ import static java.util.Collections.emptySet;
 
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.annotations.Beta;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +141,7 @@ public interface PipelineExecution {
 
   StageExecution stageByRef(String refId);
 
-  class AuthenticationDetails implements Serializable {
+  class AuthenticationDetails {
 
     private String user;
 
@@ -172,7 +171,7 @@ public interface PipelineExecution {
     }
   }
 
-  class PausedDetails implements Serializable {
+  class PausedDetails {
     String pausedBy;
 
     public @Nullable String getPausedBy() {
@@ -222,7 +221,7 @@ public interface PipelineExecution {
     }
   }
 
-  class PipelineSource implements Serializable {
+  class PipelineSource {
     private String id;
 
     public @Nonnull String getId() {

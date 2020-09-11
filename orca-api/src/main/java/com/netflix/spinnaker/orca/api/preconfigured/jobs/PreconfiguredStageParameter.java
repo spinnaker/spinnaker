@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.orca.api.preconfigured.jobs;
 
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /** Definition of a parameter for the stage that user can provide input for. */
-@Data
 @NoArgsConstructor
 public class PreconfiguredStageParameter {
 
@@ -43,6 +41,54 @@ public class PreconfiguredStageParameter {
 
   /** The order in which this parameter will be displayed on the Spinnaker UI. */
   private int order;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  public String getDefaultValue() {
+    return defaultValue;
+  }
+
+  public void setDefaultValue(String defaultValue) {
+    this.defaultValue = defaultValue;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public ParameterType getType() {
+    return type;
+  }
+
+  public void setType(ParameterType type) {
+    this.type = type;
+  }
+
+  public int getOrder() {
+    return order;
+  }
+
+  public void setOrder(int order) {
+    this.order = order;
+  }
 
   public enum ParameterType {
     string

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+plugins {
+  id("net.ltgt.errorprone") version "1.2.1"
+}
+
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/dokka.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
@@ -24,6 +28,8 @@ sourceSets {
 }
 
 dependencies {
+  errorprone("com.google.errorprone:error_prone_core:2.4.0")
+
   implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
   annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
@@ -39,6 +45,14 @@ dependencies {
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 
   sampleImplementation(sourceSets.main.runtimeClasspath)
+}
+
+tasks.compileGroovy.enabled = false
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs += [
+      '-Xlint:all'
+  ]
 }
 
 test {

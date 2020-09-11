@@ -72,7 +72,7 @@ class RunCanaryPipelineStage(
       log.info(format("Not cancelling stage (stageId: %s: executionId: %s, context: %s) since no canary pipeline execution id exists", stage.id, stage.execution.id, stage.context))
     }
 
-    return CancellableStage.Result(stage, emptyMap<Any, Any>())
+    return CancellableStage.Result(stage, emptyMap<String, Any>())
   }
 
   companion object {

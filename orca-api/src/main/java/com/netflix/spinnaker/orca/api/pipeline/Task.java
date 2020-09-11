@@ -47,7 +47,6 @@ public interface Task extends SpinnakerExtensionPoint {
    * task being aborted after taking too long to complete.
    *
    * @param stage The running state execution state
-   * @return
    */
   default @Nullable TaskResult onTimeout(@Nonnull StageExecution stage) {
     return null;

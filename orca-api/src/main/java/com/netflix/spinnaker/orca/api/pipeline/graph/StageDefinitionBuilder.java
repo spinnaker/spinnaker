@@ -86,7 +86,8 @@ public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
    */
   default void onFailureStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {}
 
-  /** @return the stage type this builder handles. */
+  /** Returns the stage type this builder handles. */
+  @SuppressWarnings("unchecked")
   default @Nonnull String getType() {
     return getType((Class<StageDefinitionBuilder>) this.getExtensionClass());
   }
@@ -104,7 +105,6 @@ public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
    * <p>If a stage class is {@code MyFancyStage}, the resulting type would be {@code myFancy}.
    *
    * @param clazz The stage definition builder class
-   * @return
    */
   static String getType(Class<? extends StageDefinitionBuilder> clazz) {
     String className = clazz.getSimpleName();

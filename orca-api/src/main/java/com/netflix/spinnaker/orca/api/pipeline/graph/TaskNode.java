@@ -50,7 +50,6 @@ public interface TaskNode {
    *
    * @param type The type of graph
    * @param closure A configuration block
-   * @return
    */
   static TaskGraph build(GraphType type, Consumer<Builder> closure) {
     Builder builder = new Builder(type);
@@ -68,7 +67,6 @@ public interface TaskNode {
    *
    * @param name The human-friendly name of the task.
    * @param implementingClass The {@link Task} class
-   * @return
    */
   static TaskGraph singleton(GraphType type, String name, Class<? extends Task> implementingClass) {
     return build(type, builder -> builder.withTask(name, implementingClass));
@@ -78,8 +76,6 @@ public interface TaskNode {
    * Creates a {@link TaskDefinition} for the provided {@link Task} class.
    *
    * @param name The human-friendly name of the task.
-   * @param implementingClass
-   * @return
    */
   static TaskDefinition task(String name, Class<? extends Task> implementingClass) {
     return new TaskDefinition(name, implementingClass);
@@ -179,11 +175,11 @@ public interface TaskNode {
    */
   interface DefinedTask {
 
-    /** @return name of the task */
+    /** Returns the name of the task */
     @Nonnull
     String getName();
 
-    /** @return name of the class implementing the stage */
+    /** Returns the name of the class implementing the stage */
     @Nonnull
     String getImplementingClassName();
   }
@@ -198,6 +194,7 @@ public interface TaskNode {
       this.implementingClass = implementingClass;
     }
 
+    @Override
     public @Nonnull String getName() {
       return name;
     }

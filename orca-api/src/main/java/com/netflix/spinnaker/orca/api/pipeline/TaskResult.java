@@ -64,7 +64,6 @@ public final class TaskResult {
    * Creates a new TaskResult with the provided {@link ExecutionStatus}.
    *
    * @param status The ExecutionStatus
-   * @return
    */
   public static TaskResult ofStatus(ExecutionStatus status) {
     return TaskResult.builder(status).build();
@@ -74,7 +73,6 @@ public final class TaskResult {
    * Creates a builder for the TaskResult
    *
    * @param status The ExecutionStatus of the TaskResult
-   * @return
    */
   public static TaskResultBuilder builder(ExecutionStatus status) {
     return new TaskResultBuilder().status(status);
