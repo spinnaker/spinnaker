@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -39,7 +40,7 @@ class CreateWebhookTaskSpec extends Specification {
   def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   @Subject
-  def createWebhookTask = new CreateWebhookTask(null, new WebhookProperties())
+  def createWebhookTask = new CreateWebhookTask(null, new WebhookProperties(), new ObjectMapper())
 
   def "should create new webhook task with expected parameters"() {
     setup:
@@ -67,7 +68,8 @@ class CreateWebhookTaskSpec extends Specification {
     result.context as Map == [
       webhook: [
         statusCode: HttpStatus.OK,
-        statusCodeValue: HttpStatus.OK.value()
+        statusCodeValue: HttpStatus.OK.value(),
+        body: [:]
       ]
     ]
   }
@@ -179,7 +181,7 @@ class CreateWebhookTaskSpec extends Specification {
     def result = createWebhookTask.execute(stage)
 
     then:
-    def errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
+    def errorMessage = "Error submitting webhook for pipeline ${stage.execution.id} to ${stage.context.url} with status code ${status.value()}, will retry."
 
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
@@ -196,7 +198,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should retry on name resolution failure"() {
     setup:
-    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [:])
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "https://my-service.io/api/"])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(_, _, _, _) >> {
@@ -212,7 +214,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
       webhook: [
-        error: "name resolution failure in webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
+        error: "Remote host resolution failure in webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
       ]
     ]
   }
@@ -235,7 +237,7 @@ class CreateWebhookTaskSpec extends Specification {
     def result = createWebhookTask.execute(stage)
 
     then:
-    def errorMessage = "Socket timeout in webhook on GET request to ${stage.context.url}, will retry."
+    def errorMessage = "Socket timeout in webhook on GET request for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
       webhook: [
@@ -261,7 +263,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.TERMINAL
     (result.context as Map) == [
       webhook: [
-        error: "an exception occurred in webhook to wrong://my-service.io/api/: java.lang.IllegalArgumentException: Invalid URL"
+        error: "An exception occurred for pipeline ${stage.execution.id} performing a request to wrong://my-service.io/api/. java.lang.IllegalArgumentException: Invalid URL"
       ]
     ]
   }
@@ -338,7 +340,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.TERMINAL
     result.context as Map == [
       webhook: [
-        error: "Received a status code configured to fail fast, terminating stage.",
+        error: "Received status code 503, which is configured to fail fast, terminating stage for pipeline ${stage.getExecution().id} to ${stage.context.url}",
         statusCode: HttpStatus.SERVICE_UNAVAILABLE,
         statusCodeValue: HttpStatus.SERVICE_UNAVAILABLE.value(),
         body: bodyString
@@ -488,14 +490,10 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context as Map == [
-      webhook: [
-        statusCode: HttpStatus.CREATED,
-        statusCodeValue: HttpStatus.CREATED.value(),
-        body: body,
-        error: "Exception while resolving status check URL: Illegal character in path at index 0: [this, is, a, list]"
-      ]
-    ]
+    result.context['webhook']['statusCode'] == HttpStatus.CREATED
+    result.context['webhook']['statusCodeValue'] == HttpStatus.CREATED.value()
+    result.context['webhook']['body'] == body
+    result.context['webhook']['error'].toString().contains('Exception while resolving status check URL')
     stage.context.statusEndpoint == null
   }
 
@@ -565,8 +563,7 @@ class CreateWebhookTaskSpec extends Specification {
       url: "https://my-service.io/api/",
       method: "post",
       payload: [payload1: "Hello Spinnaker!"],
-      expectedArtifacts: [[matchArtifact: [ name: "overrides", type: "github/file" ]]
-      ]
+      expectedArtifacts: [[matchArtifact: [ name: "overrides", type: "github/file" ]]]
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
