@@ -37,6 +37,7 @@ export interface IServerGroup extends IManagedResource {
   isDisabled?: boolean;
   labels?: { [key: string]: string };
   launchConfig?: any;
+  image?: any;
   loadBalancers?: string[];
   moniker?: IMoniker;
   name: string;

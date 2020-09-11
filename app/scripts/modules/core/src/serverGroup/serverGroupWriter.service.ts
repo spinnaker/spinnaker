@@ -197,7 +197,8 @@ export class ServerGroupWriter {
     hasLaunchTemplate?: boolean,
   ): ng.IPromise<ITask> {
     const job: IServerGroupJob = {
-      amiName: serverGroup.launchConfig.imageId,
+      amiName: serverGroup.image.name,
+      imageId: serverGroup.image.imageId,
       moniker: serverGroup.moniker,
       cloudProvider: serverGroup.type || serverGroup.provider,
       credentials: serverGroup.account,
