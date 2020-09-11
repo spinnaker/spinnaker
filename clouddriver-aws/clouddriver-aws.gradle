@@ -4,6 +4,7 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-eureka")
   implementation project(":clouddriver-security")
+  implementation project(":clouddriver-saga")
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"

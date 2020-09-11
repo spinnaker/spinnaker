@@ -115,7 +115,7 @@ class RegionScopedProviderFactory {
     }
 
     LaunchTemplateService getLaunchTemplateService() {
-      return new LaunchTemplateService(amazonEC2, userDataProviders)
+      return new LaunchTemplateService(amazonEC2, userDataProviders, localFileUserDataProperties)
     }
 
     AwsConfiguration.DeployDefaults getDeploymentDefaults() {

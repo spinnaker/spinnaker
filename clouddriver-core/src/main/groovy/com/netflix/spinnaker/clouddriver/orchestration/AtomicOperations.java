@@ -28,6 +28,7 @@ public final class AtomicOperations {
   public static final String RESIZE_SERVER_GROUP = "resizeServerGroup";
   public static final String UPSERT_SERVER_GROUP_TAGS = "upsertServerGroupTags";
   public static final String UPDATE_LAUNCH_CONFIG = "updateLaunchConfig";
+  public static final String UPDATE_LAUNCH_TEMPLATE = "updateLaunchTemplate";
   public static final String UPSERT_SCALING_POLICY = "upsertScalingPolicy";
   public static final String DELETE_SCALING_POLICY = "deleteScalingPolicy";
   public static final String MIGRATE_SERVER_GROUP = "migrateServerGroup";

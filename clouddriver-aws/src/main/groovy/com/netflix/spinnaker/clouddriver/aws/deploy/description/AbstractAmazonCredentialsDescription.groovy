@@ -17,10 +17,18 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
 
 abstract class AbstractAmazonCredentialsDescription implements CredentialsNameable {
   @JsonIgnore
   NetflixAmazonCredentials credentials
+  String account
+
+  @JsonProperty
+  @Override
+  String getAccount() {
+    return credentials?.name ?: account
+  }
 }
