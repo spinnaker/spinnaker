@@ -45,5 +45,5 @@ public class ProxyConfig {
   private Long writeTimeoutMs = 30_000L;
 
   /** Additional attributes for this proxy. */
-  private Map<String, Object> additionalAttributes = new HashMap<>();
+  private Map<String, String> additionalAttributes = new HashMap<>();
 }
