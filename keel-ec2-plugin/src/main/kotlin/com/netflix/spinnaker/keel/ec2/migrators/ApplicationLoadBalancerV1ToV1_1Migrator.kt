@@ -6,9 +6,11 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
 import com.netflix.spinnaker.keel.resources.SpecMigrator
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty("keel.plugins.ec2.enabled")
 class ApplicationLoadBalancerV1ToV1_1Migrator : SpecMigrator<ApplicationLoadBalancerV1Spec, ApplicationLoadBalancerSpec> {
   override val input = EC2_APPLICATION_LOAD_BALANCER_V1
   override val output = EC2_APPLICATION_LOAD_BALANCER_V1_1
