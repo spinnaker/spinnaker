@@ -368,9 +368,6 @@ angular
               ),
             });
 
-            if (launchTemplateData.userData) {
-              command.base64UserData = launchTemplateData.userData;
-            }
             command.viewState.imageId = launchTemplateData.imageId;
           }
 
