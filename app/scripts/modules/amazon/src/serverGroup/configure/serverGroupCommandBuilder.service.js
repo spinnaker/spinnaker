@@ -352,19 +352,20 @@ angular
               launchTemplateData.instanceMarketOptions &&
               launchTemplateData.instanceMarketOptions.spotOptions &&
               launchTemplateData.instanceMarketOptions.spotOptions.maxPrice;
-            const ipv6Addresses = _.flatMap(launchTemplateData.networkInterfaces, i => i.ipv6Addresses) || [];
+            const { ipv6AddressCount } = launchTemplateData.networkInterfaces[0];
 
             angular.extend(command, {
               instanceType: launchTemplateData.instanceType,
               iamRole: launchTemplateData.iamInstanceProfile.name,
               keyPair: launchTemplateData.keyName,
-              associateIPv6Address: ipv6Addresses.length > 0,
+              associateIPv6Address: Boolean(ipv6AddressCount),
               ramdiskId: launchTemplateData.ramdiskId,
               instanceMonitoring: launchTemplateData.monitoring.enabled,
               ebsOptimized: launchTemplateData.ebsOptimized,
               spotPrice: maxPrice || undefined,
-              requireIMDSv2:
+              requireIMDSv2: Boolean(
                 launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
+              ),
             });
 
             if (launchTemplateData.userData) {
