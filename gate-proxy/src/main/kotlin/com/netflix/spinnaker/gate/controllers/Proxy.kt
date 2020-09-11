@@ -35,7 +35,7 @@ internal class Proxy(val config: ProxyConfig) {
    */
   fun init(okHttpClientProvider: OkHttpClientProvider) : Proxy {
     val okHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint(
-      "proxy__${config.id}", config.uri, config.additionalAttributes
+      "proxy__${config.id}", config.uri, config.additionalAttributes, false
     ))
 
     this.okHttpClient = okHttpClient
