@@ -16,6 +16,7 @@
 
 apply plugin: "nebula.kotlin"
 apply plugin: "kotlin-spring"
+apply plugin: "io.gitlab.arturbosch.detekt"
 
 compileKotlin {
   kotlinOptions {
@@ -28,5 +29,20 @@ compileTestKotlin {
   kotlinOptions {
     languageVersion = "1.3"
     jvmTarget = "1.8"
+  }
+}
+
+detekt {
+  parallel = false
+  config = files("$rootDir/.detekt.yml")
+  buildUponDefaultConfig = true
+  ignoreFailures = true
+  reports {
+    xml {
+      enabled = false
+    }
+    txt {
+      enabled = false
+    }
   }
 }
