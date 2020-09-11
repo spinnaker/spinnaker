@@ -27,7 +27,15 @@ class TitusClusterSpecDeserializer : StdNodeBasedDeserializer<TitusClusterSpec>(
           ?: root.missingFieldError("locations"),
         _defaults = TitusServerGroupSpec(
           capacity = treeToValue(root.get("capacity")),
+          constraints = treeToValue(root.get("constraints")),
           dependencies = treeToValue(root.get("dependencies")),
+          env = treeToValue(root.get("env")),
+          containerAttributes = treeToValue(root.get("containerAttributes")),
+          resources = treeToValue(root.get("resources")),
+          iamProfile = treeToValue(root.get("iamProfile")),
+          entryPoint = treeToValue(root.get("entryPoint")),
+          capacityGroup = treeToValue(root.get("capacityGroup")),
+          migrationPolicy = treeToValue(root.get("migrationPolicy")),
           tags = treeToValue(root.get("tags"))
         ),
         // this is pretty hairy but we can't just use treeToValue because the map's value type is erased
