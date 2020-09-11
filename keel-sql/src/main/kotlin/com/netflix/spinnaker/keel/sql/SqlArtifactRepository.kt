@@ -542,7 +542,7 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
           .execute()
 
-        log.debug("# of records marked CURRENT: $currentUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        log.debug("markAsSuccessfullyDeployedTo: # of records marked CURRENT: $currentUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
 
         // update old "CURRENT" to "PREVIOUS
         val previousUpdates = txn
@@ -556,29 +556,36 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
           .execute()
 
-        log.debug("# of records marked PREVIOUS: $previousUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        log.debug("markAsSuccessfullyDeployedTo: # of records marked PREVIOUS: $previousUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
         // update any past artifacts that were "APPROVED" to be "SKIPPED"
         // because the new version takes precedence
-        val approvedButOld = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+        val approved = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
           .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .where(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
-          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-          .filter { isOlder(artifact, it, version) }
-
-        log.debug("# of approvedButOld: ${approvedButOld.size}. ${artifact.name}. version: $version. env: $targetEnvironment")
-
-        val skippedUpdates = txn
-          .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(*approvedButOld.toTypedArray()))
-          .execute()
+          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
 
-        log.debug("# of records marked SKIPPED: $skippedUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        log.debug("markAsSuccessfullyDeployedTo: # of records marked APPROVED: ${approved.size}. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+
+        val approvedButOld = approved.filter { isOlder(artifact, it, version) }
+
+        log.debug("markAsSuccessfullyDeployedTo: # of approvedButOld: ${approvedButOld.size}. ${artifact.name}. version: $version. env: $targetEnvironment")
+
+        if(approvedButOld.isNotEmpty()) {
+          val skippedUpdates = txn
+            .update(ENVIRONMENT_ARTIFACT_VERSIONS)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
+            .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(*approvedButOld.toTypedArray()))
+            .execute()
+
+          log.debug("markAsSuccessfullyDeployedTo: # of records marked SKIPPED: $skippedUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
+        }
       }
     }
 
