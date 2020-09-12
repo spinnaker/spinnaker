@@ -98,6 +98,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d" // release
     val version6 = "master-h12.4ea8a9d"
     val versionBad = "latest"
+    val versionOnly = "0.0.1~dev.8-h8.41595c4"
 
     val pin1 = EnvironmentArtifactPin(
       targetEnvironment = environment2.name, // staging
@@ -781,6 +782,16 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
       test ("save and retrieves successfully") {
         subject.updateArtifactMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT, artifactMetadata)
+
+        expectThat(subject.getArtifactBuildMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+          .isEqualTo(artifactMetadata.buildMetadata)
+
+        expectThat(subject.getArtifactGitMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+          .isEqualTo(artifactMetadata.gitMetadata)
+      }
+
+      test("verify update with version that contains only version") {
+        subject.updateArtifactMetadata(artifact1.name, artifact1.type, versionOnly, SNAPSHOT, artifactMetadata)
 
         expectThat(subject.getArtifactBuildMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
           .isEqualTo(artifactMetadata.buildMetadata)

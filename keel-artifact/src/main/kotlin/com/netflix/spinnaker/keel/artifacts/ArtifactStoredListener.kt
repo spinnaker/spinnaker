@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactSaved
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
@@ -21,7 +22,11 @@ class ArtifactStoredListener(
       artifactSupplier.getArtifactMetadata(event.artifact)
     }
     if (artifactMetadata != null) {
+      log.debug("storing artifact metadata for name $event.artifact.name and version $event.artifact.version")
       repository.updateArtifactMetadata(event.artifact.name, event.artifact.type, event.artifact.version, event.artifactStatus, artifactMetadata)
     }
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
 }
