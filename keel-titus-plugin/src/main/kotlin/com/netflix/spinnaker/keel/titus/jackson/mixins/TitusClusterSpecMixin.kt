@@ -29,9 +29,6 @@ interface TitusClusterSpecMixin {
   val artifactVersion: String?
 
   @get:JsonIgnore
-  val container: ContainerProvider
-
-  @get:JsonIgnore
   val maxDiffCount: Int?
 
   @get:JsonIgnore
