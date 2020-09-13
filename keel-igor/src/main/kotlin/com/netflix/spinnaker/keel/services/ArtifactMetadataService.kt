@@ -13,6 +13,7 @@ import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.vavr.control.Try
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
 import java.time.Duration
@@ -37,9 +38,11 @@ class ArtifactMetadataService(
     val buildList = getArtifactMetadataWithRetries(commitId, buildNumber)
 
     if (buildList.isNullOrEmpty()) {
+      log.debug("artifact metadata buildList is null or empty, for build $buildNumber and commit $commitId")
       return null
     }
 
+    log.debug("received artifact metadata $buildList for build $buildNumber and commit $commitId")
     return buildList.first().toArtifactMetadata(commitId)
   }
 
@@ -103,4 +106,6 @@ class ArtifactMetadataService(
       }
     }).get()
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

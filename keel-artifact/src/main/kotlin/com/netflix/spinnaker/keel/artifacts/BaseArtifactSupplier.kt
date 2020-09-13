@@ -19,10 +19,14 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy
       log.debug("either commit id: $commitId or build number $buildNumber is missing, returning null")
       return null
     }
+
     log.debug("calling to artifact metadata service to get information for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
       "with build number: $buildNumber and commit id: $commitId")
     return try {
-      artifactMetadataService.getArtifactMetadata(buildNumber, commitId)
+      val artifactMetadata = artifactMetadataService.getArtifactMetadata(buildNumber, commitId)
+      log.debug("received $artifactMetadata for build $buildNumber and commit $commitId")
+      artifactMetadata
+
     } catch (ex: Exception) {
       log.error("failed to get artifact metadata for build $buildNumber and commit $commitId", ex)
       null
