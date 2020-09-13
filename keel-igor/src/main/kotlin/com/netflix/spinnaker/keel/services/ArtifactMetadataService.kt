@@ -58,7 +58,13 @@ class ArtifactMetadataService(
         status = result.toString()
       ),
       GitMetadata(
-        commit = commitId,
+        commit = let {
+          if (commitId.length > 7)
+            commitId.substring(0, 7)
+          else {
+            commitId
+          }
+        },
         commitInfo = Commit(
           sha = scm?.first()?.sha1,
           link = scm?.first()?.compareUrl,

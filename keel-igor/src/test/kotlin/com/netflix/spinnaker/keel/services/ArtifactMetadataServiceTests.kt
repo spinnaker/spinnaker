@@ -110,7 +110,17 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
             )
           )
         }
-      }
+
+        test("commit id length is long, expect short commit in return") {
+          val results = runBlocking {
+            artifactMetadataService.getArtifactMetadata("1", "a15p0a15p0a15p0")
+          }
+          expectThat(results).get {
+              results?.gitMetadata?.commit
+            }.isEqualTo("a15p0a1")
+          }
+        }
+
 
       context("return an empty results from the CI provider") {
         before {

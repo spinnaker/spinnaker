@@ -12,10 +12,11 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy
   open val artifactMetadataService: ArtifactMetadataService
 ) : ArtifactSupplier<A, V> {
   override suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata? {
+
     val buildNumber = artifact.metadata["buildNumber"]?.toString()
     val commitId = artifact.metadata["commitId"]?.toString()
     if (commitId == null || buildNumber == null) {
-      log.debug("either commit id: $commitId or build number $buildNumber is missing")
+      log.debug("either commit id: $commitId or build number $buildNumber is missing, returning null")
       return null
     }
     log.debug("calling to artifact metadata service to get information for artifact: ${artifact.reference}, version: ${artifact.version}, type: ${artifact.type} " +
