@@ -24,15 +24,20 @@ import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.release.provider.AggregatePluginInfoReleaseProvider
 import com.netflix.spinnaker.kork.plugins.update.release.source.LatestPluginInfoReleaseSource
 import com.netflix.spinnaker.kork.plugins.update.release.source.SpringPluginInfoReleaseSource
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.util.Optional
 
 @Configuration
 @ConditionalOnProperty("spinnaker.extensibility.deck-proxy.enabled", matchIfMissing = true)
 @EnableScheduling
 class DeckPluginConfiguration {
+
+  @Value("\${spinnaker.extensibility.deck-proxy.plugins-path:#{null}}")
+  private val pluginsCacheDirectory: String? = null
 
   @Bean
   fun deckPluginCache(
@@ -57,7 +62,8 @@ class DeckPluginConfiguration {
       springPluginStatusProvider,
       AggregatePluginInfoReleaseProvider(sources, springStrictPluginLoaderStatusProvider),
       registry,
-      springStrictPluginLoaderStatusProvider
+      springStrictPluginLoaderStatusProvider,
+      Optional.ofNullable(pluginsCacheDirectory)
     )
   }
 

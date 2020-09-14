@@ -37,6 +37,7 @@ import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import java.util.Optional
 
 class DeckPluginCacheTest : JUnit5Minutests {
 
@@ -101,7 +102,7 @@ class DeckPluginCacheTest : JUnit5Minutests {
     val pluginInfoReleaseProvider: PluginInfoReleaseProvider = mockk(relaxed = true)
     val registry: Registry = NoopRegistry()
     val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider = mockk(relaxed = true)
-    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry, springStrictPluginLoaderStatusProvider)
+    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry, springStrictPluginLoaderStatusProvider, Optional.empty())
 
     init {
       val plugins = listOf(

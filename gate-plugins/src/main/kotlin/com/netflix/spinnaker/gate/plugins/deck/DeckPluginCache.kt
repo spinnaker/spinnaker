@@ -28,6 +28,8 @@ import java.nio.file.StandardCopyOption
 import org.pf4j.PluginRuntimeException
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
+import java.nio.file.Paths
+import java.util.Optional
 
 /**
  * Responsible for keeping an up-to-date cache of all plugins that Deck needs to know about.
@@ -38,7 +40,8 @@ class DeckPluginCache(
   private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val registry: Registry,
-  private val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider
+  private val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider,
+  private val pluginsCacheDirectory: Optional<String>
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -51,6 +54,11 @@ class DeckPluginCache(
   private val missesId = registry.createId("plugins.deckCache.misses")
   private val downloadDurationId = registry.createId("plugins.deckCache.downloadDuration")
   private val refreshDurationId = registry.createId("plugins.deckCache.refreshDuration")
+  private val CACHE_ROOT_PATH = if (pluginsCacheDirectory.isPresent) {
+    Paths.get(pluginsCacheDirectory.get())
+  } else {
+    Files.createTempDirectory("downloaded-plugin-cache")
+  }
 
   /**
    * Refreshes the local file cache of _current_ plugins. Should Deck need plugin assets from an older plugin release
@@ -144,7 +152,6 @@ class DeckPluginCache(
   )
 
   companion object {
-    internal val CACHE_ROOT_PATH = Files.createTempDirectory("downloaded-plugin-cache")
     internal const val DECK_REQUIREMENT = "deck"
   }
 }
