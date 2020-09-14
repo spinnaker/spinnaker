@@ -29,6 +29,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
+
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.KEY_PAIRS
@@ -36,7 +39,9 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.KEY_PAI
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware {
+class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware, CustomScheduledAgent {
+  private static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5)
+  private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
@@ -88,5 +93,15 @@ class AmazonKeyPairCachingAgent implements CachingAgent, AccountAware {
     }
     log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(KEY_PAIRS.ns): data])
+  }
+
+  @Override
+  long getPollIntervalMillis() {
+    return DEFAULT_POLL_INTERVAL_MILLIS
+  }
+
+  @Override
+  long getTimeoutMillis() {
+    return DEFAULT_TIMEOUT_MILLIS
   }
 }
