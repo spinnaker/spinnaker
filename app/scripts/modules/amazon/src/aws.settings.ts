@@ -42,6 +42,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
   };
   minRootVolumeSize?: number;
   serverGroups?: {
+    enableLaunchTemplates?: boolean;
     enableIPv6?: boolean;
     enableIMDSv2?: boolean;
     defaultIMDSv2AppAgeLimit?: number;

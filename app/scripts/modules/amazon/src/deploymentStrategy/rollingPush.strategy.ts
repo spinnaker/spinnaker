@@ -1,5 +1,5 @@
 import { DeploymentStrategyRegistry, IServerGroupCommand } from '@spinnaker/core';
-
+import { AWSProviderSettings } from '../aws.settings';
 import { AdditionalFields } from './AdditionalFields';
 
 export interface IRollingPushTermination {
@@ -16,7 +16,9 @@ export interface IRollingPushCommand extends IServerGroupCommand {
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Rolling Push (not recommended)',
-  description: `Updates the launch configuration for this server group, then terminates instances incrementally,
+  description: `Updates the launch ${
+    AWSProviderSettings.serverGroups?.enableLaunchTemplates ? 'template' : 'configuration'
+  } for this server group, then terminates instances incrementally,
     replacing them with instances launched with the updated configuration. This is not a best practice - it goes against
     the principles of immutable infrastructure - but may be necessary in some cases.`,
   key: 'rollingpush',

@@ -148,6 +148,7 @@ window.spinnakerSettings = {
         inferInternalFlagFromSubnet: false,
       },
       serverGroups: {
+        enableLaunchTemplates: false,
         enableIPv6: false,
         enableIMDSv2: false,
       },

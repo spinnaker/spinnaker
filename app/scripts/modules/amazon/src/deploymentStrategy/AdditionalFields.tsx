@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { IDeploymentStrategyAdditionalFieldsProps, HelpField } from '@spinnaker/core';
+import { AWSProviderSettings } from '../aws.settings';
 import { IRollingPushCommand } from './rollingPush.strategy';
 
 export interface IRollingPushStrategyAdditionalFieldsProps extends IDeploymentStrategyAdditionalFieldsProps {
@@ -18,8 +19,11 @@ export class AdditionalFields extends React.Component<IRollingPushStrategyAdditi
     return (
       <div className="form-group" style={{ marginTop: '20px' }}>
         <div className="well-compact alert alert-warning">
-          <strong>Note:</strong> a rolling push only updates the <em>launch configuration</em> for the auto scaling
-          group.
+          <strong>Note:</strong> a rolling push only updates the{' '}
+          <em>
+            launch {Boolean(AWSProviderSettings.serverGroups?.enableLaunchTemplates) ? 'template' : 'configuration'}
+          </em>{' '}
+          for the auto scaling group.
           <br /> Changes to the following fields will be ignored:
           <ul>
             <li>Account, Region, Subnet Type</li>
