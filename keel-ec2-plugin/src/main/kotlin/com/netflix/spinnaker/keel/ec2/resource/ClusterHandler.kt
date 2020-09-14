@@ -393,6 +393,7 @@ class ClusterHandler(
       serverGroupName = base.name
     ) ?: RedBlack()
 
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(base.image?.appVersion).packageName
 
     val spec = ClusterSpec(
@@ -441,6 +442,7 @@ class ClusterHandler(
       throw ExportError("Server group ${base.name} doesn't have image information - unable to correctly export artifact.")
     }
 
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val artifactName = AppVersion.parseName(base.launchConfiguration.appVersion).packageName
 
     val status = debianArtifactParser.parseStatus(base.launchConfiguration.appVersion?.substringAfter("$artifactName-"))

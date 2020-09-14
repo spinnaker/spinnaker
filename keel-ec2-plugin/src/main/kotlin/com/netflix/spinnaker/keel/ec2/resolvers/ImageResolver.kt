@@ -88,6 +88,7 @@ class ImageResolver(
       environment.name
     ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
     val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+      // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
       appVersion = AppVersion.parseName(artifactVersion),
       account = account,
       regions = regions

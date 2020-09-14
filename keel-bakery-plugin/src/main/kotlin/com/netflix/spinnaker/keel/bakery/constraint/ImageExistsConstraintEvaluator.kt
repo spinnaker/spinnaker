@@ -53,6 +53,7 @@ class ImageExistsConstraintEvaluator(
     log.debug("Searching for baked image for {} in {}", version, vmOptions.regions.joinToString())
     return runBlocking {
       imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         AppVersion.parseName(version),
         defaultImageAccount,
         vmOptions.regions

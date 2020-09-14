@@ -69,6 +69,7 @@ class DebianArtifactSupplier(
   }
 
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
     return if (appversion?.version != null) {
       appversion.version
@@ -79,6 +80,7 @@ class DebianArtifactSupplier(
 
   override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
     // attempt to parse helpful info from the appversion.
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
     if (appversion?.buildNumber != null) {
       return BuildMetadata(id = appversion.buildNumber.toInt())
@@ -87,8 +89,8 @@ class DebianArtifactSupplier(
   }
 
   override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
-
     // attempt to parse helpful info from the appversion.
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
     if (appversion?.commit != null) {
       return GitMetadata(commit = appversion.commit)

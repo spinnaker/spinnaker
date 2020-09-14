@@ -121,6 +121,7 @@ class ImageHandler(
     desiredVersion: String,
     diff: DefaultResourceDiff<Image>
   ): List<Task> {
+    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appVersion = AppVersion.parseName(desiredVersion)
     val packageName = appVersion.packageName
     val version = desiredVersion.substringAfter("$packageName-")

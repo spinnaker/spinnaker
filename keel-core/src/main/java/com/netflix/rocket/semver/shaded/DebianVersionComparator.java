@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NetflixVersionComparator implements Comparator<String> {
+public class DebianVersionComparator implements Comparator<String> {
   private static final String PRERELEASE_SPLIT = "~";
   private static final String DOT_SEPARATOR = "\\.";
   private static final String PRERELEASE_SEPARATOR = "[.+]";
@@ -93,9 +93,17 @@ public class NetflixVersionComparator implements Comparator<String> {
       if (i >= mainParts1.length) {
         return 1;
       }
-      int diff = Integer.parseInt(mainParts0[i]) - Integer.parseInt(mainParts1[i]);
-      if (diff != 0) {
-        return diff;
+      boolean isNumeric0 = isNumeric(mainParts0[i]);
+      boolean isNumeric1 = isNumeric(mainParts1[i]);
+      if (isNumeric0 && isNumeric1) {
+        int diff = Integer.parseInt(mainParts0[i]) - Integer.parseInt(mainParts1[i]);
+        if (diff != 0) {
+          return diff;
+        }
+      } else if (isNumeric0) {
+        return 1;
+      } else {
+        return -1;
       }
     }
     return mainParts0.length - mainParts1.length;

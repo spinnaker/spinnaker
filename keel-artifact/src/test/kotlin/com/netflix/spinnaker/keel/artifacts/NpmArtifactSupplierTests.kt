@@ -18,12 +18,12 @@ import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class NpmArtifactSupplierTests : JUnit5Minutests {
   object Fixture {
@@ -36,14 +36,14 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
       deliveryConfigName = deliveryConfig.name,
       statuses = setOf(CANDIDATE)
     )
-    val versions = listOf("1.0.0-rc", "1.0.0", "1.0.1-5", "1.0.2-h6", "1.0.3-h7-gc0c60369")
+    val versions = listOf("1.0.0-rc", "1.0.0-rc.1", "1.0.0", "1.0.1-5", "1.0.2-h6", "1.0.3-rc-h7.gc0c603")
     val latestArtifact = PublishedArtifact(
       name = npmArtifact.name,
       type = npmArtifact.type,
       reference = npmArtifact.reference,
-      version = "${npmArtifact.name}-${versions.last()}",
-      metadata = mapOf("releaseStatus" to CANDIDATE, "buildNumber" to "1", "commitId" to "a15p0")
-      )
+      version = versions.last(),
+      metadata = mapOf("releaseStatus" to CANDIDATE, "buildNumber" to "7", "commitId" to "gc0c603")
+    )
     val npmArtifactSupplier = NpmArtifactSupplier(eventBridge, artifactService, artifactMetadataService)
 
     val artifactMetadata = ArtifactMetadata(
@@ -56,10 +56,10 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
           name = "job bla bla",
           link = "enkins.com"
         ),
-        number = "1"
+        number = "7"
       ),
       GitMetadata(
-        commit = "a15p0",
+        commit = "gc0c603",
         author = "keel-user",
         repo = Repo(
           name = "keel",
@@ -70,7 +70,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
           url = "www.github.com/pr/111"
         ),
         commitInfo = Commit(
-          sha = "a15p0",
+          sha = "gc0c603",
           message = "this is a commit message",
           link = ""
         ),
@@ -91,7 +91,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
           artifactService.getArtifact(npmArtifact.name, versions.last(), NPM)
         } returns latestArtifact
         every {
-          artifactMetadataService.getArtifactMetadata("1", "a15p0")
+          artifactMetadataService.getArtifactMetadata("7", "gc0c603")
         } returns artifactMetadata
       }
 

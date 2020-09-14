@@ -54,6 +54,7 @@ class Ec2CanaryConstraintDeployHandler(
     val judge = "canary:${deliveryConfig.application}:${targetEnvironment.name}:${constraint.canaryConfigId}"
 
     val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+      // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
       appVersion = AppVersion.parseName(version.replace("~", "_")),
       account = imageResolver.defaultImageAccount,
       regions = constraint.regions.toList()

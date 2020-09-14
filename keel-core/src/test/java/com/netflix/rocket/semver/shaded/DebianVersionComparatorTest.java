@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class DebianVersionComparatorTest {
-  private static NetflixVersionComparator comparator = new NetflixVersionComparator();
+  private static DebianVersionComparator comparator = new DebianVersionComparator();
 
   @ParameterizedTest(name = "[{index}]: {0} < {1}")
   @MethodSource("compareVersionsLessThan")
@@ -39,7 +39,8 @@ class DebianVersionComparatorTest {
         of("1.0.0~dev.1+abcdef", "1.0.0~dev.1+bcdef0"),
         of("1.0.0~rc.1.dev.2+abcdef", "1.0.0~rc.1"),
         of("1.0.0-h2.abcdef", "1.0.0-h11.123456"),
-        of("1.0.0-LOCAL", "1.0.0-h1.abcdef"));
+        of("1.0.0-LOCAL", "1.0.0-h1.abcdef"),
+        of("1.0.0-m001-h123", "1.0.0-h1.abcdef"));
   }
 
   @ParameterizedTest(name = "[{index}]: {0} == {1}")
@@ -83,7 +84,8 @@ class DebianVersionComparatorTest {
         of("1.0.0~dev.2+bcdefa", "1.0.0~dev.2+abcdef"),
         of("1.0.0~rc.1", "1.0.0~rc.1.dev.1+abcdef"),
         of("1.0.0-h23.123abc", "1.0.0-h12.34ad35"),
-        of("1.0.0-h2.123456", "1.0.0-LOCAL"));
+        of("1.0.0-h2.123456", "1.0.0-LOCAL"),
+        of("1.0.0-h.123", "1.0.1-m001-h762"));
   }
 
   @Test

@@ -74,6 +74,7 @@ class ImageService(
       .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .firstOrNull {
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         AppVersion.parseName(it.appVersion).packageName == packageName
       }
 
@@ -93,6 +94,7 @@ class ImageService(
       .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .firstOrNull {
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         AppVersion.parseName(it.appVersion).run {
           packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
         }
@@ -111,6 +113,7 @@ class ImageService(
       .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .find { namedImage ->
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         val curAppVersion = AppVersion.parseName(namedImage.appVersion)
         curAppVersion.packageName == appVersion.packageName &&
           curAppVersion.version == appVersion.version &&
@@ -139,6 +142,7 @@ class ImageService(
     val image = filteredImages
       .find {
         val errors = mutableListOf<String>()
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         val curAppVersion = AppVersion.parseName(it.appVersion)
         if (curAppVersion.packageName != packageName) {
           errors.add("[package name ${curAppVersion.packageName} does not match required package]")
@@ -173,6 +177,7 @@ class ImageService(
       .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .filter {
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         AppVersion.parseName(it.appVersion).packageName == packageName
       }
       .firstOrNull { namedImage ->
