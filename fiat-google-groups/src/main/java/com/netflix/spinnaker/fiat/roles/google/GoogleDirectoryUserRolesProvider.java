@@ -174,8 +174,23 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   }
 
   protected Groups getGroupsFromEmail(String email) throws IOException {
-    Directory service = getDirectoryService();
-    return service.groups().list().setDomain(config.getDomain()).setUserKey(email).execute();
+    final Directory service = getDirectoryService();
+    final Groups groups =
+        service.groups().list().setDomain(config.getDomain()).setUserKey(email).execute();
+    String nextPageToken = groups.getNextPageToken();
+    while (nextPageToken != null) {
+      final Groups nextPage =
+          service
+              .groups()
+              .list()
+              .setDomain(config.getDomain())
+              .setUserKey(email)
+              .setPageToken(nextPageToken)
+              .execute();
+      groups.getGroups().addAll(nextPage.getGroups());
+      nextPageToken = nextPage.getNextPageToken();
+    }
+    return groups;
   }
 
   private GoogleCredential getGoogleCredential() {
