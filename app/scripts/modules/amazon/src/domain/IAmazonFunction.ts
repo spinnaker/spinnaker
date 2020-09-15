@@ -23,7 +23,7 @@ export interface IAmazonFunction extends IFunction {
   deadLetterConfig: {
     targetArn: string;
   };
-  KMSKeyArn: string;
+  kmskeyArn: string;
   vpcConfig: {
     securityGroupIds: [];
     subnetIds: [];
@@ -49,7 +49,7 @@ export interface IAmazonFunctionUpsertCommand extends IFunctionUpsertCommand {
   deadLetterConfig: {
     targetArn: string;
   };
-  KMSKeyArn: string;
+  kmskeyArn: string;
   securityGroupIds: string[];
   subnetIds: string[];
   vpcId: string;

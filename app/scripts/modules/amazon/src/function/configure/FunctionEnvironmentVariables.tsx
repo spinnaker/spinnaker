@@ -24,7 +24,7 @@ export class FunctionEnvironmentVariables extends React.Component<IFunctionEnvir
   public validate = (values: IAmazonFunctionUpsertCommand) => {
     const validator = new FormValidator(values);
     validator
-      .field('KMSKeyArn', 'KMS Key ARN')
+      .field('kmskeyArn', 'KMS Key ARN')
       .optional()
       .withValidators(awsArnValidator);
     return validator.validateForm();
@@ -39,7 +39,7 @@ export class FunctionEnvironmentVariables extends React.Component<IFunctionEnvir
           input={props => <MapEditorInput {...props} allowEmptyValues={true} addButtonLabel="Add" />}
         />
         <FormikFormField
-          name="KMSKeyArn"
+          name="kmskeyArn"
           label="Key ARN"
           help={<HelpField id="aws.function.kmsKeyArn" />}
           input={props => <TextInput {...props} />}

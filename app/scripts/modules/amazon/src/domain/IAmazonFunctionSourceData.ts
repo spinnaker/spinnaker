@@ -39,6 +39,6 @@ export interface IAmazonFunctionSourceData extends IFunctionSourceData {
   deadLetterConfig: {
     targetArn: string;
   };
-  KMSKeyArn: string;
+  kmskeyArn: string;
   targetGroups: string[];
 }

@@ -21,7 +21,7 @@ export class AwsFunctionTransformer {
     deadLetterConfig: {
       targetArn: functionDef.deadLetterConfig ? functionDef.deadLetterConfig.targetArn : '',
     },
-    KMSKeyArn: functionDef.KMSKeyArn ? functionDef.KMSKeyArn : '',
+    KMSKeyArn: functionDef.kmskeyArn ? functionDef.kmskeyArn : '',
     subnetIds: functionDef.vpcConfig ? functionDef.vpcConfig.subnetIds : [],
     securityGroupIds: functionDef.vpcConfig ? functionDef.vpcConfig.securityGroupIds : [],
     vpcId: functionDef.vpcConfig ? functionDef.vpcConfig.vpcId : '',
@@ -56,7 +56,7 @@ export class AwsFunctionTransformer {
       tracingConfig: {
         mode: 'PassThrough',
       },
-      KMSKeyArn: '',
+      kmskeyArn: '',
       vpcId: '',
       subnetIds: [],
       securityGroupIds: [],
