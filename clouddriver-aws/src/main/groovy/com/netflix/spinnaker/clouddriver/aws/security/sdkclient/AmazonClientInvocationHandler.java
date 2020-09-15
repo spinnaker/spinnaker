@@ -24,6 +24,7 @@ import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
 import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.LaunchTemplate;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
@@ -191,6 +192,17 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
   // AmazonEC2
   //
   ////////////////////////////////////
+  public DescribeLaunchTemplatesResult describeLaunchTemplates() {
+    return describeLaunchTemplates(null);
+  }
+
+  public DescribeLaunchTemplatesResult describeLaunchTemplates(
+      DescribeLaunchTemplatesRequest request) {
+    return new DescribeLaunchTemplatesResult()
+        .withLaunchTemplates(
+            describe(request, "launchTemplateNames", "launchTemplates", LaunchTemplate.class));
+  }
+
   public DescribeImagesResult describeImages() {
     return describeImages(null);
   }

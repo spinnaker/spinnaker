@@ -87,13 +87,7 @@ class AmazonLaunchTemplateCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeLaunchTemplates(_) >> new DescribeLaunchTemplatesResult(launchTemplates: [lt1, lt2])
-    1 * ec2.describeLaunchTemplateVersions(
-      {it.launchTemplateId == lt1.launchTemplateId} as DescribeLaunchTemplateVersionsRequest
-    ) >> new DescribeLaunchTemplateVersionsResult(launchTemplateVersions: [lt1Version0, lt1Version1])
-
-    1 * ec2.describeLaunchTemplateVersions(
-      {it.launchTemplateId == lt2.launchTemplateId} as DescribeLaunchTemplateVersionsRequest
-    ) >> new DescribeLaunchTemplateVersionsResult(launchTemplateVersions: [lt2Version0])
+    1 * ec2.describeLaunchTemplateVersions(_) >> new DescribeLaunchTemplateVersionsResult(launchTemplateVersions: [lt1Version0, lt1Version1, lt2Version0])
 
     result.size() == 2
     def lt1Result = result.find { it.attributes.launchTemplateName == lt1.launchTemplateName }

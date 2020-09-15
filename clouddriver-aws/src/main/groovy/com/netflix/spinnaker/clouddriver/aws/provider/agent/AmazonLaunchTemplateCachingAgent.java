@@ -58,6 +58,8 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
   private final ObjectMapper objectMapper;
   private final String region;
 
+  private static final String[] DEFAULT_VERSIONS = new String[] {"$Default", "$Latest"};
+
   private static final TypeReference<Map<String, Object>> ATTRIBUTES =
       new TypeReference<Map<String, Object>>() {};
   private static final Set<AgentDataType> types =
@@ -85,7 +87,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
     final AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(account, region);
     final List<LaunchTemplate> launchTemplates = getLaunchTemplates(ec2);
     final List<LaunchTemplateVersion> launchTemplateVersions =
-        getLaunchTemplateVersions(ec2, launchTemplates);
+        getLaunchTemplateVersions(ec2, DEFAULT_VERSIONS);
     final List<CacheData> cachedData = new ArrayList<>();
     for (LaunchTemplate launchTemplate : launchTemplates) {
       Set<LaunchTemplateVersion> versions =
@@ -147,24 +149,11 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
     return launchTemplates;
   }
 
-  /** Gets Launch template versions */
-  private List<LaunchTemplateVersion> getLaunchTemplateVersions(
-      AmazonEC2 ec2, List<LaunchTemplate> launchTemplates) {
-    final List<LaunchTemplateVersion> launchTemplateVersions = new ArrayList<>();
-    for (LaunchTemplate launchTemplate : launchTemplates) {
-      launchTemplateVersions.addAll(getLaunchTemplateVersions(ec2, launchTemplate));
-    }
-
-    return launchTemplateVersions;
-  }
-
   /** Gets a list of ec2 Launch template versions for a Launch template */
-  private List<LaunchTemplateVersion> getLaunchTemplateVersions(
-      AmazonEC2 ec2, LaunchTemplate template) {
+  private List<LaunchTemplateVersion> getLaunchTemplateVersions(AmazonEC2 ec2, String... versions) {
     final List<LaunchTemplateVersion> launchTemplateVersions = new ArrayList<>();
     final DescribeLaunchTemplateVersionsRequest request =
-        new DescribeLaunchTemplateVersionsRequest()
-            .withLaunchTemplateId(template.getLaunchTemplateId());
+        new DescribeLaunchTemplateVersionsRequest().withVersions(versions);
     while (true) {
       final DescribeLaunchTemplateVersionsResult result =
           ec2.describeLaunchTemplateVersions(request);
