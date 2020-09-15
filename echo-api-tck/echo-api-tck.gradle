@@ -1,0 +1,17 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+
+dependencies {
+  implementation(project(":echo-web"))
+
+  api("org.springframework.boot:spring-boot-starter-test")
+  api("dev.minutest:minutest")
+
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
+}
