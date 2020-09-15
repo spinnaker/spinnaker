@@ -9,12 +9,14 @@
  */
 package com.netflix.spinnaker.igor.wercker
 
+import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.igor.config.*
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.wercker.model.*
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
-
+import okhttp3.OkHttpClient
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -98,7 +100,7 @@ class WerckerClientSpec extends Specification {
                 )
         server.start()
         def host = new WerckerHost(name: 'werckerMaster', address: server.url('/').toString())
-        client = new WerckerConfig().werckerClient(host)
+        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]))
     }
 
     String read(String fileName) {
