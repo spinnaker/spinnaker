@@ -113,6 +113,9 @@ class DefaultConfiguration(
       ResourceKindSchemaCustomizer(
         resourceHandlers.map { it.supportedKind.kind } + migrators.map { it.input.kind }
       )
+    ),
+    options = Generator.Options(
+      lowerCaseEnums = true
     )
   )
 }

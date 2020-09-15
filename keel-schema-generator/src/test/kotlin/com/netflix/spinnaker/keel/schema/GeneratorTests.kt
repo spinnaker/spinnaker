@@ -115,18 +115,37 @@ internal class GeneratorTests {
     )
 
     enum class Size {
-      tall, grande, venti
+      TALL, GRANDE, VENTI
     }
 
-    val schema by lazy { generateSchema<Foo>() }
+    @Nested
+    @DisplayName("with lower-case-enums set to true")
+    class LowerCaseEnumsOn : GeneratorTestBase(Generator.Options(lowerCaseEnums = true)) {
+      val schema by lazy { generateSchema<Foo>() }
 
-    @Test
-    fun `applies correct property types`() {
-      expectThat(schema.properties)
-        .get(Foo::size.name)
-        .isA<EnumSchema>()
-        .get { enum }
-        .containsExactly(Size.values().map { it.name })
+      @Test
+      fun `schema is an enum with all enum names lower-cased`() {
+        expectThat(schema.properties)
+          .get(Foo::size.name)
+          .isA<EnumSchema>()
+          .get { enum }
+          .containsExactly(Size.values().map { it.name.toLowerCase() })
+      }
+    }
+
+    @Nested
+    @DisplayName("with lower-case-enums set to false")
+    class LowerCaseEnumsFalse : GeneratorTestBase(Generator.Options(lowerCaseEnums = false)) {
+      val schema by lazy { generateSchema<Foo>() }
+
+      @Test
+      fun `schema is an enum with all enum names`() {
+        expectThat(schema.properties)
+          .get(Foo::size.name)
+          .isA<EnumSchema>()
+          .get { enum }
+          .containsExactly(Size.values().map { it.name })
+      }
     }
   }
 

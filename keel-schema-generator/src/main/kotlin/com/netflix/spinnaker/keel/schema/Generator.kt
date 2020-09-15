@@ -44,7 +44,13 @@ class Generator(
      * type is. If `false` nullable properties are treated as optional (because omitting them in the
      * JSON maps to `null` when Jackson parses it).
      */
-    val nullableAsOneOf: Boolean = false
+    val nullableAsOneOf: Boolean = false,
+
+    /**
+     * If `true`, enum names are lower-cased in the schema. If `false` they are rendered as-is in
+     * the enum declaration.
+     */
+    val lowerCaseEnums: Boolean = false
   )
 
   /**
@@ -425,7 +431,9 @@ class Generator(
       require(isEnum) {
         "enumNames is only valid on enum types"
       }
-      return (jvmErasure.java as Class<Enum<*>>).enumConstants.map { it.name }
+      return (jvmErasure.java as Class<Enum<*>>)
+        .enumConstants
+        .map { if (options.lowerCaseEnums) it.name.toLowerCase() else it.name }
     }
 
   /**
