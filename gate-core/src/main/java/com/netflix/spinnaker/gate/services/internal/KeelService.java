@@ -75,6 +75,9 @@ public interface KeelService {
   @POST("/delivery-configs/diff")
   List<Map> diffManifest(@Body DeliveryConfig manifest);
 
+  @GET("/delivery-configs/schema")
+  Map<String, Object> schema();
+
   @POST("/delivery-configs/validate")
   @Headers("Accept: application/json")
   Map validateManifest(@Body DeliveryConfig manifest);
@@ -144,9 +147,6 @@ public interface KeelService {
       @Path("targetEnvironment") String targetEnvironment,
       @Path("reference") String reference,
       @Path("version") String version);
-
-  @GET("/v3/api-docs")
-  Map<String, Object> getApiDocs();
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();

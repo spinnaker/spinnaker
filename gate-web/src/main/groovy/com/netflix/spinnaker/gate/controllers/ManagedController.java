@@ -207,6 +207,14 @@ public class ManagedController {
     return keelService.diffManifest(manifest);
   }
 
+  @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
+  @GetMapping(
+      path = "/delivery-configs/schema",
+      produces = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE})
+  Map<String, Object> schema() {
+    return keelService.schema();
+  }
+
   @ApiOperation(
       value = "List up-to {limit} current constraint states for an environment",
       response = ConstraintState.class)
@@ -301,10 +309,5 @@ public class ManagedController {
       @PathVariable("reference") String reference,
       @PathVariable("version") String version) {
     keelService.deleteVeto(application, targetEnvironment, reference, version);
-  }
-
-  @GetMapping(path = "/api-docs")
-  Map<String, Object> getApiDocs() {
-    return keelService.getApiDocs();
   }
 }
