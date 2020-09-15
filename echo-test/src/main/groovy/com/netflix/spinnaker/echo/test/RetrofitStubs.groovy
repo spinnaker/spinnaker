@@ -54,6 +54,8 @@ trait RetrofitStubs {
       .enabled(true).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
   final Trigger disabledGooglePubsubTrigger = Trigger.builder()
       .enabled(false).type('pubsub').pubsubSystem('google').subscriptionName('projects/project/subscriptions/subscription').expectedArtifactIds([]).build()
+  final Trigger enabledHelmTrigger = Trigger.builder().enabled(true).type('helm').account('account').version('1.0.0').digest('digest').build()
+  final Trigger disabledHelmTrigger = Trigger.builder().enabled(false).type('helm').account('account').version('1.0.0').digest('digest').build()
 
   private nextId = new AtomicInteger(1)
 
@@ -135,5 +137,12 @@ trait RetrofitStubs {
       .triggers(triggers.toList())
       .expectedArtifacts(expectedArtifacts)
       .build()
+  }
+
+  HelmEvent createHelmEvent(String version = "1.0.0") {
+    def res = new HelmEvent()
+    res.content = new HelmEvent.Content("account", "chart", version, "digest")
+    res.details = new Metadata([type: HelmEvent.TYPE, source: "spock"])
+    return res
   }
 }

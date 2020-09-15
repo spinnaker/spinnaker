@@ -83,7 +83,8 @@ public class Trigger {
     PUBSUB("pubsub"),
     DRYRUN("dryrun"),
     PIPELINE("pipeline"),
-    PLUGIN("plugin");
+    PLUGIN("plugin"),
+    HELM("helm");
 
     private final String type;
 
