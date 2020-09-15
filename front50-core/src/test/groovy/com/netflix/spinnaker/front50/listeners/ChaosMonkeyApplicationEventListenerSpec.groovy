@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.ApplicationPermissionsService
 import com.netflix.spinnaker.front50.config.ChaosMonkeyEventListenerConfigurationProperties
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -109,5 +110,23 @@ class ChaosMonkeyApplicationEventListenerSpec extends Specification {
     false              | [CHAOS_MONKEY_PRINCIPAL]                        | [CHAOS_MONKEY_PRINCIPAL]                        | []                            | []
     false              | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | []                            | []
     false              | [CHAOS_MONKEY_PRINCIPAL]                        | []                                              | []                            | []
+  }
+
+  void "should not add chaos monkey permissions during application update for app with no permissions"() {
+    given:
+    Application application = new Application(name: "appwithnopermissions")
+    application.details = [
+      "chaosMonkey": [
+        "enabled": true
+      ]
+    ]
+
+    applicationPermissionsService.getApplicationPermission(application.name) >> { throw new NotFoundException("No permissions for this app")}
+
+    when:
+    subject.accept(new ApplicationEventListener.ApplicationModelEvent(ApplicationEventListener.Type.PRE_UPDATE, application, application))
+
+    then:
+    noExceptionThrown()
   }
 }

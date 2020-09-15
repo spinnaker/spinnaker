@@ -20,6 +20,7 @@ import com.netflix.spinnaker.front50.ApplicationPermissionsService;
 import com.netflix.spinnaker.front50.config.ChaosMonkeyEventListenerConfigurationProperties;
 import com.netflix.spinnaker.front50.events.ApplicationEventListener;
 import com.netflix.spinnaker.front50.model.application.Application;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -53,10 +54,21 @@ public class ChaosMonkeyApplicationEventListener extends ChaosMonkeyEventListene
 
   @Override
   public void accept(ApplicationModelEvent event) {
-    Application.Permission permission =
-        applicationPermissionsService.getApplicationPermission(event.getApplication().getName());
 
-    if (!permission.getPermissions().isRestricted()) {
+    Application.Permission permission;
+    try {
+      permission =
+          applicationPermissionsService.getApplicationPermission(event.getApplication().getName());
+      if (!permission.getPermissions().isRestricted()) {
+        return;
+      }
+    } catch (NotFoundException e) {
+      // This usually happens if the application permission record is deleted or permissions weren't
+      // set for the app yet.
+      log.warn(
+          "Permission record not found for application: {}. Chaos Monkey permissions won't be applied now.",
+          event.getApplication().getName(),
+          e);
       return;
     }
 
