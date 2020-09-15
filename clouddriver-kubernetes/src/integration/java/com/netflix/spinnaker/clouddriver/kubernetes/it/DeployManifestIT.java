@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.it;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,11 +25,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.it.utils.KubeTestUtils;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,8 +48,8 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml").asList();
-    String overrideNamespace = "overridenns";
-    kubeCluster.execKubectl("create ns " + overrideNamespace);
+    String overrideNamespace = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + overrideNamespace);
 
     // ------------------------- when --------------------------
     List<Map<String, Object>> body =
@@ -113,13 +111,12 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldDeployMultidocManifest() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "multimanifest";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/multi_nginx.yml")
             .withValue("metadata.namespace", ns)
             .asList();
-
-    kubeCluster.execKubectl("create ns " + ns);
 
     // ------------------------- when --------------------------
     List<Map<String, Object>> body =
@@ -153,11 +150,11 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldUpdateExistingDeployment() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "deployupdate";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String oldImage = "index.docker.io/library/nginx:1.14.0";
     String newImage = "index.docker.io/library/nginx:1.15.0";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> oldManifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
             .withValue("metadata.namespace", ns)
@@ -218,11 +215,11 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldBindOptionalDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "bindoptionaldocker";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String imageNoTag = "index.docker.io/library/nginx";
     String imageWithTag = "index.docker.io/library/nginx:1.15.0";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
             .withValue("metadata.namespace", ns)
@@ -271,11 +268,11 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldBindRequiredDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "bindrequireddocker";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String imageNoTag = "index.docker.io/library/nginx";
     String imageWithTag = "index.docker.io/library/nginx:1.15.0";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
             .withValue("metadata.namespace", ns)
@@ -325,12 +322,12 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldBindRequiredOverOptionalDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "bindrequiredoptionaldocker";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String imageNoTag = "index.docker.io/library/nginx";
     String requiredImage = "index.docker.io/library/nginx:1.16.0";
     String optionalImage = "index.docker.io/library/nginx:1.15.0";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
             .withValue("metadata.namespace", ns)
@@ -388,11 +385,11 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldBindVersionedConfigMap() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "bindversionedcm";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String cmName = "myconfig";
     String version = "v005";
 
-    kubeCluster.execKubectl("create ns " + ns);
     // deploy versioned configmap
     Map<String, Object> cm =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
@@ -453,11 +450,11 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldBindVersionedSecret() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "bindversionedsecret";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String secretName = "mysecret";
     String version = "v009";
 
-    kubeCluster.execKubectl("create ns " + ns);
     // deploy versioned secret
     Map<String, Object> secret =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
@@ -516,10 +513,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldAddVersionToConfigmap() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "addcmversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String cmName = "myconfig";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
             .withValue("metadata.namespace", ns)
@@ -550,10 +547,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldAddVersionToSecret() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "addsecretversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String secretName = "mysecret";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
             .withValue("metadata.namespace", ns)
@@ -586,10 +583,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldDeployNewConfigmapVersion() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "stepcmversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String cmName = "myconfig";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
             .withValue("metadata.namespace", ns)
@@ -638,10 +635,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldDeployNewSecretVersion() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "stepsecretversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String secretName = "mysecret";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
             .withValue("metadata.namespace", ns)
@@ -688,10 +685,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldNotAddVersionToConfigmap() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "notaddcmversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String cmName = "myconfig";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
             .withValue("metadata.namespace", ns)
@@ -724,10 +721,10 @@ public class DeployManifestIT extends BaseTest {
   @Test
   public void shouldNotAddVersionToSecret() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
-    String ns = "notaddsecretversion";
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
     String secretName = "mysecret";
 
-    kubeCluster.execKubectl("create ns " + ns);
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
             .withValue("metadata.namespace", ns)
@@ -753,6 +750,7 @@ public class DeployManifestIT extends BaseTest {
   // ------------------------------------------------------------------------------------------------------
   // ------------------------------------------------------------------------------------------------------
 
+  @SuppressWarnings("unchecked")
   private void deployAndWaitStable(
       List<Map<String, Object>> reqBody, String targetNs, String... objectNames)
       throws InterruptedException {
@@ -826,17 +824,24 @@ public class DeployManifestIT extends BaseTest {
             () -> {
               Response fcrWaitResp =
                   given().log().uri().get(baseUrl() + "/cache/kubernetes/manifest");
-              JsonPath jsonPath = fcrWaitResp.jsonPath();
+              fcrWaitResp.then().log().body(false);
               List<Object> list =
-                  jsonPath.get(
-                      "findAll { it -> it.details.account == \""
-                          + ACCOUNT1_NAME
-                          + "\" && it.details.location == \""
-                          + targetNs
-                          + "\" && it.details.name == \""
-                          + objectName
-                          + "\" && it.processedTime > -1 }");
-              return list != null && !list.isEmpty();
+                  Stream.of(fcrWaitResp.as(Map[].class))
+                      .filter(
+                          it -> {
+                            Map<String, Object> details = (Map<String, Object>) it.get("details");
+                            String name = (String) details.get("name");
+                            String account = (String) details.get("account");
+                            String location = (String) details.get("location");
+                            Number processedTime = (Number) it.get("processedTime");
+                            return Objects.equals(ACCOUNT1_NAME, account)
+                                && Objects.equals(targetNs, location)
+                                && Objects.equals(objectName, name)
+                                && processedTime != null
+                                && processedTime.longValue() > -1;
+                          })
+                      .collect(Collectors.toList());
+              return !list.isEmpty();
             },
             5,
             TimeUnit.MINUTES,
@@ -872,8 +877,10 @@ public class DeployManifestIT extends BaseTest {
                             + targetNs
                             + "/"
                             + objectName);
+            JsonPath jsonPath = respWait.jsonPath();
+            System.out.println(jsonPath.getObject("status", Map.class));
             respWait.then().statusCode(200).body("status.failed.state", is(false));
-            return respWait.jsonPath().getBoolean("status.stable.state");
+            return jsonPath.getBoolean("status.stable.state");
           },
           5,
           TimeUnit.MINUTES,

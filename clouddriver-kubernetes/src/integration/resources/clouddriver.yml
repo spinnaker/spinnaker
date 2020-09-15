@@ -9,6 +9,7 @@ kubernetes:
   primaryAccount: account1
   accounts:
     - name: account1
+      cacheIntervalSeconds: 10
       requiredGroupMembership: []
       providerVersion: V2
       permissions: {}
@@ -28,6 +29,7 @@ kubernetes:
       metrics: false
       kubeconfigFile: ${PROJECT_ROOT}/clouddriver-kubernetes/build/kubeconfigs/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
     - name: account2
+      cacheIntervalSeconds: 30
       requiredGroupMembership: []
       providerVersion: V2
       permissions: {}

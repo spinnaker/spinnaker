@@ -36,11 +36,13 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
 
   private static final String DOCKER_IMAGE = "rancher/k3s:v1.17.11-k3s1";
   private static final String KUBECFG_IN_CONTAINER = "/etc/rancher/k3s/k3s.yaml";
+  private static final int STARTUP_NAMESPACES = 30;
 
   private static final Map<String, KubernetesCluster> instances = new HashMap<>();
 
   private Path kubecfgPath;
   private final String accountName;
+  private final Map<String, Boolean> availableNamespaces = new HashMap<>();
 
   public static KubernetesCluster getInstance(String accountName) {
     return instances.computeIfAbsent(accountName, KubernetesCluster::new);
@@ -49,6 +51,9 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
   private KubernetesCluster(String accountName) {
     super(DOCKER_IMAGE);
     this.accountName = accountName;
+    for (int i = 0; i < STARTUP_NAMESPACES; i++) {
+      this.availableNamespaces.put("testns" + i, true);
+    }
 
     // arguments to docker run
     Map<String, String> tmpfs = new HashMap<>();
@@ -68,6 +73,17 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
 
   public Path getKubecfgPath() {
     return kubecfgPath;
+  }
+
+  public String getAvailableNamespace() {
+    for (Map.Entry<String, Boolean> entry : availableNamespaces.entrySet()) {
+      if (entry.getValue()) {
+        entry.setValue(false);
+        return entry.getKey();
+      }
+    }
+    fail("Ran out of available test namespaces, consider increasing STARTUP_NAMESPACES");
+    return null;
   }
 
   public String execKubectl(String args) throws IOException, InterruptedException {
@@ -109,7 +125,6 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
   }
 
   private String manifestToJson(Map<String, Object> contents) {
-    //    return Optional.ofNullable(contents).map(v -> new Yaml().dump(v)).orElse(null);
     return Optional.ofNullable(contents).map(v -> new Gson().toJson(v)).orElse(null);
   }
 
@@ -121,8 +136,13 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
     try {
       this.kubecfgPath = copyKubecfgFromCluster(containerName);
       fixKubeEndpoint(this.kubecfgPath);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to initialize kubectl or kubeconfig.yml files", e);
+      for (String ns : availableNamespaces.keySet()) {
+        execKubectl("create ns " + ns);
+      }
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(
+          "Unable to initialize kubectl or kubeconfig.yml files, or unable to create initial namespaces",
+          e);
     }
   }
 

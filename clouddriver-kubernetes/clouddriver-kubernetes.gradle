@@ -1,5 +1,6 @@
 plugins {
   id("net.ltgt.errorprone") version "1.2.1"
+  id 'com.adarshr.test-logger' version '2.1.0'
 }
 
 tasks.compileGroovy.enabled = false
@@ -116,4 +117,12 @@ task integrationTest(type: Test) {
   testClassesDirs = sourceSets.integration.output.classesDirs
   classpath = sourceSets.integration.runtimeClasspath
   shouldRunAfter test
+
+  testlogger {
+    theme 'standard'
+    showStandardStreams true
+    showPassedStandardStreams false
+    showFailedStandardStreams true
+    showPassed false
+  }
 }
