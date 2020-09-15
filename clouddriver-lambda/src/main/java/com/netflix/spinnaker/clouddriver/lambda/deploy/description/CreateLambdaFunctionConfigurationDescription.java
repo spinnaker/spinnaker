@@ -30,7 +30,7 @@ public class CreateLambdaFunctionConfigurationDescription
   String functionName;
   String description;
   String handler;
-  Integer memory;
+  Integer memorySize;
   String role;
   String runtime;
   Integer timeout;
@@ -39,7 +39,7 @@ public class CreateLambdaFunctionConfigurationDescription
   Map<String, String> envVariables;
   Map<String, String> tags;
   DeadLetterConfig deadLetterConfig;
-  String encryptionKMSKeyArn;
+  String kmskeyArn;
   TracingConfig tracingConfig;
   String targetGroups;
   String runTime;

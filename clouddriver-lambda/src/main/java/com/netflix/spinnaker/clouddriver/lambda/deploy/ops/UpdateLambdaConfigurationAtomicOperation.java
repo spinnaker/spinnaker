@@ -59,7 +59,7 @@ public class UpdateLambdaConfigurationAtomicOperation
             .withFunctionName(cache.getFunctionArn())
             .withDescription(description.getDescription())
             .withHandler(description.getHandler())
-            .withMemorySize(description.getMemory())
+            .withMemorySize(description.getMemorySize())
             .withRole(description.getRole())
             .withTimeout(description.getTimeout())
             .withDeadLetterConfig(description.getDeadLetterConfig())
@@ -67,7 +67,7 @@ public class UpdateLambdaConfigurationAtomicOperation
                 new VpcConfig()
                     .withSecurityGroupIds(description.getSecurityGroupIds())
                     .withSubnetIds(description.getSubnetIds()))
-            .withKMSKeyArn(description.getEncryptionKMSKeyArn())
+            .withKMSKeyArn(description.getKmskeyArn())
             .withTracingConfig(description.getTracingConfig())
             .withRuntime(description.getRuntime());
 
