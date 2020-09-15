@@ -17,11 +17,11 @@
  */
 package com.netflix.spinnaker.keel.core
 
-import com.netflix.frigga.ami.AppVersion
 import com.netflix.rocket.semver.shaded.DebianVersionComparator
 import com.netflix.spinnaker.keel.api.artifacts.SortType.INCREASING
 import com.netflix.spinnaker.keel.api.artifacts.SortType.SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
+import com.netflix.spinnaker.keel.artifacts.NetflixSemVerVersioningStrategy
 import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import net.swiftzer.semver.SemVer
 import org.slf4j.LoggerFactory
@@ -95,13 +95,12 @@ val NETFLIX_SEMVER_COMPARATOR: Comparator<String> = object : Comparator<String> 
   private val debComparator = NullSafeComparator(DebianVersionComparator(), true)
 
   private fun String.toVersion(): String? = run {
-    // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appVersion = AppVersion.parseName(this)
+    val appVersion = NetflixSemVerVersioningStrategy.extractVersion(this)
     if (appVersion == null) {
-      log.warn("Unparseable artifact version \"{}\" encountered", this)
+      log.warn("Unparseable artifact version \"{}\" encountered. Sorting results will be unpredictable.", this)
       null
     } else {
-      removePrefix(appVersion.packageName).removePrefix("-")
+      appVersion
     }
   }
 

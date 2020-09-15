@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
+import com.netflix.spinnaker.keel.core.NETFLIX_SEMVER_COMPARATOR
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
@@ -88,7 +89,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
         } returns versions
         every {
-          artifactService.getArtifact(npmArtifact.name, versions.last(), NPM)
+          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first(), NPM)
         } returns latestArtifact
         every {
           artifactMetadataService.getArtifactMetadata("7", "gc0c603")
@@ -115,7 +116,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         expectThat(result).isEqualTo(latestArtifact)
         verify(exactly = 1) {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
-          artifactService.getArtifact(npmArtifact.name, versions.last(), NPM)
+          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first(), NPM)
         }
       }
 

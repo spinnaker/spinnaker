@@ -25,6 +25,12 @@ object NetflixSemVerVersioningStrategy : VersioningStrategy {
   )
 
   /**
+   * Extracts the full version string matching the accepted pattern, or null if the input doesn't match.
+   */
+  fun extractVersion(input: String): String? =
+    NETFLIX_VERSION_REGEX.find(input)?.groups?.get(0)?.value
+
+  /**
    * Extracts a version display name from the longer version string, leaving out build and git details if present.
    */
   fun getVersionDisplayName(artifact: PublishedArtifact): String {

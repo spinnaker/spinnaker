@@ -36,12 +36,15 @@ class NetflixSemverVersioningStrategyTests : JUnit5Minutests {
       ).forEach { version, (build, commit) ->
         val artifact = PublishedArtifact("test", "DEB", "test", version)
 
-        test("returns expected build number for version $version") {
-          expectThat(getBuildNumber(artifact)).isEqualTo(build)
-        }
+        // check with and without debian package name prefix
+        listOf("", "mydebian-").forEach { prefix ->
+          test("returns expected build number for version $prefix$version") {
+            expectThat(getBuildNumber(artifact)).isEqualTo(build)
+          }
 
-        test("returns expected commit hash for version $version") {
-          expectThat(getCommitHash(artifact)).isEqualTo(commit)
+          test("returns expected commit hash for version $prefix$version") {
+            expectThat(getCommitHash(artifact)).isEqualTo(commit)
+          }
         }
       }
     }
