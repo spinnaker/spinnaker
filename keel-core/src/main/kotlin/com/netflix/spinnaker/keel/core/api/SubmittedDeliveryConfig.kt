@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.docs.Description
+import com.netflix.spinnaker.keel.api.schema.Description
 import com.netflix.spinnaker.keel.serialization.SubmittedEnvironmentDeserializer
 
 const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"

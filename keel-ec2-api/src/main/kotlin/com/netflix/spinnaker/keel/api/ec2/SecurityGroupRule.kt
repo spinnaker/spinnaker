@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.docs.Literal
+import com.netflix.spinnaker.keel.api.schema.Literal
 
 sealed class SecurityGroupRule {
   abstract val protocol: Protocol

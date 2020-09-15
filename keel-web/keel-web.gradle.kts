@@ -18,6 +18,7 @@ dependencies {
   implementation(project(":keel-bakery-plugin"))
   implementation(project(":keel-ec2-plugin"))
   implementation(project(":keel-titus-plugin"))
+  implementation(project(":keel-schema-generator"))
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
@@ -28,8 +29,7 @@ dependencies {
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
   implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
   implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("org.springdoc:springdoc-openapi-webmvc-core")
-  implementation("org.springdoc:springdoc-openapi-kotlin")
+  implementation("io.swagger.core.v3:swagger-annotations:2.1.2")
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("com.netflix.spinnaker.kork:kork-plugins")
 
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("com.netflix.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("org.testcontainers:mysql")
-  testImplementation("org.openapi4j:openapi-schema-validator:0.7")
+  testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("com.netflix.spinnaker.kork:kork-plugins")
 }
 

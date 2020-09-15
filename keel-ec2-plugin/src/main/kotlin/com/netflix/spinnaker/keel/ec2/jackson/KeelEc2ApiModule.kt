@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonCreator.Mode.DISABLED
+import com.fasterxml.jackson.annotation.JsonCreator.Mode.PROPERTIES
 import com.fasterxml.jackson.databind.BeanDescription
 import com.fasterxml.jackson.databind.DeserializationConfig
 import com.fasterxml.jackson.databind.JavaType
@@ -8,7 +11,10 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationConfig
+import com.fasterxml.jackson.databind.cfg.MapperConfig
 import com.fasterxml.jackson.databind.deser.Deserializers
+import com.fasterxml.jackson.databind.introspect.Annotated
+import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.Serializers
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
@@ -33,6 +39,7 @@ import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TargetGroupAttributes
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
+import com.netflix.spinnaker.keel.api.schema.Factory
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ApplicationLoadBalancerSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ArtifactImageProviderMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.BuildInfoMixin
@@ -51,6 +58,8 @@ import com.netflix.spinnaker.keel.ec2.jackson.mixins.StepAdjustmentMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.StepScalingPolicyMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.TargetGroupAttributesMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.TargetTrackingPolicyMixin
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.kotlinFunction
 
 fun ObjectMapper.registerKeelEc2ApiModule(): ObjectMapper = registerModule(KeelEc2ApiModule)
 
@@ -97,7 +106,6 @@ internal object KeelEc2ApiDeserializers : Deserializers.Base() {
   override fun findBeanDeserializer(type: JavaType, config: DeserializationConfig, beanDesc: BeanDescription): JsonDeserializer<*>? =
     when (type.rawClass) {
       ActiveServerGroupImage::class.java -> ActiveServerGroupImageDeserializer()
-      ClusterSpec::class.java -> ClusterSpecDeserializer()
       ImageProvider::class.java -> ImageProviderDeserializer()
       IngressPorts::class.java -> IngressPortsDeserializer()
       SecurityGroupRule::class.java -> SecurityGroupRuleDeserializer()

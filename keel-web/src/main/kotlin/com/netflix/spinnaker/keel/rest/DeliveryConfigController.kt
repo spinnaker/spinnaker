@@ -8,6 +8,9 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.schema.Generator
+import com.netflix.spinnaker.keel.schema.RootSchema
+import com.netflix.spinnaker.keel.schema.generateSchema
 import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
@@ -38,7 +41,8 @@ class DeliveryConfigController(
   private val validator: DeliveryConfigValidator,
   private val importer: DeliveryConfigImporter,
   private val authorizationSupport: AuthorizationSupport,
-  @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList()
+  @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList(),
+  private val generator: Generator
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -138,4 +142,13 @@ class DeliveryConfigController(
 
     return upsert(deliveryConfig)
   }
+
+  @Operation(
+    description = "Responds with the JSON schema for POSTing to /delivery-configs"
+  )
+  @GetMapping(
+    path = ["/schema"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun schema(): RootSchema = generator.generateSchema<SubmittedDeliveryConfig>()
 }

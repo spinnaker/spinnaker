@@ -41,6 +41,7 @@ include(
   "keel-orca",
   "keel-retrofit",
   "keel-retrofit-test-support",
+  "keel-schema-generator",
   "keel-spring-test-support",
   "keel-sql",
   "keel-test",

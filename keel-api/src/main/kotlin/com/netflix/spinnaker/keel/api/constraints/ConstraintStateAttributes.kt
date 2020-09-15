@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.keel.api.constraints
 
+import com.netflix.spinnaker.keel.api.schema.Discriminator
+
 /**
  * TODO: Docs.
  */
-abstract class ConstraintStateAttributes(val type: String)
+abstract class ConstraintStateAttributes(@Discriminator val type: String)

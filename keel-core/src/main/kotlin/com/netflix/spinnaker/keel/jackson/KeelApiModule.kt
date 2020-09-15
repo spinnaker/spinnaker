@@ -63,6 +63,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<SubnetAwareRegionSpec, SubnetAwareRegionSpecMixin>()
       setMixInAnnotations<Resource<*>, ResourceMixin>()
       setMixInAnnotations<ResourceSpec, ResourceSpecMixin>()
+      insertAnnotationIntrospector(FactoryAnnotationIntrospector())
     }
   }
 }

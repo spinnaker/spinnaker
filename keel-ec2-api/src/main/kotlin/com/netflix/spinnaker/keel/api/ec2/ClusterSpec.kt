@@ -15,6 +15,8 @@ import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.Health
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration
+import com.netflix.spinnaker.keel.api.schema.Factory
+import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
 
 /**
@@ -106,9 +108,9 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
     cooldown = overrides[region]?.health?.cooldown ?: defaults.health?.cooldown ?: default.cooldown,
     warmup = overrides[region]?.health?.warmup ?: defaults.health?.warmup ?: default.warmup,
     healthCheckType = overrides[region]?.health?.healthCheckType ?: defaults.health?.healthCheckType
-      ?: default.healthCheckType,
+    ?: default.healthCheckType,
     enabledMetrics = overrides[region]?.health?.enabledMetrics ?: defaults.health?.enabledMetrics
-      ?: default.enabledMetrics,
+    ?: default.enabledMetrics,
     terminationPolicies = overrides[region]?.health?.terminationPolicies
       ?: defaults.health?.terminationPolicies ?: default.terminationPolicies
   )
@@ -124,6 +126,35 @@ data class ClusterSpec(
   private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   override val artifactVersion: String? = null
 ) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl {
+  @Factory
+  constructor(
+    moniker: Moniker,
+    imageProvider: ImageProvider? = null,
+    deployWith: ClusterDeployStrategy = RedBlack(),
+    @Optional locations: SubnetAwareLocations,
+    launchConfiguration: LaunchConfigurationSpec? = null,
+    capacity: Capacity? = null,
+    dependencies: ClusterDependencies? = null,
+    health: HealthSpec? = null,
+    scaling: Scaling? = null,
+    tags: Map<String, String>? = null,
+    overrides: Map<String, ServerGroupSpec> = emptyMap()
+  ) : this(
+    moniker,
+    imageProvider,
+    deployWith,
+    locations,
+    ServerGroupSpec(
+      launchConfiguration,
+      capacity,
+      dependencies,
+      health,
+      scaling,
+      tags
+    ),
+    overrides
+  )
+
   override val id = "${locations.account}:$moniker"
 
   /**
@@ -155,6 +186,7 @@ data class ClusterSpec(
     }
 
   override val maxDiffCount: Int? = 2
+
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
   override val unhappyWaitTime: Duration? = null
 
