@@ -139,7 +139,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       attributes.put("account", account.getName());
       attributes.put("region", region);
       attributes.put("revisions", listFunctionRevisions(x.getFunctionArn()));
-      attributes.put("aliasConfiguration", listAliasConfiguration(x.getFunctionArn()));
+      attributes.put("aliasConfigurations", listAliasConfiguration(x.getFunctionArn()));
       attributes.put(
           "eventSourceMappings", listEventSourceMappingConfiguration(x.getFunctionArn()));
 
