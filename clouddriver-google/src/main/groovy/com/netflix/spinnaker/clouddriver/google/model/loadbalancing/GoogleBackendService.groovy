@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
@@ -38,7 +39,7 @@ class GoogleBackendService {
   BackendServiceKind kind
   String healthCheckLink
   GoogleHealthCheck healthCheck
-  List<GoogleLoadBalancedBackend> backends
+  List<GoogleLoadBalancedBackend> backends = ImmutableList.of()
   GoogleSessionAffinity sessionAffinity
   Integer affinityCookieTtlSec
   GoogleLoadBalancingScheme loadBalancingScheme

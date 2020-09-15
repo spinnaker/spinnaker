@@ -941,7 +941,6 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       OrchestrationProcessor orchestrationProcessor,
       String loadBalancerName,
       GoogleBackendService backendService) {
-    if (backendService.getBackends() == null) return;
     try {
       for (GoogleLoadBalancedBackend backend : backendService.getBackends()) {
 
