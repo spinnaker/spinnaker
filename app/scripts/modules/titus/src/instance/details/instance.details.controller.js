@@ -290,6 +290,11 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         this.discoveryInfoLink =
           `http://discoveryreadonly.${region}.dyn${accountDetails.environment}` +
           `.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
+        $scope.instance.customHealthUrl = {
+          type: 'Discovery',
+          text: 'Discovery info',
+          href: this.discoveryInfoLink,
+        };
       }
 
       const titusUiEndpoint = filter(accountDetails.regions, { name: region })[0].endpoint;

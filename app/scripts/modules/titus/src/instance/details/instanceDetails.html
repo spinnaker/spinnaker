@@ -117,7 +117,7 @@
       health-state="instance.healthState"
       metric-types="['TargetGroup']"
       private-ip-address="instance.privateIpAddress"
-      custom-health-url="{ type: 'Discovery', href: 'instance.discoveryInfoLink', text: 'Discovery Info'}"
+      custom-health-url="instance.customHealthUrl"
     >
     </instance-status>
     <collapsible-section heading="DNS">
