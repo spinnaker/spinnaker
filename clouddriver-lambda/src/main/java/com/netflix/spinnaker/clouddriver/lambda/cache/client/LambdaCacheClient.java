@@ -23,7 +23,7 @@ import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
-import java.util.Map;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +39,25 @@ public class LambdaCacheClient extends AbstractCacheClient<LambdaFunction> {
   @Override
   protected LambdaFunction convert(CacheData cacheData) {
     Map<String, Object> attributes = cacheData.getAttributes();
-    return objectMapper.convertValue(attributes, LambdaFunction.class);
+    LambdaFunction lambdaFunction = objectMapper.convertValue(attributes, LambdaFunction.class);
+    // Fix broken translation of uuid fields. Perhaps this is better fixed by configuring the
+    // objectMapper right
+    List<Map> eventSourceMappings = (List<Map>) attributes.get("eventSourceMappings");
+    if (eventSourceMappings == null) {
+      return lambdaFunction;
+    }
+    Map<String, String> arnUuidMap = new HashMap<>();
+    eventSourceMappings.stream()
+        .forEach(
+            xx -> {
+              arnUuidMap.put((String) xx.get("eventSourceArn"), (String) xx.get("uuid"));
+            });
+    lambdaFunction
+        .getEventSourceMappings()
+        .forEach(
+            currMapping -> {
+              currMapping.setUUID((String) arnUuidMap.get("uuid"));
+            });
+    return lambdaFunction;
   }
 }
