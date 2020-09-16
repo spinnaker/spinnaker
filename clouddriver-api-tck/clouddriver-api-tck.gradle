@@ -1,0 +1,12 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+
+dependencies {
+  implementation(project(":clouddriver-web"))
+  implementation(project(":clouddriver-core"))
+  implementation(project(":clouddriver-event"))
+  implementation(project(":cats:cats-core"))
+
+  api("org.springframework.boot:spring-boot-starter-test")
+  api("dev.minutest:minutest")
+}
