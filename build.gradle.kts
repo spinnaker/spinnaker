@@ -108,12 +108,15 @@ subprojects {
 
     resolutionStrategy {
       var okHttpVersion = "4.5.0"
+      var resilience4jVersion = "1.5.0"
       force(
         "com.squareup.okhttp3:okhttp:$okHttpVersion",
         "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion",
         "com.squareup.okhttp3:okhttp-sse:$okHttpVersion",
         "com.squareup.okhttp3:mockwebserver:$okHttpVersion",
-        "com.squareup.okhttp3:logging-interceptor:$okHttpVersion")
+        "com.squareup.okhttp3:logging-interceptor:$okHttpVersion",
+        "io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion",
+        "io.github.resilience4j:resilience4j-retry:$resilience4jVersion")
     }
   }
 }

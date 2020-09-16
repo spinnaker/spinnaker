@@ -9,10 +9,10 @@ import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.model.Build
+import io.github.resilience4j.kotlin.retry.decorateSuspendFunction
+import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
-import io.vavr.control.Try
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
@@ -89,8 +89,7 @@ class ArtifactMetadataService(
     )
 
 
-
-  private fun getArtifactMetadataWithRetries(commitId: String, buildNumber: String): List<Build>? {
+  private suspend fun getArtifactMetadataWithRetries(commitId: String, buildNumber: String): List<Build>? {
     val retry = Retry.of(
       "get artifact metadata",
       RetryConfig.custom<List<Build>?>()
@@ -99,13 +98,13 @@ class ArtifactMetadataService(
         .retryOnException { e: Throwable? -> e is HttpException }
         .build()
     )
-    return Try.ofSupplier(Retry.decorateSupplier(retry
-    ) {
-      runBlocking {
-        buildService.getArtifactMetadata(commitId = commitId, buildNumber = buildNumber)
-      }
-    }).get()
+
+    return retry.executeSuspendFunction {
+      buildService.getArtifactMetadata(commitId = commitId, buildNumber = buildNumber)
+    }
+
   }
+
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
