@@ -44,6 +44,10 @@ public interface KeelService {
   @GET("/resources/{name}")
   Resource getResource(@Path("name") String name);
 
+  @GET("/resources/{name}")
+  @Headers("Accept: application/x-yaml")
+  Resource getResourceYaml(@Path("name") String name);
+
   @GET("/resources/{name}/status")
   String getResourceStatus(@Path("name") String name);
 
@@ -58,6 +62,10 @@ public interface KeelService {
 
   @GET("/delivery-configs/{name}")
   DeliveryConfig getManifest(@Path("name") String name);
+
+  @GET("/delivery-configs/{name}")
+  @Headers("Accept: application/x-yaml")
+  DeliveryConfig getManifestYaml(@Path("name") String name);
 
   @GET("/delivery-configs/{name}/artifacts")
   List<Map<String, Object>> getManifestArtifacts(@Path("name") String name);

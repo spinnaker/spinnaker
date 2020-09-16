@@ -85,6 +85,12 @@ public class ManagedController {
     return keelService.getResource(resourceId);
   }
 
+  @ApiOperation(value = "Get a resource", response = Resource.class)
+  @GetMapping(path = "/resources/{resourceId}.yml", produces = APPLICATION_YAML_VALUE)
+  Resource getResourceYaml(@PathVariable("resourceId") String resourceId) {
+    return keelService.getResourceYaml(resourceId);
+  }
+
   @ApiOperation(value = "Get status of a resource", response = Map.class)
   @GetMapping(path = "/resources/{resourceId}/status")
   Map getResourceStatus(@PathVariable("resourceId") String resourceId) {
@@ -145,6 +151,12 @@ public class ManagedController {
   @GetMapping(path = "/delivery-configs/{name}")
   DeliveryConfig getManifest(@PathVariable("name") String name) {
     return keelService.getManifest(name);
+  }
+
+  @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
+  @GetMapping(path = "/delivery-configs/{name}.yml", produces = APPLICATION_YAML_VALUE)
+  DeliveryConfig getManifestYaml(@PathVariable("name") String name) {
+    return keelService.getManifestYaml(name);
   }
 
   @ApiOperation(
