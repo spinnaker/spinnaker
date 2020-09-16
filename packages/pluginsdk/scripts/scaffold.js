@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
+
 const path = require('path');
 const fs = require('fs');
-const child_process = require('child_process');
+const { execSync } = require('child_process');
 const readlineSync = require('readline-sync');
 
 const pluginNameQuestion = 'Enter the short name for your plugin (default: myplugin): ';
@@ -61,7 +63,7 @@ console.log(`Installing dependencies using 'yarn' and 'npx check-peer-dependenci
 
 process.chdir(scaffoldTargetDir);
 console.log(`yarn`);
-child_process.execSync(`yarn`, { stdio: 'inherit' });
+execSync(`yarn`, { stdio: 'inherit' });
 
 console.log(`npx check-peer-dependencies --install`);
-child_process.execSync(`npx check-peer-dependencies --install`, { stdio: 'inherit' });
+execSync(`npx check-peer-dependencies --install`, { stdio: 'inherit' });
