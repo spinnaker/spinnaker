@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { set } = require('lodash');
 const stripJsonComments = require('strip-json-comments');
 
 function readJson(pathname) {
@@ -10,4 +11,10 @@ function writeJson(pathname, json) {
   fs.writeFileSync(pathname, JSON.stringify(json, null, 2));
 }
 
-module.exports = { readJson, writeJson };
+function writeJsonField(filename, field, val) {
+  const json = readJson(filename);
+  set(json, field, val);
+  writeJson(filename, json);
+}
+
+module.exports = { readJson, writeJson, writeJsonField };

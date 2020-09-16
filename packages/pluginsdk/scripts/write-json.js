@@ -1,18 +1,6 @@
 #!/usr/bin/env node
-const yargs = require('yargs');
-
-const filename = yargs.argv._[0];
-const jsonPath = yargs.argv._[1];
-const value = yargs.argv._[2];
-
-const { readJson, writeJson } = require('./check-plugin/util/readWriteJson');
-const { set } = require('lodash');
-
-const writeJsonField = (filename, field, val) => {
-  const json = readJson(filename);
-  set(json, field, val);
-  writeJson(filename, json);
-};
+const { writeJsonField } = require('./check-plugin/util/readWriteJson');
+const [filename, jsonPath, value] = require('yargs').argv._;
 
 try {
   writeJsonField(filename, jsonPath, value);
