@@ -1,0 +1,53 @@
+@closeButtonHoverColor: rgba(160, 180, 220, 0.15);
+
+@closeButtonHoverTransition: all 150ms ease-out;
+
+.ModalHeader {
+  flex: none;
+  background-color: var(--color-blumine);
+  color: var(--color-white);
+  justify-content: center;
+  display: flex;
+  align-items: center;
+
+  .sp-modal-title {
+    margin: 10px 16px;
+    font-size: 22px;
+    font-weight: 500;
+    flex: 1 1 100%;
+    word-break: break-all;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .sp-modal-title {
+      margin: 4px 12px;
+      font-size: 18px;
+    }
+  }
+
+  .sp-modal-close {
+    border: none;
+    background-color: transparent;
+    flex: 0 0 56px;
+    height: 56px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: @closeButtonHoverTransition;
+  }
+
+  .sp-modal-close:hover,
+  .sp-modal-close:focus {
+    background-color: @closeButtonHoverColor;
+    outline: none;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .sp-modal-close {
+      flex: 0 0 48px;
+      height: 48px;
+    }
+  }
+}

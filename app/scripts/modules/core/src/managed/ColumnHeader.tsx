@@ -1,9 +1,8 @@
 import React from 'react';
-import classNames from 'classnames';
 
 import { Icon, IconNames } from '../presentation';
 
-import styles from './ColumnHeader.module.css';
+import './ColumnHeader.less';
 
 export interface IColumnHeaderProps {
   text: string;
@@ -12,10 +11,10 @@ export interface IColumnHeaderProps {
 
 export function ColumnHeader({ text, icon }: IColumnHeaderProps) {
   return (
-    <div className={styles.ColumnHeader}>
-      {icon && <Icon name={icon} appearance="light" size="medium" className={styles.icon} />}
+    <div className="ColumnHeader">
+      {icon && <Icon name={icon} appearance="light" size="medium" className="column-header-icon" />}
       {text && (
-        <span className={classNames('text-bold', styles.text)} style={icon && { marginRight: '56px' }}>
+        <span className="text-bold column-header-text" style={icon && { marginRight: '56px' }}>
           {text}
         </span>
       )}

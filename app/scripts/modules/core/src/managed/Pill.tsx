@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 
-import styles from './Pill.module.css';
+import './Pill.less';
 
 interface IPillProps {
   text: string;
@@ -11,7 +11,7 @@ interface IPillProps {
 
 export function Pill({ text, bgColor = '#666666', textColor = '#ffffff' }: IPillProps) {
   return (
-    <div className={styles.Pill} style={{ backgroundColor: bgColor, color: textColor }}>
+    <div className="Pill text-bold" style={{ backgroundColor: bgColor, color: textColor }}>
       {text}
     </div>
   );

@@ -212,8 +212,6 @@
     "thread-loader": "2.1.2",
     "ts-loader": "^8.0.3",
     "ts-node": "^7.0.1",
-    "typed-css-modules": "^0.6.3",
-    "typed-css-modules-webpack-plugin": "^0.1.2",
     "typescript": "^4.0.0",
     "url-loader": "1.1.2",
     "wait-on": "^3.2.0",

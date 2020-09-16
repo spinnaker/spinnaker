@@ -1,0 +1,34 @@
+.ModalFooter {
+  flex: 0 0 auto;
+  min-height: 64px;
+  background-color: var(--color-white);
+  color: var(--color-white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 4px 4px 4px rgba(0, 0, 0, 0.12), 0 6px 12px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 16px;
+
+  .sp-modal-footer-left {
+    flex: 1 1 100%;
+    margin-right: 16px;
+  }
+
+  .sp-modal-footer-right {
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ModalFooter {
+      flex-wrap: wrap;
+    }
+
+    .sp-modal-footer-left {
+      margin: 8px 0;
+    }
+  }
+}

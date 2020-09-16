@@ -11,7 +11,7 @@ import {
 import { Pill } from './Pill';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
 
-import styles from './ArtifactRow.module.css';
+import './ArtifactRow.less';
 
 interface IArtifactsListProps {
   artifacts: IManagedArtifactSummary[];
@@ -54,20 +54,20 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
 
   return (
     <div
-      className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
+      className={classNames('ArtifactRow', { selected: isSelected })}
       onClick={() => clickHandler({ reference, version })}
       onMouseOver={() => setIsHovered(true)}
       onMouseOut={() => setIsHovered(false)}
     >
-      <div className={styles.content}>
+      <div className="row-content">
         {build?.id && (
-          <div className={styles.version}>
+          <div className="version-identifier">
             <Pill bgColor={isSelected ? '#2c4b5f' : undefined} text={`#${build.id}`} />
           </div>
         )}
-        <div className={classNames(styles.text, { 'sp-margin-m-left': !build?.id })}>
-          <div className={styles.sha}>{git?.commit || displayName}</div>
-          {name && <div className={styles.name}>{name}</div>}
+        <div className={classNames('version-title', { 'sp-margin-m-left': !build?.id })}>
+          <div className="version-name">{git?.commit || displayName}</div>
+          {name && <div className="artifact-name">{name}</div>}
         </div>
         <StatusBubbleStack
           borderColor={isSelected ? '#c7def5' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
@@ -75,15 +75,15 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
           statuses={getArtifactStatuses(versionInfo)}
         />
       </div>
-      <div className={styles.stages}>
+      <div className="environment-stages">
         {environments
           .map(({ name, state }) => (
             <span
               key={name}
-              className={classNames(styles.stage, styles[state], 'text-bold flex-container-h center middle')}
+              className={classNames('environment-stage', state, 'text-bold flex-container-h center middle')}
               style={{ width: `${environments.length / 100}%` }}
             >
-              <span className={styles.stageName}>{name}</span>
+              <span className="environment-stage-name">{name}</span>
             </span>
           ))
           .reverse()}

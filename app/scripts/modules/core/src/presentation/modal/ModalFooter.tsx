@@ -1,6 +1,6 @@
 import React from 'react';
 
-import styles from './ModalFooter.module.css';
+import './ModalFooter.less';
 
 export interface IModalFooterProps {
   primaryActions?: React.ReactNode;
@@ -8,8 +8,8 @@ export interface IModalFooterProps {
 }
 
 export const ModalFooter = ({ primaryActions, secondaryActions }: IModalFooterProps) => (
-  <div className={styles.footer}>
-    {secondaryActions && <div className={styles.footerLeft}>{secondaryActions}</div>}
-    {primaryActions && <div className={styles.footerRight}>{primaryActions}</div>}
+  <div className="ModalFooter">
+    {secondaryActions && <div className="sp-modal-footer-left">{secondaryActions}</div>}
+    {primaryActions && <div className="sp-modal-footer-right">{primaryActions}</div>}
   </div>
 );

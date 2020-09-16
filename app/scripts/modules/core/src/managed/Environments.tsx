@@ -15,7 +15,7 @@ import { EnvironmentsList } from './EnvironmentsList';
 import { ArtifactDetail } from './ArtifactDetail';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
 
-import styles from './Environments.module.css';
+import './Environments.less';
 
 const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
 
@@ -139,8 +139,8 @@ export function Environments({ app }: IEnvironmentsProps) {
   }
 
   return (
-    <div className={styles.mainContent}>
-      <div className={styles.artifactsColumn}>
+    <div className="Environments">
+      <div className="artifacts-column">
         <ColumnHeader text="Versions" icon="artifact" />
         <ArtifactsList
           artifacts={artifacts}
@@ -152,11 +152,11 @@ export function Environments({ app }: IEnvironmentsProps) {
           }}
         />
       </div>
-      <div className={styles.environmentsColumn}>
+      <div className="environments-column">
         {overviewPaneTransition.map(
           ({ item: show, key, props }) =>
             show && (
-              <animated.div key={key} className={styles.environmentsPane} style={props}>
+              <animated.div key={key} className="environments-pane" style={props}>
                 <ColumnHeader text="Environments" icon="environment" />
                 <EnvironmentsHeader
                   app={app}
@@ -172,7 +172,7 @@ export function Environments({ app }: IEnvironmentsProps) {
         {detailPaneTransition.map(
           ({ item, key, props }) =>
             item.selectedVersion && (
-              <animated.div key={key} className={styles.environmentsPane} style={props}>
+              <animated.div key={key} className="environments-pane" style={props}>
                 <ArtifactDetail
                   application={app}
                   name={item.selectedArtifactDetails.name}

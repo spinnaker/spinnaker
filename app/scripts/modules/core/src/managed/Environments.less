@@ -1,0 +1,23 @@
+.Environments {
+  display: grid;
+  grid-template-columns: minmax(300px, 3fr) 8fr;
+  grid-template-rows: auto;
+  width: 100%;
+  overflow: hidden;
+
+  .artifacts-column {
+    padding-right: 16px;
+    overflow: scroll;
+  }
+
+  .environments-column {
+    display: grid;
+    overflow: scroll;
+  }
+
+  .environments-pane {
+    grid-column: 1;
+    grid-row: 1;
+    overflow: scroll;
+  }
+}

@@ -1,9 +1,9 @@
 import React from 'react';
 
-import styles from './ModalBody.module.css';
+import './ModalBody.less';
 
 export interface IModalBodyProps {
   children?: React.ReactNode;
 }
 
-export const ModalBody = ({ children }: IModalBodyProps) => <div className={styles.body}>{children}</div>;
+export const ModalBody = ({ children }: IModalBodyProps) => <div className="ModalBody">{children}</div>;

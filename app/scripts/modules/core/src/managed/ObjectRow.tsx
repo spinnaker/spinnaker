@@ -1,9 +1,8 @@
 import React from 'react';
-import classNames from 'classnames';
 
 import { Icon, IconNames } from '../presentation';
 
-import styles from './ObjectRow.module.css';
+import './ObjectRow.less';
 
 interface IObjectRowProps {
   content?: JSX.Element;
@@ -15,13 +14,13 @@ interface IObjectRowProps {
 
 export const ObjectRow = ({ content, icon, title, metadata, depth = 1 }: IObjectRowProps) => {
   return (
-    <div className={styles.ObjectRow} style={getStylesFromDepth(depth)}>
-      <span className={styles.clickableArea}>
-        <div className={classNames([styles.col, styles.titleCol])}>
+    <div className="ObjectRow" style={getStylesFromDepth(depth)}>
+      <span className="object-row-content">
+        <div className="object-row-column object-row-title-column">
           <Icon name={icon} size="medium" appearance="dark" className="sp-margin-s-right" />
-          <span className={styles.rowTitle}>{title}</span>
+          <span className="object-row-title">{title}</span>
         </div>
-        <div className={classNames(styles.col, 'flex-grow')}>
+        <div className="object-row-column flex-grow">
           {content}
           {metadata && <div className="flex-pull-right">{metadata}</div>}
         </div>

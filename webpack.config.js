@@ -6,7 +6,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const { TypedCssModulesPlugin } = require('typed-css-modules-webpack-plugin');
 const webpack = require('webpack');
 
 const CACHE_INVALIDATE = getCacheInvalidateString();
@@ -26,7 +25,6 @@ function configure(env, webpackOpts) {
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const plugins = [
-    new TypedCssModulesPlugin({ globPattern: '**/*.module.css' }),
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
     new CopyWebpackPlugin([
       { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
@@ -173,22 +171,7 @@ function configure(env, webpackOpts) {
         },
         {
           test: /\.css$/,
-          exclude: /\.module\.css$/,
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
-        },
-        {
-          test: /\.module\.css$/i,
-          use: [
-            { loader: 'style-loader' },
-            {
-              loader: 'css-loader',
-              options: {
-                modules: true,
-                localIdentName: '[name]__[local]--[hash:base64:8]',
-              },
-            },
-            { loader: 'postcss-loader' },
-          ],
         },
         {
           test: /\.svg$/,
