@@ -1,15 +1,29 @@
-import { IPromise, IQService, module } from 'angular';
-import { IKubernetesServerGroup } from '../interfaces';
+import { IPromise, module } from 'angular';
+import { Application } from '@spinnaker/core';
+import { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../interfaces';
 
 export class KubernetesV2ServerGroupTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: IQService) {}
-
-  public normalizeServerGroup(serverGroup: IKubernetesServerGroup): IPromise<IKubernetesServerGroup> {
-    // TODO(dpeach): this isn't great, but we need to assume it's a deployment so that we can click
-    // into the details panel.
-    (serverGroup.serverGroupManagers || []).forEach(manager => (manager.name = `deployment ${manager.name}`));
-    return this.$q.when(serverGroup);
+  public normalizeServerGroup(
+    serverGroup: IKubernetesServerGroup,
+    application: Application,
+  ): IPromise<IKubernetesServerGroup> {
+    return application
+      .getDataSource('serverGroupManagers')
+      .ready()
+      .then((sgManagers: IKubernetesServerGroupManager[]) => {
+        (serverGroup.serverGroupManagers || []).forEach(managerRef => {
+          const sgManager = sgManagers.find(
+            (manager: IKubernetesServerGroupManager) =>
+              managerRef.account == manager.account &&
+              managerRef.location == manager.region &&
+              `${manager.kind} ${managerRef.name}` == manager.name,
+          );
+          if (sgManager) {
+            managerRef.name = sgManager.name;
+          }
+        });
+        return serverGroup;
+      });
   }
 }
 
