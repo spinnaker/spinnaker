@@ -129,6 +129,7 @@ class ServerGroupController {
   Map expanded(ServerGroup serverGroup, Cluster cluster) {
     Map sg = objectMapper.convertValue(serverGroup, Map)
     sg.accountName = cluster.accountName
+    sg.account = cluster.accountName
     def moniker = cluster.moniker
     sg.cluster = moniker.cluster
     sg.application = moniker.app
