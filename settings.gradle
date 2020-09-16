@@ -27,6 +27,7 @@ enableFeaturePreview("VERSION_ORDERING_V2")
 rootProject.name = "gate"
 
 include "gate-api",
+  "gate-api-tck",
   "gate-core",
   "gate-plugins",
   "gate-plugins-test",
