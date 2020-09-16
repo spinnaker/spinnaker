@@ -1,4 +1,4 @@
-const nodeResolve = require('@rollup/plugin-node-resolve');
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
 const typescript = require('@rollup/plugin-typescript');
 const postCss = require('rollup-plugin-postcss');
