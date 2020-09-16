@@ -19,13 +19,15 @@ package com.netflix.kayenta.prometheus.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,17 +54,21 @@ public class PrometheusResponseConverter implements Converter {
   public Object fromBody(TypedInput body, Type type) throws ConversionException {
     if (type == PrometheusMetricDescriptorsResponse.class) {
       return new JacksonConverter(kayentaObjectMapper).fromBody(body, type);
+    } else if (type == String.class) {
+      try {
+        return toString(body.in(), StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        throw new ConversionException("Failed to parse response from Prometheus", e);
+      }
     } else {
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
-        String json = reader.readLine();
-        Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
+      try {
+        Map responseMap = kayentaObjectMapper.readValue(body.in(), Map.class);
         Map data = (Map) responseMap.get("data");
         List<Map> resultList = (List<Map>) data.get("result");
         List<PrometheusResults> prometheusResultsList =
             new ArrayList<PrometheusResults>(resultList.size());
 
         if (CollectionUtils.isEmpty(resultList)) {
-          log.warn("Received no data from Prometheus.");
           return null;
         }
 
@@ -109,10 +115,15 @@ public class PrometheusResponseConverter implements Converter {
 
         return prometheusResultsList;
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new ConversionException("Failed to parse response from Prometheus", e);
       }
+    }
+  }
 
-      return null;
+  private Object toString(InputStream in, Charset charset) {
+    try (Scanner s = new Scanner(in, charset.toString())) {
+      s.useDelimiter("\\A");
+      return s.hasNext() ? s.next() : "";
     }
   }
 

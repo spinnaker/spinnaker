@@ -56,6 +56,8 @@ public class ManagementTest extends BaseIntegrationTest {
                 .statusCode(HttpStatus.OK.value())
                 .body("status", is("UP"))
                 .body("components.canaryConfigIndexingAgent.status", is("UP"))
+                .body("components.prometheus.status", is("UP"))
+                .body("components.prometheus.details.'prometheus-account'.status", is("UP"))
                 .body("components.redisHealth.status", is("UP")));
   }
 }

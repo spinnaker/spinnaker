@@ -17,6 +17,9 @@
 package com.netflix.kayenta.prometheus.config;
 
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.prometheus.health.PrometheusHealthCache;
+import com.netflix.kayenta.prometheus.health.PrometheusHealthIndicator;
+import com.netflix.kayenta.prometheus.health.PrometheusHealthJob;
 import com.netflix.kayenta.prometheus.metrics.PrometheusMetricDescriptorsCache;
 import com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService;
 import com.netflix.kayenta.prometheus.security.PrometheusCredentials;
@@ -29,11 +32,15 @@ import com.squareup.okhttp.OkHttpClient;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
@@ -128,5 +135,46 @@ public class PrometheusConfiguration {
         prometheusMetricsService.getAccountNames().size());
 
     return prometheusMetricsService;
+  }
+
+  @Conditional(PrometheusHealthEnabled.class)
+  @Configuration(proxyBeanMethods = false)
+  public static class PrometheusHealthConfiguration {
+
+    @DependsOn("prometheusMetricsService")
+    @Bean
+    HealthIndicator prometheusHealthIndicator(PrometheusHealthCache prometheusHealthCache) {
+      return new PrometheusHealthIndicator(prometheusHealthCache);
+    }
+
+    @DependsOn("prometheusMetricsService")
+    @Bean
+    PrometheusHealthJob prometheusHealthJob(
+        PrometheusConfigurationProperties prometheusConfigurationProperties,
+        AccountCredentialsRepository accountCredentialsRepository,
+        PrometheusHealthCache prometheusHealthCache) {
+      return new PrometheusHealthJob(
+          prometheusConfigurationProperties, accountCredentialsRepository, prometheusHealthCache);
+    }
+
+    @Bean
+    PrometheusHealthCache prometheusHealthCache() {
+      return new PrometheusHealthCache();
+    }
+  }
+
+  static class PrometheusHealthEnabled extends AllNestedConditions {
+    PrometheusHealthEnabled() {
+      super(ConfigurationPhase.REGISTER_BEAN);
+    }
+
+    @ConditionalOnProperty(
+        value = "kayenta.prometheus.health.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
+    static class enabledHealth {}
+
+    @ConditionalOnProperty(value = "kayenta.prometheus.accounts[0].name", matchIfMissing = false)
+    static class accountPresent {}
   }
 }

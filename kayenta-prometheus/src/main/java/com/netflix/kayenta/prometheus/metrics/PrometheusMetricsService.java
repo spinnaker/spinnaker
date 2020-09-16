@@ -298,6 +298,7 @@ public class PrometheusMetricsService implements MetricsService {
         metricSetList.add(metricSetBuilder.build());
       }
     } else {
+      log.warn("Received no data from Prometheus for query: {} scope: {}", query, canaryScope);
       MetricSet.MetricSetBuilder metricSetBuilder =
           MetricSet.builder()
               .name(canaryMetricConfig.getName())
