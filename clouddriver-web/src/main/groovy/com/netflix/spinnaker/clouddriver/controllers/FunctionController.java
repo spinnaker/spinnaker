@@ -58,6 +58,7 @@ public class FunctionController {
             functionProviders.stream()
                 .map(
                     functionProvider -> functionProvider.getFunction(account, region, functionName))
+                .filter(function -> function != null)
                 .collect(Collectors.toList());
         return myFunction;
       } catch (NotFoundException e) {
