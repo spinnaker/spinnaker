@@ -14,9 +14,9 @@ data class Build(
   val fullDisplayName: String? = null,
   val name: String? = null,
   val number: Int = 0,
-  val duration: Int? = null,
+  val duration: Long? = null,
   /** String representation of time in nanoseconds since Unix epoch  */
-   val timestamp: String? = null,
+  val timestamp: String? = null,
 
   val result: Result? = null,
   val url: String? = null,
