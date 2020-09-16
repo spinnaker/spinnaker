@@ -65,7 +65,7 @@ describe('<ConfigFileArtifactList/>', () => {
     $http.flush();
   });
 
-  fit('renders 1 children of StageArtifactSelector when 1 expectedArtifacts are passed in', () => {
+  it('renders 1 children of StageArtifactSelector when 1 expectedArtifacts are passed in', () => {
     const body: IArtifactAccount[] = [
       {
         name: 'http-acc',
