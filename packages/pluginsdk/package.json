@@ -13,9 +13,10 @@
     "prepublishOnly": "npm run build"
   },
   "bin": {
-    "scaffold": "scripts/scaffold.js",
     "check-plugin": "scripts/check-plugin.js",
-    "dev-proxy": "scripts/dev-proxy/server.js"
+    "dev-proxy": "scripts/dev-proxy/server.js",
+    "scaffold": "scripts/scaffold.js",
+    "Write-json": "scripts/write-json.js"
   },
   "dependencies": {
     "check-peer-dependencies": "^2.0.1",
