@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.core.NETFLIX_SEMVER_COMPARATOR
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
@@ -89,7 +88,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
         } returns versions
         every {
-          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first(), NPM)
+          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NPM_VERSION_COMPARATOR).first(), NPM)
         } returns latestArtifact
         every {
           artifactMetadataService.getArtifactMetadata("7", "gc0c603")
@@ -102,10 +101,10 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         )
       }
 
-      test("supports Netflix semver versioning strategy") {
+      test("supports NPM versioning strategy") {
         expectThat(npmArtifactSupplier.supportedVersioningStrategy)
           .isEqualTo(
-            SupportedVersioningStrategy(NPM, NetflixSemVerVersioningStrategy::class.java)
+            SupportedVersioningStrategy(NPM, NpmVersioningStrategy::class.java)
           )
       }
 
@@ -116,7 +115,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         expectThat(result).isEqualTo(latestArtifact)
         verify(exactly = 1) {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
-          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first(), NPM)
+          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NPM_VERSION_COMPARATOR).first(), NPM)
         }
       }
 
@@ -132,17 +131,17 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
 
       test("returns version display name based on Netflix semver convention") {
         expectThat(npmArtifactSupplier.getVersionDisplayName(latestArtifact))
-          .isEqualTo(NetflixSemVerVersioningStrategy.getVersionDisplayName(latestArtifact))
+          .isEqualTo(NetflixVersions.getVersionDisplayName(latestArtifact))
       }
 
       test("returns git metadata based on Netflix semver convention") {
-        val gitMeta = GitMetadata(commit = NetflixSemVerVersioningStrategy.getCommitHash(latestArtifact)!!)
+        val gitMeta = GitMetadata(commit = NetflixVersions.getCommitHash(latestArtifact)!!)
         expectThat(npmArtifactSupplier.parseDefaultGitMetadata(latestArtifact, npmArtifact.versioningStrategy))
           .isEqualTo(gitMeta)
       }
 
       test("returns build metadata based on Netflix semver convention") {
-        val buildMeta = BuildMetadata(id = NetflixSemVerVersioningStrategy.getBuildNumber(latestArtifact)!!)
+        val buildMeta = BuildMetadata(id = NetflixVersions.getBuildNumber(latestArtifact)!!)
         expectThat(npmArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, npmArtifact.versioningStrategy))
           .isEqualTo(buildMeta)
       }

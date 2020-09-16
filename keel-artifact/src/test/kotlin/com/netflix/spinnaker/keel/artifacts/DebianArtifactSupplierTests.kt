@@ -108,10 +108,10 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         )
       }
 
-      test("supports Debian semver versioning strategy") {
+      test("supports Debian versioning strategy") {
         expectThat(debianArtifactSupplier.supportedVersioningStrategy)
           .isEqualTo(
-            SupportedVersioningStrategy(DEBIAN, NetflixSemVerVersioningStrategy::class.java)
+            SupportedVersioningStrategy(DEBIAN, DebianVersioningStrategy::class.java)
           )
       }
 

@@ -13,7 +13,7 @@ data class NpmArtifact(
   override val deliveryConfigName: String? = null,
   override val reference: String = name,
   override val statuses: Set<ArtifactStatus> = emptySet(),
-  override val versioningStrategy: VersioningStrategy = NetflixSemVerVersioningStrategy
+  override val versioningStrategy: VersioningStrategy = NpmVersioningStrategy
 ) : DeliveryArtifact() {
   override val type = NPM
   override fun toString(): String = super.toString()

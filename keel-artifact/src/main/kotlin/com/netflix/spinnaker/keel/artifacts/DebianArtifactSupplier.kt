@@ -20,21 +20,23 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 /**
- * Built-in keel implementation of [ArtifactSupplier] that does not itself receive/retrieve artifact information
- * but is used by keel's `POST /artifacts/events` API to notify the core of new Debian artifacts.
+ * Built-in keel implementation of [ArtifactSupplier] for Debian artifacts.
+ *
+ * Note: this implementation currently makes some Netflix-specific assumptions with regards to artifact
+ * versions so that it can extract build and commit metadata.
  */
 @Component
 class DebianArtifactSupplier(
   override val eventPublisher: EventPublisher,
   private val artifactService: ArtifactService,
   override val artifactMetadataService: ArtifactMetadataService
-) : BaseArtifactSupplier<DebianArtifact, NetflixSemVerVersioningStrategy>(artifactMetadataService) {
+) : BaseArtifactSupplier<DebianArtifact, DebianVersioningStrategy>(artifactMetadataService) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val supportedArtifact = SupportedArtifact("deb", DebianArtifact::class.java)
 
   override val supportedVersioningStrategy =
-    SupportedVersioningStrategy("deb", NetflixSemVerVersioningStrategy::class.java)
+    SupportedVersioningStrategy("deb", DebianVersioningStrategy::class.java)
 
   override fun publishArtifact(artifact: PublishedArtifact) {
     if (artifact.hasReleaseStatus()) {

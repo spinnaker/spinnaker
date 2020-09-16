@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TA
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
-import com.netflix.spinnaker.keel.core.TagComparator
+import com.netflix.spinnaker.keel.artifacts.TagComparator
 import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

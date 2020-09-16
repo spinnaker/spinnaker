@@ -5,11 +5,12 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TA
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
-import com.netflix.spinnaker.keel.core.NETFLIX_SEMVER_COMPARATOR
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
+import strikt.assertions.isLessThan
 
 /**
  * Ensure that every comparator we use sorts in descending order by default.
@@ -25,7 +26,7 @@ class ComparatorSortingTests : JUnit5Minutests {
   fun tests() = rootContext<Unit> {
     context("deb semantic version") {
       test("descending by default") {
-        expectThat(debianVersions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first()).isEqualTo("fnord-2.1.0-18ed1dc")
+        expectThat(debianVersions.sortedWith(DEBIAN_VERSION_COMPARATOR).first()).isEqualTo("fnord-2.1.0-18ed1dc")
       }
     }
 
@@ -54,6 +55,34 @@ class ComparatorSortingTests : JUnit5Minutests {
 
       test("descending by default, by version") {
         expectThat(semverJobCommitTags.sortedWith(DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER).comparator).first()).isEqualTo("v1.12.3-rc.1-h1192.f876e5a")
+      }
+    }
+
+    derivedContext<Comparator<String>>("NPM version comparisons") {
+      fixture {
+        NPM_VERSION_COMPARATOR
+      }
+
+      test("compares semver versions correctly") {
+        // note: comparator is descending by default, hence the backward less/greater than
+        expectThat(compare("1.0.0", "0.368.0"))
+          .isLessThan(0)
+        expectThat(compare("0.368.0", "0.367.0"))
+          .isLessThan(0)
+        expectThat(compare("0.367.0", "0.367.1"))
+          .isGreaterThan(0)
+        expectThat(compare("0.368.0-h473.dfc46fb", "0.367.0-h468.0493add"))
+          .isLessThan(0)
+        expectThat(compare("0.367.0-h468.0493add", "0.368.0-h473.dfc46fb"))
+          .isGreaterThan(0)
+        expectThat(compare("0.368.0-h473.dfc46fb", "0.368.0-h473.dfc46fb"))
+          .isEqualTo(0)
+        expectThat(compare("1.0.0-dev-h18.d5230a7", "1.0.0-dev-h17.7d1e1c3"))
+          .isLessThan(0)
+        expectThat(compare("1.0.0-rc-h18.d5230a7", "1.0.0-dev-h18.d5230a7"))
+          .isLessThan(0)
+        expectThat(compare("1.0.0", "1.0.0-rc-h18.d5230a7"))
+          .isLessThan(0)
       }
     }
   }

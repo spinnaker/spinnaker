@@ -15,7 +15,7 @@ data class DebianArtifact(
   override val reference: String = name,
   val vmOptions: VirtualMachineOptions,
   override val statuses: Set<ArtifactStatus> = emptySet(),
-  override val versioningStrategy: VersioningStrategy = NetflixSemVerVersioningStrategy
+  override val versioningStrategy: VersioningStrategy = DebianVersioningStrategy
 ) : DeliveryArtifact() {
   override val type = DEBIAN
   override fun toString(): String = super.toString()

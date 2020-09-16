@@ -18,20 +18,22 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.springframework.stereotype.Component
 
 /**
- * Built-in keel implementation of [ArtifactSupplier] that does not itself receive/retrieve artifact information
- * but is used by keel's `POST /artifacts/events` API to notify the core of new NPM artifacts.
+ * Built-in keel implementation of [ArtifactSupplier] for NPM artifacts.
+ *
+ * Note: this implementation currently makes some Netflix-specific assumptions with regards to artifact
+ * versions so that it can extract build and commit metadata.
  */
 @Component
 class NpmArtifactSupplier(
   override val eventPublisher: EventPublisher,
   private val artifactService: ArtifactService,
   override val artifactMetadataService: ArtifactMetadataService
-) : BaseArtifactSupplier<NpmArtifact, NetflixSemVerVersioningStrategy>(artifactMetadataService) {
+) : BaseArtifactSupplier<NpmArtifact, NpmVersioningStrategy>(artifactMetadataService) {
 
   override val supportedArtifact = SupportedArtifact(NPM, NpmArtifact::class.java)
 
   override val supportedVersioningStrategy =
-    SupportedVersioningStrategy(NPM, NetflixSemVerVersioningStrategy::class.java)
+    SupportedVersioningStrategy(NPM, NpmVersioningStrategy::class.java)
 
   override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
     runWithIoContext {
@@ -58,14 +60,14 @@ class NpmArtifactSupplier(
    * Extracts a version display name from version string using the Netflix semver convention.
    */
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {
-    return NetflixSemVerVersioningStrategy.getVersionDisplayName(artifact)
+    return NetflixVersions.getVersionDisplayName(artifact)
   }
 
   /**
    * Extracts the build number from the version string using the Netflix semver convention.
    */
   override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
-    return NetflixSemVerVersioningStrategy.getBuildNumber(artifact)
+    return NetflixVersions.getBuildNumber(artifact)
       ?.let { BuildMetadata(it) }
   }
 
@@ -73,8 +75,7 @@ class NpmArtifactSupplier(
    * Extracts the commit hash from the version string using the Netflix semver convention.
    */
   override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
-
-    return NetflixSemVerVersioningStrategy.getCommitHash(artifact)
+    return NetflixVersions.getCommitHash(artifact)
       ?.let { GitMetadata(it) }
   }
 

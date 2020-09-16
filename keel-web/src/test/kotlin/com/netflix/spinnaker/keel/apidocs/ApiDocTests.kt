@@ -31,7 +31,6 @@ import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerVersioningStrategy
-import com.netflix.spinnaker.keel.artifacts.NetflixSemVerVersioningStrategy
 import com.netflix.spinnaker.keel.artifacts.NpmArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintAttributes
