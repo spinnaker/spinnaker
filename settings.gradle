@@ -27,6 +27,7 @@ enableFeaturePreview("VERSION_ORDERING_V2")
 rootProject.name = "front50"
 
 include 'front50-web',
+    'front50-api-tck',
     'front50-core',
     'front50-gcs',
     'front50-redis',
