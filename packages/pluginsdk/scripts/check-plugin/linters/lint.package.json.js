@@ -24,10 +24,10 @@ function checkPackageJson(report) {
 
   checkPackageJsonField('module', 'build/dist/index.js');
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
+  checkPackageJsonField('scripts.develop', 'run-p watch proxy');
   checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
-  checkPackageJsonField('scripts.dev-proxy', 'dev-proxy');
-  checkPackageJsonField('scripts.proxy', 'run-p watch dev-proxy');
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
+  checkPackageJsonField('scripts.proxy', 'dev-proxy');
   checkPackageJsonField('scripts.watch', 'rollup -c -w --no-watch.clearScreen');
 
   const bundlesFiles = pkgJson.files && pkgJson.files.includes('build/dist');

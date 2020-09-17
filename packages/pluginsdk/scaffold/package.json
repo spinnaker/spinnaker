@@ -5,10 +5,10 @@
   "module": "build/dist/index.js",
   "scripts": {
     "clean": "npx shx rm -rf build",
+    "develop": "run-p watch proxy",
     "build": "npm run clean && rollup -c",
-    "dev-proxy": "dev-proxy",
     "postinstall": "check-plugin && check-peer-dependencies || true",
-    "proxy": "npm-run-all -p --aggregate-output watch dev-proxy",
+    "proxy": "dev-proxy",
     "watch": "rollup -c -w --no-watch.clearScreen"
   },
   "dependencies": {
