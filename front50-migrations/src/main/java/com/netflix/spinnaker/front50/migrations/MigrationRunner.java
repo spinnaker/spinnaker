@@ -22,10 +22,19 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Migration runner runs all the registered migrations as scheduled. By default migration runner
+ * will <strong>not</strong> run and need to set <strong>`migrations.enabled`</strong> property to
+ * enable it.
+ *
+ * <p>Note: Ideally migrations should be running only on one instance.
+ */
 @Component
+@ConditionalOnProperty(name = "migrations.enabled", havingValue = "true", matchIfMissing = false)
 public class MigrationRunner {
   private final Logger log = LoggerFactory.getLogger(MigrationRunner.class);
 
