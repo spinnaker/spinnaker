@@ -1,21 +1,14 @@
-const { readJson, writeJson } = require('../util/readWriteJson');
-const { get, set } = require('lodash');
-
-const writeJsonField = (filename, field, val) => {
-  const json = readJson(filename);
-  set(json, field, val);
-  writeJson(filename, json);
-};
+const { get } = require('lodash');
 
 const assertJsonFile = (report, filename, json) => {
   return function assertJsonFile(field, expectedValue) {
     const currentValue = get(json, field);
-    const resolution = `--fix: change ${field} in ${filename} from "${currentValue}" to "${expectedValue}"`;
-    const fixer = () => {
-      writeJsonField(filename, field, expectedValue);
-      console.log(`fixed: changed ${field} in ${filename} from "${currentValue}" to "${expectedValue}"`);
+    const resolution = {
+      description: `Change ${field} in ${filename} from "${currentValue}" to "${expectedValue}"`,
+      command: `npx write-json "${filename}" "${field}" "${expectedValue}"`,
     };
-    report(`${filename}: ${field} field`, currentValue === expectedValue, resolution, fixer);
+    const ok = currentValue === expectedValue;
+    report(`Unexpected value in ${filename}: ${field} should be "${expectedValue}"`, ok, resolution);
   };
 };
 

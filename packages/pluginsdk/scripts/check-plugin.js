@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+
+/* eslint-disable no-console */
 const yargs = require('yargs');
+const { execSync } = require('child_process');
 const { linters } = require('./check-plugin/linters');
 
 yargs
@@ -31,29 +34,37 @@ function checkPlugin(options) {
   const errorFixers = [];
   const warningFixers = [];
 
-  function reporter(message, ok, resolution, fixer) {
+  /**
+   * @param message { string }
+   * @param ok { boolean }
+   * @param resolution {{
+   *   description: string
+   *   command?: string
+   *   fixer?: Function
+   * }}
+   */
+  function reporter(message, ok, resolution = {}) {
+    const fixer = resolution.fixer || (resolution.command && (() => execSync(resolution.command)));
+
     if (ok === true) {
       if (verbose) {
         console.log(`  ✅  ${message}`);
       }
-    } else if (ok === false) {
-      console.log(`  ❌  ${message}`);
+    } else {
+      if (ok === false) {
+        console.log(`  ❌  Error: ${message}`);
+      } else {
+        console.log(`  ☑️   Warning: ${message}`);
+      }
       if (fixer) {
         errorFixers.push(fixer);
-        if (resolution) {
-          console.log();
-          console.log('      ' + resolution);
-          console.log();
+        if (resolution.description) {
+          console.log(`      Fix: ${resolution.description}`);
         }
-      }
-    } else {
-      console.log(`  ☑️   ${message}`);
-
-      if (fixer) {
-        warningFixers.push(fixer);
-        if (resolution) {
+        if (resolution.command) {
+          console.log('      Command:');
           console.log();
-          console.log('      ' + resolution);
+          console.log(`        ${resolution.command}`);
           console.log();
         }
       }
@@ -74,11 +85,11 @@ function checkPlugin(options) {
       console.log('Fixing errors...');
     }
   } else if (warningFixers.length) {
-    console.log(`Run this command to fix the errors and warnings:`);
+    console.log(`Run this command to auto-fix all errors and warnings:`);
     console.log();
     console.log(`npx check-plugin --fix-warnings`);
   } else if (errorFixers.length) {
-    console.log(`Run this command to fix the errors:`);
+    console.log(`Run this command to auto-fix all errors:`);
     console.log();
     console.log(`npx check-plugin --fix`);
   }

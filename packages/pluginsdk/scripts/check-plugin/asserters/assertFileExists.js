@@ -1,12 +1,13 @@
 const fs = require('fs');
-const { restoreFile } = require('../util/restoreFile');
 
 const assertFileExists = (report, filename, pristineFilename = filename) => {
-  const exists = fs.existsSync(filename);
-  const resolution = `restore ${filename} from scaffold defaults`;
-  const restore = () => restoreFile(filename, pristineFilename);
-  report(`${filename} exists`, exists, resolution, restore);
-  return exists;
+  const ok = fs.existsSync(filename);
+  const resolution = {
+    description: `restore ${filename} from scaffold defaults`,
+    command: `npx restore-scaffold-file ${filename}`,
+  };
+  report(`${filename} does not exist`, ok, resolution);
+  return ok;
 };
 
 module.exports = { assertFileExists };

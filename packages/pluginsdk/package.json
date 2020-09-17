@@ -15,8 +15,9 @@
   "bin": {
     "check-plugin": "scripts/check-plugin.js",
     "dev-proxy": "scripts/dev-proxy/server.js",
+    "restore-scaffold-file": "scripts/restore-scaffold-file.js",
     "scaffold": "scripts/scaffold.js",
-    "Write-json": "scripts/write-json.js"
+    "write-json": "scripts/write-json.js"
   },
   "dependencies": {
     "check-peer-dependencies": "^2.0.3",

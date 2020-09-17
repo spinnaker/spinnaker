@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const { execSync } = require('child_process');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
 const { readJson, writeJson } = require('../util/readWriteJson');
@@ -13,21 +15,20 @@ function checkPackageJson(report) {
   const sdk = deps['@spinnaker/pluginsdk'];
   const latest = getLatestSdkVersion();
 
-  const latestVersionFixer = () => {
-    execSync(`yarn add @spinnaker/pluginsdk@${latest}`, { stdio: 'inherit' });
-    console.log(`fixed: installed @spinnaker/pluginsdk@${latest}`);
-  };
-  const latestVersionResolution = '--fix: install latest @spinnaker/pluginsdk';
-  report('Uses latest @spinnaker/pluginsdk', sdk === latest, latestVersionResolution, latestVersionFixer);
+  report(`This plugin uses an out of date @spinnaker/pluginsdk@${sdk}`, sdk === latest, {
+    description: `Install @spinnaker/pluginsdk@${latest}`,
+    command: `yarn add @spinnaker/pluginsdk@${latest}`,
+  });
 
   const checkPackageJsonField = assertJsonFile(report, 'package.json', pkgJson);
 
   checkPackageJsonField('module', 'build/dist/index.js');
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
-  checkPackageJsonField('scripts.build', 'rollup -c');
-  checkPackageJsonField('scripts.watch', 'rollup -c -w');
-  checkPackageJsonField('scripts.proxy', 'dev-proxy');
+  checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
+  checkPackageJsonField('scripts.dev-proxy', 'dev-proxy');
+  checkPackageJsonField('scripts.proxy', 'run-p watch dev-proxy');
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
+  checkPackageJsonField('scripts.watch', 'rollup -c -w --no-watch.clearScreen');
 
   const bundlesFiles = pkgJson.files && pkgJson.files.includes('build/dist');
   const bundlesFilesFixer = () => {
@@ -40,8 +41,10 @@ function checkPackageJson(report) {
 
     console.log(`fixed: added "build/dist" to "files" in package.json`);
   };
-  const resolution = `--fix: Add "build/dist" to files array in package.json`;
-  report('package.json: files includes "build/dist"', bundlesFiles, resolution, bundlesFilesFixer);
+  report('package.json: files does not include "build/dist"', bundlesFiles, {
+    description: 'Add "build/dist" to files array in package.json',
+    fixer: bundlesFilesFixer,
+  });
 }
 
 module.exports = { checkPackageJson };
