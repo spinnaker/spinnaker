@@ -42,3 +42,5 @@ jobs:
     # Separating integration tests by provider allows to have separate logs
     - name: Kubernetes Provider Integration Tests
       run: ./gradlew --build-cache :clouddriver-kubernetes:integrationTest
+    - name: Amazon ECS Provider Integration Tests
+      run: ./gradlew --build-cache :clouddriver-ecs:integrationTest

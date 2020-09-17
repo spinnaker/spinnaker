@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: clouddriver
+
+aws:
+  enabled: true
+  primaryAccount: aws-account
+  accounts:
+    - name: aws-account
+      requiredGroupMembership: []
+      providerVersion: V1
+      permissions: {}
+      accountId: '123456789012'
+      regions:
+        - name: us-west-2
+      assumeRole: role/SpinnakerManaged
+  bakeryDefaults:
+    baseImages: []
+  defaultKeyPairTemplate: '{{name}}-keypair'
+  defaultRegions:
+    - name: us-west-2
+  defaults:
+    iamRole: BaseIAMRole
+ecs:
+  enabled: true
+  primaryAccount: ecs-account
+  accounts:
+    - name: ecs-account
+      providerVersion: V1
+      awsAccount: aws-account
+sql:
+  enabled: true
+  taskRepository:
+    enabled: true
+  cache:
+    enabled: true
+    readBatchSize: 500
+    writeBatchSize: 300
+  scheduler:
+    enabled: true
+  connectionPools:
+    default:
+      default: true
+      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+    tasks:
+      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+  migration:
+    jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+
+redis:
+  enabled: false
+  cache:
+    enabled: false
+  scheduler:
+    enabled: false
+  taskRepository:
+    enabled: false
+
+services:
+  fiat:
+    baseUrl: http://fiat.net
+  front50:
+    baseUrl: http://front50.net
