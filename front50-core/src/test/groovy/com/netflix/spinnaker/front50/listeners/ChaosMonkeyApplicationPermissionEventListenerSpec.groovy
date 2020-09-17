@@ -36,7 +36,8 @@ class ChaosMonkeyApplicationPermissionEventListenerSpec extends Specification {
   def subject = new ChaosMonkeyApplicationPermissionEventListener(
     applicationDao,
     new ChaosMonkeyEventListenerConfigurationProperties(
-      userRole: CHAOS_MONKEY_PRINCIPAL
+      userRole: CHAOS_MONKEY_PRINCIPAL,
+      enabled: true
     ),
     new ObjectMapper()
   )

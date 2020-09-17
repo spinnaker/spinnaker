@@ -24,8 +24,9 @@ public class ChaosMonkeyEventListenerConfigurationProperties {
   /** The user role (as it would be known to Fiat) for Chaos Monkey. */
   String userRole;
 
-  /** @return True if a userRole has been defined. */
+  boolean enabled = false;
+
   public boolean isEnabled() {
-    return userRole != null;
+    return enabled;
   }
 }
