@@ -13,6 +13,7 @@ import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
@@ -31,12 +32,14 @@ class ArtifactMetadataService(
    * Returns additional metadata about the specified build and commit, if available. This call is configured
    * to auto-retry as it's not on a code path where any external retries would happen.
    */
-  suspend fun getArtifactMetadata(
+  fun getArtifactMetadata(
     buildNumber: String,
     commitId: String
   ): ArtifactMetadata? {
 
-    val buildList = buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
+    val buildList = runBlocking {
+      buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
+    }
 
     if (buildList.isNullOrEmpty()) {
       log.debug("artifact metadata buildList is null or empty, for build $buildNumber and commit $commitId")
