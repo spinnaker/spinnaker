@@ -118,7 +118,6 @@ final class KubernetesCoreCachingAgentTest {
   /** Returns a mock KubernetesCredentials object */
   private static KubernetesCredentials mockKubernetesCredentials() {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
-    when(credentials.isLiveManifestCalls()).thenReturn(false);
     when(credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
     when(credentials.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));

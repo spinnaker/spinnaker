@@ -54,7 +54,6 @@ public class KubernetesConfigurationProperties {
     private List<String> kinds = new ArrayList<>();
     private List<String> omitKinds = new ArrayList<>();
     private boolean onlySpinnakerManaged = false;
-    private boolean liveManifestCalls = false;
     private Long cacheIntervalSeconds;
 
     public void validate() {

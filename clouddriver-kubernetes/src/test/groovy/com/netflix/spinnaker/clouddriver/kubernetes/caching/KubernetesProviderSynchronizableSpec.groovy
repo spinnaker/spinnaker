@@ -146,7 +146,6 @@ class KubernetesProviderSynchronizableSpec extends Specification {
     accountCredentials.isOnlySpinnakerManaged() == false
     accountCredentials.isDebug() == false
     accountCredentials.isMetricsEnabled() == true
-    accountCredentials.isLiveManifestCalls() == false
 
     kubernetesProvider.agents.size() == 2
     kubernetesProvider.agents.find { it.agentType == "test-account/KubernetesCoreCachingAgent[1/1]" } != null

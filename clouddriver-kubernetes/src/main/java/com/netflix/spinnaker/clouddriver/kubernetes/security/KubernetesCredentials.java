@@ -109,8 +109,6 @@ public class KubernetesCredentials {
 
   @Include @Getter private final boolean onlySpinnakerManaged;
 
-  @Include @Getter private final boolean liveManifestCalls;
-
   @Include private final boolean checkPermissionsOnStartup;
 
   @Include @Getter private final List<KubernetesCachingPolicy> cachingPolicies;
@@ -185,7 +183,6 @@ public class KubernetesCredentials {
     this.context = managedAccount.getContext();
 
     this.onlySpinnakerManaged = managedAccount.isOnlySpinnakerManaged();
-    this.liveManifestCalls = managedAccount.isLiveManifestCalls();
     this.checkPermissionsOnStartup = managedAccount.isCheckPermissionsOnStartup();
     this.cachingPolicies = managedAccount.getCachingPolicies();
 

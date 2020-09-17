@@ -22,7 +22,6 @@ kubernetes:
       omitKinds: []
       customResources: []
       cachingPolicies: []
-      liveManifestCalls: false
       oauthScopes: []
       oAuthScopes: []
       onlySpinnakerManaged: true
@@ -43,7 +42,6 @@ kubernetes:
       omitKinds: []
       customResources: []
       cachingPolicies: []
-      liveManifestCalls: false
       oauthScopes: []
       oAuthScopes: []
       onlySpinnakerManaged: true
