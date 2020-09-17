@@ -36,7 +36,7 @@ class ArtifactMetadataService(
     commitId: String
   ): ArtifactMetadata? {
 
-    val buildList = getArtifactMetadataWithRetries(commitId, buildNumber)
+    val buildList = buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
 
     if (buildList.isNullOrEmpty()) {
       log.debug("artifact metadata buildList is null or empty, for build $buildNumber and commit $commitId")
@@ -90,6 +90,7 @@ class ArtifactMetadataService(
     )
 
 
+  //This will not be used for now, until we will figure out what is wrong!
   private suspend fun getArtifactMetadataWithRetries(commitId: String, buildNumber: String): List<Build>? {
     val retry = Retry.of(
       "get artifact metadata",
