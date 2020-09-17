@@ -81,6 +81,12 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   String kubectlPath;
   Integer kubectlRequestTimeoutSeconds;
   Boolean checkPermissionsOnStartup;
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.12.0",
+      tooLowMessage = "Live manifest mode not available prior to 1.12.0.",
+      upperBound = "1.23.0",
+      tooHighMessage = "Live manifest mode no longer necessary as of 1.23.0.")
   Boolean liveManifestCalls;
 
   // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`,
