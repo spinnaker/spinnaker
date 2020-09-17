@@ -88,6 +88,10 @@ class AmazonInstance implements Instance, Serializable {
     getExtraAttributes().get("placement")?.availabilityZone
   }
 
+  String getAvailabilityZone() {
+    return this.getZone()
+  }
+
   @Override
   boolean equals(Object o) {
     if (o instanceof AmazonInstance)

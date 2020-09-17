@@ -107,6 +107,10 @@ class TitusInstance implements Instance {
     agentId
   }
 
+  String getAvailabilityZone() {
+    return placement.getZone()
+  }
+
   String getIpv4Address() {
     return ipv4Address
   }

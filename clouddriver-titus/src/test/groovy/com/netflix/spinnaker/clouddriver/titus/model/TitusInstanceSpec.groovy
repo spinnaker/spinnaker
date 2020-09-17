@@ -74,6 +74,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.finishedAt == null
     titusInstance.privateIpAddress == task.data.ipAddresses.nfvpc
     titusInstance.agentId == task.agentId
+    titusInstance.availabilityZone == task.zone
   }
 
   void 'can handle null ports'() {

@@ -26,10 +26,18 @@ import spock.lang.Unroll
  */
 class AmazonInstanceSpec extends Specification {
 
-  Instance instance
+  AmazonInstance instance
 
   def setup() {
     instance = new AmazonInstance(name: 'foo')
+  }
+
+  def "get availability zone from extra attributes"() {
+    when:
+    instance = new AmazonInstance([placement: [availabilityZone: "us-east-1"]])
+
+    then:
+    instance.getAvailabilityZone() == "us-east-1"
   }
 
   def "getHealthState for ALL UP health states"() {

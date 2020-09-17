@@ -129,12 +129,21 @@ class ServerGroupController {
   Map expanded(ServerGroup serverGroup, Cluster cluster) {
     Map sg = objectMapper.convertValue(serverGroup, Map)
     sg.accountName = cluster.accountName
-    sg.account = cluster.accountName
     def moniker = cluster.moniker
     sg.cluster = moniker.cluster
     sg.application = moniker.app
     sg.stack = moniker.stack
     sg.freeFormDetail = moniker.detail
+
+    //The following fields exist in the non-expanded result and so even though there is some
+    //minor data duplication here it seems reasonable to also set these fields in the expanded result.
+    if (serverGroup.launchConfig) {
+      if (serverGroup.launchConfig.instanceType) {
+        sg.instanceType = serverGroup.launchConfig.instanceType
+      }
+    }
+    sg.account = cluster.accountName
+
     return sg
   }
 
