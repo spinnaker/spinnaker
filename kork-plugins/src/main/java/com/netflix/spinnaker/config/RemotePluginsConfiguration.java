@@ -20,12 +20,13 @@ package com.netflix.spinnaker.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator;
 import com.netflix.spinnaker.kork.plugins.remote.RemotePluginConfigChangedListener;
 import com.netflix.spinnaker.kork.plugins.remote.RemotePluginsCache;
 import com.netflix.spinnaker.kork.plugins.remote.RemotePluginsProvider;
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPointDefinition;
 import java.util.List;
-import javax.inject.Provider;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,12 +49,17 @@ public class RemotePluginsConfiguration {
 
   @Bean
   public RemotePluginConfigChangedListener remotePluginConfigChangedListener(
-      Provider<ObjectMapper> objectMapper,
-      Provider<OkHttpClientProvider> okHttpClientProvider,
+      ObjectProvider<ObjectMapper> objectMapperProvider,
+      ObjectProvider<List<SubtypeLocator>> subtypeLocatorsProvider,
+      ObjectProvider<OkHttpClientProvider> okHttpClientProvider,
       RemotePluginsCache remotePluginsCache,
       List<RemoteExtensionPointDefinition> remoteExtensionPointDefinitions) {
     return new RemotePluginConfigChangedListener(
-        objectMapper, okHttpClientProvider, remotePluginsCache, remoteExtensionPointDefinitions);
+        objectMapperProvider,
+        subtypeLocatorsProvider,
+        okHttpClientProvider,
+        remotePluginsCache,
+        remoteExtensionPointDefinitions);
   }
 
   @Bean

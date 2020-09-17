@@ -22,16 +22,17 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.DISABLED
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.ENABLED
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.UPDATED
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtension
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPointDefinition
-import com.netflix.spinnaker.kork.plugins.remote.extension.transport.OkHttpRemoteExtensionTransport
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.http.OkHttpRemoteExtensionTransport
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.ApplicationListener
-import javax.inject.Provider
 
 /**
  * Listen for remote plugin configuration changes, instantiate [RemotePlugin] and [RemoteExtension]
@@ -39,13 +40,20 @@ import javax.inject.Provider
  */
 @Beta
 class RemotePluginConfigChangedListener(
-  private val objectMapper: Provider<ObjectMapper>,
-  private val okHttpClientProvider: Provider<OkHttpClientProvider>,
+  private val objectMapperProvider: ObjectProvider<ObjectMapper>,
+  subtypeLocatorsProvider: ObjectProvider<List<ObjectMapperSubtypeConfigurer.SubtypeLocator>>,
+  private val okHttpClientProvider: ObjectProvider<OkHttpClientProvider>,
   private val remotePluginsCache: RemotePluginsCache,
   private val remoteExtensionPointDefinitions: List<RemoteExtensionPointDefinition>
 ) : ApplicationListener<RemotePluginConfigChanged> {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  init {
+    if (!subtypeLocatorsProvider.ifAvailable.isNullOrEmpty()) {
+      ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapperProvider.getObject(), subtypeLocatorsProvider.ifAvailable)
+    }
+  }
 
   override fun onApplicationEvent(event: RemotePluginConfigChanged) {
     when (event.status) {
@@ -63,7 +71,7 @@ class RemotePluginConfigChangedListener(
       // TODO(jonsie): Support enabling/disabling transports in the config.
       // Configure HTTP if it is available since it is the only configurable transport right now.
       val remoteExtensionTransport = if (remoteExtensionConfig.transport.http.url.isNotEmpty()) {
-        val client = okHttpClientProvider.get().getClient(
+        val client = okHttpClientProvider.getObject().getClient(
           DefaultServiceEndpoint(
             remoteExtensionConfig.id,
             remoteExtensionConfig.transport.http.url,
@@ -71,9 +79,9 @@ class RemotePluginConfigChangedListener(
           )
         )
         OkHttpRemoteExtensionTransport(
-          objectMapper.get(),
+          objectMapperProvider.getObject(),
           client,
-          remoteExtensionConfig.transport.http.url
+          remoteExtensionConfig.transport.http
         )
       } else {
         throw RemoteExtensionTransportConfigurationException(event.pluginId)
@@ -90,7 +98,7 @@ class RemotePluginConfigChangedListener(
           remoteExtensionConfig.id,
           event.pluginId,
           remoteExtensionDefinition.type(),
-          objectMapper.get().convertValue(remoteExtensionConfig.config, configType),
+          objectMapperProvider.getObject().convertValue(remoteExtensionConfig.config, configType),
           remoteExtensionTransport
         )
       )

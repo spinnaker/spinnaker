@@ -3,6 +3,7 @@ package com.netflix.spinnaker.kork.plugins.remote
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPointConfig
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPointDefinition
@@ -10,11 +11,11 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import org.springframework.beans.factory.ObjectProvider
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
-import javax.inject.Provider
 
 class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
@@ -49,8 +50,8 @@ class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
   private class Fixture {
     val objectMapper: ObjectMapper = mockk(relaxed = true)
     val okHttpClientProvider: OkHttpClientProvider = mockk(relaxed = true)
-    val objectMapperProvider: Provider<ObjectMapper> = mockk(relaxed = true)
-    val okHttpClientProviderProvider: Provider<OkHttpClientProvider> = mockk(relaxed = true)
+    val objectMapperProvider: ObjectProvider<ObjectMapper> = mockk(relaxed = true)
+    val okHttpClientProviderProvider: ObjectProvider<OkHttpClientProvider> = mockk(relaxed = true)
     val remotePluginsCache: RemotePluginsCache = RemotePluginsCache(mockk(relaxed = true))
 
     val enableEvent = RemotePluginConfigChanged(
@@ -65,7 +66,9 @@ class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
           RemoteExtensionConfig.RemoteExtensionTransportConfig(
             RemoteExtensionConfig.RemoteExtensionTransportConfig.Http(
               "https://example.com",
-              mutableMapOf()
+              mutableMapOf(),
+              mutableMapOf(),
+              mockk(relaxed = true)
             )
           ),
           mutableMapOf()
@@ -85,7 +88,9 @@ class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
           RemoteExtensionConfig.RemoteExtensionTransportConfig(
             RemoteExtensionConfig.RemoteExtensionTransportConfig.Http(
               "https://example.com",
-              mutableMapOf()
+              mutableMapOf(),
+              mutableMapOf(),
+              mockk(relaxed = true)
             )
           ),
           mutableMapOf()
@@ -105,7 +110,9 @@ class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
           RemoteExtensionConfig.RemoteExtensionTransportConfig(
             RemoteExtensionConfig.RemoteExtensionTransportConfig.Http(
               "https://example.com",
-              mutableMapOf()
+              mutableMapOf(),
+              mutableMapOf(),
+              mockk(relaxed = true)
             )
           ),
           mutableMapOf()
@@ -120,17 +127,37 @@ class RemotePluginConfigChangedListenerTest : JUnit5Minutests {
 
     val subject: RemotePluginConfigChangedListener = RemotePluginConfigChangedListener(
       objectMapperProvider,
+      SubtypeProvider(),
       okHttpClientProviderProvider,
       remotePluginsCache,
       listOf(remoteExtensionPointDefinition)
     )
 
     init {
-      every { objectMapperProvider.get() } returns objectMapper
-      every { okHttpClientProviderProvider.get() } returns okHttpClientProvider
+      every { objectMapperProvider.getObject() } returns objectMapper
+      every { okHttpClientProviderProvider.getObject() } returns okHttpClientProvider
       every { objectMapper.convertValue(any(), ConfigType::class.java) } returns ConfigType()
     }
   }
 
   private class ConfigType: RemoteExtensionPointConfig
+
+  private class SubtypeProvider : ObjectProvider<List<ObjectMapperSubtypeConfigurer.SubtypeLocator>> {
+    override fun getObject(vararg args: Any?): List<ObjectMapperSubtypeConfigurer.SubtypeLocator> {
+      return emptyList()
+    }
+
+    override fun getObject(): List<ObjectMapperSubtypeConfigurer.SubtypeLocator> {
+      return emptyList()
+    }
+
+    override fun getIfAvailable(): List<ObjectMapperSubtypeConfigurer.SubtypeLocator>? {
+      return emptyList()
+    }
+
+    override fun getIfUnique(): List<ObjectMapperSubtypeConfigurer.SubtypeLocator>? {
+      return emptyList()
+    }
+
+  }
 }

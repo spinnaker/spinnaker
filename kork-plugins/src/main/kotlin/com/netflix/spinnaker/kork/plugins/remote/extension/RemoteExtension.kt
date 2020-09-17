@@ -19,6 +19,9 @@ package com.netflix.spinnaker.kork.plugins.remote.extension
 
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.common.Header
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionPayload
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionQuery
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionResponse
 import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionTransport
 import org.slf4j.MDC
 
@@ -48,13 +51,33 @@ class RemoteExtension(
     return config as T
   }
 
-  /** Invoke the remote extension via the [RemoteExtensionTransport] implementation. */
-  fun invoke(payload: RemoteExtensionPayload) {
+  /**
+   * Invoke the remote extension via the [RemoteExtensionTransport] implementation.
+   */
+  fun invoke(payload: RemoteExtensionPayload) =
+    decorate<Unit> { transport.invoke(payload) }
+
+  /**
+   * Write to the remote extension via the [RemoteExtensionTransport] implementation. Returns a
+   * [RemoteExtensionResponse] implementation.
+   */
+  fun <T: RemoteExtensionResponse> write(payload: RemoteExtensionPayload): T =
+    decorate { transport.write(payload) }
+
+  /**
+   * Read from the remote extension via the [RemoteExtensionTransport] implementation. Returns a
+   * [RemoteExtensionResponse] implementation.
+   */
+  fun <T: RemoteExtensionResponse> read(query: RemoteExtensionQuery): T =
+    decorate { transport.read(query) }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> decorate(transportCall: () -> Any): T {
     MDC.put(Header.PLUGIN_ID.header, pluginId)
     MDC.put(Header.PLUGIN_EXTENSION.header, id)
 
     try {
-      transport.invoke(payload)
+      return transportCall() as T
     } finally {
       MDC.remove(Header.PLUGIN_ID.header)
       MDC.remove(Header.PLUGIN_EXTENSION.header)

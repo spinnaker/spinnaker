@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.kork.plugins.remote.extension
+package com.netflix.spinnaker.kork.plugins.remote.extension.transport
 
 import com.netflix.spinnaker.kork.annotations.Beta
 

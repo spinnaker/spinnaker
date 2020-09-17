@@ -75,8 +75,23 @@ public class RemoteExtensionConfig {
       /** URL for remote extension invocation. */
       @Nonnull private String url;
 
+      /** Any query parameters necessary to invoke the extension. */
+      @Nonnull private Map<String, String> queryParams = new HashMap<>();
+
       /** A placeholder for misc. configuration for the underlying HTTP client. */
-      @Nonnull private Map<String, Object> config = new HashMap<>();
+      @Nonnull private Map<String, String> config = new HashMap<>();
+
+      /** Headers for the various invocation types. */
+      @Nonnull private Headers headers = new Headers();
+
+      @Data
+      @NoArgsConstructor
+      @AllArgsConstructor
+      public static class Headers {
+        @Nonnull private Map<String, String> invokeHeaders = new HashMap<>();
+        @Nonnull private Map<String, String> writeHeaders = new HashMap<>();
+        @Nonnull private Map<String, String> readHeaders = new HashMap<>();
+      }
     }
   }
 }

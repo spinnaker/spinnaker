@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.kork.plugins.remote.extension.transport
 
 import com.netflix.spinnaker.kork.annotations.Beta
-import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPayload
 
 /**
  * The transport on which to address the remote extension.
@@ -27,9 +26,27 @@ import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPayloa
 interface RemoteExtensionTransport {
 
   /**
-   * Invoke the remote extension.  The remote extension is an async process with a callback, so we
-   * do not wait for a particular response here - but the underlying [RemoteExtensionTransport]
-   * implementation may throw an exception if something unexpected, like a connection error, occurs.
+   * Invoke the remote extension.  The expectation is that the remote extension is an async process
+   * with a callback, so we do not wait for a particular response here - but the underlying
+   * [RemoteExtensionTransport] implementation may throw an exception if something unexpected,
+   * like a connection error, occurs.
    */
   fun invoke(remoteExtensionPayload: RemoteExtensionPayload)
+
+  /**
+   * Write to the remote extension.  This is a synchronous process which requires a response of
+   * [RemoteExtensionResponse] type.  This may be used as a substitute for [invoke] when
+   * implementations require a synchronous process.
+   */
+  fun write(remoteExtensionPayload: RemoteExtensionPayload): RemoteExtensionResponse {
+    return NoOpRemoteExtensionResponse()
+  }
+
+  /**
+   * Read from the remote extension.  This is a synchronous process which requires a response of
+   * [RemoteExtensionResponse].
+   */
+  fun read(remoteExtensionQuery: RemoteExtensionQuery): RemoteExtensionResponse {
+    return NoOpRemoteExtensionResponse()
+  }
 }

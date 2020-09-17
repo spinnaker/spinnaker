@@ -35,7 +35,7 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   private final boolean isSecure;
 
   /** Misc. config necessary for the service client. */
-  @Nonnull private final Map<String, Object> config;
+  @Nonnull private final Map<String, String> config;
 
   public DefaultServiceEndpoint(@Nonnull String name, @Nonnull String baseUrl) {
     this(name, baseUrl, new HashMap<>(), true);
@@ -46,14 +46,14 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   }
 
   public DefaultServiceEndpoint(
-      @Nonnull String name, @Nonnull String baseUrl, @Nonnull Map<String, Object> config) {
+      @Nonnull String name, @Nonnull String baseUrl, @Nonnull Map<String, String> config) {
     this(name, baseUrl, config, true);
   }
 
   public DefaultServiceEndpoint(
       @Nonnull String name,
       @Nonnull String baseUrl,
-      @Nonnull Map<String, Object> config,
+      @Nonnull Map<String, String> config,
       boolean isSecure) {
     this.name = Objects.requireNonNull(name);
     this.baseUrl = Objects.requireNonNull(baseUrl);
@@ -75,7 +75,7 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
 
   @Nonnull
   @Override
-  public Map<String, Object> getConfig() {
+  public Map<String, String> getConfig() {
     return config;
   }
 
