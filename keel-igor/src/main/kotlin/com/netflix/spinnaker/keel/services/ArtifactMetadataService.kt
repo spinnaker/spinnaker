@@ -9,14 +9,15 @@ import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.model.Build
-import io.github.resilience4j.kotlin.retry.decorateSuspendFunction
 import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
+import kotlinx.coroutines.TimeoutCancellationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
 import java.time.Duration
+import java.util.concurrent.CancellationException
 
 /**
  * Provides functionality to convert build metadata, which is coming from internal service, to artifact metadata (via igor).
@@ -95,7 +96,15 @@ class ArtifactMetadataService(
       RetryConfig.custom<List<Build>?>()
         .maxAttempts(3)
         .waitDuration(Duration.ofMillis(100))
-        .retryOnException { e: Throwable? -> e is HttpException }
+        .retryOnException { t: Throwable ->
+          // https://github.com/resilience4j/resilience4j/issues/688
+          val retryFilter = when (t) {
+            is TimeoutCancellationException -> true
+            else -> t is HttpException
+          }
+          log.debug("retry filter = $retryFilter for exception ${t::class.java.name}")
+          retryFilter
+        }
         .build()
     )
 
