@@ -21,6 +21,7 @@ interface BuildService {
     @Query("commitId") commitId: String,
     @Query("buildNumber") buildNumber: String,
     @Query("projectKey") projectKey: String? = null,
-    @Query("repoSlug") repoSlug: String? = null
+    @Query("repoSlug") repoSlug: String? = null,
+    @Query("completionStatus") completionStatus: String? = null
   ): List<Build>?
 }

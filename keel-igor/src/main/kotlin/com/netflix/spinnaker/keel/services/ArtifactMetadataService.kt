@@ -9,16 +9,15 @@ import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.model.Build
+import com.netflix.spinnaker.model.CompletionStatus
 import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
 import java.time.Duration
-import java.util.concurrent.CancellationException
 
 /**
  * Provides functionality to convert build metadata, which is coming from internal service, to artifact metadata (via igor).
@@ -32,14 +31,12 @@ class ArtifactMetadataService(
    * Returns additional metadata about the specified build and commit, if available. This call is configured
    * to auto-retry as it's not on a code path where any external retries would happen.
    */
-  fun getArtifactMetadata(
+  suspend fun getArtifactMetadata(
     buildNumber: String,
     commitId: String
   ): ArtifactMetadata? {
 
-    val buildList = runBlocking {
-      buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
-    }
+    val buildList = getArtifactMetadataWithRetries(commitId, buildNumber)
 
     if (buildList.isNullOrEmpty()) {
       log.debug("artifact metadata buildList is null or empty, for build $buildNumber and commit $commitId")
@@ -98,8 +95,11 @@ class ArtifactMetadataService(
     val retry = Retry.of(
       "get artifact metadata",
       RetryConfig.custom<List<Build>?>()
-        .maxAttempts(3)
-        .waitDuration(Duration.ofMillis(100))
+        .maxAttempts(10)
+        .waitDuration(Duration.ofMillis(1000))
+        .retryOnResult{
+          result -> result.isNullOrEmpty()
+        }
         .retryOnException { t: Throwable ->
           // https://github.com/resilience4j/resilience4j/issues/688
           val retryFilter = when (t) {
@@ -113,7 +113,7 @@ class ArtifactMetadataService(
     )
 
     return retry.executeSuspendFunction {
-      buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
+      buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim(), completionStatus = CompletionStatus.values().joinToString { it.name })
     }
 
   }

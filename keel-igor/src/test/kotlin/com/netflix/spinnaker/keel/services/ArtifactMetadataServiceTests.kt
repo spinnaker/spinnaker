@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.model.Build
+import com.netflix.spinnaker.model.CompletionStatus
 import com.netflix.spinnaker.model.GenericGitRevision
 import com.netflix.spinnaker.model.Result
 import dev.minutest.junit.JUnit5Minutests
@@ -66,7 +67,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
       context("with valid commit id and build number") {
         before {
           coEvery {
-            buildService.getArtifactMetadata(any(), any())
+            buildService.getArtifactMetadata(commitId = any(), buildNumber = any(), completionStatus = CompletionStatus.values().joinToString { it.name })
           } returns buildsList
         }
 
@@ -125,7 +126,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
       context("return an empty results from the CI provider") {
         before {
           coEvery {
-            buildService.getArtifactMetadata(any(), any())
+            buildService.getArtifactMetadata(commitId = any(), buildNumber = any(), completionStatus = CompletionStatus.values().joinToString { it.name })
           } returns listOf()
         }
 
@@ -147,7 +148,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
 
         before {
           coEvery {
-            buildService.getArtifactMetadata(any(), any())
+            buildService.getArtifactMetadata(commitId = any(), buildNumber = any(), completionStatus = any())
           } throws retrofitError
         }
 

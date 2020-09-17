@@ -190,7 +190,7 @@ class SqlArtifactRepository(
     } == 1
   }
 
-  override fun updateArtifactMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?, artifactMetadata: ArtifactMetadata){
+  override fun updateArtifactMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?, artifactMetadata: ArtifactMetadata) {
     if (!isRegistered(name, type)) {
       throw NoSuchArtifactException(name, type)
     }

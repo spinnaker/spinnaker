@@ -27,16 +27,26 @@ data class Build(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class GenericGitRevision (
-   val name: String? = null,
-   val branch: String? = null,
-   val sha1: String? = null,
-   val committer: String? = null,
-   val compareUrl: String? = null,
-   val message: String? = null,
-   val timestamp: Instant? = null,
-   val remoteUrl: String? = null
+data class GenericGitRevision(
+  val name: String? = null,
+  val branch: String? = null,
+  val sha1: String? = null,
+  val committer: String? = null,
+  val compareUrl: String? = null,
+  val message: String? = null,
+  val timestamp: Instant? = null,
+  val remoteUrl: String? = null
 )
 enum class Result {
   SUCCESS, UNSTABLE, BUILDING, ABORTED, FAILURE, NOT_BUILT
+}
+
+enum class CompletionStatus {
+
+  INCOMPLETE,
+  SUCCEEDED,
+  FAILED,
+  ABORTED;
+
+  fun allTerminalStatuses() = listOf(SUCCEEDED, FAILED, ABORTED)
 }
