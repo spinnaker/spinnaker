@@ -3,9 +3,11 @@ import React from 'react';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 import { StageArtifactSelectorDelegate, ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
+import { Overridable } from 'core/overrideRegistry';
 import { IArtifact } from 'core/domain';
 import { TextInput } from 'core/presentation';
 
+@Overridable('bakeKustomizeConfigForm')
 export class BakeKustomizeConfigForm extends React.Component<IFormikStageConfigInjectedProps> {
   private getInputArtifact = () => {
     const stage = this.props.formik.values;
