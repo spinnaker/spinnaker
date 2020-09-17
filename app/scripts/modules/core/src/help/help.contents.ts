@@ -503,12 +503,12 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.entitytags.value': `Value can either be a string or an object. If you want to use an object, input a valid JSON string.`,
   'pipeline.config.entitytags.region': `(Optional) Target a specific region, use * if you want to apply to all regions.`,
   'pipeline.config.deliveryConfig.manifest': `(Optional) Name of the file with your Delivery Config manifest. Leave blank to use the default name (<strong><i>${SETTINGS.managedDelivery?.defaultManifest}</i></strong>).`,
-  'pipeline.config.codebuild.source': `(Optional) Source of the build. It will be overrided to Spinnaker artifact if checked. If not checked, source configured in CodeBuild project will be used.`,
-  'pipeline.config.codebuild.sourceType': `(Optional) Type of the source. It can be specified explicitly, otherwise it will be inferred from source artifact.`,
+  'pipeline.config.codebuild.source': `(Optional) Source of the build. It will be overridden to Spinnaker artifact if checked. If not checked, source configured in CodeBuild project will be used.`,
+  'pipeline.config.codebuild.sourceType': `(Optional) Type of the source. It can be specified explicitly; otherwise, it will be inferred from source artifact.`,
   'pipeline.config.codebuild.sourceVersion': `(Optional) Source version of the build. If not specified, the artifact version will be used. If artifact doesn't have a version, the latest version will be used. See the <a href="https://docs.aws.amazon.com/codebuild/latest/APIReference/API_StartBuild.html#CodeBuild-StartBuild-request-sourceVersion">CodeBuild reference</a> for more information.`,
   'pipeline.config.codebuild.buildspec': `(Optional) Inline buildspec definition of the build. If not specified, buildspec configured in CodeBuild project will be used.`,
-  'pipeline.config.codebuild.secondarySources': `(Optional) Secondary sources of the build. It can be overrided by adding Spinnaker Artifacts. If not specified, secondary sources configured in CodeBuild project will be used.`,
-  'pipeline.config.codebuild.image': `(Optional) Image in which the build will run. It can be overrided by specifying the name of the image. If not specified, image configured in CodeBuild project will be used.`,
+  'pipeline.config.codebuild.secondarySources': `(Optional) Secondary sources of the build. It can be overridden by adding Spinnaker Artifacts. If not specified, secondary sources configured in CodeBuild project will be used.`,
+  'pipeline.config.codebuild.image': `(Optional) Image in which the build will run. It can be overridden by specifying the name of the image. If not specified, image configured in CodeBuild project will be used.`,
   'pipeline.config.codebuild.envVar': `(Optional) Environment variables that will be propagated into the build.`,
 };
 
