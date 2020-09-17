@@ -53,10 +53,10 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
-"@spinnaker/core@0.0.506":
-  version "0.0.506"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.506.tgz#7043ea85e77afdf5cd76a0f816964da68aa2bb32"
-  integrity sha512-eplO1Q+et44paGuGPIP/B3+oFKmAX7f8HLUxqrj/smgpvf0mRGnf5IXEt4s8gV4w/1OEmHa/g6Y3WYobDCpQQA==
+"@spinnaker/core@0.0.507":
+  version "0.0.507"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.507.tgz#7a3965a5c31261aa898cd7a02e56ddaf7e8e7b4c"
+  integrity sha512-BI2xHeNZtZA46nljsK5iFbQ4eLL1wtRpoeYjBlftBQxbmUSvofoCz/gWrgu4I7IS6fbGFb3HlbmpFm66n+Z2Cw==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -2399,10 +2399,10 @@ rollup-pluginutils@^2.8.2:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@2.26.11:
-  version "2.26.11"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.26.11.tgz#4fc31de9c7b83d50916fc8395f8c3d24730cdaae"
-  integrity sha512-xyfxxhsE6hW57xhfL1I+ixH8l2bdoIMaAecdQiWF3N7IgJEMu99JG+daBiSZQjnBpzFxa0/xZm+3pbCdAQehHw==
+rollup@2.27.1:
+  version "2.27.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.27.1.tgz#372744e1d36eba0fd942d997600c2fc2ca266305"
+  integrity sha512-GiWHQvnmMgBktSpY/1+nrGpwPsTw4b9P28og2uedfeq4JZ16rzAmnQ5Pm/E0/BEmDNia1ZbY7+qu3nBgNa19Hg==
   optionalDependencies:
     fsevents "~2.1.2"
 
