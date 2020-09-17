@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.config;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.fiat.shared.FiatAccessDeniedExceptionHandler;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -43,6 +44,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -54,6 +56,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan
 @EnableFiatAutoConfig
 @EnableScheduling
+@Import({PluginsAutoConfiguration.class})
 @EnableConfigurationProperties(StorageServiceConfigurationProperties.class)
 public class Front50WebConfig extends WebMvcConfigurerAdapter {
 
