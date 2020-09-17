@@ -179,12 +179,8 @@ final class ArtifactReplacerTest {
     assertThat(Iterables.getOnlyElement(result.getBoundArtifacts())).isEqualTo(inputArtifact);
   }
 
-  /**
-   * If there is already a tag on the image in the manifest, we currently don't replace it. We may
-   * want to change this behavior in the future, but this test is documenting the current behavior.
-   */
   @Test
-  void doesNotReplaceImageWithTag() {
+  void replacesDockerImageWithTag() {
     ArtifactReplacer artifactReplacer =
         new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
     KubernetesManifest deployment = getDeploymentWithContainer(getContainer("nginx:1.18.0"));
@@ -195,8 +191,9 @@ final class ArtifactReplacerTest {
         artifactReplacer.replaceAll(
             deployment, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
 
-    assertThat(result.getManifest()).isEqualTo(deployment);
-    assertThat(result.getBoundArtifacts()).isEmpty();
+    assertThat(extractImage(result.getManifest())).contains("nginx:1.19.1");
+    assertThat(result.getBoundArtifacts()).hasSize(1);
+    assertThat(Iterables.getOnlyElement(result.getBoundArtifacts())).isEqualTo(inputArtifact);
   }
 
   /**
