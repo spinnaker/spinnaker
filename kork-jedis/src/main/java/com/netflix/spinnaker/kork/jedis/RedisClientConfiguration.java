@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.Protocol;
 
 /**
  * Offers a standardized Spring configuration for a named redis clients, as well as primary and
@@ -220,23 +219,17 @@ public class RedisClientConfiguration {
 
   private JedisCluster getJedisCluster(
       GenericObjectPoolConfig objectPoolConfig, ClientConfigurationWrapper config, URI cx) {
-    int port = cx.getPort() == -1 ? Protocol.DEFAULT_PORT : cx.getPort();
-    String password =
-        (cx.getUserInfo() != null && cx.getUserInfo().contains(":"))
-            ? cx.getUserInfo().substring(cx.getUserInfo().indexOf(":"))
-            : null;
-
-    boolean isSSL = cx.getScheme().equals("rediss");
+    RedisClientConnectionProperties cxp = new RedisClientConnectionProperties(cx);
 
     return new JedisCluster(
-        new HostAndPort(cx.getHost(), port),
+        new HostAndPort(cxp.addr(), cxp.port()),
         config.getTimeoutMs(),
         config.getTimeoutMs(),
         config.getMaxAttempts(),
-        password,
+        cxp.password(),
         null,
         objectPoolConfig,
-        isSSL);
+        cxp.isSSL());
   }
 
   @ConfigurationProperties(prefix = "redis")

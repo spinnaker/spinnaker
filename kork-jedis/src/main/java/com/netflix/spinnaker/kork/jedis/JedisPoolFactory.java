@@ -24,7 +24,6 @@ import java.util.Optional;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Protocol;
 import redis.clients.jedis.util.Pool;
 
 public class JedisPoolFactory {
@@ -45,36 +44,24 @@ public class JedisPoolFactory {
       throw new MissingRequiredConfiguration("Jedis client must have a connection defined");
     }
 
-    URI redisConnection = URI.create(properties.connection);
-
-    String host = redisConnection.getHost();
-    int port = redisConnection.getPort() == -1 ? Protocol.DEFAULT_PORT : redisConnection.getPort();
-    int database = parseDatabase(redisConnection.getPath());
-    String password = parsePassword(redisConnection.getUserInfo());
+    RedisClientConnectionProperties cxp =
+        new RedisClientConnectionProperties(URI.create(properties.connection));
     GenericObjectPoolConfig poolConfig =
         Optional.ofNullable(properties.poolConfig).orElse(objectPoolConfig);
-    boolean isSSL = redisConnection.getScheme().equals("rediss");
 
     return new InstrumentedJedisPool(
         registry,
         // Pool name should always be "null", as setting this is incompat with some SaaS Redis
         // offerings
         new JedisPool(
-            poolConfig, host, port, properties.timeoutMs, password, database, null, isSSL),
+            poolConfig,
+            cxp.addr(),
+            cxp.port(),
+            properties.timeoutMs,
+            cxp.password(),
+            cxp.database(),
+            null,
+            cxp.isSSL()),
         name);
-  }
-
-  private static int parseDatabase(String path) {
-    if (path == null) {
-      return 0;
-    }
-    return Integer.parseInt(("/" + Protocol.DEFAULT_DATABASE).split("/", 2)[1]);
-  }
-
-  private static String parsePassword(String userInfo) {
-    if (userInfo == null) {
-      return null;
-    }
-    return userInfo.split(":", 2)[1];
   }
 }
