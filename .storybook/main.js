@@ -10,7 +10,7 @@ module.exports = {
       ...config.resolve,
       alias: deckWebpackConfig.resolve.alias,
       extensions: deckWebpackConfig.resolve.extensions,
-      modules: deckWebpackConfig.resolve.modules,
+      modules: ['node_modules'],
     };
 
     config.module.rules = deckWebpackConfig.module.rules.map(rule => {
