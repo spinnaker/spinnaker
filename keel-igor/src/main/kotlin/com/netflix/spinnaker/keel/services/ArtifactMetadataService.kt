@@ -109,7 +109,7 @@ class ArtifactMetadataService(
     )
 
     return retry.executeSuspendFunction {
-      buildService.getArtifactMetadata(commitId = commitId, buildNumber = buildNumber)
+      buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim())
     }
 
   }
