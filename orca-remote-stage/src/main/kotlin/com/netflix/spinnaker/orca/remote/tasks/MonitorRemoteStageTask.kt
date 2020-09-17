@@ -25,7 +25,7 @@ class MonitorRemoteStageTask : RetryableTask {
     }
 
     return if (remoteStatus == ExecutionStatus.SUCCEEDED || remoteStatus == ExecutionStatus.TERMINAL) {
-      TaskResult.builder(remoteStatus).context(outputs).build()
+      TaskResult.builder(remoteStatus).context(outputs).outputs(outputs).build()
     } else {
       TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
     }

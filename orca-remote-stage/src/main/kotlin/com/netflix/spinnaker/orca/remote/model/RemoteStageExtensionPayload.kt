@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.remote.model
 
-import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPayload
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionPayload
 
 /**
  * The payload sent to the remote stage on invocation.
