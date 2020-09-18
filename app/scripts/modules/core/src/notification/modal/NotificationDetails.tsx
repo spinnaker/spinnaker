@@ -54,7 +54,7 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
   }
 
   private renderCustomMessage = (type: string, whenOption: string): React.ReactNode => {
-    if (whenOption !== 'manualJudgment' && ['email', 'slack', 'googlechat'].includes(type)) {
+    if (whenOption !== 'manualJudgment' && ['email', 'slack', 'googlechat', 'microsoftteams'].includes(type)) {
       return (
         <FormikFormField
           name={`message["${whenOption}"].text`}

@@ -115,6 +115,9 @@ window.spinnakerSettings = {
     googlechat: {
       enabled: true,
     },
+    microsoftteams: {
+      enabled: true,
+    },
     pubsub: {
       enabled: true,
     },

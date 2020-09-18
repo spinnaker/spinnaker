@@ -17,6 +17,7 @@ export interface INotificationSettings {
   email: { enabled: boolean };
   githubStatus: { enabled: boolean };
   googlechat: { enabled: boolean };
+  microsoftteams: { enabled: boolean };
   pubsub: { enabled: boolean };
   slack: { botName: string; enabled: boolean };
   sms: { enabled: boolean };

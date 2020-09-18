@@ -7,6 +7,7 @@ import { bearyChatNotification } from './selector/types/bearychat/beary.notifica
 import { emailNotification } from './selector/types/email/email.notification';
 import { githubstatusNotification } from './selector/types/githubstatus/githubstatus.notification';
 import { googlechatNotification } from './selector/types/googlechat/googlechat.notification';
+import { microsoftTeamsNotification } from './selector/types/microsoftteams/microsoftteams.notification';
 import { pubsubNotification } from './selector/types/pubsub/pubsub.notification';
 import { slackNotification } from './selector/types/slack/slack.notification';
 import { smsNotification } from './selector/types/sms/sms.notification';
@@ -16,6 +17,7 @@ import { smsNotification } from './selector/types/sms/sms.notification';
   emailNotification,
   githubstatusNotification,
   googlechatNotification,
+  microsoftTeamsNotification,
   pubsubNotification,
   slackNotification,
   smsNotification,
