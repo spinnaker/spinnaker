@@ -1,4 +1,5 @@
 import com.diffplug.gradle.spotless.SpotlessExtension
+import org.liquibase.gradle.LiquibaseTask
 import java.lang.Thread.sleep
 
 val buildingInDocker = project.properties["buildingInDocker"]?.toString().let { it == "true" }
@@ -65,39 +66,50 @@ dependencies {
   liquibaseRuntime("mysql:mysql-connector-java")
 }
 
-tasks.register<Exec>("runMysql") {
-  commandLine("docker run --name mysqlJooq -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:5.7".split(" "))
-  doLast {
-    // Wait for the DB server to come up...
-    sleep(15 * 1000)
-  }
-}
-
-tasks.register<Exec>("stopMysql") {
-  commandLine("docker stop mysqlJooq".split(" "))
-}
-
-// Task used when building in Docker in place of jooqModelator (see Dockerfile.compile)
-tasks.register<JavaExec>("jooqGenerate") {
-  group = "Execution"
-  description = "Run the jOOQ code generation tool"
-  classpath = configurations.named("jooqGenerator").get()
-  main = "org.jooq.codegen.GenerationTool"
-  args = listOf("$buildDir/resources/main/jooqConfig.xml")
-  dependsOn("processResources")
-  if (!buildingInDocker) {
-    dependsOn("runMysql")
-    dependsOn("liquibaseUpdate").mustRunAfter("runMysql")
-    finalizedBy("stopMysql")
-  } else {
-    dependsOn("liquibaseUpdate")
-  }
-}
-
 // expand properties in jooqConfig.xml so it gets a fully-qualified directory to generate into
 tasks.withType<ProcessResources> {
   filesMatching("jooqConfig.xml") {
     expand(project.properties)
+  }
+}
+
+tasks.getByName<LiquibaseTask>("liquibaseUpdate") {
+  inputs.dir("$projectDir/src/main/resources/db")
+  outputs.dir("$projectDir/src/generated/java")
+
+  doFirst {
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+      exec {
+        commandLine("sh", "-c", "docker run --name mysqlJooq --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:5.7 >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
+      }
+    }
+  }
+}
+
+// Task used when building in Docker in place of jooqModelator (see Dockerfile.compile)
+tasks.register("jooqGenerate") {
+  group = "Execution"
+  description = "Run the jOOQ code generation tool"
+
+  dependsOn("processResources", "liquibaseUpdate")
+
+  inputs.dir("$projectDir/src/main/resources/db")
+  outputs.dir("$projectDir/src/generated/java")
+
+  doLast {
+    javaexec {
+      classpath = configurations.named("jooqGenerator").get()
+      main = "org.jooq.codegen.GenerationTool"
+      args = listOf("$buildDir/resources/main/jooqConfig.xml")
+    }
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+    }
   }
 }
 
