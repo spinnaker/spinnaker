@@ -7,11 +7,11 @@ import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
-import com.netflix.spinnaker.keel.extensions.DefaultExtensionRegistry
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.rest.DeliveryConfigYamlParsingFilter
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.ResourceKindSchemaCustomizer
+import com.netflix.spinnaker.keel.schema.TagVersionStrategySchemaCustomizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -112,7 +112,8 @@ class DefaultConfiguration(
     schemaCustomizers = listOf(
       ResourceKindSchemaCustomizer(
         resourceHandlers.map { it.supportedKind.kind } + migrators.map { it.input.kind }
-      )
+      ),
+      TagVersionStrategySchemaCustomizer
     ),
     options = Generator.Options(
       lowerCaseEnums = true

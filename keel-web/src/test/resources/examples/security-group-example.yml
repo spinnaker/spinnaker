@@ -1,21 +1,24 @@
 ---
-kind: ec2/security-group@v1
-metadata:
-  serviceAccount: my-email@spinnaker.io
-spec:
-  moniker:
-    app: keeldemo
-    stack: example
-    detail: ec2v1
-  locations:
-    account: test
-    vpc: vpc0
-    regions:
-    - name: us-west-2
-    - name: us-east-1
-  description: Managed Security Group for keeldemo example
-  inboundRules:
-  - protocol: TCP
-    portRange:
-      startPort: 7001
-      endPort: 7001
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+environments:
+- name: test
+  resources:
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: keeldemo
+        stack: example
+        detail: ec2v1
+      locations:
+        account: test
+        vpc: vpc0
+        regions:
+        - name: us-west-2
+        - name: us-east-1
+      description: Managed Security Group for keeldemo example
+      inboundRules:
+      - protocol: TCP
+        portRange:
+          startPort: 7001
+          endPort: 7001

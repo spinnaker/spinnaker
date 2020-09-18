@@ -1,67 +1,72 @@
 ---
-kind: ec2/cluster@v1
-metadata:
-  serviceAccount: my-email@spinnaker.io
-spec:
-  moniker:
-    app: keeldemo
-    stack: examples
-    detail: ec2v1
-  imageProvider:
-    deliveryArtifact:
-      name: keeldemo
-      type: deb
-      vmOptions:
-        baseOs: bionic-classic
-        regions:
-        - us-east-1
-        - us-west-2
-  locations:
-    account: test
-    vpc: vpc0
-    subnet: internal (vpc0)
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+artifacts:
+- name: fnord
+  type: deb
+  reference: fnord
+  vmOptions:
+    baseOs: bionic
     regions:
-      - name: us-west-2
-      - name: us-east-1
-  overrides: {}
-  launchConfiguration:
-    instanceType: m5.large
-    ebsOptimized: true
-    iamRole: keeldemoInstanceProfile
-    keyPair: nf-test-keypair-a
-  capacity:
-    min: 3
-    max: 10
-  scaling:
-    suspendedProcesses:
-    - "AZRebalance"
-    targetTrackingPolicies:
-    - warmup: "PT7M"
-      targetValue: 50.0
-      disableScaleIn: true
-      customMetricSpec:
-        name: "CPUUtilization"
-        namespace: "AWS/EC2"
-        statistic: "Average"
-    stepScalingPolicies:
-    - adjustmentType: "PercentChangeInCapacity"
-      actionsEnabled: true
-      comparisonOperator: "LessThanThreshold"
-      evaluationPeriods: 60
-      period: "PT1M"
-      threshold: 45
-      metricName: "CPUUtilization"
-      namespace: "AWS/EC2"
-      statistic: "Average"
-      warmup: "PT0S"
-      metricAggregationType: "Average"
-      stepAdjustments:
-      - upperBound: 0.0
-        scalingAdjustment: -4
-  dependencies:
-    loadBalancerNames: []
-    securityGroupNames:
-      - keeldemo
-      - nf-datacenter
-      - nf-infrastructure
-    targetGroups: []
+    - us-east-1
+    - us-west-2
+environments:
+- name: test
+  resources:
+  - kind: ec2/cluster@v1
+    spec:
+      moniker:
+        app: keeldemo
+        stack: examples
+        detail: ec2v1
+      imageProvider:
+        reference: fnord
+      locations:
+        account: test
+        vpc: vpc0
+        subnet: internal (vpc0)
+        regions:
+          - name: us-west-2
+          - name: us-east-1
+      overrides: {}
+      launchConfiguration:
+        instanceType: m5.large
+        ebsOptimized: true
+        iamRole: keeldemoInstanceProfile
+        keyPair: nf-test-keypair-a
+      capacity:
+        min: 3
+        max: 10
+      scaling:
+        suspendedProcesses:
+        - "AZRebalance"
+        targetTrackingPolicies:
+        - warmup: "PT7M"
+          targetValue: 50.0
+          disableScaleIn: true
+          customMetricSpec:
+            name: "CPUUtilization"
+            namespace: "AWS/EC2"
+            statistic: "Average"
+        stepScalingPolicies:
+        - adjustmentType: "PercentChangeInCapacity"
+          actionsEnabled: true
+          comparisonOperator: "LessThanThreshold"
+          evaluationPeriods: 60
+          period: "PT1M"
+          threshold: 45
+          metricName: "CPUUtilization"
+          namespace: "AWS/EC2"
+          statistic: "Average"
+          warmup: "PT0S"
+          metricAggregationType: "Average"
+          stepAdjustments:
+          - upperBound: 0.0
+            scalingAdjustment: -4
+      dependencies:
+        loadBalancerNames: []
+        securityGroupNames:
+          - keeldemo
+          - nf-datacenter
+          - nf-infrastructure
+        targetGroups: []

@@ -915,7 +915,7 @@ internal class GeneratorTests {
 
   @Nested
   @DisplayName("types with custom schemas")
-  class CustomSchemas : GeneratorTestBase(
+  class CustomSchemaTypes : GeneratorTestBase(
     schemaCustomizers = listOf(
       object : SchemaCustomizer {
         override fun supports(type: KClass<*>): Boolean = type == Bar::class
@@ -940,6 +940,39 @@ internal class GeneratorTests {
         .isA<StringSchema>()
         .get { description }
         .isEqualTo("custom schema")
+    }
+  }
+
+  @Nested
+  @DisplayName("properties with custom schemas")
+  class CustomSchemaProperties : GeneratorTestBase(
+    schemaCustomizers = listOf(
+      object : SchemaCustomizer {
+        override fun supports(type: KClass<*>): Boolean = type == Size::class
+
+        override fun buildSchema(): Schema = EnumSchema(
+          enum = Size.values().map { it.starbucks },
+          description = null
+        )
+      }
+    )
+  ) {
+    data class Foo(
+      val size: Size
+    )
+
+    enum class Size(val starbucks: String) {
+      SMALL("tall"), MEDIUM("grande"), LARGE("venti")
+    }
+
+    val schema by lazy { generateSchema<Foo>() }
+
+    @Test
+    fun `custom schema overrides default`() {
+      expectThat(schema.properties[Foo::size.name])
+        .isA<EnumSchema>()
+        .get { enum }
+        .containsExactlyInAnyOrder(Size.values().map { it.starbucks })
     }
   }
 

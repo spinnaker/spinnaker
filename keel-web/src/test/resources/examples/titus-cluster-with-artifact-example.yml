@@ -1,30 +1,36 @@
 ---
-kind: titus/cluster@v1
-metadata:
-  serviceAccount: my-email@spinnaker.io
-spec:
-  moniker:
-    app: keeldemo
-    stack: examples
-    detail: ec2v1
-  container:
-    organization: emburns
-    image: spin-titus-demo
-    tagVersionStrategy: semver-tag
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+artifacts:
+- name: fnord
+  type: docker
+  reference: fnord
+  tagVersionStrategy: branch-job-commit-by-job
+environments:
+- name: test
   locations:
-    account: titustestvpc
+    account: prod
     regions:
-      - name: us-west-2
-      - name: us-east-1
-  capacity:
-    min: 1
-    max: 1
-    desired: 1
-  overrides: {}
-  dependencies:
-    loadBalancerNames: []
-    securityGroupNames:
-      - keeldemo
-      - nf-datacenter
-      - nf-infrastructure
-    targetGroups: []
+    - name: us-west-2
+    - name: us-east-1
+  resources:
+  - kind: titus/cluster@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: examples
+        detail: ec2v1
+      container:
+        reference: fnord
+      capacity:
+        min: 1
+        max: 1
+        desired: 1
+      overrides: {}
+      dependencies:
+        loadBalancerNames: []
+        securityGroupNames:
+          - keeldemo
+          - nf-datacenter
+          - nf-infrastructure
+        targetGroups: []

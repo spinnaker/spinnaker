@@ -89,9 +89,7 @@ class Generator(
   private fun Context.buildSchema(type: KClass<*>, discriminator: Pair<KProperty<String>, String>? = null): Schema =
     when {
       // If we have a schema customizer for this type, just use that
-      schemaCustomizers.any { it.supports(type) } -> schemaCustomizers
-        .first { it.supports(type) }
-        .buildSchema()
+      type.hasCustomizer -> schemaCustomizers.first { it.supports(type) }.buildSchema()
       type.isSingleton -> buildSchemaForKotlinSingleton(type)
       type.isSealed -> buildSchemaForSealedClass(type)
       extensionRegistry.baseTypes().contains(type.java) -> buildSchemaForTypeHierarchy(type)
@@ -300,8 +298,8 @@ class Generator(
         ?.description
     )
 
-  private fun Context.buildProperty(type: KType, description: String? = null): Schema =
-    when {
+  private fun Context.buildProperty(type: KType, description: String? = null): Schema {
+    return when {
       type.isMarkedNullable -> if (options.nullableAsOneOf) {
         OneOf(
           description = description,
@@ -315,6 +313,9 @@ class Generator(
           description = description
         )
       }
+      type.representInline && type.hasCustomizer -> schemaCustomizers
+        .first { it.supports(type.jvmErasure) }
+        .buildSchema()
       type.isSingleton -> buildSchema(type.jvmErasure)
       type.isEnum -> EnumSchema(description = description, enum = type.enumNames)
       type.isString -> StringSchema(description = description, format = type.stringFormat)
@@ -343,6 +344,7 @@ class Generator(
       type.jvmErasure == Any::class -> AnySchema(description = description)
       else -> define(type)
     }
+  }
 
   /**
    * If a schema for [type] is not yet defined, define it now.
@@ -421,6 +423,13 @@ class Generator(
    */
   private val KType.isUniqueItems: Boolean
     get() = jvmErasure.isSubclassOf(Set::class)
+
+  /**
+   * `true` if this type should be represented in-line in the schema, `false` if it should be a
+   * [Reference].
+   */
+  private val KType.representInline: Boolean
+    get() = isSingleton || isEnum || isString || isBoolean || isInteger || isNumber
 
   /**
    * The names of all the values of an enum as they should appear in the schema.
@@ -508,6 +517,13 @@ class Generator(
    */
   private val KType.stringFormat: String?
     get() = formattedTypes[jvmErasure]
+
+  private val KType.hasCustomizer:Boolean
+    get() = jvmErasure.hasCustomizer
+
+  private val KClass<*>.hasCustomizer:Boolean
+    get() = schemaCustomizers.any { it.supports(this) }
+
 }
 
 inline fun <reified TYPE : Any> Generator.generateSchema() = generateSchema(TYPE::class)

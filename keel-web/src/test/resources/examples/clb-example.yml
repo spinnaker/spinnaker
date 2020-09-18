@@ -1,31 +1,37 @@
 ---
-kind: ec2/classic-load-balancer@v1
-metadata:
-  serviceAccount: my-email@spinnaker.io
-spec:
-  moniker:
-    app: keeldemo
-    stack: example
-    detail: clbec2v1
-  locations:
-    account: test
-    vpc: vpc0
-    subnet: internal (vpc0)
-    regions:
-    - name: us-east-1
-    - name: us-west-2
-  internal: true
-  securityGroupNames: []
-  idleTimeout: PT60S
-  listeners:
-  - internalProtocol: HTTP
-    internalPort: 7001
-    externalProtocol: HTTP
-    externalPort: 80
-    sslCertificateId:
-  healthCheck:
-    target: HTTP:7001/health
-    interval: PT10S
-    healthyThreshold: 5
-    unhealthyThreshold: 2
-    timeout: PT5S
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+environments:
+- name: test
+  resources:
+  - kind: ec2/classic-load-balancer@v1
+    spec:
+      moniker:
+        app: fnord
+      listeners:
+      - externalPort: 443
+        internalPort: 8443
+        externalProtocol: TCP
+        internalProtocol: TCP
+      - externalPort: 80
+        internalPort: 8080
+        externalProtocol: TCP
+        internalProtocol: TCP
+      locations:
+        vpc: vpc0
+        account: test
+        regions:
+        - name: us-west-1
+          availabilityZones:
+          - us-west-1a
+          - us-west-1c
+        - name: us-west-2
+          availabilityZones:
+          - us-west-2a
+          - us-west-2c
+      healthCheck:
+        target: HTTP:8080/admin/health
+      idleTimeout: PT30S
+      dependencies:
+        securityGroupNames:
+        - fnord-elb

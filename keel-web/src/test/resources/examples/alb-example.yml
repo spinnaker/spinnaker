@@ -1,24 +1,40 @@
 ---
-kind: ec2/application-load-balancer@v1.1
-metadata:
-  serviceAccount: my-email@spinnaker.io
-spec:
-  moniker:
-    app: keeldemo
-    stack: example
-    detail: albec2v1
-  locations:
-    account: test
-    vpc: vpc0
-    subnet: internal (vpc0)
-    regions:
-    - name: us-east-1
-    - name: us-west-2
-  listeners:
-    - port: 80
-      protocol: HTTP
-  targetGroups:
-    - name: keeldemo-example-tgec2v1
-      port: 7001
-      attributes:
-        stickinessEnabled: false
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+environments:
+- name: test
+  resources:
+  - kind: ec2/application-load-balancer@v1.1
+    spec:
+      moniker:
+        app: fnord
+      listeners:
+      - port: 443
+        protocol: HTTPS
+        certificateArn: arn:aws:iam::111111111111:server-certificate/fnord.prod.illuminati.org-DigiCertSHA2SecureServerCA-20200205-20210205
+        defaultActions:
+        - type: forward
+          order: 1
+          targetGroupName: fnord
+      locations:
+        vpc: vpc0
+        subnet: internal (vpc0)
+        account: prod
+        regions:
+        - name: us-east-1
+      dependencies:
+        securityGroupNames:
+        - fnord
+        - datacenter-elb
+      targetGroups:
+      - name: fnord
+        port: 8443
+        protocol: HTTPS
+        attributes:
+          stickinessType: lb_cookie
+          stickinessEnabled: false
+          stickinessDuration: 8400
+          deregistrationDelay: 600
+          slowStartDurationSeconds: 0
+        targetType: ip
+        healthCheckPort: 8080
