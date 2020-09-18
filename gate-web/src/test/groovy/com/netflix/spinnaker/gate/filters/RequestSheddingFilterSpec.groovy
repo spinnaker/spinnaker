@@ -13,44 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.interceptors
+package com.netflix.spinnaker.gate.filters
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import static com.netflix.spinnaker.gate.interceptors.RequestSheddingInterceptor.*
+import static com.netflix.spinnaker.gate.filters.RequestSheddingFilter.*
 
-class RequestSheddingInterceptorSpec extends Specification {
+class RequestSheddingFilterSpec extends Specification {
 
   DynamicConfigService configService = Mock()
 
   @Subject
-  RequestSheddingInterceptor subject = new RequestSheddingInterceptor(configService, new NoopRegistry(), null)
+  RequestSheddingFilter subject = new RequestSheddingFilter(configService, new NoopRegistry(), null)
 
   HttpServletRequest request = Mock()
   HttpServletResponse response = Mock()
-  Object handler = Mock()
+  FilterChain chain = Mock()
+
+  PrintWriter printWriter = Mock()
 
   def "should do nothing when disabled"() {
     when:
-    def result = subject.preHandle(request, response, handler)
+    subject.doFilter(request, response, chain)
 
     then:
     noExceptionThrown()
     1 * configService.isEnabled(ENABLED_KEY, false) >> false
+    1 * chain.doFilter(request, response)
     0 * _
-    result == true
   }
 
   def "should do nothing if request is not low priority"() {
     when:
-    def result = subject.preHandle(request, response, handler)
+    subject.doFilter(request, response, chain)
 
     then:
     noExceptionThrown()
@@ -58,15 +62,15 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * request.getHeader(PRIORITY_HEADER) >> "normal"
     1 * request.getRequestURI() >> "/foo"
     1 * request.getMethod() >> "GET"
+    1 * chain.doFilter(request, response)
     0 * _
-    result == true
   }
 
   @Unroll
   def "should allow requests not matching paths"() {
     when:
     subject.compilePatterns()
-    subject.preHandle(request, response, handler)
+    subject.doFilter(request, response, chain)
 
     then:
     noExceptionThrown()
@@ -75,6 +79,7 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * request.getRequestURI() >> requestPath
     1 * request.getMethod() >> "GET"
     1 * configService.getConfig(String, PATHS_KEY, "") >> pathMatchers
+    1 * chain.doFilter(request, response)
     0 * _
 
     where:
@@ -90,10 +95,9 @@ class RequestSheddingInterceptorSpec extends Specification {
   def "should drop requests matching #pathMatchers"() {
     when:
     subject.compilePatterns()
-    subject.preHandle(request, response, handler)
+    subject.doFilter(request, response, chain)
 
     then:
-    thrown(LowPriorityRequestRejected)
     1 * configService.isEnabled(ENABLED_KEY, false) >> true
     1 * request.getHeader(PRIORITY_HEADER) >> "low"
     2 * request.getRequestURI() >> requestPath
@@ -101,6 +105,9 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * configService.getConfig(String, PATHS_KEY, "") >> pathMatchers
     1 * configService.getConfig(Integer, CHANCE_KEY, 100) >> 100
     1 * response.setDateHeader("Retry-After", _)
+    1 * response.setStatus(503)
+    1 * response.getWriter() >> printWriter
+    1 * printWriter.write(_)
     0 * _
 
     where:

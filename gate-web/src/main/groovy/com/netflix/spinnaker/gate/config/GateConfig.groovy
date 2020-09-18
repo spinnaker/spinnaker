@@ -34,6 +34,7 @@ import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectio
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
+import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.RequestTimingFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
@@ -414,6 +415,16 @@ class GateConfig extends RedisHttpSessionConfiguration {
     // this filter should be placed very early in the request chain to ensure we track an accurate start time and
     // have a request id available to propagate across thread and service boundaries.
     frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
+  }
+
+  @Bean
+  FilterRegistrationBean requestSheddingFilter(DynamicConfigService dynamicConfigService) {
+    def frb = new FilterRegistrationBean(new RequestSheddingFilter(dynamicConfigService, registry))
+
+    // this filter should be placed early in the request chain to allow for requests to be shed prior to the
+    // spring security filter chain being evaluated.
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 1
     return frb
   }
 

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 
-import com.netflix.spinnaker.gate.interceptors.RequestSheddingInterceptor
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
 import com.netflix.spinnaker.gate.ratelimit.RateLimiter
 import com.netflix.spinnaker.gate.ratelimit.RateLimitingInterceptor
@@ -83,7 +82,6 @@ public class GateWebConfig implements WebMvcConfigurer {
     }
 
     registry.addInterceptor(new RequestContextInterceptor())
-    registry.addInterceptor(new RequestSheddingInterceptor(dynamicConfigService, this.registry))
   }
 
   @Bean

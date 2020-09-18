@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.interceptors;
+package com.netflix.spinnaker.gate.filters;
 
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -36,12 +37,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.PreDestroy;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
  * A request interceptor for shedding low-priority requests from Deck.
@@ -62,7 +64,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * <p>If enabled but an internal error occurs due to configuration, the interceptor will elect to
  * drop all low priority requests.
  */
-public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
+public class RequestSheddingFilter extends HttpFilter {
 
   static final String PRIORITY_HEADER = "X-Spinnaker-Priority";
   static final String LOW_PRIORITY = "low";
@@ -71,7 +73,7 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
   static final String CHANCE_KEY = "requestShedding.chance";
   static final String PATHS_KEY = "requestShedding.paths";
 
-  private static final Logger log = LoggerFactory.getLogger(RequestSheddingInterceptor.class);
+  private static final Logger log = LoggerFactory.getLogger(RequestSheddingFilter.class);
   private static final Splitter splitter = Splitter.on(",").omitEmptyStrings().trimResults();
   private static final Random random = new Random();
 
@@ -83,12 +85,12 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
 
   private final CopyOnWriteArrayList<Pattern> pathPatterns = new CopyOnWriteArrayList<>();
 
-  public RequestSheddingInterceptor(DynamicConfigService configService, Registry registry) {
+  public RequestSheddingFilter(DynamicConfigService configService, Registry registry) {
     this(configService, registry, Executors.newScheduledThreadPool(1));
   }
 
   @VisibleForTesting
-  RequestSheddingInterceptor(
+  RequestSheddingFilter(
       DynamicConfigService configService,
       Registry registry,
       ScheduledExecutorService executorService) {
@@ -113,8 +115,9 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
   }
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-      throws Exception {
+  protected void doFilter(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
     if (configService.isEnabled(ENABLED_KEY, false) && isDroppable(request)) {
       if (shouldDropRequestWithChance()) {
         log.warn("Dropping low priority request: {}", request.getRequestURI());
@@ -122,13 +125,24 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
 
         response.setDateHeader(
             "Retry-After", Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
-        throw new LowPriorityRequestRejected();
+
+        // Raising an exception here (or using response.sendError) would result in the request being
+        // dispatched to `/error` and triggering an evaluation of the spring security filter chain.
+        //
+        // This filter is attempting to shed requests _prior_ to the spring filter chain being
+        // evaluated and thus needs to more explicit around how the status and response body
+        // is constructed.
+        response.setStatus(SERVICE_UNAVAILABLE.value());
+        response
+            .getWriter()
+            .write("{\"message\": \"Low priority requests are not currently being accepted\"");
+        return;
       }
       log.debug("Dice roll prevented low priority request shedding: {}", request.getRequestURI());
       registry.counter(requestsId.withTag("action", "allowed")).increment();
     }
 
-    return super.preHandle(request, response, handler);
+    chain.doFilter(request, response);
   }
 
   private boolean isDroppable(HttpServletRequest request) {
@@ -192,14 +206,5 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
 
     pathPatterns.addAll(newPatterns);
     pathPatterns.removeIf(p -> !newPatterns.contains(p));
-  }
-
-  @ResponseStatus(value = SERVICE_UNAVAILABLE, reason = LowPriorityRequestRejected.REASON)
-  static class LowPriorityRequestRejected extends RuntimeException {
-    static final String REASON = "Low priority requests are not currently being accepted";
-
-    LowPriorityRequestRejected() {
-      super(REASON);
-    }
   }
 }
