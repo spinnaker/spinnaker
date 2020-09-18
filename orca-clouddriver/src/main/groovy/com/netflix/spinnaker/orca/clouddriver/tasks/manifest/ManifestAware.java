@@ -49,22 +49,4 @@ public interface ManifestAware {
 
     return result;
   }
-
-  default Map<String, List<String>> manifestsToRefresh(StageExecution stage) {
-    Map<String, List<String>> result =
-        (Map<String, List<String>>)
-            stage
-                .getContext()
-                .get(PromoteManifestKatoOutputsTask.MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY);
-    if (result != null
-        && (boolean)
-            stage
-                .getContext()
-                .get(
-                    PromoteManifestKatoOutputsTask
-                        .SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY)) {
-      return result;
-    }
-    return manifestNamesByNamespace(stage);
-  }
 }

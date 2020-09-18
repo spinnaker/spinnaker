@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RollingRestartManifestTask;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
@@ -33,7 +32,6 @@ public class RollingRestartManifestStage implements StageDefinitionBuilder {
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask(RollingRestartManifestTask.TASK_NAME, RollingRestartManifestTask.class)
-        .withTask("monitorRollingRestart", MonitorKatoTask.class)
-        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class);
+        .withTask("monitorRollingRestart", MonitorKatoTask.class);
   }
 }

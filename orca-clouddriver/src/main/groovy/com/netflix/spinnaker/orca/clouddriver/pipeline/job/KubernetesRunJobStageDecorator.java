@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.job;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -37,9 +36,7 @@ public class KubernetesRunJobStageDecorator implements RunJobStageDecorator {
     boolean manifestBasedRunJob = context.containsKey("source") || context.containsKey("manifest");
 
     if (manifestBasedRunJob) {
-      builder
-          .withTask("promoteOutputs", PromoteManifestKatoOutputsTask.class)
-          .withTask("forceCacheRefresh", ManifestForceCacheRefreshTask.class);
+      builder.withTask("promoteOutputs", PromoteManifestKatoOutputsTask.class);
     }
   }
 

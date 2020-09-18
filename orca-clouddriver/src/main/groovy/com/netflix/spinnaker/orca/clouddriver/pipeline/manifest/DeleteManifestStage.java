@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeleteManifestTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveTargetManifestTask;
 import javax.annotation.Nonnull;
@@ -38,7 +37,6 @@ public class DeleteManifestStage implements StageDefinitionBuilder {
         .withTask(ResolveTargetManifestTask.TASK_NAME, ResolveTargetManifestTask.class)
         .withTask(DeleteManifestTask.TASK_NAME, DeleteManifestTask.class)
         .withTask("monitorDelete", MonitorKatoTask.class)
-        .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
-        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class);
+        .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class);
   }
 }

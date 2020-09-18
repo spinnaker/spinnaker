@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PatchManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolvePatchSourceManifestTask;
@@ -42,7 +41,6 @@ public class PatchManifestStage implements StageDefinitionBuilder {
         .withTask(PatchManifestTask.TASK_NAME, PatchManifestTask.class)
         .withTask("monitorPatch", MonitorKatoTask.class)
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
-        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
         .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }

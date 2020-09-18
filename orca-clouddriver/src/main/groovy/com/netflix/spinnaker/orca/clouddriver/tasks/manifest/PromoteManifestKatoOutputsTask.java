@@ -49,9 +49,6 @@ public class PromoteManifestKatoOutputsTask implements Task {
   private static final String BOUND_ARTIFACTS_KEY = "boundArtifacts";
   private static final String CREATED_ARTIFACTS_KEY = "createdArtifacts";
   private static final String ARTIFACTS_KEY = "artifacts";
-  static final String MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY = "manifestNamesByNamespaceToRefresh";
-  static final String SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY =
-      "shouldRefreshManifestNamesByNamespaceToRefresh";
 
   @Autowired ObjectMapper objectMapper;
 
@@ -79,14 +76,6 @@ public class PromoteManifestKatoOutputsTask implements Task {
 
     addToOutputs(outputs, allResults, CREATED_ARTIFACTS_KEY, ARTIFACTS_KEY);
     convertKey(outputs, ARTIFACTS_KEY, artifactListType);
-
-    // Surface the most recently operated-on manifests for subsequent ManifestForceCacheRefreshTasks
-    addMostRecentValueToOutputs(
-        outputs, allResults, MANIFESTS_BY_NAMESPACE_KEY, MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY);
-
-    outputs.put(
-        SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY,
-        outputs.get(MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY) != null);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
