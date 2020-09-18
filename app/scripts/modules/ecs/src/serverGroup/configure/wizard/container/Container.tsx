@@ -51,6 +51,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     }
 
     cmd.targetGroupMappings = uniqWith(defaultTargetGroup, isEqual);
+    cmd.containerMappings = null;
 
     this.state = {
       imageDescription: cmd.imageDescription ? cmd.imageDescription : this.getEmptyImageDescription(),
@@ -60,6 +61,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       targetGroupMappings: cmd.targetGroupMappings,
       targetGroupsAvailable: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.targetGroups : [],
     };
+
+    this.state.targetGroupMappings.forEach(targetGroupMapping => {
+      targetGroupMapping.containerName = "";
+    });
+
   }
 
   public componentDidMount() {
