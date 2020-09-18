@@ -33,6 +33,7 @@ include(
   "kork-artifacts",
   "kork-aws",
   "kork-bom",
+  "kork-cloud-config-server",
   "kork-config",
   "kork-core",
   "kork-core-tck",
