@@ -103,10 +103,35 @@ export interface IManagedArtifactVersion {
     statelessConstraints?: IStatelessConstraint[];
   }>;
   build?: {
-    id: number;
+    id: number; // deprecated, use number
+    number: string;
+    uid: string;
+    job: {
+      link: string;
+      name: string;
+    };
+    startedAt: string;
+    completedAt?: string;
+    status: 'SUCCESS' | 'UNSTABLE' | 'BUILDING' | 'ABORTED' | 'FAILURE' | 'NOT_BUILT';
   };
   git?: {
-    commit: string;
+    commit: string; // deprecated, use commitInfo
+    author: string;
+    project: string;
+    branch: string;
+    repo: {
+      name: string;
+      link: string;
+    };
+    pullRequest?: {
+      number: string;
+      url: string;
+    };
+    commitInfo: {
+      sha: string;
+      link: string;
+      message: string;
+    };
   };
 }
 
