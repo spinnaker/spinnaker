@@ -103,9 +103,7 @@ public class TaskService {
     LinkedHashMap<String, String> map = new LinkedHashMap<String, String>(1);
     map.put("id", taskId);
     Map task = map;
-    int i = 0;
-    while (i < maxPolls) {
-      i = i++;
+    for (int i = 0; i < maxPolls; i++) {
       try {
         Thread.sleep(intervalMs);
       } catch (InterruptedException ignored) {
