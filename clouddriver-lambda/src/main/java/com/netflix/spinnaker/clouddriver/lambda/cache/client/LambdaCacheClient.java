@@ -56,7 +56,7 @@ public class LambdaCacheClient extends AbstractCacheClient<LambdaFunction> {
         .getEventSourceMappings()
         .forEach(
             currMapping -> {
-              currMapping.setUUID((String) arnUuidMap.get("uuid"));
+              currMapping.setUUID((String) arnUuidMap.get(currMapping.getEventSourceArn()));
             });
     return lambdaFunction;
   }
