@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.clouddriver.lambda")
-@ConditionalOnProperty("aws.lambda.enabled")
+@ConditionalOnExpression(
+    "${aws.enabled:false} and (${aws.lambda.enabled:false} or ${aws.features.lambda.enabled:false})")
 public class LambdaConfiguration {}

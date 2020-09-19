@@ -8,11 +8,22 @@ Spinnaker CloudDriver has been enhanced to add support for AWS Lambda. Below lis
 
 ```yaml
 aws:
-  lambda:
-    enabled: true
+  features:
+    lambda:
+      enabled: true
   accounts:
     - name: test
       lambdaEnabled: true
+```
+
+_Deprecation Notice_:
+
+We are deprecating the following configuration in favor of unifying configuration of AWS services and features:
+
+```yaml
+aws:
+  lambda:
+    enabled: true
 ```
 
 # Controller calls
