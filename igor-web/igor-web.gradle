@@ -28,7 +28,7 @@ dependencies {
     testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
 
-    implementation "org.springframework.boot:spring-boot-properties-migrator"
+    runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
@@ -65,12 +65,15 @@ dependencies {
     implementation "org.springframework.security:spring-security-core"
     implementation "org.springframework.security:spring-security-config"
     implementation "org.springframework.security:spring-security-web"
+    implementation "org.springframework.cloud:spring-cloud-context"
+    implementation "org.springframework.cloud:spring-cloud-config-server"
 
     implementation "com.amazonaws:aws-java-sdk"
     implementation "com.google.apis:google-api-services-cloudbuild"
     implementation "com.google.apis:google-api-services-storage"
     implementation 'com.google.auth:google-auth-library-oauth2-http'
     implementation "com.netflix.spinnaker.kork:kork-config"
+    implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
     implementation "com.netflix.spinnaker.kork:kork-artifacts"
     implementation "com.netflix.spinnaker.kork:kork-web"
     implementation "com.netflix.spinnaker.kork:kork-jedis"
