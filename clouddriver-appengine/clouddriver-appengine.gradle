@@ -19,6 +19,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-annotations"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-config"
+  implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
   implementation "com.netflix.spinnaker.moniker:moniker"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp:okhttp"
@@ -29,6 +30,8 @@ dependencies {
   implementation "org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.cloud:spring-cloud-context"
+  implementation "org.springframework.cloud:spring-cloud-config-server"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
