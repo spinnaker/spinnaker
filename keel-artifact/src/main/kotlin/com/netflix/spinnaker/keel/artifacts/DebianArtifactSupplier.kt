@@ -57,6 +57,11 @@ class DebianArtifactSupplier(
         }
     }
 
+  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
+    runWithIoContext {
+      artifactService.getArtifact(artifact.name, version.removePrefix("${artifact.name}-"), DEBIAN)
+    }
+
   override fun getFullVersionString(artifact: PublishedArtifact): String =
     "${artifact.name}-${artifact.version}"
 

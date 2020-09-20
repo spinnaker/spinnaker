@@ -46,6 +46,11 @@ class NpmArtifactSupplier(
         }
     }
 
+  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
+    runWithIoContext {
+      artifactService.getArtifact(artifact.nameForQuery, version, NPM)
+    }
+
   /**
    * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
    * present in [metadata]

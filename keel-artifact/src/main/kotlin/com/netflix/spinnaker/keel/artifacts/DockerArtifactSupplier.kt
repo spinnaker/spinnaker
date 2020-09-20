@@ -33,6 +33,33 @@ class DockerArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy("docker", DockerVersioningStrategy::class.java)
 
+  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? {
+    return runWithIoContext {
+      cloudDriverService.findDockerImages(account = "*", repository = artifact.name, tag = version)
+        .firstOrNull()
+        ?.let { dockerImage ->
+          PublishedArtifact(
+            name = dockerImage.repository,
+            type = DOCKER,
+            reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
+            version = dockerImage.tag,
+            metadata = let {
+              if (dockerImage.commitId != null && dockerImage.buildNumber != null) {
+                mapOf(
+                  "commitId" to dockerImage.commitId,
+                  "buildNumber" to dockerImage.buildNumber
+                )
+              } else {
+                emptyMap()
+              }
+            }
+          )
+        }
+    }
+  }
+
+
+
   override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? {
     if (artifact !is DockerArtifact) {
       throw IllegalArgumentException("Only Docker artifacts are supported by this implementation.")
