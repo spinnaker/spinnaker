@@ -1,3 +1,5 @@
+import { defaults } from 'lodash';
+
 import { IInstanceStorage, IProviderSettings, SETTINGS } from '@spinnaker/core';
 
 export interface IGCEProviderSettings extends IProviderSettings {
@@ -7,14 +9,14 @@ export interface IGCEProviderSettings extends IProviderSettings {
     zone?: string;
     instanceTypeStorage?: IInstanceStorage;
   };
-  feature?: {
+  feature: {
     predictiveAutoscaling?: boolean;
+    statefulMigsEnabled?: boolean;
   };
 }
 
-export const GCEProviderSettings: IGCEProviderSettings = (SETTINGS.providers.gce as IGCEProviderSettings) || {
+export const GCEProviderSettings: IGCEProviderSettings = defaults(SETTINGS.providers.gce || {}, {
   defaults: {},
-};
-if (GCEProviderSettings) {
-  GCEProviderSettings.resetToOriginal = SETTINGS.resetProvider('gce');
-}
+  feature: {},
+  resetToOriginal: SETTINGS.resetProvider('gce'),
+});

@@ -32,7 +32,6 @@ export interface IFeatures {
   entityTags?: boolean;
   executionMarkerInformationModal?: boolean;
   fiatEnabled?: boolean;
-  gceStatefulMigsEnabled?: boolean;
   iapRefresherEnabled?: boolean;
   managedDelivery?: boolean;
   managedServiceAccounts?: boolean;

@@ -1,8 +1,9 @@
 import { has } from 'lodash';
 
-import { SETTINGS, TaskExecutor } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
 import { IGceServerGroup } from 'google/domain';
+import { GCEProviderSettings } from 'google/gce.settings';
 
 export class StatefulMIGService {
   public static markDiskStateful(applicationName: string, deviceName: string, serverGroup: IGceServerGroup) {
@@ -44,6 +45,6 @@ export class StatefulMIGService {
   }
 
   public static statefulMigsEnabled(): boolean {
-    return SETTINGS.feature.gceStatefulMigsEnabled;
+    return GCEProviderSettings.feature.statefulMigsEnabled;
   }
 }

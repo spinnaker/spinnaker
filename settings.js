@@ -20,7 +20,6 @@ const dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
 const entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 const fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 const gceScaleDownControlsEnabled = process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ? true : false;
-const gceStatefulMigsEnabled = process.env.GCE_STATEFUL_MIGS_ENABLED === 'true' ? true : false;
 const iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
 const managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
 const managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
@@ -76,7 +75,6 @@ window.spinnakerSettings = {
     entityTags: entityTagsEnabled,
     executionMarkerInformationModal: false,
     fiatEnabled: fiatEnabled,
-    gceStatefulMigsEnabled: gceStatefulMigsEnabled,
     iapRefresherEnabled: iapRefresherEnabled,
     managedDelivery: managedDeliveryEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
