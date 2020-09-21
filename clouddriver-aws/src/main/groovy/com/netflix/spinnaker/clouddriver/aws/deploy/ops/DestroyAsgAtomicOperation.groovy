@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.AmazonClientException
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AmazonAutoScalingException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DeleteLaunchTemplateRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
@@ -96,22 +99,8 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
     autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
         autoScalingGroupName: asgName, forceDelete: true))
 
-    if (autoScalingGroup.launchConfigurationName) {
-      task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
-      retrySupport.retry({
-        try {
-          autoScaling.deleteLaunchConfiguration(
-            new DeleteLaunchConfigurationRequest(launchConfigurationName: autoScalingGroup.launchConfigurationName)
-          )
-        } catch (AmazonAutoScalingException e) {
-          // Ignore not found exception
-          if (!e.message.toLowerCase().contains("launch configuration name not found")) {
-            throw e
-          }
-        }
-      }, 5, Duration.ofSeconds(1), true)
-    }
     def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+    deleteLaunchSetting(autoScalingGroup, autoScaling, ec2, region)
 
     for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
       int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
@@ -124,4 +113,30 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
     }
   }
 
+  private void deleteLaunchSetting(
+    AutoScalingGroup autoScalingGroup, AmazonAutoScaling autoScaling, AmazonEC2 amazonEC2, String region) {
+    String lcName = autoScalingGroup.launchConfigurationName
+    String launchTemplateId = autoScalingGroup.launchTemplate?.launchTemplateId
+    retrySupport.retry({
+      try {
+        if (lcName) {
+          getTask().updateStatus BASE_PHASE, "Deleting launch config $lcName in $region."
+
+          autoScaling.deleteLaunchConfiguration(
+            new DeleteLaunchConfigurationRequest(launchConfigurationName: lcName))
+        } else if (launchTemplateId) {
+          getTask().updateStatus BASE_PHASE, "Deleting launch template $launchTemplateId in $region."
+
+          amazonEC2.deleteLaunchTemplate(
+            new DeleteLaunchTemplateRequest(launchTemplateId: launchTemplateId))
+        }
+      } catch (AmazonAutoScalingException e) {
+        String msg = e.message.toLowerCase()
+        // Ignore not found exception
+        if (!msg.contains("not found") && !msg.contains("does not exist")) {
+          throw e
+        }
+      }
+    }, 5, Duration.ofSeconds(1), true)
+  }
 }
