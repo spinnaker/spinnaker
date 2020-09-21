@@ -6,8 +6,12 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
+import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
@@ -22,7 +26,9 @@ import org.springframework.stereotype.Component
  */
 class ManualJudgementNotifier(
   private val notificationConfig: ManualJudgementNotificationConfig,
-  private val echoService: EchoService
+  private val echoService: EchoService,
+  private val repository: KeelRepository,
+  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
 ) {
   companion object {
     const val MANUAL_JUDGEMENT_DOC_URL =
@@ -51,27 +57,60 @@ class ManualJudgementNotifier(
   }
 
   private fun ConstraintStateChanged.toEchoNotification(config: NotificationConfig): EchoNotification {
+    val artifact = currentState.artifactReference?.let {
+      repository.getArtifact(currentState.deliveryConfigName, it)
+    } ?: throw SystemException("Required artifact reference missing in constraint state object")
+
+    val deliveryConfig = repository.getDeliveryConfig(currentState.deliveryConfigName)
+    val artifactUrl = "$spinnakerBaseUrl/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
+    val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
+    val gitMetadata = repository.getArtifactGitMetadata(artifact.name, artifact.type, currentState.artifactVersion, null)
+    var details =
+      "*Version:* <$artifactUrl|$normalizedVersion>\n" +
+      "*Application:* ${deliveryConfig.application}, *Environment:* ${currentState.environmentName}\n"
+
+    if (gitMetadata!= null) {
+      if (gitMetadata.project != null && gitMetadata.repo?.name != null) {
+        details += if (gitMetadata.repo!!.link.isNullOrEmpty()) {
+          "*Repo:* ${gitMetadata.project}/${gitMetadata.repo!!.name}"
+        } else {
+          "*Repo:* <${gitMetadata.repo!!.link}|${gitMetadata.project}/${gitMetadata.repo!!.name}>"
+        }
+
+        details += if (gitMetadata.branch != null) {
+          ", *Branch:* ${gitMetadata.branch}\n"
+        } else {
+          "\n"
+        }
+      }
+
+      if (!gitMetadata.author.isNullOrEmpty()) {
+        details += "*Author:* ${gitMetadata.author}, "
+      }
+
+      details += if (gitMetadata.commitInfo?.link.isNullOrEmpty()) {
+        "*Commit:* ${gitMetadata.commit}\n"
+      } else {
+        "*Commit:* <${gitMetadata.commitInfo!!.link}|${gitMetadata.commit}>\n"
+      }
+    }
+
+    if (!notificationConfig.enabled) {
+      details += "<br/>Please consult the <$MANUAL_JUDGEMENT_DOC_URL|documentation> on how to approve the deployment."
+    }
+
     return EchoNotification(
       notificationType = EchoNotification.Type.valueOf(config.type.name.toUpperCase()),
       to = listOf(config.address),
-      // templateGroup = TODO
       severity = EchoNotification.Severity.NORMAL,
       source = EchoNotification.Source(
-        // FIXME: Environment should probably have a reference to the application name...
-        application = environment.resources.firstOrNull()?.application
-        // TODO: anything for executionType, executionId, user?
+        application = deliveryConfig.application
       ),
       additionalContext = mapOf(
         "formatter" to "MARKDOWN",
         "subject" to "Manual artifact promotion approval",
         "body" to
-          ":warning: The artifact *${currentState.artifactVersion}* from delivery config " +
-          "*${currentState.deliveryConfigName}* requires your manual approval for deployment " +
-          "into the *${currentState.environmentName}* environment." +
-          if (!notificationConfig.enabled)
-            " Please consult the <$MANUAL_JUDGEMENT_DOC_URL|documentation> on how to approve the deployment."
-          else
-            ""
+          ":warning: Manual approval required to deploy artifact *${artifact.name}*\n" + details
       ),
       interactiveActions = if (notificationConfig.enabled) {
         EchoNotification.InteractiveActions(

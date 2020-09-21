@@ -42,6 +42,7 @@ import strikt.assertions.isFalse
   classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK,
   properties = [
+    "spinnaker.baseUrl=http://spinnaker",
     "sql.enabled=true",
     "sql.connection-pools.default.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
     "sql.migration.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",

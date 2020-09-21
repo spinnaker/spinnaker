@@ -1,16 +1,25 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spinnaker.config.ManualJudgementNotificationConfig
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.Repo
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.echo.ManualJudgementNotifier.Companion
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -23,6 +32,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
@@ -39,7 +49,9 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
   ) {
     val notificationConfig: ManualJudgementNotificationConfig = mockk(relaxed = true)
     val echoService: EchoService = mockk(relaxed = true)
-    val subject = ManualJudgementNotifier(notificationConfig = notificationConfig, echoService = echoService)
+    val repository: KeelRepository = mockk(relaxed = true)
+    val baseUrl = "https://spinnaker.acme.net"
+    val subject = ManualJudgementNotifier(notificationConfig, echoService, repository, baseUrl)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -83,6 +95,19 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         every {
           notificationConfig.enabled
         } returns true
+
+        every {
+          repository.getArtifact("test", "deb")
+        } returns DebianArtifact("mypkg", "test", "deb",
+            vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet()))
+
+        every {
+          repository.getDeliveryConfig("test")
+        } returns DeliveryConfig("test", "test", "test@acme.net")
+
+        every {
+          repository.getArtifactGitMetadata("mypkg", DEBIAN, "v1.0.0", any())
+        } returns null
       }
 
       test("throws an exception if the constraint state uid is not present") {
@@ -123,41 +148,23 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
       }
 
       test("the notification includes interactive actions for the user to approve/reject manual judgement") {
-        val config = event.environment.notifications.first()
-
-        val expectedNotification = with(event) {
-          EchoNotification(
-            notificationType = EchoNotification.Type.valueOf(config.type.name.toUpperCase()),
-            to = listOf(config.address),
-            severity = EchoNotification.Severity.NORMAL,
-            source = EchoNotification.Source(
-              application = environment.resources.first().application
-            ),
-            additionalContext = mapOf(
-              "formatter" to "MARKDOWN",
-              "subject" to "Manual artifact promotion approval",
-              "body" to
-                ":warning: The artifact *${currentState.artifactVersion}* from delivery config " +
-                "*${currentState.deliveryConfigName}* requires your manual approval for deployment " +
-                "into the *${currentState.environmentName}* environment."
-            ),
-            interactiveActions = EchoNotification.InteractiveActions(
-              callbackServiceId = "keel",
-              callbackMessageId = currentState.uid!!.toString(),
-              actions = listOf(
-                EchoNotification.ButtonAction(
-                  name = "manual-judgement",
-                  label = "Approve",
-                  value = ConstraintStatus.OVERRIDE_PASS.name
-                ),
-                EchoNotification.ButtonAction(
-                  name = "manual-judgement",
-                  label = "Reject",
-                  value = ConstraintStatus.OVERRIDE_FAIL.name
-                )
+        val expectedInteractiveActions = with(event) {
+          EchoNotification.InteractiveActions(
+            callbackServiceId = "keel",
+            callbackMessageId = currentState.uid!!.toString(),
+            actions = listOf(
+              EchoNotification.ButtonAction(
+                name = "manual-judgement",
+                label = "Approve",
+                value = ConstraintStatus.OVERRIDE_PASS.name
               ),
-              color = "#fcba03"
-            )
+              EchoNotification.ButtonAction(
+                name = "manual-judgement",
+                label = "Reject",
+                value = ConstraintStatus.OVERRIDE_FAIL.name
+              )
+            ),
+            color = "#fcba03"
           )
         }
 
@@ -169,7 +176,61 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
           echoService.sendNotification(capture(notification))
         }
 
-        expectThat(notification.captured).isEqualTo(expectedNotification)
+        expectThat(notification.captured.interactiveActions).isEqualTo(expectedInteractiveActions)
+      }
+
+      test("the notification includes details about the artifact and environment") {
+        subject.constraintStateChanged(event)
+
+        val notification = slot<EchoNotification>()
+
+        coVerify {
+          echoService.sendNotification(capture(notification))
+        }
+
+        val notificationBody = notification.captured.additionalContext!!["body"].toString()
+        expectThat(notificationBody)
+          .contains(":warning: Manual approval required to deploy artifact *mypkg*")
+        expectThat(notificationBody)
+          .contains("*Version:* <$baseUrl/#/applications/test/environments/deb/v1.0.0|v1.0.0>")
+        expectThat(notificationBody)
+          .contains("*Application:* test")
+        expectThat(notificationBody)
+          .contains("*Environment:* test")
+      }
+
+      context("when git metadata is available for the artifact") {
+        before {
+          every {
+            repository.getArtifactGitMetadata("mypkg", DEBIAN, "v1.0.0", any())
+          } returns GitMetadata(
+            commit = "a1b2c3d",
+            author = "joesmith",
+            project = "myproj",
+            branch = "master",
+            repo = Repo("myapp")
+          )
+        }
+
+        test("the notification includes git metadata") {
+          subject.constraintStateChanged(event)
+
+          val notification = slot<EchoNotification>()
+
+          coVerify {
+            echoService.sendNotification(capture(notification))
+          }
+
+          val notificationBody = notification.captured.additionalContext!!["body"].toString()
+          expectThat(notificationBody)
+            .contains("*Commit:* a1b2c3d")
+          expectThat(notificationBody)
+            .contains("*Author:* joesmith")
+          expectThat(notificationBody)
+            .contains("*Repo:* myproj/myapp")
+          expectThat(notificationBody)
+            .contains("*Branch:* master")
+        }
       }
     }
 
