@@ -192,7 +192,8 @@ public class KubernetesCacheDataConverter {
   static ImmutableSet<CacheKey> ownerReferenceRelationships(
       String account, String namespace, List<OwnerReference> references) {
     return references.stream()
-        .map(r -> new Keys.InfrastructureCacheKey(r.getKind(), account, namespace, r.getName()))
+        .map(
+            r -> new Keys.InfrastructureCacheKey(r.computedKind(), account, namespace, r.getName()))
         .collect(toImmutableSet());
   }
 

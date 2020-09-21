@@ -367,10 +367,20 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @Data
   public static class OwnerReference {
     KubernetesApiVersion apiVersion;
-    KubernetesKind kind;
+    String kind;
     String name;
     String uid;
     boolean blockOwnerDeletion;
     boolean controller;
+
+    public KubernetesKind computedKind() {
+      KubernetesApiGroup kubernetesApiGroup;
+      if (apiVersion != null) {
+        kubernetesApiGroup = getApiVersion().getApiGroup();
+      } else {
+        kubernetesApiGroup = null;
+      }
+      return KubernetesKind.from(kind, kubernetesApiGroup);
+    }
   }
 }
