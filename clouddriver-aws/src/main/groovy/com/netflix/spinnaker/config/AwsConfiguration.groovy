@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -189,6 +190,7 @@ class AwsConfiguration {
                                                     DeployDefaults deployDefaults,
                                                     ScalingPolicyCopier scalingPolicyCopier,
                                                     BlockDeviceConfig blockDeviceConfig,
+                                                    DynamicConfigService dynamicConfigService,
                                                     AmazonServerGroupProvider amazonServerGroupProvider) {
     new BasicAmazonDeployHandler(
       regionScopedProviderFactory,
@@ -196,7 +198,8 @@ class AwsConfiguration {
       amazonServerGroupProvider,
       deployDefaults,
       scalingPolicyCopier,
-      blockDeviceConfig
+      blockDeviceConfig,
+      dynamicConfigService
     )
   }
 

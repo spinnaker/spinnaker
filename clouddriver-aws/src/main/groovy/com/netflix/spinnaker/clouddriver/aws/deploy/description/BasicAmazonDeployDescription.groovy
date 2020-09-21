@@ -55,7 +55,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   /**
    * When set to true, the created server group will use a launch template instead of a launch configuration.
    */
-  Boolean setLaunchTemplate = false
+  Boolean setLaunchTemplate = true
 
   /**
    * When set to true, the created server group will be configured with IMDSv2.

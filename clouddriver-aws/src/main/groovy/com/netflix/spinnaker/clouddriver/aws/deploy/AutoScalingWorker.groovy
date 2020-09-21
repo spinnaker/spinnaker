@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import groovy.util.logging.Slf4j
 
 import java.time.Instant
@@ -111,6 +112,7 @@ class AutoScalingWorker {
   private int desiredInstances
 
   private DeployDefaults deployDefaults
+  private DynamicConfigService dynamicConfigService
   private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
 
   AutoScalingWorker() {
@@ -171,7 +173,7 @@ class AutoScalingWorker {
 
     LaunchTemplateSpecification launchTemplateSpecification = null
     String launchConfigName = null
-    if (setLaunchTemplate != null && setLaunchTemplate) {
+    if (shouldSetLaunchTemplate()) {
       settings = DefaultLaunchConfigurationBuilder.setAppSecurityGroup(
         application,
         subnetType,
@@ -379,5 +381,38 @@ class AutoScalingWorker {
     }
 
     return true
+  }
+
+  /**
+   * This is used to gradually roll out launch template.
+   */
+  private boolean shouldSetLaunchTemplate() {
+    if (!setLaunchTemplate) {
+      return false
+    }
+
+    if (!dynamicConfigService.isEnabled("aws.features.launch-templates", false)) {
+      log.debug("Launch Template feature disabled via configuration.")
+      return false
+    }
+
+    // application allow list: app1,app2
+    String allowedApps = dynamicConfigService
+      .getConfig(String.class, "aws.features.launch-templates.allowed-applications", "")
+    if (application in allowedApps.split(",")) {
+      return true
+    }
+
+    // account:region allow list
+    String allowedAccountsAndRegions = dynamicConfigService
+      .getConfig(String.class, "aws.features.launch-templates.allowed-accounts-regions", "")
+    for (accountRegion in allowedAccountsAndRegions.split(",")) {
+      def (account, region) = accountRegion.split(":")
+      if (account.trim() == credentials.name && region.trim() == this.region) {
+        return true
+      }
+    }
+
+    return false
   }
 }

@@ -160,9 +160,9 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-east-1", true), _) >>
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-east-1"), _) >>
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-west-1", true), _) >>
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, "us-west-1"), _) >>
       new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
 
     where:
@@ -246,7 +246,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   }
 
   private static BasicAmazonDeployDescription expectedDescription(
-    Double expectedSpotPrice, String region, boolean setLaunchTemplate = false) {
+    Double expectedSpotPrice, String region) {
     return new BasicAmazonDeployDescription(
       application: 'asgard',
       stack: 'stack',
@@ -256,7 +256,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
       tags: [Name: 'name-tag'],
       spotPrice: expectedSpotPrice,
-      setLaunchTemplate: setLaunchTemplate,
       source: new BasicAmazonDeployDescription.Source(
         asgName: "asgard-stack-v000",
         account: 'baz',

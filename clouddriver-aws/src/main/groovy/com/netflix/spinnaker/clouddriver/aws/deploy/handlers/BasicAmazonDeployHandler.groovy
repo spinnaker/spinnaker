@@ -47,6 +47,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 
@@ -78,6 +79,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
   private final BlockDeviceConfig blockDeviceConfig
+  private final DynamicConfigService dynamicConfigService
 
   private List<CreateServerGroupEvent> deployEvents = []
 
@@ -86,13 +88,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                            AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider,
                            AwsConfiguration.DeployDefaults deployDefaults,
                            ScalingPolicyCopier scalingPolicyCopier,
-                           BlockDeviceConfig blockDeviceConfig) {
+                           BlockDeviceConfig blockDeviceConfig,
+                           DynamicConfigService dynamicConfigService) {
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
     this.amazonServerGroupProvider = amazonServerGroupProvider
     this.deployDefaults = deployDefaults
     this.scalingPolicyCopier = scalingPolicyCopier
     this.blockDeviceConfig = blockDeviceConfig
+    this.dynamicConfigService = dynamicConfigService
   }
 
   @Override
@@ -304,7 +308,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         lifecycleHooks: getLifecycleHooks(account, description),
         setLaunchTemplate: description.setLaunchTemplate,
         requireIMDSv2: description.requireIMDSv2,
-        associateIPv6Address: description.associateIPv6Address
+        associateIPv6Address: description.associateIPv6Address,
+        dynamicConfigService: dynamicConfigService
       )
 
       def asgName = autoScalingWorker.deploy()
