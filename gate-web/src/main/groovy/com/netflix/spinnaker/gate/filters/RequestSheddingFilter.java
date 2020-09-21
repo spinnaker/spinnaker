@@ -135,7 +135,7 @@ public class RequestSheddingFilter extends HttpFilter {
         response.setStatus(SERVICE_UNAVAILABLE.value());
         response
             .getWriter()
-            .write("{\"message\": \"Low priority requests are not currently being accepted\"");
+            .write("{\"message\": \"Low priority requests are not currently being accepted\"}");
         return;
       }
       log.debug("Dice roll prevented low priority request shedding: {}", request.getRequestURI());
