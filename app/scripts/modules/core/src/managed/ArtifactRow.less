@@ -1,5 +1,5 @@
 .ArtifactRow {
-  height: 56px;
+  height: 94px;
   display: block;
   position: relative;
   cursor: pointer;
@@ -16,68 +16,49 @@
   }
 
   .row-content {
-    display: flex;
-    align-items: center;
     height: 100%;
-    padding-top: 4px;
-    padding-bottom: 12px;
   }
 
-  .version-identifier {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 0 0 48px;
-    margin: 0 8px 0 4px;
+  .row-middle-section {
+    width: 100%;
   }
 
   .version-title {
-    flex: 1 1 auto;
+    max-width: 100%;
     overflow: hidden;
-  }
-
-  .version-identifier,
-  .version-title {
-    transition: margin 150ms ease-in-out;
-  }
-
-  &:hover {
-    .version-identifier,
-    .version-title {
-      margin-top: -13px;
-    }
   }
 
   .version-name {
-    font-size: 14px;
+    font-size: 13px;
+    color: var(--color-icon-neutral);
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
   }
 
-  &.selected .version-name {
-    font-weight: 700;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: #2c4b5f;
-  }
-
-  .artifact-name {
-    font-size: 12px;
+  .version-secondary-summary {
+    font-size: 13px;
     font-style: italic;
-    color: var(--color-nobel);
+    color: var(--color-icon-neutral);
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    margin-left: 20px;
+    opacity: 1;
+    transition: opacity 150ms ease-in-out;
+  }
+
+  &:hover .version-secondary-summary {
+    opacity: 0;
   }
 
   .environment-stages {
     display: flex;
     position: absolute;
     height: 8px;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
     z-index: 1;
     transition: height 150ms ease-in-out;
   }

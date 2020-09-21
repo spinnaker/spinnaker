@@ -18,7 +18,7 @@ export const StatusBubbleStack = ({ borderColor, maxBubbles, statuses }: IStatus
   const hiddenStatusBubbleCount = statuses.length - statusBubblesToRender.length;
 
   return (
-    <div className="StatusBubbleStack flex-container-h middle sp-margin-s-right">
+    <div className="StatusBubbleStack flex-container-h middle">
       {statusBubblesToRender.map((status, index) => (
         <div
           className="StatusBubbleContainer"

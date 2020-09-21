@@ -1,13 +1,15 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 
-import { ISelectedArtifactVersion } from './Environments';
 import {
   IManagedArtifactSummary,
   IManagedArtifactVersion,
   IStatefulConstraint,
   StatefulConstraintStatus,
 } from '../domain/IManagedEntity';
+import { Icon } from '../presentation';
+
+import { ISelectedArtifactVersion } from './Environments';
 import { Pill } from './Pill';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
 
@@ -32,13 +34,33 @@ export function ArtifactsList({ artifacts, selectedVersion, versionSelected }: I
             clickHandler={versionSelected}
             version={version}
             reference={reference}
-            name={artifacts.length > 1 ? name : null}
+            name={artifacts.length > 1 ? reference : null}
           />
         )),
       )}
     </div>
   );
 }
+
+const getVersionIcon = ({ git }: IManagedArtifactVersion) => {
+  if (git?.pullRequest?.number) {
+    return 'spCIPullRequest';
+  } else if (git?.commitInfo) {
+    return 'spCIBranch';
+  } else {
+    return null;
+  }
+};
+
+const getVersionSecondarySummary = ({ git }: IManagedArtifactVersion) => {
+  if (git?.pullRequest?.number) {
+    return `PR #${git.pullRequest.number} — ${git?.author}`;
+  } else if (git?.branch) {
+    return `${git.branch} — ${git?.author}`;
+  } else {
+    return null;
+  }
+};
 
 interface IArtifactRowProps {
   isSelected: boolean;
@@ -52,6 +74,9 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
   const { version, displayName, environments, build, git } = versionInfo;
   const [isHovered, setIsHovered] = useState(false);
 
+  const versionIcon = getVersionIcon(versionInfo);
+  const secondarySummary = getVersionSecondarySummary(versionInfo);
+
   return (
     <div
       className={classNames('ArtifactRow', { selected: isSelected })}
@@ -59,21 +84,36 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
       onMouseOver={() => setIsHovered(true)}
       onMouseOut={() => setIsHovered(false)}
     >
-      <div className="row-content">
-        {build?.id && (
-          <div className="version-identifier">
-            <Pill bgColor={isSelected ? '#2c4b5f' : undefined} text={`#${build.id}`} />
+      <div className="row-content flex-container-v left sp-padding-m-top sp-padding-l-bottom sp-padding-s-xaxis">
+        {(build?.number || build?.id) && (
+          <div className="flex-container-h sp-margin-s-bottom">
+            <Pill
+              bgColor={isSelected ? '#2c4b5f' : undefined}
+              textColor={isSelected ? '#c7def5' : undefined}
+              text={`#${build.number || build.id} ${name || ''}`}
+            />
           </div>
         )}
-        <div className={classNames('version-title', { 'sp-margin-m-left': !build?.id })}>
-          <div className="version-name">{git?.commit || displayName}</div>
-          {name && <div className="artifact-name">{name}</div>}
+        <div className="row-middle-section flex-container-h space-between">
+          <div className="version-title">
+            <div className="flex-container-h middle text-semibold">
+              {versionIcon && (
+                <span className="flex-container-h middle center sp-margin-xs-right">
+                  <Icon name={versionIcon} size="extraSmall" />
+                </span>
+              )}{' '}
+              <span className="version-name">{git?.commitInfo?.message || displayName}</span>
+            </div>
+            {secondarySummary && <div className="version-secondary-summary">{secondarySummary}</div>}
+          </div>
+          <div className="sp-margin-s-left">
+            <StatusBubbleStack
+              borderColor={isSelected ? '#c7def5' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
+              maxBubbles={3}
+              statuses={getArtifactStatuses(versionInfo)}
+            />
+          </div>
         </div>
-        <StatusBubbleStack
-          borderColor={isSelected ? '#c7def5' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
-          maxBubbles={3}
-          statuses={getArtifactStatuses(versionInfo)}
-        />
       </div>
       <div className="environment-stages">
         {environments
