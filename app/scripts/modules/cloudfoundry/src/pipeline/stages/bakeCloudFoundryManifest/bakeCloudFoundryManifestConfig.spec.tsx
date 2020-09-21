@@ -1,4 +1,4 @@
-import { IArtifact, IExpectedArtifact } from 'core';
+import { IArtifact, IExpectedArtifact } from '@spinnaker/core';
 
 import { validateInputArtifacts, validateProducedArtifacts } from './BakeCloudFoundryManifestConfig';
 

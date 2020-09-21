@@ -1,4 +1,4 @@
-import { FormValidator, IContextualValidator, IStage } from 'core';
+import { FormValidator, IContextualValidator, IStage } from '@spinnaker/core';
 
 export const validate: IContextualValidator = (stage: IStage) => {
   const formValidator = new FormValidator(stage);
