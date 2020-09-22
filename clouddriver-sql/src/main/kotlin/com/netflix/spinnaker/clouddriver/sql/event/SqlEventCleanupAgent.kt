@@ -31,7 +31,6 @@ import org.jooq.impl.DSL.currentTimestamp
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.jooq.impl.DSL.timestampDiff
-import org.jooq.types.DayToSecond
 import org.slf4j.LoggerFactory
 
 /**
@@ -58,8 +57,14 @@ class SqlEventCleanupAgent(
         val rs = jooq.select(field("aggregate_type"), field("aggregate_id"))
           .from(table("event_aggregates"))
           .where(
-            timestampDiff(field("last_change_timestamp", Timestamp::class.java), currentTimestamp())
-              .greaterThan(DayToSecond.valueOf(duration))
+            // jOOQ always converts timestampDiff into 'INTERVAL DAY TO SECOND' type, which then no longer performs
+            // comparison queries correctly. Doing `timestampDiff().greaterThan()` will cast the result of
+            // timestampDiff to an int, as needed, but then cast the duration into an INTERVAL DAY TO SECOND type,
+            // which will always produce a query returning incorrect results.
+            timestampDiff(currentTimestamp(), field("last_change_timestamp", Timestamp::class.java))
+              .cast(Integer::class.java)
+              // timestampDiff will return `microsecond / 1000`
+              .gt(duration.toMillis().toInt() as Integer)
           )
           .fetch()
           .intoResultSet()
