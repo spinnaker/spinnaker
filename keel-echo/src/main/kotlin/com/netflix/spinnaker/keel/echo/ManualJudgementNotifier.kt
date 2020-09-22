@@ -93,6 +93,10 @@ class ManualJudgementNotifier(
       } else {
         "*Commit:* <${gitMetadata.commitInfo!!.link}|${gitMetadata.commit}>\n"
       }
+
+      if (!gitMetadata.commitInfo?.message.isNullOrEmpty()) {
+        details += "*Message:* ${gitMetadata.commitInfo!!.message}\n"
+      }
     }
 
     if (!notificationConfig.enabled) {

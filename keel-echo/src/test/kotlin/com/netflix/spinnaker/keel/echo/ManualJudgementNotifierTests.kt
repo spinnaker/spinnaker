@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Repo
@@ -208,7 +209,8 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
             author = "joesmith",
             project = "myproj",
             branch = "master",
-            repo = Repo("myapp")
+            repo = Repo("myapp"),
+            commitInfo = Commit(message = "A test commit")
           )
         }
 
@@ -230,6 +232,8 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
             .contains("*Repo:* myproj/myapp")
           expectThat(notificationBody)
             .contains("*Branch:* master")
+          expectThat(notificationBody)
+            .contains("*Message:* A test commit")
         }
       }
     }
