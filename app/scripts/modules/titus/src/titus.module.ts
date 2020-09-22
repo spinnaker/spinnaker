@@ -30,6 +30,8 @@ import { TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE } from '.
 import { TITUS_PIPELINE_STAGES_SHRINKCLUSTER_TITUSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/titusShrinkClusterStage';
 import { TITUS_PIPELINE_STAGES_SCALEDOWNCLUSTER_TITUSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/titusScaleDownClusterStage';
 
+import { TITUS_INSTANCE_INFORMATION_COMPONENT } from './instance/details/titusInstanceInformation.component';
+
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -57,6 +59,7 @@ module(TITUS_MODULE, [
   TITUS_PIPELINE_STAGES_SCALEDOWNCLUSTER_TITUSSCALEDOWNCLUSTERSTAGE,
   TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION,
   TITUS_SERVERGROUP_DETAILS_LAUNCHCONFIGSECTION,
+  TITUS_INSTANCE_INFORMATION_COMPONENT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('titus', {
     name: 'Titus',

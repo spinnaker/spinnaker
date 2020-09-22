@@ -102,40 +102,7 @@
     </div>
   </div>
   <div class="content" ng-if="!state.loading && instance">
-    <collapsible-section heading="Instance Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
-        <dt>Launched</dt>
-        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
-        <dd ng-if="!instance.launchTime">(Unknown)</dd>
-        <dt>In</dt>
-        <dd>
-          <account-tag account="instance.account" pad="right"></account-tag>
-          {{instance.placement.availabilityZone || '(Unknown)'}}
-        </dd>
-        <dt>Type</dt>
-        <dd>{{instance.instanceType || '(Unknown)'}}</dd>
-        <dt ng-if="instance.serverGroup">Server Group</dt>
-        <dd ng-if="instance.serverGroup">
-          <a
-            ui-sref="^.serverGroup({region: instance.region,
-              accountId: instance.account,
-              serverGroup: instance.serverGroup,
-              provider: instance.provider})"
-            >{{instance.serverGroup}}</a
-          >
-        </dd>
-        <dt ng-if="instance.serverGroup">VPC</dt>
-        <dd ng-if="instance.serverGroup">
-          <vpc-tag vpc-id="instance.vpcId"></vpc-tag>
-        </dd>
-        <dt ng-if="instance.subnetId">Subnet</dt>
-        <dd ng-if="instance.subnetId">
-          <subnet-tag subnet-id="instance.subnetId"></subnet-tag>
-        </dd>
-        <dt ng-if="instance.imageId">Image ID</dt>
-        <dd ng-if="instance.imageId">{{instance.imageId}}</dd>
-      </dl>
-    </collapsible-section>
+    <amazon-instance-information instance="instance"></amazon-instance-information>
     <instance-status
       health-metrics="healthMetrics"
       health-state="instance.healthState"
