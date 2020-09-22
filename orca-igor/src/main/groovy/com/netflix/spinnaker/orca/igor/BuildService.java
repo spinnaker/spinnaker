@@ -21,6 +21,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
+import retrofit.client.Response;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class BuildService {
     return UriUtils.encodeFragment(uri, "UTF-8");
   }
 
-  public String build(String master, String jobName, Map<String, String> queryParams) {
+  public Response build(String master, String jobName, Map<String, String> queryParams) {
     return igorService.build(master, encode(jobName), queryParams, "");
   }
 

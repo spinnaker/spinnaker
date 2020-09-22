@@ -77,7 +77,7 @@ class RetrofitExceptionHandler implements ExceptionHandler {
     }
 
     // retry on 503 even for non-idempotent requests
-    if (e.kind == HTTP && e.response.status == HTTP_UNAVAILABLE) {
+    if (e.kind == HTTP && e.response?.status == HTTP_UNAVAILABLE) {
       return true
     }
 
@@ -85,13 +85,13 @@ class RetrofitExceptionHandler implements ExceptionHandler {
   }
 
   boolean isGatewayErrorCode(RetrofitError e) {
-    e.kind == HTTP && e.response.status in [HTTP_BAD_GATEWAY, HTTP_UNAVAILABLE, HTTP_GATEWAY_TIMEOUT]
+    e.kind == HTTP && e.response?.status in [HTTP_BAD_GATEWAY, HTTP_UNAVAILABLE, HTTP_GATEWAY_TIMEOUT]
   }
 
   private static final int HTTP_TOO_MANY_REQUESTS = 429
 
   boolean isThrottle(RetrofitError e) {
-    e.kind == HTTP && e.response.status == HTTP_TOO_MANY_REQUESTS
+    e.kind == HTTP && e.response?.status == HTTP_TOO_MANY_REQUESTS
   }
 
   private boolean isNetworkError(RetrofitError e) {
@@ -100,7 +100,7 @@ class RetrofitExceptionHandler implements ExceptionHandler {
 
   private boolean isMalformedRequest(RetrofitError e) {
     // We never want to retry errors like "Path parameter "blah" value must not be null.
-    return e.kind == UNEXPECTED && e.message.contains("Path parameter")
+    return e.kind == UNEXPECTED && e.message?.contains("Path parameter")
   }
 
   private static boolean isIdempotentRequest(RetrofitError e) {

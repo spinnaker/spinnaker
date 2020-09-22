@@ -22,11 +22,12 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildRepoSource;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import retrofit.client.Response;
 import retrofit.http.*;
 
 public interface IgorService {
   @PUT("/masters/{name}/jobs/{jobName}")
-  String build(
+  Response build(
       @Path("name") String master,
       @Path(encode = false, value = "jobName") String jobName,
       @QueryMap Map<String, String> queryParams,
