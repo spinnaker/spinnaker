@@ -407,9 +407,11 @@ class AutoScalingWorker {
     String allowedAccountsAndRegions = dynamicConfigService
       .getConfig(String.class, "aws.features.launch-templates.allowed-accounts-regions", "")
     for (accountRegion in allowedAccountsAndRegions.split(",")) {
-      def (account, region) = accountRegion.split(":")
-      if (account.trim() == credentials.name && region.trim() == this.region) {
-        return true
+      if (accountRegion && accountRegion.contains(":")) {
+        def (account, region) = accountRegion.split(":")
+        if (account.trim() == credentials.name && region.trim() == this.region) {
+          return true
+        }
       }
     }
 
