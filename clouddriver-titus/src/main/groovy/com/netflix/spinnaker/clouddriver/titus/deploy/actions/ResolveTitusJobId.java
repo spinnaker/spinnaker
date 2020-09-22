@@ -89,7 +89,7 @@ public class ResolveTitusJobId implements SagaAction<ResolveTitusJobId.ResolveTi
     @Nonnull String account;
     @Nonnull String region;
     @Nonnull String serverGroupName;
-    @Nonnull String user;
+    String user;
 
     @NonFinal EventMetadata metadata;
 
