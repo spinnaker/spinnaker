@@ -22,14 +22,10 @@ import com.netflix.spinnaker.gradle.extension.Plugins.CHECKSUM_BUNDLE_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.Plugins.COLLECT_PLUGIN_ZIPS_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.Plugins.RELEASE_BUNDLE_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
-import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
-import com.netflix.spinnaker.gradle.extension.tasks.BundlePluginsTask
 import com.netflix.spinnaker.gradle.extension.tasks.CreatePluginInfoTask
-import org.gradle.api.AntBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
@@ -50,13 +46,13 @@ class SpinnakerExtensionsBundlerPlugin : Plugin<Project> {
 
     project.tasks.register(COLLECT_PLUGIN_ZIPS_TASK_NAME, Copy::class.java) {
 
-      it.group = Plugins.GROUP
+      group = Plugins.GROUP
 
       // Look for assemblePlugin task.
-      if (it.project.subprojects.isNotEmpty()) { // Safe guard this in case if project structure is not set correctly.
-        val assemblePluginTasks: Set<Task> = it.project.getTasksByName(ASSEMBLE_PLUGIN_TASK_NAME, true)
+      if (project.subprojects.isNotEmpty()) { // Safe guard this in case if project structure is not set correctly.
+        val assemblePluginTasks: Set<Task> = project.getTasksByName(ASSEMBLE_PLUGIN_TASK_NAME, true)
         if (assemblePluginTasks.isNotEmpty()) {
-          it.dependsOn(assemblePluginTasks)
+          dependsOn(assemblePluginTasks)
         }
       }
 
@@ -67,28 +63,28 @@ class SpinnakerExtensionsBundlerPlugin : Plugin<Project> {
         }
         .map { subproject -> project.file("${subproject.buildDir}/distributions") }
 
-      it.from(distributions)
+      from(distributions)
         .into("${project.buildDir}/zips")
     }
 
     project.tasks.register(BUNDLE_PLUGINS_TASK_NAME, Zip::class.java) {
-      it.dependsOn(COLLECT_PLUGIN_ZIPS_TASK_NAME)
-      it.group = Plugins.GROUP
-      it.from("${project.buildDir}/zips")
+      dependsOn(COLLECT_PLUGIN_ZIPS_TASK_NAME)
+      group = Plugins.GROUP
+      from("${project.buildDir}/zips")
     }
 
     project.tasks.register(CHECKSUM_BUNDLE_TASK_NAME, Checksum::class.java) {
-      it.dependsOn(BUNDLE_PLUGINS_TASK_NAME)
-      it.group = Plugins.GROUP
+      dependsOn(BUNDLE_PLUGINS_TASK_NAME)
+      group = Plugins.GROUP
 
-      it.files = project.tasks.getByName(BUNDLE_PLUGINS_TASK_NAME).outputs.files
-      it.outputDir = File(project.buildDir, "checksums")
-      it.algorithm = Checksum.Algorithm.SHA512
+      files = project.tasks.getByName(BUNDLE_PLUGINS_TASK_NAME).outputs.files
+      outputDir = File(project.buildDir, "checksums")
+      algorithm = Checksum.Algorithm.SHA512
     }
 
     project.tasks.register(RELEASE_BUNDLE_TASK_NAME, CreatePluginInfoTask::class.java) {
-      it.dependsOn(CHECKSUM_BUNDLE_TASK_NAME)
-      it.group = Plugins.GROUP
+      dependsOn(CHECKSUM_BUNDLE_TASK_NAME)
+      group = Plugins.GROUP
     }
   }
 }

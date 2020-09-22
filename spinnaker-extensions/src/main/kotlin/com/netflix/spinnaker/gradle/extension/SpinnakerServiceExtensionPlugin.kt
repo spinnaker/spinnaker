@@ -44,7 +44,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     project.tasks.register(ASSEMBLE_PLUGIN_TASK_NAME, AssembleJavaPluginZipTask::class.java)
 
     project.tasks.create(Plugins.ADD_PLUGIN_DATA_TO_MANIFEST) {
-      it.doLast {
+      doLast {
         (project.tasks.getByName("jar") as Jar).createPluginManifest(project)
       }
     }

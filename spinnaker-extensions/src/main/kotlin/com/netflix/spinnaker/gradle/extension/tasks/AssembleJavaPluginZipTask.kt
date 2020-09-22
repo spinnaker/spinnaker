@@ -30,7 +30,7 @@ import java.lang.IllegalStateException
 open class AssembleJavaPluginZipTask : Zip() {
 
   @Internal
-  override fun getGroup(): String? = Plugins.GROUP
+  override fun getGroup(): String = Plugins.GROUP
 
   init {
     val ext = project.extensions.findByType(SpinnakerPluginExtension::class.java)

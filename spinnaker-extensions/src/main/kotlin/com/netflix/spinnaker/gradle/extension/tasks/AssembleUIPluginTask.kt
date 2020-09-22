@@ -22,7 +22,7 @@ import org.gradle.api.tasks.bundling.Zip
 open class AssembleUIPluginTask : Zip() {
 
   @Internal
-  override fun getGroup(): String? = Plugins.GROUP
+  override fun getGroup(): String = Plugins.GROUP
 
   init {
     this.archiveBaseName.set("deck")

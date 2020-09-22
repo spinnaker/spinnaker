@@ -61,6 +61,45 @@ spinnakerPlugin {
 apply plugin: "io.spinnaker.plugin.ui-extension"
 ```
 
+
+#### Compatibility Test Runner
+
+```groovy
+// Inside root project
+spinnakerBundle {
+  // ...
+  compatibility {
+    spinnaker = ["1.21.1", "1.22.0"] // Set of Spinnaker versions to test against.
+  }
+}
+
+// Inside service extension subproject
+apply plugin: "io.spinnaker.plugin.compatibility-test-runner"
+```
+
+The compatibility test runner allows plugin developers to easily test their plugins inside a set of top-level Spinnaker versions (e.g., `1.21.1`).
+
+The development flow looks something like this:
+- Develop a plugin.
+- Write tests, preferably Spring Boot-style integration tests using [service test fixtures](https://github.com/spinnaker/orca/blob/master/orca-api-tck/src/main/kotlin/com/netflix/spinnaker/orca/api/test/OrcaFixture.kt).
+  You can find an example of this kind of test in our [Spinnaker plugin example repositories](https://github.com/spinnaker-plugin-examples/pf4jStagePlugin/blob/master/random-wait-orca/src/test/kotlin/io/armory/plugin/stage/wait/random/RandomWaitStageIntegrationTest.kt).
+- Your integration tests should depend on Spinnaker's exported Gradle platforms, which take the form `<service>-bom`. For example, if your test relies on the Orca test fixture, your subproject build file should look something like this:
+```groovy
+  dependencies {
+    // ...
+    testImplementation("com.netflix.spinnaker.orca:orca-bom:<orca-version>")
+    testImplementation("com.netflix.spinnaker.orca:orca-api-tck")
+  }
+```
+
+- Install this Gradle plugin, and configure it to run tests against a set of top-level Spinnaker versions.
+  The plugin will create a set of tasks: a set of `compatibilityTest-<project>-<spinnaker-version>` tasks, and a top-level
+  `compatibilityTest` task that will run all of the compatibility test subtasks.
+
+The test runner dynamically creates Gradle source sets for each top-level Spinnaker version you declare and re-writes your test dependencies to
+depend on the service Gradle platform version (e.g., `com.spinnaker.netflix.orca:orca-bom`) that corresponds to those Spinnaker versions.
+It does _not_ alter your plugin's compile or runtime classpaths. Your plugin compiles against version `X`; the test runner runs your plugin inside Spinnaker `Y` and `Z`.
+
 ### Notes
 
 * Expects multi-project gradle builds where each sub project implements extensions targeting a single spinnaker service.

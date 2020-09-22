@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskAction
 open class RegistrationTask : DefaultTask() {
 
   @Internal
-  override fun getGroup(): String? = Plugins.GROUP
+  override fun getGroup(): String = Plugins.GROUP
 
   @TaskAction
   fun doAction() {

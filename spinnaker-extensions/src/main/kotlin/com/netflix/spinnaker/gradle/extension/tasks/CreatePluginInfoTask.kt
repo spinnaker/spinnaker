@@ -34,7 +34,7 @@ import java.time.Instant
 open class CreatePluginInfoTask : DefaultTask() {
 
   @Internal
-  override fun getGroup(): String? = Plugins.GROUP
+  override fun getGroup(): String = Plugins.GROUP
 
   @Internal
   val rootProjectVersion: String = project.rootProject.version.toString()

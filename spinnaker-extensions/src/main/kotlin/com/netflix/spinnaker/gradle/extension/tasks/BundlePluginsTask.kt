@@ -26,7 +26,7 @@ import org.gradle.api.tasks.bundling.Zip
 open class BundlePluginsTask : Zip() {
 
   @Internal
-  override fun getGroup(): String? = Plugins.GROUP
+  override fun getGroup(): String = Plugins.GROUP
 
   init {
     project.afterEvaluate {

@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-
 plugins {
   // Apply the Kotlin JVM plugin to add support for Kotlin.
-  id("org.jetbrains.kotlin.jvm").version("1.3.31")
+  id("org.jetbrains.kotlin.jvm").version("1.3.72")
+  `kotlin-dsl`
 }
 
 dependencies {
   implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.2.0")
+
+  implementation(platform("com.fasterxml.jackson:jackson-bom:2.11.1"))
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
 
   // Kotlin JDK 8 standard library.
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -50,6 +56,11 @@ gradlePlugin {
       id = "io.spinnaker.plugin.bundler"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
     }
+
+    create("compatibilityTestRunner") {
+      id = "io.spinnaker.plugin.compatibility-test-runner"
+      implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerCompatibilityTestRunnerPlugin"
+    }
   }
 }
 
@@ -70,6 +81,10 @@ pluginBundle {
 
     "bundler" {
       displayName = "Spinnaker extension bundler plugin"
+    }
+
+    "compatibilityTestRunner" {
+      displayName = "Spinnaker compatibility test runner"
     }
   }
 }

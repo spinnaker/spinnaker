@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.gradle.extension.extensions
 
+import org.gradle.api.Action
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.create
 import java.lang.IllegalStateException
 
 /**
@@ -77,5 +80,44 @@ open class SpinnakerBundleExtension {
       throw IllegalStateException("spinnakerBundle.$name must not be null")
     }
     return value
+  }
+
+  /**
+   * An extension block that describes a plugin's compatibility.
+   */
+  val compatibility
+    get() = (this as ExtensionAware).extensions.getByName(SpinnakerCompatibilityExtension.NAME) as SpinnakerCompatibilityExtension
+
+  // For Kotlin build scripts.
+  fun compatibility(configure: SpinnakerCompatibilityExtension.() -> Unit) =
+    (this as ExtensionAware).also {
+      it.extensions.create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
+      it.extensions.configure(SpinnakerCompatibilityExtension.NAME, configure)
+    }
+
+  // For Groovy build scripts.
+  fun compatibility(configure: Action<SpinnakerCompatibilityExtension>) =
+    (this as ExtensionAware).also {
+      it.extensions.create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
+      it.extensions.configure(SpinnakerCompatibilityExtension.NAME, configure)
+    }
+
+  open class SpinnakerCompatibilityExtension {
+    /**
+     * A list of top-level Spinnaker versions (e.g., 1.21.0, 1.22.0) that this plugin is compatible with.
+     */
+    var spinnaker: List<String>
+      set(value) {
+        _spinnaker = value
+      }
+      get() = _spinnaker ?: throw IllegalStateException("spinnakerBundle.compatibility.spinnaker must not be null")
+
+    private var _spinnaker: List<String>? = null
+
+    var halconfigBaseURL: String = "https://storage.googleapis.com/halconfig"
+
+    companion object {
+      const val NAME = "compatibility"
+    }
   }
 }

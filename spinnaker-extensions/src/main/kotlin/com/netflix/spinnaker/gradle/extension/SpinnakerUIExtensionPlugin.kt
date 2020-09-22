@@ -38,15 +38,15 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
     project.tasks.create(ASSEMBLE_PLUGIN_TASK_NAME, AssembleUIPluginTask::class.java)
 
     project.tasks.create("yarn", Exec::class.java) {
-      it.group = Plugins.GROUP
-      it.workingDir = project.projectDir
-      it.commandLine = listOf("yarn")
+      group = Plugins.GROUP
+      workingDir = project.projectDir
+      commandLine = listOf("yarn")
     }
 
     project.tasks.create("yarnBuild", Exec::class.java) {
-      it.group = Plugins.GROUP
-      it.workingDir = project.projectDir
-      it.commandLine = listOf("yarn", "build")
+      group = Plugins.GROUP
+      workingDir = project.projectDir
+      commandLine = listOf("yarn", "build")
     }
 
     project.afterEvaluate {
