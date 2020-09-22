@@ -20,4 +20,5 @@ import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescrip
 
 class EnableDisableServerGroupDescription extends AbstractTitusCredentialsDescription implements EnableDisableDescriptionTrait {
   String region
+  Integer desiredPercentage
 }

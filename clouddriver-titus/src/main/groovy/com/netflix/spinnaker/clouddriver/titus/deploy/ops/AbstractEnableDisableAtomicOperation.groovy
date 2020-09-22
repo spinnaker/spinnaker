@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.ActivateJobRequest
+import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
@@ -76,14 +78,27 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         return true
       }
 
+      if (disable && description.desiredPercentage && loadBalancingClient && job.labels.containsKey("spinnaker.targetGroups")) {
+        log.error(
+          "Could not {} server group '{}' in region {}! Disabling by percentage for server groups with target groups not supported by Titus",
+          verb, serverGroupName, region
+        )
+        return false
+      }
+
       task.updateStatus phaseName, "${presentParticipling} ServerGroup '$serverGroupName' in $region..."
 
-      provider.activateJob(
-        new ActivateJobRequest()
-          .withUser('spinnaker')
-          .withJobId(job.id)
-          .withInService(!disable)
-      )
+      // If desired percentage is part of the description ( Monitored deploy ), Disable the job only when it's set to 100
+      if (disable && description.desiredPercentage) {
+        if (description.desiredPercentage == 100) {
+          log.info("Calling disable job for desiredPercentage ${description.desiredPercentage}")
+          activateJob(provider, job, !disable)
+        } else {
+          log.info("Not disabling the job for desiredPrecentage ${description.desiredPercentage}")
+        }
+      } else {
+        activateJob(provider, job, !disable)
+      }
 
       if (loadBalancingClient && job.labels.containsKey("spinnaker.targetGroups")) {
         if (disable) {
@@ -107,15 +122,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       if (job.tasks) {
         def status = disable ? AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE : AbstractEurekaSupport.DiscoveryStatus.UP
         task.updateStatus phaseName, "Marking ServerGroup $serverGroupName as $status with Discovery"
-
+        List<String> instanceIds = job.tasks*.instanceId
         def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
           credentials: credentials,
           region: region,
           asgName: serverGroupName,
-          instanceIds: job.tasks*.instanceId
+          instanceIds: instanceIds
         )
+        if (description.desiredPercentage && disable) {
+          instanceIds = discoverySupport.getInstanceToModify(credentials.name, region, serverGroupName, instanceIds, description.desiredPercentage)
+          task.updateStatus phaseName, "Disabling instances $instanceIds on ASG $serverGroupName with percentage ${description.desiredPercentage}"
+        }
         discoverySupport.updateDiscoveryStatusForInstances(
-          enableDisableInstanceDiscoveryDescription, task, phaseName, status, job.tasks*.instanceId
+          enableDisableInstanceDiscoveryDescription, task, phaseName, status, instanceIds
         )
       }
 
@@ -136,6 +155,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
       return false
     }
+  }
+
+  private void activateJob(TitusClient provider, Job job, boolean inService) {
+     provider.activateJob(
+      new ActivateJobRequest()
+        .withUser('spinnaker')
+        .withJobId(job.id)
+        .withInService(inService)
+    )
   }
 
   Task getTask() {
