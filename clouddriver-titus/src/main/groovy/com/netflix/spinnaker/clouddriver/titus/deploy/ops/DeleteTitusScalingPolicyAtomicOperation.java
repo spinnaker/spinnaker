@@ -2,7 +2,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge;
-import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DeleteTitusScalingPolicy;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DeleteTitusScalingPolicy.DeleteTitusScalingPolicyCommand;
@@ -11,7 +10,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHan
 import java.util.List;
 
 public class DeleteTitusScalingPolicyAtomicOperation
-    extends AbstractSagaAtomicOperation<DeleteTitusScalingPolicyDescription, Void> {
+    extends AbstractSagaAtomicOperation<DeleteTitusScalingPolicyDescription, Object, Void> {
 
   public DeleteTitusScalingPolicyAtomicOperation(DeleteTitusScalingPolicyDescription description) {
     super(description);
@@ -32,7 +31,7 @@ public class DeleteTitusScalingPolicyAtomicOperation
   }
 
   @Override
-  protected Void parseSagaResult(SagaAction.Result result) {
+  protected Void parseSagaResult(Object result) {
     return null;
   }
 }

@@ -39,7 +39,7 @@ class DestroyTitusServerGroupAtomicOperationConverter extends AbstractAtomicOper
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DestroyTitusServerGroupAtomicOperation(titusClientProvider, convertDescription(input))
+    new DestroyTitusServerGroupAtomicOperation(convertDescription(input))
   }
 
   @Override

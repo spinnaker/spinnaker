@@ -16,58 +16,60 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+
 import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DestroyTitusJob
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.ResolveTitusJobId
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.DestroyTitusJobCompletionHandler
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
 import groovy.util.logging.Slf4j
+import org.jetbrains.annotations.NotNull
+
+import javax.annotation.Nonnull
 
 @Slf4j
-class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
-
-  private static final String PHASE = "DESTROY_TITUS_SERVER_GROUP"
-  private final TitusClientProvider titusClientProvider
-  private final DestroyTitusServerGroupDescription description
+class DestroyTitusServerGroupAtomicOperation extends AbstractSagaAtomicOperation<DestroyTitusServerGroupDescription, DeleteServerGroupEvent, Void> {
   private final Collection<DeleteServerGroupEvent> events = []
 
-  DestroyTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider,
-                                         DestroyTitusServerGroupDescription description) {
-    this.titusClientProvider = titusClientProvider
-    this.description = description
+  DestroyTitusServerGroupAtomicOperation(DestroyTitusServerGroupDescription description) {
+    super(description)
   }
 
   @Override
-  Void operate(List priorOutputs) {
-    task.updateStatus PHASE, "Destroying server group: ${description.serverGroupName}..."
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    Job job = titusClient.findJobByName(description.serverGroupName)
-    if (job) {
-      titusClient.terminateJob((TerminateJobRequest) new TerminateJobRequest().withJobId(job.id).withUser(description.user))
-      events << new DeleteServerGroupEvent(
-        TitusCloudProvider.ID, description.credentials.name, description.region, description.serverGroupName
-      )
-      task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id} which corresponds to ${description.serverGroupName}"
-    } else {
-      task.updateStatus PHASE, "No titus job found for ${description.serverGroupName}"
-    }
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(ResolveTitusJobId.class)
+      .then(DestroyTitusJob.class)
+      .exceptionHandler(TitusExceptionHandler.class)
+      .completionHandler(DestroyTitusJobCompletionHandler.class)
+  }
 
-    task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"
-    null
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+      ResolveTitusJobId.ResolveTitusJobIdCommand
+        .builder()
+        .account(description.account)
+        .region(description.region)
+        .serverGroupName(description.serverGroupName)
+        .user(description.user)
+        .build()
+    )
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull DeleteServerGroupEvent result) {
+    events << result
+    return null
   }
 
   @Override
   Collection<OperationEvent> getEvents() {
     return events
-  }
-
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
   }
 }

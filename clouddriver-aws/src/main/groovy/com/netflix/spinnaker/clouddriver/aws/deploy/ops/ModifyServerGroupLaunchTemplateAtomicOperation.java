@@ -24,14 +24,13 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.PrepareModifySer
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions.UpdateAutoScalingGroup;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge;
-import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import java.util.List;
 import javax.annotation.Nonnull;
 
 public class ModifyServerGroupLaunchTemplateAtomicOperation
-    extends AbstractSagaAtomicOperation<ModifyServerGroupLaunchTemplateDescription, Void> {
+    extends AbstractSagaAtomicOperation<ModifyServerGroupLaunchTemplateDescription, Object, Void> {
   public ModifyServerGroupLaunchTemplateAtomicOperation(
       ModifyServerGroupLaunchTemplateDescription description) {
     super(description);
@@ -54,7 +53,7 @@ public class ModifyServerGroupLaunchTemplateAtomicOperation
   }
 
   @Override
-  protected Void parseSagaResult(@Nonnull SagaAction.Result result) {
+  protected Void parseSagaResult(@Nonnull Object result) {
     return null;
   }
 

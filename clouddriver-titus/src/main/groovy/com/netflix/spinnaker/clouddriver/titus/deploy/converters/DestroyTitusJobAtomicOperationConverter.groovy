@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.caching.providers.TitusJobProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription
@@ -34,21 +33,18 @@ import org.springframework.stereotype.Component
 @TitusOperation(AtomicOperations.DESTROY_JOB)
 class DestroyTitusJobAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
-  private final TitusClientProvider titusClientProvider
   private final TitusJobProvider titusJobProvider
 
   @Autowired
   DestroyTitusJobAtomicOperationConverter(
-    TitusClientProvider titusClientProvider,
     TitusJobProvider titusJobProvider
   ) {
-    this.titusClientProvider = titusClientProvider
     this.titusJobProvider = titusJobProvider
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DestroyTitusJobAtomicOperation(titusClientProvider, convertDescription(input))
+    new DestroyTitusJobAtomicOperation(convertDescription(input))
   }
 
   @Override

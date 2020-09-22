@@ -17,54 +17,49 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DestroyTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.DestroyTitusJobCompletionHandler
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class DestroyTitusJobAtomicOperation implements AtomicOperation<Void> {
-  private static final String PHASE = "DESTROY_TITUS_JOB"
-  private final TitusClientProvider titusClientProvider
-  private final DestroyTitusJobDescription description
+import javax.annotation.Nonnull
+
+class DestroyTitusJobAtomicOperation extends AbstractSagaAtomicOperation<DestroyTitusJobDescription, DeleteServerGroupEvent, Void> {
   private final Collection<DeleteServerGroupEvent> events = []
 
-  DestroyTitusJobAtomicOperation(TitusClientProvider titusClientProvider, DestroyTitusJobDescription description) {
-    this.titusClientProvider = titusClientProvider
-    this.description = description
+  DestroyTitusJobAtomicOperation(DestroyTitusJobDescription description) {
+    super(description)
   }
 
   @Override
-  Void operate(List priorOutputs) {
-    task.updateStatus PHASE, "Destroying job: ${description.jobId}..."
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    Job job = titusClient.getJobAndAllRunningAndCompletedTasks(description.jobId)
-    if (job) {
-      titusClient.terminateJob((TerminateJobRequest) new TerminateJobRequest().withJobId(job.id).withUser(description.user))
-      events << new DeleteServerGroupEvent(
-        TitusCloudProvider.ID, description.credentials.name, description.region, description.jobId
-      )
-      task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id}"
-    } else {
-      task.updateStatus PHASE, "No titus job found wit id ${description.jobId}"
-    }
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(DestroyTitusJob.class)
+      .exceptionHandler(TitusExceptionHandler.class)
+      .completionHandler(DestroyTitusJobCompletionHandler.class);
+  }
 
-    task.updateStatus PHASE, "Completed destroy job operation for ${description.jobId}"
-    null
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+      DestroyTitusJob.DestroyTitusJobCommand.builder().description(description).build()
+    )
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull DeleteServerGroupEvent result) {
+    events << result
+    return null
   }
 
   @Override
   Collection<OperationEvent> getEvents() {
     return events
-  }
-
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
   }
 }
