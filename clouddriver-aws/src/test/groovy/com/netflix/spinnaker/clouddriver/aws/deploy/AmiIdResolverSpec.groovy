@@ -27,8 +27,8 @@ import spock.lang.Specification
 
 class AmiIdResolverSpec extends Specification {
 
-  private final String amiId = 'ami-12345'
-  private final String accountId = '98765'
+  private String amiId = 'ami-12345'
+  private String accountId = '98765'
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

@@ -34,11 +34,11 @@ import spock.lang.Subject
 
 class SecurityGroupLookupSpec extends Specification {
 
-  final amazonEC2 = Mock(AmazonEC2)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def amazonEC2 = Mock(AmazonEC2)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonEC2(_, "us-east-1", _) >> amazonEC2
   }
-  final accountCredentialsRepository = Stub(AccountCredentialsRepository) {
+  def accountCredentialsRepository = Stub(AccountCredentialsRepository) {
     getAll() >> [
       Stub(NetflixAmazonCredentials) {
         getName() >> "test"
@@ -51,11 +51,11 @@ class SecurityGroupLookupSpec extends Specification {
     ]
   }
 
-  final securityGroupLookupFactory = new SecurityGroupLookupFactory(amazonClientProvider,
+  def securityGroupLookupFactory = new SecurityGroupLookupFactory(amazonClientProvider,
     accountCredentialsRepository)
 
   @Subject
-  final securityGroupLookup = securityGroupLookupFactory.getInstance("us-east-1")
+  def securityGroupLookup = securityGroupLookupFactory.getInstance("us-east-1")
 
   void "should create security group"() {
     when:

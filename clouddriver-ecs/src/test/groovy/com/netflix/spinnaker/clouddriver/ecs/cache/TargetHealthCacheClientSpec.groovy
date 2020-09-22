@@ -34,7 +34,7 @@ class TargetHealthCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   def objectMapper = new ObjectMapper()
   @Subject
-  private final TargetHealthCacheClient client = new TargetHealthCacheClient(cacheView, objectMapper)
+  private TargetHealthCacheClient client = new TargetHealthCacheClient(cacheView, objectMapper)
 
   def 'should convert'() {
     given:

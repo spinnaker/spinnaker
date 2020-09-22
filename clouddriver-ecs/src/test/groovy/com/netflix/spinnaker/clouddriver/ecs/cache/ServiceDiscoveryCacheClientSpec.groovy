@@ -29,7 +29,7 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 class ServiceDiscoveryCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   @Subject
-  private final ServiceDiscoveryCacheClient client = new ServiceDiscoveryCacheClient(cacheView)
+  private ServiceDiscoveryCacheClient client = new ServiceDiscoveryCacheClient(cacheView)
 
   def 'should convert'() {
     given:

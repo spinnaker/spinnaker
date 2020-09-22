@@ -86,7 +86,7 @@ final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
         partition(queuedRequests, MAX_BATCH_SIZE);
     List<BatchRequest> queuedBatches = createBatchRequests(requestPartitions);
 
-    String statusCode = "500";
+    var statusCode = "500";
     String success = "false";
     long start = registry.clock().monotonicTime();
     try {

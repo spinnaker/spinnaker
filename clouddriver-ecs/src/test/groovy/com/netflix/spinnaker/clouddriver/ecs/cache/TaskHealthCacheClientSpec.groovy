@@ -28,7 +28,7 @@ import spock.lang.Subject
 class TaskHealthCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   @Subject
-  private final TaskHealthCacheClient client = new TaskHealthCacheClient(cacheView)
+  private TaskHealthCacheClient client = new TaskHealthCacheClient(cacheView)
 
   def 'should convert'() {
     given:

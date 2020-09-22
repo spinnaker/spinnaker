@@ -31,17 +31,17 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  final description = new UpsertAsgLifecycleHookDescription(
+  def description = new UpsertAsgLifecycleHookDescription(
     serverGroupName: 'asg-v000',
     region: 'us-west-1',
     roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
     notificationTargetARN: 'arn:aws:sns:us-west-1:123456789012:my-sns-topic'
   )
 
-  @Subject final op = new UpsertAsgLifecycleHookAtomicOperation(description)
+  @Subject def op = new UpsertAsgLifecycleHookAtomicOperation(description)
 
-  final autoScaling = Mock(AmazonAutoScaling)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def autoScaling = Mock(AmazonAutoScaling)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScaling(_, _, true) >> autoScaling
   }
 

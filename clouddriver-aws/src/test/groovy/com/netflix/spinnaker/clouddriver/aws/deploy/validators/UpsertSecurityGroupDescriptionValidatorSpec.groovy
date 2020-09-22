@@ -34,7 +34,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
   SecurityGroupService securityGroupService = Mock(SecurityGroupService)
   ValidationErrors errors = Mock(ValidationErrors)
 
-  final description = new UpsertSecurityGroupDescription(
+  def description = new UpsertSecurityGroupDescription(
     credentials: TestCredential.named('test'),
     region: "us-east-1",
     name: "foo",

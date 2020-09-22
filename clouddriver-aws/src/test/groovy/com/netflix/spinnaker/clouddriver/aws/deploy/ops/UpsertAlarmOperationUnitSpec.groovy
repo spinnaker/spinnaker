@@ -56,12 +56,12 @@ class UpsertAlarmOperationUnitSpec extends Specification {
     unit: StandardUnit.Percent,
   )
 
-  final cloudWatch = Mock(AmazonCloudWatch)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def cloudWatch = Mock(AmazonCloudWatch)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getCloudWatch(_, _, true) >> cloudWatch
   }
 
-  @Subject final op = new UpsertAlarmAtomicOperation(description)
+  @Subject def op = new UpsertAlarmAtomicOperation(description)
 
   def setup() {
     op.amazonClientProvider = amazonClientProvider

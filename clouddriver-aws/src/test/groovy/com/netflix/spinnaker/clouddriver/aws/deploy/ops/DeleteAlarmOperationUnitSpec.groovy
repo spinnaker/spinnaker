@@ -43,12 +43,12 @@ class DeleteAlarmOperationUnitSpec extends Specification {
     credentials: credz
   )
 
-  final cloudWatch = Mock(AmazonCloudWatch)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def cloudWatch = Mock(AmazonCloudWatch)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getCloudWatch(credz, "us-west-1", true) >> cloudWatch
   }
 
-  @Subject final op = new DeleteAlarmAtomicOperation(description)
+  @Subject def op = new DeleteAlarmAtomicOperation(description)
 
   def setup() {
     op.amazonClientProvider = amazonClientProvider

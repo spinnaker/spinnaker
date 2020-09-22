@@ -47,17 +47,17 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
-  final credential1 = Stub(NetflixAmazonCredentials) {
+  def credential1 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName1"
     getAccountId() >> "accountId1"
   }
 
-  final credential2 = Stub(NetflixAmazonCredentials) {
+  def credential2 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName2"
     getAccountId() >> "accountId2"
   }
 
-  final accountCredentialsProvider = new AccountCredentialsProvider() {
+  def accountCredentialsProvider = new AccountCredentialsProvider() {
 
     @Override
     Set<? extends AccountCredentials> getAll() {

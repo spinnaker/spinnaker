@@ -29,7 +29,7 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SECRETS
 class SecretCacheClientSpec extends Specification {
   def cacheView = Mock(Cache)
   @Subject
-  private final SecretCacheClient client = new SecretCacheClient(cacheView)
+  private SecretCacheClient client = new SecretCacheClient(cacheView)
 
   def 'should convert'() {
     given:

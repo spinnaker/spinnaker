@@ -37,7 +37,7 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  final description = new UpsertScalingPolicyDescription(
+  def description = new UpsertScalingPolicyDescription(
     serverGroupName: "kato-main-v000",
     region: "us-west-1",
     adjustmentType: AdjustmentType.PercentChangeInCapacity,
@@ -48,14 +48,14 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     )
   )
 
-  final autoScaling = Mock(AmazonAutoScaling)
-  final cloudWatch = Mock(AmazonCloudWatch)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def autoScaling = Mock(AmazonAutoScaling)
+  def cloudWatch = Mock(AmazonCloudWatch)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScaling(_, _, true) >> autoScaling
     getCloudWatch(_, _, true) >> cloudWatch
   }
 
-  @Subject final op = new UpsertScalingPolicyAtomicOperation(description)
+  @Subject def op = new UpsertScalingPolicyAtomicOperation(description)
 
   def setup() {
     op.amazonClientProvider = amazonClientProvider

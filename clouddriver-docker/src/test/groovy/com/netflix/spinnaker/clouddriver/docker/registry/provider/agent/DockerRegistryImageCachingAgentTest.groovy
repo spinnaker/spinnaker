@@ -28,11 +28,11 @@ import java.time.Instant
 
 class DockerRegistryImageCachingAgentTest extends Specification {
 
-  final KEY_PREFIX = "dockerRegistry"
-  final ACCOUNT_NAME = "test-docker"
-  final REGISTRY_NAME = "test-registry"
-  final CACHE_GROUP_TAGGED_IMAGE = "taggedImage"
-  final CACHE_GROUP_IMAGE_ID = "imageId"
+  def KEY_PREFIX = "dockerRegistry"
+  def ACCOUNT_NAME = "test-docker"
+  def REGISTRY_NAME = "test-registry"
+  def CACHE_GROUP_TAGGED_IMAGE = "taggedImage"
+  def CACHE_GROUP_IMAGE_ID = "imageId"
 
   DockerRegistryImageCachingAgent agent
   def credentials = Mock(DockerRegistryCredentials)

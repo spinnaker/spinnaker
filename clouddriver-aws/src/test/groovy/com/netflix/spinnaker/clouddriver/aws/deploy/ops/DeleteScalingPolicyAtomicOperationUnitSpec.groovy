@@ -47,21 +47,21 @@ class DeleteScalingPolicyAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  final description = new DeleteScalingPolicyDescription(
+  def description = new DeleteScalingPolicyDescription(
     serverGroupName: "kato-main-v000",
     policyName: "scalingPolicy1",
     region: "us-west-1",
     credentials: credz
   )
 
-  final autoScaling = Mock(AmazonAutoScaling)
-  final cloudWatch = Mock(AmazonCloudWatch)
-  final amazonClientProvider = Stub(AmazonClientProvider) {
+  def autoScaling = Mock(AmazonAutoScaling)
+  def cloudWatch = Mock(AmazonCloudWatch)
+  def amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScaling(credz, "us-west-1", true) >> autoScaling
     getCloudWatch(credz, "us-west-1", true) >> cloudWatch
   }
 
-  @Subject final op = new DeleteScalingPolicyAtomicOperation(description)
+  @Subject def op = new DeleteScalingPolicyAtomicOperation(description)
 
   def setup() {
     op.amazonClientProvider = amazonClientProvider

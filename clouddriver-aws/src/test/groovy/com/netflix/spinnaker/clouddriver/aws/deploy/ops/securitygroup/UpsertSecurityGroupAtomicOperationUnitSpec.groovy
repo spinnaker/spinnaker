@@ -48,9 +48,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   )
 
 
-  final securityGroupLookup = Mock(SecurityGroupLookupFactory.SecurityGroupLookup)
+  def securityGroupLookup = Mock(SecurityGroupLookupFactory.SecurityGroupLookup)
 
-  final securityGroupLookupFactory = Stub(SecurityGroupLookupFactory) {
+  def securityGroupLookupFactory = Stub(SecurityGroupLookupFactory) {
     getInstance(_) >> securityGroupLookup
   }
 
