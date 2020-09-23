@@ -297,6 +297,12 @@ class Generator(
       type.isBoolean -> BooleanSchema(description = description)
       type.isInteger -> IntegerSchema(description = description)
       type.isNumber -> NumberSchema(description = description)
+      type.jvmErasure == Duration::class -> Duration::class.buildRef()
+        .also {
+          if (!definitions.containsKey(Duration::class.java.simpleName)) {
+            definitions[Duration::class.java.simpleName] = DurationSchema
+          }
+        }
       type.isArray -> {
         ArraySchema(
           description = description,
@@ -478,7 +484,6 @@ class Generator(
     memberProperties.find { it.name == param.name } // this is a pretty heinous assumption
 
   private val formattedTypes = mapOf(
-    Duration::class to "duration",
     Instant::class to "date-time",
     ZonedDateTime::class to "date-time",
     OffsetDateTime::class to "date-time",

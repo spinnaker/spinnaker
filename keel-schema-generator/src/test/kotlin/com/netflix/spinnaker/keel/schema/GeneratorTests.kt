@@ -543,8 +543,7 @@ internal class GeneratorTests {
       mapOf(
         Foo::instant.name to "datetime",
         Foo::localDate.name to "date",
-        Foo::localTime.name to "time",
-        Foo::duration.name to "duration"
+        Foo::localTime.name to "time"
       ).map { (property, format) ->
         dynamicTest("$property property is a string with '$format' format") {
           expectThat(schema.properties[property])
@@ -553,6 +552,20 @@ internal class GeneratorTests {
             .isEqualTo(format)
         }
       }
+
+    @Test
+    fun `duration property is a reference`() {
+      expectThat(schema.properties[Foo::duration.name])
+        .isA<Reference>()
+        .get { `$ref` }
+        .isEqualTo("#/${RootSchema::`$defs`.name}/${Duration::class.simpleName}")
+    }
+
+    @Test
+    fun `duration schema is a string schema with a regex pattern`() {
+      expectThat(schema.`$defs`[Duration::class.simpleName])
+        .isA<DurationSchema>()
+    }
   }
 
   @Nested

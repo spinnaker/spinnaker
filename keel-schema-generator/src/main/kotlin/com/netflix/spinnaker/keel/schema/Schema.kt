@@ -44,8 +44,16 @@ data class IntegerSchema(override val description: String?) : TypedProperty("int
 
 data class NumberSchema(override val description: String?) : TypedProperty("number")
 
+object DurationSchema : TypedProperty("string") {
+  override val description = "ISO 8601 duration"
+
+  @Suppress("MayBeConstant", "unused") // doesn't serialize if declared as const
+  // see https://rgxdb.com/r/MD2234J
+  val pattern: String = """^(-?)P(?=\d|T\d)(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)([DW]))?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$"""
+}
+
 data class AnySchema(override val description: String?) : TypedProperty("object") {
-  @Suppress("MayBeConstant") // TODO: doesn't serialize if declared as const
+  @Suppress("MayBeConstant") // doesn't serialize if declared as const
   val additionalProperties: Boolean = true
 }
 
@@ -63,7 +71,8 @@ data class MapSchema(
 
 data class StringSchema(
   override val description: String?,
-  val format: String? = null
+  val format: String? = null,
+  val pattern: String? = null
 ) : TypedProperty("string")
 
 data class EnumSchema(
@@ -86,12 +95,6 @@ data class OneOf(
   override val description: String?,
   val oneOf: Set<Schema>
 ) : Schema
-
-data class AllOf(
-  val allOf: List<Schema>
-) : Schema {
-  override val description: String? = null
-}
 
 data class ConditionalSubschema(
   val `if`: Condition,

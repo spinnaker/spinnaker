@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.keel.apidocs
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -12,50 +10,16 @@ import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
-import com.netflix.spinnaker.keel.api.constraints.DefaultConstraintAttributes
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
-import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
-import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.api.support.extensionsOf
-import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.artifacts.DockerVersioningStrategy
-import com.netflix.spinnaker.keel.artifacts.NpmArtifact
-import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
-import com.netflix.spinnaker.keel.constraints.CanaryConstraintAttributes
-import com.netflix.spinnaker.keel.constraints.PipelineConstraintStateAttributes
-import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
-import com.netflix.spinnaker.keel.core.api.CanaryConstraint
-import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
-import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.docker.ContainerProvider
-import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.docker.ReferenceProvider
-import com.netflix.spinnaker.keel.docker.VersionedTagProvider
-import com.netflix.spinnaker.keel.ec2.jackson.KeelEc2ApiModule
-import com.netflix.spinnaker.keel.extensions.DefaultExtensionRegistry
-import com.netflix.spinnaker.keel.jackson.KeelApiModule
 import com.netflix.spinnaker.keel.schema.Generator
-import com.netflix.spinnaker.keel.schema.ResourceKindSchemaCustomizer
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
-import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.titus.jackson.KeelTitusApiModule
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
@@ -68,7 +32,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.Assertion
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.doesNotContain
@@ -76,7 +39,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import strikt.assertions.map
 import strikt.assertions.one
 import strikt.jackson.at
 import strikt.jackson.booleanValue
@@ -320,21 +282,17 @@ class ApiDocTests : JUnit5Minutests {
         .containsExactly("moniker")
     }
 
-    test("duration properties are duration format strings") {
-      at("/\$defs/RedBlack/properties/delayBeforeDisable")
-        .and {
-          path("type").textValue().isEqualTo("string")
-          path("format").textValue().isEqualTo("duration")
-          path("properties").isMissing()
-        }
+    test("duration properties are references to the duration schema") {
+      at("/\$defs/RedBlack/properties/delayBeforeDisable/\$ref")
+        .textValue()
+        .isEqualTo("#/\$defs/Duration")
     }
 
-    test("duration properties are duration format strings") {
-      at("/\$defs/ApplicationLoadBalancerSpec/properties/idleTimeout")
+    test("duration schema is a patterned string") {
+      at("/\$defs/Duration")
         .and {
           path("type").textValue().isEqualTo("string")
-          path("format").textValue().isEqualTo("duration")
-          path("properties").isMissing()
+          path("pattern").isTextual()
         }
     }
 
