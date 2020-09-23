@@ -84,7 +84,7 @@ const transformFormPropsToExecutionRequest = (
     accountSpecificParams.resourceType = values.resourceType;
   }
 
-  if (metricsAccount.type === 'atlas') {
+  if (metricsAccount.type === 'atlas' && !values.extendedScopeParams?.type) {
     accountSpecificParams.type = 'cluster';
   }
 
