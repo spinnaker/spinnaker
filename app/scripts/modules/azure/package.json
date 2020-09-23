@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/azure",
   "license": "Apache-2.0",
-  "version": "0.0.253",
+  "version": "0.0.254",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
