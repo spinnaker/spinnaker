@@ -52,16 +52,6 @@ class NpmArtifactSupplier(
     }
 
   /**
-   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
-   * present in [metadata]
-   */
-  override fun getReleaseStatus(artifact: PublishedArtifact): ArtifactStatus {
-    val status = artifact.metadata["releaseStatus"]?.toString()
-      ?: throw IntegrationException("Artifact metadata does not contain 'releaseStatus' field")
-    return ArtifactStatus.valueOf(status)
-  }
-
-  /**
    * Extracts a version display name from version string using the Netflix semver convention.
    */
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {

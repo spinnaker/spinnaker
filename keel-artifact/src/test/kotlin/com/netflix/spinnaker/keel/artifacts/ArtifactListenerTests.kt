@@ -1,65 +1,91 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
+import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.services.ArtifactMetadataService
-import com.netflix.spinnaker.keel.telemetry.ArtifactSaved
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.slot
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class ArtifactListenerTests : JUnit5Minutests {
   val publishedDeb = PublishedArtifact(
-    type = "DEB",
+    type = DEBIAN,
     customKind = false,
     name = "fnord",
     version = "0.156.0-h58.f67fe09",
     reference = "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
     metadata = mapOf("releaseStatus" to FINAL),
     provenance = "https://my.jenkins.master/jobs/fnord-release/58"
+  ).normalized()
+
+  val newerPublishedDeb = PublishedArtifact(
+    type = DEBIAN,
+    customKind = false,
+    name = "fnord",
+    version = "0.161.0-h61.116f116",
+    reference = "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
+    metadata = mapOf("releaseStatus" to FINAL),
+    provenance = "https://my.jenkins.master/jobs/fnord-release/60"
+  ).normalized()
+
+  val publishedDocker = PublishedArtifact(
+    type = DOCKER,
+    customKind = false,
+    name = "fnord/myimage",
+    version = "master-h5.blahblah",
+    reference = "fnord"
   )
+
+  val newerPublishedDocker = publishedDocker.copy(version = "master-h6.hehehe")
 
   val debianArtifact = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
   val dockerArtifact = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB, deliveryConfigName = "fnord-config")
   val deliveryConfig = DeliveryConfig(name = "fnord-config", application = "fnord", serviceAccount = "keel", artifacts = setOf(debianArtifact, dockerArtifact))
 
-  data class ArtifactFixture(
-    val event: ArtifactPublishedEvent,
-    val artifact: DeliveryArtifact,
-    val repository: KeelRepository = mockk(relaxUnitFun = true),
-    val artifactService: ArtifactService = mockk(relaxUnitFun = true),
-    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
-    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
-  ) {
-    private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
-      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
-    ))
+  val artifactMetadata = ArtifactMetadata(
+    gitMetadata = GitMetadata(commit = "f00baah", author = "joesmith", branch = "master"),
+    buildMetadata = BuildMetadata(id = 1, status = "SUCCEEDED")
+  )
+
+  val publishedArtifact = slot<PublishedArtifact>()
+
+  abstract class ArtifactListenerFixture {
+    val repository: KeelRepository = mockk(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val dockerArtifactSupplier: DockerArtifactSupplier = mockk(relaxUnitFun = true)
+    val debianArtifactSupplier: DebianArtifactSupplier = mockk(relaxUnitFun = true)
+    val listener: ArtifactListener = ArtifactListener(repository, publisher,
+      listOf(debianArtifactSupplier, dockerArtifactSupplier))
   }
 
-  fun artifactEventTests() = rootContext<ArtifactFixture> {
+  data class ArtifactPublishedFixture(
+    val event: ArtifactPublishedEvent,
+    val artifact: DeliveryArtifact
+  ) : ArtifactListenerFixture()
+
+  fun artifactEventTests() = rootContext<ArtifactPublishedFixture> {
     fixture {
-      ArtifactFixture(
+      ArtifactPublishedFixture(
         event = ArtifactPublishedEvent(
           artifacts = listOf(publishedDeb),
           details = emptyMap()
@@ -70,18 +96,18 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfig(any()) } returns deliveryConfig
+      every { debianArtifactSupplier.supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
+      every { dockerArtifactSupplier.supportedArtifact } returns SupportedArtifact(DOCKER, DockerArtifact::class.java)
     }
 
     context("the artifact is not something we're tracking") {
       before {
         every { repository.isRegistered(any(), any()) } returns false
-        every { repository.artifactVersions(any()) } returns listOf("0.227.0-h141.bd97556")
-
         listener.onArtifactPublished(event)
       }
 
       test("the event is ignored") {
-        verify(exactly = 0) { repository.storeArtifact(any(), any(), any(), any()) }
+        verify(exactly = 0) { repository.storeArtifactVersion(any()) }
       }
 
       test("no telemetry is recorded") {
@@ -92,13 +118,17 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("the artifact is registered with versions") {
       before {
         every { repository.isRegistered(artifact.name, artifact.type) } returns true
-        every { repository.getArtifact(artifact.name, artifact.type, "fnord-config") } returns listOf(artifact)
-        every { repository.artifactVersions(artifact) } returns listOf("0.227.0-h141.bd97556")
+        every {
+          debianArtifactSupplier.getLatestArtifact(deliveryConfig, artifact)
+        } returns publishedDeb
+        every {
+          debianArtifactSupplier.getArtifactMetadata(publishedDeb)
+        } returns artifactMetadata
       }
 
       context("the version was already known") {
         before {
-          every { repository.storeArtifact(any(), any(), any(), any()) } returns false
+          every { repository.storeArtifactVersion(any()) } returns false
 
           listener.onArtifactPublished(event)
         }
@@ -110,22 +140,41 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("the version is new") {
         before {
-          every { repository.storeArtifact(any(), any(), any(), any()) } returns true
+          every {
+            debianArtifactSupplier.getArtifactMetadata(newerPublishedDeb)
+          } returns artifactMetadata
 
-          listener.onArtifactPublished(event)
+          every { repository.storeArtifactVersion(any()) } returns true
+
+          listener.onArtifactPublished(
+            event.copy(artifacts = listOf(newerPublishedDeb))
+          )
         }
 
         test("a new artifact version is stored") {
-          verify {
-            repository.storeArtifact(artifact.name, artifact.type, "fnord-0.156.0-h58.f67fe09", FINAL)
+          verify {repository.storeArtifactVersion(capture(publishedArtifact)) }
+
+          with(publishedArtifact.captured) {
+            expectThat(name).isEqualTo(artifact.name)
+            expectThat(type).isEqualTo(artifact.type)
+            expectThat(version).isEqualTo(newerPublishedDeb.version)
+            expectThat(status).isEqualTo(FINAL)
+          }
+        }
+
+        test("artifact metadata is added before storing") {
+          verify(exactly = 1) {
+            debianArtifactSupplier.getArtifactMetadata(newerPublishedDeb)
+          }
+
+          with(publishedArtifact.captured) {
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
         }
 
         test("a telemetry event is recorded") {
           verify { publisher.publishEvent(any<ArtifactVersionUpdated>()) }
-        }
-        test("artifact saved event was sent") {
-          verify { publisher.publishEvent(any<ArtifactSaved>()) }
         }
       }
     }
@@ -133,19 +182,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
   data class RegisteredFixture(
     val event: ArtifactRegisteredEvent,
-    val artifact: DeliveryArtifact,
-    val repository: KeelRepository = mockk(relaxUnitFun = true),
-    val artifactService: ArtifactService = mockk(relaxUnitFun = true),
-    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
-    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
-  ) {
-    private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
-      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
-    ))
-  }
+    val artifact: DeliveryArtifact
+  ) : ArtifactListenerFixture()
 
   fun artifactRegisteredEventTests() = rootContext<RegisteredFixture> {
     fixture {
@@ -163,101 +201,85 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfig(any()) } returns deliveryConfig
+      every { debianArtifactSupplier.supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
+      every { dockerArtifactSupplier.supportedArtifact } returns SupportedArtifact(DOCKER, DockerArtifact::class.java)
     }
 
-    context("artifact is already registered") {
+    context("artifact already has saved versions") {
       before {
-        every { repository.isRegistered("fnord", DEBIAN) } returns true
-        every { repository.getArtifact(artifact.name, artifact.type, "fnord-config") } returns listOf(artifact)
-        every { repository.artifactVersions(any()) } returns listOf("0.227.0-h141.bd97556")
+        every { repository.artifactVersions(event.artifact) } returns listOf(publishedDeb.version)
         listener.onArtifactRegisteredEvent(event)
       }
 
       test("nothing is done") {
-        verify(exactly = 0) { repository.storeArtifact(any(), any(), any()) }
+        verify(exactly = 0) { repository.storeArtifactVersion(any()) }
       }
     }
 
-    context("the artifact is not already registered") {
+    context("the artifact does not have any versions stored") {
       before {
-        every { repository.isRegistered("fnord", DEBIAN) } returns false
+        every { repository.artifactVersions(event.artifact) } returns emptyList()
       }
 
-      context("there are versions of the artifact") {
+      context("there are available versions of the artifact") {
         before {
-          every { repository.storeArtifact(any(), any(), any(), any()) } returns false
-          every { repository.artifactVersions(any()) } returns emptyList()
-          coEvery { artifactService.getVersions("fnord", emptyList(), DEBIAN) } returns
-            listOf(
-              "0.227.0-h141.bd97556",
-              "0.226.0-h140.705469b",
-              "0.225.0-h139.f5c2ec7",
-              "0.224.0-h138.0320b6c"
-            )
-          coEvery {
-            artifactService.getArtifact("fnord", "0.227.0-h141.bd97556", DEBIAN)
-          } returns publishedDeb.copy(version = "0.227.0-h141.bd97556")
+          every { repository.storeArtifactVersion(any()) } returns false
+          every {
+            debianArtifactSupplier.getLatestArtifact(deliveryConfig, artifact)
+          } returns publishedDeb
+          every {
+            debianArtifactSupplier.getArtifactMetadata(publishedDeb)
+          } returns artifactMetadata
 
           listener.onArtifactRegisteredEvent(event)
         }
 
         test("the newest version is saved") {
           verify(exactly = 1) {
-            repository.storeArtifact("fnord", DEBIAN, "fnord-0.227.0-h141.bd97556", FINAL)
+            repository.storeArtifactVersion(capture(publishedArtifact))
+          }
+          with(publishedArtifact.captured) {
+            expectThat(name).isEqualTo(artifact.name)
+            expectThat(type).isEqualTo(artifact.type)
+            expectThat(version).isEqualTo(publishedDeb.version)
+            expectThat(status).isEqualTo(FINAL)
           }
         }
 
-        test("artifact saved event was sent") {
-          verify { publisher.publishEvent(any<ArtifactSaved>()) }
+        test("artifact metadata is added before storing") {
+          verify(exactly = 1) {
+            debianArtifactSupplier.getArtifactMetadata(publishedDeb)
+          }
+
+          with(publishedArtifact.captured) {
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          }
         }
       }
 
-      context("there no versions of the artifact") {
+      context("there are no versions of the artifact available") {
         before {
-          coEvery { artifactService.getVersions("fnord", emptyList(), DEBIAN) } returns listOf()
-          coEvery { repository.artifactVersions(any()) } returns listOf()
+          every {
+            debianArtifactSupplier.getLatestArtifact(deliveryConfig, artifact)
+          } returns null
 
           listener.onArtifactRegisteredEvent(event)
         }
 
         test("no versions are persisted") {
           verify(exactly = 0) {
-            repository.storeArtifact(any(), any(), any())
+            repository.storeArtifactVersion(any())
           }
-        }
-
-        test("artifact saved event was not sent") {
-          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
         }
       }
     }
   }
 
-  val newerPublishedDeb = PublishedArtifact(
-    type = "DEB",
-    customKind = false,
-    name = "fnord",
-    version = "0.161.0-h61.116f116",
-    reference = "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
-    metadata = mapOf("releaseStatus" to FINAL),
-    provenance = "https://my.jenkins.master/jobs/fnord-release/60"
-  )
-
   data class SyncArtifactsFixture(
     val debArtifact: DeliveryArtifact,
-    val dockerArtifact: DockerArtifact,
-    val repository: KeelRepository = mockk(relaxUnitFun = true),
-    val artifactService: ArtifactService = mockk(relaxUnitFun = true),
-    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
-    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
-  ) {
-    private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
-      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
-    ))
-  }
+    val dockerArtifact: DockerArtifact
+  ) : ArtifactListenerFixture()
 
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {
     fixture {
@@ -269,91 +291,121 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfig(any()) } returns deliveryConfig
+      every { debianArtifactSupplier.supportedArtifact } returns SupportedArtifact(DEBIAN, DebianArtifact::class.java)
+      every { dockerArtifactSupplier.supportedArtifact } returns SupportedArtifact(DOCKER, DockerArtifact::class.java)
+      every { debianArtifactSupplier.getArtifactMetadata(any()) } returns artifactMetadata
+      every { dockerArtifactSupplier.getArtifactMetadata(any()) } returns artifactMetadata
+      every { repository.storeArtifactVersion(any()) } returns true
       listener.onApplicationUp()
     }
 
-    context("we don't have any versions of an artifact") {
+    context("we don't have any versions of the artifacts") {
       before {
         every { repository.getAllArtifacts() } returns listOf(debArtifact, dockerArtifact)
-        every { repository.artifactVersions(debArtifact) } returns listOf()
-        every { repository.artifactVersions(dockerArtifact) } returns listOf()
-        coEvery { artifactService.getVersions(debArtifact.name, emptyList(), DEBIAN) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
-        coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, any()) } returns listOf("master-h5.blahblah")
-        coEvery {
-          clouddriverService.findDockerImages("*", dockerArtifact.name, "master-h5.blahblah", any(), any())
-        } returns listOf(DockerImage("test", dockerArtifact.name, "master-h5.blahblah", "abcd1234"))
-        coEvery { artifactService.getArtifact(debArtifact.name, "0.161.0-h61.116f116", DEBIAN) } returns newerPublishedDeb
-        every { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) } returns true
-        every { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h5.blahblah", null) } returns true
+        every { repository.artifactVersions(debArtifact) } returns emptyList()
+        every { repository.artifactVersions(dockerArtifact) } returns emptyList()
       }
 
-      test("new version is stored") {
-        listener.syncArtifactVersions()
-        verify { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
-        verify { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h5.blahblah", null) }
-        verify { publisher.publishEvent(any<ArtifactSaved>()) }
+      context("versions are available") {
+        before {
+          every {
+            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
+          } returns publishedDeb
+
+          every {
+            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
+          } returns publishedDocker
+        }
+
+        test("latest versions are stored") {
+          listener.syncArtifactVersions()
+
+          val publishedArtifacts = mutableListOf<PublishedArtifact>()
+
+          verify (exactly = 2) {
+            repository.storeArtifactVersion(capture(publishedArtifacts))
+          }
+
+          with(publishedArtifacts[0]) {
+            expectThat(name).isEqualTo(dockerArtifact.name)
+            expectThat(type).isEqualTo(dockerArtifact.type)
+            expectThat(version).isEqualTo(publishedDocker.version)
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          }
+
+          with(publishedArtifacts[1]) {
+            expectThat(name).isEqualTo(debArtifact.name)
+            expectThat(type).isEqualTo(debArtifact.type)
+            expectThat(version).isEqualTo(publishedDeb.version)
+            expectThat(status).isEqualTo(FINAL)
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          }
+        }
       }
     }
 
-    context("there is one artifact with one version stored") {
+    context("there are artifacts with versions stored") {
       before {
         every { repository.getAllArtifacts() } returns listOf(debArtifact, dockerArtifact)
-        every { repository.artifactVersions(debArtifact) } returns listOf("${debArtifact.name}-0.156.0-h58.f67fe09")
-        every { repository.artifactVersions(dockerArtifact) } returns listOf("master-h5.blahblah")
+        every { repository.artifactVersions(debArtifact) } returns listOf(publishedDeb.version)
+        every { repository.artifactVersions(dockerArtifact) } returns listOf(publishedDocker.version)
       }
 
-      context("a new version") {
+      context("no newer versions are available") {
         before {
-          coEvery { artifactService.getVersions(debArtifact.name, emptyList(), DEBIAN) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
-          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, any()) } returns listOf("master-h6.hehehe")
-          coEvery {
-            clouddriverService.findDockerImages("*", dockerArtifact.name, "master-h6.hehehe", any(), any())
-          } returns listOf(DockerImage("test", dockerArtifact.name, "master-h6.hehehe", "abcd1234"))
-          coEvery { artifactService.getArtifact(debArtifact.name, "0.161.0-h61.116f116", DEBIAN) } returns newerPublishedDeb
-          every { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) } returns true
-          every { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h6.hehehe", null) } returns true
-        }
+          every {
+            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
+          } returns publishedDeb
 
-        test("new version stored") {
-          listener.syncArtifactVersions()
-          verify { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
-          verify { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h6.hehehe", null) }
-          verify { publisher.publishEvent(any<ArtifactSaved>()) }
-        }
-      }
-
-      context("no new version") {
-        before {
-          coEvery { artifactService.getVersions(debArtifact.name, emptyList(), DEBIAN) } returns listOf("0.156.0-h58.f67fe09")
-          coEvery {
-            artifactService.getArtifact(debArtifact.name, "0.156.0-h58.f67fe09", DEBIAN)
-          } returns PublishedArtifact(name = debArtifact.name, type = DEBIAN, reference = debArtifact.name, version = "0.156.0-h58.f67fe09")
-          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, any()) } returns listOf("master-h5.blahblah")
-          coEvery {
-            clouddriverService.findDockerImages("*", dockerArtifact.name, "master-h5.blahblah", any(), any())
-          } returns listOf(DockerImage("test", dockerArtifact.name, "master-h5.blahblah", "abcd1234"))
+          every {
+            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
+          } returns publishedDocker
         }
 
         test("store not called") {
           listener.syncArtifactVersions()
-          verify(exactly = 0) { repository.storeArtifact(debArtifact.name, debArtifact.type, any(), FINAL) }
-          verify(exactly = 0) { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, any(), FINAL) }
-          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
-
+          verify(exactly = 0) { repository.storeArtifactVersion(any()) }
         }
       }
 
-      context("no version information ") {
+      context("newer versions are available") {
         before {
-          coEvery { artifactService.getVersions(debArtifact.name, emptyList(), DEBIAN) } returns listOf()
-          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, any()) } returns listOf()
+          every {
+            debianArtifactSupplier.getLatestArtifact(deliveryConfig, debArtifact)
+          } returns newerPublishedDeb
+
+          every {
+            dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
+          } returns newerPublishedDocker
         }
 
-        test("store not called") {
+        test("new versions are stored") {
           listener.syncArtifactVersions()
-          verify(exactly = 0) { repository.storeArtifact(debArtifact.name, debArtifact.type, any(), FINAL) }
-          verify(exactly = 0) { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, any(), FINAL) }
-          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
+
+          val publishedArtifacts = mutableListOf<PublishedArtifact>()
+
+          verify (exactly = 2) {
+            repository.storeArtifactVersion(capture(publishedArtifacts))
+          }
+
+          with(publishedArtifacts[0]) {
+            expectThat(name).isEqualTo(dockerArtifact.name)
+            expectThat(type).isEqualTo(dockerArtifact.type)
+            expectThat(version).isEqualTo(newerPublishedDocker.version)
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          }
+
+          with(publishedArtifacts[1]) {
+            expectThat(name).isEqualTo(debArtifact.name)
+            expectThat(type).isEqualTo(debArtifact.type)
+            expectThat(version).isEqualTo(newerPublishedDeb.version)
+            expectThat(status).isEqualTo(FINAL)
+            expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
+            expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
+          }
         }
       }
     }

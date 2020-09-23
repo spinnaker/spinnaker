@@ -6,12 +6,11 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
@@ -313,20 +312,11 @@ class CombinedRepository(
   override fun getAllArtifacts(type: ArtifactType?): List<DeliveryArtifact> =
     artifactRepository.getAll(type)
 
-  override fun storeArtifact(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): Boolean =
-    artifactRepository.store(name, type, version, status)
+  override fun storeArtifactVersion(artifact: PublishedArtifact): Boolean =
+    artifactRepository.storeVersion(artifact)
 
-  override fun storeArtifact(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
-    artifactRepository.store(artifact, version, status)
-
-  override fun updateArtifactMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?, artifactMetadata: ArtifactMetadata) =
-    artifactRepository.updateArtifactMetadata(name, type, version, status, artifactMetadata)
-
-  override fun getArtifactBuildMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): BuildMetadata? =
-    artifactRepository.getArtifactBuildMetadata(name, type, version, status)
-
-  override fun getArtifactGitMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): GitMetadata? =
-    artifactRepository.getArtifactGitMetadata(name, type, version, status)
+  override fun getArtifactVersion(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): PublishedArtifact? =
+    artifactRepository.getArtifactVersion(name, type, version, status)
 
   override fun deleteArtifact(artifact: DeliveryArtifact) =
     artifactRepository.delete(artifact)

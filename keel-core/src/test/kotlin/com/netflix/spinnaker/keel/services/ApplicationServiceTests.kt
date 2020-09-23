@@ -122,7 +122,6 @@ class ApplicationServiceTests : JUnit5Minutests {
       }
       every { parseDefaultBuildMetadata(any(), any()) } returns null
       every { parseDefaultGitMetadata(any(), any()) } returns null
-      every { getReleaseStatus(any()) } returns null
     }
 
     // subject
@@ -130,8 +129,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       repository,
       resourceStatusService,
       listOf(dependsOnEvaluator),
-      listOf(artifactSupplier),
-      configuredTestObjectMapper()
+      listOf(artifactSupplier)
     )
 
     val buildMetadata = BuildMetadata(
@@ -154,12 +152,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { repository.getDeliveryConfigForApplication(application) } returns deliveryConfig
 
       every {
-        repository.getArtifactGitMetadata(any(), any(), any(), any())
-      } returns null
-
-      every {
-        repository.getArtifactBuildMetadata(any(), any(), any(), any())
-      } returns null
+        repository.getArtifactVersion(any(), any(), any(), any())
+      } answers {
+        PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2))
+      }
 
       every {
         repository.getReleaseStatus(artifact, any())
@@ -168,7 +164,6 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     context("artifact summaries by application") {
       before {
-        // repository.artifactVersions(artifact)
         every { repository.artifactVersions(artifact) } returns versions
       }
 
@@ -193,12 +188,10 @@ class ApplicationServiceTests : JUnit5Minutests {
           } returns false
 
           every {
-            repository.getArtifactGitMetadata(any(), any(), any(), any())
-          } returns gitMetadata
-
-          every {
-            repository.getArtifactBuildMetadata(any(), any(), any(), any())
-          } returns buildMetadata
+            repository.getArtifactVersion(any(), any(), any(), any())
+          } answers {
+            PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
+          }
         }
 
         test("artifact summary shows all versions pending in all environments") {

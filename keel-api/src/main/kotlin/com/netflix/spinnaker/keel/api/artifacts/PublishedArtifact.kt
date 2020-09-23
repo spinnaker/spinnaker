@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api.artifacts
 
+import java.time.Instant
+
 /**
  * An immutable data class that represents a published software artifact in the Spinnaker ecosystem.
  *
@@ -17,5 +19,40 @@ data class PublishedArtifact(
   val artifactAccount: String? = null,
   val provenance: String? = null,
   val uuid: String? = null,
-  val metadata: Map<String, Any?> = emptyMap()
-)
+  val metadata: Map<String, Any?> = emptyMap(),
+  // keel-specific fields ---
+  val gitMetadata: GitMetadata? = null,
+  val buildMetadata: BuildMetadata? = null
+) {
+
+  // The stuff that matters to keel
+  constructor(
+    name: String,
+    type: String,
+    version: String,
+    status: ArtifactStatus? = null,
+    createdAt: Instant? = null,
+    gitMetadata: GitMetadata? = null,
+    buildMetadata: BuildMetadata? = null
+  ) : this(
+    name = name,
+    type = type.toLowerCase(),
+    reference = name,
+    version = version,
+    metadata = mapOf(
+      "releaseStatus" to status?.name,
+      "createdAt" to createdAt
+    ),
+    gitMetadata = gitMetadata,
+    buildMetadata = buildMetadata
+  )
+
+  val status: ArtifactStatus? = metadata["releaseStatus"]?.toString()
+    ?.let { ArtifactStatus.valueOf(it) }
+
+  val createdAt = (metadata["createdAt"] as? Long)
+    ?.let { Instant.ofEpochMilli(it) }
+
+  // FIXME: it's silly that we're prepending the artifact name for Debian only...
+  fun normalized() = copy(version = if (type == DEBIAN && !version.startsWith(name)) "$name-$version" else version)
+}

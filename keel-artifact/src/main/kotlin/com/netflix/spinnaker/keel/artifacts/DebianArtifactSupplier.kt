@@ -62,19 +62,6 @@ class DebianArtifactSupplier(
       artifactService.getArtifact(artifact.name, version.removePrefix("${artifact.name}-"), DEBIAN)
     }
 
-  override fun getFullVersionString(artifact: PublishedArtifact): String =
-    "${artifact.name}-${artifact.version}"
-
-  /**
-   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
-   * present in [metadata]
-   */
-  override fun getReleaseStatus(artifact: PublishedArtifact): ArtifactStatus {
-    val status = artifact.metadata["releaseStatus"]?.toString()
-      ?: throw IntegrationException("Artifact metadata does not contain 'releaseStatus' field")
-    return ArtifactStatus.valueOf(status)
-  }
-
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)

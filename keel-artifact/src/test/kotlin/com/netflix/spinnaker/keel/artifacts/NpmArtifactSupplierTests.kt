@@ -119,16 +119,6 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         }
       }
 
-      test("returns default full version string") {
-        expectThat(npmArtifactSupplier.getFullVersionString(latestArtifact))
-          .isEqualTo(latestArtifact.version)
-      }
-
-      test("returns release status based on artifact metadata") {
-        expectThat(npmArtifactSupplier.getReleaseStatus(latestArtifact))
-          .isEqualTo(CANDIDATE)
-      }
-
       test("returns version display name based on Netflix semver convention") {
         expectThat(npmArtifactSupplier.getVersionDisplayName(latestArtifact))
           .isEqualTo(NetflixVersions.getVersionDisplayName(latestArtifact))

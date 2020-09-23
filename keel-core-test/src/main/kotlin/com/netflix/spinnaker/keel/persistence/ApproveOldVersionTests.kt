@@ -63,7 +63,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
     )
 
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val statelessEvaluator = mockk<ConstraintEvaluator<*>>() {
+    val statelessEvaluator = mockk<ConstraintEvaluator<*>> {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
       every { isImplicit() } returns false
     }
@@ -73,7 +73,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       SpringEventPublisherBridge(publisher)
     )
 
-    val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator>() {
+    val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator> {
       every { supportedType } returns SupportedConstraintType<ArtifactUsedConstraint>("artifact-type")
       every { isImplicit() } returns true
       every { canPromote(any(), any(), any(), any()) } returns true
@@ -149,8 +149,8 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       before {
         repository.register(artifact)
         repository.storeDeliveryConfig(deliveryConfig)
-        repository.storeArtifact(artifact, version1, ArtifactStatus.RELEASE)
-        repository.storeArtifact(artifact, version2, ArtifactStatus.RELEASE)
+        repository.storeArtifactVersion(artifact.toPublishedArtifact(version1, ArtifactStatus.RELEASE))
+        repository.storeArtifactVersion(artifact.toPublishedArtifact(version2, ArtifactStatus.RELEASE))
         repository.storeConstraintState(pendingManualJudgement1)
         repository.storeConstraintState(pendingManualJudgement2)
 

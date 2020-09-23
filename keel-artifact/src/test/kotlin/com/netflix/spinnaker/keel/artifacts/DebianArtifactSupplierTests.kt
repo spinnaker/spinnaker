@@ -126,16 +126,6 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         }
       }
 
-      test("returns full version string in the form {name}-{version}") {
-        expectThat(debianArtifactSupplier.getFullVersionString(latestArtifact))
-          .isEqualTo("${latestArtifact.name}-${latestArtifact.version}")
-      }
-
-      test("returns release status based on artifact metadata") {
-        expectThat(debianArtifactSupplier.getReleaseStatus(latestArtifact))
-          .isEqualTo(SNAPSHOT)
-      }
-
       test("returns git metadata based on frigga parser") {
         val gitMeta = GitMetadata(commit = AppVersion.parseName(latestArtifact.version)!!.commit)
         expectThat(debianArtifactSupplier.parseDefaultGitMetadata(latestArtifact, debianArtifact.versioningStrategy))
