@@ -49,6 +49,10 @@ class SqlEventRepositoryTest : JUnit5Minutests {
       Fixture()
     }
 
+    after {
+      SqlTestUtil.cleanupDb(database.context)
+    }
+
     context("event lifecycle") {
       test("events can be saved") {
         subject.save("agg", "1", 0, listOf(MyEvent("one")))
@@ -209,7 +213,6 @@ class SqlEventRepositoryTest : JUnit5Minutests {
 
     init {
       every { serviceVersion.resolve() } returns "v1.2.3"
-      SqlTestUtil.cleanupDb(database.context)
     }
   }
 

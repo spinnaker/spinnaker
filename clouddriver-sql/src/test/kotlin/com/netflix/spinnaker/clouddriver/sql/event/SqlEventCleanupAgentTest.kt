@@ -58,15 +58,15 @@ class SqlEventCleanupAgentTest : JUnit5Minutests {
       }
     }
 
+    after {
+      SqlTestUtil.cleanupDb(database.context)
+    }
+
     test("deletes old aggregates") {
       subject.run()
 
       val count = database.context.fetchCount(DSL.table("event_aggregates"))
       expectThat(count).isEqualTo(1)
-    }
-
-    after {
-      database.context.truncate("event_aggregates")
     }
   }
 
