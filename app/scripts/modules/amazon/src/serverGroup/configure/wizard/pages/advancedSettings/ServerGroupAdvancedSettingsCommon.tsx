@@ -185,7 +185,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
                 checked={values.instanceMonitoring}
                 onChange={e => setFieldValue('instanceMonitoring', e.target.checked)}
               />{' '}
-              Enable Instance Monitoring{' '}
+              Enforce Instance Monitoring{' '}
             </label>
           </div>
         </div>
