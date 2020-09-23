@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 class DestroyTitusJobDescription extends AbstractTitusCredentialsDescription implements ApplicationNameable{
   String region
   String jobId
+  String serverGroupName
   String user
 
   Set<String> applications

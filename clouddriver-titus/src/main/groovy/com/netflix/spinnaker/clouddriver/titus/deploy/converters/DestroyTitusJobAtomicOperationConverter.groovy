@@ -56,6 +56,7 @@ class DestroyTitusJobAtomicOperationConverter extends AbstractAtomicOperationsCr
       def job = titusJobProvider.collectJob(converted.credentials.name, converted.region, converted.jobId)
       converted.applications = [job.application] as Set
       converted.requiresApplicationRestriction = !converted.applications.isEmpty()
+      converted.serverGroupName = job.name
     } catch (Exception e) {
       converted.applications = []
       converted.requiresApplicationRestriction = true

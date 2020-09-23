@@ -69,6 +69,7 @@ public class ResolveTitusJobId implements SagaAction<ResolveTitusJobId.ResolveTi
       destroyTitusJobDescription.setAccount(command.getAccount());
       destroyTitusJobDescription.setRegion(command.getRegion());
       destroyTitusJobDescription.setJobId(job.getId());
+      destroyTitusJobDescription.setServerGroupName(job.getName());
       destroyTitusJobDescription.setUser(command.getUser());
 
       return new Result(

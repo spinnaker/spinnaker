@@ -41,6 +41,6 @@ public class DestroyTitusJobCompletionHandler
         // titus entity tags are created using the account name (and not the accountId)
         description.getAccount(),
         description.getRegion(),
-        description.getJobId());
+        description.getServerGroupName());
   }
 }
