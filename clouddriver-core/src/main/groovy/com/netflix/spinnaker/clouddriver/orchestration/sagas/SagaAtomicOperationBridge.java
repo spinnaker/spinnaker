@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.SagaService;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
@@ -42,7 +42,10 @@ public class SagaAtomicOperationBridge {
     final SagaContext sagaContext = applyCommand.sagaContext;
     final Task task = applyCommand.task;
     final String sagaName = applyCommand.sagaName;
-    final String sagaId = Optional.ofNullable(task.getRequestId()).orElse(task.getId());
+
+    // use a random uuid to guarantee a unique saga id (rather than task.getId() or
+    // task.getRequestId())
+    final String sagaId = UUID.randomUUID().toString();
 
     task.addSagaId(SagaId.builder().id(sagaId).name(sagaName).build());
 
