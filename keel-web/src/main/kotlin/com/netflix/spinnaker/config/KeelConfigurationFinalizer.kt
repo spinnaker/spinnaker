@@ -2,6 +2,9 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
@@ -93,6 +96,12 @@ class KeelConfigurationFinalizer(
         log.info("Registering VersioningStrategy sub-type {}: {}", name, strategyClass.simpleName)
         extensionRegistry.register(strategyClass, name)
       }
+  }
+
+  @PostConstruct
+  fun registerClusterDeployStrategySubtypes() {
+    extensionRegistry.register<ClusterDeployStrategy>(RedBlack::class.java, "red-black")
+    extensionRegistry.register<ClusterDeployStrategy>(Highlander::class.java, "highlander")
   }
 
   @PostConstruct

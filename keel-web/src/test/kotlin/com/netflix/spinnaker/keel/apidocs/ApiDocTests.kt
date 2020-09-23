@@ -76,6 +76,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import strikt.assertions.map
 import strikt.assertions.one
 import strikt.jackson.at
 import strikt.jackson.booleanValue
@@ -109,11 +110,8 @@ class ApiDocTests : JUnit5Minutests {
   @Autowired
   lateinit var extensionRegistry: ExtensionRegistry
 
-  val resourceKinds
-    get() = extensionRegistry.extensionsOf<ResourceSpec>().keys
-
   val resourceSpecTypes
-    get() = extensionRegistry.extensionsOf<ResourceSpec>().values.toList()
+    get() = extensionRegistry.extensionsOf<ResourceSpec>()
 
   val constraintTypes
     get() = extensionRegistry.extensionsOf<Constraint>().values.toList()
@@ -143,49 +141,44 @@ class ApiDocTests : JUnit5Minutests {
 
     test("Does not contain a schema for ResourceKind") {
       at("/\$defs/ResourceKind")
-        .isObject()
-        .get{get("enum")}
+        .isMissing()
+    }
+
+    test("SubmittedResource kind is defined as one of the possible resource kinds") {
+      at("/\$defs/SubmittedResource/properties/kind/enum")
         .isArray()
         .textValues()
-        .containsExactlyInAnyOrder(resourceKinds)
-    }
-
-    test("Resource is defined as one of the possible resource sub-types") {
-      at("/\$defs/SubmittedResource/discriminator/mapping")
-        .isObject()
-        .and {
-          extensionRegistry.extensionsOf<ResourceSpec>().forEach { (kind, type) ->
-            has(kind)
-            get { get(kind).textValue() }.isEqualTo("#/\$defs/${type.simpleName}")
-          }
-        }
+        .containsExactlyInAnyOrder(extensionRegistry.extensionsOf<ResourceSpec>().keys)
     }
 
     resourceSpecTypes
-      .map(Class<*>::getSimpleName)
-      .forEach { specSubType ->
-        test("contains a parameterized version of schema for SubmittedResource with a spec of $specSubType") {
-          at("/\$defs/${specSubType}SubmittedResource/allOf/1/properties")
-            .isObject()
-            .and {
-              path("spec").isObject().path("\$ref").textValue().isEqualTo("#/\$defs/${specSubType}")
+      .mapValues{ it.value.simpleName }
+      .forEach { (kind, specSubType) ->
+        test("contains a sub-schema for SubmittedResource predicated on a kind of $kind") {
+          at("/\$defs/SubmittedResource/allOf")
+            .isArray()
+            .one {
+              path("if")
+                .path("properties")
+                .path("kind")
+                .path("const")
+                .textValue()
+                .isEqualTo(kind)
             }
         }
-      }
 
-    resourceSpecTypes
-      .map(Class<*>::getSimpleName)
-      .forEach { type ->
-        test("spec property of Resource subtype $type is required") {
-          at("/\$defs/${type}SubmittedResource/allOf/1/required")
+        test("contains a sub-schema for SubmittedResource with a spec of $specSubType") {
+          at("/\$defs/SubmittedResource/allOf")
             .isArray()
-            .textValues()
-            .containsExactly("spec")
-        }
-
-        test("ResourceSpec sub-type $type has its own schema") {
-          at("/\$defs/$type")
-            .isObject()
+            .one {
+              path("then")
+                .path("properties")
+                .path("spec")
+                .isObject()
+                .path("\$ref")
+                .textValue()
+                .isEqualTo("#/\$defs/${specSubType}")
+            }
         }
       }
 
@@ -290,25 +283,20 @@ class ApiDocTests : JUnit5Minutests {
         )
     }
 
-    test("schema for DeliveryArtifact has a discriminator") {
-      at("/\$defs/DeliveryArtifact")
-        .isObject()
-        .path("discriminator")
-        .and {
-          path("propertyName").textValue().isEqualTo("type")
-        }
-        .path("mapping")
-        .and {
-          path("deb").textValue().isEqualTo("#/\$defs/DebianArtifact")
-          path("docker").textValue().isEqualTo("#/\$defs/DockerArtifact")
-        }
+    test("schemas for DeliveryArtifact sub-types specify the fixed discriminator value") {
+      at("/\$defs/DebianArtifact/properties/type/const")
+        .textValue()
+        .isEqualTo("deb")
+      at("/\$defs/DockerArtifact/properties/type/const")
+        .textValue()
+        .isEqualTo("docker")
     }
 
     test("data class parameters without default values are required") {
       at("/\$defs/SubmittedResource/required")
         .isArray()
         .textValues()
-        .contains("kind")
+        .containsExactlyInAnyOrder("kind")
     }
 
     test("data class parameters with default values are not required") {
@@ -388,6 +376,7 @@ class ApiDocTests : JUnit5Minutests {
     }
 
     resourceSpecTypes
+      .values
       .filter { Locatable::class.java.isAssignableFrom(it) }
       .map(Class<*>::getSimpleName)
       .forEach { locatableType ->

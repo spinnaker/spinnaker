@@ -21,8 +21,6 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection.Companion.invariant
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
@@ -77,7 +75,7 @@ class Generator(
       description = type.description,
       properties = schema.properties,
       required = schema.required,
-      discriminator = schema.discriminator,
+      allOf = schema.allOf,
       `$defs` = context.definitions.toSortedMap(String.CASE_INSENSITIVE_ORDER)
     )
   }
@@ -93,7 +91,7 @@ class Generator(
       type.isSingleton -> buildSchemaForKotlinSingleton(type)
       type.isSealed -> buildSchemaForSealedClass(type)
       extensionRegistry.baseTypes().contains(type.java) -> buildSchemaForTypeHierarchy(type)
-      type.typeParameters.isNotEmpty() -> buildSchemaForGenericTypeHierarchy(type, discriminator)
+      type.typeParameters.isNotEmpty() -> buildSchemaForGenericTypeHierarchy(type)
       // Otherwise this is just a regular object schema
       else -> buildSchemaForRegularClass(type, discriminator)
     }
@@ -112,7 +110,7 @@ class Generator(
       description = type.description,
       properties = type.candidateProperties.associate {
         checkNotNull(it.name) to buildProperty(owner = type.starProjectedType, parameter = it)
-      } + discriminator.toDiscriminatorEnum(),
+      } + discriminator.toDiscriminatorConst(),
       required = type.candidateProperties.toRequiredPropertyNames().let {
         if (discriminator != null) {
           (it + discriminator.first.name).toSortedSet(String.CASE_INSENSITIVE_ORDER)
@@ -132,91 +130,55 @@ class Generator(
       oneOf = extensionRegistry
         .extensionsOf(type.java)
         .map { define(it.value.kotlin, type.discriminatorProperty to it.key) }
-        .toSet(),
-      discriminator = OneOf.Discriminator(
-        propertyName = type.discriminatorProperty.name,
-        mapping = extensionRegistry
-          .extensionsOf(type.java)
-          .mapValues { it.value.kotlin.buildRef().`$ref` }
-          .toSortedMap(String.CASE_INSENSITIVE_ORDER)
-      )
+        .toSet()
     )
 
   /**
    * Base types with a generic parameter are represented as an [ObjectSchema] with the common
-   * properties and a variant for every sub-type of the generic upper bound. Each variant will be
-   * [AllOf] the base type and the generic properties.
-   *
-   * @param discriminator required if this is a leaf type of a type hierarchy.
+   * properties and conditional sub-schemas for every sub-type of the generic upper bound.
    */
-  private fun Context.buildSchemaForGenericTypeHierarchy(
-    type: KClass<*>,
-    discriminator: Pair<KProperty<String>, String>?
-  ): ObjectSchema {
-    val invariantTypes = extensionRegistry
-      .extensionsOf(type.typeParameters.first().upperBounds.first().jvmErasure.java)
+  private fun Context.buildSchemaForGenericTypeHierarchy(type: KClass<*>): Schema {
+    val upperBoundType = type.typeParameters.first().upperBounds.first().jvmErasure
+    val invariantTypes = extensionRegistry.extensionsOf(upperBoundType.java).toSortedMap()
+    val genericProperties = type.candidateProperties.filter {
+      it.type.jvmErasure == upperBoundType
+    }
+    val discriminatorName = type.discriminatorProperty.name
+    val commonProperties = type.candidateProperties - genericProperties
     return ObjectSchema(
       title = checkNotNull(type.simpleName),
       description = type.description,
-      properties = type
-        .candidateProperties
-        .filter {
-          // filter out properties of the generic type as they will be specified in extended types
-          it.type.classifier !in type.typeParameters
-        }
+      properties = commonProperties
         .associate {
-          checkNotNull(it.name) to buildProperty(owner = type.starProjectedType, parameter = it)
-        },
-      required = type.candidateProperties.toRequiredPropertyNames(),
-      discriminator = OneOf.Discriminator(
-        propertyName = type.discriminatorProperty.name,
-        mapping = invariantTypes
-          .mapValues { it.value.kotlin.buildRef().`$ref` }
-          .toSortedMap(String.CASE_INSENSITIVE_ORDER)
-      )
-    )
-      .also {
-        invariantTypes
-          .forEach { (_, subType) ->
-            type.createType(
-              arguments = listOf(invariant(subType.kotlin.createType()))
+          checkNotNull(it.name) to if (it.name == discriminatorName) {
+            EnumSchema(
+              enum = invariantTypes.keys.toList(),
+              description = type.discriminatorProperty.description
             )
-              .also { _ ->
-                val name = "${subType.simpleName}${type.simpleName}"
-                if (!definitions.containsKey(name)) {
-                  val genericProperties = type.candidateProperties.filter {
-                    it.type.classifier in type.typeParameters
-                  }
-                  definitions[name] = AllOf(
-                    listOf(
-                      // reference to the base type
-                      Reference("#/${RootSchema::`$defs`.name}/${type.simpleName}"),
-                      // any generic properties of the base type with the invariant type applied
-                      ObjectSchema(
-                        title = null,
-                        description = null,
-                        properties = genericProperties
-                          .associate {
-                            checkNotNull(it.name) to buildProperty(
-                              owner = type.starProjectedType,
-                              parameter = it,
-                              type = subType.kotlin.starProjectedType
-                            )
-                          } + discriminator.toDiscriminatorEnum(),
-                        required = genericProperties.toRequiredPropertyNames().let {
-                          if (discriminator != null) {
-                            (it + discriminator.first.name).toSortedSet(String.CASE_INSENSITIVE_ORDER)
-                          } else {
-                            it
-                          }
-                        }
-                      )
-                    )
-                  )
-                }
-              }
+          } else {
+            buildProperty(
+              owner = type.starProjectedType,
+              parameter = it,
+              type = it.type
+            )
           }
+        },
+      required = commonProperties.toRequiredPropertyNames()
+        .toSortedSet(String.CASE_INSENSITIVE_ORDER),
+      allOf = invariantTypes.map { (discriminatorValue, subType) ->
+        ConditionalSubschema(
+          `if` = Condition(
+            properties = (type.discriminatorProperty to discriminatorValue).toDiscriminatorConst()
+          ),
+          then = Subschema(
+            properties = genericProperties.associate {
+              checkNotNull(it.name) to define(subType.kotlin)
+            },
+            required = genericProperties.toRequiredPropertyNames()
+          )
+        )
       }
+    )
   }
 
   /**
@@ -237,9 +199,14 @@ class Generator(
       oneOf = type.sealedSubclasses.map { define(it) }.toSet()
     )
 
-  private fun Pair<KProperty<String>, String>?.toDiscriminatorEnum() =
+  /**
+   * If the receiver is non-null, returns a map whose key is the discriminator property name, and
+   * whose value is the [ConstSchema] representing the value for the sub-type.
+   * If the receiver is null, returns an empty map.
+   */
+  private fun Pair<KProperty<String>, String>?.toDiscriminatorConst() =
     if (this != null) {
-      mapOf(first.name to EnumSchema(description = null, enum = listOf(second)))
+      mapOf(first.name to ConstSchema(description = null, const = second))
     } else {
       emptyMap()
     }
@@ -255,6 +222,10 @@ class Generator(
       else -> preferredConstructor.parameters
     }
 
+  /**
+   * Heuristic to find the best constructor to use to find properties required in order to
+   * deserialize an instance of the class.
+   */
   private val KClass<*>.preferredConstructor: KFunction<Any>
     get() = (
       constructors.firstOrNull { it.hasAnnotation<Factory>() }
@@ -270,10 +241,11 @@ class Generator(
   /**
    * The name of the property annotated with `@[Discriminator]`
    */
+  @Suppress("UNCHECKED_CAST")
   private val KClass<*>.discriminatorProperty: KProperty<String>
     get() = checkNotNull(memberProperties.find { it.hasAnnotation<Discriminator>() }) {
       "$simpleName has no property annotated with @Discriminator but is registered as an extension base type"
-    } as KProperty<String>
+    } as KProperty<String> // currently only string discriminators are allowed
 
   /**
    * Build the property schema for [parameter].
@@ -317,7 +289,10 @@ class Generator(
         .first { it.supports(type.jvmErasure) }
         .buildSchema()
       type.isSingleton -> buildSchema(type.jvmErasure)
-      type.isEnum -> EnumSchema(description = description, enum = type.enumNames)
+      type.isEnum -> EnumSchema(
+        description = description,
+        enum = type.enumNames
+      )
       type.isString -> StringSchema(description = description, format = type.stringFormat)
       type.isBoolean -> BooleanSchema(description = description)
       type.isInteger -> IntegerSchema(description = description)
@@ -518,10 +493,10 @@ class Generator(
   private val KType.stringFormat: String?
     get() = formattedTypes[jvmErasure]
 
-  private val KType.hasCustomizer:Boolean
+  private val KType.hasCustomizer: Boolean
     get() = jvmErasure.hasCustomizer
 
-  private val KClass<*>.hasCustomizer:Boolean
+  private val KClass<*>.hasCustomizer: Boolean
     get() = schemaCustomizers.any { it.supports(this) }
 
 }

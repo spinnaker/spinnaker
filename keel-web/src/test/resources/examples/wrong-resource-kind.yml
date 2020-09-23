@@ -4,21 +4,19 @@ serviceAccount: delivery-engineering@netflix.com
 environments:
 - name: test
   resources:
-  - kind: ec2/security-group@v1
+  - kind: titus/cluster@v1
     spec:
       moniker:
-        app: keeldemo
-        stack: example
-        detail: ec2v1
+        app: fnord
       locations:
         account: test
         vpc: vpc0
         regions:
         - name: us-west-2
         - name: us-east-1
-      description: Managed Security Group for keeldemo example
+      description: Security Group for fnord application
       inboundRules:
-      - protocol: tcp
+      - protocol: TCP
         portRange:
           startPort: 7001
           endPort: 7001

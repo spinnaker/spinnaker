@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.api.StaggeredRegion
 
 @JsonTypeInfo(
   use = Id.NAME,
-  include = As.PROPERTY,
+  include = As.EXISTING_PROPERTY,
   property = "strategy"
 )
 @JsonSubTypes(

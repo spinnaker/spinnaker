@@ -42,4 +42,5 @@ fun ClusterDeployStrategy.toOrcaJobProperties(vararg instanceOnlyHealthProviders
         AUTO -> null
       }
     )
+    else -> error("Unhandled cluster deploy strategy ${javaClass.name}")
   }

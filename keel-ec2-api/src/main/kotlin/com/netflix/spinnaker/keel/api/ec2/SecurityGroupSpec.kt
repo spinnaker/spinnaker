@@ -19,10 +19,11 @@ import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.schema.Optional
 
 data class SecurityGroupSpec(
   override val moniker: Moniker,
-  override val locations: SimpleLocations,
+  @Optional override val locations: SimpleLocations,
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()

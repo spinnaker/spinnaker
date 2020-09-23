@@ -60,7 +60,7 @@ data class TitusClusterSpec(
   constructor(
     moniker: Moniker,
     deployWith: ClusterDeployStrategy = RedBlack(),
-    locations: SimpleLocations,
+    @Optional locations: SimpleLocations,
     container: ContainerProvider,
     capacity: Capacity?,
     constraints: TitusServerGroup.Constraints?,

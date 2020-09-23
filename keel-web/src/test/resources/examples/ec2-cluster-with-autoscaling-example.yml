@@ -39,7 +39,7 @@ environments:
         max: 10
       scaling:
         suspendedProcesses:
-        - "AZRebalance"
+        - "azrebalance"
         targetTrackingPolicies:
         - warmup: "PT7M"
           targetValue: 50.0

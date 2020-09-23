@@ -10,11 +10,12 @@ import com.netflix.spinnaker.keel.api.ec2.LoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.api.ec2.TargetGroupAttributes
+import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
 
 data class ApplicationLoadBalancerV1Spec(
   override val moniker: Moniker,
-  override val locations: SubnetAwareLocations,
+  @Optional override val locations: SubnetAwareLocations,
   override val internal: Boolean = true,
   override val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   override val idleTimeout: Duration = Duration.ofSeconds(60),

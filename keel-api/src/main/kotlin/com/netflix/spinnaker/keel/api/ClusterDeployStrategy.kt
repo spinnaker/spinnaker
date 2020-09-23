@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.api
 
 import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
+import com.netflix.spinnaker.keel.api.schema.Discriminator
 import java.time.Duration
 import java.time.Duration.ZERO
 
-sealed class ClusterDeployStrategy {
+abstract class ClusterDeployStrategy {
+  @Discriminator abstract val strategy: String
   open val isStaggered: Boolean = false
   open val stagger: List<StaggeredRegion> = emptyList()
   abstract val health: DeployHealth
@@ -26,13 +28,17 @@ data class RedBlack(
   // The order of this list is important for pauseTime based staggers
   override val stagger: List<StaggeredRegion> = emptyList()
 ) : ClusterDeployStrategy() {
+  override val strategy = "red-black"
+
   override val isStaggered: Boolean
     get() = stagger.isNotEmpty()
 }
 
 data class Highlander(
   override val health: DeployHealth = AUTO
-) : ClusterDeployStrategy()
+) : ClusterDeployStrategy() {
+  override val strategy = "highlander"
+}
 
 enum class DeployHealth {
   /** Use Orca's default (Discovery and ELB/Target group if attached). */

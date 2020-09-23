@@ -52,12 +52,12 @@ environments:
         app: fnord
       description: Application Security Group for fnord
       inboundRules:
-      - protocol: TCP
+      - protocol: tcp
         name: fnord-elb
         portRange:
           startPort: 7001
           endPort: 7002
-      - protocol: TCP
+      - protocol: tcp
         portRange:
           startPort: 6565
           endPort: 6565
@@ -74,7 +74,7 @@ environments:
         stack: sql
       description: fnord RDS
       inboundRules:
-      - protocol: TCP
+      - protocol: tcp
         name: fnord
         portRange:
           startPort: 3306
@@ -144,12 +144,12 @@ environments:
         app: fnord
       description: Application Security Group for fnord
       inboundRules:
-      - protocol: TCP
+      - protocol: tcp
         name: fnord-elb
         portRange:
           startPort: 7001
           endPort: 7002
-      - protocol: TCP
+      - protocol: tcp
         portRange:
           startPort: 6379
           endPort: 6379
@@ -166,7 +166,7 @@ environments:
         stack: sql
       description: fnord RDS
       inboundRules:
-      - protocol: TCP
+      - protocol: tcp
         name: fnord
         portRange:
           startPort: 3306

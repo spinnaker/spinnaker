@@ -22,7 +22,7 @@ environments:
     spec:
       health:
         terminationPolicies:
-        - Default
+        - default
       moniker:
         app: fnord
         stack: main
