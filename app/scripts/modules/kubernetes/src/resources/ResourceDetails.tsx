@@ -83,7 +83,7 @@ export class KubernetesResourceDetails extends React.Component<
         {!this.state.loading && (
           <div className="content">
             <CollapsibleSection heading="Information">
-              <dl className="dl-horizontal dl-flex">
+              <dl className="dl-horizontal dl-narrow">
                 <dt>Created</dt>
                 <dd>{timestamp(creationUnixMs)}</dd>
                 <dt>Account</dt>

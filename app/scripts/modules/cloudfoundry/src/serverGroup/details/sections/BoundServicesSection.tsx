@@ -18,7 +18,7 @@ export class BoundServicesSection extends React.Component<ICloudFoundryServerGro
       <>
         {!isEmpty(serverGroup.serviceInstances) && (
           <CollapsibleSection heading="Bound Services" defaultExpanded={true}>
-            <dl className="dl-horizontal dl-flex">
+            <dl className="dl-horizontal dl-narrow">
               {serverGroup.serviceInstances.map(function(service: ICloudFoundryServiceInstance, index: number) {
                 return (
                   <div key={index}>

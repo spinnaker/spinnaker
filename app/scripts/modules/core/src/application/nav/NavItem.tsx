@@ -40,7 +40,12 @@ export const NavItem = ({ app, dataSource, isActive }: INavItemProps) => {
               </div>
             </Tooltip>
           ) : (
-            <Icon className="nav-icon" name={iconName} size="medium" color={isActive ? 'primary' : 'accent'} />
+            <Icon
+              className="nav-icon"
+              name={iconName || 'config'}
+              size="medium"
+              color={isActive ? 'primary' : 'accent'}
+            />
           ))}
       </div>
       <div className="nav-row-item nav-name">{' ' + dataSource.label}</div>

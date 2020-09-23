@@ -6,13 +6,14 @@ export type IllustrationName = keyof typeof illustrationsByName;
 
 export interface IIllustrationProps {
   name: IllustrationName;
+  className?: string;
 }
 
 const throwInvalidIllustrationError = (name: string) => {
   throw new Error(`No illustration with the name ${name} exists`);
 };
 
-export const Illustration = memo(({ name }: IIllustrationProps) => {
+export const Illustration = memo(({ name, className }: IIllustrationProps) => {
   const Component = illustrationsByName[name];
 
   if (!Component) {
@@ -20,7 +21,7 @@ export const Illustration = memo(({ name }: IIllustrationProps) => {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '1fr' }}>
+    <div className={className} style={{ display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '1fr' }}>
       <Component style={{ gridColumn: 1, gridRow: 1 }} />
     </div>
   );

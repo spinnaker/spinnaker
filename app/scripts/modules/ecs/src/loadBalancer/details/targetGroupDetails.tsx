@@ -139,7 +139,7 @@ export class EcsTargetGroupDetails extends React.Component<IEcsTargetGroupProps,
     const targetGroupContent = () => (
       <div className="content">
         <CollapsibleSection heading="Target Group Details" defaultExpanded={true}>
-          <dl className="dl-horizontal dl-flex">
+          <dl className="dl-horizontal dl-narrow">
             <dt>In</dt>
             <dd>
               <AccountTag account={accountId}></AccountTag>

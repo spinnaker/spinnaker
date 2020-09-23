@@ -13,7 +13,7 @@ export class BuildSection extends React.Component<ICloudFoundryServerGroupDetail
     const { serverGroup } = this.props;
     return (
       <CollapsibleSection heading="Build" defaultExpanded={true}>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           {serverGroup.ciBuild && serverGroup.ciBuild.jobName && (
             <div>
               <dt>Job Name</dt>

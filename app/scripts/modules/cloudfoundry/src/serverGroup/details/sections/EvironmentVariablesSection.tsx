@@ -15,7 +15,7 @@ export class EvironmentVariablesSection extends React.Component<ICloudFoundrySer
       <>
         {!isEmpty(serverGroup.env) && (
           <CollapsibleSection heading="Environment Variables" defaultExpanded={true}>
-            <dl className="dl-horizontal dl-flex">
+            <dl className="dl-horizontal dl-narrow">
               {Object.entries(serverGroup.env).map(([k, v], index) => {
                 return (
                   <div key={index}>

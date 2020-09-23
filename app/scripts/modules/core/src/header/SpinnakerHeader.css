@@ -10,9 +10,16 @@
   margin-left: auto;
 }
 
-.spinnaker-header .navbar-menu-icon {
+.spinnaker-header .navbar-header .navbar-menu-icon {
   min-width: 24px;
   cursor: pointer;
+  width: 60px;
+  height: 40px !important;
+  cursor: pointer;
+}
+
+.spinnaker-header .app-view-menu {
+  background-color: var(--color-accent-g2);
 }
 
 .spinnaker-header a {

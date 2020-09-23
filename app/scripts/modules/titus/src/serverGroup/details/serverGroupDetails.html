@@ -90,7 +90,7 @@
       application="ctrl.application"
     ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -110,7 +110,7 @@
       ></titus-capacity-details-section>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true" ng-if="serverGroup.instanceCounts.total > 0">
-      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
         <dt>Tasks</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>

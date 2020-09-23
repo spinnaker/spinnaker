@@ -93,7 +93,7 @@
       application="ctrl.application"
     ></server-group-running-tasks-details>
     <collapsible-section heading="General" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <render-if-feature feature="entityTags">
@@ -153,7 +153,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true" ng-if="ctrl.serverGroup.instanceCounts.total > 0">
-      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -168,7 +168,7 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="false">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
 

@@ -63,7 +63,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>

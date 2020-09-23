@@ -32,7 +32,7 @@ export class TitusCapacityDetailsSection extends React.Component<ICapacityDetail
 
     return (
       <>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           <DesiredCapacity capacity={capacity} simpleMode={simpleMode} />
           <CurrentCapacity currentCapacity={current} />
           {serverGroup.capacityGroup && (

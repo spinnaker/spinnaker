@@ -119,7 +119,7 @@ export class EcsLoadBalancerDetails extends React.Component<
     const loadBalancerContent = () => (
       <div className="content">
         <CollapsibleSection heading="Load Balancer Details" defaultExpanded={true}>
-          <dl className="dl-horizontal dl-flex">
+          <dl className="dl-horizontal dl-narrow">
             <dt>Created</dt>
             <dd>{timestamp(loadBalancer.createdTime)}</dd>
             <dt>In</dt>

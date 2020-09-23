@@ -13,7 +13,7 @@ export class ServerGroupSizingSection extends React.Component<ICloudFoundryServe
     const { serverGroup } = this.props;
     return (
       <CollapsibleSection heading="Server Group Sizing" defaultExpanded={true}>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           <dt>Instances</dt>
           <dd>{serverGroup.instances.length}</dd>
           <dt>Disk (MB)</dt>

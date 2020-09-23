@@ -95,7 +95,7 @@
   <div class="content" ng-if="!ctrl.state.loading">
     <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
     <collapsible-section heading="Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroupManager.createdTime | timestamp}}</dd>
         <dt>Account</dt>

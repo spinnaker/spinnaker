@@ -85,7 +85,7 @@
       application="ctrl.application"
     ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <render-if-feature feature="entityTags">
@@ -113,13 +113,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.asg.minSize}}</dd>
         <dt>Desired</dt>
@@ -132,13 +132,13 @@
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
     </collapsible-section>
     <collapsible-section heading="Current Actions" ng-if="ctrl.serverGroup.currentActionsSummary">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt ng-repeat-start="currentAction in ctrl.serverGroup.currentActionsSummary">{{currentAction.action}}</dt>
         <dd ng-repeat-end>{{currentAction.count}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>

@@ -15,7 +15,7 @@ export class PackageSection extends React.Component<ICloudFoundryServerGroupDeta
       <>
         {serverGroup.droplet && serverGroup.droplet.sourcePackage && (
           <CollapsibleSection heading="Package" defaultExpanded={true}>
-            <dl className="dl-horizontal dl-flex">
+            <dl className="dl-horizontal dl-narrow">
               <dt>Checksum</dt>
               <dd>{serverGroup.droplet.sourcePackage.checksum}</dd>
             </dl>

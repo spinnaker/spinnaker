@@ -98,7 +98,7 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
     }
 
     const functionDetails = (
-      <dl className="horizontal-when-filters-collapsed dl-horizontal dl-flex">
+      <dl className="horizontal-when-filters-collapsed dl-horizontal dl-narrow">
         <dt>Last Modified </dt>
         <dd>{functionDef.lastModified}</dd>
         <dt>In</dt>

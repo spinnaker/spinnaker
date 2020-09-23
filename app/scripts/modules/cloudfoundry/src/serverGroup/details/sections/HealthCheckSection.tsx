@@ -12,7 +12,7 @@ export class HealthCheckSection extends React.Component<ICloudFoundryServerGroup
     const { serverGroup } = this.props;
     return (
       <CollapsibleSection heading="Health Check" defaultExpanded={true}>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           <dt>Type</dt>
           <dd>{serverGroup.healthCheckType === undefined ? 'port' : serverGroup.healthCheckType}</dd>
           {serverGroup.healthCheckType === 'http' && (

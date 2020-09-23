@@ -11,7 +11,7 @@ export class HealthDetailsSection extends React.Component<IAmazonServerGroupDeta
     if (serverGroup.instanceCounts.total > 0) {
       return (
         <CollapsibleSection heading="Health" defaultExpanded={true}>
-          <dl className="dl-horizontal dl-flex">
+          <dl className="dl-horizontal dl-narrow">
             <dt>Instances</dt>
             <dd>
               <HealthCounts container={serverGroup.instanceCounts} className="pull-left" />

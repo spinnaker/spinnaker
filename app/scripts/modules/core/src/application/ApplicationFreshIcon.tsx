@@ -2,11 +2,11 @@ import React from 'react';
 
 import { Overridable } from '../overrideRegistry/Overridable';
 
-import { Icon } from '../presentation';
+import { Illustration } from '../presentation';
 
 @Overridable('applicationIcon')
 export class ApplicationFreshIcon extends React.Component<{}> {
   public render() {
-    return <Icon name="spMenuAppInSync" size="small" appearance="light" />;
+    return <Illustration className="app-fresh-icon horizontal middle" name="appSynced" />;
   }
 }

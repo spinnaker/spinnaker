@@ -50,7 +50,7 @@
   <div class="content" ng-if="!state.loading">
     <server-group-running-tasks-details server-group="serverGroup"></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp }}</dd>
         <dt>In</dt>
@@ -74,7 +74,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Current</dt>
         <dd>{{serverGroup.capacity.desired}}</dd>
       </dl>
@@ -83,7 +83,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
-      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
         <dt>Tasks</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -91,7 +91,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Resources" expanded="true">
-      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
         <dt>CPU</dt>
         <dd>{{serverGroup.cpus}}</dd>
         <dt>GPU</dt>
@@ -103,12 +103,12 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Environment" ng-if="serverGroup.env">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dcos-key-value-details map="serverGroup.env"> </dcos-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dcos-key-value-details map="serverGroup.labels"> </dcos-key-value-details>
       </dl>
     </collapsible-section>

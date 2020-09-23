@@ -288,9 +288,11 @@ html {
     z-index: var(--layer-high);
     position: absolute;
     margin-top: -20px;
-    right: 0;
     height: 100%;
     width: 390px;
+    box-shadow: 2px 2px 6px -1px var(--color-alto);
+    right: 0;
+    overflow-y: hidden;
 
     @media (max-width: 390px) {
       width: 100%;
@@ -303,8 +305,50 @@ html {
   }
   .nav-content {
     margin-right: 25px;
-    max-width: 1000px;
   }
+
+  &.details-closed {
+    .nav-content {
+      max-width: 100%;
+    }
+  }
+
+  &.details-open.filters-collapsed.nav-collapsed {
+    .nav-content {
+      max-width: calc(~'100% - 390px');
+      @media (max-width: 1170px) {
+        max-width: 100%;
+      }
+    }
+  }
+
+  &.details-open.filters-expanded.nav-collapsed {
+    .nav-content {
+      max-width: calc(~'100% - 390px');
+      @media (max-width: 1340px) {
+        max-width: 100%;
+      }
+    }
+  }
+
+  &.details-open.filters-collapsed.nav-expanded {
+    .nav-content {
+      max-width: calc(~'100% - 390px');
+      @media (max-width: 1410px) {
+        max-width: 100%;
+      }
+    }
+  }
+
+  &.details-open.filters-expanded.nav-expanded {
+    .nav-content {
+      max-width: calc(~'100% - 390px');
+      @media (max-width: 1580px) {
+        max-width: 100%;
+      }
+    }
+  }
+
   .full-content {
     margin: 0 25px;
     flex-direction: column;
@@ -514,6 +558,10 @@ body > .container {
 .navbar-inverse {
   background-color: var(--color-primary);
   border: none;
+
+  .container {
+    padding: 0;
+  }
 
   .navbar-brand {
     color: var(--color-white);
@@ -1175,7 +1223,7 @@ html {
   @media (min-width: 768px) and (max-width: 1200px) {
     .container {
       width: 100%;
-      padding: 0 10px;
+      padding: 0;
     }
   }
   width: 100%;
@@ -1208,6 +1256,8 @@ html {
       display: flex;
       overflow-y: hidden;
       padding-top: 20px;
+      padding-left: 15px;
+
       > div {
         display: flex;
         flex: 1 1 auto;

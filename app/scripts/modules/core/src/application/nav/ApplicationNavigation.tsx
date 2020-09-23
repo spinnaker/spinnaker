@@ -64,7 +64,7 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
 
   return (
     <div className={`vertical-navigation flex-fill layer-high${!isExpanded ? ' vertical-nav-collapsed' : ''}`}>
-      <h3 className="heading-2 horizontal middle nav-header sp-margin-l-xaxis sp-margin-l-top">
+      <h3 className="heading-2 horizontal middle nav-header sp-margin-m-xaxis sp-margin-l-top">
         <AppRefresher app={app} />
         <span className="application-name text-semibold heading-2 sp-margin-m-left">{app.name}</span>
       </h3>

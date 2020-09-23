@@ -4,8 +4,12 @@
   height: 100%;
   background-color: var(--color-accent-g2);
   box-shadow: 2px 0 3px 1px var(--color-alto);
-  min-width: 254px;
-  max-width: 330px;
+  min-width: 226px;
+  max-width: 300px;
+
+  @media (max-width: 1640px) {
+    max-width: 226px;
+  }
 
   .nav-header {
     color: var(--color-primary);
@@ -17,13 +21,16 @@
       justify-content: center;
       border-radius: 50%;
       background-color: var(--color-primary);
-      border: 2px solid var(--color-white);
       color: var(--color-white);
       text-align: center;
       width: 36px;
       height: 36px;
       font-size: 15px;
       cursor: pointer;
+    }
+
+    .app-fresh-icon {
+      width: 20px;
     }
 
     .header-icon-pulsing {
@@ -40,26 +47,27 @@
 
     .nav-category {
       color: var(--color-accent);
-      padding-left: 34px;
+      padding-left: 12px;
       align-items: center;
 
-      .badge-none {
-        min-width: 18px;
-        margin-right: 8px;
-      }
-
       .badge-running-count {
-        min-width: 18px;
-        margin-right: 8px;
+        min-width: 16px;
+        height: 16px;
+        margin-right: -12px;
+        margin-top: 18px;
         border-radius: 3px;
         color: var(--color-white);
-        background-color: var(--color-black);
-        padding: 2px;
-        line-height: 14px;
+        background-color: var(--color-primary);
+        line-height: 16px;
         text-align: center;
-        @media (max-width: 1400px) {
-          font-size: 10px;
-        }
+        font-size: 12px;
+        z-index: 100;
+      }
+
+      .badge-none {
+        min-width: 16px;
+        margin-right: -12px;
+        margin-top: 18px;
       }
 
       .nav-row-item {
@@ -96,7 +104,7 @@
 
     .page-category {
       color: var(--color-accent);
-      padding-left: 62px;
+      padding-left: 16px;
       margin-top: -4px;
 
       .nav-row-item {
@@ -130,9 +138,6 @@
   .nav-section {
     .nav-category,
     .page-category {
-      padding-left: 16px;
-      .badge-none,
-      .badge-running-count,
       .nav-name,
       .HoverablePopover {
         display: none;

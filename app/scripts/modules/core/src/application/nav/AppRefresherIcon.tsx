@@ -3,7 +3,7 @@ import { $window } from 'ngimport';
 
 import { ApplicationFreshIcon } from '../ApplicationFreshIcon';
 import { SchedulerFactory } from 'core/scheduler';
-import { Icon, Tooltip } from 'core/presentation';
+import { Illustration, Tooltip } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils/timeFormatters';
 
 export interface IAppRefreshIconProps {
@@ -56,7 +56,7 @@ export const AppRefresherIcon = ({ appName, lastRefresh, refresh, refreshing }: 
     <Tooltip template={RefresherTooltip} placement={$window.innerWidth < 1100 ? 'bottom' : 'right'}>
       <div className={`application-header-icon${isRefreshing ? ' header-icon-pulsing' : ''}`} onClick={refreshApp}>
         {!isStale && !isRefreshing && <ApplicationFreshIcon />}
-        {(isStale || isRefreshing) && <Icon name="spMenuAppUnsynced" size="small" appearance="light" />}
+        {(isStale || isRefreshing) && <Illustration className="app-fresh-icon horizontal middle" name="appUnsynced" />}
       </div>
     </Tooltip>
   );

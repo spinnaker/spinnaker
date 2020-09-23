@@ -90,7 +90,7 @@
     >
     </instance-status>
     <collapsible-section heading="DNS">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt ng-if="instance.placement.containerIp">Container IP</dt>
         <dd ng-if="instance.placement.containerIp">
           {{instance.placement.containerIp}}
@@ -122,7 +122,7 @@
       style="display: block"
     ></titus-security-groups>
     <!--<collapsible-section heading="Resources">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>CPU(s)</dt>
         <dd>{{instance.resources.cpu}}</dd>
         <dt>Memory</dt>

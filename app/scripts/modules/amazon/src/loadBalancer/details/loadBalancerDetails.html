@@ -66,7 +66,7 @@
   </managed-resource-details-indicator>
   <div ng-if="!ctrl.state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl class="dl-horizontal dl-flex">
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
         <dd>{{ctrl.loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -243,7 +243,7 @@
       </div>
       <div ng-repeat="subnet in ctrl.loadBalancer.subnetDetails" ng-class="{'bottom-border': !$last}">
         <h5><strong>{{subnet.id}}</strong></h5>
-        <dl class="dl-horizontal dl-flex">
+        <dl class="dl-horizontal dl-narrow">
           <dt>Purpose</dt>
           <dd>{{subnet.purpose}}</dd>
 

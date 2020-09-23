@@ -14,7 +14,7 @@ export class ServerGroupInformationSection extends React.Component<ICloudFoundry
     const { serverGroup } = this.props;
     return (
       <CollapsibleSection heading="Server Group Information" defaultExpanded={true}>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           <dt>Created</dt>
           {serverGroup.pipelineId ? (
             <dd>

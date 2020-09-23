@@ -58,7 +58,7 @@ export class AmazonInfoDetailsSection extends React.Component<
 
     return (
       <CollapsibleSection heading="Server Group Information" defaultExpanded={true}>
-        <dl className="dl-horizontal dl-flex">
+        <dl className="dl-horizontal dl-narrow">
           <dt>Created</dt>
           <dd>{timestamp(serverGroup.createdTime)}</dd>
           {showEntityTags && <EntitySource metadata={entityTags.creationMetadata} />}
