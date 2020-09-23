@@ -27,7 +27,7 @@ import retrofit.http.Query
  */
 interface ClouddriverService {
     @GET('/dockerRegistry/images/find')
-    List<TaggedImage> getImagesByAccount(@Query('account') String account)
+    List<TaggedImage> getImagesByAccount(@Query('account') String account, @Query('includeDetails') Boolean includeDetails)
 
     @GET('/credentials')
     List<ClouddriverAccount> getAllAccounts()

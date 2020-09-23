@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.igor.docker.service
 
+import lombok.Data
+
+@Data
 class TaggedImage {
     String account
     String digest
@@ -24,4 +27,5 @@ class TaggedImage {
     String tag
     String buildNumber
     String commitId
+    String date
 }

@@ -101,7 +101,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         Set<String> cachedImages = cache.getImages(account)
 
         long startTime = System.currentTimeMillis()
-        List<TaggedImage> images = AuthenticatedRequest.allowAnonymous { dockerRegistryAccounts.service.getImagesByAccount(account) }
+        List<TaggedImage> images = AuthenticatedRequest.allowAnonymous { dockerRegistryAccounts.service.getImagesByAccount(account, null) }
+
+        long endTime = System.currentTimeMillis()
+        log.debug("Executed generateDelta:DockerMonitor with includeData=false in {}ms", endTime - startTime);
+
         registry.timer("pollingMonitor.docker.retrieveImagesByAccount", [new BasicTag("account", account)])
             .record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
 
@@ -197,6 +201,9 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             .ifPresent({ buildNumber -> metadata.put("buildNumber", buildNumber.toString()) })
           Optional.ofNullable(image.commitId)
             .ifPresent({ commitId -> metadata.put("commitId", commitId.toString()) })
+          Optional.ofNullable(image.date)
+            .ifPresent({ date -> metadata.put("date", date.toString()) })
+
 
           Artifact artifact = Artifact.builder()
             .type("DOCKER")
