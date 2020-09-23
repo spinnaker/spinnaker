@@ -35,13 +35,13 @@ class DefaultAccountCredentialsProviderSpec extends Specification {
       provider.getCredentials(key)
 
     then:
-      1 * repo.getOne(key)
+      1 * repo.getOne(key) >> Mock(AccountCredentials)
 
     when:
       provider.getAll()
 
     then:
-      1 * repo.getAll()
+      1 * repo.getAll() >> new HashSet<? extends AccountCredentials>()
 
     where:
       key = "foo"

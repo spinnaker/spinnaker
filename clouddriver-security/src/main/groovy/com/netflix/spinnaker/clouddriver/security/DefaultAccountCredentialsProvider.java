@@ -16,26 +16,43 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
+import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultAccountCredentialsProvider implements AccountCredentialsProvider {
   private final AccountCredentialsRepository repository;
+  private final CompositeCredentialsRepository<AccountCredentials<?>> compositeRepository;
 
   public DefaultAccountCredentialsProvider() {
-    this.repository = new MapBackedAccountCredentialsRepository();
+    this(new MapBackedAccountCredentialsRepository());
   }
 
   public DefaultAccountCredentialsProvider(AccountCredentialsRepository repository) {
+    this(repository, new CompositeCredentialsRepository<>(Collections.emptyList()));
+  }
+
+  public DefaultAccountCredentialsProvider(
+      AccountCredentialsRepository repository,
+      CompositeCredentialsRepository<AccountCredentials<?>> compositeRepository) {
     this.repository = repository;
+    this.compositeRepository = compositeRepository;
   }
 
   @Override
-  public Set<? extends AccountCredentials> getAll() {
-    return repository.getAll();
+  public Set<AccountCredentials<?>> getAll() {
+    Set<AccountCredentials<?>> all = (Set<AccountCredentials<?>>) repository.getAll();
+    all.addAll(compositeRepository.getAllCredentials());
+    return all;
   }
 
   @Override
-  public AccountCredentials getCredentials(String name) {
-    return repository.getOne(name);
+  public AccountCredentials<?> getCredentials(String name) {
+    AccountCredentials<?> credentials = repository.getOne(name);
+    if (credentials != null) {
+      return credentials;
+    }
+
+    return compositeRepository.getFirstCredentialsWithName(name);
   }
 }

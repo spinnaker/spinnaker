@@ -21,6 +21,7 @@ dependencies {
   annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
   api("com.netflix.spinnaker.kork:kork-plugins-api")
+  api("com.netflix.spinnaker.kork:kork-credentials-api")
 
   implementation "com.netflix.spinnaker.moniker:moniker"
 
