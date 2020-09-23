@@ -84,7 +84,7 @@ yarn start
 This module is published as an NPM package.
 
 - Create a pull request that increments `package.json`'s patch version - e.g., to `0.0.57`.
-- Once the pull request has been merged, publish a release using the same tag as `package.json`'s version, e.g., `v0.0.57`. `@spinnaker/kayenta` will be automatically published to NPM.
+- Once the pull request has been merged, `@spinnaker/kayenta` will be automatically published to NPM via a GitHub Action.
 
 Once `@spinnaker/kayenta` has been published, the Deck dependency on deck-kayenta will be automatically
 updated by [Dependabot](https://github.com/spinnaker/deck/blob/master/.dependabot/config.yml). Keep an eye out
