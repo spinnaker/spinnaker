@@ -38,9 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 final class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArtifactAccount>
     implements ArtifactCredentials {
   @Getter private final String name;
-  @Getter private final ImmutableList<String> types = ImmutableList.of("helm/chart");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("helm/chart", "helm/index");
 
   @JsonIgnore private final IndexParser indexParser;
+
+  @Override
+  public boolean handlesType(String type) {
+    return types.contains(type);
+  }
 
   HelmArtifactCredentials(HelmArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);
@@ -51,6 +56,10 @@ final class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArti
   @Override
   public InputStream download(Artifact artifact) throws IOException {
     InputStream index = downloadIndex();
+
+    if ("helm/index".equals(artifact.getType())) {
+      return index;
+    }
 
     List<String> urls = indexParser.findUrls(index, artifact.getName(), artifact.getVersion());
     ResponseBody downloadResponse;
