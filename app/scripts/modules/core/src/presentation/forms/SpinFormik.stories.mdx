@@ -1,4 +1,5 @@
 import { ArgsTable, Meta, Story, Canvas } from '@storybook/addon-docs/blocks';
+import { isEmpty } from 'lodash';
 
 import {
   ChecklistInput,
@@ -11,9 +12,10 @@ import {
   TextAreaInput,
   TextInput,
 } from '../../presentation';
+import { createFakeReactSyntheticEvent } from './inputs';
 
 <Meta
-  title="Forms/Spinnaker Form"
+  title="Forms/Form"
   decorators={[
     (Story) => (
       <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: 20, width: 500 }}>
@@ -28,9 +30,9 @@ import {
 
 Spinnaker forms are built upon [Formik](https://formik.org) and provides two key abstractions for easily building forms: `SpinFormik` and `FormikFormField`.
 
-### `SpinFormik`
+## `SpinFormik`
 
-This component is thin wrapper around [`Formik`](https://formik.org/docs/api/formik) component with no additional props. A typical form is created the following way
+This component is a thin wrapper around [`Formik`](https://formik.org/docs/api/formik) component. A typical form is created the following way
 
 ```jsx
 interface FormValues {
@@ -49,9 +51,9 @@ interface FormValues {
 
 ### Props
 
-Detailed information on the props can be found [here](https://formik.org/docs/api/formik#reference).
+`SpinFormik` passes all props to `Formik`, so check out the [documentation](https://formik.org/docs/api/formik#reference) for detailed information on props accepted by `Formik`.
 
-### `FormikFormField`
+## `FormikFormField`
 
 This component handles the communication with formik and provides the necessary props to your input fields. Render your fields by passing them to the `input` prop.
 
@@ -73,9 +75,7 @@ This component handles the communication with formik and provides the necessary 
 
 <ArgsTable of={FormikFormField} />
 
-## Examples
-
-Here's a simple example of a form with all supported input fields
+Here's a simple form with all supported input fields
 
 <Canvas>
   <Story name="Simple Form">
@@ -151,6 +151,147 @@ Here's a simple example of a form with all supported input fields
         </form>
       )}
       onSubmit={({ data, ...others }) => console.log(data)}
+    />
+  </Story>
+</Canvas>
+
+## Validation
+
+Forms can be validated by providing a `validate` function to `FormikFormField`. The validate function is expected to return an error message when the field value is invalid and `FormikFormField` automatically renders the error message.
+If you wish to use the validation errors outside the scope of a field, then `formikProps` (argument provided via the `render` function) provides `errors` as a map of all the errors keyed by their field name.
+In the following example, the errors object is used to disable the submit button. More details on formik validation can be found [here](https://formik.org/docs/guides/validation).
+
+<Canvas>
+  <Story name="Validation">
+    <SpinFormik
+      initialValues={{
+        firstName: 'foo',
+        lastName: 'bar',
+        email: '',
+      }}
+      render={(formikProps) => (
+        <form onSubmit={formikProps.handleSubmit}>
+          <FormikFormField
+            label="First Name"
+            name="firstName"
+            input={(props) => <TextInput {...props} />}
+            required={true}
+          />
+          <FormikFormField
+            label="Last Name"
+            name="lastName"
+            input={(props) => <TextInput {...props} />}
+            required={true}
+          />
+          <FormikFormField
+            label="Email"
+            name="email"
+            input={(props) => <TextInput {...props} />}
+            required={true}
+            validate={(value) =>
+              /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value) ? null : 'Invalid email address'
+            }
+          />
+          <div style={{ marginTop: 12, textAlign: 'right' }}>
+            <button className="btn btn-primary" type="submit" disabled={!isEmpty(formikProps.errors)}>
+              Submit
+            </button>
+          </div>
+        </form>
+      )}
+    />
+  </Story>
+</Canvas>
+
+## Custom Field Input
+
+Spinnaker provides standard form input fields that cover most common scenarios. If your use case is unique, then you can create a custom input field and use that in the `input` prop to `FormikFormField`.
+
+As an example, let's take the following URL component. This component accepts a full url as input, but removes the protocol (https) and displays the rest of the url.
+
+export const URLComponent = ({ value, onBlur, onChange }) => {
+  const domain = value.split('https://')?.[1] || '';
+  const handleChange = (e) => {
+    onChange(`https://${e.target.value}`);
+  };
+  return (
+    <div style={{ display: 'flex' }}>
+      <div
+        style={{
+          alignItems: 'center',
+          backgroundColor: '#eee',
+          border: '1px solid rgb(226, 232, 240)',
+          borderRightColor: 'transparent',
+          borderRadius: '0.25rem 0px 0px 0.25rem',
+          display: 'flex',
+          marginRight: -1,
+          padding: '0.5rem 1rem',
+        }}
+      >
+        https://
+      </div>
+      <input
+        style={{
+          border: '1px solid rgb(226, 232, 240)',
+          borderRadius: '0px 0.25rem 0.25rem 0px',
+          display: 'flex',
+          outline: 'none',
+          padding: '0.5rem 1rem',
+        }}
+        value={domain}
+        onBlur={onBlur}
+        onChange={handleChange}
+      />
+    </div>
+  );
+};
+
+<Canvas>
+  <URLComponent value="https://www.google.com" onBlur={() => {}} onChange={() => {}} />
+</Canvas>
+
+If this component needs to be used as an input field, then it must be wrapped to match the API of `onBlur` and `onChange` as shown below.
+
+```jsx
+const URLComponentInput = ({ name, value, onBlur, onChange }) => {
+  const handleChange = (url) => {
+    onChange(createFakeReactSyntheticEvent({ name, value: url }));
+  };
+  const handleBlur = (e) => {
+    onChange(createFakeReactSyntheticEvent({ name, value }));
+  };
+  return <URLComponent value={value} onBlur={handleBlur} onChange={handleChange} />;
+};
+```
+
+export const URLComponentInput = ({ name, value, onBlur, onChange }) => {
+  const handleChange = (url) => {
+    onChange(createFakeReactSyntheticEvent({ name, value: url }));
+  };
+  const handleBlur = (e) => {
+    onChange(createFakeReactSyntheticEvent({ name, value }));
+  };
+  return <URLComponent value={value} onBlur={handleBlur} onChange={handleChange} />;
+};
+
+Now the component can be used like any other standard input field as shown below.
+
+<Canvas>
+  <Story name="Custom Input Field">
+    <SpinFormik
+      initialValues={{
+        url: 'https://www.google.com',
+      }}
+      render={(formikProps) => (
+        <form onSubmit={formikProps.handleSubmit}>
+          <FormikFormField label="URL" name="url" input={(props) => <URLComponentInput {...props} />} />
+          <div style={{ marginTop: 12, textAlign: 'right' }}>
+            <button className="btn btn-primary" type="submit" disabled={!isEmpty(formikProps.errors)}>
+              Submit
+            </button>
+          </div>
+        </form>
+      )}
     />
   </Story>
 </Canvas>
