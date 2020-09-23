@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.sql.SqlTaskCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlTaskRepository
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent
 import com.netflix.spinnaker.clouddriver.sql.event.SqlEventRepository
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
@@ -117,8 +118,9 @@ class SqlConfiguration {
   fun sqlEventCleanupAgent(
     jooq: DSLContext,
     registry: Registry,
-    properties: SqlEventCleanupAgentConfigProperties
+    properties: SqlEventCleanupAgentConfigProperties,
+    dynamicConfigService: DynamicConfigService
   ): SqlEventCleanupAgent {
-    return SqlEventCleanupAgent(jooq, registry, properties)
+    return SqlEventCleanupAgent(jooq, registry, properties, dynamicConfigService)
   }
 }

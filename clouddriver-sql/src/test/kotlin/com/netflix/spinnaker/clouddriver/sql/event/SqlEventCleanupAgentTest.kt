@@ -18,10 +18,14 @@ package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
+import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties.Companion.EVENT_CLEANUP_LIMIT
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.mockk
 import org.jooq.impl.DSL
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -68,11 +72,17 @@ class SqlEventCleanupAgentTest : JUnit5Minutests {
 
   private inner class Fixture {
     val database = SqlTestUtil.initTcMysqlDatabase()!!
+    val dynamicConfigService: DynamicConfigService = mockk(relaxed = true)
 
     val subject = SqlEventCleanupAgent(
       database.context,
       NoopRegistry(),
-      SqlEventCleanupAgentConfigProperties()
+      SqlEventCleanupAgentConfigProperties(),
+      dynamicConfigService
     )
+
+    init {
+      every { dynamicConfigService.getConfig(eq(Int::class.java), any(), eq(EVENT_CLEANUP_LIMIT)) } returns EVENT_CLEANUP_LIMIT
+    }
   }
 }

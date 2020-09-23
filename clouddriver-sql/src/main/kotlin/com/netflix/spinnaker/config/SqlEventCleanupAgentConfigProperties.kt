@@ -39,4 +39,14 @@ class SqlEventCleanupAgentConfigProperties {
    */
   @Positive
   var maxAggregateAgeDays: Long = 7
+
+  /**
+   * The max number of events to cleanup in each agent invocation.
+   */
+  @Positive
+  var cleanupLimit: Int = EVENT_CLEANUP_LIMIT
+
+  companion object {
+    const val EVENT_CLEANUP_LIMIT = 100_000
+  }
 }

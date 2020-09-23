@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
+import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties.Companion.EVENT_CLEANUP_LIMIT
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import java.sql.Timestamp
 import java.time.Duration
@@ -39,7 +41,8 @@ import org.slf4j.LoggerFactory
 class SqlEventCleanupAgent(
   private val jooq: DSLContext,
   private val registry: Registry,
-  private val properties: SqlEventCleanupAgentConfigProperties
+  private val properties: SqlEventCleanupAgentConfigProperties,
+  private val dynamicConfigService: DynamicConfigService
 ) : RunnableAgent, CustomScheduledAgent, SqlAgent {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -50,7 +53,9 @@ class SqlEventCleanupAgent(
   override fun run() {
     val duration = Duration.ofDays(properties.maxAggregateAgeDays)
     val cutoff = Instant.now().minus(duration)
-    log.info("Deleting aggregates last updated earlier than $cutoff ($duration)")
+    val limit = dynamicConfigService.getConfig(Int::class.java, EVENT_CLEANUP_CONFIG_KEY, EVENT_CLEANUP_LIMIT)
+
+    log.info("Deleting aggregates last updated earlier than $cutoff ($duration), max $limit events")
 
     registry.timer(timingId).record {
       withPool(ConnectionPools.EVENTS.value) {
@@ -66,6 +71,7 @@ class SqlEventCleanupAgent(
               // timestampDiff will return `microsecond / 1000`
               .gt(duration.toMillis().toInt() as Integer)
           )
+          .limit(limit)
           .fetch()
           .intoResultSet()
 
@@ -90,4 +96,8 @@ class SqlEventCleanupAgent(
   override fun getProviderName(): String = CoreProvider.PROVIDER_NAME
   override fun getPollIntervalMillis() = properties.frequency.toMillis()
   override fun getTimeoutMillis() = properties.timeout.toMillis()
+
+  companion object {
+    private const val EVENT_CLEANUP_CONFIG_KEY = "spinnaker.clouddriver.eventing.cleanup-agent.cleanup-limit"
+  }
 }
