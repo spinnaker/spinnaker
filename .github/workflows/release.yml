@@ -15,11 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow
-      # Install Java 8 for cross-compilation support. Setting it up before
-      # Java 11 means it comes later in $PATH (because of how setup-java works)
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 8
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -45,7 +40,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           RELEASE_VERSION: ${{ steps.release_info.outputs.RELEASE_VERSION }}
         run: |
-          ./gradlew -PenableCrossCompilerPlugin=true --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" publish
+          ./gradlew --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" publish
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
         uses: actions/create-release@v1
