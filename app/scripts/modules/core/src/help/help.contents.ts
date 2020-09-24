@@ -163,6 +163,9 @@ const helpContents: { [key: string]: string } = {
       <p>An example is <code>https://api.bitbucket.org/1.0/repositories/$ORG/$REPO/raw/$VERSION/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/bitbucket-file/#fields">our docs</a> for more info.</p>`,
   'pipeline.config.expectedArtifact.defaultBitbucket.filepath': `
       <p>The file path within your repo. path/to/file.yml is an example.</p>`,
+  'pipeline.config.trigger.helm.chart': `The Helm chart name.`,
+  'pipeline.config.trigger.helm.version': `The Helm chart version, as semver.`,
+  'pipeline.config.trigger.helm.version.manual': `The Helm chart version, as an exact version.`,
   'pipeline.config.trigger.webhook.source': `
       <p>Determines the target URL required to trigger this pipeline, as well as how the payload can be transformed into artifacts.</p>
   `,

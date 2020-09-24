@@ -2,8 +2,9 @@ import React from 'react';
 
 import { CheckboxInput } from 'core/presentation';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
-import { IArtifact, IExpectedArtifact } from 'core/domain';
+import { IArtifact, IExpectedArtifact, ITrigger } from 'core/domain';
 import { HelmMatch } from '../../triggers/artifacts/helm/HelmArtifactEditor';
+import { HELM_TRIGGER_TYPE } from '../../triggers/helm/helm.trigger';
 
 const HelmEditor = HelmMatch.editCmp;
 
@@ -15,6 +16,13 @@ export function ManualExecutionBakeManifest(props: ITriggerTemplateComponentProp
       (artifact: IExpectedArtifact) => artifact.matchArtifact.type === HelmMatch.type,
     );
     if (expectedHelmArtifacts.length === 0) {
+      return null;
+    }
+    // If we have a Helm trigger configured, use the trigger's manual execution component instead
+    const helmTriggersConfigured = (props.command.pipeline.triggers || []).filter(
+      (trigger: ITrigger) => trigger.type === HELM_TRIGGER_TYPE,
+    );
+    if (helmTriggersConfigured.length !== 0) {
       return null;
     }
     return {

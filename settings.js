@@ -242,6 +242,7 @@ window.spinnakerSettings = {
     'cron',
     'docker',
     'git',
+    'helm',
     'jenkins',
     'nexus',
     'pipeline',
