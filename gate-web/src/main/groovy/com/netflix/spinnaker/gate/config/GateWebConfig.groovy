@@ -21,9 +21,6 @@ import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 
-import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
-import com.netflix.spinnaker.gate.ratelimit.RateLimiter
-import com.netflix.spinnaker.gate.ratelimit.RateLimitingInterceptor
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -52,12 +49,6 @@ public class GateWebConfig implements WebMvcConfigurer {
   @Autowired
   Registry registry
 
-  @Autowired(required = false)
-  RateLimitPrincipalProvider rateLimiterPrincipalProvider
-
-  @Autowired(required = false)
-  RateLimiter rateLimiter
-
   @Autowired
   DynamicConfigService dynamicConfigService
 
@@ -76,11 +67,6 @@ public class GateWebConfig implements WebMvcConfigurer {
     )
 
     registry.addInterceptor(new RequestIdInterceptor())
-
-    if (rateLimiter != null) {
-      registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimiterPrincipalProvider))
-    }
-
     registry.addInterceptor(new RequestContextInterceptor())
   }
 

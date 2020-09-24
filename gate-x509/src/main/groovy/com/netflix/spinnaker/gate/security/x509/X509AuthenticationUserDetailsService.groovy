@@ -41,6 +41,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import org.springframework.stereotype.Component
 
+import javax.naming.ldap.LdapName
 import java.security.cert.X509Certificate
 import java.time.Clock
 import java.time.Duration
@@ -112,13 +113,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     def x509 = (X509Certificate) token.credentials
 
-    String email
-    if (userIdentifierExtractor) {
-      email = userIdentifierExtractor.fromCertificate(x509)
-    }
-    if (email == null) {
-      email = emailFromSubjectAlternativeName(x509) ?: token.principal?.toString()
-    }
+    String email = identityFromCertificate(x509) ?: token.principal?.toString()
 
     if (email == null) {
       return null
@@ -242,5 +237,35 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     cert.getSubjectAlternativeNames().find {
       it.find { it.toString() == RFC822_NAME_ID }
     }?.get(1)
+  }
+
+  /**
+   * Extract identity from an x509 certificate.
+   *
+   * Strategies (in priority order):
+   * - X509UserIdentifierExtractor (when supplied)
+   * - The certificates RFC822 name
+   * - The certificates common name
+   *
+   * @param x509Certificate
+   * @return Extracted identity or null if none available
+   */
+  String identityFromCertificate(X509Certificate x509Certificate) {
+    String identity
+
+    if (userIdentifierExtractor) {
+      identity = userIdentifierExtractor.fromCertificate(x509Certificate)
+    }
+    if (identity == null) {
+      identity = emailFromSubjectAlternativeName(x509Certificate)
+      if (identity == null) {
+        // no subject alternative name, fallback to subject common name
+        String dn = x509Certificate.getSubjectX500Principal().getName();
+        LdapName ldapName = new LdapName(dn)
+        identity = ldapName.getRdns().find { it.getType().equalsIgnoreCase("CN")}?.value?.toString()
+      }
+    }
+
+    return identity
   }
 }

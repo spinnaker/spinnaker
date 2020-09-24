@@ -16,14 +16,22 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
+import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService;
 import com.netflix.spinnaker.security.User;
+import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Optional;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -32,36 +40,51 @@ import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
+/** Rate limit requests per the configured {@link RateLimiter} and authenticated principal. */
+public class RateLimitingFilter extends HttpFilter {
 
-  private static Logger log = LoggerFactory.getLogger(RateLimitingInterceptor.class);
+  private static Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
 
   private static String UNKNOWN_PRINCIPAL = "unknown";
 
   private RateLimiter rateLimiter;
-  private RateLimitPrincipalProvider rateLimitPrincipalProvider;
   private Registry registry;
+  private RateLimitPrincipalProvider rateLimitPrincipalProvider;
+  private Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService;
 
   private Counter throttlingCounter;
   private Counter learningThrottlingCounter;
 
-  public RateLimitingInterceptor(
+  public RateLimitingFilter(
       RateLimiter rateLimiter,
       Registry registry,
-      RateLimitPrincipalProvider rateLimitPrincipalProvider) {
+      RateLimitPrincipalProvider rateLimitPrincipalProvider,
+      Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService) {
     this.rateLimiter = rateLimiter;
     this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
+    this.x509AuthenticationUserDetailsService = x509AuthenticationUserDetailsService;
     this.registry = registry;
+
     throttlingCounter = registry.counter("rateLimit.throttling");
     learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
   }
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-      throws Exception {
+  protected void doFilter(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+    try {
+      if (preHandle(request, response)) {
+        chain.doFilter(request, response);
+      }
+    } finally {
+      postHandle(request, response);
+    }
+  }
+
+  private boolean preHandle(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
     String sourceApp = request.getHeader("X-RateLimit-App");
     MDC.put("sourceApp", sourceApp);
 
@@ -105,20 +128,18 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
           value("principal", principal.getName()),
           value("rateSeconds", rate.rateSeconds),
           value("rateCapacity", rate.capacity));
-      response.sendError(429, "Rate capacity exceeded");
+
+      // use `setStatus` and `write()` to avoid an unnecessary dispath to '/error' and the
+      // subsequent spring security chain filter evaluation.
+      response.setStatus(TOO_MANY_REQUESTS.value());
+      response.getWriter().write("{\"message\": \"Rate capacity exceeded\"}");
       return false;
     }
 
     return true;
   }
 
-  @Override
-  public void postHandle(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Object handler,
-      ModelAndView modelAndView)
-      throws Exception {
+  private void postHandle(HttpServletRequest request, HttpServletResponse response) {
     // Downstreams can return 429's, which we'll want to intercept to provide a reset header
     if (response.getStatus() == 429 && !response.getHeaderNames().contains(Rate.RESET_HEADER)) {
       response.setIntHeader(Rate.CAPACITY_HEADER, -1);
@@ -133,6 +154,23 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     Authentication authentication = context.getAuthentication();
 
     if (authentication == null) {
+      // in the event that this filter is running prior to the spring security filter chain, we need
+      // to manually extract identity from an x509 certificate (if available!).
+      X509Certificate[] certificates =
+          (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+      if (certificates.length > 0) {
+        String identityFromCertificate =
+            x509AuthenticationUserDetailsService
+                // anything beyond [0] represents an intermediate cert which does not provide an
+                // identity
+                .map(s -> s.identityFromCertificate(certificates[0]))
+                .orElse(null);
+
+        if (identityFromCertificate != null) {
+          return identityFromCertificate;
+        }
+      }
+
       return UNKNOWN_PRINCIPAL;
     }
 

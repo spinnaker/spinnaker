@@ -40,6 +40,18 @@ public class RateLimiterConfiguration {
   private int rateSeconds = 10;
 
   /**
+   * The registration order for {@link com.netflix.spinnaker.gate.ratelimit.RateLimitingFilter}.
+   *
+   * <p>100 - Run after the spring security filter chain.
+   *
+   * <p>-100 - Run prior to the spring security filter chain.
+   *
+   * <p>When the filter is run prior to the spring security filter chain, it will only rate limit
+   * x509 certificate-based requests.
+   */
+  private int filterOrder = 100;
+
+  /**
    * A principal-specific capacity override map. This can be defined if you want to give a specific
    * principal more or less capacity per rateSeconds than the default.
    */
@@ -130,6 +142,14 @@ public class RateLimiterConfiguration {
 
   public void setIgnoring(List<String> ignoring) {
     this.ignoring = ignoring;
+  }
+
+  public int getFilterOrder() {
+    return filterOrder;
+  }
+
+  public void setFilterOrder(int filterOrder) {
+    this.filterOrder = filterOrder;
   }
 
   // Spring doesn't enjoy principals that have dots in their name, so it can't be a map.

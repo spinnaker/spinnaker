@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.ratelimit
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
+import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService
 import com.netflix.spinnaker.security.User
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
@@ -25,16 +26,19 @@ import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class RateLimitingInterceptorSpec extends Specification {
+class RateLimitingFilterSpec extends Specification {
 
   Registry registry = new NoopRegistry()
 
   RateLimiter rateLimiter = Mock()
 
   Authentication authentication = Mock()
+
+  X509AuthenticationUserDetailsService x509AuthenticationUserDetailsService = Mock()
 
   SecurityContext securityContext = Mock() {
     getAuthentication() >> authentication
@@ -57,14 +61,20 @@ class RateLimitingInterceptorSpec extends Specification {
       it.ignoring = ['bar@example.com']
       return it
     }
-    def subject = new RateLimitingInterceptor(rateLimiter, registry, new StaticRateLimitPrincipalProvider(config))
+    def subject = new RateLimitingFilter(
+      rateLimiter,
+      registry,
+      new StaticRateLimitPrincipalProvider(config),
+      Optional.of(x509AuthenticationUserDetailsService)
+    )
 
     and:
     def request = Mock(HttpServletRequest)
     def response = Mock(HttpServletResponse)
+    def chain = Mock(FilterChain)
 
     when:
-    subject.preHandle(request, response, null)
+    subject.doFilter(request, response, chain)
 
     then:
     noExceptionThrown()
@@ -79,8 +89,9 @@ class RateLimitingInterceptorSpec extends Specification {
         return it
       }
     }
-    (shouldEnforce ? 1 : 0) * response.sendError(429, "Rate capacity exceeded")
-
+    (shouldEnforce ? 0 : 1) * chain.doFilter(_, _)
+    (shouldEnforce ? 1 : 0) * response.setStatus(429)
+    (shouldEnforce ? 1 : 0) * response.getWriter() >> { return new PrintWriter(System.out) }
 
     where:
     learning | principal         || shouldEnforce
@@ -94,18 +105,26 @@ class RateLimitingInterceptorSpec extends Specification {
 
   def 'should ignore deck requests'() {
     given:
-    def subject = new RateLimitingInterceptor(rateLimiter, registry, new StaticRateLimitPrincipalProvider(new RateLimiterConfiguration()))
+    def subject = new RateLimitingFilter(
+      rateLimiter,
+      registry,
+      new StaticRateLimitPrincipalProvider(new RateLimiterConfiguration()),
+      Optional.of(x509AuthenticationUserDetailsService)
+    )
 
     and:
     def request = Mock(HttpServletRequest)
     def response = Mock(HttpServletResponse)
+    def chain = Mock(FilterChain)
 
     when:
-    subject.preHandle(request, response, null)
+    subject.doFilter(request, response, chain)
 
     then:
     noExceptionThrown()
     1 * request.getHeader("X-RateLimit-App") >> { return "deck" }
+    1 * chain.doFilter(_, _)
+    1 * response.getStatus() >> { return 200 }
     0 * _
   }
 }

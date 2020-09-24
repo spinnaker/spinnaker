@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+  implementation project(":gate-x509")
   implementation project(":gate-api")
   implementation project(":gate-core")
   implementation project(":gate-proxy")
