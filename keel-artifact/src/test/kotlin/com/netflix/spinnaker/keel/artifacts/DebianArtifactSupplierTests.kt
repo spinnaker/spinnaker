@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Job
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
@@ -42,7 +42,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       statuses = setOf(SNAPSHOT)
     )
     val versions = listOf("2.0.0-h120.608bd90", "2.1.0-h130.18ed1dc")
-    val latestArtifact = ArtifactVersion(
+    val latestArtifact = PublishedArtifact(
       name = debianArtifact.name,
       type = debianArtifact.type,
       reference = debianArtifact.reference,
@@ -124,6 +124,16 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
           artifactService.getVersions(debianArtifact.name, listOf(SNAPSHOT.name), DEBIAN)
           artifactService.getArtifact(debianArtifact.name, versions.last(), DEBIAN)
         }
+      }
+
+      test("returns full version string in the form {name}-{version}") {
+        expectThat(debianArtifactSupplier.getFullVersionString(latestArtifact))
+          .isEqualTo("${latestArtifact.name}-${latestArtifact.version}")
+      }
+
+      test("returns release status based on artifact metadata") {
+        expectThat(debianArtifactSupplier.getReleaseStatus(latestArtifact))
+          .isEqualTo(SNAPSHOT)
       }
 
       test("returns git metadata based on frigga parser") {

@@ -1,11 +1,14 @@
 package com.netflix.spinnaker.keel.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
@@ -32,12 +35,10 @@ import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
-import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
-import com.netflix.spinnaker.kork.exceptions.SystemException
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -50,7 +51,8 @@ class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
   private val constraintEvaluators: List<ConstraintEvaluator<*>>,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val objectMapper: ObjectMapper
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
@@ -304,6 +306,8 @@ class ApplicationService(
 
   /**
    * Takes an artifact version, plus information about the type of artifact, and constructs a summary view.
+   * This should be supplemented/re-written to use actual data from stash/git/etc instead of parsing everything
+   * from the version string.
    */
   private fun versionToSummary(
     artifact: DeliveryArtifact,
@@ -311,26 +315,42 @@ class ApplicationService(
     environments: Set<ArtifactSummaryInEnvironment>
   ): ArtifactVersionSummary {
     val artifactSupplier = artifactSuppliers.supporting(artifact.type)
-    val releaseStatus = repository.getReleaseStatus(artifact, version)
-    val artifactVersion = repository.getArtifactVersion(artifact.name, artifact.type, version, releaseStatus)
-      ?: throw InvalidSystemStateException("Loading artifact version $version failed for known artifact $artifact.")
-
+    val publishedArtifact = artifact.toSpinnakerArtifact(version)
+    val artifactStatus = artifactSupplier.getReleaseStatus(publishedArtifact)
+    val buildMetadata = repository.getArtifactBuildMetadata(artifact.name, artifact.type, version, artifactStatus)
+    val gitMetadata = repository.getArtifactGitMetadata(artifact.name, artifact.type, version, artifactStatus)
     return ArtifactVersionSummary(
       version = version,
       environments = environments,
-      displayName = artifactSupplier.getVersionDisplayName(artifactVersion),
+      displayName = artifactSupplier.getVersionDisplayName(publishedArtifact),
 
-      // first attempt to use the artifact metadata fetched from the DB, then fallback to the default if not found
-      build = artifactVersion.buildMetadata
-        ?: artifactSupplier.parseDefaultBuildMetadata(artifactVersion, artifact.versioningStrategy),
-      git = artifactVersion.gitMetadata
-        ?: artifactSupplier.parseDefaultGitMetadata(artifactVersion, artifact.versioningStrategy)
+      // first attempt to fetch the artifact metadata from the DB, then fallback to the default if not found
+      build = when (buildMetadata) {
+        null -> artifactSupplier.parseDefaultBuildMetadata(publishedArtifact, artifact.versioningStrategy)
+        else -> buildMetadata
+      },
+      git = when (gitMetadata) {
+        null -> artifactSupplier.parseDefaultGitMetadata(publishedArtifact, artifact.versioningStrategy)
+        else -> gitMetadata
+      }
     )
   }
 
   fun getApplicationEventHistory(application: String, limit: Int) =
     repository.applicationEventHistory(application, limit)
 
+  private val ArtifactVersions.key: String
+    get() = "$type:$name"
+
   private fun ConstraintState.toConstraintSummary() =
     StatefulConstraintSummary(type, status, createdAt, judgedBy, judgedAt, comment, attributes)
+
+  private fun DeliveryArtifact.toSpinnakerArtifact(version: String): PublishedArtifact =
+    objectMapper.convertValue(this, Map::class.java)
+      .toMutableMap()
+      .let {
+        it["version"] = version
+        it["metadata"] = mapOf("releaseStatus" to repository.getReleaseStatus(this, version))
+        objectMapper.convertValue(it, PublishedArtifact::class.java)
+      }
 }

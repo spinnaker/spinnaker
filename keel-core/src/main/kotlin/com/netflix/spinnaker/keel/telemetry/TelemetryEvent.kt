@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 
 sealed class TelemetryEvent
 
@@ -50,3 +52,8 @@ data class ArtifactCheckTimedOut(
   val name: String,
   val deliveryConfigName: String?
 ) : TelemetryEvent()
+
+data class ArtifactSaved(
+  val artifact: PublishedArtifact,
+  val artifactStatus: ArtifactStatus?
+)

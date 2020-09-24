@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy>(
   open val artifactMetadataService: ArtifactMetadataService
 ) : ArtifactSupplier<A, V> {
-  override suspend fun getArtifactMetadata(artifact: ArtifactVersion): ArtifactMetadata? {
+  override suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata? {
 
     val buildNumber = artifact.metadata["buildNumber"]?.toString()
     val commitId = artifact.metadata["commitId"]?.toString()

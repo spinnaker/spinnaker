@@ -2,11 +2,12 @@ package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -38,56 +39,69 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * and should typically *not* be overridden by implementors.
    */
   @JvmDefault
-  fun publishArtifact(artifact: ArtifactVersion) =
+  fun publishArtifact(artifact: PublishedArtifact) =
     eventPublisher.publishEvent(ArtifactPublishedEvent(listOf(artifact)))
 
   /**
    * Returns the latest available version for the given [DeliveryArtifact], represented
-   * as a [ArtifactVersion].
+   * as a [PublishedArtifact].
    *
    * This function may interact with external systems to retrieve artifact information as needed.
    */
-  fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): ArtifactVersion?
+  fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact?
+
 
   /**
    * Returns the published artifact [DeliveryArtifact] by version, represented
-   * as a [ArtifactVersion].
+   * as a [PublishedArtifact].
    *
    * This function may interact with external systems to retrieve artifact information as needed.
    */
-  fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): ArtifactVersion?
+  fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact?
 
   /**
-   * Given a [ArtifactVersion] supported by this [ArtifactSupplier], return the display name for the
-   * artifact version, if different from [ArtifactVersion.version].
+   * Given a [PublishedArtifact] supported by this [ArtifactSupplier], return the full representation of
+   * a version string, if different from [PublishedArtifact.version].
    */
-  fun getVersionDisplayName(artifact: ArtifactVersion): String = artifact.version
+  fun getFullVersionString(artifact: PublishedArtifact): String = artifact.version
 
   /**
-   * Given a [ArtifactVersion] and a [VersioningStrategy] supported by this [ArtifactSupplier],
+   * Given a [PublishedArtifact] supported by this [ArtifactSupplier], return the display name for the
+   * artifact version, if different from [PublishedArtifact.version].
+   */
+  fun getVersionDisplayName(artifact: PublishedArtifact): String = artifact.version
+
+  /**
+   * Given a [PublishedArtifact] supported by this [ArtifactSupplier], return the [ArtifactStatus] for
+   * the artifact, if applicable.
+   */
+  fun getReleaseStatus(artifact: PublishedArtifact): ArtifactStatus? = null
+
+  /**
+   * Given a [PublishedArtifact] and a [VersioningStrategy] supported by this [ArtifactSupplier],
    * return the [BuildMetadata] for the artifact, if available.
    *
    * This function is currently *not* expected to make calls to other systems, but only look into
-   * the metadata available within the [ArtifactVersion] object itself.
+   * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun parseDefaultBuildMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): BuildMetadata? = null
+  fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? = null
 
   /**
-   * Given a [ArtifactVersion] and a [VersioningStrategy] supported by this [ArtifactSupplier],
+   * Given a [PublishedArtifact] and a [VersioningStrategy] supported by this [ArtifactSupplier],
    * return the [GitMetadata] for the artifact, if available.
    *
    * This function is currently *not* expected to make calls to other systems, but only look into
-   * the metadata available within the [ArtifactVersion] object itself.
+   * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun parseDefaultGitMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): GitMetadata? = null
+  fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? = null
 
   /**
-   * Given a [ArtifactVersion] supported by this [ArtifactSupplier],
+   * Given a [PublishedArtifact] supported by this [ArtifactSupplier],
    * return the [ArtifactMetadata] for the artifact, if available.
    *
    * This function is currently expected to make calls to CI systems.
    */
-  suspend fun getArtifactMetadata(artifact: ArtifactVersion): ArtifactMetadata?
+  suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata?
 }
 
 /**

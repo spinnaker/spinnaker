@@ -3,17 +3,19 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -36,7 +38,7 @@ class DebianArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy("deb", DebianVersioningStrategy::class.java)
 
-  override fun publishArtifact(artifact: ArtifactVersion) {
+  override fun publishArtifact(artifact: PublishedArtifact) {
     if (artifact.hasReleaseStatus()) {
       super.publishArtifact(artifact)
     } else {
@@ -44,7 +46,7 @@ class DebianArtifactSupplier(
     }
   }
 
-  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): ArtifactVersion? =
+  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
     runWithIoContext {
       artifactService.getVersions(artifact.name, artifact.statusesForQuery, DEBIAN)
         .map { version -> "${artifact.name}-$version" }
@@ -55,12 +57,25 @@ class DebianArtifactSupplier(
         }
     }
 
-  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): ArtifactVersion? =
+  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
     runWithIoContext {
       artifactService.getArtifact(artifact.name, version.removePrefix("${artifact.name}-"), DEBIAN)
     }
 
-  override fun getVersionDisplayName(artifact: ArtifactVersion): String {
+  override fun getFullVersionString(artifact: PublishedArtifact): String =
+    "${artifact.name}-${artifact.version}"
+
+  /**
+   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
+   * present in [metadata]
+   */
+  override fun getReleaseStatus(artifact: PublishedArtifact): ArtifactStatus {
+    val status = artifact.metadata["releaseStatus"]?.toString()
+      ?: throw IntegrationException("Artifact metadata does not contain 'releaseStatus' field")
+    return ArtifactStatus.valueOf(status)
+  }
+
+  override fun getVersionDisplayName(artifact: PublishedArtifact): String {
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
     return if (appversion?.version != null) {
@@ -70,7 +85,7 @@ class DebianArtifactSupplier(
     }
   }
 
-  override fun parseDefaultBuildMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): BuildMetadata? {
+  override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
@@ -80,7 +95,7 @@ class DebianArtifactSupplier(
     return null
   }
 
-  override fun parseDefaultGitMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): GitMetadata? {
+  override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appversion = AppVersion.parseName(artifact.version)
@@ -92,7 +107,7 @@ class DebianArtifactSupplier(
 
 
   // Debian Artifacts should contain a releaseStatus in the metadata
-  private fun ArtifactVersion.hasReleaseStatus() =
+  private fun PublishedArtifact.hasReleaseStatus() =
     this.metadata.containsKey("releaseStatus") && this.metadata["releaseStatus"] != null
 
   private val DeliveryArtifact.statusesForQuery: List<String>

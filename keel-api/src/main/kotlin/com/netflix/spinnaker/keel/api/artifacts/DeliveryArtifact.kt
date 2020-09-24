@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.api.artifacts
 
 import com.netflix.spinnaker.keel.api.schema.Discriminator
-import java.time.Instant
 
 typealias ArtifactType = String
 
@@ -31,18 +30,5 @@ abstract class DeliveryArtifact {
   abstract val reference: String // friendly reference to use within a delivery config
   abstract val deliveryConfigName: String? // the delivery config this artifact is a part of
   open val statuses: Set<ArtifactStatus> = emptySet()
-
-  fun toArtifactVersion(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null) =
-    ArtifactVersion(
-      name = name,
-      type = type,
-      reference = reference,
-      version = version,
-      metadata = mapOf(
-        "releaseStatus" to status,
-        "createdAt" to createdAt
-      )
-    ).normalized()
-
   override fun toString() = "${type.toUpperCase()} artifact $name (ref: $reference)"
 }
