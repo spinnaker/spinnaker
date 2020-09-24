@@ -75,4 +75,12 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaCo
       ((SagaContextAware) description).sagaContext = sagaContext
     }
   }
+
+  @Override
+  SagaContext getSagaContext() {
+    if (description instanceof SagaContextAware) {
+      return description.sagaContext
+    }
+    return null
+  }
 }

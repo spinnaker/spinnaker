@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.SnapshotAtomicOperationInput.SnapshotAtomicOperationInputCommand;
+import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
@@ -42,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -204,27 +207,59 @@ public class OperationsService {
   }
 
   public List<AtomicOperation> collectAtomicOperationsFromSagas(Set<SagaId> sagaIds) {
-    if (!sagaRepository.isPresent()) {
+    if (sagaRepository.isEmpty()) {
       return Collections.emptyList();
     }
+
     // Resuming a saga-backed AtomicOperation is kind of a pain. This is because AtomicOperations
     // and their descriptions are totally decoupled from their input & description name, so we
     // have to store additional state in the Saga and then use that to reconstruct
     // AtomicOperations. It'd make sense to refactor all of this someday.
+    List<Object> seenDescriptions = new ArrayList<>();
     return sagaIds.stream()
         .map(id -> sagaRepository.get().get(id.getName(), id.getId()))
         .filter(Objects::nonNull)
         .filter(it -> !it.isComplete())
-        .map(saga -> saga.getEvent(SnapshotAtomicOperationInputCommand.class))
         .map(
-            it ->
-                convert(
-                    it.getCloudProvider(),
-                    Collections.singletonList(
-                        Collections.singletonMap(
-                            it.getDescriptionName(), it.getDescriptionInput()))))
-        .flatMap(Collection::stream)
-        .map(this::atomicOperationOrError)
+            saga ->
+                new SagaAndSnapshot(saga, saga.getEvent(SnapshotAtomicOperationInputCommand.class)))
+        .filter(
+            it -> {
+              // Reduce the list of sagas attached to the task to one for each uniquely submitted
+              // description. This is probably unnecessary long-term.
+              if (seenDescriptions.contains(it.getSnapshot().getDescription())) {
+                return false;
+              }
+              seenDescriptions.add(it.getSnapshot().getDescription());
+              return true;
+            })
+        .flatMap(
+            saga -> {
+              List<AtomicOperationBindingResult> bindingResult =
+                  convert(
+                      saga.getSnapshot().getCloudProvider(),
+                      Collections.singletonList(
+                          Collections.singletonMap(
+                              saga.getSnapshot().getDescriptionName(),
+                              saga.getSnapshot().getDescriptionInput())));
+
+              // We need to ensure the encapsulated saga instance gets the same ID.
+              return bindingResult.stream()
+                  .map(this::atomicOperationOrError)
+                  .peek(
+                      it -> {
+                        if (it instanceof AbstractSagaAtomicOperation) {
+                          // The saga context is always going to be set by this point, but y'know...
+                          // safety. This should be done when the context is created, but I don't
+                          // want to go down the path of refactoring the mess in `convert`, however
+                          // it should be, so that the class is actually unit testable.
+                          AbstractSagaAtomicOperation<?, ?, ?> op =
+                              (AbstractSagaAtomicOperation<?, ?, ?>) it;
+                          Optional.ofNullable(op.getSagaContext())
+                              .ifPresent(context -> context.setSagaId(saga.getSaga().getId()));
+                        }
+                      });
+            })
         .collect(Collectors.toList());
   }
 
@@ -283,5 +318,12 @@ public class OperationsService {
       return Optional.ofNullable(credentials)
           .orElse(Optional.ofNullable(accountName).orElse(account));
     }
+  }
+
+  @Data
+  @AllArgsConstructor
+  private static class SagaAndSnapshot {
+    Saga saga;
+    SnapshotAtomicOperationInputCommand snapshot;
   }
 }

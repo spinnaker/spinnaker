@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.SagaService;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,9 +34,11 @@ import lombok.Builder;
 public class SagaAtomicOperationBridge {
 
   private final SagaService sagaService;
+  private final String sagaId;
 
-  public SagaAtomicOperationBridge(SagaService sagaService) {
+  public SagaAtomicOperationBridge(SagaService sagaService, String sagaId) {
     this.sagaService = sagaService;
+    this.sagaId = sagaId;
   }
 
   public <T> T apply(@Nonnull ApplyCommandWrapper applyCommand) {
@@ -44,8 +47,9 @@ public class SagaAtomicOperationBridge {
     final String sagaName = applyCommand.sagaName;
 
     // use a random uuid to guarantee a unique saga id (rather than task.getId() or
-    // task.getRequestId())
-    final String sagaId = UUID.randomUUID().toString();
+    // task.getRequestId()). A sagaId may be provided at construct time due to retries.
+    final String sagaId =
+        Optional.ofNullable(this.sagaId).orElseGet(() -> UUID.randomUUID().toString());
 
     task.addSagaId(SagaId.builder().id(sagaId).name(sagaName).build());
 

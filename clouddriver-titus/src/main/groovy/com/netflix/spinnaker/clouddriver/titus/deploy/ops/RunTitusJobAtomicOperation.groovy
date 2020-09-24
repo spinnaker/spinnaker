@@ -57,8 +57,11 @@ class RunTitusJobAtomicOperation implements AtomicOperation<DeploymentResult>, S
 
   @Override
   void setSagaContext(@Nonnull SagaContext sagaContext) {
-    if (description instanceof SagaContextAware) {
-      ((SagaContextAware) description).sagaContext = sagaContext
-    }
+    description.sagaContext = sagaContext
+  }
+
+  @Override
+  SagaContext getSagaContext() {
+    return description.sagaContext
   }
 }

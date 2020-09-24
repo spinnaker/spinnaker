@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -83,7 +84,8 @@ public abstract class AbstractSagaAtomicOperation<T, SR, R>
     configureSagaBridge(builder);
 
     // TODO(rz): Should make SagaAtomicOperationBridge a bean and inject that instead
-    SR result = new SagaAtomicOperationBridge(sagaService).apply(builder.build());
+    SR result =
+        new SagaAtomicOperationBridge(sagaService, sagaContext.getSagaId()).apply(builder.build());
 
     return parseSagaResult(result);
   }
@@ -91,5 +93,11 @@ public abstract class AbstractSagaAtomicOperation<T, SR, R>
   @Override
   public void setSagaContext(@Nonnull SagaContext sagaContext) {
     this.sagaContext = sagaContext;
+  }
+
+  @Nullable
+  @Override
+  public SagaContext getSagaContext() {
+    return sagaContext;
   }
 }

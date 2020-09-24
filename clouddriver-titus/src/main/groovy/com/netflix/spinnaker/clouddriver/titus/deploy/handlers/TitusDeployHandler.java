@@ -61,7 +61,7 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
             .completionHandler(TitusDeployCompletionHandler.class);
 
     final TitusDeploymentResult result =
-        new SagaAtomicOperationBridge(sagaService)
+        new SagaAtomicOperationBridge(sagaService, inputDescription.getSagaContext().getSagaId())
             .apply(
                 ApplyCommandWrapper.builder()
                     .sagaName(TitusDeployHandler.class.getSimpleName())
