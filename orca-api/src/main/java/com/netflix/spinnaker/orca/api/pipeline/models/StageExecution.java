@@ -20,10 +20,7 @@ import static java.util.Collections.emptySet;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -181,6 +178,8 @@ public interface StageExecution {
   void setContinuePipelineOnFailure(boolean continuePipelineOnFailure);
 
   boolean isJoin();
+
+  void appendErrorMessage(String errorMessage);
 
   @Nonnull
   List<StageExecution> downstreamStages();

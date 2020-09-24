@@ -43,8 +43,12 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
   public static final String PIPELINE_CONFIG_TYPE =
       StageDefinitionBuilder.getType(PipelineStage.class);
 
-  @Autowired(required = false)
-  ExecutionRepository executionRepository;
+  final ExecutionRepository executionRepository;
+
+  @Autowired
+  public PipelineStage(ExecutionRepository executionRepository) {
+    this.executionRepository = executionRepository;
+  }
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {

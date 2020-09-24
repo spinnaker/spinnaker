@@ -28,7 +28,7 @@ class PipelineStageSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
 
   @Subject
-  def pipelineStage = new PipelineStage(executionRepository: executionRepository)
+  def pipelineStage = new PipelineStage(executionRepository)
 
   @Unroll
   def "should cancel child pipeline (if started and not already canceled)"() {

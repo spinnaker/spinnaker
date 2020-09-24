@@ -623,6 +623,24 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     }
   }
 
+  public void appendErrorMessage(String errorMessage) {
+    Map<String, Object> exception =
+        (Map<String, Object>) getContext().getOrDefault("exception", new HashMap<String, Object>());
+
+    Map<String, Object> exceptionDetails =
+        (Map<String, Object>) exception.getOrDefault("details", new HashMap<String, Object>());
+    exception.putIfAbsent("details", exceptionDetails);
+    List<String> errors =
+        (List<String>) exceptionDetails.getOrDefault("errors", new ArrayList<String>());
+    exceptionDetails.putIfAbsent("errors", errors);
+
+    errors.add(errorMessage);
+
+    // This might be a no-op, but if there wasn't an exception object there, we should add it to the
+    // context
+    getContext().put("exception", exception);
+  }
+
   private JsonNode getPointer(String pointer, ObjectNode rootNode) {
     return pointer != null ? rootNode.at(pointer) : rootNode;
   }

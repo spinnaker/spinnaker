@@ -16,26 +16,32 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.front50.pipeline.MonitorPipelineStage
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorPipelineTaskSpec extends Specification {
 
-
-  @Subject
-  MonitorPipelineTask task = new MonitorPipelineTask()
   ExecutionRepository repo = Mock(ExecutionRepository)
   StageExecutionImpl stage = new StageExecutionImpl(type: "whatever")
 
+  @Subject
+  MonitorPipelineTask task = new MonitorPipelineTask(repo, new ObjectMapper())
+
   def setup() {
-    task.executionRepository = repo
     stage.context.executionId = 'abc'
   }
 
@@ -214,5 +220,67 @@ class MonitorPipelineTaskSpec extends Specification {
       "myVar1": "myValue1",
       "myVar2": "myValue2"
     ]
+  }
+
+  @Unroll
+  def "respect #behavior behavior when monitoring multiple pipelines"() {
+    ObjectMapper objectMapper = new ObjectMapper()
+
+    def child1 = pipeline {
+      application = "orca"
+      name = "child 1"
+      stage {
+        type = WaitStage.typeName
+        name = "Wait that failed"
+        status = ExecutionStatus.TERMINAL
+      }
+      status = ExecutionStatus.TERMINAL
+    }
+
+    def child2 = pipeline {
+      application = "orca"
+      name = "child 2"
+      stage {
+        type = WaitStage.typeName
+        name = "Wait that is running"
+        status = ExecutionStatus.RUNNING
+      }
+      status = ExecutionStatus.RUNNING
+    }
+
+    MonitorPipelineStage.StageParameters parameters = new MonitorPipelineStage.StageParameters()
+    parameters.executionIds = [child1.id, child2.id]
+    parameters.monitorBehavior = MonitorPipelineStage.MonitorBehavior.FailFast
+
+    def parent = pipeline {
+      application = "orca"
+      name = "a pipeline"
+      stage {
+        type = MonitorPipelineStage.PIPELINE_CONFIG_TYPE
+        name = "Monitor multiple executions"
+      }
+    }
+
+    parent.stages[0].context.putAll(objectMapper.convertValue(parameters, Map))
+
+    repo.retrieve(ExecutionType.PIPELINE, child1.id) >> child1
+    repo.retrieve(ExecutionType.PIPELINE, child2.id) >> child2
+
+    when:
+    def result = task.execute(parent.stages[0])
+    def typedResult =  objectMapper.convertValue(result.outputs, MonitorPipelineStage.StageResult.class)
+
+
+    then:
+    result.status == ExecutionStatus.TERMINAL
+    typedResult.executionStatuses.size() == 2
+    typedResult.executionStatuses[child1.id].status == child1.status
+    typedResult.executionStatuses[child2.id].status == child2.status
+    parent.stages[0].context.exception.details.errors[0] == "At least one monitored pipeline failed, look for errors in failed pipelines"
+
+    where:
+    behavior                                                    || expectedStatus
+    MonitorPipelineStage.MonitorBehavior.FailFast               || ExecutionStatus.TERMINAL
+    MonitorPipelineStage.MonitorBehavior.WaitForAllToComplete   || ExecutionStatus.RUNNING
   }
 }
