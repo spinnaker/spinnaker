@@ -117,6 +117,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
   val stageResolver = DefaultStageResolver(StageDefinitionBuildersProvider(emptyList()))
 
   subject(GROUP) {
+    whenever(dynamicConfigService.getConfig(eq(Int::class.java), eq("tasks.warningInvocationTimeMs"), any())) doReturn 0
+
     RunTaskHandler(
       queue,
       repository,

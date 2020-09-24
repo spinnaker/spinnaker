@@ -86,6 +86,17 @@ class RunTaskHandler(
   private val dynamicConfigService: DynamicConfigService
 ) : OrcaMessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
 
+  /**
+   *  If a task takes longer than this number of ms to run, we will print a warning.
+   *  This is an indication that the task might eventually hit the dreaded message ack timeout and might end
+   *  running multiple times cause unintended side-effects.
+   */
+  private val warningInvocationTimeMs: Int = dynamicConfigService.getConfig(
+    Int::class.java,
+    "tasks.warningInvocationTimeMs",
+    30000
+  )
+
   override fun handle(message: RunTask) {
     message.withTask { origStage, taskModel, task ->
       var stage = origStage
@@ -168,6 +179,7 @@ class RunTaskHandler(
               queue.push(message, task.backoffPeriod(taskModel, stage))
               trackResult(stage, thisInvocationStartTimeMs, taskModel, RUNNING)
             } else if (e is TimeoutException && stage.context["markSuccessfulOnTimeout"] == true) {
+              trackResult(stage, thisInvocationStartTimeMs, taskModel, SUCCEEDED)
               queue.push(CompleteTask(message, SUCCEEDED))
             } else {
               if (e !is TimeoutException) {
@@ -202,6 +214,13 @@ class RunTaskHandler(
         "task.invocations.duration.withType" to commonTags + detailedTags
       ).forEach { name, tags ->
         registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      }
+
+      if (elapsedMillis >= warningInvocationTimeMs) {
+        log.info(
+          "Task invocation took over ${warningInvocationTimeMs}ms " +
+            "(taskType: ${taskModel.implementingClass}, stageType: ${stage.type}, stageId: ${stage.id})"
+        )
       }
     } catch (e: java.lang.Exception) {
       log.warn("Failed to track result for stage: ${stage.id}, task: ${taskModel.id}", e)
