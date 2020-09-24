@@ -158,7 +158,7 @@ public class RateLimitingFilter extends HttpFilter {
       // to manually extract identity from an x509 certificate (if available!).
       X509Certificate[] certificates =
           (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
-      if (certificates.length > 0) {
+      if (certificates != null && certificates.length > 0) {
         String identityFromCertificate =
             x509AuthenticationUserDetailsService
                 // anything beyond [0] represents an intermediate cert which does not provide an
