@@ -60,7 +60,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     if (!succeeded && (!task.status || !task.status.isFailed())) {
       task.fail()
     }
-    task.updateStatus phaseName, "Finished ${verb} ServerGroup operation for $description.serverGroupName"
+    else {
+      task.updateStatus phaseName, "Finished ${verb} ServerGroup operation for $description.serverGroupName"
+    }
   }
 
   private boolean operateOnServerGroup(String serverGroupName, NetflixTitusCredentials credentials, String region) {
@@ -79,10 +81,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
 
       if (disable && description.desiredPercentage && loadBalancingClient && job.labels.containsKey("spinnaker.targetGroups")) {
-        log.error(
-          "Could not {} server group '{}' in region {}! Disabling by percentage for server groups with target groups not supported by Titus",
-          verb, serverGroupName, region
-        )
+        def errorMessage = "Could not ${verb} ServerGroup '$serverGroupName' in region $region! " +
+          "Disabling by percentage for server groups with target groups is not supported by Titus"
+        log.error(errorMessage)
+        task.updateStatus phaseName, errorMessage
         return false
       }
 
