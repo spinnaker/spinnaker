@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import com.netflix.spinnaker.kork.api.exceptions.AccessDeniedDetails;
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -37,6 +39,12 @@ public class FiatAccessDeniedExceptionHandler {
 
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
 
+  private final ExceptionMessageDecorator exceptionMessageDecorator;
+
+  public FiatAccessDeniedExceptionHandler(ExceptionMessageDecorator exceptionMessageDecorator) {
+    this.exceptionMessageDecorator = exceptionMessageDecorator;
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   public void handleAccessDeniedException(
       AccessDeniedException e, HttpServletResponse response, HttpServletRequest request)
@@ -54,29 +62,47 @@ public class FiatAccessDeniedExceptionHandler {
 
     String errorMessage =
         FiatPermissionEvaluator.getAuthorizationFailure()
-            .map(this::authorizationFailureMessage)
+            .map(authorizationFailure -> authorizationFailureMessage(authorizationFailure, e))
             .orElse("Access is denied");
 
     response.sendError(HttpStatus.FORBIDDEN.value(), errorMessage);
   }
 
   private String authorizationFailureMessage(
-      FiatPermissionEvaluator.AuthorizationFailure authorizationFailure) {
+      FiatPermissionEvaluator.AuthorizationFailure authorizationFailure, AccessDeniedException e) {
+    StringJoiner sj = new StringJoiner(" ");
+
+    defaultErrorDecoration(sj, authorizationFailure);
+
+    // TODO(jonsie): Once we have migrated the current fiat-api code to kork-authz we can produce a
+    //  proper fiat-api module that will allow us to export a class like the one below (instead
+    //  of the current hack which is to pull this in from kork-api).
+    AccessDeniedDetails accessDeniedDetails =
+        new AccessDeniedDetails(
+            authorizationFailure.getResourceType().toString(),
+            authorizationFailure.getResourceName(),
+            authorizationFailure.hasAuthorization()
+                ? authorizationFailure.getAuthorization().toString()
+                : null);
+
+    return exceptionMessageDecorator.decorate(e, sj.toString(), accessDeniedDetails);
+  }
+
+  /**
+   * Default access denied error decoration - decorates the error with the resource type and
+   * resource name that authorization was denied to.
+   */
+  private void defaultErrorDecoration(
+      StringJoiner sj, FiatPermissionEvaluator.AuthorizationFailure authorizationFailure) {
     // Make the resource type readable (ie, "service account" instead of "serviceaccount")
     String resourceType =
         authorizationFailure.getResourceType().toString().replace("_", " ").toLowerCase();
 
-    StringJoiner sj =
-        new StringJoiner(" ")
-            .add("Access denied to")
-            .add(resourceType)
-            .add(authorizationFailure.getResourceName());
+    sj.add("Access denied to").add(resourceType).add(authorizationFailure.getResourceName());
 
     if (authorizationFailure.hasAuthorization()) {
       sj.add("- required authorization:").add(authorizationFailure.getAuthorization().toString());
     }
-
-    return sj.toString();
   }
 
   private Map<String, String> requestHeaders(HttpServletRequest request) {

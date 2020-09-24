@@ -15,6 +15,8 @@
  */
 
 dependencies {
+  api "com.netflix.spinnaker.kork:kork-api"
+
   implementation project(":fiat-core")
 
   implementation "org.springframework:spring-aop"

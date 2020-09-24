@@ -20,6 +20,12 @@ import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.kork.api.exceptions.ExceptionDetails
+import com.netflix.spinnaker.kork.api.exceptions.ExceptionMessage
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import org.jetbrains.annotations.Nullable
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import spock.lang.Shared
 import spock.lang.Subject
@@ -30,8 +36,44 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
+
+    String additionalInformation = "Additional information"
+
+    ExceptionMessageDecorator exceptionMessageDecorator = new ExceptionMessageDecorator(new ObjectProvider<List<ExceptionMessage>>() {
+        @Override
+        List<ExceptionMessage> getObject(Object... args) throws BeansException {
+            return null
+        }
+
+        @Override
+        List<ExceptionMessage> getIfAvailable() throws BeansException {
+            return [new ExceptionMessage() {
+
+                @Override
+                boolean supports(Class<? extends Throwable> throwable) {
+                    return throwable == AccessDeniedException.class
+                }
+
+                @Override
+                String message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
+                    return additionalInformation
+                }
+            }]
+        }
+
+        @Override
+        List<ExceptionMessage> getIfUnique() throws BeansException {
+            return null
+        }
+
+        @Override
+        List<ExceptionMessage> getObject() throws BeansException {
+            return null
+        }
+    })
+
     @Subject
-    def fiatAccessDeniedExceptionHandler = new FiatAccessDeniedExceptionHandler()
+    def fiatAccessDeniedExceptionHandler = new FiatAccessDeniedExceptionHandler(exceptionMessageDecorator)
 
     def request = Mock(HttpServletRequest)
     def response = Mock(HttpServletResponse)
@@ -63,7 +105,7 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         fiatAccessDeniedExceptionHandler.handleAccessDeniedException(new AccessDeniedException("Forbidden"), response, request)
 
         then:
-        1 * response.sendError(403, "Access denied to application service - required authorization: " + authorizationTypeRequired)
+        1 * response.sendError(403, "Access denied to application service - required authorization: " + authorizationTypeRequired + "\n" + additionalInformation)
 
         where:
         userAuthorizationType | authorizationTypeRequired
@@ -89,6 +131,6 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         fiatAccessDeniedExceptionHandler.handleAccessDeniedException(new AccessDeniedException("Forbidden"), response, request)
 
         then:
-        1 * response.sendError(403, "Access denied to service account readable")
+        1 * response.sendError(403, "Access denied to service account readable" + "\n" + additionalInformation)
     }
 }
