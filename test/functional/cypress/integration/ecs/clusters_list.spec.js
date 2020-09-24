@@ -32,5 +32,15 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
       .get('.dropdown-menu')
       .get('.ng-scope')
       .should('contain.text', 'Rollback');
+
+    cy.get('.btn:contains("Server Group Actions")').click();
+
+    cy.get('.dropdown-menu')
+      .get('.ng-scope')
+      .should('contain.text', 'Rollback');
+
+    cy.get('a:contains("Rollback")').click({ force: true });
+
+    cy.get('.modal-title').should('contain.text', 'Rollback aws-prod-ecsdemo');
   });
 });
