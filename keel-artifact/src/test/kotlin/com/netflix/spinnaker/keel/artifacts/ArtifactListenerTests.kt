@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
@@ -28,7 +28,7 @@ import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
 internal class ArtifactListenerTests : JUnit5Minutests {
-  val publishedDeb = PublishedArtifact(
+  val publishedDeb = ArtifactVersion(
     type = DEBIAN,
     customKind = false,
     name = "fnord",
@@ -38,7 +38,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     provenance = "https://my.jenkins.master/jobs/fnord-release/58"
   ).normalized()
 
-  val newerPublishedDeb = PublishedArtifact(
+  val newerPublishedDeb = ArtifactVersion(
     type = DEBIAN,
     customKind = false,
     name = "fnord",
@@ -48,7 +48,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     provenance = "https://my.jenkins.master/jobs/fnord-release/60"
   ).normalized()
 
-  val publishedDocker = PublishedArtifact(
+  val publishedDocker = ArtifactVersion(
     type = DOCKER,
     customKind = false,
     name = "fnord/myimage",
@@ -67,7 +67,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     buildMetadata = BuildMetadata(id = 1, status = "SUCCEEDED")
   )
 
-  val publishedArtifact = slot<PublishedArtifact>()
+  val artifactVersion = slot<ArtifactVersion>()
 
   abstract class ArtifactListenerFixture {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
@@ -152,9 +152,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         }
 
         test("a new artifact version is stored") {
-          verify {repository.storeArtifactVersion(capture(publishedArtifact)) }
+          verify {repository.storeArtifactVersion(capture(artifactVersion)) }
 
-          with(publishedArtifact.captured) {
+          with(artifactVersion.captured) {
             expectThat(name).isEqualTo(artifact.name)
             expectThat(type).isEqualTo(artifact.type)
             expectThat(version).isEqualTo(newerPublishedDeb.version)
@@ -167,7 +167,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             debianArtifactSupplier.getArtifactMetadata(newerPublishedDeb)
           }
 
-          with(publishedArtifact.captured) {
+          with(artifactVersion.captured) {
             expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
@@ -236,9 +236,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
         test("the newest version is saved") {
           verify(exactly = 1) {
-            repository.storeArtifactVersion(capture(publishedArtifact))
+            repository.storeArtifactVersion(capture(artifactVersion))
           }
-          with(publishedArtifact.captured) {
+          with(artifactVersion.captured) {
             expectThat(name).isEqualTo(artifact.name)
             expectThat(type).isEqualTo(artifact.type)
             expectThat(version).isEqualTo(publishedDeb.version)
@@ -251,7 +251,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             debianArtifactSupplier.getArtifactMetadata(publishedDeb)
           }
 
-          with(publishedArtifact.captured) {
+          with(artifactVersion.captured) {
             expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
@@ -320,13 +320,13 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         test("latest versions are stored") {
           listener.syncArtifactVersions()
 
-          val publishedArtifacts = mutableListOf<PublishedArtifact>()
+          val artifactVersions = mutableListOf<ArtifactVersion>()
 
           verify (exactly = 2) {
-            repository.storeArtifactVersion(capture(publishedArtifacts))
+            repository.storeArtifactVersion(capture(artifactVersions))
           }
 
-          with(publishedArtifacts[0]) {
+          with(artifactVersions[0]) {
             expectThat(name).isEqualTo(dockerArtifact.name)
             expectThat(type).isEqualTo(dockerArtifact.type)
             expectThat(version).isEqualTo(publishedDocker.version)
@@ -334,7 +334,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
 
-          with(publishedArtifacts[1]) {
+          with(artifactVersions[1]) {
             expectThat(name).isEqualTo(debArtifact.name)
             expectThat(type).isEqualTo(debArtifact.type)
             expectThat(version).isEqualTo(publishedDeb.version)
@@ -384,13 +384,13 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         test("new versions are stored") {
           listener.syncArtifactVersions()
 
-          val publishedArtifacts = mutableListOf<PublishedArtifact>()
+          val artifactVersions = mutableListOf<ArtifactVersion>()
 
           verify (exactly = 2) {
-            repository.storeArtifactVersion(capture(publishedArtifacts))
+            repository.storeArtifactVersion(capture(artifactVersions))
           }
 
-          with(publishedArtifacts[0]) {
+          with(artifactVersions[0]) {
             expectThat(name).isEqualTo(dockerArtifact.name)
             expectThat(type).isEqualTo(dockerArtifact.type)
             expectThat(version).isEqualTo(newerPublishedDocker.version)
@@ -398,7 +398,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
 
-          with(publishedArtifacts[1]) {
+          with(artifactVersions[1]) {
             expectThat(name).isEqualTo(debArtifact.name)
             expectThat(type).isEqualTo(debArtifact.type)
             expectThat(version).isEqualTo(newerPublishedDeb.version)

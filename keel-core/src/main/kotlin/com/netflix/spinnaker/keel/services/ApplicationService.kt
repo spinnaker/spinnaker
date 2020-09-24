@@ -312,19 +312,19 @@ class ApplicationService(
   ): ArtifactVersionSummary {
     val artifactSupplier = artifactSuppliers.supporting(artifact.type)
     val releaseStatus = repository.getReleaseStatus(artifact, version)
-    val publishedArtifact = repository.getArtifactVersion(artifact.name, artifact.type, version, releaseStatus)
+    val artifactVersion = repository.getArtifactVersion(artifact.name, artifact.type, version, releaseStatus)
       ?: throw InvalidSystemStateException("Loading artifact version $version failed for known artifact $artifact.")
 
     return ArtifactVersionSummary(
       version = version,
       environments = environments,
-      displayName = artifactSupplier.getVersionDisplayName(publishedArtifact),
+      displayName = artifactSupplier.getVersionDisplayName(artifactVersion),
 
       // first attempt to use the artifact metadata fetched from the DB, then fallback to the default if not found
-      build = publishedArtifact.buildMetadata
-        ?: artifactSupplier.parseDefaultBuildMetadata(publishedArtifact, artifact.versioningStrategy),
-      git = publishedArtifact.gitMetadata
-        ?: artifactSupplier.parseDefaultGitMetadata(publishedArtifact, artifact.versioningStrategy)
+      build = artifactVersion.buildMetadata
+        ?: artifactSupplier.parseDefaultBuildMetadata(artifactVersion, artifact.versioningStrategy),
+      git = artifactVersion.gitMetadata
+        ?: artifactSupplier.parseDefaultGitMetadata(artifactVersion, artifact.versioningStrategy)
     )
   }
 

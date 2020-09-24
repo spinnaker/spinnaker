@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
@@ -37,14 +37,14 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       tagVersionStrategy = SEMVER_TAG
     )
     val versions = listOf("v1.12.1-h1188.35b8b29", "v1.12.2-h1182.8a5b962")
-    val latestArtifact = PublishedArtifact(
+    val latestArtifact = ArtifactVersion(
       name = dockerArtifact.name,
       type = dockerArtifact.type,
       reference = dockerArtifact.reference,
       version = versions.last()
     )
 
-    val latestArtifactWithMetadata = PublishedArtifact(
+    val latestArtifactWithMetadata = ArtifactVersion(
       name = dockerArtifact.name,
       type = dockerArtifact.type,
       reference = dockerArtifact.reference,

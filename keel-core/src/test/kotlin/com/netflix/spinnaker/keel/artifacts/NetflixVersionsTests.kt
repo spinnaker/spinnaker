@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -36,7 +36,7 @@ class NetflixVersionsTests : JUnit5Minutests {
         "1.0.0~snapshot.1-15.4cbd040533a2f43fc6691d773d510cda70f4126a" to Triple("1.0.0~snapshot.1",15, "4cbd040533a2f43fc6691d773d510cda70f4126a"),
         "1.0.0~rc.2-h15.4cbd040533a2f43fc6691d773d510cda70f4126a" to Triple("1.0.0~rc.2",15, "4cbd040533a2f43fc6691d773d510cda70f4126a")
       ).forEach { version, (displayName, build, commit) ->
-        val artifact = PublishedArtifact("test", "DEB", "test", version)
+        val artifact = ArtifactVersion("test", "DEB", "test", version)
 
         // check with and without debian package name prefix
         listOf("", "mydebian-").forEach { prefix ->
@@ -65,7 +65,7 @@ class NetflixVersionsTests : JUnit5Minutests {
         "1.0.0-foo-h12.123456",
         "1.0.0beta"
       ).forEach { version ->
-        val artifact = PublishedArtifact("test", "DEB", "test", version)
+        val artifact = ArtifactVersion("test", "DEB", "test", version)
 
         test("returns null build number for version $version") {
           expectThat(getBuildNumber(artifact)).isNull()

@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
@@ -33,7 +33,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummyVersioningStrategy
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
-import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.versionedArtifactResource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -112,13 +111,13 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
     }
 
-    private val publishedArtifact = slot<PublishedArtifact>()
+    private val artifactVersion = slot<ArtifactVersion>()
     private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummyVersioningStrategy>>(relaxUnitFun = true) {
       every { supportedArtifact } returns SupportedArtifact("dummy", DummyArtifact::class.java)
       every {
-        getVersionDisplayName(capture(publishedArtifact))
+        getVersionDisplayName(capture(artifactVersion))
       } answers {
-        publishedArtifact.captured.version
+        artifactVersion.captured.version
       }
       every { parseDefaultBuildMetadata(any(), any()) } returns null
       every { parseDefaultGitMetadata(any(), any()) } returns null
@@ -154,7 +153,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       every {
         repository.getArtifactVersion(any(), any(), any(), any())
       } answers {
-        PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2))
+        ArtifactVersion(arg<String>(0), arg<String>(1), arg<String>(2))
       }
 
       every {
@@ -190,7 +189,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           every {
             repository.getArtifactVersion(any(), any(), any(), any())
           } answers {
-            PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
+            ArtifactVersion(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
           }
         }
 

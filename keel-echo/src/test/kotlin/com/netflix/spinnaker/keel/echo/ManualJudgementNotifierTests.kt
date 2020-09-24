@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -204,7 +204,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         before {
           every {
             repository.getArtifactVersion("mypkg", DEBIAN, "v1.0.0", any())
-          } returns PublishedArtifact(
+          } returns ArtifactVersion(
             name = "mypkg",
             type = DEBIAN,
             version = "v1.0.0",

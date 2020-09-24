@@ -6,8 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
@@ -143,9 +142,9 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getAllArtifacts(type: ArtifactType? = null): List<DeliveryArtifact>
 
-  fun storeArtifactVersion(artifact: PublishedArtifact): Boolean
+  fun storeArtifactVersion(artifact: ArtifactVersion): Boolean
 
-  fun getArtifactVersion(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): PublishedArtifact?
+  fun getArtifactVersion(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): ArtifactVersion?
 
   fun deleteArtifact(artifact: DeliveryArtifact)
 

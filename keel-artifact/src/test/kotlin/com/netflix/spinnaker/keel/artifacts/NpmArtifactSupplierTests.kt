@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.NPM
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
@@ -37,7 +37,7 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
       statuses = setOf(CANDIDATE)
     )
     val versions = listOf("1.0.0-rc", "1.0.0-rc.1", "1.0.0", "1.0.1-5", "1.0.2-h6", "1.0.3-rc-h7.gc0c603")
-    val latestArtifact = PublishedArtifact(
+    val latestArtifact = ArtifactVersion(
       name = npmArtifact.name,
       type = npmArtifact.type,
       reference = npmArtifact.reference,

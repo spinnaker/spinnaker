@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Job
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
@@ -42,7 +42,7 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       statuses = setOf(SNAPSHOT)
     )
     val versions = listOf("2.0.0-h120.608bd90", "2.1.0-h130.18ed1dc")
-    val latestArtifact = PublishedArtifact(
+    val latestArtifact = ArtifactVersion(
       name = debianArtifact.name,
       type = debianArtifact.type,
       reference = debianArtifact.reference,

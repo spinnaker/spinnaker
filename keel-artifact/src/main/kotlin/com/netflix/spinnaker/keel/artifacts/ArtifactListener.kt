@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
@@ -65,6 +65,8 @@ class ArtifactListener(
                 publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
               }
             }
+        } else {
+          log.debug("Artifact $artifact is not registered. Ignoring new artifact version.")
         }
       }
   }
@@ -147,9 +149,9 @@ class ArtifactListener(
     repository.artifactVersions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
 
   /**
-   * Returns a copy of the [PublishedArtifact] with the git and build metadata populated, if available.
+   * Returns a copy of the [ArtifactVersion] with the git and build metadata populated, if available.
    */
-  private fun ArtifactSupplier<*,*>.addMetadata(artifact: PublishedArtifact): PublishedArtifact {
+  private fun ArtifactSupplier<*,*>.addMetadata(artifact: ArtifactVersion): ArtifactVersion {
     val artifactMetadata = runBlocking {
       try {
         getArtifactMetadata(artifact)
@@ -166,7 +168,7 @@ class ArtifactListener(
       ?.let { repository.getDeliveryConfig(it) }
       ?: throw InvalidSystemStateException("Delivery config name missing in artifact object")
 
-  private val PublishedArtifact.artifactType: ArtifactType
+  private val ArtifactVersion.artifactType: ArtifactType
     get() = artifactTypeNames.find { it == type.toLowerCase() }
       ?.let { type.toLowerCase() }
       ?: throw InvalidSystemStateException("Unable to find registered artifact type for '$type'")

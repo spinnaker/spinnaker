@@ -149,8 +149,8 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       before {
         repository.register(artifact)
         repository.storeDeliveryConfig(deliveryConfig)
-        repository.storeArtifactVersion(artifact.toPublishedArtifact(version1, ArtifactStatus.RELEASE))
-        repository.storeArtifactVersion(artifact.toPublishedArtifact(version2, ArtifactStatus.RELEASE))
+        repository.storeArtifactVersion(artifact.toArtifactVersion(version1, ArtifactStatus.RELEASE))
+        repository.storeArtifactVersion(artifact.toArtifactVersion(version2, ArtifactStatus.RELEASE))
         repository.storeConstraintState(pendingManualJudgement1)
         repository.storeConstraintState(pendingManualJudgement2)
 

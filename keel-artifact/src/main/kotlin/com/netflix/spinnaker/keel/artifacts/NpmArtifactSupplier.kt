@@ -2,19 +2,17 @@ package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.NPM
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.springframework.stereotype.Component
 
 /**
@@ -35,7 +33,7 @@ class NpmArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy(NPM, NpmVersioningStrategy::class.java)
 
-  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
+  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): ArtifactVersion? =
     runWithIoContext {
       artifactService
         .getVersions(artifact.nameForQuery, artifact.statusesForQuery, NPM)
@@ -46,7 +44,7 @@ class NpmArtifactSupplier(
         }
     }
 
-  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): PublishedArtifact? =
+  override fun getArtifactByVersion(artifact: DeliveryArtifact, version: String): ArtifactVersion? =
     runWithIoContext {
       artifactService.getArtifact(artifact.nameForQuery, version, NPM)
     }
@@ -54,14 +52,14 @@ class NpmArtifactSupplier(
   /**
    * Extracts a version display name from version string using the Netflix semver convention.
    */
-  override fun getVersionDisplayName(artifact: PublishedArtifact): String {
+  override fun getVersionDisplayName(artifact: ArtifactVersion): String {
     return NetflixVersions.getVersionDisplayName(artifact)
   }
 
   /**
    * Extracts the build number from the version string using the Netflix semver convention.
    */
-  override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
+  override fun parseDefaultBuildMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): BuildMetadata? {
     return NetflixVersions.getBuildNumber(artifact)
       ?.let { BuildMetadata(it) }
   }
@@ -69,7 +67,7 @@ class NpmArtifactSupplier(
   /**
    * Extracts the commit hash from the version string using the Netflix semver convention.
    */
-  override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
+  override fun parseDefaultGitMetadata(artifact: ArtifactVersion, versioningStrategy: VersioningStrategy): GitMetadata? {
     return NetflixVersions.getCommitHash(artifact)
       ?.let { GitMetadata(it) }
   }

@@ -173,3 +173,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200812-add-build-and-git-metadata-columns.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200923-add-created-at-to-artifact-versions.yml
+      relativeToChangelogFile: true

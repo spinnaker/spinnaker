@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactVersion
 
 /**
  * Netflix-specific conventions for artifact versions.
@@ -27,7 +27,7 @@ object NetflixVersions {
   /**
    * Extracts a version display name from the longer version string, leaving out build and git details if present.
    */
-  fun getVersionDisplayName(artifact: PublishedArtifact): String {
+  fun getVersionDisplayName(artifact: ArtifactVersion): String {
     val match = NETFLIX_VERSION_REGEX.find(artifact.version)
     val mainVersion = match?.groups?.get(1)?.value
     val preRelease = match?.groups?.get(2)?.value
@@ -41,7 +41,7 @@ object NetflixVersions {
   /**
    * Extracts the build number from the version string, if available.
    */
-  fun getBuildNumber(artifact: PublishedArtifact): Int? {
+  fun getBuildNumber(artifact: ArtifactVersion): Int? {
     return try {
       NETFLIX_VERSION_REGEX.find(artifact.version)?.groups?.get(6)?.value?.toInt()
     } catch (e: NumberFormatException) {
@@ -52,7 +52,7 @@ object NetflixVersions {
   /**
    * Extracts the commit hash from the version string, if available.
    */
-  fun getCommitHash(artifact: PublishedArtifact): String? {
+  fun getCommitHash(artifact: ArtifactVersion): String? {
     return NETFLIX_VERSION_REGEX.find(artifact.version)?.groups?.get(8)?.value
   }
 }
