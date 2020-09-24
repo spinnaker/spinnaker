@@ -39,6 +39,13 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
 
   abstract String getType()
 
+  /**
+   * @param targetReference Current ASG reference
+   * @param processes Requested scaling processes to suspend/resume
+   * @return Scaling processes that need modification based on current state of ASG (may be empty if scaling processes already exist)
+   */
+  abstract List<String> filterProcesses(TargetServerGroup targetServerGroup, List<String> processes)
+
   @Nonnull
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
@@ -59,7 +66,10 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
      *
      * Otherwise, use any scaling processes that were modified by a previous stage (context.scalingProcesses.ASG_NAME)
      */
-    def processes = (stage.context.processes ?: stage.context["scalingProcesses.${asgName}" as String] ?: []) as List<String>
+    def processes = filterProcesses(
+      targetServerGroup,
+      (stage.context.processes ?: stage.context["scalingProcesses.${asgName}" as String]) as List<String>
+    )
     def stageContext = new HashMap(stage.context) + [
       processes: processes,
       asgName  : asgName

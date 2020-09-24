@@ -15,9 +15,25 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import org.springframework.stereotype.Component
 
 @Component
 class SuspendAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
   String type = "suspendAsgProcessesDescription"
+
+  @Override
+  List<String> filterProcesses(TargetServerGroup targetServerGroup, List<String> processes) {
+    if (!processes) {
+      return []
+    }
+
+    def targetAsgConfiguration = targetServerGroup.asg as Map<String, Object>
+    if (targetAsgConfiguration.suspendedProcesses) {
+      def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
+      return processes - suspendedProcesses
+    }
+
+    return processes
+  }
 }
