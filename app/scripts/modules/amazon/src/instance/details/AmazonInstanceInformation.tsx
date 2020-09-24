@@ -21,6 +21,7 @@ export const AmazonInstanceInformation = ({ instance }: IAmazonInstanceInformati
           provider={instance.provider}
           region={instance.region}
           serverGroup={instance.serverGroup}
+          showInstanceType={true}
         />
         {serverGroup && <LabeledValue label="VPC" value={<VpcTag vpcId={vpcId} />} />}
         {subnetId && <LabeledValue label="Subnet" value={<SubnetTag subnetId={subnetId} />} />}

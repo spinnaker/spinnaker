@@ -22,6 +22,7 @@ describe('InstanceInformation', () => {
         provider={testInstance.provider}
         region={testInstance.region}
         serverGroup={testInstance.serverGroup}
+        showInstanceType={true}
       />,
     );
 
@@ -43,6 +44,7 @@ describe('InstanceInformation', () => {
         provider={testInstance.provider}
         region={testInstance.region}
         serverGroup={undefined}
+        showInstanceType={true}
       />,
     );
 

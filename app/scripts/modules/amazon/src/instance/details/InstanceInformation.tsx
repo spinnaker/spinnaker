@@ -7,12 +7,12 @@ import { AccountTag, LabeledValue, timestamp } from '@spinnaker/core';
 export interface IInstanceInformationProps {
   account: string;
   availabilityZone: string;
-  customInfo?: React.Component;
   instanceType: string;
   launchTime: number;
   provider: string;
   region: string;
   serverGroup: string;
+  showInstanceType?: boolean;
 }
 
 export const InstanceInformation = ({
@@ -23,6 +23,7 @@ export const InstanceInformation = ({
   provider,
   region,
   serverGroup,
+  showInstanceType,
 }: IInstanceInformationProps) => (
   <>
     <LabeledValue label="Launched" value={launchTime ? timestamp(launchTime) : 'Unknown'} />
@@ -35,7 +36,7 @@ export const InstanceInformation = ({
         </div>
       }
     />
-    <LabeledValue label="Type" value={instanceType || 'Unknown'} />
+    {showInstanceType && <LabeledValue label="Type" value={instanceType || 'Unknown'} />}
     {serverGroup && (
       <LabeledValue
         label="Server Group"
