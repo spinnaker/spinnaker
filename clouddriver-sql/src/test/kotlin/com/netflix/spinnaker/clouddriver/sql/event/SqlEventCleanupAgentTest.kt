@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_INTERVAL_KEY
+import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_LIMIT_KEY
+import com.netflix.spinnaker.clouddriver.sql.event.SqlEventCleanupAgent.Companion.EVENT_CLEANUP_TIMEOUT_KEY
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties.Companion.EVENT_CLEANUP_LIMIT
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -82,7 +85,9 @@ class SqlEventCleanupAgentTest : JUnit5Minutests {
     )
 
     init {
-      every { dynamicConfigService.getConfig(eq(Int::class.java), any(), eq(EVENT_CLEANUP_LIMIT)) } returns EVENT_CLEANUP_LIMIT
+      every { dynamicConfigService.getConfig(eq(Int::class.java), eq(EVENT_CLEANUP_LIMIT_KEY), eq(EVENT_CLEANUP_LIMIT)) } returns EVENT_CLEANUP_LIMIT
+      every { dynamicConfigService.getConfig(eq(String::class.java), eq(EVENT_CLEANUP_INTERVAL_KEY), eq("PT1M")) } returns "PT1M"
+      every { dynamicConfigService.getConfig(eq(String::class.java), eq(EVENT_CLEANUP_TIMEOUT_KEY), eq("PT45S")) } returns "PT45S"
     }
   }
 }

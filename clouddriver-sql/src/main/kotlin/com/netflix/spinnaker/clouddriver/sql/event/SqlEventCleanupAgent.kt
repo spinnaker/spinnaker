@@ -23,16 +23,15 @@ import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties.Companion.EVENT_CLEANUP_LIMIT
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import java.sql.Timestamp
 import java.time.Duration
 import java.time.Instant
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.currentTimestamp
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-import org.jooq.impl.DSL.timestampDiff
 import org.slf4j.LoggerFactory
 
 /**
@@ -53,24 +52,17 @@ class SqlEventCleanupAgent(
   override fun run() {
     val duration = Duration.ofDays(properties.maxAggregateAgeDays)
     val cutoff = Instant.now().minus(duration)
-    val limit = dynamicConfigService.getConfig(Int::class.java, EVENT_CLEANUP_CONFIG_KEY, EVENT_CLEANUP_LIMIT)
+    val limit = dynamicConfigService.getConfig(Int::class.java, EVENT_CLEANUP_LIMIT_KEY, EVENT_CLEANUP_LIMIT)
 
     log.info("Deleting aggregates last updated earlier than $cutoff ($duration), max $limit events")
 
     registry.timer(timingId).record {
+      val threshold = Instant.now().minus(duration)
+
       withPool(ConnectionPools.EVENTS.value) {
         val rs = jooq.select(field("aggregate_type"), field("aggregate_id"))
           .from(table("event_aggregates"))
-          .where(
-            // jOOQ always converts timestampDiff into 'INTERVAL DAY TO SECOND' type, which then no longer performs
-            // comparison queries correctly. Doing `timestampDiff().greaterThan()` will cast the result of
-            // timestampDiff to an int, as needed, but then cast the duration into an INTERVAL DAY TO SECOND type,
-            // which will always produce a query returning incorrect results.
-            timestampDiff(currentTimestamp(), field("last_change_timestamp", Timestamp::class.java))
-              .cast(Integer::class.java)
-              // timestampDiff will return `microsecond / 1000`
-              .gt(duration.toMillis().toInt() as Integer)
-          )
+          .where(field("last_change_timestamp").lt(Timestamp(threshold.toEpochMilli())))
           .limit(limit)
           .fetch()
           .intoResultSet()
@@ -94,10 +86,17 @@ class SqlEventCleanupAgent(
 
   override fun getAgentType(): String = javaClass.simpleName
   override fun getProviderName(): String = CoreProvider.PROVIDER_NAME
-  override fun getPollIntervalMillis() = properties.frequency.toMillis()
-  override fun getTimeoutMillis() = properties.timeout.toMillis()
 
-  companion object {
-    private const val EVENT_CLEANUP_CONFIG_KEY = "spinnaker.clouddriver.eventing.cleanup-agent.cleanup-limit"
+  override fun getPollIntervalMillis() =
+    Duration.parse(dynamicConfigService.getConfig(String::class.java, EVENT_CLEANUP_INTERVAL_KEY, "PT1M")).toMillis()
+
+  override fun getTimeoutMillis() =
+    Duration.parse(dynamicConfigService.getConfig(String::class.java, EVENT_CLEANUP_TIMEOUT_KEY, "PT45S")).toMillis()
+
+  @VisibleForTesting
+  internal companion object {
+    const val EVENT_CLEANUP_LIMIT_KEY = "spinnaker.clouddriver.eventing.cleanup-agent.cleanup-limit"
+    const val EVENT_CLEANUP_INTERVAL_KEY = "spinnaker.clouddriver.eventing.cleanup-agent.frequency"
+    const val EVENT_CLEANUP_TIMEOUT_KEY = "spinnaker.clouddriver.event.cleanup-agent.timeout"
   }
 }
