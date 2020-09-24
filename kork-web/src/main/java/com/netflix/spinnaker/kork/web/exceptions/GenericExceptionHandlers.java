@@ -46,6 +46,12 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
 
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
 
+  private final ExceptionMessageDecorator exceptionMessageDecorator;
+
+  public GenericExceptionHandlers(ExceptionMessageDecorator exceptionMessageDecorator) {
+    this.exceptionMessageDecorator = exceptionMessageDecorator;
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   public void handleAccessDeniedException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
@@ -53,14 +59,17 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
 
     // avoid leaking any information that may be in `e.getMessage()` by returning a static error
     // message
-    response.sendError(HttpStatus.FORBIDDEN.value(), "Access is denied");
+    response.sendError(
+        HttpStatus.FORBIDDEN.value(), exceptionMessageDecorator.decorate(e, "Access is denied"));
   }
 
   @ExceptionHandler(NotFoundException.class)
   public void handleNotFoundException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
-    response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
+
+    response.sendError(
+        HttpStatus.NOT_FOUND.value(), exceptionMessageDecorator.decorate(e, e.getMessage()));
   }
 
   @ExceptionHandler({InvalidRequestException.class, UserException.class})
@@ -93,9 +102,13 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
                 new InputStreamReader(e.getResponse().getBody().in(), Charsets.UTF_8)));
       }
 
-      storeException(
-          request, response, new RetrofitErrorWrapper(e.getMessage(), additionalContext));
-      response.sendError(e.getResponse().getStatus(), e.getMessage());
+      RetrofitErrorWrapper retrofitErrorWrapper =
+          new RetrofitErrorWrapper(e.getMessage(), additionalContext);
+      storeException(request, response, retrofitErrorWrapper);
+      response.sendError(
+          e.getResponse().getStatus(),
+          exceptionMessageDecorator.decorate(
+              retrofitErrorWrapper, retrofitErrorWrapper.getMessage()));
     } else {
       // no retrofit response (likely) indicates a NETWORK error
       handleException(e, response, request);
@@ -122,10 +135,12 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
       if (message == null || message.trim().isEmpty()) {
         message = responseStatus.reason();
       }
-      response.sendError(httpStatus.value(), message);
+      response.sendError(httpStatus.value(), exceptionMessageDecorator.decorate(e, message));
     } else {
       logger.error("Internal Server Error", e);
-      response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+      response.sendError(
+          HttpStatus.INTERNAL_SERVER_ERROR.value(),
+          exceptionMessageDecorator.decorate(e, e.getMessage()));
     }
   }
 

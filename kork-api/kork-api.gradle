@@ -3,6 +3,8 @@ apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  api project(":kork-plugins-api")
+
   implementation project(":kork-annotations")
 
   testImplementation "org.assertj:assertj-core"

@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.exceptions;
+package com.netflix.spinnaker.kork.api.exceptions;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.experimental.Wither;
 
 /**
  * Builds a summary object from a given Exception. This object is meant to help provide context to
@@ -30,54 +27,7 @@ import lombok.experimental.Wither;
  */
 @Getter
 @Builder
-@Wither
 public class ExceptionSummary {
-
-  /** The primary factory method for an ExceptionSummary. */
-  public static ExceptionSummary from(Throwable throwable) {
-
-    List<TraceDetail> details = new ArrayList<>();
-
-    Throwable cause = throwable;
-    do {
-      details.add(createTraceDetail(cause));
-      cause = cause.getCause();
-    } while (cause != null);
-
-    List<TraceDetail> reversedDetails = new ArrayList<>(details);
-    Collections.reverse(reversedDetails);
-    Boolean retryable =
-        reversedDetails.stream()
-            .filter(d -> d.retryable != null)
-            .findFirst()
-            .map(d -> d.retryable)
-            .orElse(null);
-
-    return ExceptionSummary.builder()
-        .cause(details.get(details.size() - 1).message)
-        .message(details.get(0).message)
-        .details(reversedDetails)
-        .retryable(retryable)
-        .build();
-  }
-
-  private static TraceDetail createTraceDetail(Throwable throwable) {
-    TraceDetail.TraceDetailBuilder detailBuilder =
-        TraceDetail.builder().message(throwable.getMessage());
-
-    if (throwable instanceof SpinnakerException) {
-      SpinnakerException spinnakerException = (SpinnakerException) throwable;
-      detailBuilder
-          .userMessage(spinnakerException.getUserMessage())
-          .retryable(spinnakerException.getRetryable());
-    }
-    if (throwable instanceof HasAdditionalAttributes) {
-      detailBuilder.additionalAttributes(
-          ((HasAdditionalAttributes) throwable).getAdditionalAttributes());
-    }
-
-    return detailBuilder.build();
-  }
 
   /**
    * The upper-most exception message in a cause chain. Typically speaking, this message is fairly
@@ -110,7 +60,6 @@ public class ExceptionSummary {
 
   @Getter
   @Builder
-  @Wither
   public static class TraceDetail {
     /** The exception message. */
     private String message;

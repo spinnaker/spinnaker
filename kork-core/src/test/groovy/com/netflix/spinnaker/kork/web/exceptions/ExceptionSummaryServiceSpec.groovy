@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,12 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
-package com.netflix.spinnaker.kork.exceptions
 
+package com.netflix.spinnaker.kork.web.exceptions
+
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import spock.lang.Specification
 
-class ExceptionSummarySpec extends Specification {
+class ExceptionSummaryServiceSpec extends Specification {
+
+  ExceptionMessageDecorator exceptionMessageDecorator = Mock()
+  ExceptionSummaryService exceptionSummaryService = new ExceptionSummaryService(exceptionMessageDecorator)
 
   def "converts a chain of exceptions to a summary"() {
     given:
@@ -27,7 +33,7 @@ class ExceptionSummarySpec extends Specification {
     Exception topException = new IntegrationException("Failed to apply action SubmitTitusJob for TitusDeployHandler/sha1", nonSpinnakerException)
 
     when:
-    def result = ExceptionSummary.from(topException)
+    def result = exceptionSummaryService.summary(topException)
 
     then:
     result.message == "Failed to apply action SubmitTitusJob for TitusDeployHandler/sha1"
