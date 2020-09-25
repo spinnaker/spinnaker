@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregat
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
-import com.netflix.spinnaker.kork.exceptions.ExceptionSummary
+import com.netflix.spinnaker.kork.api.exceptions.ExceptionSummary
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -64,6 +65,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private final ObjectMapper objectMapper
   private final ExceptionClassifier exceptionClassifier
   private final RequestContextProvider contextProvider
+  private final ExceptionSummaryService exceptionSummaryService
 
   DefaultOrchestrationProcessor(
     TaskRepository taskRepository,
@@ -72,7 +74,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     Optional<Collection<OperationEventHandler>> operationEventHandlers,
     ObjectMapper objectMapper,
     ExceptionClassifier exceptionClassifier,
-    RequestContextProvider contextProvider
+    RequestContextProvider contextProvider,
+    ExceptionSummaryService exceptionSummaryService
   ) {
     this.taskRepository = taskRepository
     this.applicationContext = applicationContext
@@ -81,6 +84,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     this.objectMapper = objectMapper
     this.exceptionClassifier = exceptionClassifier
     this.contextProvider = contextProvider
+    this.exceptionSummaryService = exceptionSummaryService
   }
 
   @Override
@@ -213,7 +217,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
    * TODO(rz): Not 100% sure we should keep these two methods.
    */
   Map<String, Object> extractExceptionSummary(Throwable e, String userMessage) {
-    def summary = ExceptionSummary.from(e)
+    ExceptionSummary summary = exceptionSummaryService.summary(e)
     Map<String, Object> map = objectMapper.convertValue(summary, Map)
     map["message"] = userMessage
     map["type"] = "EXCEPTION"

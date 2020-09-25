@@ -1,4 +1,5 @@
 dependencies {
+  api("com.netflix.spinnaker.kork:kork-api")
   api("com.netflix.spinnaker.kork:kork-plugins")
 
   implementation project(":cats:cats-core")

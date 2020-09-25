@@ -24,6 +24,8 @@ import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
@@ -47,6 +49,8 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
   DynamicConfigService dynamicConfigService
 
+  ExceptionSummaryService exceptionSummaryService
+
   String taskKey
   private AuthenticatedRequestContextProvider contextProvider
 
@@ -58,6 +62,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     applicationContext.getAutowireCapableBeanFactory() >> Mock(AutowireCapableBeanFactory)
     dynamicConfigService = Mock(DynamicConfigService)
     contextProvider = new AuthenticatedRequestContextProvider()
+    exceptionSummaryService = new ExceptionSummaryService(Mock(ExceptionMessageDecorator))
 
     processor = new DefaultOrchestrationProcessor(
       taskRepository,
@@ -68,7 +73,8 @@ class DefaultOrchestrationProcessorSpec extends Specification {
       new ExceptionClassifier(new ExceptionClassifierConfigurationProperties(
         retryableClasses: [RetryableException.class.getName()]
       ), dynamicConfigService),
-      contextProvider
+      contextProvider,
+      exceptionSummaryService
     )
   }
 
