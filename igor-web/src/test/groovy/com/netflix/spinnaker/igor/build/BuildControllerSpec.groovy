@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.squareup.okhttp.mockwebserver.MockWebServer
@@ -61,6 +62,7 @@ class BuildControllerSpec extends Specification {
   BuildOperations service
   TravisService travisService
   PendingOperationsCache pendingOperationService
+  ExceptionMessageDecorator exceptionMessageDecorator
 
   @Shared
   MockWebServer server
@@ -83,6 +85,7 @@ class BuildControllerSpec extends Specification {
   }
 
   void setup() {
+    exceptionMessageDecorator = Mock(ExceptionMessageDecorator)
     service = Mock(BuildOperations)
     jenkinsService = Mock(JenkinsService)
     jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
@@ -107,7 +110,7 @@ class BuildControllerSpec extends Specification {
 
     mockMvc = MockMvcBuilders
       .standaloneSetup(new BuildController(buildServices, pendingOperationService, Optional.empty(), Optional.empty(), Optional.empty()))
-      .setControllerAdvice(new GenericExceptionHandlers())
+      .setControllerAdvice(new GenericExceptionHandlers(exceptionMessageDecorator))
       .build()
   }
 
@@ -193,6 +196,7 @@ class BuildControllerSpec extends Specification {
     given:
     jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
       number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: "badFile.yml", relativePath: FILE_NAME)])
+    1 * exceptionMessageDecorator.decorate(_, _)
 
     expect:
     mockMvc.perform(
@@ -205,6 +209,7 @@ class BuildControllerSpec extends Specification {
   void 'get properties of a build with a bad filename'() {
     given:
     1 * jenkinsService.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> genericBuild
+    1 * exceptionMessageDecorator.decorate(_, _)
     1 * jenkinsService.getBuildProperties(JOB_NAME, genericBuild, FILE_NAME) >> {
       throw new NotFoundException()
     }
