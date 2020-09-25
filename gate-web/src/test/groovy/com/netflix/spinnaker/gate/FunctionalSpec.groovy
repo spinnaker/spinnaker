@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -27,17 +28,16 @@ import com.netflix.spinnaker.gate.services.*
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
-import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.RestAdapter;
 import retrofit.client.OkClient
@@ -174,6 +174,7 @@ class FunctionalSpec extends Specification {
   }
 
   @Order(10)
+  @Import(ErrorConfiguration)
   @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
   private static class FunctionalConfiguration extends WebSecurityConfigurerAdapter {
 
@@ -270,11 +271,6 @@ class FunctionalSpec extends Specification {
         dynamicConfigService,
         fiatClientConfigurationProperties
       )
-    }
-
-    @Bean
-    GenericExceptionHandlers genericExceptionHandlers() {
-      new GenericExceptionHandlers()
     }
 
     @Override

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.plugins.web.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
@@ -49,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any
 import static org.mockito.Mockito.when
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
+@Import(ErrorConfiguration)
 @WebMvcTest(controllers = [PluginInfoController])
 @AutoConfigureMockMvc(addFilters = false)
 @ContextConfiguration(classes = [PluginsAutoConfiguration.class,PluginInfoController, GenericExceptionHandlers, SpinnakerExtensionsConfigProperties,  PluginWebConfiguration, ServiceConfiguration])
