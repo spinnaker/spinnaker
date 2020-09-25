@@ -8,20 +8,17 @@ import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.telemetry.ArtifactSaved
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.lang.Thread.sleep
 
 @Component
 class AdminService(
   private val repository: KeelRepository,
   private val actuationPauser: ActuationPauser,
   private val diffFingerprintRepository: DiffFingerprintRepository,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
-  private val publisher: ApplicationEventPublisher
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -66,37 +63,38 @@ class AdminService(
   }
 
   /**
-   * updates old artifact version records with their metadata, if exists, by type [deb/docker/npm]
+   * Updates artifact version records with the corresponding metadata, if available, by type [deb/docker/npm]
    */
-  fun backfillOldArtifactVersions(type: String) {
+  fun backFillArtifactMetadata(type: String) {
     val artifactSupplier = artifactSuppliers.supporting(type)
-    log.debug("starting to backfill old artifacts versions with artifact metadata")
-    //1. get all registered artifacts
+    log.debug("Starting to back-fill old artifacts versions with artifact metadata...")
+    // 1. get all registered artifacts
     val deliveryArtifacts = repository.getAllArtifacts(type)
-    //2. for each artifact, fetch all versions
+    // 2. for each artifact, fetch all versions
     deliveryArtifacts.forEach { artifact ->
       val versions = repository.artifactVersions(artifact)
       versions.forEach { version ->
+        sleep(5000) // sleep a little in-between versions to cut the instance where this runs some slack
+        log.debug("Evaluating $artifact version $version as candidate to back-fill metadata")
         val status = repository.getReleaseStatus(artifact, version)
-        //don't update if metadata is already exists
-        if (repository.getArtifactBuildMetadata(artifact.name, type, version, status) == null) {
-            runBlocking {
-              launch {
-              try {
-                //3. for each version, get information commit and build number from artifact supplier
-                val publishedArtifact = artifactSupplier.getArtifactByVersion(artifact, version)
-                //4. send an ArtifactSaved event, which is responsible for getting artifact metadata and storing it
-                if (publishedArtifact != null) {
-                  publisher.publishEvent(ArtifactSaved(publishedArtifact, status))
-                }
-              } catch (ex: Exception) {
-                log.error("error trying to get artifact by version or its metadata for artifact ${artifact.name}, and version $version", ex)
+        val artifactVersion = repository.getArtifactInstance(artifact.name, type, version, status)
+        // don't update if metadata is already exists
+        if (artifactVersion != null && (artifactVersion.gitMetadata == null || artifactVersion.buildMetadata == null)) {
+          runBlocking {
+            try {
+              // 3. for each version, get and store artifact metadata
+              log.debug("Fetching artifact metadata for $artifact version $version")
+              val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
+              if (artifactMetadata != null) {
+                log.debug("Storing updated metadata for $artifact version $version: $artifactMetadata")
+                repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
               }
+            } catch (ex: Exception) {
+              log.error("error trying to get artifact by version or its metadata for artifact ${artifact.name}, and version $version", ex)
             }
           }
         }
       }
     }
-
   }
 }

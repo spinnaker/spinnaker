@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -18,7 +19,6 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
-import com.netflix.spinnaker.keel.echo.ManualJudgementNotifier.Companion
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
@@ -107,7 +107,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         } returns DeliveryConfig("test", "test", "test@acme.net")
 
         every {
-          repository.getArtifactGitMetadata("mypkg", DEBIAN, "v1.0.0", any())
+          repository.getArtifactInstance("mypkg", DEBIAN, "v1.0.0", any())
         } returns null
       }
 
@@ -203,14 +203,19 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
       context("when git metadata is available for the artifact") {
         before {
           every {
-            repository.getArtifactGitMetadata("mypkg", DEBIAN, "v1.0.0", any())
-          } returns GitMetadata(
-            commit = "a1b2c3d",
-            author = "joesmith",
-            project = "myproj",
-            branch = "master",
-            repo = Repo("myapp"),
-            commitInfo = Commit(message = "A test commit")
+            repository.getArtifactInstance("mypkg", DEBIAN, "v1.0.0", any())
+          } returns PublishedArtifact(
+            name = "mypkg",
+            type = DEBIAN,
+            version = "v1.0.0",
+            gitMetadata = GitMetadata(
+              commit = "a1b2c3d",
+              author = "joesmith",
+              project = "myproj",
+              branch = "master",
+              repo = Repo("myapp"),
+              commitInfo = Commit(message = "A test commit")
+            )
           )
         }
 

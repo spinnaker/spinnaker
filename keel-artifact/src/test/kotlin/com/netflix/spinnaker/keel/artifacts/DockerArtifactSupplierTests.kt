@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
@@ -17,17 +15,15 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class DockerArtifactSupplierTests : JUnit5Minutests {
   object Fixture {
@@ -103,16 +99,6 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
           clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, deliveryConfig.serviceAccount)
           clouddriverService.findDockerImages(account = "*", repository = latestArtifact.name, tag = latestArtifact.version)
         }
-      }
-
-      test("returns full version string equal to the plain version") {
-        expectThat(dockerArtifactSupplier.getFullVersionString(latestArtifact))
-          .isEqualTo(latestArtifact.version)
-      }
-
-      test("returns no release status for Docker artifacts") {
-        expectThat(dockerArtifactSupplier.getReleaseStatus(latestArtifact))
-          .isNull()
       }
 
       test("returns git metadata based on tag when available") {

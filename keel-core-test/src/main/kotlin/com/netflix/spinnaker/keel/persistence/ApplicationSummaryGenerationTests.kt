@@ -10,11 +10,11 @@ import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.time.Clock
 import strikt.api.expect
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import java.time.Clock
 
 /**
  * In the artifact repository we have several methods that generate summary views of data
@@ -60,7 +60,7 @@ abstract class ApplicationSummaryGenerationTests<T : ArtifactRepository> : JUnit
     with(subject) {
       register(artifact)
       setOf(version1, version2).forEach {
-        store(artifact, it, RELEASE)
+        storeArtifactInstance(artifact.toArtifactInstance(it, RELEASE))
       }
     }
     persist(manifest)

@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -64,7 +63,8 @@ class ManualJudgementNotifier(
     val deliveryConfig = repository.getDeliveryConfig(currentState.deliveryConfigName)
     val artifactUrl = "$spinnakerBaseUrl/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
     val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
-    val gitMetadata = repository.getArtifactGitMetadata(artifact.name, artifact.type, currentState.artifactVersion, null)
+    val gitMetadata = repository.getArtifactInstance(artifact.name, artifact.type, currentState.artifactVersion, null)
+      ?.gitMetadata
     var details =
       "*Version:* <$artifactUrl|$normalizedVersion>\n" +
       "*Application:* ${deliveryConfig.application}, *Environment:* ${currentState.environmentName}\n"

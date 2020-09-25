@@ -48,6 +48,7 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -145,21 +146,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     with(subject) {
       register(artifact1)
       setOf(version1, version2, version3).forEach {
-        store(artifact1, it, SNAPSHOT)
+        storeArtifactInstance(artifact1.toArtifactInstance(it, SNAPSHOT))
       }
       setOf(version4, version5).forEach {
-        store(artifact1, it, RELEASE)
+        storeArtifactInstance(artifact1.toArtifactInstance(it, RELEASE))
       }
       register(artifact2)
       setOf(version1, version2, version3).forEach {
-        store(artifact2, it, SNAPSHOT)
+        storeArtifactInstance(artifact2.toArtifactInstance(it, SNAPSHOT))
       }
       setOf(version4, version5).forEach {
-        store(artifact2, it, RELEASE)
+        storeArtifactInstance(artifact2.toArtifactInstance(it, RELEASE))
       }
       register(artifact3)
       setOf(version6, versionBad).forEach {
-        store(artifact3, it, null)
+        storeArtifactInstance(artifact3.toArtifactInstance(it))
       }
     }
     persist(manifest)
@@ -195,7 +196,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       test("storing a new version throws an exception") {
         expectThrows<NoSuchArtifactException> {
-          subject.store(artifact1, version1, SNAPSHOT)
+          subject.storeArtifactInstance(artifact1.toArtifactInstance(version1, SNAPSHOT))
         }
       }
 
@@ -234,7 +235,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("an artifact version already exists") {
         before {
-          subject.store(artifact1, version1, SNAPSHOT)
+          subject.storeArtifactInstance(artifact1.toArtifactInstance(version1, SNAPSHOT))
         }
 
         test("release status for the version is returned correctly") {
@@ -242,13 +243,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
 
         test("registering the same version is a no-op") {
-          val result = subject.store(artifact1, version1, SNAPSHOT)
+          val result = subject.storeArtifactInstance(artifact1.toArtifactInstance(version1, SNAPSHOT))
           expectThat(result).isFalse()
           expectThat(subject.versions(artifact1)).hasSize(1)
         }
 
         test("adding a new version adds it to the list") {
-          val result = subject.store(artifact1, version2, SNAPSHOT)
+          val result = subject.storeArtifactInstance(artifact1.toArtifactInstance(version2, SNAPSHOT))
 
           expectThat(result).isTrue()
           expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
@@ -256,7 +257,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("querying the list for returns both artifacts") {
           // status is stored on the artifact
-          subject.store(artifact1, version2, SNAPSHOT)
+          subject.storeArtifactInstance(artifact1.toArtifactInstance(version2, SNAPSHOT))
           expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
         }
       }
@@ -267,9 +268,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             .shuffled()
             .forEach {
               if (it == version4 || it == version5) {
-                subject.store(artifact1, it, RELEASE)
+                subject.storeArtifactInstance(artifact1.toArtifactInstance(it, RELEASE))
               } else {
-                subject.store(artifact1, it, SNAPSHOT)
+                subject.storeArtifactInstance(artifact1.toArtifactInstance(it, SNAPSHOT))
               }
             }
         }
@@ -691,8 +692,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("getting all filters by type") {
       before {
         persist()
-        subject.store(artifact1, version4, FINAL)
-        subject.store(artifact3, version6, FINAL)
+        subject.storeArtifactInstance(artifact1.toArtifactInstance(version4, FINAL))
+        subject.storeArtifactInstance(artifact3.toArtifactInstance(version6, FINAL))
       }
 
       test("querying works") {
@@ -778,26 +779,49 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("artifact metadata exists") {
       before {
         subject.register(artifact1)
-        subject.store(artifact1.name, artifact1.type, version1, SNAPSHOT)
+        subject.storeArtifactInstance(artifact1.toArtifactInstance(version1, SNAPSHOT).copy(
+          gitMetadata = artifactMetadata.gitMetadata,
+          buildMetadata = artifactMetadata.buildMetadata
+        ))
       }
-      test ("save and retrieves successfully") {
-        subject.updateArtifactMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT, artifactMetadata)
 
-        expectThat(subject.getArtifactBuildMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+      test("retrieves successfully") {
+        val artifactVersion = subject.getArtifactInstance(artifact1.name, artifact1.type, version1, SNAPSHOT)!!
+
+        expectThat(artifactVersion.buildMetadata)
           .isEqualTo(artifactMetadata.buildMetadata)
 
-        expectThat(subject.getArtifactGitMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+        expectThat(artifactVersion.gitMetadata)
           .isEqualTo(artifactMetadata.gitMetadata)
       }
 
-      test("verify update with version that contains only version") {
-        subject.updateArtifactMetadata(artifact1.name, artifact1.type, versionOnly, SNAPSHOT, artifactMetadata)
+      test("update with non-prefixed version works") {
+        subject.storeArtifactInstance(artifact1.toArtifactInstance(versionOnly, SNAPSHOT).copy(
+          gitMetadata = artifactMetadata.gitMetadata,
+          buildMetadata = artifactMetadata.buildMetadata
+        ))
 
-        expectThat(subject.getArtifactBuildMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+        val artifactVersion = subject.getArtifactInstance(artifact1.name, artifact1.type, version1, SNAPSHOT)!!
+
+        expectThat(artifactVersion.buildMetadata)
           .isEqualTo(artifactMetadata.buildMetadata)
 
-        expectThat(subject.getArtifactGitMetadata(artifact1.name, artifact1.type, version1, SNAPSHOT))
+        expectThat(artifactVersion.gitMetadata)
           .isEqualTo(artifactMetadata.gitMetadata)
+      }
+    }
+
+    context("artifact creation timestamp exists") {
+      val createdAt = Instant.now()
+
+      before {
+        subject.register(artifact1)
+        subject.storeArtifactInstance(artifact1.toArtifactInstance(version1, SNAPSHOT, createdAt = createdAt))
+      }
+
+      test("retrieves timestamp successfully") {
+        val artifactVersion = subject.getArtifactInstance(artifact1.name, artifact1.type, version1, SNAPSHOT)!!
+        expectThat(artifactVersion.createdAt).isEqualTo(createdAt)
       }
     }
   }

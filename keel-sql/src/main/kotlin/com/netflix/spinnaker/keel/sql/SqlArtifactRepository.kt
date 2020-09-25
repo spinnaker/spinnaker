@@ -8,9 +8,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
@@ -48,12 +47,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import java.security.MessageDigest
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant.EPOCH
-import java.time.ZoneOffset.UTC
-import javax.xml.bind.DatatypeConverter
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -63,6 +56,12 @@ import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
+import java.security.MessageDigest
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant.EPOCH
+import java.time.ZoneOffset.UTC
+import javax.xml.bind.DatatypeConverter
 
 class SqlArtifactRepository(
   private val jooq: DSLContext,
@@ -171,76 +170,6 @@ class SqlArtifactRepository(
       } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
-    store(artifact.name, artifact.type, version, status)
-
-  override fun store(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): Boolean {
-    if (!isRegistered(name, type)) {
-      throw NoSuchArtifactException(name, type)
-    }
-
-    return sqlRetry.withRetry(WRITE) {
-      jooq.insertInto(ARTIFACT_VERSIONS)
-        .set(ARTIFACT_VERSIONS.NAME, name)
-        .set(ARTIFACT_VERSIONS.TYPE, type)
-        .set(ARTIFACT_VERSIONS.VERSION, version)
-        .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
-        .onDuplicateKeyIgnore()
-        .execute()
-    } == 1
-  }
-
-  override fun updateArtifactMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?, artifactMetadata: ArtifactMetadata) {
-    if (!isRegistered(name, type)) {
-      throw NoSuchArtifactException(name, type)
-    }
-
-    sqlRetry.withRetry(WRITE) {
-      jooq.update(ARTIFACT_VERSIONS)
-        .set(ARTIFACT_VERSIONS.BUILD_METADATA, objectMapper.writeValueAsString(artifactMetadata.buildMetadata))
-        .set(ARTIFACT_VERSIONS.GIT_METADATA, objectMapper.writeValueAsString(artifactMetadata.gitMetadata))
-
-        .where(
-          ARTIFACT_VERSIONS.NAME.eq(name),
-          ARTIFACT_VERSIONS.TYPE.eq(type),
-          ARTIFACT_VERSIONS.VERSION.eq(version).or(ARTIFACT_VERSIONS.VERSION.eq("$name-$version")))
-        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
-        .execute()
-    }
-  }
-
-  override fun getArtifactBuildMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): BuildMetadata? {
-    return sqlRetry.withRetry(READ) {
-      jooq
-        .select(ARTIFACT_VERSIONS.BUILD_METADATA)
-        .from(ARTIFACT_VERSIONS)
-        .where(ARTIFACT_VERSIONS.NAME.eq(name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(type))
-        .and(ARTIFACT_VERSIONS.VERSION.eq(version))
-        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
-        .fetchOne(ARTIFACT_VERSIONS.BUILD_METADATA)
-        ?.let { metadata ->
-          objectMapper.readValue<BuildMetadata>(metadata)
-        }
-    }
-  }
-
-  override fun getArtifactGitMetadata(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): GitMetadata? {
-    return sqlRetry.withRetry(READ) {
-      jooq
-        .select(ARTIFACT_VERSIONS.GIT_METADATA)
-        .from(ARTIFACT_VERSIONS)
-        .where(ARTIFACT_VERSIONS.NAME.eq(name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(type))
-        .and(ARTIFACT_VERSIONS.VERSION.eq(version))
-        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
-        .fetchOne(ARTIFACT_VERSIONS.GIT_METADATA)
-        ?.let { metadata ->
-          objectMapper.readValue<GitMetadata>(metadata)
-        }
-    }
-  }
-
   override fun delete(artifact: DeliveryArtifact) {
     requireNotNull(artifact.deliveryConfigName) { "Error removing artifact - it has no delivery config!" }
     val deliveryConfigId = select(DELIVERY_CONFIG.UID)
@@ -316,6 +245,79 @@ class SqlArtifactRepository(
     } else {
       throw NoSuchArtifactException(artifact)
     }
+
+  override fun storeArtifactInstance(artifact: PublishedArtifact): Boolean {
+    with(artifact) {
+      if (!isRegistered(name, type)) {
+        throw NoSuchArtifactException(name, type)
+      }
+
+      return sqlRetry.withRetry(WRITE) {
+        jooq.insertInto(ARTIFACT_VERSIONS)
+          .set(ARTIFACT_VERSIONS.NAME, name)
+          .set(ARTIFACT_VERSIONS.TYPE, type)
+          .set(ARTIFACT_VERSIONS.VERSION, version)
+          .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
+          .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt?.toTimestamp())
+          .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata?.let { objectMapper.writeValueAsString(it) })
+          .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata?.let { objectMapper.writeValueAsString(it) })
+          .onDuplicateKeyIgnore()
+          .execute()
+      } == 1
+    }
+  }
+
+  override fun getArtifactInstance(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): PublishedArtifact? {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA
+        )
+        .from(ARTIFACT_VERSIONS)
+        .where(ARTIFACT_VERSIONS.NAME.eq(name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(type))
+        .and(ARTIFACT_VERSIONS.VERSION.eq(version))
+        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
+        .fetchOne()
+        ?.let { (name, type, version, status, createdAt, gitMetadata, buildMetadata) ->
+          PublishedArtifact(
+            name = name,
+            type = type,
+            version = version,
+            status = status?.let { ArtifactStatus.valueOf(it) },
+            createdAt = createdAt?.toInstant(UTC),
+            gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
+            buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
+          )
+        }
+    }
+  }
+
+  override fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata) {
+    with(artifact) {
+      if (!isRegistered(name, type)) {
+        throw NoSuchArtifactException(name, type)
+      }
+
+      sqlRetry.withRetry(WRITE) {
+        jooq.update(ARTIFACT_VERSIONS)
+          .set(ARTIFACT_VERSIONS.BUILD_METADATA, objectMapper.writeValueAsString(artifactMetadata.buildMetadata))
+          .set(ARTIFACT_VERSIONS.GIT_METADATA, objectMapper.writeValueAsString(artifactMetadata.gitMetadata))
+          .where(
+            ARTIFACT_VERSIONS.NAME.eq(name),
+            ARTIFACT_VERSIONS.TYPE.eq(type),
+            ARTIFACT_VERSIONS.VERSION.eq(version).or(ARTIFACT_VERSIONS.VERSION.eq("$name-$version")))
+          .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
+          .execute()
+      }
+    }
+  }
 
   override fun getReleaseStatus(artifact: DeliveryArtifact, version: String): ArtifactStatus? =
     if (isRegistered(artifact.name, artifact.type)) {

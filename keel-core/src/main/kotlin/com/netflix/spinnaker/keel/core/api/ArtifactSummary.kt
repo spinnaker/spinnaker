@@ -30,7 +30,8 @@ data class ArtifactVersionSummary(
   val displayName: String,
   val environments: Set<ArtifactSummaryInEnvironment>,
   val build: BuildMetadata? = null,
-  val git: GitMetadata? = null
+  val git: GitMetadata? = null,
+  val createdAt: Instant? = null
 )
 
 @JsonInclude(Include.NON_EMPTY)

@@ -33,7 +33,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummyVersioningStrategy
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
-import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.versionedArtifactResource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -112,17 +111,16 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
     }
 
-    private val publishedArtifact = slot<PublishedArtifact>()
+    private val artifactVersion = slot<PublishedArtifact>()
     private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummyVersioningStrategy>>(relaxUnitFun = true) {
       every { supportedArtifact } returns SupportedArtifact("dummy", DummyArtifact::class.java)
       every {
-        getVersionDisplayName(capture(publishedArtifact))
+        getVersionDisplayName(capture(artifactVersion))
       } answers {
-        publishedArtifact.captured.version
+        artifactVersion.captured.version
       }
       every { parseDefaultBuildMetadata(any(), any()) } returns null
       every { parseDefaultGitMetadata(any(), any()) } returns null
-      every { getReleaseStatus(any()) } returns null
     }
 
     // subject
@@ -130,8 +128,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       repository,
       resourceStatusService,
       listOf(dependsOnEvaluator),
-      listOf(artifactSupplier),
-      configuredTestObjectMapper()
+      listOf(artifactSupplier)
     )
 
     val buildMetadata = BuildMetadata(
@@ -154,12 +151,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { repository.getDeliveryConfigForApplication(application) } returns deliveryConfig
 
       every {
-        repository.getArtifactGitMetadata(any(), any(), any(), any())
-      } returns null
-
-      every {
-        repository.getArtifactBuildMetadata(any(), any(), any(), any())
-      } returns null
+        repository.getArtifactInstance(any(), any(), any(), any())
+      } answers {
+        PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2))
+      }
 
       every {
         repository.getReleaseStatus(artifact, any())
@@ -168,7 +163,6 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     context("artifact summaries by application") {
       before {
-        // repository.artifactVersions(artifact)
         every { repository.artifactVersions(artifact) } returns versions
       }
 
@@ -193,12 +187,10 @@ class ApplicationServiceTests : JUnit5Minutests {
           } returns false
 
           every {
-            repository.getArtifactGitMetadata(any(), any(), any(), any())
-          } returns gitMetadata
-
-          every {
-            repository.getArtifactBuildMetadata(any(), any(), any(), any())
-          } returns buildMetadata
+            repository.getArtifactInstance(any(), any(), any(), any())
+          } answers {
+            PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
+          }
         }
 
         test("artifact summary shows all versions pending in all environments") {

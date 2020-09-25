@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
@@ -14,7 +13,6 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.springframework.stereotype.Component
 
 /**
@@ -50,16 +48,6 @@ class NpmArtifactSupplier(
     runWithIoContext {
       artifactService.getArtifact(artifact.nameForQuery, version, NPM)
     }
-
-  /**
-   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
-   * present in [metadata]
-   */
-  override fun getReleaseStatus(artifact: PublishedArtifact): ArtifactStatus {
-    val status = artifact.metadata["releaseStatus"]?.toString()
-      ?: throw IntegrationException("Artifact metadata does not contain 'releaseStatus' field")
-    return ArtifactStatus.valueOf(status)
-  }
 
   /**
    * Extracts a version display name from version string using the Netflix semver convention.
