@@ -35,14 +35,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.bind.Bindable
 import org.springframework.boot.context.properties.bind.Binder
-import org.springframework.boot.context.properties.bind.PropertySourcesPlaceholdersResolver
 import org.springframework.boot.context.properties.source.ConfigurationPropertyName
-import org.springframework.boot.context.properties.source.ConfigurationPropertySources
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.convert.ConversionService
-import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.Environment
 import retrofit.converter.Converter
 import retrofit.converter.JacksonConverter
 
@@ -58,10 +55,7 @@ class EurekaProviderConfiguration {
   Registry registry
 
   @Autowired
-  ConversionService conversionService
-
-  @Autowired
-  ConfigurableEnvironment environment
+  Environment environment
 
   @Bean
   @ConfigurationProperties("eureka.provider")
@@ -70,18 +64,13 @@ class EurekaProviderConfiguration {
   }
 
   private OkHttpClientConfigurationProperties eurekaClientConfig() {
-    Binder binder = new Binder(
-      ConfigurationPropertySources.from(environment.propertySources),
-      new PropertySourcesPlaceholdersResolver(environment),
-      conversionService)
-
     OkHttpClientConfigurationProperties properties =
       new OkHttpClientConfigurationProperties(
         propagateSpinnakerHeaders: false,
         connectTimoutMs: 10000,
         keyStore: null,
         trustStore: null)
-    binder.bind(
+    Binder.get(environment).bind(
       ConfigurationPropertyName.of("eureka.readonly.ok-http-client"),
       Bindable.ofInstance(properties))
     return properties
