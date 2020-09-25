@@ -39,7 +39,7 @@ fun StageDefinitionBuilder.buildTasks(stage: StageExecution) {
 }
 
 fun StageDefinitionBuilder.addContextFlags(stage: StageExecution) {
-  if (canManuallySkip()) {
+  if (canManuallySkip(stage)) {
     // Provides a flag for the UI to indicate that the stage can be skipped.
     stage.context["canManuallySkip"] = true
   }

@@ -22,35 +22,54 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 
 class PipelineStageSpec extends Specification {
-  def executionRepository = Mock(ExecutionRepository)
+    def executionRepository = Mock(ExecutionRepository)
 
-  @Subject
-  def pipelineStage = new PipelineStage(executionRepository)
+    @Subject
+    def pipelineStage = new PipelineStage(executionRepository)
 
-  @Unroll
-  def "should cancel child pipeline (if started and not already canceled)"() {
-    given:
-    def childPipeline = PipelineExecutionImpl.newPipeline("childPipeline")
-    childPipeline.canceled = childPipelineIsCanceled
+    @Unroll
+    def "should cancel child pipeline (if started and not already canceled)"() {
+        given:
+        def childPipeline = PipelineExecutionImpl.newPipeline("childPipeline")
+        childPipeline.canceled = childPipelineIsCanceled
 
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "pipeline", stageContext)
+        def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "pipeline", stageContext)
 
-    and:
-    executionRepository.retrieve(PIPELINE, stageContext.executionId) >> childPipeline
+        and:
+        executionRepository.retrieve(PIPELINE, stageContext.executionId) >> childPipeline
 
-    when:
-    pipelineStage.cancel(stage)
+        when:
+        pipelineStage.cancel(stage)
 
-    then:
-    (shouldCancel ? 1 : 0) * executionRepository.cancel(PIPELINE, stageContext.executionId, "parent pipeline", null)
+        then:
+        (shouldCancel ? 1 : 0) * executionRepository.cancel(PIPELINE, stageContext.executionId, "parent pipeline", null)
 
-    where:
-    stageContext                     || childPipelineIsCanceled || shouldCancel
-    [:]                              || false                   || false            // child pipeline has not started
-    [executionId: "sub-pipeline-id"] || false                   || true            // child pipeline has started and should cancel
-    [executionId: "sub-pipeline-id"] || true                    || false            // child pipeline has already been canceled
-  }
+        where:
+        stageContext                     || childPipelineIsCanceled || shouldCancel
+        [:]                              || false                   || false            // child pipeline has not started
+        [executionId: "sub-pipeline-id"] || false                   || true            // child pipeline has started and should cancel
+        [executionId: "sub-pipeline-id"] || true                    || false            // child pipeline has already been canceled
+    }
+
+    @Unroll
+    def "should skip pipeline if manually skipped"() {
+        given:
+        def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("testapp"), "pipeline", stageContext)
+
+        when:
+        def canSkip = pipelineStage.canManuallySkip(stage)
+
+        then:
+        assert canSkip == expectCanSkip
+
+        where:
+        stageContext       || expectCanSkip
+        [:]                || false
+        [skippable: true]  || true
+        [skippable: false] || false
+    }
 }

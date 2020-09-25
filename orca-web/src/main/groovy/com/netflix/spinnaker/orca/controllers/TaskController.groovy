@@ -493,7 +493,7 @@ class TaskController {
   // If other execution mutations need validation, factor this out.
   void validateStageUpdate(StageExecution stage) {
     if (stage.context.manualSkip
-      && !stageDefinitionBuilderFactory.builderFor(stage)?.canManuallySkip()) {
+      && !stageDefinitionBuilderFactory.builderFor(stage)?.canManuallySkip(stage)) {
       throw new CannotUpdateExecutionStage("Cannot manually skip stage.")
     }
   }

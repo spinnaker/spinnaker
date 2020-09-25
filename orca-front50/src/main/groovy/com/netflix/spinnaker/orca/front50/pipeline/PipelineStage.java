@@ -120,4 +120,9 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
 
     return new CancellableStage.Result(stage, emptyMap());
   }
+
+  @Override
+  public boolean canManuallySkip(StageExecution stage) {
+    return (Boolean) stage.getContext().getOrDefault("skippable", false);
+  }
 }

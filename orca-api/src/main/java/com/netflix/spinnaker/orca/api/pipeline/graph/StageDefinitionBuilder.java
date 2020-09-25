@@ -120,7 +120,7 @@ public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
   }
 
   /** Return true if the stage can be manually skipped from the API. */
-  default boolean canManuallySkip() {
+  default boolean canManuallySkip(StageExecution stage) {
     return false;
   }
 
