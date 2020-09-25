@@ -297,7 +297,7 @@ class SqlTaskRepository(
         baseQuery
           .innerJoin(tasksTable.`as`("t")).on(field("a.task_id").eq("t.id"))
           .where(
-            field("a.owner_id").eq(ClouddriverHostname.ID)
+            field("t.owner_id").eq(ClouddriverHostname.ID)
               .and(field("a.state").eq(TaskState.STARTED.toString()))
           )
       } else {
