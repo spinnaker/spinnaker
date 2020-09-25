@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.Setter;
@@ -32,6 +36,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,6 +47,7 @@ import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.converter.JacksonConverter;
 
+@Import(ErrorConfiguration.class)
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
@@ -81,6 +88,13 @@ public class FiatAuthenticationConfig {
   @Bean
   FiatWebSecurityConfigurerAdapter fiatSecurityConfig(FiatStatus fiatStatus) {
     return new FiatWebSecurityConfigurerAdapter(fiatStatus);
+  }
+
+  @Bean
+  @Order(HIGHEST_PRECEDENCE)
+  FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler(
+      ExceptionMessageDecorator exceptionMessageDecorator) {
+    return new FiatAccessDeniedExceptionHandler(exceptionMessageDecorator);
   }
 
   private class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
