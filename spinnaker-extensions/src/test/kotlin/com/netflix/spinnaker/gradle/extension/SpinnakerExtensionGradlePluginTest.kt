@@ -17,14 +17,8 @@ package com.netflix.spinnaker.gradle.extension
 
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
-import com.sun.net.httpserver.HttpServer
-import org.gradle.api.Project
-import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.testfixtures.ProjectBuilder
-import java.net.InetSocketAddress
-import org.gradle.api.tasks.testing.Test as GradleTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 /**
@@ -84,102 +78,4 @@ class SpinnakerExtensionGradlePluginTest {
     assertNotNull(project.tasks.findByName(Plugins.BUNDLE_PLUGINS_TASK_NAME))
     assertNotNull(project.tasks.findByName(Plugins.COLLECT_PLUGIN_ZIPS_TASK_NAME))
   }
-
-  @Test
-  fun `compatibility-test-runner plugin registers tasks, source sets, and configurations`() {
-    val service = "orca"
-    val compatibility = listOf("1.21.1", "1.22.0")
-
-    // Configure bundler plugin in root project.
-    val rootProject = ProjectBuilder.builder().build()
-    rootProject.plugins.apply("io.spinnaker.plugin.bundler")
-    rootProject.extensions.getByType(SpinnakerBundleExtension::class.java).apply {
-      compatibility {
-        spinnaker = compatibility
-      }
-    }
-
-    // Configure test runner and Spinnaker extension plugins.
-    val subproject = ProjectBuilder.builder().withName("$service-plugin").withParent(rootProject).build()
-    subproject.plugins.apply("io.spinnaker.plugin.compatibility-test-runner")
-    subproject.plugins.apply("io.spinnaker.plugin.service-extension")
-    subproject.extensions.getByType(SpinnakerPluginExtension::class.java).apply {
-      serviceName = service
-    }
-
-    // Verify tasks, source sets, and configurations exist.
-    assertNotNull(rootProject.tasks.findByName(SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME))
-    compatibility.forEach {
-      subproject.tasks.findByName("${SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME}-orca-plugin-${it}").also { task ->
-        assertNotNull(task)
-        assert(task is GradleTest) {
-          "expected generated task to be of type Test"
-        }
-      }
-      assertNotNull(subproject.sourceSets.findByName("compatibility-${it}"))
-      assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))
-    }
-  }
-
-  @Test
-  fun `compatibility-test-runner sets service Gradle BOM version using Halyard BOM`() {
-    val service = "orca"
-    val compatibility = listOf("1.21.1", "1.22.0")
-
-    // Set up bom server.
-    val halconfigServer = HttpServer.create(InetSocketAddress(0), 0).apply {
-      compatibility.forEach { version ->
-        createContext("/bom/${version}.yml") {
-          it.responseHeaders.set("Content-Type", "application/x-yaml")
-          it.sendResponseHeaders(200, 0)
-          it.responseBody.write("""
-            version: "$version"
-            services:
-              ${service}:
-                version: "google-service-version-${version}"
-          """.trimIndent().toByteArray())
-          it.responseBody.close()
-        }
-      }
-      start()
-    }
-
-    // Configure bundler plugin in root project.
-    val rootProject = ProjectBuilder.builder().build()
-    rootProject.plugins.apply("io.spinnaker.plugin.bundler")
-
-    rootProject.extensions.getByType(SpinnakerBundleExtension::class.java).apply {
-      compatibility {
-        spinnaker = compatibility
-        halconfigBaseURL = "http://localhost:${halconfigServer.address.port}"
-      }
-    }
-
-    // Configure test runner and Spinnaker extension plugins.
-    val subproject = ProjectBuilder.builder().withName("$service-plugin").withParent(rootProject).build()
-    subproject.plugins.apply("io.spinnaker.plugin.compatibility-test-runner")
-    subproject.plugins.apply("io.spinnaker.plugin.service-extension")
-    subproject.extensions.getByType(SpinnakerPluginExtension::class.java).apply {
-      serviceName = service
-    }
-
-    // Trigger lifecycle hooks.
-    subproject.evaluate()
-
-    compatibility.forEach { version ->
-      val configuration = subproject.configurations.findByName("compatibility-${version}Implementation")
-      assertNotNull(configuration)
-
-      val bom = configuration.dependencies.find { dependency ->
-        dependency.group == "com.netflix.spinnaker.${service}" && dependency.name == "$service-bom"
-      }
-      assertNotNull(bom)
-      assertEquals("google-service-version-${version}", bom.version)
-      assert(bom.force) {
-        "expected gradle BOM dependency version to be forced"
-      }
-    }
-  }
 }
-
-private fun Project.evaluate() = withGroovyBuilder { "evaluate"() }

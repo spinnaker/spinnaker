@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.gradle.extension
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import org.gradle.api.Plugin
@@ -34,21 +29,21 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
 import java.lang.IllegalStateException
-import java.net.URL
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
 
-  private val mapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule()).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
   override fun apply(project: Project) {
     project.plugins.apply(JavaPlugin::class.java)
     project.plugins.apply(KotlinPluginWrapper::class.java)
 
     val bundle = project.rootProject.extensions.getByType(SpinnakerBundleExtension::class)
-    bundle.compatibility.spinnaker.forEach { v ->
+    val spinnakerVersionsClient = DefaultSpinnakerVersionsClient(bundle.compatibility.halconfigBaseURL)
+
+    val resolvedVersions = spinnakerVersionsClient.resolveVersionAliases(bundle.compatibility.spinnaker)
+    resolvedVersions.forEach { v ->
       val sourceSet = "compatibility-$v"
       val configuration = "${sourceSet}Implementation"
 
@@ -76,8 +71,8 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
       // so push this last step into a lifecycle hook.
       project.afterEvaluate {
         val plugin = project.extensions.getByType(SpinnakerPluginExtension::class)
-        val resolvedServiceVersion = URL("${bundle.compatibility.halconfigBaseURL}/bom/${v}.yml").openStream().use {
-          mapper.readValue<HalyardBOM>(it).services[plugin.serviceName]?.version ?: throw IllegalStateException("Could not find version for service ${plugin.serviceName}")
+        val resolvedServiceVersion = spinnakerVersionsClient.getSpinnakerBOM(v).let {
+          it.services[plugin.serviceName]?.version ?: throw IllegalStateException("Could not find version for service ${plugin.serviceName}")
         }
 
         project.dependencies.platform("com.netflix.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion").apply {
@@ -101,7 +96,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
     project.rootProject.tasks.maybeCreate(TASK_NAME).apply {
       description = "Runs Spinnaker compatibility tests"
       group = GROUP
-      dependsOn(bundle.compatibility.spinnaker.map { ":${project.name}:compatibilityTest-${project.name}-$it" })
+      dependsOn(resolvedVersions.map { ":${project.name}:compatibilityTest-${project.name}-$it" })
     }
   }
 
@@ -124,10 +119,19 @@ private val SourceSet.kotlin: SourceDirectorySet
 private fun Project.compileKotlinTask(task: String): KotlinCompile? =
   tasks.findByName(task) as KotlinCompile?
 
-data class HalyardBOM(
-  val services: Map<String, ServiceVersion>
-)
+private fun SpinnakerVersionsClient.resolveVersionAliases(versions: List<String>): Set<String> {
+  // Save a lookup if none of the versions are aliases.
+  if (!versions.any { SpinnakerVersionAlias.isAlias(it) }) {
+    return versions.toSet()
+  }
 
-data class ServiceVersion(
-  val version: String?
-)
+  val versionsManifest = getVersionsManifest()
+  return versions.flatMapTo(mutableSetOf()) { version ->
+    when (SpinnakerVersionAlias.from(version)) {
+      SpinnakerVersionAlias.LATEST -> listOf(versionsManifest.latestSpinnaker)
+      SpinnakerVersionAlias.SUPPORTED -> versionsManifest.versions.map { it.version }
+      SpinnakerVersionAlias.NIGHTLY -> listOf("master-latest-validated")
+      else -> listOf(version)
+    }
+  }
+}

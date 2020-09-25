@@ -100,6 +100,12 @@ The test runner dynamically creates Gradle source sets for each top-level Spinna
 depend on the service Gradle platform version (e.g., `com.spinnaker.netflix.orca:orca-bom`) that corresponds to those Spinnaker versions.
 It does _not_ alter your plugin's compile or runtime classpaths. Your plugin compiles against version `X`; the test runner runs your plugin inside Spinnaker `Y` and `Z`.
 
+Instead of providing an explicit version, you can also supply any of the following aliases:
+
+- `latest`: the most recent Spinnaker release
+- `supported`: the last three Spinnaker releases
+- `nightly`: Spinnaker's nightly build
+
 ### Notes
 
 * Expects multi-project gradle builds where each sub project implements extensions targeting a single spinnaker service.
