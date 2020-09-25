@@ -16,18 +16,14 @@
 
 package com.netflix.spinnaker.kork;
 
-import com.netflix.spinnaker.kork.api.exceptions.ExceptionMessage;
 import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
 import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
-import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
-import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService;
 import io.github.resilience4j.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration;
 import io.github.resilience4j.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration;
 import java.util.List;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -58,17 +54,5 @@ public class PlatformComponents {
   @ConditionalOnMissingBean(SpringPackageVersionResolver.class)
   VersionResolver springPackageVersionResolver(ApplicationContext applicationContext) {
     return new SpringPackageVersionResolver(applicationContext);
-  }
-
-  @Bean
-  ExceptionMessageDecorator exceptionMessageDecorator(
-      ObjectProvider<List<ExceptionMessage>> exceptionMessagesProvider) {
-    return new ExceptionMessageDecorator(exceptionMessagesProvider);
-  }
-
-  @Bean
-  ExceptionSummaryService exceptionSummaryService(
-      ExceptionMessageDecorator exceptionMessageDecorator) {
-    return new ExceptionSummaryService(exceptionMessageDecorator);
   }
 }

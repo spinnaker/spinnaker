@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.kork.api.exceptions.ExceptionMessage
 import com.netflix.spinnaker.kork.web.controllers.GenericErrorController
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes
 import org.springframework.boot.web.servlet.error.ErrorAttributes
 import org.springframework.context.annotation.Bean
@@ -52,7 +56,19 @@ class ErrorConfiguration {
   }
 
   @Bean
-  GenericExceptionHandlers genericExceptionHandlers() {
-    return new GenericExceptionHandlers()
+  GenericExceptionHandlers genericExceptionHandlers(ExceptionMessageDecorator exceptionMessageDecorator) {
+    return new GenericExceptionHandlers(exceptionMessageDecorator)
+  }
+
+  @Bean
+  ExceptionMessageDecorator exceptionMessageDecorator(
+    ObjectProvider<List<ExceptionMessage>> exceptionMessagesProvider) {
+    return new ExceptionMessageDecorator(exceptionMessagesProvider);
+  }
+
+  @Bean
+  ExceptionSummaryService exceptionSummaryService(
+    ExceptionMessageDecorator exceptionMessageDecorator) {
+    return new ExceptionSummaryService(exceptionMessageDecorator);
   }
 }
