@@ -61,6 +61,9 @@ data class PublishedArtifact(
       }
     }
 
-  // FIXME: it's silly that we're prepending the artifact name for Debian only...
-  fun normalized() = copy(version = if (type == DEBIAN && !version.startsWith(name)) "$name-$version" else version)
+  fun normalized() = copy(
+    type = type.toLowerCase(),
+    // FIXME: it's silly that we're prepending the artifact name for Debian only...
+    version = if (type.toLowerCase() == DEBIAN && !version.startsWith(name)) "$name-$version" else version
+  )
 }

@@ -29,7 +29,7 @@ import io.mockk.coVerify as verify
 
 internal class ArtifactListenerTests : JUnit5Minutests {
   val publishedDeb = PublishedArtifact(
-    type = DEBIAN,
+    type = "DEB",
     customKind = false,
     name = "fnord",
     version = "0.156.0-h58.f67fe09",
@@ -39,7 +39,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   ).normalized()
 
   val newerPublishedDeb = PublishedArtifact(
-    type = DEBIAN,
+    type = "DEB",
     customKind = false,
     name = "fnord",
     version = "0.161.0-h61.116f116",
