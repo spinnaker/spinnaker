@@ -305,7 +305,7 @@ class SqlTaskRepository(
       }
 
       select
-        .fetch("task_id", String::class.java)
+        .fetch("t.task_id", String::class.java)
         .toTypedArray()
     }
   }
