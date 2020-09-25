@@ -1,0 +1,16 @@
+apply plugin: 'java-library'
+
+tasks.compileGroovy.enabled=false
+
+dependencies {
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.google.guava:guava"
+  implementation "com.netflix.spinnaker.kork:kork-annotations"
+  implementation "com.netflix.spinnaker.kork:kork-config"
+  implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.springframework.cloud:spring-cloud-context"
+  implementation "org.springframework.cloud:spring-cloud-config-server"
+}

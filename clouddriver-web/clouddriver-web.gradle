@@ -51,9 +51,9 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"
-  runtimeOnly "org.springframework.cloud:spring-cloud-config-server"
 
   runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+  runtimeOnly project(":clouddriver-configserver")
 
   testImplementation project(":clouddriver-elasticsearch")
 

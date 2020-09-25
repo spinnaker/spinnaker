@@ -25,8 +25,6 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-credentials"
-  implementation "com.netflix.spinnaker.kork:kork-config"
-  implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.netflix.spinnaker.kork:kork-web"
@@ -43,8 +41,6 @@ dependencies {
   implementation "org.apache.commons:commons-exec"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
-  implementation "org.springframework.cloud:spring-cloud-context"
-  implementation "org.springframework.cloud:spring-cloud-config-server"
   implementation "redis.clients:jedis"
   implementation "org.jooq:jooq"
 

@@ -98,15 +98,12 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.cloud.context.scope.refresh.RefreshScope
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -385,12 +382,5 @@ class CloudDriverConfig {
     return new ExceptionClassifier(properties, dynamicConfigService)
   }
 
-  @Bean
-  @ConditionalOnExpression("\${dynamic-config.enabled:false}")
-  ModifiableFilePropertySources modifiableFilePropertySources(
-      ConfigurableApplicationContext applicationContext,
-      RefreshScope refreshScope,
-      @Value("\${dynamic-config.files}") List<String> dynamicFiles) {
-      return new ModifiableFilePropertySources(applicationContext, refreshScope, dynamicFiles)
-  }
+
 }

@@ -17,12 +17,18 @@
 package com.netflix.spinnaker.clouddriver.cache;
 
 import com.netflix.spinnaker.clouddriver.config.CloudConfigRefreshProperties;
+import com.netflix.spinnaker.clouddriver.config.ModifiableFilePropertySources;
 import com.netflix.spinnaker.clouddriver.refresh.CloudConfigRefreshScheduler;
 import com.netflix.spinnaker.kork.configserver.autoconfig.RemoteConfigSourceConfigured;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.EnableConfigServer;
 import org.springframework.cloud.context.refresh.ContextRefresher;
+import org.springframework.cloud.context.scope.refresh.RefreshScope;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.*;
 
 /**
@@ -49,5 +55,14 @@ public class CloudConfigRefreshConfig {
       return new CloudConfigRefreshScheduler(
           contextRefresher, cloudConfigProperties.getRefreshIntervalSeconds());
     }
+  }
+
+  @Bean
+  @ConditionalOnExpression("${dynamic-config.enabled:false}")
+  ModifiableFilePropertySources modifiableFilePropertySources(
+      ConfigurableApplicationContext applicationContext,
+      RefreshScope refreshScope,
+      @Value("${dynamic-config.files}") List<String> dynamicFiles) {
+    return new ModifiableFilePropertySources(applicationContext, refreshScope, dynamicFiles);
   }
 }
