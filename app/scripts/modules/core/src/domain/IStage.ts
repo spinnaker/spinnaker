@@ -10,4 +10,5 @@ export interface IStage {
   requisiteStageRefIds: Array<string | number>;
   type: string;
   variables?: IEvaluatedVariable[];
+  outputs?: any;
 }
