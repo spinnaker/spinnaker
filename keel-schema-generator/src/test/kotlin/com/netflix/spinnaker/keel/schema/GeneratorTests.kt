@@ -903,11 +903,11 @@ internal class GeneratorTests {
     val schema by lazy { generateSchema<Foo>() }
 
     @Test
-    fun `literals are represented as enum with a single value`() {
+    fun `literals are represented as a const`() {
       expectThat(schema.properties[Foo::bar.name])
-        .isA<EnumSchema>()
-        .get { enum }
-        .containsExactly("BAR")
+        .isA<ConstSchema>()
+        .get { const }
+        .isEqualTo("BAR")
     }
   }
 
@@ -934,9 +934,9 @@ internal class GeneratorTests {
         .isA<OneOf>()
         .get { oneOf }
         .one {
-          isA<EnumSchema>()
-            .get { enum }
-            .containsExactly("BAR")
+          isA<ConstSchema>()
+            .get { const }
+            .isEqualTo("BAR")
         }
         .one {
           isA<Reference>()

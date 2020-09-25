@@ -66,6 +66,7 @@ class ApiDocCompatibilityTests {
       "/examples/clb-example.yml",
       "/examples/ec2-cluster-with-autoscaling-example.yml",
       "/examples/security-group-example.yml",
+      "/examples/security-group-with-cidr-rule-example.yml",
       "/examples/titus-cluster-example.yml",
       "/examples/titus-cluster-with-artifact-example.yml"
     ).map {

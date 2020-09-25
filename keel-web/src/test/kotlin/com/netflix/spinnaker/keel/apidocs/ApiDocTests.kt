@@ -329,7 +329,7 @@ class ApiDocTests : JUnit5Minutests {
           path("\$ref").textValue().isEqualTo("#/\$defs/PortRange")
         }
         .one {
-          path("enum").isArray().textValues().containsExactly("ALL")
+          path("const").isTextual().textValue().isEqualTo("ALL")
         }
     }
 

@@ -31,7 +31,8 @@ data class ObjectSchema(
   override val description: String?,
   val properties: Map<String, Schema>,
   val required: SortedSet<String>,
-  val allOf: List<ConditionalSubschema>? = null
+  val allOf: List<ConditionalSubschema>? = null,
+  val additionalProperties: Boolean? = null
 ) : TypedProperty("object")
 
 object NullSchema : TypedProperty("null") {

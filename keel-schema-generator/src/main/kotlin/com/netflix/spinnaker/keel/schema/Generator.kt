@@ -117,7 +117,8 @@ class Generator(
         } else {
           it
         }
-      }
+      },
+      additionalProperties = false
     )
 
   /**
@@ -129,7 +130,9 @@ class Generator(
       description = type.description,
       oneOf = extensionRegistry
         .extensionsOf(type.java)
-        .map { define(it.value.kotlin, type.discriminatorProperty to it.key) }
+        .map { (discriminator, subType) ->
+          define(subType.kotlin, type.discriminatorProperty?.let { it to discriminator })
+        }
         .toSet()
     )
 
@@ -143,7 +146,7 @@ class Generator(
     val genericProperties = type.candidateProperties.filter {
       it.type.jvmErasure == upperBoundType
     }
-    val discriminatorName = type.discriminatorProperty.name
+    val discriminatorName = type.discriminatorProperty?.name
     val commonProperties = type.candidateProperties - genericProperties
     return ObjectSchema(
       title = checkNotNull(type.simpleName),
@@ -153,7 +156,7 @@ class Generator(
           checkNotNull(it.name) to if (it.name == discriminatorName) {
             EnumSchema(
               enum = invariantTypes.keys.toList(),
-              description = type.discriminatorProperty.description
+              description = checkNotNull(type.discriminatorProperty).description
             )
           } else {
             buildProperty(
@@ -163,12 +166,13 @@ class Generator(
             )
           }
         },
+      additionalProperties = true,
       required = commonProperties.toRequiredPropertyNames()
         .toSortedSet(String.CASE_INSENSITIVE_ORDER),
       allOf = invariantTypes.map { (discriminatorValue, subType) ->
         ConditionalSubschema(
           `if` = Condition(
-            properties = (type.discriminatorProperty to discriminatorValue).toDiscriminatorConst()
+            properties = (checkNotNull(type.discriminatorProperty) to discriminatorValue).toDiscriminatorConst()
           ),
           then = Subschema(
             properties = genericProperties.associate {
@@ -182,12 +186,12 @@ class Generator(
   }
 
   /**
-   * Kotlin singleton objects are represented as a single-value enum.
+   * Kotlin singleton objects are represented as a const.
    */
   private fun buildSchemaForKotlinSingleton(type: KClass<*>) =
-    EnumSchema(
+    ConstSchema(
       description = type.description,
-      enum = listOf(type.findAnnotation<Literal>()?.value ?: checkNotNull(type.simpleName))
+      const = type.findAnnotation<Literal>()?.value ?: checkNotNull(type.simpleName)
     )
 
   /**
@@ -242,10 +246,8 @@ class Generator(
    * The name of the property annotated with `@[Discriminator]`
    */
   @Suppress("UNCHECKED_CAST")
-  private val KClass<*>.discriminatorProperty: KProperty<String>
-    get() = checkNotNull(memberProperties.find { it.hasAnnotation<Discriminator>() }) {
-      "$simpleName has no property annotated with @Discriminator but is registered as an extension base type"
-    } as KProperty<String> // currently only string discriminators are allowed
+  private val KClass<*>.discriminatorProperty: KProperty<String>?
+    get() = memberProperties.find { it.hasAnnotation<Discriminator>() } as KProperty<String>? // currently only string discriminators are allowed
 
   /**
    * Build the property schema for [parameter].

@@ -1,0 +1,25 @@
+---
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+environments:
+- name: test
+  resources:
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: keeldemo
+        stack: example
+        detail: ec2v1
+      locations:
+        account: test
+        vpc: vpc0
+        regions:
+        - name: us-west-2
+        - name: us-east-1
+      description: Managed Security Group for keeldemo example
+      inboundRules:
+      - protocol: tcp
+        blockRange: "2600:1f1f:4b2:3a00::/56"
+        portRange:
+          startPort: 7001
+          endPort: 7001
