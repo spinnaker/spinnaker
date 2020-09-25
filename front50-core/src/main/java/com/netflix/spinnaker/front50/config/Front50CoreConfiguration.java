@@ -24,10 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableConfigurationProperties({
-  ChaosMonkeyEventListenerConfigurationProperties.class,
-  FiatConfigurationProperties.class
-})
+@EnableConfigurationProperties({FiatConfigurationProperties.class})
 public class Front50CoreConfiguration {
 
   @Bean
