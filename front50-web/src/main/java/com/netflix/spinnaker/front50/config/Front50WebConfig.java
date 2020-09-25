@@ -19,7 +19,6 @@ package com.netflix.spinnaker.front50.config;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
-import com.netflix.spinnaker.fiat.shared.FiatAccessDeniedExceptionHandler;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
@@ -139,11 +138,6 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   public ItemDAOHealthIndicator deliveryRepositoryHealthIndicator(
       DeliveryRepository deliveryRepository, TaskScheduler taskScheduler) {
     return new ItemDAOHealthIndicator(deliveryRepository, taskScheduler);
-  }
-
-  @Bean
-  public FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler() {
-    return new FiatAccessDeniedExceptionHandler();
   }
 
   @Bean
