@@ -44,15 +44,17 @@ export const EnvironmentsHeader = ({ app, resourceInfo: { managed, total } }: IE
 
   return (
     <div className="EnvironmentsHeader">
-      <div className="flex-container-h sp-padding-l">
-        <div style={{ width: 145 }}>
+      <div className="flex-container-h sp-padding-m sp-padding-l-left">
+        <div style={{ width: 115, marginTop: -6 }}>
           <Illustration name={icon} />
         </div>
-        <div className="flex-container-v sp-padding-xl-top sp-margin-m-left sp-margin-m-top">
-          <div className="heading-3 bold">{title(managed === total ? `${total}` : `${managed}/${total}`)}</div>
+        <div className="flex-container-v middle sp-margin-xl-left">
+          <div className="heading-3 text-bold">{title(managed === total ? `${total}` : `${managed}/${total}`)}</div>
           {description && <div className="sp-margin-s-top">{description}</div>}
           <Dropdown id="application-actions" className="sp-margin-l-top">
-            <Dropdown.Toggle className="dropdown-toggle-btn">Application Actions</Dropdown.Toggle>
+            <Dropdown.Toggle className="dropdown-toggle-btn">
+              <span className="text-bold">Application Actions</span>
+            </Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu">
               <ToggleManagedResourceAction app={app} />
             </Dropdown.Menu>
