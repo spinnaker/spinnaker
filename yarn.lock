@@ -2591,10 +2591,10 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.6.tgz#8514fdc2f9c6c149e6fdb1b533c3fbd3d8693db9"
   integrity sha512-KfKtlBR6r1OLqafA9MgpzxDFYIC9Ohr79CvkWghnEXL73cNR+18OwGoJktgeeqk2tHP0J2Glrf2Wh3xU5/dRzw==
 
-"@spinnaker/styleguide@^1.0.21":
-  version "1.0.21"
-  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.21.tgz#2a46cc7d00f91b87a9ae63223b78e6f00ddf3742"
-  integrity sha512-y67yK6vB8EPEeMFSmcqi8B6i3K+7/6tW9OyeTQhchGa+eMUJLYa2ABpXzMN/CK68Q465Bv+LyyGUGXE5KMeaEA==
+"@spinnaker/styleguide@^1.0.22":
+  version "1.0.22"
+  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.22.tgz#84b5523deb110eb02d5a511cf6b24ee8a5cb318b"
+  integrity sha512-/K+sF8AFmuShbFABkg57/VWNu6S8PBaYZUsGv1XF0TR1kPN6P/NcHbr6223EuyRQpArPKN7RMqmgxg5CcXzutQ==
 
 "@storybook/addon-actions@6.0.21":
   version "6.0.21"
