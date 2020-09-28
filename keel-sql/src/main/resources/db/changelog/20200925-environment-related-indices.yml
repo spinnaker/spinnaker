@@ -12,8 +12,6 @@ databaseChangeLog:
         - column:
             name: type
         - column:
-            name: version
-        - column:
             name: release_status
     - createIndex:
         indexName: environment_artifact_constraint_uid_status_idx
