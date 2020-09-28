@@ -82,7 +82,7 @@ export function Environments({ app }: IEnvironmentsProps) {
   const resourcesByEnvironment = useMemo(
     () =>
       environments.reduce((byEnvironment, { name, resources: resourceIds }) => {
-        byEnvironment[name] = resourceIds.map(id => resourcesById[id]);
+        byEnvironment[name] = resourceIds.map((id) => resourcesById[id]);
         return byEnvironment;
       }, {} as { [environment: string]: IManagedResourceSummary[] }),
     [environments, resourcesById],
@@ -145,7 +145,7 @@ export function Environments({ app }: IEnvironmentsProps) {
         <ArtifactsList
           artifacts={artifacts}
           selectedVersion={selectedVersion}
-          versionSelected={clickedVersion => {
+          versionSelected={(clickedVersion) => {
             if (!isEqual(clickedVersion, selectedVersion)) {
               go(selectedVersion ? '.' : '.artifactVersion', clickedVersion);
             }
@@ -161,7 +161,7 @@ export function Environments({ app }: IEnvironmentsProps) {
                 <EnvironmentsHeader
                   app={app}
                   resourceInfo={{
-                    managed: resources.filter(r => !r.isPaused).length,
+                    managed: resources.filter((r) => !r.isPaused).length,
                     total: resources.length,
                   }}
                 />
@@ -179,6 +179,7 @@ export function Environments({ app }: IEnvironmentsProps) {
                   reference={item.selectedArtifactDetails.reference}
                   version={item.selectedVersionDetails}
                   allVersions={item.selectedArtifactDetails.versions}
+                  allEnvironments={environments}
                   resourcesByEnvironment={resourcesByEnvironment}
                   onRequestClose={() => go('^')}
                 />

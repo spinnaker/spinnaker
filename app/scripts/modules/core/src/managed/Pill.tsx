@@ -9,9 +9,9 @@ interface IPillProps {
   textColor?: string;
 }
 
-export function Pill({ text, bgColor = '#666666', textColor = '#ffffff' }: IPillProps) {
+export function Pill({ text, bgColor, textColor }: IPillProps) {
   return (
-    <div className="Pill text-bold" style={{ backgroundColor: bgColor, color: textColor }}>
+    <div className="Pill text-bold" style={{ backgroundColor: bgColor || '#666666', color: textColor || '#ffffff' }}>
       {text}
     </div>
   );
@@ -34,5 +34,5 @@ export const AnimatingPill = (props: IPillProps) => {
     onRest: () => setReverseAnimation(!reverseAnimation),
   });
 
-  return <AnimatedPill {...props} bgColor={opacity.interpolate(o => `rgba(97, 185, 255, ${o})`)} />;
+  return <AnimatedPill {...props} bgColor={opacity.interpolate((o) => `rgba(168, 217, 255, ${o})`)} />;
 };

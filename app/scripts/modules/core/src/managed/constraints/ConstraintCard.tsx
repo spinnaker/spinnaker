@@ -29,9 +29,9 @@ const { NOT_EVALUATED, PENDING, PASS, FAIL, OVERRIDE_PASS, OVERRIDE_FAIL } = Sta
 const constraintCardAppearanceByStatus = {
   [NOT_EVALUATED]: 'inactive',
   [PENDING]: 'info',
-  [PASS]: 'success',
+  [PASS]: 'neutral',
   [FAIL]: 'error',
-  [OVERRIDE_PASS]: 'success',
+  [OVERRIDE_PASS]: 'neutral',
   [OVERRIDE_FAIL]: 'error',
 } as const;
 
@@ -66,7 +66,7 @@ const getCardAppearance = (constraint: IStatefulConstraint | IStatelessConstrain
     return constraintCardAppearanceByStatus[status];
   } else {
     const { currentlyPassing } = constraint as IStatelessConstraint;
-    return currentlyPassing ? 'success' : 'inactive';
+    return currentlyPassing ? 'neutral' : 'inactive';
   }
 };
 

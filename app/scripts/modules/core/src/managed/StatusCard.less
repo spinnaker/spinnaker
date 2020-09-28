@@ -1,37 +1,39 @@
 .StatusCard {
-  border-radius: 3px;
   font-size: 13px;
   color: var(--color-charcoal);
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
 
   &.status-card-inactive {
-    color: #666;
+    color: var(--color-icon-neutral);
   }
 
-  &.status-card-neutral {
-    background-color: var(--color-status-neutral-light);
-  }
+  &.with-background {
+    &.status-card-neutral {
+      background-color: var(--color-status-neutral-light);
+    }
 
-  &.status-card-info {
-    background-color: var(--color-status-info-light);
-  }
+    &.status-card-info {
+      background-color: var(--color-status-info-light);
+    }
 
-  &.status-card-progress {
-    background-color: var(--color-status-progress-light);
-  }
+    &.status-card-progress {
+      background-color: var(--color-status-progress-light);
+    }
 
-  &.status-card-success {
-    background-color: var(--color-status-success-light);
-  }
+    &.status-card-success {
+      background-color: var(--color-status-success-light);
+    }
 
-  &.status-card-warning {
-    background-color: var(--color-status-warning-light);
-  }
+    &.status-card-warning {
+      background-color: var(--color-status-warning-light);
+    }
 
-  &.status-card-error {
-    background-color: var(--color-status-error-light);
-  }
+    &.status-card-error {
+      background-color: var(--color-status-error-light);
+    }
 
-  &.status-card-archived {
-    background-color: var(--color-status-archived-light);
+    &.status-card-archived {
+      background-color: var(--color-status-archived-light);
+    }
   }
 }

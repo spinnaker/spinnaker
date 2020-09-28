@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 
-import { IManagedResourceSummary } from '../domain';
+import { IManagedResourceSummary, IManagedEnvironmentSummary } from '../domain';
 import { Icon } from '../presentation';
 
 import { StatusBubble } from './StatusBubble';
@@ -14,11 +14,11 @@ import './EnvironmentRow.less';
 interface IEnvironmentRowProps {
   name: string;
   resources?: IManagedResourceSummary[];
-  hasPinnedVersions?: boolean;
+  pinnedVersions?: IManagedEnvironmentSummary['artifacts'];
   children?: React.ReactNode;
 }
 
-export function EnvironmentRow({ name, resources = [], hasPinnedVersions, children }: IEnvironmentRowProps) {
+export function EnvironmentRow({ name, resources = [], pinnedVersions, children }: IEnvironmentRowProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isCritical = useEnvironmentTypeFromResources(resources);
 
@@ -34,7 +34,14 @@ export function EnvironmentRow({ name, resources = [], hasPinnedVersions, childr
             <EnvironmentBadge name={name} critical={isCritical} />
           </div>
           <div className="flex-container-h flex-grow flex-pull-right">
-            {hasPinnedVersions && <StatusBubble iconName="pin" appearance="warning" size="small" />}
+            {pinnedVersions?.length > 0 ? (
+              <StatusBubble
+                iconName="pin"
+                appearance="warning"
+                size="small"
+                quantity={pinnedVersions.length > 1 ? pinnedVersions.length : null}
+              />
+            ) : null}
           </div>
           <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
             {isCollapsed && <Icon name="accordionExpand" size="extraSmall" />}

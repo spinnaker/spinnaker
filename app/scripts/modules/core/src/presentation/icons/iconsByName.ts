@@ -21,6 +21,7 @@ import { ReactComponent as cloudDeployed } from './vectors/cloudDeployed.svg';
 import { ReactComponent as cloudError } from './vectors/cloudError.svg';
 import { ReactComponent as cloudProgress } from './vectors/cloudProgress.svg';
 import { ReactComponent as cloudDecommissioned } from './vectors/cloudDecommissioned.svg';
+import { ReactComponent as cloudWaiting } from './vectors/cloudWaiting.svg';
 import { ReactComponent as cluster } from './vectors/cluster.svg';
 import { ReactComponent as copyClipboard } from './vectors/copyClipboard.svg';
 import { ReactComponent as done } from './vectors/done.svg';
@@ -146,6 +147,7 @@ export const iconsByName = {
   cloudError,
   cloudProgress,
   cloudDecommissioned,
+  cloudWaiting,
   cluster,
   config,
   configJ,

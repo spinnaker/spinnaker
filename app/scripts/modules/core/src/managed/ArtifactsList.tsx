@@ -25,7 +25,7 @@ export function ArtifactsList({ artifacts, selectedVersion, versionSelected }: I
   return (
     <div>
       {artifacts.map(({ versions, name, reference }) =>
-        versions.map(version => (
+        versions.map((version) => (
           <ArtifactRow
             key={`${name}-${version.version}`}
             isSelected={
@@ -87,11 +87,7 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
       <div className="row-content flex-container-v left sp-padding-m-top sp-padding-l-bottom sp-padding-s-xaxis">
         {(build?.number || build?.id) && (
           <div className="flex-container-h sp-margin-s-bottom">
-            <Pill
-              bgColor={isSelected ? '#2c4b5f' : undefined}
-              textColor={isSelected ? '#c7def5' : undefined}
-              text={`#${build.number || build.id} ${name || ''}`}
-            />
+            <Pill bgColor={isSelected ? '#2e4b5f' : undefined} text={`#${build.number || build.id} ${name || ''}`} />
           </div>
         )}
         <div className="row-middle-section flex-container-h space-between">
@@ -108,7 +104,7 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
           </div>
           <div className="sp-margin-s-left">
             <StatusBubbleStack
-              borderColor={isSelected ? '#c7def5' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
+              borderColor={isSelected ? '#dbe5eb' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
               maxBubbles={3}
               statuses={getArtifactStatuses(versionInfo)}
             />
@@ -140,7 +136,7 @@ function getArtifactStatuses({ environments }: IManagedArtifactVersion): Artifac
 
   const isConstraintPendingManualJudgement = (constraint: IStatefulConstraint) =>
     constraint.type == 'manual-judgement' && constraint.status == StatefulConstraintStatus.PENDING;
-  const requiresManualApproval = environments.some(environment =>
+  const requiresManualApproval = environments.some((environment) =>
     environment.statefulConstraints?.some(isConstraintPendingManualJudgement),
   );
   if (requiresManualApproval) {

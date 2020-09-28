@@ -9,17 +9,19 @@ import './StatusCard.less';
 
 export interface IStatusCardProps {
   appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';
+  background?: boolean;
   iconName: IconNames;
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
 }
 
-export const StatusCard = ({ appearance, iconName, title, description, actions }: IStatusCardProps) => (
+export const StatusCard = ({ appearance, background, iconName, title, description, actions }: IStatusCardProps) => (
   <div
     className={classNames(
       'StatusCard flex-container-h space-between middle wrap sp-padding-s-yaxis sp-padding-l-xaxis',
       `status-card-${appearance}`,
+      { 'with-background': !!background },
     )}
   >
     <div className="flex-container-h middle">

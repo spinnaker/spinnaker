@@ -131,6 +131,7 @@ export const VersionStateCard = memo(
     return (
       <StatusCard
         appearance={cardAppearanceByState[state].appearance}
+        background={true}
         iconName={cardAppearanceByState[state].icon}
         title={cardAppearanceByState[state].title({
           deployedAtMillis,

@@ -59,7 +59,7 @@ export interface IManagedResourceSummary {
   };
 }
 
-export interface IManagedEnviromentSummary {
+export interface IManagedEnvironmentSummary {
   name: string;
   resources: string[];
   artifacts: Array<{
@@ -144,7 +144,7 @@ export interface IManagedArtifactSummary {
 
 interface IManagedApplicationEntities {
   resources: IManagedResourceSummary[];
-  environments: IManagedEnviromentSummary[];
+  environments: IManagedEnvironmentSummary[];
   artifacts: IManagedArtifactSummary[];
 }
 

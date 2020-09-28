@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
+  color: var(--color-icon-light);
 
   .status-bubble-content {
     display: flex;
@@ -31,7 +32,7 @@
   }
 
   .status-inactive {
-    background-color: var(--color-status-inactive);
+    border: 1px dotted var(--color-icon-neutral);
   }
 
   .status-neutral {
@@ -40,10 +41,12 @@
 
   .status-info {
     background-color: var(--color-status-info);
+    color: var(--color-icon-neutral);
   }
 
   .status-progress {
     background-color: var(--color-status-progress);
+    color: var(--color-icon-neutral);
   }
 
   .status-success {
@@ -52,10 +55,12 @@
 
   .status-warning {
     background-color: var(--color-status-warning);
+    color: var(--color-icon-dark);
   }
 
   .status-error {
     background-color: var(--color-status-error);
+    color: var(--color-icon-dark);
   }
 
   .status-archived {
@@ -64,7 +69,6 @@
 
   .quantity-pill {
     align-self: flex-end;
-    color: var(--color-icon-light);
     display: inline-block;
     z-index: -1;
 

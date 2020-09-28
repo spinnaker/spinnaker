@@ -16,11 +16,22 @@ export interface IStatusBubbleProps {
 }
 
 const paddingBySize = {
-  extraSmall: 'xs',
-  small: 's',
-  medium: 's',
-  large: 's',
-  extraLarge: 'm',
+  extraSmall: '4px',
+  small: '6px',
+  medium: '8px',
+  large: '8px',
+  extraLarge: '12px',
+} as const;
+
+const iconColorByAppearance = {
+  inactive: 'neutral',
+  neutral: 'neutral',
+  info: 'neutral',
+  progress: 'neutral',
+  success: 'neutral',
+  warning: 'dark',
+  error: 'dark',
+  archived: 'neutral',
 } as const;
 
 const inStyles = {
@@ -62,15 +73,11 @@ export const StatusBubble = memo(({ appearance, iconName, size, quantity }: ISta
       {transitions.map(({ item, key, props }) => (
         <animated.div className="status-bubble-content" key={key} style={props}>
           <div
-            className={classNames([
-              'icon-wrapper',
-              `sp-padding-${paddingBySize[size]}`,
-              `status-${appearance}`,
-              { 'with-quantity': !!quantityPill },
-            ])}
+            className={classNames(['icon-wrapper', `status-${appearance}`, { 'with-quantity': !!quantityPill }])}
+            style={{ padding: paddingBySize[size] }}
           >
             <div className="icon-container">
-              <Icon appearance="light" name={item} size={size} />
+              <Icon appearance={iconColorByAppearance[appearance]} name={item} size={size} />
             </div>
           </div>
 
