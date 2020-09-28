@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.config;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class KubernetesConfigurationProperties {
   private List<ManagedAccount> accounts = new ArrayList<>();
 
   @Data
-  public static class ManagedAccount {
+  public static class ManagedAccount implements CredentialsDefinition {
     private String name;
     private String environment;
     private String accountType;

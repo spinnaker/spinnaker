@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest;
 
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
@@ -28,9 +27,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeployManifestOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,8 @@ import org.springframework.stereotype.Component;
 
 @KubernetesOperation(DEPLOY_MANIFEST)
 @Component
-public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class KubernetesDeployManifestConverter
+    extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
 
   private static final String KIND_VALUE_LIST = "list";
   private static final String KIND_LIST_ITEMS_KEY = "items";
@@ -50,11 +51,9 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
 
   @Autowired
   public KubernetesDeployManifestConverter(
-      AccountCredentialsProvider accountCredentialsProvider,
-      ObjectMapper objectMapper,
+      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
       ResourceVersioner resourceVersioner) {
-    this.setAccountCredentialsProvider(accountCredentialsProvider);
-    this.setObjectMapper(objectMapper);
+    this.setCredentialsRepository(credentialsRepository);
     this.resourceVersioner = resourceVersioner;
   }
 

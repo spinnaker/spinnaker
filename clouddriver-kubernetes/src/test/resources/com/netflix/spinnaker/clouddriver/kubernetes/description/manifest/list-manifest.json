@@ -5,7 +5,7 @@
   "apiVersion": "v1",
   "kind": "List",
   "items": [
-    $manifest1,
-    $manifest2
+    %s,
+    %s
   ]
 }

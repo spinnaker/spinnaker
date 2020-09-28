@@ -23,12 +23,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePr
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 
 class KubernetesAccountResolverSpec extends Specification {
   String ACCOUNT_NAME = "test"
-  AccountCredentialsRepository credentialsRepository = Mock(AccountCredentialsRepository)
+  CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository = Mock(CredentialsRepository)
   ResourcePropertyRegistry globalResourcePropertyRegistry = Mock(GlobalResourcePropertyRegistry)
 
   void "returns an account in the repository if and only if it is a kubernetes account"() {
@@ -51,7 +51,7 @@ class KubernetesAccountResolverSpec extends Specification {
     credentials = accountResolver.getCredentials(ACCOUNT_NAME)
 
     then:
-    1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(AccountCredentials)
+    1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(KubernetesNamedAccountCredentials)
     !credentials.isPresent()
 
     when:
@@ -83,7 +83,7 @@ class KubernetesAccountResolverSpec extends Specification {
     registry = accountResolver.getResourcePropertyRegistry(ACCOUNT_NAME)
 
     then:
-    1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(AccountCredentials) {
+    1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> Mock(KubernetesCredentials)
     }
     registry == globalResourcePropertyRegistry

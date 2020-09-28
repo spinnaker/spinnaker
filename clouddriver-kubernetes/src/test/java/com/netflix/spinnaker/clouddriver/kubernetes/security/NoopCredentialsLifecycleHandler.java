@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2020 Armory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,18 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.caching;
+package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.security.BaseProvider;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class KubernetesProvider extends BaseProvider {
-  public static final String PROVIDER_NAME = KubernetesCloudProvider.ID;
+public class NoopCredentialsLifecycleHandler
+    implements CredentialsLifecycleHandler<KubernetesNamedAccountCredentials> {
+  @Override
+  public void credentialsAdded(KubernetesNamedAccountCredentials credentials) {}
 
   @Override
-  public String getProviderName() {
-    return PROVIDER_NAME;
-  }
+  public void credentialsUpdated(KubernetesNamedAccountCredentials credentials) {}
+
+  @Override
+  public void credentialsDeleted(KubernetesNamedAccountCredentials credentials) {}
 }

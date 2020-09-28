@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 @Component
 @NonnullByDefault
 class KubernetesAccountResolver {
-  private final AccountCredentialsRepository credentialsRepository;
+  private final CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository;
   private final ResourcePropertyRegistry globalResourcePropertyRegistry;
 
   KubernetesAccountResolver(
-      AccountCredentialsRepository credentialsRepository,
+      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository,
       ResourcePropertyRegistry globalResourcePropertyRegistry) {
     this.credentialsRepository = credentialsRepository;
     this.globalResourcePropertyRegistry = globalResourcePropertyRegistry;
@@ -41,8 +41,6 @@ class KubernetesAccountResolver {
 
   Optional<KubernetesCredentials> getCredentials(String account) {
     return Optional.ofNullable(credentialsRepository.getOne(account))
-        .filter(c -> c instanceof KubernetesNamedAccountCredentials)
-        .map(c -> (KubernetesNamedAccountCredentials) c)
         .map(AccountCredentials::getCredentials);
   }
 

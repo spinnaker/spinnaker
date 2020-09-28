@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.Kubernetes
 import com.netflix.spinnaker.clouddriver.kubernetes.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.artifact.KubernetesCleanupArtifactsOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component;
 @KubernetesOperation(CLEANUP_ARTIFACTS)
 @Component
 public class KubernetesCleanupArtifactsConverter
-    extends AbstractAtomicOperationsCredentialsSupport {
+    extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
   @Autowired ArtifactProvider artifactProvider;
 
   @Override

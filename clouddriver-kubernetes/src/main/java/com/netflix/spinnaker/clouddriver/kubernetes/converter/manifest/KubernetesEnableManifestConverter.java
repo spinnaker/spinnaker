@@ -24,14 +24,16 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.Kubernetes
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesEnableDisableManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesEnableManifestOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @KubernetesOperation(ENABLE_MANIFEST)
 @Component
-public class KubernetesEnableManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class KubernetesEnableManifestConverter
+    extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
   @Override
   public AtomicOperation<OperationResult> convertOperation(Map<String, Object> input) {
     return new KubernetesEnableManifestOperation(convertDescription(input));

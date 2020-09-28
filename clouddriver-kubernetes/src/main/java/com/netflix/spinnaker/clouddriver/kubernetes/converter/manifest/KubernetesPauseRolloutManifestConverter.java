@@ -23,15 +23,16 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesPauseRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesPauseRolloutManifestOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @KubernetesOperation(PAUSE_ROLLOUT_MANIFEST)
 @Component
 public class KubernetesPauseRolloutManifestConverter
-    extends AbstractAtomicOperationsCredentialsSupport {
+    extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
   @Override
   public AtomicOperation<Void> convertOperation(Map<String, Object> input) {
     return new KubernetesPauseRolloutManifestOperation(convertDescription(input));

@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.Kubernetes
 import com.netflix.spinnaker.clouddriver.kubernetes.description.job.KubernetesRunJobOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobDeploymentResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Component;
 
 @KubernetesOperation(RUN_JOB)
 @Component
-public class KubernetesRunJobOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class KubernetesRunJobOperationConverter
+    extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
   private final ResourceVersioner resourceVersioner;
   private final boolean appendSuffix;
 

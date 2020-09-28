@@ -17,34 +17,30 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.health;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class KubernetesHealthIndicator
     extends AccountHealthIndicator<KubernetesNamedAccountCredentials> {
   private static final String ID = "kubernetes";
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository;
 
   @Autowired
   public KubernetesHealthIndicator(
-      Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
+      Registry registry,
+      CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository) {
     super(ID, registry);
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
   protected ImmutableList<KubernetesNamedAccountCredentials> getAccounts() {
-    return accountCredentialsProvider.getAll().stream()
-        .filter(a -> a instanceof KubernetesNamedAccountCredentials)
-        .map(a -> (KubernetesNamedAccountCredentials) a)
-        .collect(toImmutableList());
+    return ImmutableList.copyOf(credentialsRepository.getAll());
   }
 
   @Override

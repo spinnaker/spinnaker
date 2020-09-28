@@ -21,16 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.*;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,24 +81,10 @@ final class KubernetesHealthIndicatorTest {
 
   @Test
   void healthyWithNoAccounts() {
-    AccountCredentialsProvider provider = stubAccountCredentialsProvider(ImmutableList.of());
+    CredentialsRepository<KubernetesNamedAccountCredentials> repository =
+        stubCredentialsRepository(ImmutableList.of());
 
-    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, provider);
-
-    healthIndicator.checkHealth();
-    Health result = healthIndicator.getHealth(true);
-
-    assertThat(result.getStatus()).isEqualTo(Status.UP);
-    assertThat(result.getDetails()).isEmpty();
-  }
-
-  @Test
-  void healthyWithNoKubernetesAccounts() {
-    AccountCredentialsProvider provider =
-        stubAccountCredentialsProvider(
-            ImmutableList.of(nonKubernetesAccount("aws"), nonKubernetesAccount("gce")));
-
-    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, provider);
+    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
     Health result = healthIndicator.getHealth(true);
@@ -108,10 +95,10 @@ final class KubernetesHealthIndicatorTest {
 
   @Test
   void healthyWithOnlyHealthyAccounts() {
-    AccountCredentialsProvider provider =
-        stubAccountCredentialsProvider(ImmutableList.of(healthyNamedCredentials));
+    CredentialsRepository<KubernetesNamedAccountCredentials> repository =
+        stubCredentialsRepository(ImmutableList.of(healthyNamedCredentials));
 
-    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, provider);
+    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
     Health result = healthIndicator.getHealth(true);
@@ -122,10 +109,10 @@ final class KubernetesHealthIndicatorTest {
 
   @Test
   void reportsErrorForUnhealthyAccount() {
-    AccountCredentialsProvider provider =
-        stubAccountCredentialsProvider(ImmutableList.of(unhealthyNamedCredentialsFirst));
+    CredentialsRepository<KubernetesNamedAccountCredentials> repository =
+        stubCredentialsRepository(ImmutableList.of(unhealthyNamedCredentialsFirst));
 
-    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, provider);
+    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
     Health result = healthIndicator.getHealth(true);
@@ -137,14 +124,14 @@ final class KubernetesHealthIndicatorTest {
 
   @Test
   void reportsMultipleErrors() {
-    AccountCredentialsProvider provider =
-        stubAccountCredentialsProvider(
+    CredentialsRepository<KubernetesNamedAccountCredentials> repository =
+        stubCredentialsRepository(
             ImmutableList.of(
                 healthyNamedCredentials,
                 unhealthyNamedCredentialsFirst,
                 unhealthyNamedCredentialsSecond));
 
-    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, provider);
+    KubernetesHealthIndicator healthIndicator = new KubernetesHealthIndicator(REGISTRY, repository);
 
     healthIndicator.checkHealth();
     Health result = healthIndicator.getHealth(true);
@@ -167,18 +154,13 @@ final class KubernetesHealthIndicatorTest {
     return managedAccount;
   }
 
-  private static AccountCredentials<?> nonKubernetesAccount(String name) {
-    AccountCredentials<?> credentials = mock(AccountCredentials.class);
-    when(credentials.getName()).thenReturn(name);
-    return credentials;
-  }
-
-  private static AccountCredentialsProvider stubAccountCredentialsProvider(
-      Iterable<AccountCredentials<?>> accounts) {
-    AccountCredentialsRepository accountRepository = new MapBackedAccountCredentialsRepository();
-    for (AccountCredentials<?> account : accounts) {
-      accountRepository.save(account.getName(), account);
+  private static CredentialsRepository<KubernetesNamedAccountCredentials> stubCredentialsRepository(
+      Iterable<KubernetesNamedAccountCredentials> accounts) {
+    CredentialsRepository<KubernetesNamedAccountCredentials> repository =
+        new MapBackedCredentialsRepository<>(KubernetesCloudProvider.ID, null);
+    for (KubernetesNamedAccountCredentials account : accounts) {
+      repository.save(account);
     }
-    return new DefaultAccountCredentialsProvider(accountRepository);
+    return repository;
   }
 }
