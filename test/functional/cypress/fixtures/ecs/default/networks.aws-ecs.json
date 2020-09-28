@@ -1,6 +1,6 @@
 [
   {
-    "account": "my-aws-devel-acct",
+    "account": "ecs-my-aws-devel-acct",
     "cloudProvider": "aws",
     "deprecated": false,
     "id": "vpc-0a9ccfd1cba7bc715",
@@ -8,7 +8,7 @@
     "region": "us-west-2"
   },
   {
-    "account": "my-aws-devel-acct",
+    "account": "ecs-my-aws-devel-acct",
     "cloudProvider": "aws",
     "deprecated": false,
     "id": "vpc-0c47d074",

@@ -27,7 +27,6 @@ export const registerDefaultFixtures = () => {
   cy.route('/loadBalancers?provider=appengine', []);
   cy.route('/loadBalancers?provider=gce', 'fixture:default/loadBalancers.gce.json');
   cy.route('/networks/gce', 'fixture:default/networks.gce.json');
-  cy.route('/networks/aws', 'fixture:default/networks.aws.json');
   cy.route('/notifications/application/*', {});
   cy.route('/plugins/deck/plugin-manifest.json', []);
   cy.route('/search*', []);

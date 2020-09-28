@@ -3,6 +3,7 @@ import { registerDefaultFixtures } from '../../support';
 describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
   beforeEach(() => {
     registerDefaultFixtures();
+    cy.route('/networks/aws', 'fixture:ecs/default/networks.aws-ecs.json');
     cy.route('/applications/ecsapp/serverGroups', 'fixture:ecs/clusters/serverGroups.json');
     cy.route(
       '/applications/ecsapp/serverGroups/**/aws-prod-ecsdemo-v000?includeDetails=false',
