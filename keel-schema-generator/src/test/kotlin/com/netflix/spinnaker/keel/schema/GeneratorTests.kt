@@ -27,14 +27,11 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.containsKeys
 import strikt.assertions.doesNotContain
-import strikt.assertions.filterIsInstance
-import strikt.assertions.first
 import strikt.assertions.get
-import strikt.assertions.hasEntry
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotEmpty
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
@@ -44,8 +41,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.full.starProjectedType
 
 internal class GeneratorTests {
 
@@ -82,6 +77,12 @@ internal class GeneratorTests {
         .containsKey(Foo::string.name)
         .get(Foo::string.name)
         .isA<StringSchema>()
+    }
+
+    @Test
+    fun `additional properties are disallowed`() {
+      expectThat(schema.additionalProperties)
+        .isFalse()
     }
   }
 
@@ -301,6 +302,14 @@ internal class GeneratorTests {
         .get(Bar::string.name)
         .isA<StringSchema>()
     }
+
+    @Test
+    fun `referenced schema does not allow additional properties`() {
+      expectThat(schema.`$defs`[Bar::class.java.simpleName])
+        .isA<ObjectSchema>()
+        .get { additionalProperties }
+        .isFalse()
+    }
   }
 
   @Nested
@@ -510,6 +519,12 @@ internal class GeneratorTests {
       expectThat(schema.properties[Foo::nonConstructorProperty.name])
         .isNull()
     }
+
+    @Test
+    fun `additional properties are disallowed`() {
+      expectThat(schema.additionalProperties)
+        .isFalse()
+    }
   }
 
   @Nested
@@ -523,6 +538,12 @@ internal class GeneratorTests {
         .containsKey("arg0")
         .get("arg0")
         .isA<StringSchema>()
+    }
+
+    @Test
+    fun `additional properties are disallowed`() {
+      expectThat(schema.additionalProperties)
+        .isFalse()
     }
   }
 
@@ -618,43 +639,36 @@ internal class GeneratorTests {
     }
 
     @TestFactory
-    fun subTypeDiscriminatorConst() =
-      mapOf(
-        "string" to StringWrapper::class.java.simpleName,
-        "integer" to IntegerWrapper::class.java.simpleName
-      ).map { (fixedValue, subType) ->
-        dynamicTest("the sub-type discriminator property for $subType is an const with the fixed value") {
-          expectThat(schema.`$defs`[subType])
-            .isA<ObjectSchema>()
-            .get { properties[Wrapper<*>::type.name] }
-            .isA<ConstSchema>()
-            .get { const }
-            .isEqualTo(fixedValue)
-        }
-      }
-
-    @TestFactory
-    fun `the discriminator property in the sub-type is an enum with a single value`() =
+    fun `the discriminator property in the sub-type is a const`() =
       mapOf(
         "string" to StringWrapper::class,
         "integer" to IntegerWrapper::class
       )
-        .map { (discriminatorValue, type) ->
-          dynamicTest("the discriminator property of ${type.simpleName} is an enum with the single value \"$discriminatorValue\"") {
-            expectThat(schema.`$defs`[type.simpleName])
-              .isA<ObjectSchema>()
-              .get { properties[Wrapper<*>::type.name] }
-              .isA<EnumSchema>()
-              .get(EnumSchema::enum)
-              .containsExactly(discriminatorValue)
-          }
+        .flatMap { (discriminatorValue, type) ->
+          listOf(
+            dynamicTest("the discriminator property of ${type.simpleName} is a const with the value \"$discriminatorValue\"") {
+              expectThat(schema.`$defs`[type.simpleName])
+                .isA<ObjectSchema>()
+                .get { properties[Wrapper<*>::type.name] }
+                .isA<ConstSchema>()
+                .get(ConstSchema::const)
+                .isEqualTo(discriminatorValue)
+            },
 
-          dynamicTest("the discriminator property of ${type.simpleName} is required") {
-            expectThat(schema.`$defs`[type.simpleName])
-              .isA<ObjectSchema>()
-              .get(ObjectSchema::required)
-              .contains(Wrapper<*>::type.name)
-          }
+            dynamicTest("the discriminator property of ${type.simpleName} is required") {
+              expectThat(schema.`$defs`[type.simpleName])
+                .isA<ObjectSchema>()
+                .get(ObjectSchema::required)
+                .contains(Wrapper<*>::type.name)
+            },
+
+            dynamicTest("additional properties are disallowed on ${type.simpleName}") {
+              expectThat(schema.`$defs`[type.simpleName])
+                .isA<ObjectSchema>()
+                .get { additionalProperties }
+                .isFalse()
+            }
+          )
         }
   }
 
@@ -713,6 +727,12 @@ internal class GeneratorTests {
         .containsKeys(Bar::class.java.simpleName, Baz::class.java.simpleName)
     }
 
+    @Test
+    fun `the base type allows additional properties`() {
+      expectThat(schema.additionalProperties)
+        .isTrue()
+    }
+
     @TestFactory
     fun genericSubTypes() =
       listOf(Bar::class.java, Baz::class.java)
@@ -747,6 +767,13 @@ internal class GeneratorTests {
                   get { then.required }
                     .containsExactly(Foo<*>::genericProperty.name)
                 }
+            },
+
+            dynamicTest("additional properties are disallowed on ${subType.simpleName}") {
+              expectThat(schema.`$defs`[subType.simpleName])
+                .isA<ObjectSchema>()
+                .get { additionalProperties }
+                .isFalse()
             }
           )
         }

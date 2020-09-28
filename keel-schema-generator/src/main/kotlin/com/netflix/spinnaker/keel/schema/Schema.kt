@@ -19,6 +19,7 @@ data class RootSchema(
   val properties: Map<String, Schema>,
   val required: SortedSet<String>,
   val allOf: List<ConditionalSubschema>? = null,
+  val additionalProperties: Boolean? = null,
   val `$defs`: SortedMap<String, Schema>
 ) {
   @Suppress("unused", "PropertyName")

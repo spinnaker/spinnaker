@@ -76,6 +76,7 @@ class Generator(
       properties = schema.properties,
       required = schema.required,
       allOf = schema.allOf,
+      additionalProperties = schema.additionalProperties,
       `$defs` = context.definitions.toSortedMap(String.CASE_INSENSITIVE_ORDER)
     )
   }
