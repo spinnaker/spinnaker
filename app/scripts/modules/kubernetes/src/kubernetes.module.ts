@@ -138,6 +138,7 @@ module(KUBERNETES_MODULE, [
       'scaleDown',
       'scaleDownCluster',
       'shrinkCluster',
+      'upsertLoadBalancers',
     ],
   });
 });
