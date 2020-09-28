@@ -34,6 +34,7 @@ public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescr
   String role;
   String runtime;
   String appName;
+  List<String> layers;
 
   Integer memorySize;
   Integer timeout;

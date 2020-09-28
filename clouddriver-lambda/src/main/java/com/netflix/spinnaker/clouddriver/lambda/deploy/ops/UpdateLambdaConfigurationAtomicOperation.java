@@ -63,6 +63,7 @@ public class UpdateLambdaConfigurationAtomicOperation
             .withRole(description.getRole())
             .withTimeout(description.getTimeout())
             .withDeadLetterConfig(description.getDeadLetterConfig())
+            .withLayers(description.getLayers())
             .withVpcConfig(
                 new VpcConfig()
                     .withSecurityGroupIds(description.getSecurityGroupIds())

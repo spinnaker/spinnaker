@@ -36,6 +36,7 @@ public class CreateLambdaFunctionConfigurationDescription
   Integer timeout;
   List<String> subnetIds;
   List<String> securityGroupIds;
+  List<String> layers;
   Map<String, String> envVariables;
   Map<String, String> tags;
   DeadLetterConfig deadLetterConfig;

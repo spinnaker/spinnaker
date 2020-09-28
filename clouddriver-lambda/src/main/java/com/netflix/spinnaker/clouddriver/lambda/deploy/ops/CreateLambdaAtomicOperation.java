@@ -81,6 +81,7 @@ public class CreateLambdaAtomicOperation
     request.setRole(description.getRole());
     request.setRuntime(description.getRuntime());
     request.setTimeout(description.getTimeout());
+    request.setLayers(description.getLayers());
 
     request.setCode(code);
     request.setTags(objTag);
