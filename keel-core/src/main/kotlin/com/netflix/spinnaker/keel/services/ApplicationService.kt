@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
@@ -183,59 +184,68 @@ class ApplicationService(
 
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
-    return deliveryConfig.artifacts.map { artifact ->
+    val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
       val artifactVersionSummaries = repository.artifactVersions(artifact).map { version ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         environmentSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
-          environmentSummary.getArtifactPromotionStatus(artifact, version)?.let { status ->
-            var artEnvSummary = when (status) {
-              PENDING -> ArtifactSummaryInEnvironment(
-                environment = environmentSummary.name,
-                version = version,
-                state = status.name.toLowerCase()
-              )
-              SKIPPED -> {
-                // some environments contain relevant info for skipped artifacts, so
-                // try and find that summary before defaulting to less information
-                val potentialSummary = repository.getArtifactSummaryInEnvironment(
-                  deliveryConfig = deliveryConfig,
-                  environmentName = environmentSummary.name,
-                  artifactReference = artifact.reference,
-                  version = version
-                )
-                if (potentialSummary == null || potentialSummary.state == "pending") {
-                  ArtifactSummaryInEnvironment(
-                    environment = environmentSummary.name,
-                    version = version,
-                    state = status.name.toLowerCase()
+          environmentSummary.getArtifactPromotionStatus(artifact, version)
+            ?.let { status ->
+              buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, version, status)
+                ?.also {
+                  artifactSummariesInEnvironments.add(
+                    it.addStatefulConstraintSummaries(deliveryConfig, environment, version)
+                      .addStatelessConstraintSummaries(deliveryConfig, environment, version, artifact)
                   )
-                } else {
-                  potentialSummary
                 }
-              }
-              else -> repository.getArtifactSummaryInEnvironment(
-                deliveryConfig = deliveryConfig,
-                environmentName = environmentSummary.name,
-                artifactReference = artifact.reference,
-                version = version
-              )
             }
-            if (artEnvSummary != null) {
-              artEnvSummary = addStatefulConstraintSummaries(artEnvSummary, deliveryConfig, environment, version)
-              artEnvSummary = addStatelessConstraintSummaries(artEnvSummary, deliveryConfig, environment, version, artifact)
-              artifactSummariesInEnvironments.add(artEnvSummary)
-            }
-          }
         }
-        return@map versionToSummary(artifact, version, artifactSummariesInEnvironments.toSet())
+
+        buildArtifactVersionSummary(artifact, version, artifactSummariesInEnvironments)
       }
-      return@map ArtifactSummary(
+      ArtifactSummary(
         name = artifact.name,
         type = artifact.type,
         reference = artifact.reference,
         versions = artifactVersionSummaries.toSet()
+      )
+    }
+
+    return artifactSummaries
+  }
+
+  private fun buildArtifactSummaryInEnvironment(deliveryConfig: DeliveryConfig, environmentName: String, artifact: DeliveryArtifact, version: String, status: PromotionStatus): ArtifactSummaryInEnvironment? {
+    return when (status) {
+      PENDING -> ArtifactSummaryInEnvironment(
+        environment = environmentName,
+        version = version,
+        state = status.name.toLowerCase()
+      )
+      SKIPPED -> {
+        // some environments contain relevant info for skipped artifacts, so
+        // try and find that summary before defaulting to less information
+        val potentialSummary = repository.getArtifactSummaryInEnvironment(
+          deliveryConfig = deliveryConfig,
+          environmentName = environmentName,
+          artifactReference = artifact.reference,
+          version = version
+        )
+        if (potentialSummary == null || potentialSummary.state == "pending") {
+          ArtifactSummaryInEnvironment(
+            environment = environmentName,
+            version = version,
+            state = status.name.toLowerCase()
+          )
+        } else {
+          potentialSummary
+        }
+      }
+      else -> repository.getArtifactSummaryInEnvironment(
+        deliveryConfig = deliveryConfig,
+        environmentName = environmentName,
+        artifactReference = artifact.reference,
+        version = version
       )
     }
   }
@@ -245,8 +255,7 @@ class ApplicationService(
    * For each constraint type, if it's not yet been evaluated, creates a synthetic constraint summary object
    * with a [ConstraintStatus.NOT_EVALUATED] status.
    */
-  private fun addStatefulConstraintSummaries(
-    artifactSummaryInEnvironment: ArtifactSummaryInEnvironment,
+  private fun ArtifactSummaryInEnvironment.addStatefulConstraintSummaries(
     deliveryConfig: DeliveryConfig,
     environment: Environment,
     version: String
@@ -260,7 +269,7 @@ class ApplicationService(
         status = NOT_EVALUATED
       )
     }
-    return artifactSummaryInEnvironment.copy(
+    return this.copy(
       statefulConstraints = constraintStates
         .map { it.toConstraintSummary() } +
         notEvaluatedConstraints
@@ -270,8 +279,7 @@ class ApplicationService(
   /**
    * Adds details about any stateless constraints in the given environment to the [ArtifactSummaryInEnvironment].
    */
-  private fun addStatelessConstraintSummaries(
-    artifactSummaryInEnvironment: ArtifactSummaryInEnvironment,
+  private fun ArtifactSummaryInEnvironment.addStatelessConstraintSummaries(
     deliveryConfig: DeliveryConfig,
     environment: Environment,
     version: String,
@@ -295,7 +303,7 @@ class ApplicationService(
       }
     }
 
-    return artifactSummaryInEnvironment.copy(
+    return this.copy(
       statelessConstraints = statelessConstraints
     )
   }
@@ -303,27 +311,27 @@ class ApplicationService(
   /**
    * Takes an artifact version, plus information about the type of artifact, and constructs a summary view.
    */
-  private fun versionToSummary(
+  private fun buildArtifactVersionSummary(
     artifact: DeliveryArtifact,
     version: String,
     environments: Set<ArtifactSummaryInEnvironment>
   ): ArtifactVersionSummary {
     val artifactSupplier = artifactSuppliers.supporting(artifact.type)
     val releaseStatus = repository.getReleaseStatus(artifact, version)
-    val artifactVersion = repository.getArtifactInstance(artifact.name, artifact.type, version, releaseStatus)
+    val artifactInstance = repository.getArtifactInstance(artifact.name, artifact.type, version, releaseStatus)
       ?: throw InvalidSystemStateException("Loading artifact version $version failed for known artifact $artifact.")
 
     return ArtifactVersionSummary(
       version = version,
       environments = environments,
-      displayName = artifactSupplier.getVersionDisplayName(artifactVersion),
-      createdAt = artifactVersion.createdAt,
+      displayName = artifactSupplier.getVersionDisplayName(artifactInstance),
+      createdAt = artifactInstance.createdAt,
 
       // first attempt to use the artifact metadata fetched from the DB, then fallback to the default if not found
-      build = artifactVersion.buildMetadata
-        ?: artifactSupplier.parseDefaultBuildMetadata(artifactVersion, artifact.versioningStrategy),
-      git = artifactVersion.gitMetadata
-        ?: artifactSupplier.parseDefaultGitMetadata(artifactVersion, artifact.versioningStrategy)
+      build = artifactInstance.buildMetadata
+        ?: artifactSupplier.parseDefaultBuildMetadata(artifactInstance, artifact.versioningStrategy),
+      git = artifactInstance.gitMetadata
+        ?: artifactSupplier.parseDefaultGitMetadata(artifactInstance, artifact.versioningStrategy)
     )
   }
 

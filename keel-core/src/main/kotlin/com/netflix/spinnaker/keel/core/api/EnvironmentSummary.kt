@@ -34,7 +34,7 @@ data class EnvironmentSummary(
   }
 
   fun getArtifactPromotionStatus(artifact: DeliveryArtifact, version: String) =
-    artifacts.find { it.name == artifact.name && it.type == artifact.type }
+    artifacts.find { it.reference == artifact.reference && it.type == artifact.type }
       ?.let {
         when (version) {
           it.versions.current -> CURRENT

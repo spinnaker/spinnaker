@@ -137,9 +137,10 @@ fun versionedArtifactResource(
 fun artifactReferenceResource(
   kind: ResourceKind = TEST_API_V1.qualify("artifactReference"),
   id: String = randomString(),
-  application: String = "fnord"
+  application: String = "fnord",
+  artifactReference: String = "fnord"
 ): Resource<DummyArtifactReferenceResourceSpec> =
-  DummyArtifactReferenceResourceSpec(id = id, application = application)
+  DummyArtifactReferenceResourceSpec(id = id, application = application, artifactReference = artifactReference)
     .let { spec ->
       resource(
         kind = kind,
