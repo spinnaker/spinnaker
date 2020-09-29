@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import org.pf4j.util.StringUtils;
 
 public class UpsertLambdaEventSourceAtomicOperation
     extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
@@ -67,6 +68,12 @@ public class UpsertLambdaEventSourceAtomicOperation
             .withEnabled(description.getEnabled())
             .withUUID(description.getUuid());
 
+    if (StringUtils.isNotNullOrEmpty(description.getQualifier())) {
+      String fullArnWithQualifier =
+          String.format("%s:%s", cache.getFunctionArn(), description.getQualifier());
+      request.setFunctionName(fullArnWithQualifier);
+    }
+
     UpdateEventSourceMappingResult result = client.updateEventSourceMapping(request);
     updateTaskStatus("Finished Updating of AWS Lambda Function Event Mapping Operation...");
 
@@ -84,6 +91,12 @@ public class UpsertLambdaEventSourceAtomicOperation
             .withEnabled(description.getEnabled())
             .withStartingPosition(description.getStartingPosition())
             .withEventSourceArn(description.getEventSourceArn());
+
+    if (StringUtils.isNotNullOrEmpty(description.getQualifier())) {
+      String fullArnWithQualifier =
+          String.format("%s:%s", cache.getFunctionArn(), description.getQualifier());
+      request.setFunctionName(fullArnWithQualifier);
+    }
 
     CreateEventSourceMappingResult result = client.createEventSourceMapping(request);
     updateTaskStatus("Finished Creation of AWS Lambda Function Event Mapping Operation...");
