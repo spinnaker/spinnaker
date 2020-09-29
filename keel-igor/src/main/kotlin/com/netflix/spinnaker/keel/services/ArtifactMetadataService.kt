@@ -95,10 +95,14 @@ class ArtifactMetadataService(
     val retry = Retry.of(
       "get artifact metadata",
       RetryConfig.custom<List<Build>?>()
-        .maxAttempts(10)
-        .waitDuration(Duration.ofMillis(1000))
-        .retryOnResult{
-          result -> result.isNullOrEmpty()
+        // retry 20 times over a total of 90 seconds
+        .maxAttempts(20)
+        .waitDuration(Duration.ofMillis(4500))
+        .retryOnResult{ result ->
+          if (result.isNullOrEmpty()) {
+            log.debug("Retrying artifact metadata retrieval due to empty response (commit=$commitId, build=$buildNumber)")
+          }
+          result.isNullOrEmpty()
         }
         .retryOnException { t: Throwable ->
           // https://github.com/resilience4j/resilience4j/issues/688
@@ -106,7 +110,8 @@ class ArtifactMetadataService(
             is TimeoutCancellationException -> true
             else -> t is HttpException
           }
-          log.debug("retry filter = $retryFilter for exception ${t::class.java.name}")
+          log.debug(if (retryFilter) "Retrying " else "Not retrying " +
+            "artifact metadata retrieval (commit=$commitId, build=$buildNumber) on exception: ${t::class.java.name}")
           retryFilter
         }
         .build()
@@ -115,7 +120,6 @@ class ArtifactMetadataService(
     return retry.executeSuspendFunction {
       buildService.getArtifactMetadata(commitId = commitId.trim(), buildNumber = buildNumber.trim(), completionStatus = CompletionStatus.values().joinToString { it.name })
     }
-
   }
 
 
