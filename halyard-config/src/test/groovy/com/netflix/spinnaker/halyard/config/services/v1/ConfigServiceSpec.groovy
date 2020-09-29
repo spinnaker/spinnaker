@@ -19,8 +19,8 @@ package com.netflix.spinnaker.halyard.config.services.v1
 import spock.lang.Specification
 
 class ConfigServiceSpec extends Specification {
-  final String DEPLOYMENT = "default"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
+  String DEPLOYMENT = "default"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   ConfigService makeConfigService(String config) {
     def configService = new ConfigService()

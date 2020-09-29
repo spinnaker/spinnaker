@@ -19,9 +19,9 @@ package com.netflix.spinnaker.halyard.config.services.v1
 import spock.lang.Specification
 
 class WebhookServiceSpec extends Specification {
-  final String DEPLOYMENT = "default"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
-  final LookupService lookupService = new LookupService()
+  String DEPLOYMENT = "default"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
+  LookupService lookupService = new LookupService()
 
   LookupService getMockLookupService(String config) {
     def lookupService = new LookupService()

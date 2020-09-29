@@ -20,10 +20,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersis
 import spock.lang.Specification
 
 class PersistentStorageServiceSpec extends Specification {
-  final String DEPLOYMENT = "default"
-  final String PROJECT = "my-project"
-  final String STORE_NAME = "gcs"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
+  String DEPLOYMENT = "default"
+  String PROJECT = "my-project"
+  String STORE_NAME = "gcs"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   PersistentStorageService makePersistentStorageService(String config) {
     def lookupService = new LookupService()

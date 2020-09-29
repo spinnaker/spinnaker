@@ -20,8 +20,8 @@ import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException
 import spock.lang.Specification
 
 class ArtifactTemplateServiceSpec extends Specification {
-  final String DEPLOYMENT = "default"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
+  String DEPLOYMENT = "default"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   LookupService getMockLookupService(String config) {
       def lookupService = new LookupService()

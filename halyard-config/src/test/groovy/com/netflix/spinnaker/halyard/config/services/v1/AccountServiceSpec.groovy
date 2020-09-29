@@ -20,11 +20,11 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException
 import spock.lang.Specification
 
 class AccountServiceSpec extends Specification {
-  final String DEPLOYMENT = "default"
-  final String PROVIDER = "kubernetes"
-  final String PROVIDER2 = "google"
-  final String ACCOUNT_NAME = "my-account"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
+  String DEPLOYMENT = "default"
+  String PROVIDER = "kubernetes"
+  String PROVIDER2 = "google"
+  String ACCOUNT_NAME = "my-account"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   AccountService makeAccountService(String config) {
     def lookupService = new LookupService()

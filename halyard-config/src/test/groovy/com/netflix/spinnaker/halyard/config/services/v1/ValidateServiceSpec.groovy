@@ -24,16 +24,16 @@ import com.netflix.spinnaker.halyard.config.validate.v1.ValidatorCollection
 import spock.lang.Specification
 
 class ValidateServiceSpec extends Specification {
-  final static String DEPLOYMENT_NAME = "default"
-  final static String KUBERNETES_ACCOUNT_NAME = "my-k8s-account"
-  final static String DOCKER_REGISTRY_ACCOUNT_NAME = "my-docker-account"
-  final static String GOOGLE_ACCOUNT_NAME = "my-google-account"
-  final static String KUBERNETES_PROVIDER = "kubernetes"
-  final static String DOCKER_REGISTRY_PROVIDER = "dockerRegistry"
-  final static String GOOGLE_PROVIDER = "google"
-  final static String AZURE_ACCOUNT_NAME = "my-azure-account"
-  final static String AZURE_PROVIDER = "azure"
-  final HalconfigParserMocker mocker = new HalconfigParserMocker()
+  static String DEPLOYMENT_NAME = "default"
+  static String KUBERNETES_ACCOUNT_NAME = "my-k8s-account"
+  static String DOCKER_REGISTRY_ACCOUNT_NAME = "my-docker-account"
+  static String GOOGLE_ACCOUNT_NAME = "my-google-account"
+  static String KUBERNETES_PROVIDER = "kubernetes"
+  static String DOCKER_REGISTRY_PROVIDER = "dockerRegistry"
+  static String GOOGLE_PROVIDER = "google"
+  static String AZURE_ACCOUNT_NAME = "my-azure-account"
+  static String AZURE_PROVIDER = "azure"
+  HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   def "tracking validator hits all accounts"() {
     setup:
