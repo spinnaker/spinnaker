@@ -29,9 +29,10 @@ class Notification {
   Source source
   Map<String, Object> additionalContext = [:]
   InteractiveActions interactiveActions
+  Boolean useInteractiveBot = false
 
   boolean isInteractive() {
-    interactiveActions != null && !interactiveActions.actions.empty
+    useInteractiveBot || (interactiveActions != null && !interactiveActions.actions.empty)
   }
 
   static class Source {

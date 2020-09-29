@@ -45,6 +45,7 @@ class SlackNotificationServiceSpec extends Specification {
     notification.to = [ "channel1", "#channel2", "C12345678" ]
     notification.severity = Notification.Severity.NORMAL
     notification.additionalContext["body"] = "text"
+    notification.additionalContext["subject"] = "ohai"
 
     slack.config >> new SlackLegacyProperties()
 

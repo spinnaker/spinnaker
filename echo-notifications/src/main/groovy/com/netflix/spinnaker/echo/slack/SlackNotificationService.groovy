@@ -50,6 +50,7 @@ class SlackNotificationService implements NotificationService {
   @Override
   EchoResponse.Void handle(Notification notification) {
     log.debug("Handling Slack notification to ${notification.to}")
+    def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def text = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       def response
@@ -58,7 +59,7 @@ class SlackNotificationService implements NotificationService {
         response = slack.sendCompactMessage(new CompactSlackMessage(text), address, true)
       } else {
         response = slack.sendMessage(
-          new SlackAttachment("Spinnaker Notification", text, (InteractiveActions)notification.interactiveActions),
+          new SlackAttachment(subject, text, (InteractiveActions)notification.interactiveActions),
           address, true)
       }
       log.trace("Received response from Slack: {} {} for message '{}'. {}",
