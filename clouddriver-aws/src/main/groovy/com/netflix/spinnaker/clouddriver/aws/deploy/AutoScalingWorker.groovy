@@ -387,23 +387,40 @@ class AutoScalingWorker {
    * This is used to gradually roll out launch template.
    */
   private boolean shouldSetLaunchTemplate() {
+    // Request level flag that forces launch configurations.
     if (!setLaunchTemplate) {
       return false
     }
 
+    // Property flag to turn off launch template feature. Caching agent might require bouncing the java process
     if (!dynamicConfigService.isEnabled("aws.features.launch-templates", false)) {
       log.debug("Launch Template feature disabled via configuration.")
       return false
     }
 
-    // application allow list: app1,app2
-    String allowedApps = dynamicConfigService
-      .getConfig(String.class, "aws.features.launch-templates.allowed-applications", "")
-    if (application in allowedApps.split(",")) {
-      return true
+    // This is a comma separated list of applications to exclude
+    String excludedApps = dynamicConfigService
+      .getConfig(String.class, "aws.features.launch-templates.excluded-applications", "")
+    if (application in excludedApps.split(",")) {
+      return false
     }
 
-    // account:region allow list
+    // Application allow list with the following format:
+    // app1:account:region1,region2,app2:account:region1
+    // This allows more control over what account and region pairs to enable for this deployment.
+    String allowedApps = dynamicConfigService
+      .getConfig(String.class, "aws.features.launch-templates.allowed-applications", "")
+    for (appAccountRegion in allowedApps.split(",")) {
+      if (appAccountRegion && appAccountRegion.contains(":")) {
+        def (app, account, regions) = appAccountRegion.split(":")
+        if (app == application && account == credentials.name && this.region in (regions as String).split(",")) {
+          return true
+        }
+      }
+    }
+
+    // Final check is an allow list for account/region pairs with the following format:
+    // account:region
     String allowedAccountsAndRegions = dynamicConfigService
       .getConfig(String.class, "aws.features.launch-templates.allowed-accounts-regions", "")
     for (accountRegion in allowedAccountsAndRegions.split(",")) {

@@ -110,6 +110,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.stack = "stack"
+    mockAutoScalingWorker.region = "us-east-1"
     mockAutoScalingWorker.freeFormDetails = "details"
     mockAutoScalingWorker.credentials = credential
     mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
@@ -127,7 +128,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
-    1 * dynamicConfigService.getConfig(_, _, _) >> { "myasg" }
+    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, null, { it.launchTemplateId == "id" }) >> {}
     (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
     0 * clusterProvider._
@@ -161,7 +163,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
-    1 * dynamicConfigService.getConfig(_, _, _) >> { "myasg" }
+    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
     1 * launchTemplateService.createLaunchTemplate(_,_,_,_) >>
       new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
     1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
