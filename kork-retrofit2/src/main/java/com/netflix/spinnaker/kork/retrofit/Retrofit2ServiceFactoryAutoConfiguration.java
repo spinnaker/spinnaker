@@ -44,7 +44,7 @@ public class Retrofit2ServiceFactoryAutoConfiguration {
   HttpLoggingInterceptor httpLoggingInterceptor(
       Retrofit2ConfigurationProperties retrofit2ConfigurationProperties) {
     HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-    httpLoggingInterceptor.level(retrofit2ConfigurationProperties.getLogLevel());
+    httpLoggingInterceptor.setLevel(retrofit2ConfigurationProperties.getLogLevel());
     return httpLoggingInterceptor;
   }
 }
