@@ -27,7 +27,7 @@ public class CachingSchemaUtil {
 
   public CachingSchema getCachingSchemaForAccount(String account) {
     init();
-    return Optional.ofNullable(cachingSchemaForAccounts.get(account)).orElse(CachingSchema.V1);
+    return Optional.ofNullable(cachingSchemaForAccounts.get(account)).orElse(CachingSchema.V2);
   }
 
   @PostConstruct
@@ -51,6 +51,6 @@ public class CachingSchemaUtil {
   }
 
   private static CachingSchema cachingSchemaFor(NetflixTitusCredentials credentials) {
-    return credentials.getSplitCachingEnabled() ? CachingSchema.V2 : CachingSchema.V1;
+    return CachingSchema.V2;
   }
 }

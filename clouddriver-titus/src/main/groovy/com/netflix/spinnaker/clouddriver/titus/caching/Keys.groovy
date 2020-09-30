@@ -196,7 +196,7 @@ class Keys implements KeyParser {
       return key
     }
 
-    if ((parts[2] != CachingSchema.V2.toString()) && (parts[2] != CachingSchema.V1.toString())) {
+    if (parts[2] != CachingSchema.V2.toString()) {
       return key
     }
 

@@ -61,11 +61,7 @@ class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
   @Override
   String getInstanceKey(Map<String, Object> attributes, String region) {
     CachingSchema schema = cachingSchemaUtil.get().getCachingSchemaForAccount((String) attributes.accountId)
-    if (schema == CachingSchema.V2) {
-      Keys.getInstanceV2Key(attributes.titusTaskId, attributes.accountId, region)
-    } else {
-      Keys.getInstanceKey(attributes.titusTaskId, attributes.accountId, attributes.titusStack, region)
-    }
+    Keys.getInstanceV2Key(attributes.titusTaskId, attributes.accountId, region)
   }
 
   @Override

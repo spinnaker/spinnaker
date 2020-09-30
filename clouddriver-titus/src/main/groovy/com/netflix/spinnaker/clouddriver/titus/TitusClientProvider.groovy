@@ -57,7 +57,7 @@ class TitusClientProvider {
 
   TitusAutoscalingClient getTitusAutoscalingClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
-    if (!account.eurekaName || !account.autoscalingEnabled || !titusRegion.autoscalingEnabled) {
+    if (!account.eurekaName) {
       return null
     }
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
@@ -66,7 +66,7 @@ class TitusClientProvider {
 
   TitusLoadBalancerClient getTitusLoadBalancerClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
-    if (!account.eurekaName || !account.loadBalancingEnabled || !titusRegion.loadBalancingEnabled) {
+    if (!account.eurekaName) {
       return null
     }
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)

@@ -58,8 +58,6 @@ class PrepareTitusDeployActionSpec extends Specification {
         mimicker.aws().getAvailabilityZone(fixture.region),
         fixture.accountName,
         'http://region', // TODO(rz): mimicker.network().url
-        mimicker.random().trueOrFalse(),
-        mimicker.random().trueOrFalse(),
         fixture.moniker.app,
         mimicker.text().word(),
         mimicker.network().port,
@@ -77,10 +75,7 @@ class PrepareTitusDeployActionSpec extends Specification {
     mimicker.text().word(),
     [],
     Permissions.EMPTY,
-    mimicker.text().word(),
-    mimicker.random().trueOrFalse(),
-    mimicker.random().trueOrFalse(),
-    mimicker.random().trueOrFalse()
+    mimicker.text().word()
   )
 
   AccountCredentialsRepository accountCredentialsRepository = Mock() {

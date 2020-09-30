@@ -151,9 +151,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
    */
   @Override
   TitusCluster getCluster(String application, String account, String name, boolean includeDetails) {
-    String clusterKey = (cachingSchemaUtil.get().getCachingSchemaForAccount(account) == CachingSchema.V1
-      ? Keys.getClusterKey(name, application, account)
-      : Keys.getClusterV2Key(name, application, account))
+    String clusterKey = Keys.getClusterV2Key(name, application, account)
     CacheData cluster = cacheView.get(CLUSTERS.ns, clusterKey)
     TitusCluster titusCluster = cluster ? translateClusters([cluster], includeDetails)[0] : null
     titusCluster
@@ -173,9 +171,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
    */
   @Override
   TitusServerGroup getServerGroup(String account, String region, String name, boolean includeDetails) {
-    String serverGroupKey = (cachingSchemaUtil.get().getCachingSchemaForAccount(account) == CachingSchema.V1
-      ? Keys.getServerGroupKey(name, account, region)
-      : Keys.getServerGroupV2Key(name, account, region))
+    String serverGroupKey = Keys.getServerGroupV2Key(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
       return null

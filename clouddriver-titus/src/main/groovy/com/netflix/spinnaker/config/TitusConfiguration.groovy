@@ -63,12 +63,27 @@ class TitusConfiguration {
     List<NetflixTitusCredentials> accounts = new ArrayList<>()
     for (TitusCredentialsConfig.Account account in titusCredentialsConfig.accounts) {
       List<TitusRegion> regions = account.regions.collect {
-        new TitusRegion(it.name, account.name, it.endpoint, it.autoscalingEnabled, it.loadBalancingEnabled, it.applicationName, it.url, it.port, it.featureFlags, it.eurekaName , it.eurekaRegion)
+        new TitusRegion(it.name, account.name, it.endpoint, it.applicationName, it.url, it.port, it.featureFlags, it.eurekaName , it.eurekaRegion)
       }
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery, account.stack ?: 'mainvpc', account.requiredGroupMembership, account.getPermissions(), account.eurekaName, account.autoscalingEnabled ?: false, account.loadBalancingEnabled ?: false, account.splitCachingEnabled ?: false)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(
+        account.name,
+        account.environment,
+        account.accountType,
+        regions,
+        account.bastionHost,
+        account.registry,
+        account.awsAccount,
+        account.awsVpc ?: titusCredentialsConfig.awsVpc,
+        account.discoveryEnabled,
+        account.discovery,
+        account.stack ?: 'mainvpc',
+        account.requiredGroupMembership,
+        account.getPermissions(),
+        account.eurekaName
+      )
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -107,9 +122,6 @@ class TitusConfiguration {
       //the generic types on here..
       Map<String, Map<String, String>> permissions
       String eurekaName
-      Boolean autoscalingEnabled
-      Boolean loadBalancingEnabled
-      Boolean splitCachingEnabled
 
       Permissions getPermissions() {
         //boot yaml mapping is weird..
@@ -142,8 +154,6 @@ class TitusConfiguration {
     static class Region {
       String name
       String endpoint
-      Boolean autoscalingEnabled
-      Boolean loadBalancingEnabled
       String applicationName
       String url
       Integer port
