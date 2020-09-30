@@ -297,6 +297,7 @@ class BuildControllerSpec extends Specification {
       new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
     ]
     1 * jenkinsService.getJobConfig(JOB_NAME) >> config
+    1 * exceptionMessageDecorator.decorate(_, _) >> "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
@@ -312,6 +313,7 @@ class BuildControllerSpec extends Specification {
     given:
     JobConfig config = new JobConfig()
     1 * jenkinsService.getJobConfig(JOB_NAME) >> config
+    1 * exceptionMessageDecorator.decorate(_, _) >> "Job '${JOB_NAME}' is not buildable. It may be disabled."
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
