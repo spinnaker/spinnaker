@@ -29,6 +29,7 @@ include(
   "keel-artifact",
   "keel-bakery-plugin",
   "keel-bom",
+  "keel-cli",
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",

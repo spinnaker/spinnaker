@@ -22,14 +22,14 @@ import java.util.TimeZone
 /**
  * Factory method for [ObjectMapper]s configured how we like 'em.
  */
-fun configuredObjectMapper(): ObjectMapper = ObjectMapper().configureMe()
+fun configuredObjectMapper(): ObjectMapper = ObjectMapper().configureForKeel()
 
 /**
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
-fun configuredYamlMapper(): YAMLMapper = YAMLMapper().configureMe().disable(USE_NATIVE_TYPE_ID)
+fun configuredYamlMapper(): YAMLMapper = YAMLMapper().configureForKeel().disable(USE_NATIVE_TYPE_ID)
 
-private fun <T : ObjectMapper> T.configureMe(): T =
+fun <T : ObjectMapper> T.configureForKeel(): T =
   apply {
     registerKeelApiModule()
       .registerKotlinModule()
