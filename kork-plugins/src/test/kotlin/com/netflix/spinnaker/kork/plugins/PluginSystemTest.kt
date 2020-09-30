@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
 import com.netflix.spinnaker.kork.plugins.testplugin.basicGeneratedPlugin
+import com.netflix.spinnaker.kork.plugins.v2.PluginFrameworkInitializer
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.pf4j.DefaultPluginDescriptor
@@ -54,7 +55,7 @@ class PluginSystemTest : JUnit5Minutests {
         run { ctx: AssertableApplicationContext ->
           expect {
             that(ctx.getBean("pluginManager")).isA<SpinnakerPluginManager>()
-            that(ctx.getBean("pluginBeanPostProcessor")).isA<ExtensionBeanDefinitionRegistryPostProcessor>()
+            that(ctx.getBean("pluginFrameworkInitializer")).isA<PluginFrameworkInitializer>()
           }
         }
       }

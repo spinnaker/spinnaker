@@ -143,7 +143,7 @@ public class PluginsAutoConfiguration {
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
       havingValue = FRAMEWORK_V1,
-      matchIfMissing = true)
+      matchIfMissing = false)
   public static PluginFactory pluginFactoryV1(
       List<SdkFactory> sdkFactories, ConfigFactory configFactory) {
     return new SpinnakerPluginFactory(sdkFactories, configFactory);
@@ -152,7 +152,8 @@ public class PluginsAutoConfiguration {
   @Bean
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
-      havingValue = FRAMEWORK_V2)
+      havingValue = FRAMEWORK_V2,
+      matchIfMissing = true)
   public static PluginFactory pluginFactoryV2(
       List<SdkFactory> sdkFactories,
       ConfigFactory configFactory,
@@ -321,7 +322,7 @@ public class PluginsAutoConfiguration {
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
       havingValue = FRAMEWORK_V1,
-      matchIfMissing = true)
+      matchIfMissing = false)
   public static ExtensionBeanDefinitionRegistryPostProcessor pluginBeanPostProcessor(
       SpinnakerPluginManager pluginManager,
       SpinnakerUpdateManager updateManager,
@@ -341,7 +342,8 @@ public class PluginsAutoConfiguration {
   @Bean
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
-      havingValue = FRAMEWORK_V2)
+      havingValue = FRAMEWORK_V2,
+      matchIfMissing = true)
   public SpinnakerPluginService spinnakerPluginService(
       SpinnakerPluginManager pluginManager,
       SpinnakerUpdateManager updateManager,
@@ -355,7 +357,8 @@ public class PluginsAutoConfiguration {
   @Bean
   @ConditionalOnProperty(
       value = "spinnaker.extensibility.framework.version",
-      havingValue = FRAMEWORK_V2)
+      havingValue = FRAMEWORK_V2,
+      matchIfMissing = true)
   PluginFrameworkInitializer pluginFrameworkInitializer(SpinnakerPluginService pluginService) {
     return new PluginFrameworkInitializer(pluginService);
   }
