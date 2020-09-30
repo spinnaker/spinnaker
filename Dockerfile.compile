@@ -1,15 +1,12 @@
 FROM ubuntu:bionic
 RUN apt-get update && apt-get install -y \
-    openjdk-8-jdk \
     openjdk-11-jdk \
  && rm -rf /var/lib/apt/lists/*
 LABEL maintainer="sig-platform@spinnaker.io"
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
-ENV JDK_18 /usr/lib/jvm/java-8-openjdk-amd64
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx4g
 ARG VERSION
 # You can't use an ARG in a CMD (because it isn't available anymore when you run
 # the container) so we have to store it in an ENV.
 ENV VERSIONARG="-Pversion=$VERSION"
-CMD ./gradlew --no-daemon $VERSIONARG -PenableCrossCompilerPlugin=true halyard-web:installDist -x test
+CMD ./gradlew --no-daemon $VERSIONARG halyard-web:installDist -x test
