@@ -76,7 +76,8 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
   public void handleInvalidRequestException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
-    response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    response.sendError(
+        HttpStatus.BAD_REQUEST.value(), exceptionMessageDecorator.decorate(e, e.getMessage()));
   }
 
   @ExceptionHandler(RetrofitError.class)

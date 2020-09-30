@@ -17,35 +17,31 @@
 
 package com.netflix.spinnaker.kork.web.exceptions
 
+import spock.lang.Shared
 import spock.lang.Specification
 
 
 class ExceptionMessageDecoratorSpec extends Specification {
 
+  @Shared
   String messageToBeAppended = "Message to be appended."
+
   AccessDeniedExceptionMessage accessDeniedExceptionMessage = new AccessDeniedExceptionMessage(messageToBeAppended)
   ExceptionMessageProvider exceptionMessageProvider = new ExceptionMessageProvider([accessDeniedExceptionMessage])
   ExceptionMessageDecorator exceptionMessageDecorator = new ExceptionMessageDecorator(exceptionMessageProvider)
 
   def "Returns a message that is the original exception message and the message provided from the appender"() {
-    given:
-    LocalAccessDeniedException accessDeniedException = new LocalAccessDeniedException("Access is denied.")
-
     when:
-    String userMessage = exceptionMessageDecorator.decorate(accessDeniedException, accessDeniedException.getMessage())
+    String userMessage = exceptionMessageDecorator.decorate(reason, originalMessage)
 
     then:
-    userMessage == accessDeniedException.getMessage() + "\n" + messageToBeAppended
-  }
+    userMessage == expectedResult
 
-  def "Does not return an appended message when the exception type is unsupported"() {
-    given:
-    RuntimeException runtimeException = new RuntimeException("Runtime exception.")
-
-    when:
-    String userMessage = exceptionMessageDecorator.decorate(runtimeException, runtimeException.getMessage())
-
-    then:
-    userMessage == runtimeException.getMessage()
+    where:
+    reason                                               || originalMessage    || expectedResult
+    new LocalAccessDeniedException("Access is denied")   || "Access is denied" || "Access is denied" + "\n" + messageToBeAppended
+    "authorization"                                      || "Access is denied" || "Access is denied" + "\n" + messageToBeAppended
+    new RuntimeException("Runtime exception")            || "Runtime exception"|| "Runtime exception"
+    "unsupported"                                        || "Error message"    || "Error message"
   }
 }

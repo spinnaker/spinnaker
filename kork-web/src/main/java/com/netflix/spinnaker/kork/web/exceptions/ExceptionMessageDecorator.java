@@ -21,8 +21,7 @@ public class ExceptionMessageDecorator {
   }
 
   /**
-   * Provided an exception type, original message, and optional exception details, return a message
-   * for the end-user.
+   * Decorate an exception message give the provided arguments.
    *
    * @param throwable {@link Throwable}
    * @param message The exception message (which can be different from the message on the thrown
@@ -32,26 +31,54 @@ public class ExceptionMessageDecorator {
    */
   public String decorate(
       Throwable throwable, String message, @Nullable ExceptionDetails exceptionDetails) {
+    return decorate(throwable, null, message, exceptionDetails);
+  }
+
+  /**
+   * Decorate an exception message give the provided arguments.
+   *
+   * @param errorCode The error code, typically from a validation error
+   * @param message The message related to the error code
+   * @param exceptionDetails Additional {@link ExceptionDetails} about the exception.
+   * @return The final exception message for the end-user.
+   */
+  public String decorate(
+      String errorCode, String message, @Nullable ExceptionDetails exceptionDetails) {
+    return decorate(null, errorCode, message, exceptionDetails);
+  }
+
+  public String decorate(Throwable throwable, String message) {
+    return decorate(throwable, message, null);
+  }
+
+  public String decorate(String errorCode, String message) {
+    return decorate(errorCode, message, null);
+  }
+
+  private String decorate(
+      @Nullable Throwable throwable,
+      @Nullable String errorCode,
+      String message,
+      @Nullable ExceptionDetails exceptionDetails) {
+
+    StringBuilder sb = new StringBuilder().append(message);
+
     List<ExceptionMessage> exceptionMessages = exceptionMessagesProvider.getIfAvailable();
-
-    StringBuilder sb = new StringBuilder();
-    sb.append(message);
-
     if (exceptionMessages != null && !exceptionMessages.isEmpty()) {
       for (ExceptionMessage exceptionMessage : exceptionMessages) {
-        if (exceptionMessage.supports(throwable.getClass())) {
-          String messageToAppend = exceptionMessage.message(throwable, exceptionDetails);
-          if (messageToAppend != null && !messageToAppend.isEmpty()) {
-            sb.append("\n").append(messageToAppend);
-          }
+        if (throwable != null) {
+          exceptionMessage
+              .message(throwable, exceptionDetails)
+              .ifPresent(s -> sb.append("\n").append(s));
+        }
+        if (errorCode != null) {
+          exceptionMessage
+              .message(errorCode, exceptionDetails)
+              .ifPresent(s -> sb.append("\n").append(s));
         }
       }
     }
 
     return sb.toString();
-  }
-
-  public String decorate(Throwable throwable, String message) {
-    return decorate(throwable, message, null);
   }
 }

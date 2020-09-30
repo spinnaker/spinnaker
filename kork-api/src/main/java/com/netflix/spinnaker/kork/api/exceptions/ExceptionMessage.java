@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.kork.api.exceptions;
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -13,12 +14,6 @@ import javax.annotation.Nullable;
 public interface ExceptionMessage extends SpinnakerExtensionPoint {
 
   /**
-   * The user message generated will largely be based off the exception type, so check if this
-   * implementation supports the specified exception type.
-   */
-  boolean supports(Class<? extends Throwable> throwable);
-
-  /**
    * Create the message.
    *
    * @param throwable The thrown exception. Used to help provide context when creating the message.
@@ -27,6 +22,17 @@ public interface ExceptionMessage extends SpinnakerExtensionPoint {
    * @return The string to append to the message. Note that this will not modify the original
    *     exception message but only append to the message that is delivered to the end-user.
    */
-  @Nullable
-  String message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails);
+  Optional<String> message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails);
+
+  /**
+   * Create the message.
+   *
+   * @param errorCode The error code. This typically comes into play when using Spring's Errors
+   *     during validation, prior to throwing an exception.
+   * @param exceptionDetails Additional details about the error that can be used to inform the
+   *     message.
+   * @return The string to append to the message. Note that this will not modify the original
+   *     exception message but only append to the message that is delivered to the end-user.
+   */
+  Optional<String> message(String errorCode, @Nullable ExceptionDetails exceptionDetails);
 }

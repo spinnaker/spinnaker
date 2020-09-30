@@ -25,6 +25,7 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
+import javax.annotation.Nonnull
 import javax.annotation.Nullable
 
 class ExceptionMessageProvider implements ObjectProvider<List<ExceptionMessage>> {
@@ -65,13 +66,19 @@ class AccessDeniedExceptionMessage implements ExceptionMessage {
   }
 
   @Override
-  boolean supports(Class<? extends Throwable> throwable) {
-    return throwable == LocalAccessDeniedException.class
+  Optional<String> message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
+    if (throwable.getClass() == LocalAccessDeniedException.class) {
+      return Optional.of(messageToBeAppended)
+    }
+    return Optional.empty()
   }
 
   @Override
-  String message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
-    return messageToBeAppended
+  Optional<String> message(String errorCode, @Nullable ExceptionDetails exceptionDetails) {
+    if (errorCode == "authorization") {
+      return Optional.of(messageToBeAppended)
+    }
+    return Optional.empty()
   }
 }
 
