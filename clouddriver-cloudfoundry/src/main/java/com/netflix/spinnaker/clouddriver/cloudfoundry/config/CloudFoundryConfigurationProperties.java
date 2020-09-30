@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 
+import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
   @Getter
   @Setter
   @ToString(exclude = "password")
-  public static class ManagedAccount {
+  public static class ManagedAccount implements CredentialsDefinition {
     private String name;
     private String api;
     private String appsManagerUri;

@@ -21,32 +21,40 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.model.ServiceProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collection;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFoundryServiceProvider implements ServiceProvider {
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository;
 
   @Autowired
-  public CloudFoundryServiceProvider(AccountCredentialsProvider accountCredentialsProvider) {
-    this.accountCredentialsProvider = accountCredentialsProvider;
+  public CloudFoundryServiceProvider(
+      CredentialsRepository<CloudFoundryCredentials> credentialsRepository) {
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
   public Collection<CloudFoundryService> getServices(String account, String region) {
-    CloudFoundryCredentials credentials =
-        (CloudFoundryCredentials) accountCredentialsProvider.getCredentials(account);
+    CloudFoundryCredentials credentials = credentialsRepository.getOne(account);
+    if (credentials == null) {
+      return Collections.emptyList();
+    }
+
     return credentials.getCredentials().getServiceInstances().findAllServicesByRegion(region);
   }
 
   @Override
   public ServiceInstance getServiceInstance(
       String account, String region, String serviceInstanceName) {
-    CloudFoundryCredentials credentials =
-        (CloudFoundryCredentials) accountCredentialsProvider.getCredentials(account);
+    CloudFoundryCredentials credentials = credentialsRepository.getOne(account);
+    if (credentials == null) {
+      return null;
+    }
+
     return credentials
         .getCredentials()
         .getServiceInstances()

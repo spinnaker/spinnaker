@@ -26,22 +26,23 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryInstanceProvider.CloudFoundryConsoleOutputIdParameter;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import org.junit.jupiter.api.Test;
 
 class CloudFoundryInstanceProviderTest {
 
   @Test
-  void getConsoleOutput_withNonCloudFoundryAccount_returnsNull() {
-    AccountCredentialsProvider credentialProvider = mock(AccountCredentialsProvider.class);
-    when(credentialProvider.getCredentials(eq("account1")))
-        .thenReturn(mock(AccountCredentials.class));
+  void getConsoleOutput_withNoAccount_returnsNull() {
+    CredentialsRepository<CloudFoundryCredentials> credentialsRepository =
+        mock(CredentialsRepository.class);
+    when(credentialsRepository.getOne(eq("account1")))
+        .thenReturn(mock(CloudFoundryCredentials.class));
 
     CloudFoundryInstanceProvider provider =
-        new CloudFoundryInstanceProvider(mock(CacheRepository.class), credentialProvider);
+        new CloudFoundryInstanceProvider(mock(CacheRepository.class), credentialsRepository);
 
-    assertThat(provider.getConsoleOutput("account1", "location", "task:jobId")).isNull();
+    assertThat(provider.getConsoleOutput("account2", "location", "task:jobId")).isNull();
   }
 
   @Test

@@ -25,8 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ public class CloudFoundryInstanceProvider
     implements InstanceProvider<CloudFoundryInstance, String> {
 
   private final CacheRepository repository;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository;
 
   @Nullable
   @Override
@@ -48,11 +47,11 @@ public class CloudFoundryInstanceProvider
 
   @Override
   public String getConsoleOutput(String account, String region, String id) {
-    AccountCredentials credentials = accountCredentialsProvider.getCredentials(account);
-    if (!(credentials instanceof CloudFoundryCredentials)) {
+    CloudFoundryCredentials credentials = credentialsRepository.getOne(account);
+    if (credentials == null) {
       return null;
     }
-    final CloudFoundryClient client = ((CloudFoundryCredentials) credentials).getClient();
+    final CloudFoundryClient client = credentials.getClient();
     final Logs logsService = client.getLogs();
 
     final CloudFoundryConsoleOutputIdParameter idParam =

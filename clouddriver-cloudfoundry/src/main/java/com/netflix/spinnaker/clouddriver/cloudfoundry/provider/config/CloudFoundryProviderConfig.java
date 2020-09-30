@@ -16,55 +16,86 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.config;
 
-import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundrySpaceCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
+import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
+import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
+import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
+import com.netflix.spinnaker.credentials.poller.Poller;
+import javax.annotation.Nullable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class CloudFoundryProviderConfig {
 
   @Bean
-  @DependsOn("cloudFoundryAccountCredentials")
-  public CloudFoundryProvider cloudFoundryProvider(
-      AccountCredentialsRepository accountCredentialsRepository, Registry registry) {
-    CloudFoundryProvider provider =
-        new CloudFoundryProvider(Collections.newSetFromMap(new ConcurrentHashMap<>()));
-    synchronizeCloudFoundryProvider(provider, accountCredentialsRepository, registry);
-    return provider;
+  public CloudFoundryProvider cloudFoundryProvider() {
+    return new CloudFoundryProvider();
   }
 
-  private void synchronizeCloudFoundryProvider(
-      CloudFoundryProvider cloudFoundryProvider,
-      AccountCredentialsRepository accountCredentialsRepository,
-      Registry registry) {
-    Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(cloudFoundryProvider);
-    Set<CloudFoundryCredentials> allAccounts =
-        ProviderUtils.buildThreadSafeSetOfAccounts(
-            accountCredentialsRepository, CloudFoundryCredentials.class);
-    allAccounts.forEach(
-        credentials -> {
-          if (!scheduledAccounts.contains(credentials.getName())) {
-            cloudFoundryProvider
-                .getAgents()
-                .add(new CloudFoundryServerGroupCachingAgent(credentials, registry));
-            cloudFoundryProvider
-                .getAgents()
-                .add(new CloudFoundryLoadBalancerCachingAgent(credentials, registry));
-            cloudFoundryProvider
-                .getAgents()
-                .add(new CloudFoundrySpaceCachingAgent(credentials, registry));
-          }
-        });
+  @Bean
+  @ConditionalOnMissingBean(
+      value = CloudFoundryCredentials.class,
+      parameterizedContainer = AbstractCredentialsLoader.class)
+  public AbstractCredentialsLoader<CloudFoundryCredentials> cloudFoundryCredentialsLoader(
+      @Nullable
+          CredentialsDefinitionSource<CloudFoundryConfigurationProperties.ManagedAccount>
+              cloudFoundryCredentialSource,
+      CloudFoundryConfigurationProperties configurationProperties,
+      CacheRepository cacheRepository,
+      CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository) {
+
+    if (cloudFoundryCredentialSource == null) {
+      cloudFoundryCredentialSource = configurationProperties::getAccounts;
+    }
+    return new BasicCredentialsLoader<>(
+        cloudFoundryCredentialSource,
+        a ->
+            new CloudFoundryCredentials(
+                a.getName(),
+                a.getAppsManagerUri(),
+                a.getMetricsUri(),
+                a.getApi(),
+                a.getUser(),
+                a.getPassword(),
+                a.getEnvironment(),
+                a.isSkipSslValidation(),
+                a.getResultsPerPage(),
+                a.getMaxCapiConnectionsForCache(),
+                cacheRepository,
+                a.getPermissions().build()),
+        cloudFoundryCredentialsRepository);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(
+      value = CloudFoundryCredentials.class,
+      parameterizedContainer = CredentialsRepository.class)
+  public CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository(
+      CredentialsLifecycleHandler<CloudFoundryCredentials> eventHandler) {
+    return new MapBackedCredentialsRepository<>(CloudFoundryProvider.PROVIDER_ID, eventHandler);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(
+      value = CloudFoundryConfigurationProperties.ManagedAccount.class,
+      parameterizedContainer = CredentialsDefinitionSource.class)
+  public CredentialsInitializerSynchronizable cloudFoundryCredentialsInitializerSynchronizable(
+      AbstractCredentialsLoader<CloudFoundryCredentials> loader) {
+    final Poller<CloudFoundryCredentials> poller = new Poller<>(loader);
+    return new CredentialsInitializerSynchronizable() {
+      @Override
+      public void synchronize() {
+        poller.run();
+      }
+    };
   }
 }

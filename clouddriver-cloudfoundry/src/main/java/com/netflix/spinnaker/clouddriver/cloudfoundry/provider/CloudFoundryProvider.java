@@ -21,12 +21,10 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 
-import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
-import java.util.Collection;
+import com.netflix.spinnaker.clouddriver.security.BaseProvider;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -36,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProvider {
+public class CloudFoundryProvider extends BaseProvider implements SearchableProvider {
   private final Set<String> defaultCaches =
       Stream.of(
               APPLICATIONS.getNs(),
@@ -55,8 +53,6 @@ public class CloudFoundryProvider extends AgentSchedulerAware implements Searcha
   private final Map<String, String> urlMappingTemplates = emptyMap();
   public static final String PROVIDER_ID = "cloudfoundry";
   private final String providerName = CloudFoundryProvider.class.getName();
-
-  private final Collection<Agent> agents;
 
   static class ApplicationSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
     @Override

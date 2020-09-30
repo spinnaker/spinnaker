@@ -21,18 +21,16 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceKeyDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import io.vavr.collection.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -62,30 +60,25 @@ class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
         }
       };
 
-  private final AccountCredentialsRepository accountCredentialsRepository =
-      new MapBackedAccountCredentialsRepository();
-  private final String accountName = "my-account";
+  private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository =
+      new MapBackedCredentialsRepository<>(CloudFoundryProvider.PROVIDER_ID, null);
 
   {
-    accountCredentialsRepository.update(accountName, cloudFoundryCredentials);
+    credentialsRepository.save(cloudFoundryCredentials);
   }
-
-  private final AccountCredentialsProvider accountCredentialsProvider =
-      new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   @Test
   void convertDescriptionSucceeds() {
     CreateCloudFoundryServiceKeyAtomicOperationConverter converter =
         new CreateCloudFoundryServiceKeyAtomicOperationConverter();
-    converter.setAccountCredentialsProvider(accountCredentialsProvider);
-    converter.setObjectMapper(new ObjectMapper());
+    converter.setCredentialsRepository(credentialsRepository);
 
     String serviceKeyName = "service-key-name";
     String serviceInstanceName = "service-instance-name";
     String region = "org > space";
     Map input =
         HashMap.of(
-                "credentials", accountName,
+                "credentials", cloudFoundryCredentials.getName(),
                 "region", region,
                 "serviceInstanceName", serviceInstanceName,
                 "serviceKeyName", serviceKeyName)

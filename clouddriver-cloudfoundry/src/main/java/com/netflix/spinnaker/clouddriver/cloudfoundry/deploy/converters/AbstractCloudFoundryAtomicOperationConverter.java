@@ -19,12 +19,12 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import java.util.Optional;
 
 public abstract class AbstractCloudFoundryAtomicOperationConverter
-    extends AbstractAtomicOperationsCredentialsSupport {
+    extends AbstractAtomicOperationsCredentialsConverter<CloudFoundryCredentials> {
 
   protected Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
     return client.getOrganizations().findSpaceByRegion(region);

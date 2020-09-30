@@ -22,8 +22,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryJobStatus;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Map;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -32,20 +31,21 @@ import org.springframework.stereotype.Component;
 public class CloudFoundryJobProvider implements JobProvider<CloudFoundryJobStatus> {
 
   @Getter private String platform = CloudFoundryCloudProvider.ID;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<CloudFoundryCredentials> credentialsRepository;
 
-  public CloudFoundryJobProvider(AccountCredentialsProvider accountCredentialsProvider) {
-    this.accountCredentialsProvider = accountCredentialsProvider;
+  public CloudFoundryJobProvider(
+      CredentialsRepository<CloudFoundryCredentials> credentialsRepository) {
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
   public CloudFoundryJobStatus collectJob(String account, String location, String id) {
-    AccountCredentials credentials = accountCredentialsProvider.getCredentials(account);
-    if (!(credentials instanceof CloudFoundryCredentials)) {
+    CloudFoundryCredentials credentials = credentialsRepository.getOne(account);
+    if (credentials == null) {
       return null;
     }
 
-    Task task = ((CloudFoundryCredentials) credentials).getClient().getTasks().getTask(id);
+    Task task = credentials.getClient().getTasks().getTask(id);
     return CloudFoundryJobStatus.fromTask(task, account, location);
   }
 
@@ -57,11 +57,10 @@ public class CloudFoundryJobProvider implements JobProvider<CloudFoundryJobStatu
 
   @Override
   public void cancelJob(String account, String location, String taskGuid) {
-    AccountCredentials credentials = accountCredentialsProvider.getCredentials(account);
-    if (!(credentials instanceof CloudFoundryCredentials)) {
+    CloudFoundryCredentials credentials = credentialsRepository.getOne(account);
+    if (credentials == null) {
       return;
     }
-
-    ((CloudFoundryCredentials) credentials).getClient().getTasks().cancelTask(taskGuid);
+    credentials.getClient().getTasks().cancelTask(taskGuid);
   }
 }
