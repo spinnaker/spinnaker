@@ -80,7 +80,10 @@
     </div>
   </div>
   <div class="content" ng-if="!state.loading && instance">
-    <titus-instance-information instance="instance" titusUiEndpoint="ctrl.titusUiEndpoint"></titus-instance-information>
+    <titus-instance-information
+      instance="instance"
+      titus-ui-endpoint="ctrl.titusUiEndpoint"
+    ></titus-instance-information>
     <instance-status
       health-metrics="healthMetrics"
       health-state="instance.healthState"
