@@ -46,7 +46,8 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    * the supplied versioning strategy).
    */
   fun versions(
-    artifact: DeliveryArtifact
+    artifact: DeliveryArtifact,
+    limit: Int = 30
   ): List<String>
 
   /**

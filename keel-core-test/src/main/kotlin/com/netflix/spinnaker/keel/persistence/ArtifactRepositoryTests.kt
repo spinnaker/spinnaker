@@ -297,6 +297,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           test("querying with only release returns correct versions") {
             expectThat(subject.versions(artifact2)).containsExactly(version5, version4)
           }
+
+          test("querying for limit returns limit") {
+            val artifactWithAll = artifact1.copy(statuses = emptySet())
+            expectThat(subject.versions(artifactWithAll, 2)).containsExactly(version5, version4)
+          }
         }
 
         context("docker") {

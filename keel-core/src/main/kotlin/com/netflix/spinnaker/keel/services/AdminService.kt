@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.StatefulConstraint
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
+import com.netflix.spinnaker.keel.api.artifacts.NPM
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
@@ -10,6 +13,7 @@ import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.lang.Thread.sleep
 
@@ -63,7 +67,18 @@ class AdminService(
   }
 
   /**
-   * Updates artifact version records with the corresponding metadata, if available, by type [deb/docker/npm]
+   * For each artifact type [deb/docker/npm], run back-fill script to in case there's some missing data
+   */
+  @Scheduled(fixedDelayString = "\${keel.artifact-metadata-backfill.frequency:PT1H}")
+  fun periodicallyBackFillArtifactMetadata(){
+    listOf(DEBIAN, NPM, DOCKER)
+      .forEach{
+        type ->  backFillArtifactMetadata(type)
+      }
+  }
+
+  /**
+   * Updates last 10 artifact's versions with the corresponding metadata, if available, by type [deb/docker/npm]
    */
   fun backFillArtifactMetadata(type: String) {
     val artifactSupplier = artifactSuppliers.supporting(type)
@@ -72,7 +87,7 @@ class AdminService(
     val deliveryArtifacts = repository.getAllArtifacts(type)
     // 2. for each artifact, fetch all versions
     deliveryArtifacts.forEach { artifact ->
-      val versions = repository.artifactVersions(artifact)
+      val versions = repository.artifactVersions(artifact, 10)
       versions.forEach { version ->
         sleep(5000) // sleep a little in-between versions to cut the instance where this runs some slack
         log.debug("Evaluating $artifact version $version as candidate to back-fill metadata")

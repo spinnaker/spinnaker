@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -80,7 +81,7 @@ internal class ArtifactControllerTests : JUnit5Minutests {
     }
 
     test("versions empty for an artifact we're not tracking") {
-      every { repository.artifactVersions(any(), any()) } returns emptyList()
+      every { repository.artifactVersions(any(), DEBIAN) } returns emptyList()
 
       val request = get("/artifacts/unregistered/deb")
         .accept(APPLICATION_YAML)

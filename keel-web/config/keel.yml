@@ -6,6 +6,8 @@ keel:
     minAgeDuration: 10s
   artifact-refresh:
     frequency: PT1M
+  artifact-metadata-backfill:
+    frequency: PT1H
   plugins:
     bakery:
       enabled: false
