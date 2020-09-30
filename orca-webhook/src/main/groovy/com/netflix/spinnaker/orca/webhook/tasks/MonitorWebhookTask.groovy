@@ -68,9 +68,8 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   TaskResult execute(StageExecution stage) {
     WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
-    if (Strings.isNullOrEmpty(stageData.statusEndpoint) || Strings.isNullOrEmpty(stageData.statusJsonPath)) {
-      throw new IllegalStateException(
-        "Missing required parameter(s): statusEndpoint = ${stageData.statusEndpoint}, statusJsonPath = ${stageData.statusJsonPath}")
+    if (Strings.isNullOrEmpty(stageData.statusEndpoint)) {
+      throw new IllegalStateException("Missing required parameter: statusEndpoint = ${stageData.statusEndpoint}")
     }
 
     // Preserve the responses we got from createWebhookTask, but reset the monitor subkey as we will overwrite it new data
@@ -130,6 +129,10 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
           statusCode: response.statusCode,
           statusCodeValue: response.statusCode.value()
         ]
+
+    if (Strings.isNullOrEmpty(stageData.statusJsonPath)) {
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(responsePayload).build()
+    }
 
     try {
       result = JsonPath.read(response.body, stageData.statusJsonPath)

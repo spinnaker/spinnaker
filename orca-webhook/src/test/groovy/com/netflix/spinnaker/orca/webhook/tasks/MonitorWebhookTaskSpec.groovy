@@ -58,7 +58,7 @@ class MonitorWebhookTaskSpec extends Specification {
     ex.message.startsWith("Missing required parameter")
 
     where:
-    parameter << ["statusEndpoint", "statusJsonPath"]
+    parameter << ["statusEndpoint"]
   }
 
   def "should fail if no parameters are supplied"() {
@@ -70,7 +70,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     def ex = thrown IllegalStateException
-    ex.message == "Missing required parameter(s): statusEndpoint = null, statusJsonPath = null" as String
+    ex.message == "Missing required parameter: statusEndpoint = null" as String
   }
 
   def "should fail in case of URL validation error"() {
