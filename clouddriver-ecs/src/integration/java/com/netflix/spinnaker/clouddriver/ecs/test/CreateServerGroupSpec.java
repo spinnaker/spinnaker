@@ -30,9 +30,16 @@ import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * TODO (allisaurus): Ideally these tests would go further and actually assert that the resulting
+ * ecs:create-service call is formed as expected, but for now, it asserts that the given operation
+ * is correctly validated and submitted as a task.
+ */
 public class CreateServerGroupSpec extends EcsSpec {
 
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
+
+  private static final String CREATE_SG_TEST_PATH = "/ecs/ops/createServerGroup";
 
   @DisplayName(
       ".\n===\n"
@@ -41,14 +48,9 @@ public class CreateServerGroupSpec extends EcsSpec {
           + "\n===")
   @Test
   public void createServerGroupOperationTest() throws IOException {
-    /**
-     * TODO (allisaurus): Ideally this test would go further and actually assert that the resulting
-     * ecs:create-service call is formed as expected, but for now, it asserts that the given
-     * operation is correctly validated and submitted as a task.
-     */
 
     // given
-    String url = getTestUrl("/ecs/ops/createServerGroup");
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody = generateStringFromTestFile("/createServerGroup-inputs-ec2.json");
     setEcsAccountCreds();
 
@@ -58,6 +60,66 @@ public class CreateServerGroupSpec extends EcsSpec {
         .body(requestBody)
         .when()
         .post(url)
+        // then
+        .then()
+        .statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("resourceUri", containsString("/task/"));
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ task def inputs, FARGATE launch type, and legacy target group fields, "
+          + "successfully submit createServerGroup operation"
+          + "\n===")
+  @Test
+  public void createSGOWithInputsFargateLegacyTargetGroupTest() throws IOException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile(
+            "/createServerGroupOperation-inputs-fargate-legacyTargetGroup.json");
+    setEcsAccountCreds();
+
+    // when
+    given()
+        .contentType(ContentType.JSON)
+        .body(requestBody)
+        .when()
+        .post(url)
+
+        // then
+        .then()
+        .statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("resourceUri", containsString("/task/"));
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ task def inputs, FARGATE launch type, and new target group fields, "
+          + "successfully submit createServerGroup operation"
+          + "\n===")
+  @Test
+  public void createSGOWithInputsFargateNewTargetGroupMappingsTest() throws IOException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile(
+            "/createServerGroupOperation-inputs-fargate-targetGroupMappings.json");
+    setEcsAccountCreds();
+
+    // when
+    given()
+        .contentType(ContentType.JSON)
+        .body(requestBody)
+        .when()
+        .post(url)
+
         // then
         .then()
         .statusCode(200)
