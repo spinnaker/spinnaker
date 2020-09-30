@@ -207,11 +207,11 @@ class ClusterHandler(
         }
         when {
           diff.shouldDeployAndModifyScalingPolicies() -> {
-            stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
+            stages.add(diff.createServerGroupJob(refId, resource))
             refId++
             stages.addAll(diff.modifyScalingPolicyJob(refId))
           }
-          else -> stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
+          else -> stages.add(diff.createServerGroupJob(refId, resource))
         }
 
         if (stages.isEmpty()) {
@@ -268,8 +268,7 @@ class ClusterHandler(
           refId++
         }
 
-        val stage = (diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
-          .toMutableMap()
+        val stage = diff.createServerGroupJob(refId, resource).toMutableMap()
 
         refId++
 
@@ -375,7 +374,7 @@ class ClusterHandler(
       .toSet()
 
     // let's assume that the largest server group is the most important and should be the base
-    val base = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }
+    val base = serverGroups.values.maxByOrNull { it.capacity.desired ?: it.capacity.max }
       ?: throw ExportError("Unable to calculate the server group with the largest capacity from server groups $serverGroups")
 
     // Construct the minimal locations object
@@ -600,7 +599,10 @@ class ClusterHandler(
     )
   }
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJob(startingRefId: Int = 0): Map<String, Any?> =
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(refId: Int, resource: Resource<ClusterSpec>): Map<String, Any?> =
+    createServerGroupJobBase(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon")
+
+  private fun ResourceDiff<ServerGroup>.createServerGroupJobBase(startingRefId: Int = 0): Map<String, Any?> =
     with(desired) {
       mutableMapOf(
         "application" to moniker.app,
@@ -1172,7 +1174,6 @@ class ClusterHandler(
     )
 
     private const val REGION_PLACEHOLDER = "{{region}}"
-    private const val REGION_PATTERN = "([a-z]{2}(-gov)?)-([a-z]+)-\\d"
   }
 }
 
