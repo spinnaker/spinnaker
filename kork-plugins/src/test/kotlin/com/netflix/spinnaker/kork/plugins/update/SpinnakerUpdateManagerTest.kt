@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
 import com.netflix.spinnaker.kork.plugins.internal.PluginZip
 import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilderSupport
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.verify
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -95,6 +97,18 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
 
       // Previously loaded plugin deleted - we do not load plugins from SpinnakerUpdateManager
       expectThat(pluginManager.plugins).hasSize(0)
+    }
+
+    test("Downloading a plugin emits an application event") {
+      val plugin = createPlugin(paths.repository)
+      changeRepository(subject, paths.repository, listOf(plugin))
+
+      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.getReleases().first()))
+      subject.downloadPluginReleases(releases)
+
+      verify {
+        applicationEventPublisher.publishEvent(ofType(PluginDownloaded::class))
+      }
     }
 
     test("Plugins loaded with newer version, no need to download") {
