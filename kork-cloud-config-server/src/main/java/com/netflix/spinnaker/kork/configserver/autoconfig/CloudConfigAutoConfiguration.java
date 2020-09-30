@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.configserver.autoconfig;
 
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
-import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.config.server.bootstrap.ConfigServerBootstrapConfiguration;
@@ -37,9 +36,8 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureAfter({ConfigServerAutoConfiguration.class, ConfigServerBootstrapConfiguration.class})
 public class CloudConfigAutoConfiguration {
   @Bean
-  ConfigFileService configFileService(
-      Optional<CloudConfigResourceService> cloudConfigResourceService) {
-    return new ConfigFileService(cloudConfigResourceService.get());
+  ConfigFileService configFileService(CloudConfigResourceService cloudConfigResourceService) {
+    return new ConfigFileService(cloudConfigResourceService);
   }
 
   @Configuration

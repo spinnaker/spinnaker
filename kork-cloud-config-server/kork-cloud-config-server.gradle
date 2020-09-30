@@ -9,6 +9,7 @@ dependencies {
   implementation project(':kork-secrets')
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
+  implementation "org.springframework.cloud:spring-cloud-aws-context"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.assertj:assertj-core"
