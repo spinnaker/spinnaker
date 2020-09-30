@@ -50,13 +50,13 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
             return [new ExceptionMessage() {
 
                 @Override
-                boolean supports(Class<? extends Throwable> throwable) {
-                    return throwable == AccessDeniedException.class
+                Optional<String> message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
+                    return Optional.of(additionalInformation)
                 }
 
                 @Override
-                String message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
-                    return additionalInformation
+                Optional<String> message(String errorCode, @Nullable ExceptionDetails exceptionDetails) {
+                    return Optional.empty()
                 }
             }]
         }
