@@ -471,7 +471,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.webhook.waitBeforeMonitor':
     'Optional delay (in seconds) to wait before starting to poll the endpoint for monitoring status',
   'pipeline.config.webhook.statusJsonPath':
-    "JSON path to the status information in the webhook's response JSON. (e.g. <samp>$.buildInfo.status</samp>)",
+    "JSON path to the status information in the webhook's response JSON (e.g. <samp>$.buildInfo.status</samp>). <br>If left empty, a 200 response from the status endpoint will be treated as a success.",
   'pipeline.config.webhook.progressJsonPath':
     "JSON path to a descriptive message about the progress in the webhook's response JSON. (e.g. <samp>$.buildInfo.progress</samp>)",
   'pipeline.config.webhook.successStatuses':
