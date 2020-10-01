@@ -9,6 +9,8 @@ import {
 } from '../domain/IManagedEntity';
 import { Icon } from '../presentation';
 
+import { isConstraintSupported, getConstraintIcon } from './constraints/constraintRegistry';
+
 import { ISelectedArtifactVersion } from './Environments';
 import { Pill } from './Pill';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
@@ -134,14 +136,29 @@ function getArtifactStatuses({ environments }: IManagedArtifactVersion): Artifac
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
 
-  const isConstraintPendingManualJudgement = (constraint: IStatefulConstraint) =>
-    constraint.type == 'manual-judgement' && constraint.status == StatefulConstraintStatus.PENDING;
-  const requiresManualApproval = environments.some((environment) =>
-    environment.statefulConstraints?.some(isConstraintPendingManualJudgement),
+  const pendingConstraintTypes = new Set<string>();
+  const failedConstraintTypes = new Set<string>();
+
+  environments.forEach((environment) =>
+    environment.statefulConstraints?.forEach(({ type, status }: IStatefulConstraint) => {
+      if (!isConstraintSupported(type)) {
+        return;
+      }
+
+      if (status === StatefulConstraintStatus.PENDING) {
+        pendingConstraintTypes.add(type);
+      } else if (status === StatefulConstraintStatus.FAIL || status === StatefulConstraintStatus.OVERRIDE_FAIL) {
+        failedConstraintTypes.add(type);
+      }
+    }),
   );
-  if (requiresManualApproval) {
-    statuses.push({ appearance: 'progress', iconName: 'manualJudgement' });
-  }
+
+  pendingConstraintTypes.forEach((type) => {
+    statuses.push({ appearance: 'progress', iconName: getConstraintIcon(type) });
+  });
+  failedConstraintTypes.forEach((type) => {
+    statuses.push({ appearance: 'error', iconName: getConstraintIcon(type) });
+  });
 
   const isPinned = environments.some(({ pinned }) => pinned);
   if (isPinned) {
