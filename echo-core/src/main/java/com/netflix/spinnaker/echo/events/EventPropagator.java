@@ -18,10 +18,13 @@ package com.netflix.spinnaker.echo.events;
 
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
+import com.netflix.spinnaker.echo.api.events.NotificationAgent;
+import com.netflix.spinnaker.echo.notification.ExtensionNotificationAgent;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -30,16 +33,37 @@ import rx.schedulers.Schedulers;
 @Slf4j
 @SuppressWarnings({"CatchException"})
 public class EventPropagator {
-  private List<EventListener> listeners = new ArrayList<>();
-  private Scheduler scheduler = Schedulers.io();
+  private final Scheduler scheduler;
+  private final ObjectProvider<List<EventListener>> eventListenerProvider;
+  private final List<EventListener> notificationAgents;
 
-  public void addListener(EventListener listener) {
-    listeners.add(listener);
-    log.info("Added listener " + listener.getClass().getSimpleName());
+  public EventPropagator(
+      ObjectProvider<List<EventListener>> eventListenerProvider,
+      List<NotificationAgent> notificationAgents) {
+    this(eventListenerProvider, notificationAgents, Schedulers.io());
+  }
+
+  public EventPropagator(
+      ObjectProvider<List<EventListener>> eventListenerProvider,
+      List<NotificationAgent> notificationAgents,
+      Scheduler scheduler) {
+    this.eventListenerProvider = eventListenerProvider;
+    this.notificationAgents =
+        Optional.ofNullable(notificationAgents).orElseGet(ArrayList::new).stream()
+            .map(ExtensionNotificationAgent::new)
+            .collect(Collectors.toList());
+    this.scheduler = scheduler;
+  }
+
+  private Set<EventListener> eventListeners() {
+    Set<EventListener> eventListeners = new HashSet<>();
+    eventListeners.addAll(eventListenerProvider.getIfAvailable(ArrayList::new));
+    eventListeners.addAll(notificationAgents);
+    return eventListeners;
   }
 
   public void processEvent(Event event) {
-    Observable.from(listeners)
+    Observable.from(eventListeners())
         .map(
             listener ->
                 AuthenticatedRequest.propagate(

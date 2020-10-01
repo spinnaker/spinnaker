@@ -17,6 +17,8 @@ package com.netflix.spinnaker.echo.events
 
 import com.netflix.spinnaker.echo.api.events.EventListener
 import com.netflix.spinnaker.echo.api.events.Event
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.ObjectProvider
 import rx.schedulers.Schedulers
 import spock.lang.Specification
 
@@ -28,16 +30,11 @@ class EventPropagationSpec extends Specification {
     void 'events are sent to every listener'() {
 
         given:
-        EventPropagator propagator = new EventPropagator()
-        propagator.scheduler = Schedulers.immediate()
         EventListener l1 = Mock(EventListener)
         EventListener l2 = Mock(EventListener)
+        EventPropagator propagator = new EventPropagator(new StaticObjectProvider([l1, l2]), null, Schedulers.immediate())
 
         when:
-        propagator.addListener(l1)
-        propagator.addListener(l2)
-
-        and:
         propagator.processEvent(new Event())
 
         then:
@@ -46,4 +43,32 @@ class EventPropagationSpec extends Specification {
 
     }
 
+
+  private static class StaticObjectProvider implements ObjectProvider<List<EventListener>> {
+
+    StaticObjectProvider(List<EventListener> eventListeners) {
+      this.eventListeners = eventListeners
+    }
+    List<EventListener> eventListeners = []
+
+    @Override
+    List<EventListener> getObject(Object... args) throws BeansException {
+      return eventListeners
+    }
+
+    @Override
+    List<EventListener> getIfAvailable() throws BeansException {
+      return eventListeners
+    }
+
+    @Override
+    List<EventListener> getIfUnique() throws BeansException {
+      return eventListeners
+    }
+
+    @Override
+    List<EventListener> getObject() throws BeansException {
+      return eventListeners
+    }
+  }
 }

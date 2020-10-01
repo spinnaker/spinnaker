@@ -35,8 +35,8 @@ class EchoPluginsTest : PluginsTck<EchoPluginsFixture>() {
       defaultPluginTests()
 
       test("Event listener extension is loaded into context") {
-        val eventListeners = applicationContext.getBeansOfType<EventListener>(EventListener::class.java)
-        val extensionBeanName = "com.netflix.echo.enabled.plugin.EventListenerExtension".replace(".", "")
+        val eventListeners = applicationContext.getBeansOfType(EventListener::class.java)
+        val extensionBeanName = "com.netflix.echo.enabled.plugin_eventListenerExtension"
         val extension = eventListeners[extensionBeanName]
         expect {
           that(extension).isNotNull()
@@ -45,7 +45,7 @@ class EchoPluginsTest : PluginsTck<EchoPluginsFixture>() {
 
       test("Notification agent extension is loaded into context") {
         val eventListeners = applicationContext.getBeansOfType(NotificationAgent::class.java)
-        val extensionBeanName = "com.netflix.echo.enabled.plugin.NotificationAgentExtension".replace(".", "")
+        val extensionBeanName = "com.netflix.echo.enabled.plugin_notificationAgentExtension"
         val extension = eventListeners[extensionBeanName]
         expect {
           that(extension).isNotNull()

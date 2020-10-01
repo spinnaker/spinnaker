@@ -34,11 +34,11 @@ import org.springframework.test.context.TestPropertySource
 
 class EchoPluginsFixture : PluginsTckFixture, EchoTestService() {
 
-  final override val plugins = File("build/plugins")
+  override val plugins = File("build/plugins")
 
-  final override val enabledPlugin: PluginJar
-  final override val disabledPlugin: PluginJar
-  final override val versionNotSupportedPlugin: PluginJar
+  override val enabledPlugin: PluginJar
+  override val disabledPlugin: PluginJar
+  override val versionNotSupportedPlugin: PluginJar
 
   override val extensionClassNames: MutableList<String> = mutableListOf(
     EventListenerExtension::class.java.name,

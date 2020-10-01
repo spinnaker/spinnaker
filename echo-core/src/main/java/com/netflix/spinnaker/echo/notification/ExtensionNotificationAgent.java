@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Armory, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.echo.notification;
@@ -35,7 +36,11 @@ public class ExtensionNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   public void sendNotifications(
-      Map notification, String application, Event event, Map config, String status) {
+      Map<String, Object> notification,
+      String application,
+      Event event,
+      Map<String, String> config,
+      String status) {
     agent.sendNotifications(notification, application, event, status);
   }
 }
