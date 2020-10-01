@@ -672,4 +672,19 @@ class CloudFoundryServerGroupCachingAgentTest {
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
   }
+
+  @Test
+  void shouldReturnNullWhenAccountNameDiffers() {
+    Map<String, String> data =
+        HashMap.of(
+                "account", "NotAccount",
+                "region", "org1 > space1",
+                "serverGroupName", "doesntMatter")
+            .toJavaMap();
+
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
+
+    assertThat(result).isEqualTo(null);
+  }
 }

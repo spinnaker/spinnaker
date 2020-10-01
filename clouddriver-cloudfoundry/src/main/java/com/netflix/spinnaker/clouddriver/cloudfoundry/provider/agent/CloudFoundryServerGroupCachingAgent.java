@@ -144,6 +144,11 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
     if (account == null || region == null) {
       return null;
     }
+
+    if (!this.getAccountName().equals(account)) {
+      return null;
+    }
+
     CloudFoundrySpace space =
         this.getClient().getOrganizations().findSpaceByRegion(region).orElse(null);
     if (space == null) {
