@@ -111,7 +111,6 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     ArtifactTypePatterns.KUBERNETES,
     ArtifactTypePatterns.DOCKER_IMAGE,
     ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
-    ArtifactTypePatterns.EMBEDDED_BASE64,
   ];
 
   private onExpectedArtifactSelected = (expectedArtifactId: string): void => {
