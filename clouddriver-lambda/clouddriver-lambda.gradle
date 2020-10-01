@@ -6,6 +6,8 @@ dependencies {
   implementation project(":clouddriver-security")
 
   compileOnly "org.projectlombok:lombok"
+  testCompileOnly "org.projectlombok:lombok"
+
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
@@ -17,7 +19,6 @@ dependencies {
   implementation "org.apache.httpcomponents:httpcore"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-starter-web"
-
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-apache"
   implementation "com.squareup.okhttp:okhttp-urlconnection"
@@ -25,4 +26,15 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.frigga:frigga"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }
