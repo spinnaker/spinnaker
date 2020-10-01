@@ -1,9 +1,11 @@
 import React from 'react';
 import classNames from 'classnames';
+import { DateTime } from 'luxon';
 
 import { IconNames } from '../presentation';
 
 import { StatusBubble } from './StatusBubble';
+import { RelativeTimestamp } from './RelativeTimestamp';
 
 import './StatusCard.less';
 
@@ -12,11 +14,20 @@ export interface IStatusCardProps {
   background?: boolean;
   iconName: IconNames;
   title: React.ReactNode;
+  timestamp?: DateTime;
   description?: React.ReactNode;
   actions?: React.ReactNode;
 }
 
-export const StatusCard = ({ appearance, background, iconName, title, description, actions }: IStatusCardProps) => (
+export const StatusCard = ({
+  appearance,
+  background,
+  iconName,
+  title,
+  timestamp,
+  description,
+  actions,
+}: IStatusCardProps) => (
   <div
     className={classNames(
       'StatusCard flex-container-h space-between middle wrap sp-padding-s-yaxis sp-padding-l-xaxis',
@@ -27,6 +38,9 @@ export const StatusCard = ({ appearance, background, iconName, title, descriptio
     <div className="flex-container-h middle">
       <div className="flex-container-h center middle sp-margin-l-right">
         <StatusBubble iconName={iconName} appearance={appearance} size="medium" />
+      </div>
+      <div className="sp-margin-m-right" style={{ minWidth: 24 }}>
+        {timestamp && <RelativeTimestamp timestamp={timestamp} clickToCopy={true} />}
       </div>
       <div className="flex-container-v sp-margin-xs-yaxis">
         <div className="text-bold">{title}</div>

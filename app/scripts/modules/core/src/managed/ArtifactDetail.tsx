@@ -4,7 +4,6 @@ import { useRouter } from '@uirouter/react';
 import { useTransition, animated, UseTransitionProps } from 'react-spring';
 import { DateTime } from 'luxon';
 
-import { relativeTime, timestamp } from '../utils';
 import {
   IManagedArtifactSummary,
   IManagedArtifactVersion,
@@ -14,6 +13,7 @@ import {
 import { Application } from '../application';
 import { useEventListener, Markdown } from '../presentation';
 
+import { AbsoluteTimestamp } from './AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { EnvironmentRow } from './EnvironmentRow';
@@ -94,8 +94,6 @@ const EnvironmentCards = memo(
       stateService: { go },
     } = useRouter();
 
-    const pinnedAtMillis = pinned?.at ? DateTime.fromISO(pinned.at).toMillis() : null;
-
     const differentVersionPinnedCard = pinnedVersion &&
       pinnedVersion !== versionDetails.version &&
       !['vetoed', 'skipped'].includes(state) && (
@@ -113,11 +111,11 @@ const EnvironmentCards = memo(
         iconName="pin"
         appearance="warning"
         background={true}
+        timestamp={pinned?.at ? DateTime.fromISO(pinned.at) : null}
         title={
           <span className="sp-group-margin-xs-xaxis">
-            Pinned here {relativeTime(pinnedAtMillis)}{' '}
-            <span className="text-italic text-regular sp-margin-xs-left">({timestamp(pinnedAtMillis)})</span>{' '}
-            <span className="text-regular">—</span> <span className="text-regular">by {pinned.by}</span>
+            <span>Pinned</span> <span className="text-regular">—</span>{' '}
+            <span className="text-regular">by {pinned.by}</span>
           </span>
         }
         description={pinned.comment && <Markdown message={pinned.comment} tag="span" />}
@@ -218,7 +216,7 @@ export const ArtifactDetail = ({
   resourcesByEnvironment,
   onRequestClose,
 }: IArtifactDetailProps) => {
-  const { environments, git } = versionDetails;
+  const { environments, git, createdAt } = versionDetails;
 
   const keydownCallback = ({ keyCode }: KeyboardEvent) => {
     if (keyCode === 27 /* esc */) {
@@ -229,6 +227,7 @@ export const ArtifactDetail = ({
 
   const isPinnedEverywhere = environments.every(({ pinned }) => pinned);
   const isBadEverywhere = environments.every(({ state }) => state === 'vetoed');
+  const createdAtTimestamp = useMemo(() => createdAt && DateTime.fromISO(createdAt), [createdAt]);
 
   return (
     <>
@@ -266,6 +265,12 @@ export const ArtifactDetail = ({
             </Button>
           </div>
           <div className="detail-section-right flex-container-v flex-pull-right sp-margin-l-right">
+            {createdAtTimestamp && (
+              <VersionMetadataItem
+                label="Created"
+                value={<AbsoluteTimestamp timestamp={createdAtTimestamp} clickToCopy={true} />}
+              />
+            )}
             {git?.author && <VersionMetadataItem label="Author" value={git.author} />}
             {git?.pullRequest?.number && git?.pullRequest?.url && (
               <VersionMetadataItem

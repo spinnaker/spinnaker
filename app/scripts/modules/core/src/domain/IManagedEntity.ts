@@ -83,6 +83,7 @@ export interface IManagedEnvironmentSummary {
 export interface IManagedArtifactVersion {
   version: string;
   displayName: string;
+  createdAt?: string;
   environments: Array<{
     name: string;
     state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';

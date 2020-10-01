@@ -1,5 +1,6 @@
+import React, { useMemo, useState } from 'react';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import { DateTime } from 'luxon';
 
 import {
   IManagedArtifactSummary,
@@ -13,6 +14,7 @@ import { isConstraintSupported, getConstraintIcon } from './constraints/constrai
 
 import { ISelectedArtifactVersion } from './Environments';
 import { Pill } from './Pill';
+import { RelativeTimestamp } from './RelativeTimestamp';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
 
 import './ArtifactRow.less';
@@ -73,11 +75,12 @@ interface IArtifactRowProps {
 }
 
 export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, reference, name }: IArtifactRowProps) => {
-  const { version, displayName, environments, build, git } = versionInfo;
+  const { version, displayName, createdAt, environments, build, git } = versionInfo;
   const [isHovered, setIsHovered] = useState(false);
 
   const versionIcon = getVersionIcon(versionInfo);
   const secondarySummary = getVersionSecondarySummary(versionInfo);
+  const timestamp = useMemo(() => createdAt && DateTime.fromISO(createdAt), [createdAt]);
 
   return (
     <div
@@ -88,8 +91,9 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
     >
       <div className="row-content flex-container-v left sp-padding-m-top sp-padding-l-bottom sp-padding-s-xaxis">
         {(build?.number || build?.id) && (
-          <div className="flex-container-h sp-margin-s-bottom">
+          <div className="row-middle-section flex-container-h space-between middle sp-margin-s-bottom">
             <Pill bgColor={isSelected ? '#2e4b5f' : undefined} text={`#${build.number || build.id} ${name || ''}`} />
+            {timestamp && <RelativeTimestamp timestamp={timestamp} />}
           </div>
         )}
         <div className="row-middle-section flex-container-h space-between">

@@ -18,6 +18,7 @@ import {
   isConstraintSupported,
   isConstraintStateful,
   getConstraintIcon,
+  getConstraintTimestamp,
   getConstraintSummary,
   getConstraintActions,
 } from './constraintRegistry';
@@ -95,6 +96,7 @@ export const ConstraintCard = memo(
       <StatusCard
         appearance={getCardAppearance(constraint)}
         iconName={getConstraintIcon(type)}
+        timestamp={getConstraintTimestamp(constraint)}
         title={getConstraintSummary(constraint)}
         actions={
           actions && (
