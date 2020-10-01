@@ -40,7 +40,7 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
   String from
 
   @Override
-  void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+  void sendNotifications(Map<String, Object> preference, String application, Event event, Map<String, String> config, String status) {
     String name = event.content?.execution?.name ?: event.content?.execution?.description
     String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link}/${event.content?.execution?.id}"
 

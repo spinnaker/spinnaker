@@ -45,7 +45,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
   Boolean sendCompactMessages
 
   @Override
-  void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+  void sendNotifications(Map<String, Object> preference, String application, Event event, Map<String, String> config, String status) {
     String buildInfo = ' '
 
     String color = '#CCCCCC'

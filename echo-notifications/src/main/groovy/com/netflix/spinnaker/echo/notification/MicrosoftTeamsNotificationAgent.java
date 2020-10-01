@@ -49,7 +49,11 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
 
   @Override
   public void sendNotifications(
-      Map preference, String application, Event event, Map config, String status) {
+      Map<String, Object> preference,
+      String application,
+      Event event,
+      Map<String, String> config,
+      String status) {
     log.info("Building Microsoft Teams notification");
 
     String configType = Optional.ofNullable(config).map(c -> (String) c.get("type")).orElse(null);

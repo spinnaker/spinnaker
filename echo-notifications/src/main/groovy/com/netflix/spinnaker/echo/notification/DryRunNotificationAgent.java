@@ -52,7 +52,11 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   public void sendNotifications(
-      Map preference, String application, Event event, Map config, String status) {
+      Map<String, Object> preference,
+      String application,
+      Event event,
+      Map<String, String> config,
+      String status) {
     Map<String, ?> execution = (Map<String, ?>) event.getContent().get("execution");
     String pipelineConfigId = (String) execution.get("pipelineConfigId");
     if (pipelineConfigId == null) {

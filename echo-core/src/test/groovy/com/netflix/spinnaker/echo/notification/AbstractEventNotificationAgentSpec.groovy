@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.echo.notification
@@ -30,7 +31,7 @@ class AbstractEventNotificationAgentSpec extends Specification {
     }
 
     @Override
-    void sendNotifications(Map notification, String application, Event event, Map config, String status) {
+    void sendNotifications(Map<String, Object> notification, String application, Event event, Map<String, String> config, String status) {
       subclassMock.sendNotifications(notification, application, event, config, status)
     }
   }
@@ -105,7 +106,7 @@ class AbstractEventNotificationAgentSpec extends Specification {
     ]
 
     if (notifyWhen) {
-      eventProps.content.execution << [notifications: [[type: "fake", when: "${notifyWhen}"]]]
+      eventProps.content.execution << [notifications: [[type: "fake", when: notifyWhen]]]
     }
 
     eventProps.content.execution << extraExecutionProps
@@ -126,7 +127,7 @@ class AbstractEventNotificationAgentSpec extends Specification {
     ]
 
     if (notifyWhen) {
-      eventProps.content.execution << [notifications: [[type: "fake", when: "${notifyWhen}"]]]
+      eventProps.content.execution << [notifications: [[type: "fake", when: notifyWhen as String]]]
     }
 
     eventProps.content.execution << extraExecutionProps
@@ -149,7 +150,7 @@ class AbstractEventNotificationAgentSpec extends Specification {
 
     if (notifyWhen) {
       eventProps.content.context.sendNotifications = true
-      eventProps.content.context << [notifications: [[type: "fake", when: "${notifyWhen}"]]]
+      eventProps.content.context << [notifications: [[type: "fake", when: notifyWhen as String]]]
     }
 
     return new Event(eventProps)

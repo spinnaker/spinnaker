@@ -37,7 +37,7 @@ public class GoogleChatNotificationAgent extends AbstractEventNotificationAgent 
   GoogleChatService googleChatService;
 
   @Override
-  public void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+  public void sendNotifications(Map<String, Object> preference, String application, Event event, Map<String, String> config, String status) {
     String buildInfo = ''
 
     if (config.type == 'pipeline' || config.type == 'stage') {
