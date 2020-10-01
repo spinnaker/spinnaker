@@ -118,7 +118,7 @@ public class DescriptionAuthorizer<T> {
     if (account != null
         && !fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", "WRITE")) {
       hasPermission = false;
-      errors.reject("authorization", format("Access denied to account %s", account));
+      errors.reject("authorization.account", format("Access denied to account %s", account));
     }
 
     if (!applications.isEmpty()) {
@@ -127,7 +127,8 @@ public class DescriptionAuthorizer<T> {
       for (String application : applications) {
         if (!fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
           hasPermission = false;
-          errors.reject("authorization", format("Access denied to application %s", application));
+          errors.reject(
+              "authorization.application", format("Access denied to application %s", application));
         }
       }
     }

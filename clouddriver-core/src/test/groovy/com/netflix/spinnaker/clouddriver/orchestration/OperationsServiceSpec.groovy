@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -32,6 +33,7 @@ import spock.lang.Unroll
 class OperationsServiceSpec extends Specification {
 
   DescriptionAuthorizer descriptionAuthorizer = Mock(DescriptionAuthorizer)
+  ExceptionMessageDecorator exceptionMessageDecorator = Mock(ExceptionMessageDecorator)
 
   @Subject
   OperationsService operationsService = new OperationsService(
@@ -45,7 +47,8 @@ class OperationsServiceSpec extends Specification {
     Mock(AccountCredentialsRepository),
     Optional.of(Mock(SagaRepository)),
     new NoopRegistry(),
-    new ObjectMapper()
+    new ObjectMapper(),
+    exceptionMessageDecorator
   )
 
   void "many operation descriptions are resolved and returned in order"() {

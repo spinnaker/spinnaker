@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ResolvableType;
 import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 
 @Slf4j
 public class OperationsService {
@@ -65,6 +67,7 @@ public class OperationsService {
   private final Optional<SagaRepository> sagaRepository;
   private final Registry registry;
   private final ObjectMapper objectMapper;
+  private final ExceptionMessageDecorator exceptionMessageDecorator;
 
   private final Id validationErrorsCounterId;
 
@@ -77,7 +80,8 @@ public class OperationsService {
       AccountCredentialsRepository accountCredentialsRepository,
       Optional<SagaRepository> sagaRepository,
       Registry registry,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      ExceptionMessageDecorator exceptionMessageDecorator) {
     this.atomicOperationsRegistry = atomicOperationsRegistry;
     this.descriptionAuthorizer = descriptionAuthorizer;
     this.allowedAccountValidators = allowedAccountValidators.orElse(Collections.emptyList());
@@ -87,6 +91,7 @@ public class OperationsService {
     this.sagaRepository = sagaRepository;
     this.registry = registry;
     this.objectMapper = objectMapper;
+    this.exceptionMessageDecorator = exceptionMessageDecorator;
 
     validationErrorsCounterId = registry.createId("validationErrors");
   }
@@ -105,7 +110,8 @@ public class OperationsService {
     results.forEach(
         bindingResult -> {
           if (bindingResult.errors.hasErrors()) {
-            throw new DescriptionValidationException(bindingResult.errors);
+            Collection<String> errors = collectErrors(bindingResult.errors);
+            throw new DescriptionValidationException(errors);
           }
           atomicOperations.add(bindingResult.atomicOperation);
         });
@@ -265,9 +271,30 @@ public class OperationsService {
 
   private AtomicOperation atomicOperationOrError(AtomicOperationBindingResult bindingResult) {
     if (bindingResult.errors.hasErrors()) {
-      throw new DescriptionValidationException(bindingResult.errors);
+      Collection<String> errors = collectErrors(bindingResult.errors);
+      throw new DescriptionValidationException(errors);
     }
     return bindingResult.atomicOperation;
+  }
+
+  /**
+   * Process the validation {@link Errors} and transform errors to a collection of strings so they
+   * can be added to the exception.
+   */
+  private Collection<String> collectErrors(Errors errors) {
+    Collection<String> errorCollection = new ArrayList<>();
+    for (ObjectError objectError : errors.getAllErrors()) {
+      if (objectError.getDefaultMessage() != null && objectError.getCode() != null) {
+        errorCollection.add(
+            exceptionMessageDecorator.decorate(
+                objectError.getCode(), objectError.getDefaultMessage()));
+      } else if (objectError.getCode() != null) {
+        // Treat the error code as the default message - better than nothing I guess.
+        errorCollection.add(
+            exceptionMessageDecorator.decorate(objectError.getCode(), objectError.getCode()));
+      }
+    }
+    return errorCollection;
   }
 
   /**

@@ -11,6 +11,10 @@ public class DescriptionValidationException extends ValidationException {
     super("Validation Failed", getErrors(errors));
   }
 
+  public DescriptionValidationException(Collection<String> errors) {
+    super("Validation Failed", errors);
+  }
+
   public static Collection<String> getErrors(Errors errors) {
 
     return errors.getAllErrors().stream()
