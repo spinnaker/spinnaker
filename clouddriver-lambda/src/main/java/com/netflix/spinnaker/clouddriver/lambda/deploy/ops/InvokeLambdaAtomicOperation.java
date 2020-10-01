@@ -21,24 +21,29 @@ import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.lambda.model.LogType;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionDescription;
+import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionOutputDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class InvokeLambdaAtomicOperation
-    extends AbstractLambdaAtomicOperation<InvokeLambdaFunctionDescription, InvokeResult>
-    implements AtomicOperation<InvokeResult> {
+    extends AbstractLambdaAtomicOperation<
+        InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
+    implements AtomicOperation<InvokeLambdaFunctionOutputDescription> {
 
   public InvokeLambdaAtomicOperation(InvokeLambdaFunctionDescription description) {
     super(description, "INVOKE_LAMBDA_FUNCTION");
   }
 
   @Override
-  public InvokeResult operate(List priorOutputs) {
+  public InvokeLambdaFunctionOutputDescription operate(List priorOutputs) {
     updateTaskStatus("Initializing Invoking AWS Lambda Function Operation...");
     return invokeFunction(description.getFunctionName(), description.getPayload());
   }
 
-  private InvokeResult invokeFunction(String functionName, String payload) {
+  private InvokeLambdaFunctionOutputDescription invokeFunction(
+      String functionName, String payload) {
     AWSLambda client = getLambdaClient();
     InvokeRequest req =
         new InvokeRequest()
@@ -52,7 +57,25 @@ public class InvokeLambdaAtomicOperation
     }
 
     InvokeResult result = client.invoke(req);
+    String ans = byteBuffer2String(result.getPayload(), Charset.forName("UTF-8"));
+    InvokeLambdaFunctionOutputDescription is = new InvokeLambdaFunctionOutputDescription();
+    is.setInvokeResult(result);
+    is.setResponseString(ans);
     updateTaskStatus("Finished Invoking of AWS Lambda Function Operation...");
-    return result;
+    return is;
+  }
+
+  public static String byteBuffer2String(ByteBuffer buf, Charset charset) {
+    if (buf == null) {
+      return null;
+    }
+    byte[] bytes;
+    if (buf.hasArray()) {
+      bytes = buf.array();
+    } else {
+      buf.rewind();
+      bytes = new byte[buf.remaining()];
+    }
+    return new String(bytes, charset);
   }
 }
