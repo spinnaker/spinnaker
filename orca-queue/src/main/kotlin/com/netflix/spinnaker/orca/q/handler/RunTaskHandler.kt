@@ -232,10 +232,14 @@ class RunTaskHandler(
   private fun RunTask.withTask(block: (StageExecution, TaskExecution, Task) -> Unit) =
     withTask { stage, taskModel ->
       try {
-        taskResolver.getTask(taskType)
+        taskResolver.getTask(taskModel.implementingClass)
       } catch (e: TaskResolver.NoSuchTaskException) {
-        queue.push(InvalidTaskType(this, taskType.name))
-        null
+        try {
+          taskResolver.getTask(taskType)
+        } catch (e: TaskResolver.NoSuchTaskException) {
+          queue.push(InvalidTaskType(this, taskType.name))
+          null
+        }
       }?.let {
         block.invoke(stage, taskModel, it)
       }

@@ -169,8 +169,23 @@ public interface TaskNode {
     }
   }
 
+  /**
+   * This is an abstraction above TaskDefinition that allows more flexibility for the implementing
+   * class name.
+   */
+  interface DefinedTask {
+
+    /** Returns the name of the task */
+    @Nonnull
+    String getName();
+
+    /** Returns the name of the class implementing the stage */
+    @Nonnull
+    String getImplementingClassName();
+  }
+
   /** An individual task. */
-  class TaskDefinition implements TaskNode {
+  class TaskDefinition implements TaskNode, DefinedTask {
     private final String name;
     private final Class<? extends Task> implementingClass;
 
@@ -179,12 +194,18 @@ public interface TaskNode {
       this.implementingClass = implementingClass;
     }
 
+    @Override
     public @Nonnull String getName() {
       return name;
     }
 
     public @Nonnull Class<? extends Task> getImplementingClass() {
       return implementingClass;
+    }
+
+    @Override
+    public @Nonnull String getImplementingClassName() {
+      return getImplementingClass().getCanonicalName();
     }
   }
 }
