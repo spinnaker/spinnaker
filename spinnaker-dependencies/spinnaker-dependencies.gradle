@@ -13,7 +13,7 @@ ext {
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
     protobuf         : "3.9.1",
-    okhttp           : "2.7.0",
+    okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "3.14.9",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
     resilience4j     : "1.0.0",
