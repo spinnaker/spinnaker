@@ -139,7 +139,7 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
   Optional<ResponseEntity<String>> respondToCallback(RequestEntity<String> request) {
     String body = request.getBody()
     Map payload = parseSlackPayload(body)
-    log.debug("Responding to Slack callback via ${payload.response_url}")
+    log.info("Responding to Slack callback via ${payload.response_url}")
 
     def selectedAction = payload.actions[0]
     def attachment = payload.original_message.attachments[0] // we support a single attachment as per Echo notifications
@@ -154,8 +154,9 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
 
     // Example: https://hooks.slack.com/actions/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
     URI responseUrl = new URI(payload.response_url)
+    log.info("POST ${SLACK_WEBHOOK_BASE_URL}${responseUrl.path}: ${message}")
     Response response = slackHookService.respondToMessage(responseUrl.path, message)
-    log.debug("Response from Slack: ${response.toString()}")
+    log.info("Response from Slack: ${response.toString()}")
 
     return Optional.empty()
   }
