@@ -35,7 +35,6 @@ import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
-import com.netflix.spinnaker.gate.filters.RequestTimingFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -396,22 +395,10 @@ class GateConfig extends RedisHttpSessionConfiguration {
     return frb
   }
 
-  /**
-   * Request logging filter runs immediately after the AuthenticatedRequestFilter (so that the MDCs set by this
-   * filter are also present in the request log).
-   */
   @Bean
   @ConditionalOnProperty("request-logging.enabled")
   FilterRegistrationBean requestLoggingFilter() {
     def frb = new FilterRegistrationBean(new RequestLoggingFilter())
-    frb.order = Ordered.LOWEST_PRECEDENCE
-    return frb
-  }
-
-  @Bean
-  FilterRegistrationBean requestTimingFilter() {
-    def frb = new FilterRegistrationBean(new RequestTimingFilter())
-
     // this filter should be placed very early in the request chain to ensure we track an accurate start time and
     // have a request id available to propagate across thread and service boundaries.
     frb.order = Ordered.HIGHEST_PRECEDENCE
@@ -422,9 +409,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   FilterRegistrationBean requestSheddingFilter(DynamicConfigService dynamicConfigService) {
     def frb = new FilterRegistrationBean(new RequestSheddingFilter(dynamicConfigService, registry))
 
-    // this filter should be placed early in the request chain to allow for requests to be shed prior to the
-    // spring security filter chain being evaluated.
-    frb.order = Ordered.HIGHEST_PRECEDENCE + 1
+    /*
+     * This filter should:
+     * - be placed early in the request chain to allow for requests to be shed prior to the security filter chain.
+     * - be placed after the RequestLoggingFilter such that shed requests are logged.
+     */
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 2
     return frb
   }
 

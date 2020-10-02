@@ -15,11 +15,13 @@
  */
 package com.netflix.spinnaker.gate.filters;
 
-import static com.netflix.spinnaker.gate.filters.RequestTimingFilter.REQUEST_START_TIME;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
+import com.netflix.spinnaker.kork.common.Header;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 import javax.servlet.*;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -28,23 +30,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+/**
+ * An HttpFilter that generates request start time/id values and logs standard request output.
+ *
+ * <p>ex. 127.0.0.1 "GET /limecat.jpg HTTP/1.0" 200 2326
+ *
+ * <p>It is expected that this filter will be given the highest precedence and run prior to the
+ * security filter chain, thus including the time spent authenticating in the overall request
+ * duration.
+ *
+ * <p>RequestLoggingFilter -> Security Filter -> AuthenticatedRequestFilter
+ */
 public class RequestLoggingFilter extends HttpFilter {
+  public static String REQUEST_START_TIME = "requestStartTime";
+
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Override
   protected void doFilter(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
+    Long requestStartTime = System.currentTimeMillis();
+
     try {
+      AuthenticatedRequest.set(Header.REQUEST_ID.getHeader(), UUID.randomUUID().toString());
+      MDC.put(REQUEST_START_TIME, String.valueOf(requestStartTime));
+
       chain.doFilter(request, response);
     } finally {
       try {
-        MDC.put(
-            "requestDuration",
-            getRequestDuration(
-                Optional.ofNullable(MDC.get(REQUEST_START_TIME))
-                    .map(Long::parseLong)
-                    .orElse(null)));
+        MDC.put("requestDuration", getRequestDuration(requestStartTime));
         MDC.put("requestUserAgent", request.getHeader("User-Agent"));
         MDC.put("requestPort", String.valueOf(request.getServerPort()));
 
@@ -61,6 +76,8 @@ public class RequestLoggingFilter extends HttpFilter {
         MDC.remove("requestDuration");
         MDC.remove("requestUserAgent");
         MDC.remove("requestPort");
+        MDC.remove(REQUEST_START_TIME);
+        AuthenticatedRequest.clear();
       }
     }
   }
