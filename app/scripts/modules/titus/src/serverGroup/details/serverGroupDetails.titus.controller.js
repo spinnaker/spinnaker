@@ -207,12 +207,6 @@ angular
           this.awsAccountId = awsDetails.accountId;
           this.env = awsDetails.environment;
         });
-        if (
-          details.autoscalingEnabled &&
-          details.regions.some(r => r.name === serverGroup.region && r.autoscalingEnabled)
-        ) {
-          this.scalingPoliciesEnabled = true;
-        }
       });
 
       const configureEntityTagTargets = () => {

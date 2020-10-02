@@ -135,7 +135,7 @@
       ></titus-service-job-processes-section>
     </collapsible-section>
 
-    <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
+    <collapsible-section heading="Scaling Policies">
       <titus-scaling-policy-summary
         ng-repeat="policy in serverGroup.scalingPolicies"
         policy="policy"
