@@ -328,6 +328,7 @@ spring:
     #   regions: #override default regions
     #     - name: us-east-1
     #     - name: ap-northeast-1
+    #   externalId: a1b2c3d4
 
 ---
 

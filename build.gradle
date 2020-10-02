@@ -69,6 +69,7 @@ subprojects {
     }
 
     test {
+      environment "AWS_REGION",  "us-west-2"
       useJUnitPlatform()
       testLogging {
         exceptionFormat = 'full'

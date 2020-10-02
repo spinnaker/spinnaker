@@ -36,7 +36,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       AWSCredentialsProvider credentialsProvider,
       String accountId,
       String assumeRole,
-      String sessionName) {
+      String sessionName,
+      String externalId) {
     String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
     if (!assumeRoleValue.startsWith("arn:")) {
 
@@ -57,13 +58,16 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             credentialsProvider,
             assumeRoleValue,
             Objects.requireNonNull(sessionName, "sessionName"),
-            accountId);
+            accountId,
+            externalId);
   }
 
   /** The role to assume on the target account. */
   private final String assumeRole;
 
   private final String sessionName;
+
+  private final String externalId;
 
   public AssumeRoleAmazonCredentials(
       @JsonProperty("name") String name,
@@ -79,7 +83,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
       @JsonProperty("allowPrivateThirdPartyImages") boolean allowPrivateThirdPartyImages,
       @JsonProperty("assumeRole") String assumeRole,
-      @JsonProperty("sessionName") String sessionName) {
+      @JsonProperty("sessionName") String sessionName,
+      @JsonProperty("externalId") String externalId) {
     this(
         name,
         environment,
@@ -95,7 +100,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         allowPrivateThirdPartyImages,
         null,
         assumeRole,
-        sessionName);
+        sessionName,
+        externalId);
   }
 
   public AssumeRoleAmazonCredentials(
@@ -115,7 +121,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         copy.getAllowPrivateThirdPartyImages(),
         credentialsProvider,
         copy.getAssumeRole(),
-        copy.getSessionName());
+        copy.getSessionName(),
+        copy.getExternalId());
   }
 
   AssumeRoleAmazonCredentials(
@@ -133,7 +140,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       boolean allowPrivateThirdPartyImages,
       AWSCredentialsProvider credentialsProvider,
       String assumeRole,
-      String sessionName) {
+      String sessionName,
+      String externalId) {
     super(
         name,
         environment,
@@ -151,9 +159,11 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             credentialsProvider,
             accountId,
             assumeRole,
-            sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+            sessionName == null ? DEFAULT_SESSION_NAME : sessionName,
+            externalId));
     this.assumeRole = assumeRole;
     this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
+    this.externalId = externalId;
   }
 
   public String getAssumeRole() {
@@ -162,5 +172,9 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
 
   public String getSessionName() {
     return sessionName;
+  }
+
+  public String getExternalId() {
+    return externalId;
   }
 }

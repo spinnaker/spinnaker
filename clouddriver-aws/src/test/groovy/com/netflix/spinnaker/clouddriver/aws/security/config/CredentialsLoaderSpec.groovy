@@ -248,4 +248,100 @@ class CredentialsLoaderSpec extends Specification {
         ex.getMessage().startsWith'accountId is required'
         0 * _
     }
+
+  def 'assumeRole account type overrides defaults'() {
+    setup:
+    def config = new CredentialsConfig(defaultRegions: [
+      new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
+      defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
+      defaultAssumeRole: 'role/asgard',
+      defaultSessionName: 'spinnaker',
+      defaultLifecycleHookRoleARNTemplate: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
+      defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic',
+      accounts: [
+        new Account(
+          name: 'test',
+          accountId: 12345,
+          regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
+          defaultKeyPair: 'oss-{{accountId}}-keypair',
+          assumeRole: 'role/spinnakerManaged',
+          externalId: '56789',
+          sessionName: 'spinnakerManaged',
+          lifecycleHooks: [
+            new LifecycleHook(
+              lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+              heartbeatTimeout: 1800,
+              defaultResult: 'CONTINUE'
+            )
+          ])
+      ]
+    )
+
+    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+    CredentialsLoader<AssumeRoleAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AssumeRoleAmazonCredentials)
+
+    when:
+    List<AssumeRoleAmazonCredentials> creds = ci.load(config)
+
+    then:
+    creds.size() == 1
+    with(creds.first()) { AssumeRoleAmazonCredentials cred ->
+      cred.name == 'test'
+      cred.accountId == "12345"
+      cred.defaultKeyPair == 'oss-12345-keypair'
+      cred.regions.size() == 1
+      cred.regions.first().name == 'us-west-1'
+      cred.regions.first().availabilityZones == ['us-west-1a']
+      cred.assumeRole == 'role/spinnakerManaged'
+      cred.externalId == '56789'
+      cred.sessionName == 'spinnakerManaged'
+      cred.lifecycleHooks.size() == 1
+      cred.lifecycleHooks.first().roleARN == 'arn:aws:iam::12345:role/my-notification-role'
+      cred.lifecycleHooks.first().notificationTargetARN == 'arn:aws:sns:{{region}}:12345:my-sns-topic'
+      cred.lifecycleHooks.first().lifecycleTransition == 'autoscaling:EC2_INSTANCE_TERMINATING'
+      cred.lifecycleHooks.first().heartbeatTimeout == 1800
+      cred.lifecycleHooks.first().defaultResult == 'CONTINUE'
+    }
+    0 * _
+  }
+
+  def 'assumeRole account type test with defaults'() {
+    setup:
+    def config = new CredentialsConfig(defaultRegions: [
+      new Region(name: 'us-east-1', availabilityZones: ['us-east-1c', 'us-east-1d', 'us-east-1e']),
+      new Region(name: 'us-west-2', availabilityZones: ['us-west-2a', 'us-west-2b'])],
+      defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
+      defaultEddaTemplate: 'http://edda-main.%s.{{name}}.netflix.net',
+      defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
+      defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
+      defaultAssumeRole: 'role/asgard',
+      defaultSessionName: 'spinnaker',
+      accounts: [
+        new Account(name: 'prod', accountId: 67890)
+      ]
+    )
+    AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+    AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+    CredentialsLoader<AssumeRoleAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AssumeRoleAmazonCredentials)
+
+    when:
+    List<AssumeRoleAmazonCredentials> creds = ci.load(config)
+
+    then:
+    creds.size() == 1
+    with(creds.find { it.name == 'prod' }) { AssumeRoleAmazonCredentials cred ->
+      cred.accountId == "67890"
+      cred.defaultKeyPair == 'nf-prod-keypair-a'
+      cred.regions.size() == 2
+      cred.regions.find { it.name == 'us-east-1' }.availabilityZones.size() == 3
+      cred.regions.find { it.name == 'us-east-1' }.deprecated == false
+      cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
+      cred.regions.find { it.name == 'us-west-2' }.deprecated == false
+      cred.assumeRole == 'role/asgard'
+      cred.externalId == null
+      cred.sessionName == 'spinnaker'
+    }
+    0 * _
+  }
 }
