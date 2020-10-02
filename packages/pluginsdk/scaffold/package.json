@@ -5,7 +5,7 @@
   "module": "build/dist/index.js",
   "scripts": {
     "clean": "npx shx rm -rf build",
-    "develop": "run-p watch proxy",
+    "develop": "npm run clean && run-p watch proxy",
     "build": "npm run clean && rollup -c",
     "postinstall": "check-plugin && check-peer-dependencies || true",
     "proxy": "dev-proxy",

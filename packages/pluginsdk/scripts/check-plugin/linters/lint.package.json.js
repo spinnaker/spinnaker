@@ -26,7 +26,7 @@ function checkPackageJson(report) {
 
   checkPackageJsonField('module', 'build/dist/index.js');
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
-  checkPackageJsonField('scripts.develop', 'run-p watch proxy');
+  checkPackageJsonField('scripts.develop', 'npm run clean && run-p watch proxy');
   checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
   checkPackageJsonField('scripts.proxy', 'dev-proxy');
