@@ -730,8 +730,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("does not execute the task") {
-        verify(task).aliases()
-        verify(task).extensionClass
+        verify(task, times(2)).aliases()
+        verify(task, times(2)).extensionClass
         verifyNoMoreInteractions(task)
       }
     }
@@ -814,8 +814,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("does not execute the task") {
-        verify(task).aliases()
-        verify(task).extensionClass
+        verify(task, times(2)).aliases()
+        verify(task, times(2)).extensionClass
         verifyNoMoreInteractions(task)
       }
     }
@@ -1738,8 +1738,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     }
 
     it("does not run any tasks") {
-      verify(task, times(2)).aliases()
-      verify(task, times(2)).extensionClass
+      verify(task, times(3)).aliases()
+      verify(task, times(3)).extensionClass
       verifyNoMoreInteractions(task)
     }
 

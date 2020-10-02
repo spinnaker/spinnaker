@@ -95,7 +95,13 @@ public class TaskResolver {
     Task task = taskByAlias.get(taskTypeIdentifier);
 
     if (task == null) {
-      throw new NoSuchTaskException(taskTypeIdentifier);
+      computeTasks();
+      log.debug(
+          "Task type '{}' not found in initial task cache, re-computing...", taskTypeIdentifier);
+      task = taskByAlias.get(taskTypeIdentifier);
+      if (task == null) {
+        throw new NoSuchTaskException(taskTypeIdentifier);
+      }
     }
 
     return task;
