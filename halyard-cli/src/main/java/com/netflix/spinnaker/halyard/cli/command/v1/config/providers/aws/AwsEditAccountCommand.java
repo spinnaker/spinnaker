@@ -70,6 +70,9 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
   @Parameter(names = "--assume-role", description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION)
   private String assumeRole;
 
+  @Parameter(names = "--external-id", description = AwsCommandProperties.EXTERNAL_ID_DESCRIPTION)
+  private String externalId;
+
   @Parameter(
       names = "--launching-lifecycle-hook-default-result",
       description = AwsCommandProperties.HOOK_DEFAULT_VALUE_DESCRIPTION)
@@ -117,6 +120,7 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
     account.setDiscovery(isSet(discovery) ? discovery : account.getDiscovery());
     account.setAccountId(isSet(accountId) ? accountId : account.getAccountId());
     account.setAssumeRole(isSet(assumeRole) ? assumeRole : account.getAssumeRole());
+    account.setExternalId(isSet(externalId) ? externalId : account.getExternalId());
 
     List<AwsLifecycleHook> hooks = getLifecycleHooks();
     account.setLifecycleHooks(!hooks.isEmpty() ? hooks : account.getLifecycleHooks());

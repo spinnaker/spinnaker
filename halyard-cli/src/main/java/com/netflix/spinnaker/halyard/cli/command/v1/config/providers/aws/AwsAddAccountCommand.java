@@ -67,6 +67,9 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
       required = true)
   private String assumeRole;
 
+  @Parameter(names = "--external-id", description = AwsCommandProperties.EXTERNAL_ID_DESCRIPTION)
+  private String externalId;
+
   @Parameter(
       names = "--launching-lifecycle-hook-default-result",
       description = AwsCommandProperties.HOOK_DEFAULT_VALUE_DESCRIPTION)
@@ -120,6 +123,7 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
                 .map(r -> new AwsProvider.AwsRegion().setName(r))
                 .collect(Collectors.toList()))
         .setAssumeRole(assumeRole)
+        .setExternalId(externalId)
         .setLifecycleHooks(getLifecycleHooks());
 
     return account;
