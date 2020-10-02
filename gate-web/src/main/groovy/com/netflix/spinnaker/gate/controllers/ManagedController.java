@@ -270,8 +270,10 @@ public class ManagedController {
       @RequestParam(name = "includeDetails", required = false, defaultValue = "false")
           Boolean includeDetails,
       @RequestParam(name = "entities", required = false, defaultValue = "resources")
-          List<String> entities) {
-    return keelService.getApplicationDetails(application, includeDetails, entities);
+          List<String> entities,
+      @RequestParam(name = "maxArtifactVersions", required = false) Integer maxArtifactVersions) {
+    return keelService.getApplicationDetails(
+        application, includeDetails, entities, maxArtifactVersions);
   }
 
   @ApiOperation(value = "Pause management of an entire application")

@@ -109,7 +109,8 @@ public interface KeelService {
   Map getApplicationDetails(
       @Path("application") String application,
       @Query("includeDetails") Boolean includeDetails,
-      @Query("entities") List<String> entities);
+      @Query("entities") List<String> entities,
+      @Query("maxArtifactVersions") Integer maxArtifactVersions);
 
   @POST("/application/{application}/pause")
   Response pauseApplication(@Path("application") String application, @Body Map requestBody);
