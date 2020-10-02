@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const path = require('path');
 const chokidar = require('chokidar');
 const WebSocket = require('ws');
@@ -35,7 +36,7 @@ watcher.on('change', path => {
   });
 });
 
-function lifeReloadJs(req, res, next) {
+function liveReloadJs(req, res, next) {
   res.set('Content-Type', 'application/javascript');
   res.send(`
     export const plugin = {
@@ -50,4 +51,4 @@ function lifeReloadJs(req, res, next) {
   `);
 }
 
-module.exports = lifeReloadJs;
+module.exports = liveReloadJs;
