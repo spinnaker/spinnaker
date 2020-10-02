@@ -171,7 +171,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("the artifact is not registered") {
         before {
-          every { repository.artifactVersions(artifact) } throws NoSuchArtifactException(artifact)
+          every { repository.artifactVersions(artifact, any()) } throws NoSuchArtifactException(artifact)
           every { repository.isRegistered(artifact.name, artifact.type) } returns false
           every { igorService.getVersions(any(), any(), DEBIAN) } returns listOf(image.appVersion)
 
@@ -194,7 +194,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
         context("there are no known versions for the artifact in the repository or in Igor") {
           before {
-            every { repository.artifactVersions(artifact) } returns emptyList()
+            every { repository.artifactVersions(artifact, any()) } returns emptyList()
             every { repository.isRegistered(artifact.name, artifact.type) } returns true
             every { igorService.getVersions(any(), any(), DEBIAN) } returns emptyList()
 
@@ -225,7 +225,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
           context("the desired version is known") {
             before {
-              every { repository.artifactVersions(artifact) } returns listOf(image.appVersion)
+              every { repository.artifactVersions(artifact, any()) } returns listOf(image.appVersion)
             }
 
             context("an AMI for the desired version and base image already exists") {
@@ -409,7 +409,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
             } returns newerBaseAmiVersion
 
-            every { repository.artifactVersions(artifact) } returns listOf(image.appVersion)
+            every { repository.artifactVersions(artifact, any()) } returns listOf(image.appVersion)
 
             every {
               imageService.getLatestImage(artifact.name, "test")

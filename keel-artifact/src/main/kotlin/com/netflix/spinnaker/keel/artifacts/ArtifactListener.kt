@@ -146,7 +146,7 @@ class ArtifactListener(
   }
 
   private fun getLatestStoredVersion(artifact: DeliveryArtifact): String? =
-    repository.artifactVersions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
+    repository.artifactVersions(artifact, 1).firstOrNull()
 
   /**
    * Returns a copy of the [PublishedArtifact] with the git and build metadata populated, if available.

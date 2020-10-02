@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -199,6 +200,18 @@ class ApplicationServiceTests : JUnit5Minutests {
       }
 
       context("a delivery config with a single artifact for all environments") {
+        before {
+          every {
+            repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+          } returns emptyList()
+
+          every {
+            repository.getArtifactInstance(any(), any(), any(), any())
+          } answers {
+            PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
+          }
+        }
+
         context("all versions are pending in all environments") {
           before {
             every {
@@ -212,18 +225,8 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
-            } returns emptyList()
-
-            every {
               dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
             } returns false
-
-            every {
-              repository.getArtifactInstance(any(), any(), any(), any())
-            } answers {
-              PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
-            }
           }
 
           test("artifact summary shows all versions pending in all environments") {
@@ -562,6 +565,52 @@ class ApplicationServiceTests : JUnit5Minutests {
                     state.isEqualTo(SKIPPED.name.toLowerCase())
                   }
               }
+            }
+          }
+        }
+
+        context("the artifact has lots of versions") {
+          before {
+            val lotsaVersions = (1..100).map { "1.0.$it" }
+            val maxArtifactVersions = slot<Int>()
+
+            every {
+              repository.artifactVersions(releaseArtifact, capture(maxArtifactVersions))
+            } answers {
+              lotsaVersions.subList(0, maxArtifactVersions.captured)
+            }
+
+            every {
+              repository.getEnvironmentSummaries(singleArtifactDeliveryConfig)
+            } returns singleArtifactDeliveryConfig.environments.map { env ->
+              toEnvironmentSummary(env) {
+                ArtifactVersionStatus(
+                  pending = lotsaVersions
+                )
+              }
+            }
+
+            every {
+              dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
+            } returns false
+          }
+
+          test("getting artifact summaries has a default cap on versions") {
+            applicationService.getArtifactSummariesFor(application1).also {
+              verify { repository.artifactVersions(releaseArtifact, DEFAULT_MAX_ARTIFACT_VERSIONS) }
+              expectThat(it.first().versions).hasSize(DEFAULT_MAX_ARTIFACT_VERSIONS)
+            }
+          }
+
+          test("getting artifact summaries respects the max versions parameter") {
+            applicationService.getArtifactSummariesFor(application1, 20).also {
+              verify { repository.artifactVersions(releaseArtifact, 20) }
+              expectThat(it.first().versions).hasSize(20)
+            }
+
+            applicationService.getArtifactSummariesFor(application1, 100).also {
+              verify { repository.artifactVersions(releaseArtifact, 100) }
+              expectThat(it.first().versions).hasSize(100)
             }
           }
         }

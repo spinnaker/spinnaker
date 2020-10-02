@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -47,7 +48,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    */
   fun versions(
     artifact: DeliveryArtifact,
-    limit: Int = 30
+    limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS
   ): List<String>
 
   /**

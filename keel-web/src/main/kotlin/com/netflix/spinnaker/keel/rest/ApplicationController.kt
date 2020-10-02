@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -62,7 +63,8 @@ class ApplicationController(
   fun get(
     @PathVariable("application") application: String,
     @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean,
-    @RequestParam("entities", required = false, defaultValue = "") entities: MutableList<String>
+    @RequestParam("entities", required = false, defaultValue = "") entities: MutableList<String>,
+    @RequestParam("maxArtifactVersions") maxArtifactVersions: Int?
   ): Map<String, Any> {
     return mutableMapOf(
       "applicationPaused" to actuationPauser.applicationIsPaused(application),
@@ -77,7 +79,8 @@ class ApplicationController(
         results[entity] = when (entity) {
           "resources" -> applicationService.getResourceSummariesFor(application)
           "environments" -> applicationService.getEnvironmentSummariesFor(application)
-          "artifacts" -> applicationService.getArtifactSummariesFor(application)
+          "artifacts" -> applicationService.getArtifactSummariesFor(application,
+            maxArtifactVersions ?: DEFAULT_MAX_ARTIFACT_VERSIONS)
           else -> throw InvalidRequestException("Unknown entity type: $entity")
         }
       }

@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -52,6 +53,7 @@ class ApplicationService(
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
     constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator<*, *> }
 
@@ -173,9 +175,11 @@ class ApplicationService(
    * Returns a list of [ArtifactSummary] for the specified application by traversing the list of [EnvironmentSummary]
    * for the application and reindexing the data so that it matches the right format.
    *
+   * The list is capped at the specified [limit] of artifact versions, sorted in descending version order.
+   *
    * This function assumes there's a single delivery config associated with the application.
    */
-  fun getArtifactSummariesFor(application: String): List<ArtifactSummary> {
+  fun getArtifactSummariesFor(application: String, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
     val deliveryConfig = try {
       repository.getDeliveryConfigForApplication(application)
     } catch (e: NoSuchDeliveryConfigException) {
@@ -185,7 +189,7 @@ class ApplicationService(
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
-      val artifactVersionSummaries = repository.artifactVersions(artifact).map { version ->
+      val artifactVersionSummaries = repository.artifactVersions(artifact, limit).map { version ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         environmentSummaries.forEach { environmentSummary ->

@@ -88,7 +88,7 @@ class ImageHandler(
   private suspend fun DebianArtifact.findLatestArtifactVersion(): String {
     try {
       val knownVersion = repository
-        .artifactVersions(this)
+        .artifactVersions(this, 1)
         .firstOrNull()
       if (knownVersion != null) {
         log.debug("Latest known version of $name = $knownVersion")

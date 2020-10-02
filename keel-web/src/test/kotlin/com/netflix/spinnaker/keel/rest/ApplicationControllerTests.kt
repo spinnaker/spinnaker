@@ -3,11 +3,13 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
@@ -18,6 +20,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
@@ -83,6 +86,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         every { applicationService.getResourceSummariesFor(application) } returns emptyList()
         every { applicationService.getEnvironmentSummariesFor(application) } returns emptyList()
         every { applicationService.getArtifactSummariesFor(application) } returns emptyList()
+        every { applicationService.getArtifactSummariesFor(application, any()) } returns emptyList()
       }
 
       context("with un-paused application") {
@@ -135,7 +139,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             )
         }
 
-        test("can get multiple types of summaries by application with comma-separate list of entities") {
+        test("can get multiple types of summaries by application with comma-separated list of entities") {
           val request = get("/application/$application?entities=resources,environments,artifacts")
             .accept(APPLICATION_JSON_VALUE)
           val result = mvc
@@ -153,6 +157,28 @@ internal class ApplicationControllerTests : JUnit5Minutests {
               "environments",
               "artifacts"
             )
+        }
+
+        test("number of artifact summaries retrieved has a default limit") {
+          val request = get("/application/$application?entities=artifacts")
+            .accept(APPLICATION_JSON_VALUE)
+          mvc
+            .perform(request)
+            .andExpect(status().isOk)
+            .andDo { println(it.response.contentAsString) }
+            .andReturn()
+          verify { applicationService.getArtifactSummariesFor(application, DEFAULT_MAX_ARTIFACT_VERSIONS) }
+        }
+
+        test("can limit the number of artifact summaries with query param") {
+          val request = get("/application/$application?entities=artifacts&maxArtifactVersions=10")
+            .accept(APPLICATION_JSON_VALUE)
+          mvc
+            .perform(request)
+            .andExpect(status().isOk)
+            .andDo { println(it.response.contentAsString) }
+            .andReturn()
+          verify { applicationService.getArtifactSummariesFor(application, 10) }
         }
 
         test("is backwards-compatible with older version of the API") {

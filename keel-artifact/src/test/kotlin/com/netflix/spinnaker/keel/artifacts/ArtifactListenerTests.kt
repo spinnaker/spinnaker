@@ -302,8 +302,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("we don't have any versions of the artifacts") {
       before {
         every { repository.getAllArtifacts() } returns listOf(debArtifact, dockerArtifact)
-        every { repository.artifactVersions(debArtifact) } returns emptyList()
-        every { repository.artifactVersions(dockerArtifact) } returns emptyList()
+        every { repository.artifactVersions(debArtifact, any()) } returns emptyList()
+        every { repository.artifactVersions(dockerArtifact, any()) } returns emptyList()
       }
 
       context("versions are available") {
@@ -349,8 +349,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("there are artifacts with versions stored") {
       before {
         every { repository.getAllArtifacts() } returns listOf(debArtifact, dockerArtifact)
-        every { repository.artifactVersions(debArtifact) } returns listOf(publishedDeb.version)
-        every { repository.artifactVersions(dockerArtifact) } returns listOf(publishedDocker.version)
+        every { repository.artifactVersions(debArtifact, any()) } returns listOf(publishedDeb.version)
+        every { repository.artifactVersions(dockerArtifact, any()) } returns listOf(publishedDocker.version)
       }
 
       context("no newer versions are available") {

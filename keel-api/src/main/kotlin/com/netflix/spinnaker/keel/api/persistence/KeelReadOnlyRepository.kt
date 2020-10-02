@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 
@@ -49,7 +50,7 @@ interface KeelReadOnlyRepository {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
-  fun artifactVersions(artifact: DeliveryArtifact, limit: Int = 30): List<String>
+  fun artifactVersions(artifact: DeliveryArtifact, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<String>
 
   fun artifactVersions(name: String, type: ArtifactType): List<String>
 
