@@ -20,6 +20,7 @@ export const ArtifactTypePatterns: IArtifactTypePatterns = {
   MAVEN_FILE: /maven\/file/,
   HTTP_FILE: /http\/file/,
   FRONT50_PIPELINE_TEMPLATE: /front50\/pipelineTemplate/,
+  ORACLE_OBJECT: /oracle\/object/,
 };
 
 export const excludeAllTypesExcept = (...types: RegExp[]) =>

@@ -15,6 +15,7 @@ import ivyFileIcon from './icons/ivy-artifact.svg';
 import jenkinsFileIcon from './icons/jenkins-file-artifact.svg';
 import mavenFileIcon from './icons/maven-artifact.svg';
 import httpFileIcon from './icons/http-artifact.svg';
+import oracleObjectIcon from './icons/oracle-object-artifact.svg';
 
 interface IArtifactIcon {
   type: RegExp;
@@ -55,3 +56,4 @@ ArtifactIconService.registerType(ArtifactTypePatterns.IVY_FILE, ivyFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.JENKINS_FILE, jenkinsFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, mavenFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, httpFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.ORACLE_OBJECT, oracleObjectIcon);

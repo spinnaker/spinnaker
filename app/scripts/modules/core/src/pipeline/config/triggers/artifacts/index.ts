@@ -15,6 +15,7 @@ import { JenkinsMatch, JenkinsDefault } from './jenkins/JenkinsArtifactEditor';
 import { KubernetesMatch, KubernetesDefault } from './kubernetes/KubernetesArtifactEditor';
 import { MavenMatch, MavenDefault } from './maven/MavenArtifactEditor';
 import { S3Match, S3Default } from './s3/S3ArtifactEditor';
+import { OracleMatch, OracleDefault } from './oracle/OracleArtifactEditor';
 
 export const artifactKindConfigs: IArtifactKindConfig[] = [
   Base64Match,
@@ -45,6 +46,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   MavenDefault,
   S3Match,
   S3Default,
+  OracleMatch,
+  OracleDefault,
   KubernetesMatch,
   KubernetesDefault,
 ];
