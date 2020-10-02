@@ -43,7 +43,7 @@ public class KubernetesV2RedisService extends RedisService implements Kubernetes
   }
 
   public String getArtifactId(DeploymentConfiguration deploymentConfiguration) {
-    return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
+    return "us-docker.pkg.dev/spinnaker-community/redis/redis-cluster:v2";
   }
 
   @Override
