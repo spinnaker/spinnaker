@@ -29,22 +29,6 @@ function checkPackageJson(report) {
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
   checkPackageJsonField('scripts.proxy', 'dev-proxy');
   checkPackageJsonField('scripts.watch', 'rollup -c -w --no-watch.clearScreen');
-
-  const bundlesFiles = pkgJson.files && pkgJson.files.includes('build/dist');
-  const bundlesFilesFixer = () => {
-    const json = readJson('package.json');
-    if (!json.files) {
-      json.files = [];
-    }
-    json.files.push('build/dist');
-    writeJson('package.json', json);
-
-    console.log(`fixed: added "build/dist" to "files" in package.json`);
-  };
-  report('package.json: files does not include "build/dist"', bundlesFiles, {
-    description: 'Add "build/dist" to files array in package.json',
-    fixer: bundlesFilesFixer,
-  });
 }
 
 module.exports = { checkPackageJson };
