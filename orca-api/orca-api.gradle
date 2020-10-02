@@ -44,6 +44,8 @@ dependencies {
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 
+  dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
+
   sampleImplementation(sourceSets.main.runtimeClasspath)
 }
 
@@ -58,11 +60,5 @@ tasks.withType(JavaCompile) {
 test {
   useJUnitPlatform {
     includeEngines "junit-vintage", "junit-jupiter"
-  }
-}
-
-dokka {
-  configuration {
-    includes = ["api.md"]
   }
 }

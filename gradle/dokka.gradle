@@ -16,11 +16,10 @@
 
 apply plugin: "org.jetbrains.dokka"
 
-dokka {
-  outputFormat = 'html'
-  outputDirectory = "$buildDir/dokka"
-
-  configuration {
-    jdkVersion = 8
+dokkaHtml {
+  dokkaSourceSets {
+    configureEach {
+      jdkVersion.set(11)
+    }
   }
 }
