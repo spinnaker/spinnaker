@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -51,10 +52,11 @@ class ImageExistsConstraintEvaluator(
 
   private fun findMatchingImage(version: String, vmOptions: VirtualMachineOptions): NamedImage? {
     log.debug("Searching for baked image for {} in {}", version, vmOptions.regions.joinToString())
+    val appVersion = AppVersion.parseName(version) ?: throw SystemException("Invalid AMI app version: $version")
     return runBlocking {
       imageService.getLatestNamedImageWithAllRegionsForAppVersion(
         // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        AppVersion.parseName(version),
+        appVersion,
         defaultImageAccount,
         vmOptions.regions
       )
