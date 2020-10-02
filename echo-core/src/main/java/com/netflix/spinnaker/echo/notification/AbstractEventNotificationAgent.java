@@ -50,7 +50,7 @@ public abstract class AbstractEventNotificationAgent implements EventListener {
 
   protected ObjectMapper mapper = EchoObjectMapper.getInstance();
 
-  @Value("${spinnaker.base-url")
+  @Value("${spinnaker.base-url}")
   protected String spinnakerUrl;
 
   public abstract String getNotificationType();
