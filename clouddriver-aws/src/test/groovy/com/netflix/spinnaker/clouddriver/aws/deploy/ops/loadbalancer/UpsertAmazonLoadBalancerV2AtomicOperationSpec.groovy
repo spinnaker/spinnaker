@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
@@ -71,9 +68,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
         healthCheckPort: 8080,
         attributes: [
           deregistrationDelay: 300,
-          stickinessEnabled: false,
-          stickinessType: "lb_cookie",
-          stickinessDuration: 86400
+          stickinessEnabled  : false,
+          stickinessType     : "lb_cookie",
+          stickinessDuration : 86400
         ]
       )
     ],
@@ -112,7 +109,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     ],
     subnetType: "internal",
     idleTimeout: 60,
-    deletionProtection: true
+    deletionProtection: true,
   )
   UpsertAmazonLoadBalancerV2Description descriptionWithNoAttributes = new UpsertAmazonLoadBalancerV2Description(
     loadBalancerType: AmazonLoadBalancerType.APPLICATION,
@@ -146,6 +143,43 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     idleTimeout: 60,
     deletionProtection: true
   )
+  UpsertAmazonLoadBalancerV2Description nlbDescription = new UpsertAmazonLoadBalancerV2Description(
+    loadBalancerType: AmazonLoadBalancerType.NETWORK,
+    name: "foo-main-frontend",
+    availabilityZones: ["us-east-1": ["us-east-1a"]],
+    listeners: [
+      new UpsertAmazonLoadBalancerV2Description.Listener(
+        port: 80,
+        protocol: ProtocolEnum.HTTP,
+        defaultActions: [
+          new UpsertAmazonLoadBalancerV2Description.Action(
+            targetGroupName: targetGroupName
+          )
+        ]
+      )
+    ],
+    securityGroups: ["foo"],
+    credentials: TestCredential.named('bar'),
+    targetGroups: [
+      new UpsertAmazonLoadBalancerV2Description.TargetGroup(
+        name: "target-group-foo",
+        protocol: ProtocolEnum.HTTP,
+        port: 80,
+        healthCheckProtocol: ProtocolEnum.HTTP,
+        healthCheckPort: 8080,
+        attributes: [
+          deregistrationDelay: 300,
+          stickinessEnabled  : false,
+          stickinessType     : "lb_cookie",
+          stickinessDuration : 86400
+        ]
+      )
+    ],
+    subnetType: "internal",
+    idleTimeout: 60,
+    deletionProtection: true,
+    loadBalancingCrossZone: true
+  )
 
   def loadBalancerArn = "test:arn"
   def targetGroupArn = "test:target:group:arn"
@@ -174,7 +208,8 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   def ingressLoadBalancerBuilder = Mock(IngressLoadBalancerBuilder)
 
-  @Subject operation = new UpsertAmazonLoadBalancerV2AtomicOperation(description)
+  @Subject
+    operation = new UpsertAmazonLoadBalancerV2AtomicOperation(description)
 
   def setup() {
     operation.amazonClientProvider = mockAmazonClientProvider
@@ -196,13 +231,13 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     then:
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
-            new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
     1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
-            name: "foo-main-frontend",
-            subnets: ["subnet-1"],
-            securityGroups: ["sg-1234"],
-            scheme: "internal",
-            type: "application"
+      name: "foo-main-frontend",
+      subnets: ["subnet-1"],
+      securityGroups: ["sg-1234"],
+      scheme: "internal",
+      type: "application"
     )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "application")])
     1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
       'foo',
@@ -227,7 +262,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   void "should create target group for existing load balancer"() {
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingLoadBalancers = [loadBalancerOld]
     def existingTargetGroups = []
     def existingListeners = []
 
@@ -252,7 +287,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   void "should create target group attributes passed for existing load balancer"() {
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingLoadBalancers = [loadBalancerOld]
     def existingTargetGroups = []
     def existingListeners = []
 
@@ -272,10 +307,10 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
     1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled'}.value == "false"
-      assert request.attributes.find { it.key == 'stickiness.type'}.value == "lb_cookie"
-      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds'}.value == "86400"
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled' }.value == "false"
+      assert request.attributes.find { it.key == 'stickiness.type' }.value == "lb_cookie"
+      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds' }.value == "86400"
       assert request.targetGroupArn == "test:target:group:arn"
       return new ModifyTargetGroupAttributesResult()
     }
@@ -285,7 +320,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   void "should create target group attributes with defaults for existing load balancer"() {
     @Subject createOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(descriptionWithNoAttributes)
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingLoadBalancers = [loadBalancerOld]
     def existingTargetGroups = []
     def existingListeners = []
     createOperation.amazonClientProvider = mockAmazonClientProvider
@@ -308,20 +343,110 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
     1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled'}.value == "false"
-      assert request.attributes.find { it.key == 'stickiness.type'}.value == "lb_cookie"
-      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds'}.value == "86400"
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled' }.value == "false"
+      assert request.attributes.find { it.key == 'stickiness.type' }.value == "lb_cookie"
+      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds' }.value == "86400"
       assert request.targetGroupArn == "test:target:group:arn"
       return new ModifyTargetGroupAttributesResult()
     }
     0 * _
   }
 
+  void "should create target group attributes with defaults for existing nlb"() {
+    @Subject createNlbOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(nlbDescription)
+    setup:
+    createNlbOperation.amazonClientProvider = mockAmazonClientProvider
+    createNlbOperation.regionScopedProviderFactory = regionScopedProviderFactory
+    createNlbOperation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
+    createNlbOperation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
+    def existingLoadBalancers = []
+    def existingTargetGroups = []
+    def existingListeners = []
+    def nlbLoadBalancerAttributes = [new LoadBalancerAttribute().withKey("idle_timeout.timeout_seconds").withValue("60"),
+                                     new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true"),
+                                     new LoadBalancerAttribute().withKey("load_balancing.cross_zone.enabled").withValue("false")]
+
+    nlbDescription.vpcId = 'vpcId'
+
+    when:
+    createNlbOperation.operate([])
+
+    then:
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
+      name: "foo-main-frontend",
+      subnets: ["subnet-1"],
+      scheme: "internal",
+      type: "network"
+    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "network")])
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
+      'foo',
+      'us-east-1',
+      'bar',
+      nlbDescription.credentials,
+      "vpcId",
+      { it.toList().sort() == [80, 8080] },
+      _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.modifyLoadBalancerAttributes(_) >> { ModifyLoadBalancerAttributesRequest request ->
+      assert request.attributes.find { it.key == 'load_balancing.cross_zone.enabled' }.withValue("true")
+      assert request.loadBalancerArn == "test:arn"
+      return new ModifyLoadBalancerAttributesResult()
+    }
+    1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
+      assert request.attributes.find { it.key == 'proxy_protocol_v2.enabled' }.withValue("false")
+      assert request.targetGroupArn == "test:target:group:arn"
+      return new ModifyTargetGroupAttributesResult()
+    }
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: nlbLoadBalancerAttributes]
+    0 * _
+  }
+
+  void "should create nlb and update cross_zone_enabled attribute only when it is updated"() {
+    @Subject createNlbOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(nlbDescription)
+    setup:
+    createNlbOperation.amazonClientProvider = mockAmazonClientProvider
+    createNlbOperation.regionScopedProviderFactory = regionScopedProviderFactory
+    createNlbOperation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
+    createNlbOperation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
+    def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn, type: "network")
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = []
+    def existingListeners = []
+    def nlbLoadBalancerAttributes = [new LoadBalancerAttribute().withKey("idle_timeout.timeout_seconds").withValue("60"),
+                                     new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true"),
+                                     new LoadBalancerAttribute().withKey("load_balancing.cross_zone.enabled").withValue("true")]
+
+    nlbDescription.vpcId = 'vpcId'
+
+    when:
+    createNlbOperation.operate([])
+
+    then:
+
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    0 * loadBalancing.modifyLoadBalancerAttributes(_)
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: nlbLoadBalancerAttributes]
+    1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
+    0 * _
+  }
+
   void "should modify target group of existing load balancer"() {
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
-    def existingTargetGroups = [ targetGroup ]
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = [targetGroup]
     def existingListeners = []
 
     when:
@@ -347,8 +472,8 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     @Subject updateOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(updateDescription)
 
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
-    def existingTargetGroups = [ targetGroup ]
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = [targetGroup]
     def existingListeners = []
     updateOperation.amazonClientProvider = mockAmazonClientProvider
     updateOperation.regionScopedProviderFactory = regionScopedProviderFactory
@@ -368,8 +493,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
-      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
-      assert request.attributes.find { it.key == 'stickiness.enabled'} == null
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled' } == null
+      assert request.attributes.find { it.key == 'load_balancing.cross_zone.enabled' } == null
       assert request.targetGroupArn == "test:target:group:arn"
       return new ModifyTargetGroupAttributesResult()
     }
@@ -381,8 +507,8 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   void "should remove missing target group of existing load balancer"() {
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
-    def existingTargetGroups = [ targetGroupOld ]
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = [targetGroupOld]
     def existingListeners = []
 
     when:
@@ -407,8 +533,8 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   void "should throw error updating a load balancer if listener targets a non-existent target group"() {
     setup:
-    def existingLoadBalancers = [ loadBalancerOld ]
-    def existingTargetGroups = [ targetGroupOld ]
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = [targetGroupOld]
     def existingListeners = []
 
     when:
@@ -436,9 +562,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   void "should remove and recreate listeners that have changed on an existing load balancer"() {
     setup:
     def listenerArn = "test:listener:arn"
-    def existingLoadBalancers = [ loadBalancerOld ]
-    def existingTargetGroups = [ targetGroupOld ]
-    def existingListeners = [ new Listener(listenerArn: listenerArn, defaultActions: [])]
+    def existingLoadBalancers = [loadBalancerOld]
+    def existingTargetGroups = [targetGroupOld]
+    def existingListeners = [new Listener(listenerArn: listenerArn, defaultActions: [])]
 
     when:
     operation.operate([])
@@ -473,7 +599,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _)  >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "foo-elb")
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "foo-elb")
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internet-facing', SubnetTarget.ELB, 1) >> ["subnet-1"]
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
       new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)

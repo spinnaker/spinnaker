@@ -33,6 +33,7 @@ class LoadBalancerV2UpsertHandler {
 
   private static final String ATTRIBUTE_IDLE_TIMEOUT = "idle_timeout.timeout_seconds"
   private static final String ATTRIBUTE_DELETION_PROTECTION = "deletion_protection.enabled"
+  private static final String ATTRIBUTE_LOAD_BALANCING_CROSS_ZONE = "load_balancing.cross_zone.enabled"
 
   //Defaults for Target Group Attributes
   private static final String DEREGISTRATION_DELAY = "300"
@@ -156,15 +157,15 @@ class LoadBalancerV2UpsertHandler {
 
         } else {
           createTargetGroupRequest.withProtocol(targetGroup.protocol)
-          .withPort(targetGroup.port)
-          .withName(targetGroup.name)
-          .withVpcId(loadBalancer.vpcId)
-          .withHealthCheckIntervalSeconds(targetGroup.healthCheckInterval)
-          .withHealthCheckPort(targetGroup.healthCheckPort)
-          .withHealthCheckProtocol(targetGroup.healthCheckProtocol)
-          .withHealthyThresholdCount(targetGroup.healthyThreshold)
-          .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
-          .withTargetType(targetGroup.targetType)
+            .withPort(targetGroup.port)
+            .withName(targetGroup.name)
+            .withVpcId(loadBalancer.vpcId)
+            .withHealthCheckIntervalSeconds(targetGroup.healthCheckInterval)
+            .withHealthCheckPort(targetGroup.healthCheckPort)
+            .withHealthCheckProtocol(targetGroup.healthCheckProtocol)
+            .withHealthyThresholdCount(targetGroup.healthyThreshold)
+            .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
+            .withTargetType(targetGroup.targetType)
 
           if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
             createTargetGroupRequest
@@ -378,7 +379,8 @@ class LoadBalancerV2UpsertHandler {
                                  List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
                                  DeployDefaults deployDefaults,
                                  Integer idleTimeout,
-                                 Boolean deletionProtection
+                                 Boolean deletionProtection,
+                                 Boolean loadBalancingCrossZone
   ) {
     def amazonErrors = []
     def loadBalancerName = loadBalancer.loadBalancerName
@@ -423,6 +425,16 @@ class LoadBalancerV2UpsertHandler {
       attributes.add(new LoadBalancerAttribute().withKey(ATTRIBUTE_DELETION_PROTECTION).withValue(newDeletionProtection))
     }
 
+    // Cross-Zone Load Balancing is only supported in network load balancers
+    if (loadBalancer.type == 'network' && loadBalancingCrossZone != null) {
+      String currentLoadBalancingCrossZone = currentAttributes.find { it.key == ATTRIBUTE_LOAD_BALANCING_CROSS_ZONE }?.getValue()
+      String newLoadBalancingCrossZone = [loadBalancingCrossZone, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Boolean.TRUE, Closure.IDENTITY).toString()
+      if (currentLoadBalancingCrossZone != newLoadBalancingCrossZone) {
+        task.updateStatus BASE_PHASE, "Setting Cross-Zone Load Balancing on ${loadBalancerName} to ${newLoadBalancingCrossZone}."
+        attributes.add(new LoadBalancerAttribute().withKey(ATTRIBUTE_LOAD_BALANCING_CROSS_ZONE).withValue(newLoadBalancingCrossZone))
+      }
+    }
+
     if (!attributes.isEmpty()) {
       loadBalancing.modifyLoadBalancerAttributes(
         new ModifyLoadBalancerAttributesRequest()
@@ -446,8 +458,8 @@ class LoadBalancerV2UpsertHandler {
     // Can't modify the port or protocol of a target group, so if changed, have to delete/recreate
     List<List<TargetGroup>> targetGroupsSplit = existingTargetGroups.split { awsTargetGroup ->
       (targetGroups.find { it.name == awsTargetGroup.targetGroupName &&
-                            it.port == awsTargetGroup.port &&
-                            it.protocol.toString() == awsTargetGroup.protocol }) == null
+        it.port == awsTargetGroup.port &&
+        it.protocol.toString() == awsTargetGroup.protocol }) == null
     }
     List<TargetGroup> targetGroupsToRemove = targetGroupsSplit[0]
     List<TargetGroup> targetGroupsToUpdate = targetGroupsSplit[1]
@@ -538,14 +550,16 @@ class LoadBalancerV2UpsertHandler {
     }
   }
 
-  static LoadBalancer createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+  static LoadBalancer createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName,
+                                         boolean isInternal,
                                          Collection<String> subnetIds, Collection<String> securityGroups,
                                          List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                          List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
                                          DeployDefaults deployDefaults,
                                          String type,
                                          Integer idleTimeout,
-                                         boolean deletionProtection) {
+                                         boolean deletionProtection,
+                                         boolean loadBalancingCrossZone) {
     def request = new CreateLoadBalancerRequest().withName(loadBalancerName)
 
     // Networking Related
@@ -579,7 +593,7 @@ class LoadBalancerV2UpsertHandler {
     List<LoadBalancer> loadBalancers = result.getLoadBalancers()
     if (loadBalancers != null && loadBalancers.size() > 0) {
       createdLoadBalancer = loadBalancers.get(0)
-      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners, deployDefaults, idleTimeout, deletionProtection)
+      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners, deployDefaults, idleTimeout, deletionProtection, loadBalancingCrossZone)
     }
 
     createdLoadBalancer

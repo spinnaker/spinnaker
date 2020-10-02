@@ -26,6 +26,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   public List<Listener> listeners = new ArrayList<>();
   public List<TargetGroup> targetGroups = new ArrayList<>();
   public Boolean deletionProtection = false;
+  public Boolean loadBalancingCrossZone;
 
   public static class TargetGroup {
     private String name;
