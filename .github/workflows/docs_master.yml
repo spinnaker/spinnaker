@@ -34,6 +34,6 @@ jobs:
           source-directory: orca-api/build/dokka/html/
           destination-github-username: spinnaker
           destination-repository-name: spinnaker.github.io
-          destination-directory: reference/api/service-plugin-apis/orca-api/master/x
+          destination-directory: reference/api/service-plugin-apis/orca-api/master/
           user-email: sig-docs@spinnaker.io
           user-name: autodocs
