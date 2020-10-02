@@ -40,6 +40,15 @@ export class ApplicationNameValidator {
   }
 
   /**
+   * Overwrites the validators of a cloud provider with the given array.
+   * @param cloudProvider the key of the cloud provider, e.g. "aws", "gce"
+   * @param validators the validators to use for the provider
+   */
+  public static setValidators(cloudProvider: string, validators: IApplicationNameValidator[]) {
+    this.providerMap.set(cloudProvider, validators);
+  }
+
+  /**
    * Performs the actual validation. If there are no providers supplied, all configured validators will fire
    * and add their messages to the result.
    * @param applicationName the name of the application
