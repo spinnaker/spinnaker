@@ -60,7 +60,7 @@ export class API {
     return (...urls: string[]) => {
       urls.forEach((url: string) => {
         if (url) {
-          config.url = `${config.url}/${url}`;
+          config.url = `${config.url}/${encodeURIComponent(url)}`;
         }
       });
 
@@ -170,9 +170,10 @@ export class API {
       url: this.baseUrl,
     };
     urls
-      .filter(i => !isNil(i))
-      .forEach((url: string) => (config.url = `${config.url}/${url.toString().replace(/^\/+/, '')}`));
-
+      .filter((i) => !isNil(i))
+      .map((url: string) => url.toString().replace(/^\/+/, ''))
+      .map((url: string) => encodeURIComponent(url))
+      .forEach((url: string) => (config.url = `${config.url}/${url.toString()}`));
     return this.baseReturn(config);
   }
 

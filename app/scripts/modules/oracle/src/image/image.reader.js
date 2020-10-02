@@ -8,7 +8,7 @@ export const ORACLE_IMAGE_IMAGE_READER = 'spinnaker.oracle.image.reader';
 export const name = ORACLE_IMAGE_IMAGE_READER; // for backwards compatibility
 module(ORACLE_IMAGE_IMAGE_READER, []).factory('oracleImageReader', function() {
   function findImages(params) {
-    return API.one('images/find')
+    return API.one('images', 'find')
       .withParams(params)
       .get()
       .catch(function() {

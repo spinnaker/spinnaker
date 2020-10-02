@@ -98,7 +98,7 @@ export class PluginRegistry {
   public loadPluginManifestFromGate() {
     const source = 'gate';
     const uri = '/plugins/deck/plugin-manifest.json';
-    const loadPromise = API.one(uri)
+    const loadPromise = API.one('plugins', 'deck', 'plugin-manifest.json')
       .get()
       .catch((error: any) => {
         console.error(`Failed to load ${uri} from ${source}`);
