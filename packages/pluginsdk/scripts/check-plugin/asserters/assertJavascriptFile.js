@@ -11,7 +11,7 @@ function assertJavascriptFile(report, filename, pristineFilename, name, requireS
     const pristinePath = path.resolve(pluginsdkdir, 'scaffold', pristineFilename);
     const pristineFile = fs.readFileSync(pristinePath).toString();
     const pluginFile = fs.readFileSync(filename).toString();
-    const hasRequire = pluginFile.includes(`require('${requireString}')`);
+    const hasRequire = pluginFile.includes(requireString);
     const resolution = {
       description: `Restore ${filename} from scaffold defaults (this will revert any local changes)`,
       command: `npx restore-scaffold-file ${filename}`,
