@@ -3,6 +3,7 @@
 const { execSync } = require('child_process');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
 const { readJson, writeJson } = require('../util/readWriteJson');
+const path = require('path');
 
 function getLatestSdkVersion() {
   const versionsString = execSync('npm info @spinnaker/pluginsdk versions').toString();
@@ -11,9 +12,10 @@ function getLatestSdkVersion() {
 
 function checkPackageJson(report) {
   const pkgJson = readJson('package.json');
-  const deps = pkgJson.dependencies || {};
-  const sdk = deps['@spinnaker/pluginsdk'];
   const latest = getLatestSdkVersion();
+  const sdkPackagePath = path.resolve(__filename, '..', '..', '..', '..', 'package.json');
+  const sdkPackage = readJson(sdkPackagePath);
+  const sdk = sdkPackage.version;
 
   report(`This plugin uses an out of date @spinnaker/pluginsdk@${sdk}`, sdk === latest, {
     description: `Install @spinnaker/pluginsdk@${latest}`,
