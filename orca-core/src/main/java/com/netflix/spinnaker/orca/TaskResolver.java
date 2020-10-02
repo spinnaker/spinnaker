@@ -86,6 +86,8 @@ public class TaskResolver {
   /**
    * Fetch a {@code Task} by {@code taskTypeIdentifier}.
    *
+   * <p>If the task is not found from the type, attempts to re-compute tasks and lookup again.
+   *
    * @param taskTypeIdentifier Task identifier (class name or alias)
    * @return the Task matching {@code taskTypeIdentifier}
    * @throws NoSuchTaskException if Task does not exist
@@ -110,8 +112,7 @@ public class TaskResolver {
   /**
    * Fetch a {@code Task} by {@code Class type}.
    *
-   * <p>This method is used as a fallback when looking up tasks, so if the task is not found from
-   * the type, attempts to re-compute tasks and lookup again.
+   * <p>If the task is not found from the type, attempts to re-compute tasks and lookup again.
    *
    * @param taskType Task type (class of task)
    * @return the Task matching {@code taskType}

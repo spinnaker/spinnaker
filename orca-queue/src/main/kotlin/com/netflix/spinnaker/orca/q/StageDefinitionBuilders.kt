@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.DefinedTask
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskDefinition
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskGraph
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -52,11 +52,11 @@ private fun processTaskNode(
 ) {
   element.apply {
     when (value) {
-      is DefinedTask -> {
+      is TaskDefinition -> {
         val task = TaskExecutionImpl()
         task.id = (stage.tasks.size + 1).toString()
         task.name = value.name
-        task.implementingClass = value.implementingClassName
+        task.implementingClass = value.implementingClass.name
         if (isSubGraph) {
           task.isLoopStart = isFirst
           task.isLoopEnd = isLast
