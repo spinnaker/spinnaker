@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -31,6 +29,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -52,11 +51,11 @@ class StartScriptTask implements RetryableTask {
   @Autowired
   RetrofitExceptionHandler retrofitExceptionHandler
 
+  @Autowired
+  Environment environment
+
   @Value('${script.master:master}')
   String master
-
-  @Value('${script.job:job}')
-  String defaultJob
 
   @Nonnull
   @Override
@@ -70,7 +69,7 @@ class StartScriptTask implements RetryableTask {
     String cmc = stage.context.cmc
     String repoUrl = stage.context.repoUrl
     String repoBranch = stage.context.repoBranch
-    String job = stage.context.job ?: defaultJob
+    String job = stage.context.job ?: getDefaultJob()
 
     if (stage.execution.trigger.strategy) {
       def trigger = stage.execution.trigger
@@ -136,5 +135,9 @@ class StartScriptTask implements RetryableTask {
   @Override
   long getTimeout() {
     return Duration.ofMinutes(15).toMillis()
+  }
+
+  private String getDefaultJob() {
+    return environment.getProperty("script.job", String, "job")
   }
 }
