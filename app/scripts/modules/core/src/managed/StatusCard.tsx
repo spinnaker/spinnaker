@@ -39,7 +39,7 @@ export const StatusCard = ({
       <div className="flex-container-h center middle sp-margin-l-right">
         <StatusBubble iconName={iconName} appearance={appearance} size="medium" />
       </div>
-      <div className="sp-margin-m-right" style={{ minWidth: 24 }}>
+      <div className="sp-margin-m-right" style={{ minWidth: 33 }}>
         {timestamp && <RelativeTimestamp timestamp={timestamp} clickToCopy={true} />}
       </div>
       <div className="flex-container-v sp-margin-xs-yaxis">

@@ -16,11 +16,11 @@ export interface IStatusBubbleProps {
 }
 
 const paddingBySize = {
-  extraSmall: '4px',
-  small: '6px',
-  medium: '8px',
-  large: '8px',
-  extraLarge: '12px',
+  extraSmall: 4,
+  small: 6,
+  medium: 8,
+  large: 8,
+  extraLarge: 12,
 } as const;
 
 const iconColorByAppearance = {
@@ -74,7 +74,9 @@ export const StatusBubble = memo(({ appearance, iconName, size, quantity }: ISta
         <animated.div className="status-bubble-content" key={key} style={props}>
           <div
             className={classNames(['icon-wrapper', `status-${appearance}`, { 'with-quantity': !!quantityPill }])}
-            style={{ padding: paddingBySize[size] }}
+            // The 'inactive' status includes a 1px border, which throws off the size of the bubble.
+            // We need to compensate by taking a pixel off the padding.
+            style={{ padding: appearance === 'inactive' ? paddingBySize[size] - 1 : paddingBySize[size] }}
           >
             <div className="icon-container">
               <Icon appearance={iconColorByAppearance[appearance]} name={item} size={size} />
