@@ -18,7 +18,9 @@ package com.netflix.spinnaker.echo.config;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
-import com.netflix.spinnaker.echo.rest.RestClientFactory;
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.rest.RestService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.io.BufferedReader;
@@ -26,6 +28,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
+import okhttp3.OkHttpClient;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,9 +92,9 @@ public class RestConfig {
   @Bean
   RestUrls restServices(
       RestProperties restProperties,
-      RestClientFactory clientFactory,
       RestAdapter.LogLevel retrofitLogLevel,
       RequestInterceptorAttacher requestInterceptorAttacher,
+      OkHttpClientProvider okHttpClientProvider,
       HeadersFromFile headersFromFile) {
 
     RestUrls restUrls = new RestUrls();
@@ -100,7 +103,13 @@ public class RestConfig {
       RestAdapter.Builder restAdapterBuilder =
           new RestAdapter.Builder()
               .setEndpoint(newFixedEndpoint(endpoint.getUrl()))
-              .setClient(clientFactory.getClient(endpoint.insecure))
+              .setClient(
+                  endpoint.insecure
+                      ? new Ok3Client(
+                          okHttpClientProvider.getClient(
+                              new DefaultServiceEndpoint(
+                                  endpoint.getEventName(), endpoint.getUrl(), false)))
+                      : new Ok3Client(new OkHttpClient()))
               .setLogLevel(retrofitLogLevel)
               .setLog(new Slf4jRetrofitLogger(RestService.class))
               .setConverter(new JacksonConverter());

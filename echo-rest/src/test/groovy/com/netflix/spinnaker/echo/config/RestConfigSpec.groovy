@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.echo.config
 
-import com.netflix.spinnaker.echo.rest.RestClientFactory
+import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import okhttp3.OkHttpClient
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import spock.lang.Specification
@@ -23,7 +25,7 @@ class RestConfigSpec extends Specification {
 
   void configureRestServices(RestProperties.RestEndpointConfiguration endpoint, RestConfig.HeadersFromFile headersFromFile) {
     RestProperties restProperties =  new RestProperties(endpoints: [endpoint])
-    config.restServices(restProperties, new RestClientFactory(), config.retrofitLogLevel("BASIC"), attacher, headersFromFile)
+    config.restServices(restProperties, config.retrofitLogLevel("BASIC"), attacher, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), headersFromFile)
   }
 
   void "Generate basic auth header"() {
