@@ -51,36 +51,11 @@ public class TaskResolver {
   public TaskResolver(ObjectProvider<Collection<Task>> tasksProvider, boolean allowFallback) {
     this.allowFallback = allowFallback;
     this.tasksProvider = tasksProvider;
-    computeTasks();
-  }
-
-  /**
-   * Compute a cache of tasks. A local map is first built and validated for duplicate tasks and then
-   * copied to the thread safe cache.
-   *
-   * <p>This allows us to re-compute the tasks cache if necessary (on a cache miss for example) and
-   * ensures the validation always runs correctly against the latest set of {@link Task} classes.
-   */
-  private void computeTasks() {
     Collection<Task> tasks = tasksProvider.getIfAvailable(ArrayList::new);
-    Map<String, Task> localTasksByAlias = new HashMap<>();
-
     for (Task task : tasks) {
-      localTasksByAlias.put(task.getExtensionClass().getCanonicalName(), task);
-      for (String alias : task.aliases()) {
-        if (localTasksByAlias.containsKey(alias)) {
-          throw new DuplicateTaskAliasException(
-              String.format(
-                  "Duplicate task alias detected (alias: %s, previous: %s, current: %s)",
-                  alias,
-                  localTasksByAlias.get(alias).getClass().getCanonicalName(),
-                  task.getExtensionClass().getCanonicalName()));
-        }
-
-        localTasksByAlias.put(alias, task);
-      }
+      taskByAlias.put(task.getExtensionClass().getCanonicalName(), task);
+      addAliases(task);
     }
-    taskByAlias.putAll(localTasksByAlias);
   }
 
   /**
@@ -95,9 +70,10 @@ public class TaskResolver {
     Task task = taskByAlias.get(taskTypeIdentifier);
 
     if (task == null) {
-      computeTasks();
       log.debug(
-          "Task type '{}' not found in initial task cache, re-computing...", taskTypeIdentifier);
+          "{} task not found in task cache, fetching missing tasks from task provider.",
+          taskTypeIdentifier);
+      addMissingTasksFromTaskProvider();
       task = taskByAlias.get(taskTypeIdentifier);
       if (task == null) {
         throw new NoSuchTaskException(taskTypeIdentifier);
@@ -110,9 +86,6 @@ public class TaskResolver {
   /**
    * Fetch a {@code Task} by {@code Class type}.
    *
-   * <p>This method is used as a fallback when looking up tasks, so if the task is not found from
-   * the type, attempts to re-compute tasks and lookup again.
-   *
    * @param taskType Task type (class of task)
    * @return the Task matching {@code taskType}
    * @throws NoSuchTaskException if Task does not exist
@@ -121,15 +94,16 @@ public class TaskResolver {
   public Task getTask(@Nonnull Class<? extends Task> taskType) {
     Optional<Task> optionalTask =
         taskByAlias.values().stream()
-            .filter((Task task) -> taskType.isAssignableFrom(task.getClass()))
+            .filter((Task task) -> taskType.isAssignableFrom(task.getExtensionClass()))
             .findFirst();
 
     if (!optionalTask.isPresent()) {
       log.debug(
-          "Task type '{}' not found in initial task cache, re-computing...", taskType.toString());
-      computeTasks();
+          "{} task not found in task cache, fetching missing tasks from task provider.",
+          taskType.toString());
+      addMissingTasksFromTaskProvider();
       return taskByAlias.values().stream()
-          .filter((Task task) -> taskType.isAssignableFrom(task.getClass()))
+          .filter((Task task) -> taskType.isAssignableFrom(task.getExtensionClass()))
           .findFirst()
           .orElseThrow(() -> new NoSuchTaskException(taskType.getCanonicalName()));
     }
@@ -169,6 +143,38 @@ public class TaskResolver {
   public class NoSuchTaskException extends IllegalArgumentException {
     NoSuchTaskException(String taskTypeIdentifier) {
       super("No task found for '" + taskTypeIdentifier + "'");
+    }
+  }
+
+  /** Lookup tasks from the task provider and add missing tasks to taskByAlias cache. */
+  private void addMissingTasksFromTaskProvider() {
+    for (Task task : tasksProvider.getIfAvailable(ArrayList::new)) {
+      if (taskByAlias.get(task.getExtensionClass().getCanonicalName()) == null) {
+        taskByAlias.put(task.getExtensionClass().getCanonicalName(), task);
+        addAliases(task);
+        log.info(
+            "{} task resolved from task provider and added to cache",
+            task.getExtensionClass().toString());
+      }
+    }
+  }
+
+  /**
+   * Add task aliases to taskByAlias map, throwing {@link DuplicateTaskAliasException} if duplicates
+   * are detected.
+   */
+  private void addAliases(Task task) {
+    for (String alias : task.aliases()) {
+      if (taskByAlias.containsKey(alias)) {
+        throw new DuplicateTaskAliasException(
+            String.format(
+                "Duplicate task alias detected (alias: %s, previous: %s, current: %s)",
+                alias,
+                taskByAlias.get(alias).getExtensionClass().getCanonicalName(),
+                task.getExtensionClass().getCanonicalName()));
+      }
+
+      taskByAlias.put(alias, task);
     }
   }
 }

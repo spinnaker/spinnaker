@@ -63,12 +63,12 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
       }
 
       test("Task extensions are resolved to the correct type") {
-        val taskExtension1 = taskResolver.getTaskClass(TaskExtension1::class.java.name)
-        val taskExtension2 = taskResolver.getTaskClass(TaskExtension2::class.java.name)
+        val taskExtension1 = taskResolver.getTask(TaskExtension1::class.java.name)
+        val taskExtension2 = taskResolver.getTask(TaskExtension2::class.java.name)
 
         expect {
-          that(taskExtension1.typeName).isEqualTo(TaskExtension1().javaClass.typeName)
-          that(taskExtension2.typeName).isEqualTo(TaskExtension2().javaClass.typeName)
+          that(taskExtension1.extensionClass.canonicalName).isEqualTo(TaskExtension1::class.java.canonicalName)
+          that(taskExtension2.extensionClass.canonicalName).isEqualTo(TaskExtension2::class.java.canonicalName)
         }
       }
     }
