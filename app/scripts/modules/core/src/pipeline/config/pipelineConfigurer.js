@@ -31,7 +31,7 @@ export const CORE_PIPELINE_CONFIG_PIPELINECONFIGURER = 'spinnaker.core.pipeline.
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIGURER; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_PIPELINECONFIGURER, [OVERRIDE_REGISTRY, PIPELINE_CONFIG_ACTIONS, EXECUTION_BUILD_TITLE])
-  .directive('pipelineConfigurer', function() {
+  .directive('pipelineConfigurer', function () {
     return {
       restrict: 'E',
       scope: {
@@ -57,7 +57,7 @@ angular
     'executionService',
     'overrideRegistry',
     '$location',
-    function($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
+    function ($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
       const ctrl = this;
       const markDirty = () => {
         if (!$scope.viewState.original) {
@@ -72,16 +72,6 @@ angular
       $scope.$watch('renderablePipeline', (newValue, oldValue) => newValue !== oldValue && this.updatePipeline(), true);
 
       this.warningsPopover = require('./warnings.popover.html');
-
-      PipelineConfigService.getHistory($scope.pipeline.id, $scope.pipeline.strategy, 2)
-        .then(history => {
-          if (history && history.length > 1) {
-            $scope.viewState.hasHistory = true;
-            this.setViewState({ hasHistory: true, loadingHistory: false });
-          }
-        })
-        .finally(() => this.setViewState({ loadingHistory: false }));
-
       const configViewStateCache = ViewStateCache.get('pipelineConfig');
 
       function buildCacheKey() {
@@ -95,9 +85,7 @@ angular
         revertCount: 0,
       };
 
-      $scope.viewState.loadingHistory = true;
-
-      const setOriginal = pipeline => {
+      const setOriginal = (pipeline) => {
         $scope.viewState.original = angular.toJson(pipeline);
         $scope.viewState.originalRenderablePipeline = angular.toJson($scope.renderablePipeline);
         this.updatePipeline();
@@ -125,7 +113,7 @@ angular
 
       this.addStage = (newStage = { isNew: true }) => {
         $scope.renderablePipeline.stages = $scope.renderablePipeline.stages || [];
-        newStage.refId = Math.max(0, ...$scope.renderablePipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
+        newStage.refId = Math.max(0, ...$scope.renderablePipeline.stages.map((s) => Number(s.refId) || 0)) + 1 + '';
         newStage.requisiteStageRefIds = [];
         if ($scope.renderablePipeline.stages.length && $scope.viewState.section === 'stage') {
           newStage.requisiteStageRefIds.push($scope.renderablePipeline.stages[$scope.viewState.stageIndex].refId);
@@ -139,7 +127,7 @@ angular
           application: $scope.application,
           forStrategyConfig: $scope.pipeline.strategy,
         })
-          .then(stageTemplate => ctrl.addStage(stageTemplate))
+          .then((stageTemplate) => ctrl.addStage(stageTemplate))
           .catch(() => {});
       };
 
@@ -176,7 +164,7 @@ angular
 
       this.renamePipeline = () => {
         ReactModal.show(RenamePipelineModal, { pipeline: $scope.pipeline, application: $scope.application })
-          .then(pipelineName => {
+          .then((pipelineName) => {
             $scope.pipeline.name = pipelineName;
             setOriginal($scope.pipeline);
             markDirty();
@@ -230,7 +218,7 @@ angular
       // Locking a pipeline persists any pending changes
       this.lockPipeline = () => {
         ReactModal.show(LockPipelineModal, { pipeline: $scope.pipeline })
-          .then(pipeline => {
+          .then((pipeline) => {
             $scope.pipeline.locked = pipeline.locked;
             setOriginal($scope.pipeline);
           })
@@ -252,7 +240,7 @@ angular
           isStrategy: $scope.pipeline.strategy,
           currentConfig: $scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null,
         })
-          .then(newConfig => {
+          .then((newConfig) => {
             $scope.renderablePipeline = newConfig;
             $scope.pipeline = newConfig;
             $scope.$broadcast('pipeline-json-edited');
@@ -262,7 +250,7 @@ angular
       };
 
       // Poor react setState
-      this.setViewState = newViewState => {
+      this.setViewState = (newViewState) => {
         Object.assign($scope.viewState, newViewState);
         const viewState = _.clone($scope.viewState);
         $scope.$applyAsync(() => ($scope.viewState = viewState));
@@ -292,7 +280,7 @@ angular
         }
       };
 
-      this.navigateTo = stage => {
+      this.navigateTo = (stage) => {
         if (stage.section === 'stage') {
           ctrl.navigateToStage(stage.index);
         } else {
@@ -303,21 +291,21 @@ angular
       // When using callbacks in a component that can be both angular and react, have to force binding in the angular world
       this.graphNodeClicked = this.navigateTo.bind(this);
 
-      this.isActive = section => {
+      this.isActive = (section) => {
         return $scope.viewState.section === section;
       };
 
-      this.stageIsActive = index => {
+      this.stageIsActive = (index) => {
         return $scope.viewState.section === 'stage' && $scope.viewState.stageIndex === index;
       };
 
-      this.removeStage = stage => {
+      this.removeStage = (stage) => {
         const stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
         $scope.renderablePipeline.stages.splice(stageIndex, 1);
-        $scope.renderablePipeline.stages.forEach(test => {
+        $scope.renderablePipeline.stages.forEach((test) => {
           if (stage.refId && test.requisiteStageRefIds) {
             if (test.requisiteStageRefIds.includes(stage.refId)) {
-              test.requisiteStageRefIds = test.requisiteStageRefIds.filter(id => id !== stage.refId);
+              test.requisiteStageRefIds = test.requisiteStageRefIds.filter((id) => id !== stage.refId);
               if (!test.requisiteStageRefIds.length) {
                 test.requisiteStageRefIds = [...stage.requisiteStageRefIds];
               }
@@ -337,7 +325,7 @@ angular
 
       this.isValid = () => {
         return (
-          _.every($scope.pipeline.stages, function(item) {
+          _.every($scope.pipeline.stages, function (item) {
             return item['name'] && item['type'];
           }) && !ctrl.preventSave
         );
@@ -384,12 +372,11 @@ angular
           .then(() => $scope.application.pipelineConfigs.refresh(true))
           .then(
             () => {
-              $scope.viewState.hasHistory = true;
               setOriginal(toSave);
               markDirty();
               this.setViewState({ saving: false });
             },
-            err =>
+            (err) =>
               this.setViewState({
                 saveError: true,
                 saving: false,
@@ -398,7 +385,7 @@ angular
           );
       };
 
-      this.getErrorMessage = errorMsg => {
+      this.getErrorMessage = (errorMsg) => {
         let msg = 'There was an error saving your pipeline';
         if (_.isString(errorMsg)) {
           msg += ': ' + errorMsg;
@@ -415,8 +402,8 @@ angular
             transform: true,
             application: $scope.pipeline.application,
           })
-          .then(executions => {
-            executions.forEach(execution => ExecutionsTransformer.addBuildInfo(execution));
+          .then((executions) => {
+            executions.forEach((execution) => ExecutionsTransformer.addBuildInfo(execution));
             $scope.pipelineExecutions = executions;
             if ($scope.plan && $scope.plan.executionId) {
               $scope.currentExecution = _.find($scope.pipelineExecutions, { id: $scope.plan.executionId });
@@ -432,7 +419,7 @@ angular
       this.revertPipelineChanges = () => {
         $scope.$applyAsync(() => {
           const original = getOriginal();
-          Object.keys($scope.pipeline).forEach(key => {
+          Object.keys($scope.pipeline).forEach((key) => {
             delete $scope.pipeline[key];
           });
           Object.assign($scope.pipeline, original);
@@ -440,7 +427,7 @@ angular
           if ($scope.isTemplatedPipeline) {
             const originalRenderablePipeline = getOriginalRenderablePipeline();
             Object.assign($scope.renderablePipeline, originalRenderablePipeline);
-            Object.keys($scope.renderablePipeline).forEach(key => {
+            Object.keys($scope.renderablePipeline).forEach((key) => {
               if (!originalRenderablePipeline.hasOwnProperty(key)) {
                 delete $scope.renderablePipeline[key];
               }
@@ -484,7 +471,7 @@ angular
 
       const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
 
-      const confirmPageLeave = $scope.$on('$stateChangeStart', event => {
+      const confirmPageLeave = $scope.$on('$stateChangeStart', (event) => {
         if ($scope.viewState.isDirty) {
           if (!$window.confirm(warningMessage)) {
             event.preventDefault();
@@ -492,7 +479,7 @@ angular
         }
       });
 
-      const validationSubscription = PipelineConfigValidator.subscribe(validations => {
+      const validationSubscription = PipelineConfigValidator.subscribe((validations) => {
         this.validations = validations;
         this.preventSave = validations.preventSave;
       });
@@ -517,23 +504,23 @@ angular
         this.configureTemplate();
       }
 
-      this.saveTemplate = template => {
+      this.saveTemplate = (template) => {
         return PipelineTemplateWriter.savePipelineTemplateV2(template).then(
-          response => {
-            const id = response.variables.find(v => v.key === 'pipelineTemplate.id').value;
+          (response) => {
+            const id = response.variables.find((v) => v.key === 'pipelineTemplate.id').value;
             $state.go('home.pipeline-templates.pipeline-templates-detail', {
               templateId: PipelineTemplateV2Service.idForTemplate({ id }),
             });
             return true;
           },
-          err => {
+          (err) => {
             throw err;
           },
         );
       };
 
       //update pipeline through a callback for React
-      this.updatePipelineConfig = changes => {
+      this.updatePipelineConfig = (changes) => {
         $scope.pipeline = Object.assign(
           $scope.pipeline,
           $scope.isV2TemplatedPipeline

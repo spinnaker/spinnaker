@@ -35,8 +35,6 @@
         </div>
         <div class="pipeline-actions text-right">
           <Pipeline-Config-Actions
-            has-history="viewState.hasHistory"
-            loading-history="viewState.loadingHistory"
             pipeline="pipeline"
             rename-pipeline="pipelineConfigurerCtrl.renamePipeline"
             delete-pipeline="pipelineConfigurerCtrl.deletePipeline"
@@ -155,7 +153,7 @@
           popover-placement="left-bottom"
           popover-trigger="'mouseenter'"
         >
-          <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
+          <i class="fa fa-exclamation-triangle" style="font-size: 125%"></i>
         </button>
         <span ng-if="viewState.saveError" class="alert alert-danger">
           {{ viewState.saveErrorMessage }}

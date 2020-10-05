@@ -5,8 +5,6 @@ import { IPipeline } from 'core/domain';
 import { PipelineConfigAction } from './PipelineConfigAction';
 
 export interface IPipelineConfigActionsProps {
-  hasHistory: boolean;
-  loadingHistory: boolean;
   pipeline: IPipeline;
   renamePipeline: () => void;
   deletePipeline: () => void;
@@ -21,8 +19,6 @@ export interface IPipelineConfigActionsProps {
 
 export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
   const {
-    hasHistory,
-    loadingHistory,
     pipeline,
     renamePipeline,
     deletePipeline,
@@ -51,9 +47,7 @@ export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
         )}
         {pipeline.locked && <PipelineConfigAction name="Show JSON" action={editPipelineJson} />}
         {!pipeline.locked && <PipelineConfigAction name="Edit as JSON" action={editPipelineJson} />}
-        {loadingHistory && <PipelineConfigAction name="Loading History..." />}
-        {!loadingHistory && hasHistory && <PipelineConfigAction name="Show Revision History" action={showHistory} />}
-        {!loadingHistory && !hasHistory && <PipelineConfigAction name="No version history found" />}
+        <PipelineConfigAction name="Show Revision History" action={showHistory} />
         <PipelineConfigAction name="Export as Pipeline Template" action={exportPipelineTemplate} />
       </Dropdown.Menu>
     </Dropdown>

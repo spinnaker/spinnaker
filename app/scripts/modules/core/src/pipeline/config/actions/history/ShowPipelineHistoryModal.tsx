@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash';
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
-import { FormField, IModalComponentProps, ReactSelectInput } from 'core/presentation';
+import { FormField, IModalComponentProps, ReactSelectInput, useData } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 import { IJsonDiff, JsonUtils, timestamp } from 'core/utils';
 import { DiffSummary } from './DiffSummary';
@@ -26,25 +26,35 @@ interface IHistoryContents {
   index: number;
 }
 
+const emptyDiff: IJsonDiff = {
+  changeBlocks: [],
+  details: [],
+  summary: {
+    additions: 0,
+    removals: 0,
+    total: 0,
+    unchanged: 0,
+  },
+};
+
 export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
   const compareOptions = ['previous version', 'current'];
   const [compareTo, setCompareTo] = React.useState<string>(compareOptions[0]);
-  const [error, setError] = React.useState<boolean>(false);
-  const [diff, setDiff] = React.useState<IJsonDiff>(null);
-  const [history, setHistory] = React.useState<IHistoryContents[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
+  const [diff, setDiff] = React.useState<IJsonDiff>(emptyDiff);
   const [version, setVersion] = React.useState<number>(0);
   const { closeModal, currentConfig, dismissModal, isStrategy, pipelineConfigId } = props;
 
-  React.useEffect(() => {
-    PipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(historyLoaded, loadError);
-  }, []);
+  const { result: history, status, error } = useData(
+    () => {
+      return PipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(historyLoaded);
+    },
+    [],
+    [],
+  );
 
-  React.useEffect(() => {
-    updateDiff(history, version, compareTo);
-  }, [compareTo, version]);
+  React.useEffect(() => updateDiff(history, version, compareTo), [history, compareTo, version]);
 
-  function historyLoaded(loadedPipelines: IPipeline[]): void {
+  function historyLoaded(loadedPipelines: IPipeline[]): IHistoryContents[] {
     const historyToBeProcessed = currentConfig ? [currentConfig].concat(loadedPipelines) : loadedPipelines;
     const pipelineHistory: IHistoryContents[] = historyToBeProcessed.map((h, index) => {
       const ts = h.updateTs;
@@ -61,14 +71,7 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
       pipelineHistory[0].timestamp = 'Current config (not saved)';
       pipelineHistory[1].timestamp += ' (last saved)';
     }
-    setHistory(pipelineHistory);
-    updateDiff(pipelineHistory, version, compareTo);
-    setLoading(false);
-  }
-
-  function loadError(): void {
-    setLoading(false);
-    setError(true);
+    return pipelineHistory;
   }
 
   function restoreVersion(): void {
@@ -99,24 +102,25 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
           <Modal.Title>Pipeline Revision History</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loading && (
+          {status === 'PENDING' && (
             <div className="horizontal center">
               <div className="horizontal center">
                 <Spinner size="medium" />
               </div>
             </div>
           )}
-          {!loading && error && (
+          {status === 'REJECTED' && (
             <div className="horizontal center">
               <h4 className="text-center">There was an error loading the history for this pipeline.</h4>
+              <span>{error}</span>
             </div>
           )}
-          {!loading && history.length <= 1 && (
+          {status === 'RESOLVED' && history.length <= 0 && (
             <div className="horizontal center">
               <h4 className="text-center">Sorry, we couldn't find any history for this pipeline.</h4>
             </div>
           )}
-          {!loading && history.length > 1 && (
+          {status === 'RESOLVED' && history.length > 0 && (
             <>
               <div className="history-header row horizontal">
                 <div className="col-md-4">
@@ -128,14 +132,14 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
                         <div className="flex-grow">{input}</div>
                       </div>
                     )}
-                    input={inputProps => (
+                    input={(inputProps) => (
                       <ReactSelectInput
                         clearable={false}
-                        options={history.map(h => ({ label: h.timestamp, value: h.index }))}
+                        options={history.map((h) => ({ label: h.timestamp, value: h.index }))}
                         {...inputProps}
                       />
                     )}
-                    onChange={e => setVersion(e.target.value)}
+                    onChange={(e) => setVersion(e.target.value)}
                     value={version}
                   />
                 </div>
@@ -150,10 +154,10 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
                 <div className="col-md-4">
                   <FormField
                     label="compare to"
-                    input={inputProps => (
+                    input={(inputProps) => (
                       <ReactSelectInput clearable={false} stringOptions={compareOptions} {...inputProps} />
                     )}
-                    onChange={e => setCompareTo(e.target.value)}
+                    onChange={(e) => setCompareTo(e.target.value)}
                     value={compareTo}
                   />
                 </div>

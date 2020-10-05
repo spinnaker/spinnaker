@@ -5,8 +5,6 @@ export const PIPELINE_CONFIG_ACTIONS = 'spinnaker.core.pipeline.config.actions';
 module(PIPELINE_CONFIG_ACTIONS, []).component(
   'pipelineConfigActions',
   react2angular(PipelineConfigActions, [
-    'hasHistory',
-    'loadingHistory',
     'pipeline',
     'renamePipeline',
     'deletePipeline',
