@@ -233,7 +233,7 @@ export const ArtifactDetail = ({
     <>
       <ArtifactDetailHeader name={name} version={versionDetails} onRequestClose={onRequestClose} />
 
-      <div className="ArtifactDetail">
+      <div className="ArtifactDetail flex-grow">
         <div className="flex-container-h top sp-margin-xl-bottom">
           <div className="flex-container-h sp-group-margin-s-xaxis flex-none">
             <Button

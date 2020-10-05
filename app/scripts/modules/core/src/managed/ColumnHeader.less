@@ -1,25 +1,23 @@
 .ColumnHeader {
   background-color: rgb(100, 140, 175);
   display: flex;
-  position: sticky;
-  top: 0;
   height: 32px;
   justify-content: space-between;
   align-items: center;
   color: var(--color-white);
   font-size: 14px;
-  margin-bottom: 16px;
   border-radius: 2px;
   z-index: var(--layer-low);
+  flex: none;
 
   .column-header-icon {
     flex: 0 0 24px;
-    margin-left: 16px;
+    margin-left: 12px;
   }
 
   .column-header-text {
     flex: 1 1 1px;
     text-align: center;
-    margin: 0 16px;
+    margin: 0 12px;
   }
 }
