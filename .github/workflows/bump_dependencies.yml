@@ -12,7 +12,7 @@ jobs:
       with:
         ref: ${{ github.event.client_payload.ref }}
         key: korkVersion
-        repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,keel,keiko,orca,rosco,swabbie
+        repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,keel,orca,rosco,swabbie
         mavenRepositoryUrl: https://dl.bintray.com/spinnaker/spinnaker
         groupId: com.netflix.spinnaker.kork
         artifactId: kork-bom
