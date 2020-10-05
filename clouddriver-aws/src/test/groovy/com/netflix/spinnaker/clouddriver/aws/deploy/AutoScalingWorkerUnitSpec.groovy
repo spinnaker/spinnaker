@@ -441,6 +441,23 @@ class AutoScalingWorkerUnitSpec extends Specification {
     null         | [subnet("subnet-1"), subnet("subnet-2")] || ["subnet-1", "subnet-2"]
   }
 
+  @Unroll
+  void "should check if current app, account and region match launch template flag"() {
+    when:
+    def result = AutoScalingWorker.matchesAppAccountAndRegion(application, accountName, region, applicationAccountRegions)
+
+    then:
+    result == matches
+
+    where:
+    applicationAccountRegions           | application   | accountName | region      || matches
+    "foo:test:us-east-1"                | "foo"         | "test"      | "us-east-1" || true
+    "foo:test:us-east-1,us-west-2"      | "foo"         | "test"      | "eu-west-1" || false
+    "regex=^foo.*:prod:us-east-1"       | "foobar"      | "prod"      | "us-east-1" || true
+    "regex=^foo.*:prod:us-east-1"       | "foobar"      | "test"      | "us-east-1" || false
+    "regex=^cass.*:prod:us-east-1"      | "cass_l"      | "prod"      | "us-east-1" || true
+  }
+
   static Subnet subnet(String subnetId) {
     return new Subnet().withSubnetId(subnetId)
   }
