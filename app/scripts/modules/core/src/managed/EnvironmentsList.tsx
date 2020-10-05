@@ -41,6 +41,7 @@ export function EnvironmentsList({
             {resources
               .map((resourceId) => resourcesById[resourceId])
               .filter(shouldDisplayResource)
+              .sort((a, b) => `${a.kind}${a.displayName}`.localeCompare(`${b.kind}${b.displayName}`))
               .map((resource) => {
                 const artifactVersionsByState =
                   resource.artifact &&

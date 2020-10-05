@@ -326,6 +326,7 @@ export const ArtifactDetail = ({
               <div className="sp-margin-l-top">
                 {resourcesByEnvironment[environmentName]
                   .filter((resource) => shouldDisplayResource(reference, resource))
+                  .sort((a, b) => `${a.kind}${a.displayName}`.localeCompare(`${b.kind}${b.displayName}`))
                   .map((resource) => (
                     <div key={resource.id} className="flex-container-h middle">
                       {state === 'deploying' && (
