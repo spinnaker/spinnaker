@@ -37,7 +37,8 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Generate docs
-        run: ./service/gradlew dokkaHtml --stacktrace
+        run: ./gradlew dokkaHtml --stacktrace
+        working-directory: ./service
 
       - name: Copy docs
         run: |
