@@ -10,8 +10,9 @@ import { RelativeTimestamp } from './RelativeTimestamp';
 import './StatusCard.less';
 
 export interface IStatusCardProps {
-  appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';
+  appearance: 'future' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';
   background?: boolean;
+  active?: boolean;
   iconName: IconNames;
   title: React.ReactNode;
   timestamp?: DateTime;
@@ -22,6 +23,7 @@ export interface IStatusCardProps {
 export const StatusCard = ({
   appearance,
   background,
+  active,
   iconName,
   title,
   timestamp,
@@ -32,7 +34,7 @@ export const StatusCard = ({
     className={classNames(
       'StatusCard flex-container-h space-between middle wrap sp-padding-s-yaxis sp-padding-l-xaxis',
       `status-card-${appearance}`,
-      { 'with-background': !!background },
+      { 'with-background': !!background, active: active ?? true },
     )}
   >
     <div className="flex-container-h middle">

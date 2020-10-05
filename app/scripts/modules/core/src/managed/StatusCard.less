@@ -1,9 +1,14 @@
 .StatusCard {
   font-size: 13px;
-  color: var(--color-charcoal);
+  color: var(--color-icon-neutral);
   border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
 
-  &.status-card-inactive {
+  &.active {
+    color: var(--color-charcoal);
+  }
+
+  // Need to override this, because the 'future' status should always appear inactive
+  &.status-card-future.active {
     color: var(--color-icon-neutral);
   }
 

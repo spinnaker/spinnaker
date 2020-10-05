@@ -9,6 +9,7 @@ import {
   IManagedArtifactVersion,
   IManagedEnvironmentSummary,
   IManagedResourceSummary,
+  IManagedArtifactVersionEnvironment,
 } from '../domain';
 import { Application } from '../application';
 import { useEventListener, Markdown } from '../presentation';
@@ -66,14 +67,21 @@ type IEnvironmentCardsProps = Pick<
   IArtifactDetailProps,
   'application' | 'reference' | 'version' | 'allVersions' | 'resourcesByEnvironment'
 > & {
-  environment: IManagedArtifactSummary['versions'][0]['environments'][0];
+  environment: IManagedArtifactVersionEnvironment;
   pinnedVersion: string;
 };
 
 const EnvironmentCards = memo(
   ({
     application,
-    environment: {
+    environment,
+    reference,
+    version: versionDetails,
+    allVersions,
+    pinnedVersion,
+    resourcesByEnvironment,
+  }: IEnvironmentCardsProps) => {
+    const {
       name: environmentName,
       state,
       deployedAt,
@@ -83,13 +91,7 @@ const EnvironmentCards = memo(
       vetoed,
       statefulConstraints,
       statelessConstraints,
-    },
-    reference,
-    version: versionDetails,
-    allVersions,
-    pinnedVersion,
-    resourcesByEnvironment,
-  }: IEnvironmentCardsProps) => {
+    } = environment;
     const {
       stateService: { go },
     } = useRouter();
@@ -156,7 +158,7 @@ const EnvironmentCards = memo(
             <ConstraintCard
               key={constraint.type}
               application={application}
-              environment={environmentName}
+              environment={environment}
               reference={reference}
               version={versionDetails.version}
               constraint={constraint}

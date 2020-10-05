@@ -136,6 +136,8 @@ export interface IManagedArtifactVersion {
   };
 }
 
+export type IManagedArtifactVersionEnvironment = IManagedArtifactSummary['versions'][0]['environments'][0];
+
 export interface IManagedArtifactSummary {
   name: string;
   type: string;

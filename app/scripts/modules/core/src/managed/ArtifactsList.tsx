@@ -8,7 +8,7 @@ import {
   IStatefulConstraint,
   StatefulConstraintStatus,
 } from '../domain/IManagedEntity';
-import { Icon } from '../presentation';
+import { Icon, IconNames } from '../presentation';
 
 import { isConstraintSupported, getConstraintIcon } from './constraints/constraintRegistry';
 
@@ -167,28 +167,35 @@ function getArtifactStatuses({ environments }: IManagedArtifactVersion): Artifac
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
 
-  const pendingConstraintTypes = new Set<string>();
-  const failedConstraintTypes = new Set<string>();
+  const pendingConstraintIcons = new Set<IconNames>();
+  const failedConstraintIcons = new Set<IconNames>();
 
-  environments.forEach((environment) =>
-    environment.statefulConstraints?.forEach(({ type, status }: IStatefulConstraint) => {
-      if (!isConstraintSupported(type)) {
+  environments.forEach((environment) => {
+    if (environment.state === 'skipped') {
+      return;
+    }
+
+    environment.statefulConstraints?.forEach((constraint: IStatefulConstraint) => {
+      if (!isConstraintSupported(constraint.type)) {
         return;
       }
 
-      if (status === StatefulConstraintStatus.PENDING) {
-        pendingConstraintTypes.add(type);
-      } else if (status === StatefulConstraintStatus.FAIL || status === StatefulConstraintStatus.OVERRIDE_FAIL) {
-        failedConstraintTypes.add(type);
+      if (constraint.status === StatefulConstraintStatus.PENDING) {
+        pendingConstraintIcons.add(getConstraintIcon(constraint));
+      } else if (
+        constraint.status === StatefulConstraintStatus.FAIL ||
+        constraint.status === StatefulConstraintStatus.OVERRIDE_FAIL
+      ) {
+        failedConstraintIcons.add(getConstraintIcon(constraint));
       }
-    }),
-  );
-
-  pendingConstraintTypes.forEach((type) => {
-    statuses.push({ appearance: 'progress', iconName: getConstraintIcon(type) });
+    });
   });
-  failedConstraintTypes.forEach((type) => {
-    statuses.push({ appearance: 'error', iconName: getConstraintIcon(type) });
+
+  pendingConstraintIcons.forEach((iconName) => {
+    statuses.push({ appearance: 'progress', iconName });
+  });
+  failedConstraintIcons.forEach((iconName) => {
+    statuses.push({ appearance: 'error', iconName });
   });
 
   const isPinned = environments.some(({ pinned }) => pinned);

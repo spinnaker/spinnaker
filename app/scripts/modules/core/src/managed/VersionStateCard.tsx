@@ -26,12 +26,12 @@ interface CardAppearance {
 const cardAppearanceByState: { [state: string]: CardAppearance } = {
   pending: {
     icon: 'artifactPending',
-    appearance: 'inactive',
+    appearance: 'future',
     title: (_: CardTitleMetadata) => 'Not deployed yet',
   },
   skipped: {
     icon: 'artifactSkipped',
-    appearance: 'inactive',
+    appearance: 'future',
     title: ({ replacedByVersionName }: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
         <span>Skipped</span> <span className="text-regular">—</span>{' '}
