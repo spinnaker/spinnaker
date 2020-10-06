@@ -33,6 +33,7 @@ class NexusEventPosterTest {
 
   private EchoService echoService = mock(EchoService.class);
   private NexusProperties nexusProperties = new NexusProperties();
+  private NexusProperties nexusPropertiesWithoutNodeId = new NexusProperties();
 
   {
     final NexusRepo nexusRepo = new NexusRepo();
@@ -43,7 +44,17 @@ class NexusEventPosterTest {
     nexusProperties.setSearches(Collections.singletonList(nexusRepo));
   }
 
+  {
+    final NexusRepo nexusRepoWithoutNodeId = new NexusRepo();
+    nexusRepoWithoutNodeId.setName("nexus-snapshots");
+    nexusRepoWithoutNodeId.setRepo("maven-snapshots");
+    nexusRepoWithoutNodeId.setBaseUrl("http://localhost:8082/repository/");
+    nexusPropertiesWithoutNodeId.setSearches(Collections.singletonList(nexusRepoWithoutNodeId));
+  }
+
   private NexusEventPoster nexusEventPoster = new NexusEventPoster(nexusProperties, echoService);
+  private NexusEventPoster nexusEventPosterWithoutNodeId =
+      new NexusEventPoster(nexusPropertiesWithoutNodeId, echoService);
   final NexusAssetWebhookPayload payload = new NexusAssetWebhookPayload();
 
   {
@@ -143,6 +154,29 @@ class NexusEventPosterTest {
             .name("com.example" + ":" + "demo")
             .version("0.0.1-SNAPSHOT")
             .provenance("DNE")
+            .location(
+                "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
+            .build();
+    verify(echoService)
+        .postEvent(
+            new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact)));
+  }
+
+  @Test
+  void findRepoWithNodeIdInConfig() {
+    payload.setRepositoryName("maven-snapshots");
+    payload.setNodeId("123");
+    payload.getAsset().setName("com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-20190828.022502-3.pom");
+
+    nexusEventPosterWithoutNodeId.postEvent(payload);
+
+    final Artifact expectedArtifact =
+        Artifact.builder()
+            .type("maven/file")
+            .reference("com.example" + ":" + "demo" + ":" + "0.0.1-SNAPSHOT")
+            .name("com.example" + ":" + "demo")
+            .version("0.0.1-SNAPSHOT")
+            .provenance("maven-snapshots")
             .location(
                 "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();

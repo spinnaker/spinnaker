@@ -26,6 +26,8 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 
 public class NexusEventPoster {
@@ -96,7 +98,11 @@ public class NexusEventPoster {
   }
 
   private Optional<NexusRepo> findNexusRepo(NexusAssetWebhookPayload payload) {
-    if (payload.getNodeId() != null) {
+    List<NexusRepo> repoWithId =
+        nexusProperties.getSearches().stream()
+            .filter(repo -> StringUtils.isNotBlank(repo.getNodeId()))
+            .collect(Collectors.toList());
+    if (payload.getNodeId() != null && !repoWithId.isEmpty()) {
       return nexusProperties.getSearches().stream()
           .filter(
               repo -> {
