@@ -90,7 +90,7 @@ class BintrayPublishPlugin implements Plugin<Project> {
 
     project.plugins.withType(SystemPackagingPlugin) {
       TaskProvider<Deb> debTask = project.tasks.named("buildDeb", Deb)
-      TaskProvider<Task> publishDeb = project.tasks.register("publishDeb", BintrayDebUploadTask) {
+      TaskProvider<Task> publishDeb = project.tasks.register("publishDebToBintray", BintrayDebUploadTask) {
           it.archiveFile = debTask.flatMap { it.archiveFile }
           it.bintrayAuthHeader = extension.basicAuthHeader()
           it.publishUri = extension.debPublishUri(debTask)

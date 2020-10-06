@@ -5,6 +5,10 @@ dependencies {
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
   implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:4.1.0'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
+  implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
+  implementation 'com.google.cloud:google-cloud-storage:1.113.1'
+  implementation 'com.google.apis:google-api-services-artifactregistry:v1beta1-rev20200903-1.30.10'
+  implementation 'com.google.api-client:google-api-client:1.30.10'
 }
 
 gradlePlugin {
