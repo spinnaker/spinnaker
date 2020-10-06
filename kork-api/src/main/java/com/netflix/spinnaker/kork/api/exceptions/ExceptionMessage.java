@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 public interface ExceptionMessage extends SpinnakerExtensionPoint {
 
   /**
-   * Create the message.
+   * Create the message. If markdown is included, it will be rendered correctly in the UI.
    *
    * @param throwable The thrown exception. Used to help provide context when creating the message.
    * @param exceptionDetails Additional details about the exception that are possibly not present on
@@ -25,7 +25,7 @@ public interface ExceptionMessage extends SpinnakerExtensionPoint {
   Optional<String> message(Throwable throwable, @Nullable ExceptionDetails exceptionDetails);
 
   /**
-   * Create the message.
+   * Create the message. If markdown is included, it will be rendered correctly in the UI.
    *
    * @param errorCode The error code. This typically comes into play when using Spring's Errors
    *     during validation, prior to throwing an exception.

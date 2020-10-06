@@ -39,8 +39,8 @@ class ExceptionMessageDecoratorSpec extends Specification {
 
     where:
     reason                                               || originalMessage    || expectedResult
-    new LocalAccessDeniedException("Access is denied")   || "Access is denied" || "Access is denied" + "\n" + messageToBeAppended
-    "authorization"                                      || "Access is denied" || "Access is denied" + "\n" + messageToBeAppended
+    new LocalAccessDeniedException("Access is denied")   || "Access is denied" || "Access is denied" + "\n\n" + messageToBeAppended
+    "authorization"                                      || "Access is denied" || "Access is denied" + "\n\n" + messageToBeAppended
     new RuntimeException("Runtime exception")            || "Runtime exception"|| "Runtime exception"
     "unsupported"                                        || "Error message"    || "Error message"
   }

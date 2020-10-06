@@ -60,7 +60,7 @@ class GenericExceptionHandlersSpec extends Specification {
     new E4()                                 || 400                || "My Other Reason!" // favor @ResponseStatus on interface over super class
     new E5("E5 Reason")                      || 400                || "E5 Reason"
     new NullPointerException("It's an NPE!") || 500                || "It's an NPE!"
-    new LocalAccessDeniedException()         || 403                || "Access is denied" + "\n" + messageToBeAppended
+    new LocalAccessDeniedException()         || 403                || "Access is denied" + "\n\n" + messageToBeAppended
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Default Reason!")

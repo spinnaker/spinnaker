@@ -14,6 +14,7 @@ import org.springframework.beans.factory.ObjectProvider;
 public class ExceptionMessageDecorator {
 
   private final ObjectProvider<List<ExceptionMessage>> exceptionMessagesProvider;
+  private final String NEWLINE = "\n\n";
 
   public ExceptionMessageDecorator(
       ObjectProvider<List<ExceptionMessage>> exceptionMessagesProvider) {
@@ -69,12 +70,12 @@ public class ExceptionMessageDecorator {
         if (throwable != null) {
           exceptionMessage
               .message(throwable, exceptionDetails)
-              .ifPresent(s -> sb.append("\n").append(s));
+              .ifPresent(s -> sb.append(NEWLINE).append(s));
         }
         if (errorCode != null) {
           exceptionMessage
               .message(errorCode, exceptionDetails)
-              .ifPresent(s -> sb.append("\n").append(s));
+              .ifPresent(s -> sb.append(NEWLINE).append(s));
         }
       }
     }
