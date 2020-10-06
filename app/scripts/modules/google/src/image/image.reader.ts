@@ -8,7 +8,7 @@ export interface IGceImage {
 
 export class GceImageReader {
   public static findImages(params: { account?: string; provider?: string; q?: string }): IPromise<IGceImage[]> {
-    return API.one('images', 'find')
+    return API.one('images/find')
       .withParams(params)
       .get()
       .catch(() => [] as IGceImage[]);

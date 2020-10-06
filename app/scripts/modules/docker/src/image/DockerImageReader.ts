@@ -23,7 +23,7 @@ export class DockerImageReader {
 
   public static findImages(params: IFindImageParams): IPromise<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
-      () => API.all('images', 'find').getList(params),
+      () => API.all('images/find').getList(params),
       (results: IDockerImage[]) => results.length > 0,
       10,
       1000,
@@ -34,7 +34,7 @@ export class DockerImageReader {
 
   public static findTags(params: IFindTagsParams): IPromise<string[]> {
     return RetryService.buildRetrySequence<string[]>(
-      () => API.all('images', 'tags').getList(params),
+      () => API.all('images/tags').getList(params),
       (results: string[]) => results.length > 0,
       10,
       1000,

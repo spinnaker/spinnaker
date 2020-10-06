@@ -32,7 +32,7 @@ describe('SlackReader', () => {
     await SlackReader.getChannels().then((channels: ISlackChannel[]) => {
       expect(SlackReader.getChannels).toHaveBeenCalled();
       expect(channels.length).toEqual(2);
-      expect(API.one).toHaveBeenCalledWith('slack', 'channels');
+      expect(API.one).toHaveBeenCalledWith('slack/channels');
     });
   });
 });

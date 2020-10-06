@@ -51,12 +51,6 @@ describe('API Service', function() {
       SETTINGS.gateUrl = 'http://localhost/////';
       expect(API.baseUrl).toEqual('http://localhost');
     });
-
-    it('encodes passed in URI components', function() {
-      const result = API.one('foo#bar');
-      expected.url = `${baseUrl}/foo%23bar`;
-      expect(result.config).toEqual(expected);
-    });
   });
 
   describe('validate response content-type header', function() {
