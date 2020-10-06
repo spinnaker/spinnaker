@@ -65,6 +65,7 @@ import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
 import com.netflix.spinnaker.keel.ec2.toEc2Api
+import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -875,6 +876,9 @@ class ClusterHandler(
     val healthy: Boolean = activeServerGroups.all {
       it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
     }
+
+    eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy))
+
     if (allSame && healthy) {
       // // only publish a successfully deployed event if the server group is healthy
       val appVersion = activeServerGroups.first().launchConfiguration.appVersion

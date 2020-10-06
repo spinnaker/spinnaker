@@ -2,7 +2,7 @@ package com.netflix.spinnaker.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "keel.constraints.manual-judgement.interactive-notifications")
-class ManualJudgementNotificationConfig {
+@ConfigurationProperties(prefix = "keel.notifications.interactive-notifications")
+class KeelNotificationConfig {
   var enabled: Boolean = false
 }

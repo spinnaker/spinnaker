@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.echo
 
-import com.netflix.spinnaker.config.ManualJudgementNotificationConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -48,11 +47,11 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
   data class Fixture(
     val event: ConstraintStateChanged
   ) {
-    val notificationConfig: ManualJudgementNotificationConfig = mockk(relaxed = true)
+    val keelNotificationConfig: com.netflix.spinnaker.config.KeelNotificationConfig = mockk(relaxed = true)
     val echoService: EchoService = mockk(relaxed = true)
     val repository: KeelRepository = mockk(relaxed = true)
     val baseUrl = "https://spinnaker.acme.net"
-    val subject = ManualJudgementNotifier(notificationConfig, echoService, repository, baseUrl)
+    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, baseUrl)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -94,7 +93,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         } just Runs
 
         every {
-          notificationConfig.enabled
+          keelNotificationConfig.enabled
         } returns true
 
         every {
@@ -246,7 +245,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     context("with interactive notifications disabled") {
       before {
         every {
-          notificationConfig.enabled
+          keelNotificationConfig.enabled
         } returns false
       }
 

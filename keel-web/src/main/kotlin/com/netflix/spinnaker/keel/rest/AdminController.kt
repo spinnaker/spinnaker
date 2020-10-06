@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.services.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -71,5 +73,14 @@ class AdminController(
     @PathVariable("type") type: String
   ) {
     adminService.backFillArtifactMetadata(type)
+  }
+
+  @PostMapping(
+    path = ["/notifications/test"]
+  )
+  fun sendNotificationEvent(
+    @RequestBody event: NotificationEvent
+  ) {
+    adminService.sendNotificationEvent(event)
   }
 }

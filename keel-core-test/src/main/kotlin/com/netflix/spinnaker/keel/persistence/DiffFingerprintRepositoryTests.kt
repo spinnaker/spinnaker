@@ -65,6 +65,14 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
         expectThat(subject.diffCount(r.id)).isEqualTo(5)
       }
 
+      test("updates action count"){
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        subject.store(r.id, diff)
+        expectThat(subject.actionTakenCount(r.id)).isEqualTo(0)
+        subject.markActionTaken(r.id)
+        expectThat(subject.actionTakenCount(r.id)).isEqualTo(1)
+      }
+
       test("has now seen this diff") {
         val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
         val diff2 = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "byeBYEbyeee"))

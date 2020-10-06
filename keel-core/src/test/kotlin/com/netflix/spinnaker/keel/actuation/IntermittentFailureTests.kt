@@ -120,7 +120,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       context("diff seen a second time") {
         before {
           // diff has happened twice
-          every { diffFingerprintRepository.diffCount(resource.id) } returns 2
+          every { diffFingerprintRepository.actionTakenCount(resource.id) } returns 2
 
           runBlocking { subject.checkResource(resource) }
         }
@@ -133,7 +133,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       context("diff seen third time") {
         before {
           // diff has happened thrice
-          every { diffFingerprintRepository.diffCount(resource.id) } returns 3
+          every { diffFingerprintRepository.actionTakenCount(resource.id) } returns 3
         }
 
         context("resource is still in a diff state") {

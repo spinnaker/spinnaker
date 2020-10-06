@@ -49,7 +49,8 @@ class UnhappyVeto(
     val resourceId = resource.id
     val application = resource.application
 
-    if (diffFingerprintRepository.diffCount(resourceId) <= maxDiffCount(resource)) {
+    // maxDiff count represents the number of times we're allowed to see a diff and take action to try and fix it.
+    if (diffFingerprintRepository.actionTakenCount(resourceId) <= maxDiffCount(resource)) {
       unhappyVetoRepository.delete(resourceId)
       return allowedResponse()
     }

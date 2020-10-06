@@ -45,6 +45,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -285,7 +286,11 @@ class TitusClusterHandlerTests : JUnit5Minutests {
             )
         }
 
-        test("a deployed event fired") {
+        test("a health event fires") {
+          verify(exactly = 1) { publisher.publishEvent(ResourceHealthEvent(resource, true)) }
+        }
+
+        test("a deployed event fires") {
           verify { publisher.publishEvent(any<ArtifactVersionDeployed>()) }
         }
       }
@@ -312,8 +317,12 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
         }
 
-        test("no deployed event firs") {
-          verify(exactly = 0) { publisher.publishEvent(any<ArtifactVersionDeployed>()) }
+        test("an unhealthy event fires") {
+          verify(exactly = 1) { publisher.publishEvent(ResourceHealthEvent(resource, false)) }
+        }
+
+        test("no deployed event fires") {
+          verify(exactly = 0) { publisher.publishEvent(ArtifactVersionDeployed(resource.id, "master-h2.blah")) }
         }
       }
     }

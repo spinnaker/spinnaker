@@ -17,6 +17,7 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 
 class AdminServiceTests : JUnit5Minutests {
   class Fixture {
@@ -24,6 +25,7 @@ class AdminServiceTests : JUnit5Minutests {
     val diffFingerprintRepository: DiffFingerprintRepository = mockk()
     val actuationPauser: ActuationPauser = mockk()
     private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummyVersioningStrategy>>(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
     val application = "leapp"
 
@@ -48,7 +50,8 @@ class AdminServiceTests : JUnit5Minutests {
       repository,
       actuationPauser,
       diffFingerprintRepository,
-      listOf(artifactSupplier)
+      listOf(artifactSupplier),
+      publisher
     )
   }
 

@@ -7,12 +7,14 @@ import com.netflix.spinnaker.keel.api.artifacts.NPM
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
+import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.lang.Thread.sleep
@@ -22,7 +24,8 @@ class AdminService(
   private val repository: KeelRepository,
   private val actuationPauser: ActuationPauser,
   private val diffFingerprintRepository: DiffFingerprintRepository,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val publisher: ApplicationEventPublisher
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -111,5 +114,9 @@ class AdminService(
         }
       }
     }
+  }
+
+  fun sendNotificationEvent(event: NotificationEvent) {
+    publisher.publishEvent(event)
   }
 }

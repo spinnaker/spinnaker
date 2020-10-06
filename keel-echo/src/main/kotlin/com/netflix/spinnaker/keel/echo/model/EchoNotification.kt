@@ -13,8 +13,9 @@ data class EchoNotification(
   val templateGroup: String? = null,
   val severity: Severity,
   val source: Source? = null,
-  val interactiveActions: InteractiveActions?,
-  val additionalContext: Map<String, Any?>? = null
+  val interactiveActions: InteractiveActions? = null,
+  val additionalContext: Map<String, Any?>? = null,
+  val useInteractiveBot: Boolean = true
 ) {
 
   @JsonInclude(JsonInclude.Include.NON_NULL)

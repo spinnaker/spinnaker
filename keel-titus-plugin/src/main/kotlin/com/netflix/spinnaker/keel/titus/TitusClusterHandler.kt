@@ -61,6 +61,7 @@ import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
+import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
 import com.netflix.spinnaker.keel.exceptions.ExportError
@@ -316,7 +317,6 @@ class TitusClusterHandler(
       false
     }
 
-  // todo eb: capture this heuristic and document it for users
   private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(resource: Resource<TitusClusterSpec>, desiredVersion: String): Map<String, Any?> {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a disable job"
@@ -497,6 +497,9 @@ class TitusClusterHandler(
     val healthy: Boolean = activeServerGroups.all {
       it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
     }
+
+    eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy))
+
     if (sameContainer && healthy) {
       // only publish a successfully deployed event if the server group is healthy
       val container = activeServerGroups.first().container

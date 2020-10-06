@@ -65,7 +65,17 @@ class SqlDiffFingerprintRepository(
         .set(DIFF_FINGERPRINT.ENTITY_ID, entityId)
         .set(DIFF_FINGERPRINT.HASH, hash)
         .set(DIFF_FINGERPRINT.COUNT, 1)
+        .set(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN, 0)
         .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.timestamp())
+        .execute()
+    }
+  }
+
+  override fun markActionTaken(entityId: String) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.update(DIFF_FINGERPRINT)
+        .set(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN, DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN.plus(1))
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
         .execute()
     }
   }
@@ -76,12 +86,20 @@ class SqlDiffFingerprintRepository(
         .select(DIFF_FINGERPRINT.COUNT)
         .from(DIFF_FINGERPRINT)
         .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
-        .fetchOne()
-        ?.let { (count) ->
-          count
-        }
+        .fetchOne(DIFF_FINGERPRINT.COUNT)
     }
     return count ?: 0
+  }
+
+  override fun actionTakenCount(entityId: String): Int {
+    val actionCount = sqlRetry.withRetry(READ) {
+      jooq
+        .select(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN)
+        .from(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
+        .fetchOne(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN)
+    }
+    return actionCount ?: 0
   }
 
   override fun seen(entityId: String, diff: ResourceDiff<*>): Boolean =

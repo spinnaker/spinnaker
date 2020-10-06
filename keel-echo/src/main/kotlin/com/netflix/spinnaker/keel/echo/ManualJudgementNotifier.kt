@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
-import com.netflix.spinnaker.config.ManualJudgementNotificationConfig
+import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
@@ -18,13 +18,13 @@ import org.springframework.stereotype.Component
 
 @Component
 @Configuration
-@EnableConfigurationProperties(ManualJudgementNotificationConfig::class)
+@EnableConfigurationProperties(KeelNotificationConfig::class)
 /**
  * Listens for [ConstraintStateChanged] events where the constraint is a [ManualJudgementConstraint] and sends
  * out notifications so that users can take action.
  */
 class ManualJudgementNotifier(
-  private val notificationConfig: ManualJudgementNotificationConfig,
+  private val keelNotificationConfig: KeelNotificationConfig,
   private val echoService: EchoService,
   private val repository: KeelRepository,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
@@ -99,7 +99,7 @@ class ManualJudgementNotifier(
       }
     }
 
-    if (!notificationConfig.enabled) {
+    if (!keelNotificationConfig.enabled) {
       details += "<br/>Please consult the <$MANUAL_JUDGEMENT_DOC_URL|documentation> on how to approve the deployment."
     }
 
@@ -116,7 +116,7 @@ class ManualJudgementNotifier(
         "body" to
           ":warning: Manual approval required to deploy artifact *${artifact.name}*\n" + details
       ),
-      interactiveActions = if (notificationConfig.enabled) {
+      interactiveActions = if (keelNotificationConfig.enabled) {
         EchoNotification.InteractiveActions(
           callbackServiceId = "keel",
           callbackMessageId = currentState.uid?.toString() ?: error("ConstraintState.uid not present"),

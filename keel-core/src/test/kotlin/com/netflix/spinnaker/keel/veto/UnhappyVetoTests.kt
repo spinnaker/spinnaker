@@ -61,9 +61,9 @@ class UnhappyVetoTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
-    context("happy diffCount") {
+    context("happy actionTakenCount") {
       before {
-        every { diffFingerprintRepository.diffCount(r.id) } returns 1
+        every { diffFingerprintRepository.actionTakenCount(r.id) } returns 1
         check()
       }
 
@@ -76,10 +76,10 @@ class UnhappyVetoTests : JUnit5Minutests {
       }
     }
 
-    context("unhappy diffCount") {
+    context("unhappy actionTakenCount") {
       context("diff has been seen more than 10 times") {
         before {
-          every { diffFingerprintRepository.diffCount(r.id) } returns 11
+          every { diffFingerprintRepository.actionTakenCount(r.id) } returns 11
           every { unhappyRepository.getOrCreateVetoStatus(r.id, r.application, any()) } returns UnhappyVetoStatus(shouldSkip = true)
           check()
         }
@@ -99,7 +99,7 @@ class UnhappyVetoTests : JUnit5Minutests {
 
       context("diff has been seen less than 10 times") {
         before {
-          every { diffFingerprintRepository.diffCount(r.id) } returns 4
+          every { diffFingerprintRepository.actionTakenCount(r.id) } returns 4
 
           check()
         }

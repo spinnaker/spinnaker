@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -73,9 +74,10 @@ fun locatableResource(
     account = "test",
     vpc = "vpc0",
     regions = setOf(SimpleRegionSpec("us-west-1"))
-  )
+  ),
+  moniker: Moniker = Moniker("fnord", "locatable", "dummy")
 ): Resource<DummyLocatableResourceSpec> =
-  DummyLocatableResourceSpec(id = id, application = application, locations = locations)
+  DummyLocatableResourceSpec(id = id, application = application, locations = locations, moniker = moniker)
     .let { spec ->
       resource(
         kind = kind,
@@ -172,8 +174,9 @@ data class DummyLocatableResourceSpec(
     account = "test",
     vpc = "vpc0",
     regions = setOf(SimpleRegionSpec("us-west-1"))
-  )
-) : ResourceSpec, Locatable<SimpleLocations>
+  ),
+  override val moniker: Moniker = Moniker("fnord", "locatable", "dummy")
+) : ResourceSpec, Locatable<SimpleLocations>, Monikered
 
 data class DummyArtifactVersionedResourceSpec(
   @get:ExcludedFromDiff

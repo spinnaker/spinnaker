@@ -165,6 +165,9 @@ class ResourceActuator(
 
         log.debug("Checking resource {}", id)
 
+        // todo eb: add support for plugins to look at a diff and say "I can't fix this"
+        // todo eb: emit event for ^ with custom message provided by the plugin
+
         when {
           current == null -> {
             log.warn("Resource {} is missing", id)
@@ -173,6 +176,7 @@ class ResourceActuator(
             plugin.create(resource, diff)
               .also { tasks ->
                 publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                diffFingerprintRepository.markActionTaken(id)
               }
           }
           diff.hasChanges() -> {
@@ -183,6 +187,7 @@ class ResourceActuator(
             plugin.update(resource, diff)
               .also { tasks ->
                 publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                diffFingerprintRepository.markActionTaken(id)
               }
           }
           else -> {

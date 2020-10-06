@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: dif-action-count
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: diff_fingerprint
+            columns:
+              - column:
+                  name: count_actions_taken
+                  type: int
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+                  afterColumn: count

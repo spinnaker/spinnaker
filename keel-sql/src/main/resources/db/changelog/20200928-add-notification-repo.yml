@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-notification-repo
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: notification
+            columns:
+              - column:
+                  name: scope
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ref
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: time_detected
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notify_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
