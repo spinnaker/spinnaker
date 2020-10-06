@@ -292,7 +292,8 @@ public class AuthorizeController {
        * First, attempt to resolve via the permissionsResolver.
        */
       if (configProps.isAllowPermissionResolverFallback()) {
-        UserPermission resolvedUserPermission = permissionsResolver.resolve(authenticatedUserId);
+        UserPermission resolvedUserPermission =
+            permissionsResolver.resolve(ControllerSupport.convert(authenticatedUserId));
         if (resolvedUserPermission.getAllResources().stream().anyMatch(Objects::nonNull)) {
           log.debug("Resolved fallback permissions for user {}", authenticatedUserId);
           userPermission = resolvedUserPermission;

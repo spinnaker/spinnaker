@@ -78,9 +78,9 @@ class RolesControllerSpec extends Specification {
     igorBuildServiceLoader.getData() >> []
 
     userRoleProvider.userToRoles = [
-        "noRolesUser@group.com"   : [],
-        "roleAUser@group.com"     : [roleA],
-        "roleAroleBUser@group.com": [roleA],  // roleB comes in "externally"
+        "norolesuser@group.com"   : [],
+        "roleauser@group.com"     : [roleA],
+        "rolearolebuser@group.com": [roleA],  // roleB comes in "externally"
     ]
 
     when:
@@ -88,7 +88,7 @@ class RolesControllerSpec extends Specification {
 
     then:
     def expected = new UserPermission().setId("noRolesUser@group.com")
-    permissionsRepository.get("noRolesUser@group.com").get() == expected
+    permissionsRepository.get(ControllerSupport.convert("noRolesUser@group.com")).get() == expected
 
     when:
     mockMvc.perform(post("/roles/roleAUser@group.com")).andExpect(status().isOk())
@@ -97,7 +97,7 @@ class RolesControllerSpec extends Specification {
                                    .setApplications([restrictedApp] as Set)
 
     then:
-    permissionsRepository.get("roleAUser@group.com").get() == expected
+    permissionsRepository.get(ControllerSupport.convert("roleAUser@group.com")).get() == expected
 
     when:
     mockMvc.perform(put("/roles/roleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
@@ -106,7 +106,7 @@ class RolesControllerSpec extends Specification {
                                    .setAccounts([restrictedAccount] as Set)
 
     then:
-    permissionsRepository.get("roleBUser@group.com").get() == expected
+    permissionsRepository.get(ControllerSupport.convert("roleBUser@group.com")).get() == expected
 
     when:
     mockMvc.perform(put("/roles/roleAroleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
@@ -116,7 +116,7 @@ class RolesControllerSpec extends Specification {
                                    .setAccounts([restrictedAccount] as Set)
 
     then:
-    permissionsRepository.get("roleAroleBUser@group.com").get() == expected
+    permissionsRepository.get(ControllerSupport.convert("roleAroleBUser@group.com")).get() == expected
 
     when:
     mockMvc.perform(put("/roles/expectedError").content('["batman"]')).andExpect(status().is5xxServerError())

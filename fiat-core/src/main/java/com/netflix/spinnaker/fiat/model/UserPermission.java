@@ -38,6 +38,20 @@ public class UserPermission {
   private Set<Resource> extensionResources = new LinkedHashSet<>();
   private boolean admin = false;
 
+  /**
+   * Custom setter to normalize the input. lombok.accessors.chain is enabled, so setters must return
+   * {@code this}.
+   */
+  public UserPermission setId(String id) {
+    this.id = id.toLowerCase();
+    return this;
+  }
+
+  /** Custom getter to normalize the output. */
+  public String getId() {
+    return this.id.toLowerCase();
+  }
+
   public void addResource(Resource resource) {
     addResources(Collections.singleton(resource));
   }

@@ -28,6 +28,6 @@ public class ControllerSupport {
     if (ANONYMOUS_USER.equalsIgnoreCase(in)) {
       return UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
     }
-    return in;
+    return in.toLowerCase();
   }
 }
