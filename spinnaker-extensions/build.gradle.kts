@@ -29,8 +29,8 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
 
-  // Kotlin JDK 8 standard library.
-  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+  // Kotlin standard library.
+  implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
   // Kotlin test library.
   testImplementation("org.jetbrains.kotlin:kotlin-test")
