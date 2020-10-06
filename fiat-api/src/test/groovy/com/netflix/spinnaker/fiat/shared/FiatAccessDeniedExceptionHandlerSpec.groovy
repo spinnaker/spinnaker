@@ -105,7 +105,7 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         fiatAccessDeniedExceptionHandler.handleAccessDeniedException(new AccessDeniedException("Forbidden"), response, request)
 
         then:
-        1 * response.sendError(403, "Access denied to application service - required authorization: " + authorizationTypeRequired + "\n" + additionalInformation)
+        1 * response.sendError(403, "Access denied to application service - required authorization: " + authorizationTypeRequired + "\n\n" + additionalInformation)
 
         where:
         userAuthorizationType | authorizationTypeRequired
@@ -131,6 +131,6 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         fiatAccessDeniedExceptionHandler.handleAccessDeniedException(new AccessDeniedException("Forbidden"), response, request)
 
         then:
-        1 * response.sendError(403, "Access denied to service account readable" + "\n" + additionalInformation)
+        1 * response.sendError(403, "Access denied to service account readable" + "\n\n" + additionalInformation)
     }
 }
