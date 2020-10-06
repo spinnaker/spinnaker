@@ -14,6 +14,9 @@ dependencies {
   implementation("com.netflix.spinnaker.kork:kork-exceptions")
   implementation("com.netflix.spinnaker.kork:kork-security")
   implementation("com.netflix.frigga:frigga")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
+  implementation("com.github.ben-manes.caffeine:caffeine")
 
   testImplementation(project(":keel-test"))
   testImplementation("dev.minutest:minutest")
