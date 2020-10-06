@@ -36,7 +36,8 @@ dependencies {
     implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
     implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
 
-    implementation "com.vdurmont:semver4j:3.1.0"
+    implementation "com.vdurmont:semver4j"
+    implementation "commons-io:commons-io"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.spockframework:spock-core"
