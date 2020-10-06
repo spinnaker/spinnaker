@@ -8,10 +8,6 @@ import com.netflix.spinnaker.keel.telemetry.ArtifactCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.CoroutineContext
-import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -25,6 +21,10 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
+import kotlin.math.max
 
 @Component
 class CheckScheduler(
@@ -121,6 +121,8 @@ class CheckScheduler(
               } catch (e: TimeoutCancellationException) {
                 log.error("Timed out checking environments for ${it.application}/${it.name}", e)
                 publisher.publishEvent(EnvironmentsCheckTimedOut(it.application, it.name))
+              } finally {
+                repository.markDeliveryConfigCheckComplete(it)
               }
             }
         }

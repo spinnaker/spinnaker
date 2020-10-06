@@ -111,6 +111,8 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun deliveryConfigsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig>
 
+  fun markDeliveryConfigCheckComplete(deliveryConfig: DeliveryConfig)
+
   fun getApplicationSummaries(): Collection<ApplicationSummary>
   // END DeliveryConfigRepository methods
 

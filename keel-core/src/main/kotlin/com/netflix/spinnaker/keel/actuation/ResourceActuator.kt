@@ -37,12 +37,13 @@ import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
-import java.time.Clock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
 
 /**
  * The core component in keel responsible for resource state monitoring and actuation.
@@ -85,6 +86,17 @@ class ResourceActuator(
         return@withTracingContext
       }
 
+      val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+      val environment = checkNotNull(deliveryConfig.environmentFor(resource)) {
+        "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name}"
+      }
+
+      if (deliveryConfig.isPromotionCheckStale()) {
+        log.debug("Environments check for {} is stale, skipping checks", deliveryConfig.name)
+        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "PromotionCheckStale"))
+        return@withTracingContext
+      }
+
       try {
         val (desired, current) = plugin.resolve(resource)
         val diff = DefaultResourceDiff(desired, current)
@@ -120,12 +132,6 @@ class ResourceActuator(
 
               if (versionedArtifact != null) {
                 with(versionedArtifact) {
-                  val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-                  val environment = deliveryConfig.environmentFor(resource)?.name
-                    ?: error(
-                      "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
-                        "while attempting to veto artifact $artifactType:$artifactName version $artifactVersion"
-                    )
                   val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, artifactType)
                     ?: error("Artifact $artifactType:$artifactName not found in delivery config ${deliveryConfig.name}")
 
@@ -134,7 +140,7 @@ class ResourceActuator(
                     veto = EnvironmentArtifactVeto(
                       reference = artifact.reference,
                       version = artifactVersion,
-                      targetEnvironment = environment,
+                      targetEnvironment = environment.name,
                       vetoedBy = "Spinnaker",
                       comment = "Automatically marked as bad because multiple deployments of this version failed."
                     )
@@ -212,6 +218,14 @@ class ResourceActuator(
         publisher.publishEvent(ResourceCheckError(resource, e.toSpinnakerException(), clock))
       }
     }
+  }
+
+  private fun DeliveryConfig.isPromotionCheckStale(): Boolean {
+    val age = Duration.between(
+      deliveryConfigRepository.deliveryConfigLastChecked(this),
+      clock.instant()
+    )
+    return age > Duration.ofMinutes(5)
   }
 
   private fun Exception.toSpinnakerException(): SpinnakerException =

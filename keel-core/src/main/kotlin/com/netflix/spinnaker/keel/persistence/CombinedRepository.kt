@@ -239,6 +239,10 @@ class CombinedRepository(
   override fun deliveryConfigsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> =
     deliveryConfigRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
+  override fun markDeliveryConfigCheckComplete(deliveryConfig: DeliveryConfig) {
+    deliveryConfigRepository.markCheckComplete(deliveryConfig)
+  }
+
   override fun getApplicationSummaries(): Collection<ApplicationSummary> =
     deliveryConfigRepository.getApplicationSummaries()
   // END DeliveryConfigRepository methods

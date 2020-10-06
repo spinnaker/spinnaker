@@ -1,0 +1,31 @@
+databaseChangeLog:
+- changeSet:
+    id: environment-check-lock
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: delivery_config_last_checked
+        columns:
+        - column:
+            name: leased_by
+            type: varchar(64)
+            constraints:
+              nullable: true
+        - column:
+            name: leased_at
+            type: timestamp(3)
+            constraints:
+              nullable: true
+    - dropIndex:
+        tableName: delivery_config_last_checked
+        indexName: delivery_config_last_checked_at_idx
+    - createIndex:
+        tableName: delivery_config_last_checked
+        indexName: delivery_config_last_checked_at_leased_by_leased_at_idx
+        columns:
+        - column:
+            name: at
+        - column:
+            name: leased_by
+        - column:
+            name: leased_at

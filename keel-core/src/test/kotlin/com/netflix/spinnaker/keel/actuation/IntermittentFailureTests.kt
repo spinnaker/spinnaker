@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.actuation.Task
@@ -23,12 +25,13 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
-import java.time.Clock
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Clock
+import java.time.Instant
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 /**
  * This class tests a specific scenario:
@@ -108,6 +111,15 @@ class IntermittentFailureTests : JUnit5Minutests {
       before {
         every { resourceRepository.get(resource.id) } returns resource
         every { resourceRepository.lastEvent(resource.id) } returns ResourceValid(resource)
+
+        every { deliveryConfigRepository.deliveryConfigFor(resource.id) } returns DeliveryConfig(
+          name = "fnord-manifest",
+          application = "fnord",
+          serviceAccount = "keel@spin",
+          artifacts = emptySet(),
+          environments = setOf(Environment(name = "main", resources = setOf(resource)))
+        )
+        every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now()
 
         every { plugin1.actuationInProgress(resource) } returns false
 

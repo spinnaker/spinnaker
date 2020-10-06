@@ -42,17 +42,19 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verifySequence
-import java.time.Clock
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class ResourceActuatorTests : JUnit5Minutests {
 
@@ -101,6 +103,13 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       before {
         every { resourceRepository.lastEvent(resource.id) } returns ResourceCreated(resource)
+        every { deliveryConfigRepository.deliveryConfigFor(resource.id) } returns DeliveryConfig(
+          name = "fnord-manifest",
+          application = "fnord",
+          serviceAccount = "keel@spin",
+          artifacts = setOf(DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
+          environments = setOf(Environment(name = "staging", resources = setOf(resource)))
+        )
       }
 
       context("the resource check is not vetoed") {
@@ -159,19 +168,181 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             every { plugin1.actuationInProgress(resource) } returns false
           }
 
-          context("the current state matches the desired state") {
+          context("the resource's delivery config has not been checked in a long time") {
             before {
-              every {
-                plugin1.desired(resource)
-              } returns DummyArtifactVersionedResourceSpec(data = "fnord")
-              every {
-                plugin1.current(resource)
-              } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+              every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofDays(30))
+
+              runBlocking {
+                subject.checkResource(resource)
+              }
             }
 
-            context("the resource previously had a delta") {
+            test("the resource is not resolved") {
+              verify(exactly = 0) { plugin1.desired(any()) }
+              verify(exactly = 0) { plugin1.current(any()) }
+            }
+
+            test("the resource is not updated") {
+              verify(exactly = 0) { plugin1.create(any(), any()) }
+              verify(exactly = 0) { plugin1.update(any(), any()) }
+              verify(exactly = 0) { plugin1.delete(any()) }
+            }
+
+            test("a telemetry event is published") {
+              verify { publisher.publishEvent(ResourceCheckSkipped(resource.kind, resource.id, "PromotionCheckStale")) }
+            }
+          }
+
+          context("the resource's delivery config was checked recently") {
+            before {
+              every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
+            }
+
+            context("the current state matches the desired state") {
               before {
-                every { resourceRepository.lastEvent(resource.id) } returns ResourceDeltaDetected(resource, emptyMap())
+                every {
+                  plugin1.desired(resource)
+                } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+                every {
+                  plugin1.current(resource)
+                } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+              }
+
+              context("the resource previously had a delta") {
+                before {
+                  every { resourceRepository.lastEvent(resource.id) } returns ResourceDeltaDetected(resource, emptyMap())
+
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+                }
+
+                test("the resource is not updated") {
+                  verify(exactly = 0) { plugin1.create(any(), any()) }
+                  verify(exactly = 0) { plugin1.update(any(), any()) }
+                  verify(exactly = 0) { plugin1.delete(any()) }
+                }
+
+                test("only the relevant plugin is queried") {
+                  verify(exactly = 0) { plugin2.desired(any()) }
+                  verify(exactly = 0) { plugin2.current(any()) }
+                }
+
+                test("a telemetry event is published") {
+                  verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                }
+              }
+
+              context("when there is an actuation launched event in history, check other events before publishing ResourceDeltaResolved") {
+                before {
+                  every { resourceRepository.lastEvent(resource.id) } returns ResourceActuationLaunched(resource, plugin1.name, emptyList())
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+                }
+                test("ResourceDeltaResolved was not published since the task is still running") {
+                  verify(exactly = 0) { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                }
+
+                context("the task was finished successfully") {
+                  before {
+                    every { resourceRepository.lastEvent(resource.id) } returns ResourceTaskSucceeded(resource, emptyList())
+                    runBlocking {
+                      subject.checkResource(resource)
+                    }
+                  }
+                  test("a resource delta resolved event is published") {
+                    verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                  }
+                }
+
+                context("the task was finished with an error") {
+                  before {
+                    every { resourceRepository.lastEvent(resource.id) } returns ResourceTaskFailed(resource, "error", emptyList())
+                    runBlocking {
+                      subject.checkResource(resource)
+                    }
+                  }
+                  test("a resource delta resolved event is published") {
+                    verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                  }
+                }
+              }
+
+              context("the resource was already valid") {
+                before {
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+                }
+
+                test("the resource is not updated") {
+                  verify(exactly = 0) { plugin1.create(any(), any()) }
+                  verify(exactly = 0) { plugin1.update(any(), any()) }
+                  verify(exactly = 0) { plugin1.delete(any()) }
+                }
+
+                test("only the relevant plugin is queried") {
+                  verify(exactly = 0) { plugin2.desired(any()) }
+                  verify(exactly = 0) { plugin2.current(any()) }
+                }
+
+                test("a telemetry event is published") {
+                  verify { publisher.publishEvent(ofType<ResourceValid>()) }
+                }
+              }
+            }
+
+            context("the current state is missing") {
+              before {
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.current(resource) } returns null
+                every { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the resource is created via the relevant handler") {
+                verify { plugin1.create(resource, any()) }
+              }
+
+              test("a telemetry event is published") {
+                verifySequence {
+                  publisher.publishEvent(ofType<ResourceMissing>())
+                  publisher.publishEvent(ofType<ResourceActuationLaunched>())
+                }
+              }
+            }
+
+            context("the current state is wrong") {
+              before {
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+                every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the resource is updated") {
+                verify { plugin1.update(eq(resource), any()) }
+              }
+
+              test("a telemetry event is published") {
+                verify {
+                  publisher.publishEvent(ofType<ResourceDeltaDetected>())
+                  publisher.publishEvent(ofType<ResourceActuationLaunched>())
+                }
+              }
+            }
+
+            context("plugin throws an exception in current state resolution") {
+              before {
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.current(resource) } throws RuntimeException("o noes")
 
                 runBlocking {
                   subject.checkResource(resource)
@@ -179,257 +350,126 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               }
 
               test("the resource is not updated") {
-                verify(exactly = 0) { plugin1.create(any(), any()) }
                 verify(exactly = 0) { plugin1.update(any(), any()) }
-                verify(exactly = 0) { plugin1.delete(any()) }
               }
 
-              test("only the relevant plugin is queried") {
-                verify(exactly = 0) { plugin2.desired(any()) }
-                verify(exactly = 0) { plugin2.current(any()) }
+              test("an event is published with the wrapped exception") {
+                val event = slot<ResourceCheckResult>()
+                verify { publisher.publishEvent(capture(event)) }
+                expectThat(event.captured)
+                  .isA<ResourceCheckError>()
+                  .get { exceptionType }
+                  .isEqualTo(CannotResolveCurrentState::class.java)
               }
 
-              test("a telemetry event is published") {
-                verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
-              }
-            }
-
-            context("when there is an actuation launched event in history, check other events before publishing ResourceDeltaResolved") {
-              before {
-                every { resourceRepository.lastEvent(resource.id) } returns ResourceActuationLaunched(resource, plugin1.name, emptyList())
-                runBlocking {
-                  subject.checkResource(resource)
-                }
-              }
-              test("ResourceDeltaResolved was not published since the task is still running") {
-                verify(exactly = 0) { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
-              }
-
-              context("the task was finished successfully") {
+              context("the exception is a resolution exception caused by user error") {
                 before {
-                  every { resourceRepository.lastEvent(resource.id) } returns ResourceTaskSucceeded(resource, emptyList())
+                  every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                  every { plugin1.current(resource) } throws UserException("bad, bad user!")
+
                   runBlocking {
                     subject.checkResource(resource)
                   }
                 }
-                test("a resource delta resolved event is published") {
-                  verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+
+                test("the user exception is wrapped in the event") {
+                  val event = slot<ResourceCheckResult>()
+                  verify { publisher.publishEvent(capture(event)) }
+                  expectThat(event.captured)
+                    .isA<ResourceCheckError>()
+                    .get { exceptionType }
+                    .isEqualTo(UserException::class.java)
                 }
               }
 
-              context("the task was finished with an error") {
+              context("the exception is a resolution exception caused by system error") {
                 before {
-                  every { resourceRepository.lastEvent(resource.id) } returns ResourceTaskFailed(resource, "error", emptyList())
+                  every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                  every { plugin1.current(resource) } throws SystemException("oopsies!")
+
                   runBlocking {
                     subject.checkResource(resource)
                   }
                 }
-                test("a resource delta resolved event is published") {
-                  verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+
+                test("the system exception is wrapped in the event") {
+                  val event = slot<ResourceCheckResult>()
+                  verify { publisher.publishEvent(capture(event)) }
+                  expectThat(event.captured)
+                    .isA<ResourceCheckError>()
+                    .get { exceptionType }
+                    .isEqualTo(SystemException::class.java)
                 }
               }
             }
 
-            context("the resource was already valid") {
+            context("plugin throws an unhandled exception in desired state resolution") {
               before {
+                every { plugin1.desired(resource) } throws RuntimeException("o noes")
+                every { plugin1.current(resource) } returns null
+
                 runBlocking {
                   subject.checkResource(resource)
                 }
               }
 
               test("the resource is not updated") {
-                verify(exactly = 0) { plugin1.create(any(), any()) }
                 verify(exactly = 0) { plugin1.update(any(), any()) }
-                verify(exactly = 0) { plugin1.delete(any()) }
               }
 
-              test("only the relevant plugin is queried") {
-                verify(exactly = 0) { plugin2.desired(any()) }
-                verify(exactly = 0) { plugin2.current(any()) }
+              test("a telemetry event is published with the wrapped exception") {
+                val event = slot<ResourceCheckResult>()
+                verify { publisher.publishEvent(capture(event)) }
+                expectThat(event.captured)
+                  .isA<ResourceCheckError>()
+                  .get { exceptionType }
+                  .isEqualTo(CannotResolveDesiredState::class.java)
+              }
+            }
+
+            context("plugin throws a transient dependency exception in desired state resolution") {
+              before {
+                every { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
+                every { plugin1.current(resource) } returns null
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the resource is not updated") {
+                verify(exactly = 0) { plugin1.update(any(), any()) }
+              }
+
+              test("a telemetry event is published with detail of the problem") {
+                val event = slot<ResourceCheckUnresolvable>()
+                verify { publisher.publishEvent(capture(event)) }
+                expectThat(event.captured)
+                  .isA<ResourceCheckUnresolvable>()
+                  .get { message }
+                  .isEqualTo("o noes")
+              }
+            }
+
+            context("plugin throws an exception on resource update") {
+              before {
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactVersion = "fnord-41.0")
+                every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              // TODO: do we want to track the error in the resource history?
+              test("detection of the delta is tracked in resource history") {
+                verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
               }
 
               test("a telemetry event is published") {
-                verify { publisher.publishEvent(ofType<ResourceValid>()) }
+                verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
               }
-            }
-          }
-
-          context("the current state is missing") {
-            before {
-              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              every { plugin1.current(resource) } returns null
-              every { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            test("the resource is created via the relevant handler") {
-              verify { plugin1.create(resource, any()) }
-            }
-
-            test("a telemetry event is published") {
-              verifySequence {
-                publisher.publishEvent(ofType<ResourceMissing>())
-                publisher.publishEvent(ofType<ResourceActuationLaunched>())
-              }
-            }
-          }
-
-          context("the current state is wrong") {
-            before {
-              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
-              every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
-              every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            test("the resource is updated") {
-              verify { plugin1.update(eq(resource), any()) }
-            }
-
-            test("a telemetry event is published") {
-              verify {
-                publisher.publishEvent(ofType<ResourceDeltaDetected>())
-                publisher.publishEvent(ofType<ResourceActuationLaunched>())
-              }
-            }
-          }
-
-          context("plugin throws an exception in current state resolution") {
-            before {
-              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              every { plugin1.current(resource) } throws RuntimeException("o noes")
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            test("the resource is not updated") {
-              verify(exactly = 0) { plugin1.update(any(), any()) }
-            }
-
-            test("an event is published with the wrapped exception") {
-              val event = slot<ResourceCheckResult>()
-              verify { publisher.publishEvent(capture(event)) }
-              expectThat(event.captured)
-                .isA<ResourceCheckError>()
-                .get { exceptionType }
-                .isEqualTo(CannotResolveCurrentState::class.java)
-            }
-
-            context("the exception is a resolution exception caused by user error") {
-              before {
-                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-                every { plugin1.current(resource) } throws UserException("bad, bad user!")
-
-                runBlocking {
-                  subject.checkResource(resource)
-                }
-              }
-
-              test("the user exception is wrapped in the event") {
-                val event = slot<ResourceCheckResult>()
-                verify { publisher.publishEvent(capture(event)) }
-                expectThat(event.captured)
-                  .isA<ResourceCheckError>()
-                  .get { exceptionType }
-                  .isEqualTo(UserException::class.java)
-              }
-            }
-
-            context("the exception is a resolution exception caused by system error") {
-              before {
-                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-                every { plugin1.current(resource) } throws SystemException("oopsies!")
-
-                runBlocking {
-                  subject.checkResource(resource)
-                }
-              }
-
-              test("the system exception is wrapped in the event") {
-                val event = slot<ResourceCheckResult>()
-                verify { publisher.publishEvent(capture(event)) }
-                expectThat(event.captured)
-                  .isA<ResourceCheckError>()
-                  .get { exceptionType }
-                  .isEqualTo(SystemException::class.java)
-              }
-            }
-          }
-
-          context("plugin throws an unhandled exception in desired state resolution") {
-            before {
-              every { plugin1.desired(resource) } throws RuntimeException("o noes")
-              every { plugin1.current(resource) } returns null
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            test("the resource is not updated") {
-              verify(exactly = 0) { plugin1.update(any(), any()) }
-            }
-
-            test("a telemetry event is published with the wrapped exception") {
-              val event = slot<ResourceCheckResult>()
-              verify { publisher.publishEvent(capture(event)) }
-              expectThat(event.captured)
-                .isA<ResourceCheckError>()
-                .get { exceptionType }
-                .isEqualTo(CannotResolveDesiredState::class.java)
-            }
-          }
-
-          context("plugin throws a transient dependency exception in desired state resolution") {
-            before {
-              every { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
-              every { plugin1.current(resource) } returns null
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            test("the resource is not updated") {
-              verify(exactly = 0) { plugin1.update(any(), any()) }
-            }
-
-            test("a telemetry event is published with detail of the problem") {
-              val event = slot<ResourceCheckUnresolvable>()
-              verify { publisher.publishEvent(capture(event)) }
-              expectThat(event.captured)
-                .isA<ResourceCheckUnresolvable>()
-                .get { message }
-                .isEqualTo("o noes")
-            }
-          }
-
-          context("plugin throws an exception on resource update") {
-            before {
-              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactVersion = "fnord-41.0")
-              every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
-
-              runBlocking {
-                subject.checkResource(resource)
-              }
-            }
-
-            // TODO: do we want to track the error in the resource history?
-            test("detection of the delta is tracked in resource history") {
-              verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
-            }
-
-            test("a telemetry event is published") {
-              verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
             }
           }
         }
@@ -441,6 +481,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
           every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
           every { plugin1.actuationInProgress(resource) } returns false
+          every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
 
           runBlocking {
             subject.checkResource(resource)
@@ -459,13 +500,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
           every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
           every { plugin1.actuationInProgress(resource) } returns false
-          every { deliveryConfigRepository.deliveryConfigFor(any()) } returns DeliveryConfig(
-            name = "fnord-manifest",
-            application = "fnord",
-            serviceAccount = "keel@spin",
-            artifacts = setOf(DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
-            environments = setOf(Environment(name = "staging", resources = setOf(resource)))
-          )
+          every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
+
           runBlocking {
             subject.checkResource(resource)
           }

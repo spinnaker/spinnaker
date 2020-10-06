@@ -185,3 +185,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201001-diff-action-count.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200930-environment-check-lock.yml
+      relativeToChangelogFile: true

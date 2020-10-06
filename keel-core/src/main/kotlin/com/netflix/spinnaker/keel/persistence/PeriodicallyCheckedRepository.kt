@@ -12,4 +12,10 @@ interface PeriodicallyCheckedRepository<T : Any> {
    * different values.
    */
   fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<T>
+
+  /**
+   * Optional operation to mark a check as complete. If this is not implemented it's assumed that
+   * [itemsDueForCheck] takes care of that.
+   */
+  fun markCheckComplete(deliveryConfig: T) {}
 }

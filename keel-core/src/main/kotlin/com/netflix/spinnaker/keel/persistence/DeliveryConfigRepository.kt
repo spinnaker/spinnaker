@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import java.time.Instant
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 
@@ -157,6 +158,8 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
 
   fun getApplicationSummaries(): Collection<ApplicationSummary>
+
+  fun deliveryConfigLastChecked(deliveryConfig: DeliveryConfig): Instant
 }
 
 abstract class NoSuchDeliveryConfigException(message: String) :
