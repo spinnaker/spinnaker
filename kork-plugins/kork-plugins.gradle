@@ -35,6 +35,7 @@ dependencies {
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   testImplementation project(":kork-plugins-tck")
+  testImplementation project(":kork-secrets")
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
