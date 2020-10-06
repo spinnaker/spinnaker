@@ -53,13 +53,16 @@ class AuthenticatedRequestFilter implements Filter {
   private final boolean extractSpinnakerHeaders
   private final boolean extractSpinnakerUserOriginHeader
   private final boolean forceNewSpinnakerRequestId
+  private final boolean clearAuthenticatedRequestPostFilter
 
   public AuthenticatedRequestFilter(boolean extractSpinnakerHeaders = false,
                                     boolean extractSpinnakerUserOriginHeader = false,
-                                    boolean forceNewSpinnakerRequestId = false) {
+                                    boolean forceNewSpinnakerRequestId = false,
+                                    boolean clearAuthenticatedRequestPostFilter = true) {
     this.extractSpinnakerHeaders = extractSpinnakerHeaders
     this.extractSpinnakerUserOriginHeader = extractSpinnakerUserOriginHeader
     this.forceNewSpinnakerRequestId = forceNewSpinnakerRequestId
+    this.clearAuthenticatedRequestPostFilter = clearAuthenticatedRequestPostFilter
   }
 
   @Override
@@ -143,7 +146,9 @@ class AuthenticatedRequestFilter implements Filter {
 
       chain.doFilter(request, response)
     } finally {
-      AuthenticatedRequest.clear()
+      if (clearAuthenticatedRequestPostFilter) {
+        AuthenticatedRequest.clear()
+      }
     }
   }
 
