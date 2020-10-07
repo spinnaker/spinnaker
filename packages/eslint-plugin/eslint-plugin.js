@@ -1,5 +1,6 @@
 module.exports = {
   rules: {
+    'api-no-slashes': require('./rules/api-no-slashes'),
     'import-from-alias-not-npm': require('./rules/import-from-alias-not-npm'),
     'import-from-npm-not-alias': require('./rules/import-from-npm-not-alias'),
     'import-from-npm-not-relative': require('./rules/import-from-npm-not-relative'),

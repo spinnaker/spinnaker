@@ -4,6 +4,7 @@ module.exports = {
   plugins: ['@typescript-eslint', '@spinnaker/eslint-plugin', 'react-hooks'],
   extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
   rules: {
+    '@spinnaker/api-no-slashes': 2,
     '@spinnaker/import-from-alias-not-npm': 2,
     '@spinnaker/import-from-npm-not-alias': 2,
     '@spinnaker/import-from-npm-not-relative': 2,
