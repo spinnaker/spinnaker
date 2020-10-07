@@ -44,20 +44,7 @@ data class InstanceCounts(
 interface BaseEc2ServerGroup : BaseServerGroup {
   val zones: Set<String>
   val image: ActiveServerGroupImage
-
-  /**
-   * One of these two fields is always null, and the other is always
-   * non-null.
-   *
-   * If AWS launch templates are enabled in clouddriver for this app,
-   * associated with this server group, then the launchTemplate
-   * field will be populated.
-   *
-   * Otherwise, the launchConfig field will be populated.
-   */
-  val launchConfig: LaunchConfig?
-  val launchTemplate: LaunchTemplate?
-
+  val launchConfig: LaunchConfig
   val asg: AutoScalingGroup
   val scalingPolicies: List<ScalingPolicy>
   val vpcId: String
@@ -76,8 +63,7 @@ data class ServerGroup(
   override val region: String,
   override val zones: Set<String>,
   override val image: ActiveServerGroupImage,
-  override val launchConfig: LaunchConfig? = null,
-  override val launchTemplate: LaunchTemplate? = null,
+  override val launchConfig: LaunchConfig,
   override val asg: AutoScalingGroup,
   override val scalingPolicies: List<ScalingPolicy>,
   override val vpcId: String,
@@ -91,24 +77,7 @@ data class ServerGroup(
   override val disabled: Boolean,
   override val instanceCounts: InstanceCounts,
   override val createdTime: Long
-) : BaseEc2ServerGroup {
-  init {
-    ensureLaunchConfigInfoIsPresent(this)
-  }
-}
-
-/**
- * Clouddriver should always return either a launchConfig field or a launchTemplate
- * field for an EC2 server group.
- *
- * This is a helper function that asserts that one of these fields must be present.
- * It is intended to be called from the init block of classes that implement BaseEc2ServerGroup
- */
-fun ensureLaunchConfigInfoIsPresent(sg : BaseEc2ServerGroup) {
-  if(sg.launchConfig == null && sg.launchTemplate == null) {
-    throw SystemException("Server group info contains neither launchConfig nor launchTemplate fields: ${sg.name}")
-  }
-}
+) : BaseEc2ServerGroup
 
 fun ServerGroup.toActive(accountName: String) =
   ActiveServerGroup(
@@ -117,7 +86,6 @@ fun ServerGroup.toActive(accountName: String) =
     zones = zones,
     image = image,
     launchConfig = launchConfig,
-    launchTemplate = launchTemplate,
     asg = asg,
     scalingPolicies = scalingPolicies,
     vpcId = vpcId,
@@ -139,8 +107,7 @@ data class ActiveServerGroup(
   override val region: String,
   override val zones: Set<String>,
   override val image: ActiveServerGroupImage,
-  override val launchConfig: LaunchConfig? = null,
-  override val launchTemplate: LaunchTemplate? = null,
+  override val launchConfig: LaunchConfig,
   override val asg: AutoScalingGroup,
   override val scalingPolicies: List<ScalingPolicy>,
   override val vpcId: String,
@@ -154,11 +121,7 @@ data class ActiveServerGroup(
   override val buildInfo: BuildInfo? = null,
   override val instanceCounts: InstanceCounts,
   override val createdTime: Long
-) : BaseEc2ServerGroup {
-  init {
-    ensureLaunchConfigInfoIsPresent(this)
-  }
-}
+) : BaseEc2ServerGroup
 
 fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =
   asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
@@ -208,25 +171,6 @@ data class LaunchConfig(
   val keyName: String,
   val iamInstanceProfile: String,
   val instanceMonitoring: InstanceMonitoring
-)
-
-data class LaunchTemplate(
-  val launchTemplateData: LaunchTemplateData
-)
-
-// See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata.html
-data class LaunchTemplateData(
-  val ebsOptimized: Boolean,
-  val imageId: String,
-  val instanceType: String,
-  val keyName: String,
-  val iamInstanceProfile: IamInstanceProfile,
-  val monitoring: InstanceMonitoring,
-  val ramDiskId: String?
-)
-
-data class IamInstanceProfile(
-  val name: String
 )
 
 data class AutoScalingGroup(

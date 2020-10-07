@@ -950,7 +950,7 @@ private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
       imageId = "ami-573e1b2650a5",
       appVersion = "keel-0.251.0-h167.9ea0465"
     ),
-    launchConfig = launchConfig?.copy(
+    launchConfig = launchConfig.copy(
       imageId = "ami-573e1b2650a5"
     )
   )

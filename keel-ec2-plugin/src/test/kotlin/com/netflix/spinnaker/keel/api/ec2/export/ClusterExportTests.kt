@@ -372,7 +372,7 @@ private fun ActiveServerGroup.withNonDefaultHealthProps(): ActiveServerGroup =
 
 private fun ActiveServerGroup.withNonDefaultLaunchConfigProps(): ActiveServerGroup =
   copy(
-    launchConfig = launchConfig?.copy(iamInstanceProfile = "NotTheDefaultInstanceProfile", keyName = "not-the-default-key")
+    launchConfig = launchConfig.copy(iamInstanceProfile = "NotTheDefaultInstanceProfile", keyName = "not-the-default-key")
   )
 
 private fun ActiveServerGroup.withDifferentSize(): ActiveServerGroup =
