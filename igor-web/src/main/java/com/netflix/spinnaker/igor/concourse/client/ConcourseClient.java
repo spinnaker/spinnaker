@@ -43,6 +43,7 @@ public class ConcourseClient {
   private final SkyServiceV2 skyServiceV2;
   private final TokenService tokenServiceV1;
   private final TokenServiceV2 tokenServiceV2;
+  private final TokenServiceV3 tokenServiceV3;
 
   @Getter private ClusterInfoService clusterInfoService;
 
@@ -107,24 +108,40 @@ public class ConcourseClient {
 
     ClusterInfo clusterInfo = this.clusterInfoService.clusterInfo();
 
-    Semver ver = new Semver("6.1.0");
-    if (ver.isGreaterThan(clusterInfo.getVersion())) {
+    Semver clusterVer = new Semver(clusterInfo.getVersion());
+
+    if (clusterVer.isLowerThan("6.1.0")) {
       this.tokenServiceV1 =
           tokenRestBuilder
               .setLog(new Slf4jRetrofitLogger(TokenService.class))
               .build()
               .create(TokenService.class);
       this.tokenServiceV2 = null;
+      this.tokenServiceV3 = null;
 
       this.skyServiceV1 = createService(SkyService.class);
       this.skyServiceV2 = null;
-    } else {
+
+    } else if (clusterVer.isLowerThan("6.5.0")) {
       this.tokenServiceV1 = null;
       this.tokenServiceV2 =
           tokenRestBuilder
               .setLog(new Slf4jRetrofitLogger(TokenServiceV2.class))
               .build()
               .create(TokenServiceV2.class);
+      this.tokenServiceV3 = null;
+
+      this.skyServiceV1 = null;
+      this.skyServiceV2 = createService(SkyServiceV2.class);
+
+    } else {
+      this.tokenServiceV1 = null;
+      this.tokenServiceV2 = null;
+      this.tokenServiceV3 =
+          tokenRestBuilder
+              .setLog(new Slf4jRetrofitLogger(TokenServiceV3.class))
+              .build()
+              .create(TokenServiceV3.class);
 
       this.skyServiceV1 = null;
       this.skyServiceV2 = createService(SkyServiceV2.class);
@@ -145,12 +162,21 @@ public class ConcourseClient {
   }
 
   private Token refreshToken() {
-    token =
-        tokenServiceV1 != null
-            ? tokenServiceV1.passwordToken(
-                "password", user, password, "openid profile email federated:id groups")
-            : tokenServiceV2.passwordToken(
-                "password", user, password, "openid profile email federated:id groups");
+    if (tokenServiceV1 != null) {
+      token =
+          tokenServiceV1.passwordToken(
+              "password", user, password, "openid profile email federated:id groups");
+
+    } else if (tokenServiceV2 != null) {
+      token =
+          tokenServiceV2.passwordToken(
+              "password", user, password, "openid profile email federated:id groups");
+
+    } else if (tokenServiceV3 != null) {
+      token =
+          tokenServiceV3.passwordToken(
+              "password", user, password, "openid profile email federated:id groups");
+    }
 
     tokenExpiration = token.getExpiry();
     return token;

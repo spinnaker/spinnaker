@@ -67,7 +67,7 @@ class ConcourseClientSpec extends Specification {
         resp.status == 200
     }
 
-    def "it uses v2 auth for concourse versions >= 6.1.0"() {
+    def "it uses v2 auth for concourse versions < 6.5.0"() {
         given:
         setResponse '''{
                 "cluster_name": "mycluster",
@@ -96,6 +96,42 @@ class ConcourseClientSpec extends Specification {
 
         req3.path == '/api/v1/user'
         req3.getHeader('Authorization') == "bearer my_id_token"
+
+        resp.status == 200
+    }
+
+    def "it uses v3 auth for concourse versions >= 6.5.0"() {
+        given:
+        setResponse '''{
+                "cluster_name": "mycluster",
+                "external_url": "https://mycluster.example.com",
+                "version": "6.5.0",
+                "worker_version": "2.2"
+            }''',
+            """{
+                "access_token": "my_access_token",
+                "expires_in": 86399,
+                "id_token": "my_id_token",
+                "token_type": "bearer"
+            }""",
+            '''{
+                "name": "jsmith"
+            }'''
+
+        when:
+        Response resp = client.userInfo()
+        RecordedRequest req1 = server.takeRequest()
+        RecordedRequest req2 = server.takeRequest()
+        RecordedRequest req3 = server.takeRequest()
+
+        then:
+        req1.path == '/api/v1/info'
+
+        req2.path == '/sky/issuer/token'
+        req2.getHeader('Authorization') == "Basic Zmx5OlpteDU="
+
+        req3.path == '/api/v1/user'
+        req3.getHeader('Authorization') == "bearer my_access_token"
 
         resp.status == 200
     }
