@@ -16,9 +16,11 @@
 package com.netflix.spinnaker.kork.plugins.v2
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
+import com.netflix.spinnaker.kork.plugins.events.ExtensionCreated
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.BeanPostProcessor
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.Ordered
 import org.springframework.core.PriorityOrdered
@@ -32,7 +34,8 @@ import org.springframework.util.Assert
 class ExtensionPromotionBeanPostProcessor(
   private val pluginWrapper: PluginWrapper,
   private val pluginApplicationContext: GenericApplicationContext,
-  private val beanPromoter: BeanPromoter
+  private val beanPromoter: BeanPromoter,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) : BeanPostProcessor, PriorityOrdered {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -46,6 +49,13 @@ class ExtensionPromotionBeanPostProcessor(
     if (SpinnakerExtensionPoint::class.java.isAssignableFrom(beanClass)) {
       log.debug("Promoting plugin extension to service context (${pluginWrapper.pluginId}): $beanClass")
       beanPromoter.promote("${pluginWrapper.pluginId}_${beanName}", bean, beanClass)
+
+      applicationEventPublisher.publishEvent(ExtensionCreated(
+        this,
+        beanName,
+        bean,
+        beanClass
+      ))
     }
 
     return bean

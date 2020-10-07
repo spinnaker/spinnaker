@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.v2
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
+import com.netflix.spinnaker.kork.plugins.events.ExtensionCreated
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -23,8 +24,13 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.pf4j.PluginWrapper
 import org.springframework.beans.factory.support.GenericBeanDefinition
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.support.GenericApplicationContext
+import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.lang.IllegalArgumentException
 
 class ExtensionPromotionBeanPostProcessorTest : JUnit5Minutests {
@@ -61,6 +67,14 @@ class ExtensionPromotionBeanPostProcessorTest : JUnit5Minutests {
 
         verify(exactly = if (shouldPromote) 1 else 0) {
           beanPromoter.promote(eq("plugin.id_$beanName"), eq(bean), eq(bean.javaClass))
+          applicationEventPublisher.publishEvent(withArg {
+            expectThat(it).isA<ExtensionCreated>().and {
+              get { source }.isNotNull()
+              get { beanName }.isEqualTo(beanName)
+              get { bean }.isEqualTo(bean)
+              get { beanClass }.isEqualTo(bean.javaClass)
+            }
+          })
         }
       }
     }
@@ -73,7 +87,13 @@ class ExtensionPromotionBeanPostProcessorTest : JUnit5Minutests {
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
     val pluginApplicationContext: GenericApplicationContext = mockk(relaxed = true)
     val beanPromoter: BeanPromoter = mockk(relaxed = true)
+    val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
 
-    val subject = ExtensionPromotionBeanPostProcessor(pluginWrapper, pluginApplicationContext, beanPromoter)
+    val subject = ExtensionPromotionBeanPostProcessor(
+      pluginWrapper,
+      pluginApplicationContext,
+      beanPromoter,
+      applicationEventPublisher
+    )
   }
 }

@@ -25,6 +25,7 @@ import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.io.DefaultResourceLoader
@@ -57,7 +58,8 @@ class SpringPluginInitializer(
         ExtensionPromotionBeanPostProcessor(
           pluginWrapper,
           pluginApplicationContext,
-          beanPromoter
+          beanPromoter,
+          applicationContext
         )
       )
 
