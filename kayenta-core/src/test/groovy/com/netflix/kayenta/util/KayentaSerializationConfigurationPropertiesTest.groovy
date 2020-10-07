@@ -27,9 +27,9 @@ import java.time.Duration
 import java.time.Instant
 
 class KayentaSerializationConfigurationPropertiesTest extends Specification {
-    private final String testInstantString = "1970-01-01T01:01:01Z"
-    private final Instant instant = Instant.parse(testInstantString)
-    private final Duration duration = Duration.between(Instant.EPOCH, instant)
+    private static final String testInstantString = "1970-01-01T01:01:01Z"
+    private static final Instant instant = Instant.parse(testInstantString)
+    private static final Duration duration = Duration.between(Instant.EPOCH, instant)
 
     @Unroll
     void "Test Data and Duration serialization - #description"() {

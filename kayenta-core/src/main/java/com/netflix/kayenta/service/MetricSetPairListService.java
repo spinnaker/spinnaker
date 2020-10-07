@@ -35,7 +35,7 @@ public class MetricSetPairListService {
   private final StorageServiceRepository storageServiceRepository;
 
   public List<MetricSetPair> loadMetricSetPairList(String accountName, String metricSetPairListId) {
-    String resolvedAccountName = getAccount(accountName);
+    var resolvedAccountName = getAccount(accountName);
     StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     return storageService.loadObject(
