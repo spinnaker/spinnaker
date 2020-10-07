@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.FULL;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.NAMES_ONLY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.NONE;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -157,6 +158,16 @@ class CacheRepositoryTest {
             });
 
     assertThat(repo.findClusterByKey(clusterKey, NAMES_ONLY))
+        .hasValueSatisfying(
+            cluster ->
+                assertThat(cluster.getServerGroups())
+                    .hasOnlyOneElementSatisfying(
+                        serverGroup -> {
+                          assertThat(serverGroup.getLoadBalancers()).isEmpty();
+                          assertThat(serverGroup.getInstances()).isNotEmpty();
+                        }));
+
+    assertThat(repo.findClusterByKey(clusterKey, NONE))
         .hasValueSatisfying(cluster -> assertThat(cluster.getServerGroups()).isEmpty());
   }
 

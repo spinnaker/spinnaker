@@ -65,7 +65,7 @@ public class CloudFoundryClusterProvider implements ClusterProvider {
         repository.findClustersByKeys(
             cacheView.filterIdentifiers(
                 CLUSTERS.getNs(), Keys.getClusterKey("*", applicationName, "*")),
-            CacheRepository.Detail.NAMES_ONLY));
+            CacheRepository.Detail.NONE));
   }
 
   @Override
