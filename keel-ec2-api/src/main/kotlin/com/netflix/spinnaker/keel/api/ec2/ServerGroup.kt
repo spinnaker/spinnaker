@@ -99,12 +99,13 @@ data class ServerGroup(
     val outOfService: Int,
     val starting: Int
   ) {
-    // active asg is healthy if all instances are up
-    fun isHealthy(health: DeployHealth): Boolean =
-      when (health) {
-        AUTO -> up == total
-        NONE -> (up + unknown) == total
-      }
+    // active asg is healthy if all instances are up and the correct number of instances exist
+    fun isHealthy(health: DeployHealth, capacity: Capacity): Boolean =
+      (capacity.min <= total && total <= capacity.max) &&
+        when (health) {
+          AUTO -> up == total
+          NONE -> (up + unknown) == total
+        }
   }
 
   data class LaunchConfiguration(

@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
+import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -874,7 +875,7 @@ class ClusterHandler(
 
     val allSame: Boolean = activeServerGroups.distinctBy { it.launchConfiguration.appVersion }.size == 1
     val healthy: Boolean = activeServerGroups.all {
-      it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
+      it.instanceCounts?.isHealthy(resource.spec.deployWith.health, resource.spec.resolveCapacity(it.location.region)) == true
     }
 
     eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy))

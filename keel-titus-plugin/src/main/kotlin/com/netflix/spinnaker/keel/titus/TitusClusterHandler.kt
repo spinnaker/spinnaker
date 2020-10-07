@@ -495,7 +495,7 @@ class TitusClusterHandler(
     // publish health events
     val sameContainer: Boolean = activeServerGroups.distinctBy { it.container.digest }.size == 1
     val healthy: Boolean = activeServerGroups.all {
-      it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
+      it.instanceCounts?.isHealthy(resource.spec.deployWith.health, resource.spec.resolveCapacity(it.location.region)) == true
     }
 
     eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy))
