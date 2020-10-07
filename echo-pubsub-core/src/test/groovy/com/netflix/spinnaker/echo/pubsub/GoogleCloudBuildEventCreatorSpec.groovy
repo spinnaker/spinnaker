@@ -22,10 +22,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class GoogleCloudBuildEventCreatorSpec extends Specification {
-  final String ACCOUNT_NAME = "my-account"
-  final String BUILD_ID = "1a9ea355-eb3d-4148-b81b-875d07ea118b"
-  final String BUILD_STATUS = "QUEUED"
-  final String PAYLOAD = "test payload"
+  String ACCOUNT_NAME = "my-account"
+  String BUILD_ID = "1a9ea355-eb3d-4148-b81b-875d07ea118b"
+  String BUILD_STATUS = "QUEUED"
+  String PAYLOAD = "test payload"
 
   @Subject
   GoogleCloudBuildEventCreator eventCreator = new GoogleCloudBuildEventCreator()

@@ -36,7 +36,7 @@ public class GoogleCloudBuildEventCreator implements EventCreator {
   public Event createEvent(MessageDescription description) {
     log.debug("Processing pubsub event with payload {}", description.getMessagePayload());
 
-    Event event = new Event();
+    var event = new Event();
     Map<String, Object> content = new HashMap<>();
     content.put("messageDescription", description);
 

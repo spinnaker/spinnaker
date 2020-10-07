@@ -31,10 +31,10 @@ class GoogleCloudBuildNotificationSpec extends Specification {
   RetrySupport retrySupport = new RetrySupport()
   ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
-  final String ACCOUNT_NAME = "my-account"
-  final String BUILD_ID = "1a9ea355-eb3d-4148-b81b-875d07ea118b"
-  final String BUILD_STATUS = "QUEUED"
-  final String PAYLOAD = objectMapper.writeValueAsString([
+  String ACCOUNT_NAME = "my-account"
+  String BUILD_ID = "1a9ea355-eb3d-4148-b81b-875d07ea118b"
+  String BUILD_STATUS = "QUEUED"
+  String PAYLOAD = objectMapper.writeValueAsString([
     "key": "value"
   ])
 
