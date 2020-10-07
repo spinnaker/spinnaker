@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gradle.extension
+package com.netflix.spinnaker.gradle.extension.compatibility
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.gradle.extension.PluginObjectMapper
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -27,6 +30,8 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.kotlin.dsl.*
 import java.lang.IllegalStateException
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
@@ -60,11 +65,13 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
         }
       }
 
-      project.tasks.register<Test>("compatibilityTest-${project.name}-$v") {
+      val test = project.tasks.create<CompatibilityTestTask>("compatibilityTest-${project.name}-$v") {
         description = "Runs compatibility tests for Spinnaker $v"
         group = GROUP
         testClassesDirs = project.sourceSets.getByName(sourceSet).output.classesDirs
         classpath = project.sourceSets.getByName(sourceSet).runtimeClasspath
+        ignoreFailures = project.gradle.startParameter.taskNames.contains(TASK_NAME)
+        result.set(project.layout.buildDirectory.file("compatibility/$v.json"))
       }
 
       // Gradle hasn't seen the `SpinnakerPluginExtension` DSL values yet,
@@ -90,6 +97,19 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
             }
           } ?: throw IllegalStateException("Could not find compileKotlin task for source set $sourceSet")
         }
+
+        test.afterSuite { descriptor, result ->
+          if (descriptor.parent == null) {
+            test.result.asFile.get().writeText(
+              PluginObjectMapper.mapper.writeValueAsString(CompatibilityTestResult(
+                platformVersion = v,
+                serviceVersion = resolvedServiceVersion,
+                service = plugin.serviceName!!,
+                result = result.resultType
+              ))
+            )
+          }
+        }
       }
     }
 
@@ -97,6 +117,17 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
       description = "Runs Spinnaker compatibility tests"
       group = GROUP
       dependsOn(resolvedVersions.map { ":${project.name}:compatibilityTest-${project.name}-$it" })
+      doLast {
+        project.rootProject.subprojects
+          .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
+          .map { PluginObjectMapper.mapper.readValue<CompatibilityTestResult>(it.result.asFile.get()) }
+          .filter { it.result == TestResult.ResultType.FAILURE  }
+          .also { results ->
+            if (results.isNotEmpty()) {
+              throw GradleException("Compatibility tests failed for Spinnaker ${results.map { it.result }.joinToString(", ")}")
+            }
+          }
+      }
     }
   }
 
@@ -118,6 +149,9 @@ private val SourceSet.kotlin: SourceDirectorySet
 
 private fun Project.compileKotlinTask(task: String): KotlinCompile? =
   tasks.findByName(task) as KotlinCompile?
+
+private fun Test.afterSuite(cb: (desc: TestDescriptor, result: TestResult) -> Unit) =
+  afterSuite(KotlinClosure2(cb))
 
 private fun SpinnakerVersionsClient.resolveVersionAliases(versions: List<String>): Set<String> {
   // Save a lookup if none of the versions are aliases.

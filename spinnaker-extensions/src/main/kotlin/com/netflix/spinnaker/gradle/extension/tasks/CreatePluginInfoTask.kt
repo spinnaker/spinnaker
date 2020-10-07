@@ -15,8 +15,12 @@
  */
 package com.netflix.spinnaker.gradle.extension.tasks
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.gradle.extension.PluginObjectMapper
 import com.netflix.spinnaker.gradle.extension.Plugins
 import com.netflix.spinnaker.gradle.extension.Plugins.CHECKSUM_BUNDLE_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.compatibility.CompatibilityTestResult
+import com.netflix.spinnaker.gradle.extension.compatibility.CompatibilityTestTask
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import groovy.json.JsonOutput
@@ -59,6 +63,13 @@ open class CreatePluginInfoTask : DefaultTask() {
       }
       .joinToString(",")
 
+    val compatibility = project.rootProject
+      .subprojects
+      .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
+      .map { it.result.get().asFile }
+      .filter { it.exists() }
+      .map { PluginObjectMapper.mapper.readValue<CompatibilityTestResult>(it.readBytes()) }
+
     val pluginInfo = mapOf(
       "id" to bundleExt.pluginId,
       "description" to bundleExt.description,
@@ -69,7 +80,8 @@ open class CreatePluginInfoTask : DefaultTask() {
           "date" to Instant.now().toString(),
           "requires" to requires,
           "sha512sum" to getChecksum(),
-          "preferred" to false
+          "preferred" to false,
+          "compatibility" to compatibility
         )
       )
     )

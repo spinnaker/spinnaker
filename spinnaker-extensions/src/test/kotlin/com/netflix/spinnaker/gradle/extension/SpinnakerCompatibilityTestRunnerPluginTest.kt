@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.gradle.extension
 
+import com.netflix.spinnaker.gradle.extension.compatibility.*
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import com.sun.net.httpserver.HttpServer
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withGroovyBuilder
-import org.gradle.api.tasks.testing.Test as GradleTestTask
 import org.gradle.testfixtures.ProjectBuilder
 import java.lang.IllegalStateException
 import java.net.InetSocketAddress
@@ -60,8 +60,8 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
     assertNotNull(rootProject.tasks.findByName(SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME))
     compatibility.forEach {
       subproject.tasks.findByName("${SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME}-$service-plugin-$it").also { task ->
-        assertNotNull(task)
-        assert(task is GradleTestTask)
+        require(task is CompatibilityTestTask)
+        assertEquals(task.result.get().asFile.path, subproject.buildDir.toPath().resolve("compatibility/$it.json").toString())
       }
       assertNotNull(subproject.sourceSets.findByName("compatibility-$it"))
       assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))

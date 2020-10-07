@@ -59,7 +59,7 @@ gradlePlugin {
 
     create("compatibilityTestRunner") {
       id = "io.spinnaker.plugin.compatibility-test-runner"
-      implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerCompatibilityTestRunnerPlugin"
+      implementationClass = "com.netflix.spinnaker.gradle.extension.compatibility.SpinnakerCompatibilityTestRunnerPlugin"
     }
   }
 }
