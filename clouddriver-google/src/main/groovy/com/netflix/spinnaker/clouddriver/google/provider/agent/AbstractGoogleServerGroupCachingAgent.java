@@ -930,7 +930,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
     output.setLoadBalancingUtilization(loadBalancing);
     output.setMaxNumReplicas(input.getMaxNumReplicas());
     output.setMinNumReplicas(input.getMinNumReplicas());
-    output.setMode(valueOf(AutoscalingMode.class, input.getMode()));
+    output.setMode(convertAutoscalingMode(input.getMode()));
     output.setScaleInControl(convertScaleInControl(input.getScaleInControl()));
     return output;
   }
@@ -977,6 +977,16 @@ abstract class AbstractGoogleServerGroupCachingAgent
     output.setUtilizationTargetType(
         valueOf(UtilizationTargetType.class, input.getUtilizationTargetType()));
     return output;
+  }
+
+  // ONLY_UP is deprecated, but may still be around in existing autoscaling policies
+  // (as of Q4 2020), so we'll just transform it into the replacement ASAP.
+  private static AutoscalingMode convertAutoscalingMode(@Nullable String input) {
+    if (Objects.equals(input, "ONLY_UP")) {
+      return AutoscalingMode.ONLY_SCALE_OUT;
+    } else {
+      return valueOf(AutoscalingMode.class, input);
+    }
   }
 
   private static ScaleInControl convertScaleInControl(

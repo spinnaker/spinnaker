@@ -67,6 +67,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.AutoscalingMode;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
@@ -793,6 +794,32 @@ class AbstractGoogleServerGroupCachingAgentTest {
               enumValue -> Optional.ofNullable(enumValue).map(Object::toString).orElse(null))
           .isEqualTo(inputCustomMetric.getUtilizationTargetType());
     }
+  }
+
+  @Test
+  void serverGroupAutoscalingPolicy_onlyUpIsTransformedToOnlyScaleOut() {
+
+    AutoscalingPolicy input = new AutoscalingPolicy().setMode("ONLY_UP");
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager().setName("myServerGroup").setZone(ZONE_URL);
+    Autoscaler autoscaler =
+        new Autoscaler().setZone(ZONE_URL).setTarget("myServerGroup").setAutoscalingPolicy(input);
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    GoogleAutoscalingPolicy converted = serverGroup.getAutoscalingPolicy();
+
+    assertThat(converted.getMode()).isEqualTo(AutoscalingMode.ONLY_SCALE_OUT);
   }
 
   @Test
