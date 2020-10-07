@@ -22,25 +22,31 @@ import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DestroyTitusJob;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DestroyTitusJobCompletionHandler
-    implements SagaCompletionHandler<DeleteServerGroupEvent> {
+    implements SagaCompletionHandler<Optional<DeleteServerGroupEvent>> {
 
   @Nullable
   @Override
-  public DeleteServerGroupEvent handle(@Nonnull Saga completedSaga) {
+  public Optional<DeleteServerGroupEvent> handle(@Nonnull Saga completedSaga) {
     final DestroyTitusJobDescription description =
         completedSaga.getEvent(DestroyTitusJob.DestroyTitusJobCommand.class).getDescription();
 
-    return new DeleteServerGroupEvent(
-        TitusCloudProvider.ID,
-        // titus entity tags are created using the account name (and not the accountId)
-        description.getAccount(),
-        description.getRegion(),
-        description.getServerGroupName());
+    if (description.getServerGroupName() == null) {
+      return Optional.empty();
+    }
+
+    return Optional.of(
+        new DeleteServerGroupEvent(
+            TitusCloudProvider.ID,
+            // titus entity tags are created using the account name (and not the accountId)
+            description.getAccount(),
+            description.getRegion(),
+            description.getServerGroupName()));
   }
 }

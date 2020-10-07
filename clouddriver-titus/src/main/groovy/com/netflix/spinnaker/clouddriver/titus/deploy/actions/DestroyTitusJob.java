@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
 import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
@@ -68,7 +70,7 @@ public class DestroyTitusJob implements SagaAction<DestroyTitusJob.DestroyTitusJ
         titusClientProvider.getTitusClient(
             (NetflixTitusCredentials) accountCredentials, command.description.getRegion());
 
-    Job job = titusClient.getJobAndAllRunningAndCompletedTasks(command.description.getJobId());
+    Job job = fetchJob(titusClient, command.description.getJobId());
     if (job != null) {
       titusClient.terminateJob(
           (TerminateJobRequest)
@@ -86,6 +88,18 @@ public class DestroyTitusJob implements SagaAction<DestroyTitusJob.DestroyTitusJ
     }
 
     return new Result();
+  }
+
+  private Job fetchJob(TitusClient titusClient, String jobId) {
+    try {
+      return titusClient.getJobAndAllRunningAndCompletedTasks(jobId);
+    } catch (StatusRuntimeException e) {
+      if (e.getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+        return null;
+      }
+
+      throw e;
+    }
   }
 
   @Builder(builderClassName = "DestroyTitusJobCommandBuilder", toBuilder = true)

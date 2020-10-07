@@ -24,7 +24,10 @@ import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.caching.providers.TitusJobProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DestroyTitusJobAtomicOperation
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -58,6 +61,20 @@ class DestroyTitusJobAtomicOperationConverter extends AbstractAtomicOperationsCr
       converted.requiresApplicationRestriction = !converted.applications.isEmpty()
       converted.serverGroupName = job.name
     } catch (Exception e) {
+      if (e instanceof StatusRuntimeException) {
+        def statusRuntimeException = (StatusRuntimeException) e
+        if (statusRuntimeException.status.code == Status.NOT_FOUND.code) {
+          throw new NotFoundException(
+            String.format(
+              "Titus job not found (jobId: %s, account: %s, region: %s)",
+              converted.jobId,
+              converted.credentials.name,
+              converted.region
+            )
+          )
+        }
+      }
+
       converted.applications = []
       converted.requiresApplicationRestriction = true
       log.error(

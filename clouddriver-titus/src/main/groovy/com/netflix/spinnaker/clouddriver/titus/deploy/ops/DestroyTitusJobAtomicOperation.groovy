@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull
 
 import javax.annotation.Nonnull
 
-class DestroyTitusJobAtomicOperation extends AbstractSagaAtomicOperation<DestroyTitusJobDescription, DeleteServerGroupEvent, Void> {
+class DestroyTitusJobAtomicOperation extends AbstractSagaAtomicOperation<DestroyTitusJobDescription, Optional<DeleteServerGroupEvent>, Void> {
   private final Collection<DeleteServerGroupEvent> events = []
 
   DestroyTitusJobAtomicOperation(DestroyTitusJobDescription description) {
@@ -53,8 +53,8 @@ class DestroyTitusJobAtomicOperation extends AbstractSagaAtomicOperation<Destroy
   }
 
   @Override
-  protected Void parseSagaResult(@NotNull @Nonnull DeleteServerGroupEvent result) {
-    events << result
+  protected Void parseSagaResult(@NotNull @Nonnull Optional<DeleteServerGroupEvent> result) {
+    result.map { events << it }
     return null
   }
 
