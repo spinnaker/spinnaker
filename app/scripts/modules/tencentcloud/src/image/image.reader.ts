@@ -37,7 +37,7 @@ export class TencentcloudImageReader {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
-    return API.one('images/find')
+    return API.one('images', 'find')
       .withParams({ ...params, provider: 'tencentcloud' })
       .get()
       .catch(() => [] as ITencentcloudImage[]);

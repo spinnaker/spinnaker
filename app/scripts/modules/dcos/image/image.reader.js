@@ -6,15 +6,15 @@ import { module } from 'angular';
 
 export const DCOS_IMAGE_IMAGE_READER = 'spinnaker.dcos.image.reader';
 export const name = DCOS_IMAGE_IMAGE_READER; // for backwards compatibility
-module(DCOS_IMAGE_IMAGE_READER, []).factory('dcosImageReader', function() {
+module(DCOS_IMAGE_IMAGE_READER, []).factory('dcosImageReader', function () {
   function findImages(params) {
-    return API.all('images/find')
+    return API.all('images', 'find')
       .getList(params)
       .then(
-        function(results) {
+        function (results) {
           return results;
         },
-        function() {
+        function () {
           return [];
         },
       );

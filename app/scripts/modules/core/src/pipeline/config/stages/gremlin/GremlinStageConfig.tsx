@@ -43,7 +43,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchCommands = (apiKey: string) => {
     return Observable.fromPromise(
-      API.one('integrations/gremlin/templates/command')
+      API.one('integrations', 'gremlin', 'templates', 'command')
         .post({
           apiKey,
         })
@@ -61,7 +61,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchTargets = (apiKey: string) => {
     return Observable.fromPromise(
-      API.one('integrations/gremlin/templates/target')
+      API.one('integrations', 'gremlin', 'templates', 'target')
         .post({
           apiKey,
         })
@@ -88,7 +88,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
     });
 
     // Get the data from all the necessary sources before rendering
-    Observable.forkJoin(this.fetchCommands(gremlinApiKey), this.fetchTargets(gremlinApiKey)).subscribe(results => {
+    Observable.forkJoin(this.fetchCommands(gremlinApiKey), this.fetchTargets(gremlinApiKey)).subscribe((results) => {
       const newState: IState = {
         isFetchingData: false,
       };
@@ -125,11 +125,11 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
     // Provides access to meta information for summary box
     const selectedCommandTemplateMeta =
       commands.length && stage.gremlinCommandTemplateId
-        ? commands.find(command => command.guid === stage.gremlinCommandTemplateId)
+        ? commands.find((command) => command.guid === stage.gremlinCommandTemplateId)
         : {};
     const selectedTargetTemplateMeta =
       targets.length && stage.gremlinTargetTemplateId
-        ? targets.find(target => target.guid === stage.gremlinTargetTemplateId)
+        ? targets.find((target) => target.guid === stage.gremlinTargetTemplateId)
         : {};
 
     return (
@@ -141,7 +141,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
               className="form-control input"
               type="text"
               value={stage.gremlinApiKey || ''}
-              onChange={e => this.onChange(e.target.name, e.target.value)}
+              onChange={(e) => this.onChange(e.target.name, e.target.value)}
             />
             <div className="form-control-static" style={{ paddingBottom: 0 }}>
               <div className="flex-container-h middle margin-between-md">
@@ -177,7 +177,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
             ) : (
               <Select
                 name="gremlinTargetTemplateId"
-                options={targets.map(target => ({
+                options={targets.map((target) => ({
                   label: target.name,
                   value: target.guid,
                 }))}
@@ -197,7 +197,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
             ) : (
               <Select
                 name="gremlinCommandTemplateId"
-                options={commands.map(command => ({
+                options={commands.map((command) => ({
                   label: command.name,
                   value: command.guid,
                 }))}

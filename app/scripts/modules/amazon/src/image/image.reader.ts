@@ -27,7 +27,7 @@ export class AwsImageReader {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
-    return API.one('images/find')
+    return API.one('images', 'find')
       .withParams(params)
       .get()
       .catch(() => [] as IAmazonImage[]);

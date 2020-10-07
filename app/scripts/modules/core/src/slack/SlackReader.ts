@@ -13,7 +13,7 @@ export interface ISlackChannel {
 
 export class SlackReader {
   public static getChannels(): IPromise<ISlackChannel[]> {
-    return API.one('slack/channels')
+    return API.one('slack', 'channels')
       .getList()
       .catch(() => [] as ISlackChannel[]);
   }
