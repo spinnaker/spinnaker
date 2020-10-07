@@ -63,7 +63,7 @@ public class ReorderPipelinesController {
   private Map handlePipelineReorder(
       ReorderPipelinesCommand reorderPipelinesCommand, Boolean isStrategy) {
     Map<String, Integer> idsToIndices = reorderPipelinesCommand.getIdsToIndices();
-    String application = reorderPipelinesCommand.getApplication();
+    var application = reorderPipelinesCommand.getApplication();
 
     if (idsToIndices == null) {
       throw new InvalidRequestException("`idsToIndices` is required field on request body");

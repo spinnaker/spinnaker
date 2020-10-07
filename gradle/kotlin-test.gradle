@@ -17,7 +17,7 @@
 apply plugin: "kotlin"
 
 dependencies {
-  testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"
@@ -39,6 +39,6 @@ test {
 compileTestKotlin {
   kotlinOptions {
     languageVersion = "1.4"
-    jvmTarget = "1.8"
+    jvmTarget = "11"
   }
 }
