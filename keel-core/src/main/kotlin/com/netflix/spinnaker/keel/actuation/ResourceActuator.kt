@@ -265,7 +265,11 @@ class ResourceActuator(
     }
 
   private fun DeliveryConfig.environmentFor(resource: Resource<*>): Environment? =
-    environments.firstOrNull { it.resources.contains(resource) }
+    environments.firstOrNull {
+      it.resources
+        .map { r -> r.id }
+        .contains(resource.id)
+    }
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
