@@ -23,9 +23,8 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
-    const icon = nodes.childAt(1).children();
-    expect(icon.find('svg').length).toEqual(1);
+    const nodes = wrapper.children();
+    expect(nodes.find('svg').length).toEqual(1);
   });
 
   it('should render a placeholder when there is icon', () => {
@@ -37,9 +36,8 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
-    const icon = nodes.childAt(1).children();
-    expect(icon.find('svg').length).toEqual(0);
+    const nodes = wrapper.children();
+    expect(nodes.find('svg').length).toEqual(0);
   });
 
   it('should render running tasks badge', () => {
@@ -59,11 +57,11 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
+    const nodes = wrapper.children();
     expect(nodes.find('.badge-running-count').length).toBe(1);
     expect(nodes.find('.badge-none').length).toBe(0);
 
-    const text = nodes.childAt(0).getDOMNode();
+    const text = nodes.find('.badge-running-count').getDOMNode();
     expect(text.textContent).toBe('2');
   });
 
@@ -77,11 +75,11 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
+    const nodes = wrapper.children();
     expect(nodes.find('.badge-running-count').length).toBe(0);
     expect(nodes.find('.badge-none').length).toBe(1);
 
-    const text = nodes.childAt(0).getDOMNode();
+    const text = nodes.find('.badge-none').getDOMNode();
     expect(text.textContent).toBe('');
   });
 
@@ -95,11 +93,11 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
+    const nodes = wrapper.children();
     expect(nodes.find('.badge-running-count').length).toBe(0);
     expect(nodes.find('.badge-none').length).toBe(1);
 
-    const text = nodes.childAt(0).getDOMNode();
+    const text = nodes.find('.badge-none').getDOMNode();
     expect(text.textContent).toBe('');
 
     const updatedApp = buildApp<IPipeline>(mockPipelineDataSourceConfig);
@@ -118,11 +116,11 @@ describe('NavItem', () => {
     wrapper.setProps({ children: <NavItem app={updatedApp} dataSource={dataSource} isActive={false} /> });
     wrapper.update();
 
-    const newNodes = wrapper.childAt(1).children();
+    const newNodes = wrapper.children();
     expect(newNodes.find('.badge-running-count').length).toBe(1);
     expect(newNodes.find('.badge-none').length).toBe(0);
 
-    const newText = nodes.childAt(0).getDOMNode();
+    const newText = newNodes.find('.badge-running-count').getDOMNode();
     expect(newText.textContent).toBe('2');
   });
 
@@ -134,7 +132,7 @@ describe('NavItem', () => {
         <NavItem app={app} dataSource={dataSource} isActive={false} />
       </RecoilRoot>,
     );
-    const nodes = wrapper.childAt(1).children();
+    const nodes = wrapper.children();
     const tags: IEntityTags[] = nodes.find('DataSourceNotifications').prop('tags');
     expect(tags.length).toEqual(0);
 
@@ -143,10 +141,7 @@ describe('NavItem', () => {
     wrapper.setProps({ children: <NavItem app={app} dataSource={dataSource} isActive={false} /> });
     wrapper.update();
 
-    const newTags: IEntityTags[] = wrapper
-      .children()
-      .find('DataSourceNotifications')
-      .prop('tags');
+    const newTags: IEntityTags[] = wrapper.children().find('DataSourceNotifications').prop('tags');
     expect(newTags.length).toEqual(1);
   });
 });

@@ -15,7 +15,7 @@ export const NavRoute = ({ app, dataSource }: INavRouteProps) => {
   const isActive = useIsActive(dataSource.activeState);
 
   return (
-    <a {...sref} className={isActive ? 'active' : ''}>
+    <a {...sref} className={`nav-category flex-container-h middle sp-padding-s-yaxis${isActive ? ' active' : ''}`}>
       <NavItem app={app} dataSource={dataSource} isActive={isActive} />
     </a>
   );
