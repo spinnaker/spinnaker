@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
+import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.io.File;
 import java.io.IOException;
@@ -701,15 +702,22 @@ public class Applications {
 
   public List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
       getTakenSlots(String clusterName, String spaceId) {
+    String finalName = buildFinalAsgName(clusterName);
     List<String> filter =
-        asList("name<" + clusterName + "-v9999", "name>=" + clusterName, "space_guid:" + spaceId);
+        asList("name<" + finalName, "name>=" + clusterName, "space_guid:" + spaceId);
     return collectPageResources("applications", page -> api.listAppsFiltered(page, filter, 10))
         .stream()
         .filter(
             app -> {
-              Names names = Names.parseName(app.getEntity().getName());
-              return clusterName.equals(names.getCluster());
+              Names entityNames = Names.parseName(app.getEntity().getName());
+              return clusterName.equals(entityNames.getCluster());
             })
         .collect(Collectors.toList());
+  }
+
+  private String buildFinalAsgName(String clusterName) {
+    Names names = Names.parseName(clusterName);
+    return AbstractServerGroupNameResolver.generateServerGroupName(
+        names.getApp(), names.getStack(), names.getDetail(), 999, false);
   }
 }
