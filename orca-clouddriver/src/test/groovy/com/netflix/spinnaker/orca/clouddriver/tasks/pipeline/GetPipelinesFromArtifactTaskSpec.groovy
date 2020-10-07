@@ -31,13 +31,13 @@ import spock.lang.Subject
 
 class GetPipelinesFromArtifactTaskSpec extends Specification {
 
-  final Front50Service front50Service = Mock()
-  final OortService oortService = Mock()
-  final ArtifactUtils artifactUtils = Mock()
-  final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
+  Front50Service front50Service = Mock()
+  OortService oortService = Mock()
+  ArtifactUtils artifactUtils = Mock()
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   @Subject
-  final task = new GetPipelinesFromArtifactTask(front50Service, oortService, objectMapper, artifactUtils)
+  def task = new GetPipelinesFromArtifactTask(front50Service, oortService, objectMapper, artifactUtils)
 
   void 'extract pipelines JSON from artifact'() {
     when:
@@ -94,7 +94,7 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     ex.message == "No artifact could be bound to '123'"
   }
 
-  final pipelineJson = '''
+  private static final pipelineJson = '''
 {
   "app1": [{
     "name": "just waiting",

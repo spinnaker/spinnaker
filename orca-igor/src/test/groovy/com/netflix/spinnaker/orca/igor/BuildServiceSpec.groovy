@@ -23,12 +23,12 @@ class BuildServiceSpec extends Specification {
   BuildService buildService
   IgorService igorService
 
-  final MASTER = 'MASTER'
-  final BUILD_NUMBER = 123
-  final JOB_NAME = "name/with/slashes and spaces"
-  final JOB_NAME_ENCODED = "name/with/slashes%20and%20spaces"
-  final PARAMS = ['key': 'value']
-  final FILENAME = 'file.txt'
+  private static final MASTER = 'MASTER'
+  private static final BUILD_NUMBER = 123
+  private static final JOB_NAME = "name/with/slashes and spaces"
+  private static final JOB_NAME_ENCODED = "name/with/slashes%20and%20spaces"
+  private static final PARAMS = ['key': 'value']
+  private static final FILENAME = 'file.txt'
 
   void setup() {
     igorService = Mock(IgorService)

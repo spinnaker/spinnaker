@@ -25,7 +25,7 @@ import spock.lang.Subject
 class CheckForRemainingPipelinesTaskSpec extends Specification {
 
   @Subject
-  final task = new CheckForRemainingPipelinesTask()
+  def task = new CheckForRemainingPipelinesTask()
 
   void 'keep looping to save more tasks'() {
     when:

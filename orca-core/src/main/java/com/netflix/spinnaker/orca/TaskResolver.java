@@ -51,7 +51,7 @@ public class TaskResolver {
   public TaskResolver(ObjectProvider<Collection<Task>> tasksProvider, boolean allowFallback) {
     this.allowFallback = allowFallback;
     this.tasksProvider = tasksProvider;
-    Collection<Task> tasks = tasksProvider.getIfAvailable(ArrayList::new);
+    var tasks = tasksProvider.getIfAvailable(ArrayList::new);
     for (Task task : tasks) {
       taskByAlias.put(task.getExtensionClass().getCanonicalName(), task);
       addAliases(task);

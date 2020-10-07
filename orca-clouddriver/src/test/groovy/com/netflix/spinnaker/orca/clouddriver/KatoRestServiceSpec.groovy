@@ -55,7 +55,7 @@ class KatoRestServiceSpec extends Specification {
 
   def mapper = OrcaObjectMapper.newInstance()
 
-  final taskId = "e1jbn3"
+  private static final taskId = "e1jbn3"
 
   def setup() {
     def cfg = new CloudDriverConfiguration()

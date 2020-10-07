@@ -25,10 +25,10 @@ import spock.lang.Subject
 
 class PreparePipelineToSaveTaskSpec extends Specification {
 
-  final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   @Subject
-  final task = new PreparePipelineToSaveTask(objectMapper)
+  def task = new PreparePipelineToSaveTask(objectMapper)
 
   void 'prepare pipeline for save pipeline task'() {
     when:

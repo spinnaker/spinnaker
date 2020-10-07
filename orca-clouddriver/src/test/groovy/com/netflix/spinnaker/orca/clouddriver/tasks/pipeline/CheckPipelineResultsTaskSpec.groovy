@@ -26,10 +26,10 @@ import spock.lang.Subject
 
 class CheckPipelineResultsTaskSpec extends Specification {
 
-  final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   @Subject
-  final task = new CheckPipelineResultsTask(objectMapper)
+  def task = new CheckPipelineResultsTask(objectMapper)
 
   void 'add created pipeline success to context'() {
     when:
