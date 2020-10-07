@@ -27,21 +27,22 @@ import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.time.Instant
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
-    val subject = ImageService(cloudDriver)
+    val cloudDriverCache = mockk<CloudDriverCache>()
+    val subject = ImageService(cloudDriver, cloudDriverCache)
 
     val mapper = configuredObjectMapper()
 
@@ -225,7 +226,7 @@ class ImageServiceTests : JUnit5Minutests {
 
     context("given a list of images") {
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(
             user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
@@ -249,7 +250,7 @@ class ImageServiceTests : JUnit5Minutests {
 
     context("given a list of images") {
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(
             user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
@@ -275,7 +276,7 @@ class ImageServiceTests : JUnit5Minutests {
       mapOf("us-west-1" to "ami-003", "ap-south-1" to "ami-005").map { (region, imageId) ->
         dynamicTest("get latest image can be filtered by region ($region)") {
           before {
-            coEvery {
+            every {
               cloudDriver.namedImages(
                 user = DEFAULT_SERVICE_ACCOUNT,
                 imageName = "my-package",
@@ -306,7 +307,7 @@ class ImageServiceTests : JUnit5Minutests {
 
     context("no image found for latest artifact") {
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(
             user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
@@ -329,7 +330,7 @@ class ImageServiceTests : JUnit5Minutests {
 
     context("searching for a very specific image version") {
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(any(), any(), any())
         } returns listOf(image2)
       }
@@ -344,7 +345,7 @@ class ImageServiceTests : JUnit5Minutests {
             .isEqualTo(image2)
         }
 
-        coVerify {
+        verify {
           cloudDriver.namedImages(
             user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package-0.0.1_rc.98-h99.4cb755c",
@@ -356,7 +357,7 @@ class ImageServiceTests : JUnit5Minutests {
 
     context("given jenkins info") {
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
         } returns listOf(image2, image4, image3, image1)
       }
@@ -381,7 +382,7 @@ class ImageServiceTests : JUnit5Minutests {
       val packageName = "keel"
       val regions = listOf("us-west-2", "us-east-1")
       before {
-        coEvery {
+        every {
           cloudDriver.namedImages(
             user = DEFAULT_SERVICE_ACCOUNT,
             imageName = packageName,
@@ -404,9 +405,8 @@ class ImageServiceTests : JUnit5Minutests {
       val appVersion = "keel-0.312.0-h240.44eaaa3"
       val regions = listOf("us-west-2", "us-east-1")
       before {
-        coEvery {
-          cloudDriver.namedImages(
-            user = DEFAULT_SERVICE_ACCOUNT,
+        every {
+          cloudDriverCache.namedImages(
             imageName = appVersion,
             account = "test"
           )

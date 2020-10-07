@@ -18,21 +18,26 @@ package com.netflix.spinnaker.keel.clouddriver
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.future.future
+import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MINUTES
 import java.util.function.BiFunction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.future.future
-import kotlinx.coroutines.runBlocking
-import retrofit2.HttpException
 
 /**
  * An in-memory cache for calls against cloud driver
@@ -44,38 +49,63 @@ import retrofit2.HttpException
  * For more details on why using async, see: https://github.com/spinnaker/keel/pull/1154
  */
 class MemoryCloudDriverCache(
-  private val cloudDriver: CloudDriverService
+  private val cloudDriver: CloudDriverService,
+  private val meterRegistry: MeterRegistry
 ) : CloudDriverCache {
 
   private val securityGroupSummariesByIdOrName = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(1000)
     .expireAfterWrite(1, MINUTES)
+    .recordStats()
     .buildAsync<String, SecurityGroupSummary>()
+    .withMetrics("securityGroups")
 
   private val networks = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(1000)
     .expireAfterWrite(1, HOURS)
+    .recordStats()
     .buildAsync<String, Network>()
+    .withMetrics("networks")
 
   private val availabilityZones = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(1000)
     .expireAfterWrite(1, HOURS)
+    .recordStats()
     .buildAsync<String, Set<String>>()
+    .withMetrics("availabilityZones")
 
   private val credentials = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(100)
     .expireAfterWrite(1, HOURS)
+    .recordStats()
     .buildAsync<String, Credential>()
+    .withMetrics("credentials")
 
   private val subnetsById = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(1000)
     .expireAfterWrite(1, HOURS)
+    .recordStats()
     .buildAsync<String, Subnet>()
+    .withMetrics("subnetsById")
 
   private val subnetsByPurpose = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
     .maximumSize(1000)
     .expireAfterWrite(1, HOURS)
+    .recordStats()
     .buildAsync<String, Subnet>()
+    .withMetrics("subnetsByPurpose")
+
+  private val namedImagesByAccountAndImageName = Caffeine.newBuilder()
+    .executor(IO.asExecutor())
+    .recordStats()
+    .buildAsync<String, List<NamedImage>>()
+    .withMetrics("namedImages")
 
   override fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
@@ -85,10 +115,13 @@ class MemoryCloudDriverCache(
   /**
    * Convert a suspending function to a [BiFunction] that [AsyncCache.get] expects as its second argument
    *
-   * Uses [Dispatchers.IO] because it assumes that [block] makes I/O calls
+   * Uses a coroutine dispatcher based on the cache's [Executor].
    */
-  private fun <T> asyncify(block: suspend CoroutineScope.() -> T?): BiFunction<String, Executor, CompletableFuture<T?>> =
-    BiFunction { _, _ -> CoroutineScope(Dispatchers.IO).future(block = block) }
+  private fun <K, V> asyncify(block: suspend CoroutineScope.(K) -> V?): BiFunction<K, Executor, CompletableFuture<V?>> =
+    BiFunction { key, executor ->
+      CoroutineScope(executor.asCoroutineDispatcher())
+        .future(block = { block(key) })
+    }
 
   override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
     securityGroupSummariesByIdOrName.getOrNotFound(
@@ -155,11 +188,19 @@ class MemoryCloudDriverCache(
         .find { it.account == account && it.region == region && it.purpose == purpose }
     }
 
-  private fun <T> AsyncCache<String, T>.getOrNotFound(
-    key: String,
+  override fun namedImages(imageName: String, account: String): List<NamedImage> =
+    runBlocking {
+      namedImagesByAccountAndImageName.get(
+        "$account:$imageName",
+        asyncify { cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, imageName, account) }
+      ).await() ?: emptyList()
+    }
+
+  private fun <K, V> AsyncCache<K, V>.getOrNotFound(
+    key: K,
     notFoundMessage: String,
-    loader: suspend CoroutineScope.() -> T?
-  ): T = runCatching {
+    loader: suspend CoroutineScope.(K) -> V?
+  ): V = runCatching {
     runBlocking {
       get(key, asyncify(loader)).await()
     }
@@ -170,4 +211,7 @@ class MemoryCloudDriverCache(
       throw CacheLoadingException("Error loading cache for $key", ex)
     }
   } ?: throw ResourceNotFound(notFoundMessage)
+
+  private fun <C : AsyncCache<K, V>, K, V> C.withMetrics(cacheName: String): C =
+    CaffeineCacheMetrics.monitor(meterRegistry, this, cacheName)
 }

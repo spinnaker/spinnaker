@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_SERVICE_UNAVAILABLE
-import io.mockk.coEvery as every
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -15,11 +15,13 @@ import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import io.mockk.coEvery as every
 
 object MemoryCloudDriverCacheTest {
 
   val cloudDriver = mockk<CloudDriverService>()
-  val subject = MemoryCloudDriverCache(cloudDriver)
+  val meterRegistry = SimpleMeterRegistry()
+  val subject = MemoryCloudDriverCache(cloudDriver, meterRegistry)
 
   val sg1 = SecurityGroupSummary("foo", "sg-1", "vpc-1")
   val sg2 = SecurityGroupSummary("bar", "sg-2", "vpc-1")

@@ -29,7 +29,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class ImageService(
-  private val cloudDriverService: CloudDriverService
+  private val cloudDriverService: CloudDriverService,
+  private val cloudDriverCache: CloudDriverCache
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -105,8 +106,7 @@ class ImageService(
    * Each ami must have tags.
    */
   suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: Collection<String>): NamedImage? =
-    cloudDriverService.namedImages(
-      user = DEFAULT_SERVICE_ACCOUNT,
+    cloudDriverCache.namedImages(
       imageName = appVersion.toImageName().replace("~", "_"),
       account = account
     )

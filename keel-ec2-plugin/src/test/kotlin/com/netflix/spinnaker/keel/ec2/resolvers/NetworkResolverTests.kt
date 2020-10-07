@@ -33,15 +33,16 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.coEvery
 import io.mockk.mockk
-import java.time.Duration
 import org.apache.commons.lang3.RandomStringUtils
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import java.time.Duration
 
 internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>> : JUnit5Minutests {
 
@@ -122,7 +123,7 @@ internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>
     val cloudDriverService = mockk<CloudDriverService>() {
       coEvery { listSubnets("aws") } returns subnets
     }
-    val cloudDriverCache = MemoryCloudDriverCache(cloudDriverService)
+    val cloudDriverCache = MemoryCloudDriverCache(cloudDriverService, SimpleMeterRegistry())
     val subject = subjectFactory(cloudDriverCache)
     val resolved by lazy { subject(resource) }
 
