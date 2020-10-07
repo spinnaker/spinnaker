@@ -188,3 +188,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200930-environment-check-lock.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201006-add-unhealthy-repository.yml
+      relativeToChangelogFile: true

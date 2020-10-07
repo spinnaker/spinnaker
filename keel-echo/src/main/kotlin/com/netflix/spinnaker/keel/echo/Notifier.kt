@@ -6,10 +6,8 @@ import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.echo.model.EchoNotification.InteractiveActions
-import com.netflix.spinnaker.keel.events.ResourceHealthEvent
+import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.events.NotificationEvent
-import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
-import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.NotificationRepository
@@ -138,14 +136,8 @@ class Notifier(
       null
     }
 
-  /**
-   * Clears a resource notification for the unhealthy notifier,
-   * if it exists
-   */
-  @EventListener(ResourceHealthEvent::class)
-  fun onResourceHealthEvent(event: ResourceHealthEvent) {
-    if (event.healthy) {
-      notificationRepository.clearNotification(RESOURCE, event.resource.id, UNHEALTHY_RESOURCE)
-    }
+  @EventListener(ClearNotificationEvent::class)
+  fun onClearNotificationEvent(event: ClearNotificationEvent) {
+    notificationRepository.clearNotification(event.scope, event.ref, event.type)
   }
 }

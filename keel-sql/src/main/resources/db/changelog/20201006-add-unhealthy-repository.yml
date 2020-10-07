@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-unhealthy-repo
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: unhealthy
+            columns:
+              - column:
+                  name: resource_id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: time_detected
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"

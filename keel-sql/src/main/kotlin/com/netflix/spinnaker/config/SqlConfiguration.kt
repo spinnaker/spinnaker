@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.keel.sql.SqlRetry
 import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
+import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -105,9 +106,16 @@ class SqlConfiguration {
   ) = SqlAgentLockRepository(jooq, clock, agents, SqlRetry(sqlRetryProperties))
 
   @Bean
-  fun notifierRepository(
+  fun notificationRepository(
     jooq: DSLContext,
     clock: Clock,
     properties: SqlProperties
   ) = SqlNotificationRepository(clock, jooq, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun unhealthyRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    properties: SqlProperties
+  ) = SqlUnhealthyRepository(clock, jooq, SqlRetry(sqlRetryProperties))
 }

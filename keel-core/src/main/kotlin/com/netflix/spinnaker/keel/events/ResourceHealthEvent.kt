@@ -7,5 +7,5 @@ import com.netflix.spinnaker.keel.api.Resource
  */
 data class ResourceHealthEvent(
   val resource: Resource<*>,
-  val healthy: Boolean = true
+  val isHealthy: Boolean = true
 )

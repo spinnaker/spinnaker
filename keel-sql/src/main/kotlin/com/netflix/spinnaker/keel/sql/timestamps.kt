@@ -7,3 +7,5 @@ import java.time.ZoneOffset.UTC
 
 fun Instant.toTimestamp(): LocalDateTime = atZone(UTC).toLocalDateTime()
 fun Clock.timestamp(): LocalDateTime = instant().toTimestamp()
+
+fun LocalDateTime.toInstant(): Instant = atZone(UTC).toInstant()

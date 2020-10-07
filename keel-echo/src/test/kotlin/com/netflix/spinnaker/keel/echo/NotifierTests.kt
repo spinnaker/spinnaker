@@ -1,13 +1,14 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationType.email
 import com.netflix.spinnaker.keel.api.NotificationType.slack
+import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.notifications.Notification
-import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
 import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
@@ -30,12 +31,12 @@ import org.springframework.core.env.Environment as SpringframeworkCoreEnvEnviron
 class NotifierTests : JUnit5Minutests {
 
   class Fixture {
-    val keelNotificationConfig: com.netflix.spinnaker.config.KeelNotificationConfig = mockk(relaxed = true)
+    val keelNotificationConfig = KeelNotificationConfig()
     val echoService: EchoService = mockk(relaxed = true)
     val repository: KeelRepository = mockk(relaxed = true)
     val notificationRepository: NotificationRepository = mockk(relaxed = true)
     val springEnv: SpringframeworkCoreEnvEnvironment = mockk(relaxed = true) {
-      every {getProperty("keel.notifications.resource", Boolean::class.java, true)} returns true
+      every { getProperty("keel.notifications.resource", Boolean::class.java, true)} returns true
     }
     val registry: NoopRegistry = NoopRegistry()
     val subject = Notifier(echoService, repository, notificationRepository, keelNotificationConfig, springEnv, registry)
@@ -55,6 +56,12 @@ class NotifierTests : JUnit5Minutests {
       r.id,
       UNHEALTHY_RESOURCE,
       Notification("hi", "you")
+    )
+
+    val clearEvent = ClearNotificationEvent(
+      RESOURCE,
+      r.id,
+      UNHEALTHY_RESOURCE,
     )
   }
 
@@ -121,16 +128,26 @@ class NotifierTests : JUnit5Minutests {
       }
     }
 
-    context("health events") {
-      test("healthy triggers clear notification") {
-        subject.onResourceHealthEvent(ResourceHealthEvent(r, true))
-        verify(exactly = 1) {notificationRepository.clearNotification(RESOURCE, r.id, UNHEALTHY_RESOURCE)}
+    context("clearing notifications") {
+      context("notification exists") {
+        before {
+          every { notificationRepository.addNotification(event.scope, event.ref, event.type)} returns true
+          every { repository.getResource(r.id) } returns r
+          every { repository.environmentFor(r.id) } returns env
+        }
+
+        test("clearing works") {
+          subject.onClearNotificationEvent(clearEvent)
+          verify(exactly = 1) { notificationRepository.clearNotification(event.scope, event.ref, event.type) }
+        }
+      }
+      context("nothing exists") {
+        test("clearing works") {
+          subject.onClearNotificationEvent(clearEvent)
+          verify(exactly = 1) { notificationRepository.clearNotification(event.scope, event.ref, event.type) }
+        }
       }
 
-      test("unhealthy does nothing") {
-        subject.onResourceHealthEvent(ResourceHealthEvent(r, false))
-        verify(exactly = 0) {notificationRepository.clearNotification(RESOURCE, r.id, UNHEALTHY_RESOURCE)}
-      }
     }
   }
 }
