@@ -70,6 +70,15 @@ class SqlArtifactRepository(
   private val sqlRetry: SqlRetry,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
 ) : ArtifactRepository {
+
+  companion object {
+    private val ARTIFACT_VERSIONS_BRANCH =
+      field<String?>("json_unquote(keel.artifact_versions.git_metadata->'$.branch')")
+    private val ARTIFACT_VERSIONS_PR_NUMBER =
+      field<String?>("json_unquote(keel.artifact_versions.git_metadata->'$.pullRequest.number')")
+    private const val EMPTY_PR_NUMBER = "\"\""
+  }
+
   override fun register(artifact: DeliveryArtifact) {
     val id: String = (
       sqlRetry.withRetry(READ) {
@@ -221,31 +230,63 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun versions(artifact: DeliveryArtifact, limit: Int): List<String> =
-    if (isRegistered(artifact.name, artifact.type)) {
-      sqlRetry.withRetry(READ) {
-        jooq
-          .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
-          .from(ARTIFACT_VERSIONS)
-          .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
-          .fetch()
-          .getValues(ARTIFACT_VERSIONS.VERSION)
-      }
-        .sortedWith(artifact.versioningStrategy.comparator)
-        .also { versions ->
-          // FIXME: remove special handling for Docker
-          // FIXME: limit the sql query, not the returned list (once we'll have a native sorting mechanism)
-          return if (artifact is DockerArtifact) {
-            filterDockerVersions(artifact, versions, limit)
-          } else {
-            versions.subList(0, Math.min(versions.size, limit))
-          }
-        }
-    } else {
+  override fun versions(artifact: DeliveryArtifact, limit: Int): List<String> {
+    if (!isRegistered(artifact.name, artifact.type)) {
       throw NoSuchArtifactException(artifact)
     }
+
+    val versions = sqlRetry.withRetry(READ) {
+      jooq
+        .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
+        .from(ARTIFACT_VERSIONS)
+        .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+        .apply {
+          if (artifact.filteredByReleaseStatus) {
+            and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray()))
+          } else {
+            // TODO: should we also be comparing the repo with what's configured for the app in front50?
+
+            if (artifact.filteredByPullRequest) {
+              and(ARTIFACT_VERSIONS_PR_NUMBER.isNotNull).and(ARTIFACT_VERSIONS_PR_NUMBER.ne(EMPTY_PR_NUMBER))
+            }
+
+            if (artifact.filteredByBranch) {
+              artifact.from?.branch?.name?.also {
+                and(ARTIFACT_VERSIONS_BRANCH.eq(it))
+              }
+              artifact.from?.branch?.startsWith?.also {
+                and(ARTIFACT_VERSIONS_BRANCH.startsWith(it))
+              }
+              artifact.from?.branch?.regex?.also {
+                and(ARTIFACT_VERSIONS_BRANCH.likeRegex(it))
+              }
+            }
+
+            // With branches or pull requests, delegate sorting and limiting to the database
+            if (artifact.filteredByPullRequest || artifact.filteredByBranch) {
+              and(ARTIFACT_VERSIONS.CREATED_AT.isNotNull)
+                .orderBy(ARTIFACT_VERSIONS.CREATED_AT.desc())
+                .limit(limit)
+            }
+          }
+        }
+        .fetch()
+        .getValues(ARTIFACT_VERSIONS.VERSION)
+    }
+
+    return if (artifact.filteredByPullRequest || artifact.filteredByBranch) {
+      versions
+    } else {
+      val sortedVersions = versions.sortedWith(artifact.versioningStrategy.comparator)
+      if (artifact is DockerArtifact) {
+        // FIXME: remove special handling for Docker
+        filterDockerVersions(artifact, sortedVersions, limit)
+      } else {
+        sortedVersions.subList(0, Math.min(sortedVersions.size, limit))
+      }
+    }
+  }
 
   override fun storeArtifactInstance(artifact: PublishedArtifact): Boolean {
     with(artifact) {

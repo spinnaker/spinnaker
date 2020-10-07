@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -15,7 +16,8 @@ data class DebianArtifact(
   override val reference: String = name,
   val vmOptions: VirtualMachineOptions,
   override val statuses: Set<ArtifactStatus> = emptySet(),
-  override val versioningStrategy: VersioningStrategy = DebianVersioningStrategy
+  override val versioningStrategy: VersioningStrategy = DebianVersioningStrategy,
+  override val from: ArtifactOriginFilterSpec? = null
 ) : DeliveryArtifact() {
   override val type = DEBIAN
   override fun toString(): String = super.toString()
