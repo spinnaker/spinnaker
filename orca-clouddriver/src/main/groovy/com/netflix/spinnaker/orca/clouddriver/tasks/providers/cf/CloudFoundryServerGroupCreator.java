@@ -119,19 +119,25 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
     return artifact;
   }
 
+  @SuppressWarnings("unchecked")
   private Moniker buildMoniker(Map<String, Object> context) {
+    Map<String, String> source = (Map<String, String>) context.get("source");
+    String friggaName = null;
+
+    if (source != null) {
+      String asgName = source.get("asgName");
+      String serverGroupName = source.get("serverGroupName");
+      friggaName = asgName != null ? asgName : serverGroupName;
+    }
+
+    if (friggaName != null && !friggaName.isEmpty()) {
+      return MonikerHelper.friggaToMoniker(friggaName);
+    }
+
     String app = context.get("application").toString();
     String stack = (String) context.getOrDefault("stack", "");
     String detail = (String) context.getOrDefault("freeFormDetails", "");
-
-    String cluster = app;
-    if (!stack.isEmpty()) {
-      cluster = cluster + "-" + stack;
-    }
-    if (!detail.isEmpty()) {
-      cluster = cluster + "-" + detail;
-    }
-    return MonikerHelper.friggaToMoniker(cluster);
+    return Moniker.builder().app(app).stack(stack).detail(detail).build();
   }
 
   @Override
