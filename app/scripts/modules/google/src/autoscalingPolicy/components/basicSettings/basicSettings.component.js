@@ -14,7 +14,7 @@ module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT
     },
     templateUrl: require('./basicSettings.component.html'),
     controller: function controller() {
-      this.modes = ['ON', 'OFF', 'ONLY_UP'];
+      this.modes = ['ON', 'OFF', 'ONLY_SCALE_OUT'];
     },
   },
 );

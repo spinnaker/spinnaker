@@ -155,7 +155,7 @@ const helpContents: { [key: string]: string } = {
   'gce.serverGroup.autoscaling.cooldown':
     'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance. To find the minimum, create an instance from the same image and note how long it takes to start.',
   'gce.serverGroup.autoscaling.mode':
-    'Mode of operation of the autoscaling policy. This guides the autoscaler by defining the types of scaling operations it can perform. Options are ON, ONLY_UP, and OFF.',
+    'Mode of operation of the autoscaling policy. This guides the autoscaler by defining the types of scaling operations it can perform. Options are ON, ONLY_SCALE_OUT, and OFF.',
   'gce.serverGroup.autoHealing':
     'VMs in the group are recreated as needed. You can use a health check to recreate a VM if the health check finds the VM unresponsive. If you do not select a health check, VMs are recreated only when stopped.',
   'gce.serverGroup.initialDelaySec':
@@ -212,4 +212,4 @@ const helpContents: { [key: string]: string } = {
     '<p>Google Cloud Platform (GCP) TCP Proxy Load Balancing allows you to use a single IP address for all users around the world. GCP TCP proxy load balancing automatically routes traffic to the instances that are closest to the user.</p>',
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));
