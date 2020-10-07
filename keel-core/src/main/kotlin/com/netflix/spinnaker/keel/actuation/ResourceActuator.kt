@@ -71,33 +71,33 @@ class ResourceActuator(
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     withTracingContext(resource) {
       val id = resource.id
-      log.debug("checkResource $id")
-      val plugin = handlers.supporting(resource.kind)
-
-      if (actuationPauser.isPaused(resource)) {
-        log.debug("Actuation for resource {} is paused, skipping checks", id)
-        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
-        return@withTracingContext
-      }
-
-      if (plugin.actuationInProgress(resource)) {
-        log.debug("Actuation for resource {} is already running, skipping checks", id)
-        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationInProgress"))
-        return@withTracingContext
-      }
-
-      val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-      val environment = checkNotNull(deliveryConfig.environmentFor(resource)) {
-        "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name}"
-      }
-
-      if (deliveryConfig.isPromotionCheckStale()) {
-        log.debug("Environments check for {} is stale, skipping checks", deliveryConfig.name)
-        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "PromotionCheckStale"))
-        return@withTracingContext
-      }
-
       try {
+        log.debug("checkResource $id")
+        val plugin = handlers.supporting(resource.kind)
+
+        if (actuationPauser.isPaused(resource)) {
+          log.debug("Actuation for resource {} is paused, skipping checks", id)
+          publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
+          return@withTracingContext
+        }
+
+        if (plugin.actuationInProgress(resource)) {
+          log.debug("Actuation for resource {} is already running, skipping checks", id)
+          publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationInProgress"))
+          return@withTracingContext
+        }
+
+        val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+        val environment = checkNotNull(deliveryConfig.environmentFor(resource)) {
+          "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name}"
+        }
+
+        if (deliveryConfig.isPromotionCheckStale()) {
+          log.debug("Environments check for {} is stale, skipping checks", deliveryConfig.name)
+          publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "PromotionCheckStale"))
+          return@withTracingContext
+        }
+
         val (desired, current) = plugin.resolve(resource)
         val diff = DefaultResourceDiff(desired, current)
         if (diff.hasChanges()) {
