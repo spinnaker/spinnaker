@@ -737,6 +737,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       attributes.put("region", region.getName());
       attributes.put("account", account.getName());
       attributes.put("targetGroups", data.targetGroupNames);
+      attributes.put("application", data.name.getApp());
 
       Map<String, Collection<String>> relationships = serverGroupCache.getRelationships();
       relationships.computeIfAbsent(APPLICATIONS.ns, key -> new HashSet<>()).add(data.appNameKey);
@@ -766,6 +767,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       instanceCache.getAttributes().put(HEALTH.ns, singletonList(getTitusHealth(data.task)));
       instanceCache.getAttributes().put("task", data.task);
       instanceCache.getAttributes().put("jobId", data.jobId);
+      instanceCache.getAttributes().put("application", Names.parseName(data.serverGroup).getApp());
 
       if (!data.serverGroup.isEmpty()) {
         instanceCache
