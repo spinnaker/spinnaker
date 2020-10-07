@@ -70,7 +70,7 @@ public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
   enum AutoscalingMode {
     ON,
     OFF,
-    ONLY_UP
+    ONLY_SCALE_OUT
   }
 
   @Data
