@@ -35,7 +35,6 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +65,7 @@ public class GcsConfig {
 
   private GcsStorageService googleCloudStorageService(
       Storage storage, String dataFilename, GcsProperties gcsProperties) {
-    ExecutorService executor =
+    var executor =
         Executors.newCachedThreadPool(
             new ThreadFactoryBuilder()
                 .setNameFormat(GcsStorageService.class.getName() + "-%s")
