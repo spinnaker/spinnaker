@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.SpinnakerAwsRegionProvider;
 import java.io.Closeable;
 
 public class NetflixSTSAssumeRoleSessionCredentialsProvider
@@ -37,12 +38,16 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider
       String externalId) {
     this.accountId = accountId;
 
+    var chain = new SpinnakerAwsRegionProvider();
+    var region = chain.getRegion();
+
     delegate =
         new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
             .withExternalId(externalId)
             .withStsClient(
                 AWSSecurityTokenServiceClient.builder()
                     .withCredentials(longLivedCredentialsProvider)
+                    .withRegion(region)
                     .build())
             .build();
 
