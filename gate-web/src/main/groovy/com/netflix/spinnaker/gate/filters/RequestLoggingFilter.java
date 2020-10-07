@@ -77,7 +77,6 @@ public class RequestLoggingFilter extends HttpFilter {
         MDC.remove("requestUserAgent");
         MDC.remove("requestPort");
         MDC.remove(REQUEST_START_TIME);
-        AuthenticatedRequest.clear();
       }
     }
   }

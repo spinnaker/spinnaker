@@ -35,6 +35,7 @@ import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
+import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -366,6 +367,13 @@ class GateConfig extends RedisHttpSessionConfiguration {
     )
   }
 
+  @Bean
+  FilterRegistrationBean resetAuthenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new ResetAuthenticatedRequestFilter())
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
+  }
+
   /**
    * This AuthenticatedRequestFilter pulls the email and accounts out of the Spring
    * security context in order to enabling forwarding them to downstream components.
@@ -376,7 +384,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
   FilterRegistrationBean authenticatedRequestFilter() {
     // no need to force the `AuthenticatedRequestFilter` to create a request id as that is
     // handled by the `RequestTimingFilter`.
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, false))
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, false, false))
     frb.order = Ordered.LOWEST_PRECEDENCE - 1
     return frb
   }
@@ -401,7 +409,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     def frb = new FilterRegistrationBean(new RequestLoggingFilter())
     // this filter should be placed very early in the request chain to ensure we track an accurate start time and
     // have a request id available to propagate across thread and service boundaries.
-    frb.order = Ordered.HIGHEST_PRECEDENCE
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 1
     return frb
   }
 
