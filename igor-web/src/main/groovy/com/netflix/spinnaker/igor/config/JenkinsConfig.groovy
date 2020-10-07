@@ -32,10 +32,10 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import okhttp3.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -147,15 +147,7 @@ class JenkinsConfig {
             if (host.trustStore.equals("*")) {
                 trustManagers = [new TrustAllTrustManager()]
             } else {
-                def trustStorePassword = host.trustStorePassword
-                def trustStore = KeyStore.getInstance(host.trustStoreType)
-                new File(host.trustStore).withInputStream {
-                    trustStore.load(it, trustStorePassword.toCharArray())
-                }
-                def trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-                trustManagerFactory.init(trustStore)
-
-                trustManagers = trustManagerFactory.trustManagers
+                trustManagers = createTrustStore(host.trustStore, host.trustStorePassword, host.trustStoreType)
             }
         }
 
@@ -169,13 +161,19 @@ class JenkinsConfig {
             keyManagerFactory.init(keyStore, keyStorePassword.toCharArray())
 
             keyManagers = keyManagerFactory.keyManagers
+
+            if (trustManagers == null) {
+                log.warn("${host.name}: okhttp3 (unlike okhttp2) doesn't support configuring only a keystore without " +
+                        "a truststore. Please configure a truststore to get rid of this message. Trying to use the " +
+                        "keystore '${host.keyStore}' as a truststore as well. Your mileage may vary.")
+                trustManagers = createTrustStore(host.keyStore, host.keyStorePassword, host.keyStoreType)
+            }
         }
 
         if (trustManagers || keyManagers) {
             def sslContext = SSLContext.getInstance("TLS")
             sslContext.init(keyManagers, trustManagers, null)
-
-            clientBuilder.sslSocketFactory(sslContext.socketFactory,(X509TrustManager)  trustManagers[0])
+            clientBuilder.sslSocketFactory(sslContext.socketFactory, (X509TrustManager) trustManagers[0])
         }
 
         new RestAdapter.Builder()
@@ -193,6 +191,18 @@ class JenkinsConfig {
             .setLog(new Slf4jRetrofitLogger(JenkinsClient))
             .build()
             .create(JenkinsClient)
+    }
+    private static TrustManager[] createTrustStore(String trustStoreName,
+                                                   String trustStorePassword,
+                                                   String trustStoreType) {
+        def trustStore = KeyStore.getInstance(trustStoreType)
+        new File(trustStoreName).withInputStream {
+            trustStore.load(it, trustStorePassword.toCharArray())
+        }
+        def trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        trustManagerFactory.init(trustStore)
+
+        return trustManagerFactory.trustManagers
     }
 
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, Registry registry = null, int timeout = 30000) {
