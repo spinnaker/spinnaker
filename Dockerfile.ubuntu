@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y curl gnupg && \
   google-cloud-sdk-app-engine-go \
   kubectl \
   python-pip && \
-  pip install awscli==1.16.258 --upgrade && \
+  pip install awscli==1.18.152 --upgrade && \
   rm -rf ~/.config/gcloud
 
 RUN curl -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/aws-iam-authenticator && \
