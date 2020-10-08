@@ -1,0 +1,75 @@
+front50:
+  enabled: false
+
+igor:
+  enabled: false
+
+bakery:
+  enabled: false
+
+echo:
+  enabled: false
+
+monitor:
+  activeExecutions:
+    redis: false
+
+executionRepository:
+  redis:
+    enabled: false
+
+keiko:
+  queue:
+    redis:
+      enabled: false
+
+redis:
+  enabled: false
+
+spring:
+  application:
+    name: orca
+
+services:
+  fiat:
+    baseUrl: https://fiat.net
+
+clouddriver:
+  baseUrl: https://clouddriver.net
+  readOnly:
+    baseUrl: https://clouddriver-readonly.net
+
+job:
+  preconfigured:
+    kubernetes:
+      - label: Test Preconfigured Job
+        type: testPreconfiguredJob
+        description: Preconfigured job for testing
+        cloudProvider: kubernetes
+        account: kubernetes-eks-prod
+        waitForCompletion: true
+        parameters:
+          - name: Counter Limit
+            label: Counter Limit
+            description: The maximum value to iterate
+            mapping: manifest.spec.template.spec.containers[0].env[0].value
+            defaultValue: 20
+        manifest:
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: run-job
+            namespace: spinnaker
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: counter
+                    image: centos:7
+                    command: [ "/bin/sh" ]
+                    args: [ "-c", "for i in $(seq 1 $(COUNTER_LIMIT)) ; do echo $i ; done" ]
+                    env:
+                      - name: COUNTER_LIMIT
+                        value: fakevalue
