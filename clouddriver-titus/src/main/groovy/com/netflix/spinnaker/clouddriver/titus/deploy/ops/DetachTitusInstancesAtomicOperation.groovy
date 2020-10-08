@@ -16,75 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
-import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateTasksAndShrinkJobRequest
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DetachTitusTasks
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DetachTitusInstancesDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class DetachTitusInstancesAtomicOperation implements AtomicOperation<Void> {
+import javax.annotation.Nonnull
 
-  private static final String BASE_PHASE = "DETACH_TITUS_INSTANCES"
-  private final TitusClientProvider titusClientProvider
-  private final DetachTitusInstancesDescription description
-
-  DetachTitusInstancesAtomicOperation(TitusClientProvider titusClientProvider,
-                                      DetachTitusInstancesDescription description) {
-    this.titusClientProvider = titusClientProvider
-    this.description = description
+class DetachTitusInstancesAtomicOperation extends AbstractSagaAtomicOperation<DetachTitusInstancesDescription, Void, Void> {
+  DetachTitusInstancesAtomicOperation(DetachTitusInstancesDescription description) {
+    super(description)
   }
 
   @Override
-  Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Detaching instances: ${description.instanceIds}..."
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-
-    def job = titusClient.findJobByName(description.asgName, true)
-    if (!job) {
-      task.updateStatus BASE_PHASE, "job not found"
-      return
-    }
-
-    def validInstanceIds = description.instanceIds.intersect(job.tasks*.id)
-
-    if (validInstanceIds.isEmpty()) {
-      task.updateStatus BASE_PHASE, "No detachable instances"
-      return
-    }
-
-    int newMin = job.instances - validInstanceIds.size()
-    if (newMin < job.instancesMin) {
-      if (description.adjustMinIfNecessary) {
-        if (newMin < 0) {
-          task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
-        } else {
-          titusClient.resizeJob(
-            new ResizeJobRequest()
-              .withInstancesDesired(job.instancesDesired)
-              .withInstancesMax(job.instancesMax)
-              .withInstancesMin(newMin)
-              .withJobId(job.id)
-              .withUser(description.user)
-          )
-        }
-      } else {
-        task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before detaching instances"
-        throw new IllegalStateException("Invalid ASG capacity for detachInstances (min: $job.instancesMin, max: $job.instancesMax, desired: $job.instancesDesired)")
-      }
-    }
-
-    task.updateStatus BASE_PHASE, "Detaching instances (${validInstanceIds.join(", ")}) from ASG (${description.asgName})."
-    titusClient.terminateTasksAndShrink(
-      new TerminateTasksAndShrinkJobRequest().withUser(description.user).withShrink(true).withTaskIds(validInstanceIds)
-    )
-    task.updateStatus BASE_PHASE, "Detached instances (${validInstanceIds.join(", ")}) from ASG (${description.asgName})."
-
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(DetachTitusTasks.class)
+      .exceptionHandler(TitusExceptionHandler.class)
   }
 
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+      DetachTitusTasks.DetachTitusTasksCommand.builder().description(description).build()
+    )
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }

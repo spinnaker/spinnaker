@@ -16,60 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.ResizeTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ResizeTitusServerGroupDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class ResizeTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
+import javax.annotation.Nonnull
 
-  private static final String PHASE = "RESIZE_TITUS_SERVER_GROUP"
-  private final TitusClientProvider titusClientProvider
-  private final ResizeTitusServerGroupDescription description
-
-  ResizeTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider,
-                                        ResizeTitusServerGroupDescription description) {
-    this.titusClientProvider = titusClientProvider
-    this.description = description
+class ResizeTitusServerGroupAtomicOperation extends AbstractSagaAtomicOperation<ResizeTitusServerGroupDescription, Void, Void> {
+  ResizeTitusServerGroupAtomicOperation(ResizeTitusServerGroupDescription description) {
+    super(description)
   }
 
   @Override
-  Void operate(List priorOutputs) {
-    task.updateStatus PHASE, "Resizing server group: ${description.serverGroupName}..."
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    Job job = titusClient.findJobByName(description.serverGroupName)
-
-    if (!job) {
-      throw new IllegalArgumentException("No titus server group named '${description.serverGroupName}' found")
-    }
-
-    Boolean shouldToggleScalingFlags = !job.inService
-    if (shouldToggleScalingFlags) {
-      titusClient.setAutoscaleEnabled(job.id, true)
-    }
-
-    titusClient.resizeJob(
-      new ResizeJobRequest()
-        .withUser(description.user)
-        .withJobId(job.id)
-        .withInstancesDesired(description.capacity.desired)
-        .withInstancesMin(description.capacity.min)
-        .withInstancesMax(description.capacity.max)
-    )
-
-    if (shouldToggleScalingFlags) {
-      titusClient.setAutoscaleEnabled(job.id, false)
-    }
-
-    task.updateStatus PHASE, "Completed resize server group operation for ${description.serverGroupName}"
-    null
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(ResizeTitusJob.class)
+      .exceptionHandler(TitusExceptionHandler.class)
   }
 
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+      ResizeTitusJob.ResizeTitusJobCommand.builder().description(description).build()
+    )
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }

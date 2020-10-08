@@ -16,39 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateTasksAndShrinkJobRequest
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.TerminateTitusTasks
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TerminateTitusInstancesDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class TerminateTitusInstancesAtomicOperation implements AtomicOperation<Void> {
+import javax.annotation.Nonnull
 
-  private static final String PHASE = "TERMINATE_TITUS_INSTANCES"
-
-  private final TitusClientProvider titusClientProvider
-  private final TerminateTitusInstancesDescription description
-
-  TerminateTitusInstancesAtomicOperation(TitusClientProvider titusClientProvider, TerminateTitusInstancesDescription description) {
-    this.titusClientProvider = titusClientProvider
-    this.description = description
+class TerminateTitusInstancesAtomicOperation extends AbstractSagaAtomicOperation<TerminateTitusInstancesDescription, Void, Void> {
+  TerminateTitusInstancesAtomicOperation(TerminateTitusInstancesDescription description) {
+    super(description)
   }
 
   @Override
-  Void operate(List priorOutputs) {
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    task.updateStatus PHASE, "Terminating titus tasks: ${description.instanceIds}..."
-
-    titusClient.terminateTasksAndShrink(new TerminateTasksAndShrinkJobRequest().withTaskIds(description.instanceIds).withShrink(false).withUser(description.user))
-    task.updateStatus PHASE, "Successfully issued terminate task request to titus for task: ${description.instanceIds.toString()}"
-
-    task.updateStatus PHASE, "Completed terminate instances operation for ${description.instanceIds}"
-    null
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(TerminateTitusTasks.class)
+      .exceptionHandler(TitusExceptionHandler.class)
   }
 
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+      TerminateTitusTasks.TerminateTitusTasksCommand.builder().description(description).build()
+    )
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }

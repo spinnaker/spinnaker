@@ -19,27 +19,17 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DetachTitusInstancesDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DetachTitusInstancesAtomicOperation
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @TitusOperation(AtomicOperations.DETACH_INSTANCES)
 @Component
 class DetachTitusInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  private final TitusClientProvider titusClientProvider
-
-  @Autowired
-  DetachTitusInstancesAtomicOperationConverter(TitusClientProvider titusClientProvider) {
-    this.titusClientProvider = titusClientProvider
-  }
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DetachTitusInstancesAtomicOperation(titusClientProvider, convertDescription(input))
+    new DetachTitusInstancesAtomicOperation(convertDescription(input))
   }
 
   @Override
