@@ -80,7 +80,10 @@ class RedisQueueConfiguration {
         cx.path.substringAfter("/").toInt()
       }
       val password = cx.userInfo?.substringAfter(":")
-      JedisPool(redisPoolConfig, cx.host, port, timeout, password, db)
+
+      val isSSL = cx.scheme == "rediss"
+
+      JedisPool(redisPoolConfig, cx.host, port, timeout, password, db, isSSL)
     }
 
   @Bean
