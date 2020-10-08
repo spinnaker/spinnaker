@@ -182,23 +182,24 @@ class FindImageFromClusterTaskSpec extends Specification {
     ['foo-x86_64-201603232351']                                     | ['foo-x86_64-201603232351'] as Set
   }
 
-  @Unroll
+//  @Unroll
   def "should resolve images via find if not all regions exist in source server group"() {
     given:
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
     def stage = new StageExecutionImpl(pipe, "findImage", [
-      resolveMissingLocations: true,
-      cloudProvider          : cloudProvider,
-      cluster                : "foo-test",
-      account                : "test",
-      selectionStrategy      : "LARGEST",
-      onlyEnabled            : "false",
-      regions                : [
-        location1.value
-        //Note: location2.value will come from regionCollectorResponse below
-      ]
+        resolveMissingLocations: true,
+        cloudProvider          : cloudProvider,
+        cluster                : "foo-test",
+        account                : "test",
+        selectionStrategy      : "LARGEST",
+        onlyEnabled            : "false",
+        skipRegionDetection    : shouldSkipRegionDetection,
+        regions                : [
+            location1.value
+            //Note: location2.value will come from regionCollectorResponse below
+        ]
     ])
 
     when:
@@ -218,7 +219,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
 
-    if (cloudProvider == "aws") {
+    if (cloudProvider == "aws" && !shouldSkipRegionDetection) {
       assertSouth(result.outputs?.deploymentDetails?.find {
         it.region == "south"
       } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
@@ -259,9 +260,10 @@ class FindImageFromClusterTaskSpec extends Specification {
       ]
     ]
 
-    cloudProvider || findCalls
-    "aws" || 1
-    "gcp" || 0
+    cloudProvider | shouldSkipRegionDetection || findCalls
+    "aws" | false || 1
+    "aws" | true  || 0
+    "gcp" | false || 0
   }
 
   def "should resolve images via find if not all regions exist in source server group without build info"() {

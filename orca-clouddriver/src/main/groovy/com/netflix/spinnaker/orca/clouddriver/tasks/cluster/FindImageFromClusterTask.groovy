@@ -92,6 +92,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     List<String> zones
     List<String> namespaces
     Boolean onlyEnabled = true
+    Boolean skipRegionDetection = false
     Boolean resolveMissingLocations
     SelectionStrategy selectionStrategy = SelectionStrategy.NEWEST
     String imageNamePattern
@@ -124,7 +125,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     Map<Location, String> imageIds = [:]
     Set<String> inferredRegions = new HashSet<>()
 
-    if (cloudProvider == 'aws') {
+    if (cloudProvider == 'aws' && !config.skipRegionDetection) {
       // Supplement config with regions from subsequent deploy/canary stages:
       def deployRegions = regionCollector.getRegionsFromChildStages(stage)
 
