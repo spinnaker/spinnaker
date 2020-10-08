@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.q.ZombieExecutionService
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.time.fixedClock
@@ -66,12 +67,15 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
 
   subject(GROUP) {
     ZombieExecutionCheckingAgent(
-      queue,
+      ZombieExecutionService(
+        repository,
+        queue,
+        clock,
+        Optional.of(Schedulers.immediate())
+      ),
       registry,
-      repository,
       clock,
       conch,
-      Optional.of(Schedulers.immediate()),
       10,
       true,
       10,
