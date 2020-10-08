@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusException
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.ActivateJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery.TitusEurekaSupport
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -83,9 +85,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       if (disable && description.desiredPercentage && loadBalancingClient && job.labels.containsKey("spinnaker.targetGroups")) {
         def errorMessage = "Could not ${verb} ServerGroup '$serverGroupName' in region $region! " +
           "Disabling by percentage for server groups with target groups is not supported by Titus"
-        log.error(errorMessage)
-        task.updateStatus phaseName, errorMessage
-        return false
+        throw new TitusException(errorMessage)
       }
 
       task.updateStatus phaseName, "${presentParticipling} ServerGroup '$serverGroupName' in $region..."
