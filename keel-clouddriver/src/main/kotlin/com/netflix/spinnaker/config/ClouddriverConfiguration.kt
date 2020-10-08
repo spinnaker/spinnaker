@@ -28,6 +28,7 @@ import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
@@ -35,6 +36,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
+@EnableConfigurationProperties(CacheProperties::class)
 class ClouddriverConfiguration {
 
   @Bean
@@ -60,9 +62,10 @@ class ClouddriverConfiguration {
   @ConditionalOnMissingBean(CloudDriverCache::class)
   fun cloudDriverCache(
     cloudDriverService: CloudDriverService,
-    meterRegistry: MeterRegistry
+    meterRegistry: MeterRegistry,
+    cacheProperties: CacheProperties
   ) =
-    MemoryCloudDriverCache(cloudDriverService, meterRegistry)
+    MemoryCloudDriverCache(cloudDriverService, meterRegistry, cacheProperties)
 
   @Bean
   fun imageService(
@@ -70,3 +73,4 @@ class ClouddriverConfiguration {
     cloudDriverCache: CloudDriverCache
   ) = ImageService(cloudDriverService, cloudDriverCache)
 }
+
