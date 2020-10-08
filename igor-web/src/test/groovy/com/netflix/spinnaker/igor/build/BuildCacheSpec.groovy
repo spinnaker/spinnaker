@@ -35,9 +35,9 @@ class BuildCacheSpec extends Specification {
     @Subject
     BuildCache cache = new BuildCache(redisClientDelegate, new IgorConfigurationProperties())
 
-    final master = 'master'
-    final test = 'test'
-    final int TTL = 42
+    def master = 'master'
+    def test = 'test'
+    def int TTL = 42
 
     void cleanup() {
         embeddedRedis.pool.resource.withCloseable { Jedis resource ->

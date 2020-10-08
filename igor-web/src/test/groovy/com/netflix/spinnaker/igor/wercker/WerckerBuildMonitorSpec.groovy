@@ -43,7 +43,7 @@ class WerckerBuildMonitorSpec extends Specification {
                 new WerckerHost(name: master, address: werckerDev), cache, client, Permissions.EMPTY)
     }
 
-    final MASTER = 'MASTER'
+    def MASTER = 'MASTER'
 
     BuildServices mockBuildServices() {
         BuildServices buildServices = new BuildServices()

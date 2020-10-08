@@ -67,16 +67,16 @@ class BuildControllerSpec extends Specification {
   @Shared
   MockWebServer server
 
-  final SERVICE = 'SERVICE'
-  final JENKINS_SERVICE = 'JENKINS_SERVICE'
-  final TRAVIS_SERVICE = 'TRAVIS_SERVICE'
-  final HTTP_201 = 201
-  final BUILD_NUMBER = 123
-  final BUILD_ID = 654321
-  final QUEUED_JOB_NUMBER = 123456
-  final JOB_NAME = "job/name/can/have/slashes"
-  final PENDING_JOB_NAME = "pendingjob"
-  final FILE_NAME = "test.yml"
+  def SERVICE = 'SERVICE'
+  def JENKINS_SERVICE = 'JENKINS_SERVICE'
+  def TRAVIS_SERVICE = 'TRAVIS_SERVICE'
+  def HTTP_201 = 201
+  def BUILD_NUMBER = 123
+  def BUILD_ID = 654321
+  def QUEUED_JOB_NUMBER = 123456
+  def JOB_NAME = "job/name/can/have/slashes"
+  def PENDING_JOB_NAME = "pendingjob"
+  def FILE_NAME = "test.yml"
 
   GenericBuild genericBuild
 

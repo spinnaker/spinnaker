@@ -42,7 +42,7 @@ class CommitControllerSpec extends Specification {
 
     GitHubClient client = Mock(GitHubClient)
 
-    final GITHUB_ADDRESS = "https://github.com"
+    def GITHUB_ADDRESS = "https://github.com"
 
     void setup() {
         controller = new CommitController(executor: Executors.newSingleThreadExecutor(), master: new GitHubMaster(gitHubClient: client, baseUrl : GITHUB_ADDRESS), gitHubProperties: new GitHubProperties(commitDisplayLength: 8))

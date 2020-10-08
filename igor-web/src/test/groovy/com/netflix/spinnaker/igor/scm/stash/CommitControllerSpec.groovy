@@ -39,7 +39,7 @@ class CommitControllerSpec extends Specification {
 
     StashClient client = Mock(StashClient)
 
-    final STASH_ADDRESS = "https://stash.com"
+    def STASH_ADDRESS = "https://stash.com"
 
     void setup() {
         controller = new CommitController(executor: Executors.newSingleThreadExecutor(), stashMaster: new StashMaster(stashClient: client, baseUrl : STASH_ADDRESS))

@@ -40,9 +40,9 @@ class TravisBuildMonitorSpec extends Specification {
     EchoService echoService = Mock()
     TravisBuildMonitor travisBuildMonitor
 
-    final String MASTER = "MASTER"
-    final int CACHED_JOB_TTL_SECONDS = 172800
-    final int CACHED_JOB_TTL_DAYS = 2
+    String MASTER = "MASTER"
+    int CACHED_JOB_TTL_SECONDS = 172800
+    int CACHED_JOB_TTL_DAYS = 2
 
     void setup() {
         def travisProperties = new TravisProperties(cachedJobTTLDays: CACHED_JOB_TTL_DAYS)

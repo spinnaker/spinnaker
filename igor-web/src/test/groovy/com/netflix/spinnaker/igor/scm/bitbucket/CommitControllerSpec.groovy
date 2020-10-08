@@ -41,7 +41,7 @@ class CommitControllerSpec extends Specification {
 
   BitBucketClient client = Mock(BitBucketClient)
 
-  final BITBUCKET_ADDRESS = "https://api.bitbucket.org"
+  def BITBUCKET_ADDRESS = "https://api.bitbucket.org"
 
   void setup() {
     controller = new CommitController(executor: Executors.newSingleThreadExecutor(), bitBucketMaster: new BitBucketMaster(bitBucketClient: client, baseUrl : BITBUCKET_ADDRESS), bitBucketProperties: new BitBucketProperties(commitDisplayLength: 7))

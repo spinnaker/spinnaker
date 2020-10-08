@@ -36,7 +36,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
   ManagedDeliveryScmService service
 
   StashClient client = Mock(StashClient)
-  final STASH_ADDRESS = "https://stash.com"
+  def STASH_ADDRESS = "https://stash.com"
 
   ObjectMapper jsonMapper = new ObjectMapper()
   ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory())

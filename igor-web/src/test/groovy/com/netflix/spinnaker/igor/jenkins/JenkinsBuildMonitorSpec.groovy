@@ -45,7 +45,7 @@ class   JenkinsBuildMonitorSpec extends Specification {
     IgorConfigurationProperties igorConfigurationProperties = new IgorConfigurationProperties()
     JenkinsBuildMonitor monitor
 
-    final MASTER = 'MASTER'
+    def MASTER = 'MASTER'
 
     void setup() {
         def buildServices = new BuildServices()

@@ -39,9 +39,9 @@ class GitlabCiBuildMonitorSpec extends Specification {
     EchoService echoService = Mock(EchoService)
     GitlabCiBuildMonitor buildMonitor
 
-    final String MASTER = "MASTER"
-    final int CACHED_JOB_TTL_SECONDS = 172800
-    final int CACHED_JOB_TTL_DAYS = 2
+    String MASTER = "MASTER"
+    int CACHED_JOB_TTL_SECONDS = 172800
+    int CACHED_JOB_TTL_DAYS = 2
 
     void setup() {
         def properties = new GitlabCiProperties(cachedJobTTLDays: CACHED_JOB_TTL_DAYS)

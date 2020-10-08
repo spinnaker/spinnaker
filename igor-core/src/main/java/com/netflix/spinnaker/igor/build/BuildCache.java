@@ -58,7 +58,7 @@ public class BuildCache {
   }
 
   public List<String> getTypeaheadResults(String search) {
-    List<String> results = new ArrayList<>();
+    var results = new ArrayList<String>();
     redisClientDelegate.withKeyScan(
         baseKey() + ":*:*:*" + search.toUpperCase() + "*:*",
         1000,

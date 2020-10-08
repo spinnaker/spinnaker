@@ -26,9 +26,9 @@ class WerckerCacheSpec extends Specification {
     @Subject
     WerckerCache cache = new WerckerCache(redisClientDelegate, new IgorConfigurationProperties())
 
-    final master = 'testWerckerMaster'
-    final test = 'test'
-    final pipeline = 'myOrg/myApp/myTestPipeline'
+    def master = 'testWerckerMaster'
+    def test = 'test'
+    def pipeline = 'myOrg/myApp/myTestPipeline'
 
     void cleanup() {
         embeddedRedis.pool.resource.withCloseable { it.flushDB() }

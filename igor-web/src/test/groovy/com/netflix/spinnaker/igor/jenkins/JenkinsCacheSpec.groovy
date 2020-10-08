@@ -34,8 +34,8 @@ class JenkinsCacheSpec extends Specification {
     @Subject
     JenkinsCache cache = new JenkinsCache(redisClientDelegate, new IgorConfigurationProperties())
 
-    final master = 'master'
-    final test = 'test'
+    def master = 'master'
+    def test = 'test'
 
     void cleanup() {
         embeddedRedis.pool.resource.withCloseable {

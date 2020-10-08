@@ -40,8 +40,8 @@ import spock.lang.Unroll
 @SuppressWarnings(['LineLength', 'DuplicateNumberLiteral'])
 class JenkinsServiceSpec extends Specification {
 
-    final String JOB_UNENCODED = 'folder/job/name with spaces'
-    final String JOB_ENCODED = 'folder/job/name%20with%20spaces'
+    def String JOB_UNENCODED = 'folder/job/name with spaces'
+    def String JOB_ENCODED = 'folder/job/name%20with%20spaces'
 
     @Shared
     JenkinsClient client

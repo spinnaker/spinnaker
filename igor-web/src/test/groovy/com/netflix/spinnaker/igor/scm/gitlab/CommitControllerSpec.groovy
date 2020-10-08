@@ -40,7 +40,7 @@ class CommitControllerSpec extends Specification {
 
     GitLabClient client = Mock(GitLabClient)
 
-    final GITLAB_ADDRESS = "https://gitlab.com"
+    def GITLAB_ADDRESS = "https://gitlab.com"
 
     void setup() {
         def props = new GitLabProperties()
