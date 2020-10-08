@@ -30,7 +30,7 @@ dependencies {
   implementation(project(":orca-api"))
   implementation(project(":orca-bakery"))
   implementation(project(":orca-deploymentmonitor"))
-  implementation("com.netflix.spinnaker.moniker:moniker")
+  implementation("com.netflix.spinnaker.kork:kork-moniker")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java:5.0.0")
   implementation("javax.validation:validation-api")
