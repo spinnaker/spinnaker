@@ -40,7 +40,7 @@ public abstract class BakeManifestService<T extends BakeManifestRequest> {
   public abstract boolean handles(String type);
 
   protected String doBake(BakeRecipe recipe) {
-    JobRequest jobRequest =
+    var jobRequest =
         new JobRequest(
             recipe.getCommand(),
             new ArrayList<>(),
