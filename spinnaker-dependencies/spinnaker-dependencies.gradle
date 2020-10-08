@@ -90,7 +90,6 @@ dependencies {
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
     api("com.netflix.spinnaker.embedded-redis:embedded-redis:0.8.0")
-    api("com.netflix.spinnaker.moniker:moniker:$monikerVersion")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
     api("com.ninja-squad:springmockk:2.0.3")

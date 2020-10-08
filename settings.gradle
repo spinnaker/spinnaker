@@ -44,6 +44,7 @@ include(
   "kork-expressions",
   "kork-jedis",
   "kork-jedis-test",
+  "kork-moniker",
   "kork-plugins",
   "kork-plugins-api",
   "kork-plugins-tck",

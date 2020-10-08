@@ -7,8 +7,8 @@ dependencies {
 
 
   implementation project(":kork-exceptions")
+  implementation project(":kork-moniker")
   implementation "org.slf4j:slf4j-api"
-  implementation "com.netflix.spinnaker.moniker:moniker"
   implementation "com.fasterxml.jackson.core:jackson-core"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
