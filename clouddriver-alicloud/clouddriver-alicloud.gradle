@@ -15,7 +15,7 @@ dependencies {
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.netflix.spinnaker.kork:kork-moniker"
   implementation "javax.servlet:javax.servlet-api"
 
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'

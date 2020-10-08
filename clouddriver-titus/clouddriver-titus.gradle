@@ -36,7 +36,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.netflix.spinnaker.kork:kork-moniker"
   implementation "com.squareup.okhttp3:okhttp:3.1.2"
   implementation "io.grpc:grpc-netty-shaded:$grpcVersion"
   implementation "io.grpc:grpc-protobuf:$grpcVersion"
