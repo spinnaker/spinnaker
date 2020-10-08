@@ -12,6 +12,7 @@ import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.SqlAdminCommandsRepository
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCleanupStaleOnDemandCachesAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
@@ -51,7 +52,11 @@ const val coroutineThreadPrefix = "catsSql"
 @Configuration
 @ConditionalOnProperty("sql.cache.enabled")
 @Import(DefaultSqlConfiguration::class)
-@EnableConfigurationProperties(SqlAgentProperties::class, SqlConstraints::class)
+@EnableConfigurationProperties(
+  SqlAgentProperties::class,
+  SqlConstraints::class,
+  SqlProperties::class
+)
 @ComponentScan("com.netflix.spinnaker.cats.sql.controllers")
 class SqlCacheConfiguration {
 
@@ -173,7 +178,12 @@ class SqlCacheConfiguration {
     sqlConstraints: SqlConstraints,
     @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?
   ): SqlUnknownAgentCleanupAgent =
-    SqlUnknownAgentCleanupAgent(providerRegistry, jooq, registry, SqlNames(tableNamespace, sqlConstraints))
+    SqlUnknownAgentCleanupAgent(
+      providerRegistry,
+      jooq,
+      registry,
+      SqlNames(tableNamespace, sqlConstraints)
+    )
 
   @Bean
   @ConditionalOnExpression("\${sql.read-only:false} == false")
@@ -183,5 +193,10 @@ class SqlCacheConfiguration {
   @Bean
   fun nodeStatusProvider(discoveryStatusListener: DiscoveryStatusListener): NodeStatusProvider {
     return DiscoveryStatusNodeStatusProvider(discoveryStatusListener)
+  }
+
+  @Bean
+  fun sqlAdminCommandRepo(sqlProperties: SqlProperties): SqlAdminCommandsRepository {
+    return SqlAdminCommandsRepository(sqlProperties)
   }
 }

@@ -112,8 +112,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param identifiers the identifiers
    * @return the items matching the type and identifiers
    */
-  override fun getAll(type: String, vararg identifiers: String): MutableCollection<CacheData> {
-    return getAll(type, identifiers.toMutableList())
+  override fun getAll(type: String, vararg identifiers: String?): MutableCollection<CacheData> {
+    return getAll(type, identifiers.filterNotNull().toMutableList())
   }
 
   /**

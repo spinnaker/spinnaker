@@ -21,7 +21,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("sql.constraints")
 class SqlConstraints {
   var maxTableNameLength: Int = 64
-  // 352 * 2 + 64 (max rel_type length) == 768; 768 * 4 (utf8mb4) == 3072 == Aurora's max index length
-  var maxIdLength: Int = 352
-  var maxAgentLength: Int = 127
 }
