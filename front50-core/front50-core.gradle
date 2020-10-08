@@ -35,5 +35,5 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.netflix.spinnaker.kork:kork-moniker"
 }
