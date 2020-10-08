@@ -105,9 +105,11 @@ class RedisConfig {
 
     String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
 
+    boolean isSSL = redisConnection.getScheme() == "rediss"
+
     new InstrumentedJedisPool(
       registry,
-      new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null),
+      new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, isSSL),
       name
     )
   }
