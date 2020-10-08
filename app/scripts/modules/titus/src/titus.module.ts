@@ -96,4 +96,4 @@ module(TITUS_MODULE, [
   });
 });
 
-DeploymentStrategyRegistry.registerProvider('titus', ['custom', 'redblack']);
+DeploymentStrategyRegistry.registerProvider('titus', ['custom', 'redblack', 'monitored']);
