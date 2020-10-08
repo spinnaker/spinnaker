@@ -204,6 +204,8 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             .ifPresent({ commitId -> metadata.put("commitId", commitId.toString()) })
           Optional.ofNullable(image.date)
             .ifPresent({ date -> metadata.put("date", date.toString()) })
+          Optional.ofNullable(image.branch)
+            .ifPresent({ branch -> metadata.put("branch", branch.toString()) })
 
 
           Artifact artifact = Artifact.builder()

@@ -28,4 +28,5 @@ class TaggedImage {
     String buildNumber
     String commitId
     String date
+    String branch
 }

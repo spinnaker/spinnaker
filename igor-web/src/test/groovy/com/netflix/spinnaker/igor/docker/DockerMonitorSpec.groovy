@@ -104,7 +104,9 @@ class DockerMonitorSpec extends Specification {
       repository: "repository",
       digest: "digest",
       buildNumber: "111",
-      commitId: "ab12c3"
+      commitId: "ab12c3",
+      date: "1598707355157",
+      branch: "master"
     )
 
     when:
@@ -127,6 +129,8 @@ class DockerMonitorSpec extends Specification {
       assert artifacts[0].metadata.tag == "tag"
       assert artifacts[0].metadata.buildNumber == "111"
       assert artifacts[0].metadata.commitId == "ab12c3"
+      assert artifacts[0].metadata.date == "1598707355157"
+      assert artifacts[0].metadata.branch == "master"
       return true
     })
   }
