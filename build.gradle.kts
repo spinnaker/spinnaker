@@ -72,7 +72,7 @@ subprojects {
     tasks.withType<KotlinCompile> {
       kotlinOptions {
         languageVersion = "1.4"
-        jvmTarget = "1.8"
+        jvmTarget = "11"
         freeCompilerArgs += "-Xjvm-default=enable"
       }
     }

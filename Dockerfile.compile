@@ -3,12 +3,9 @@ LABEL maintainer="sig-platform@spinnaker.io"
 RUN echo "mysql-server mysql-server/root_password password sa" | debconf-set-selections
 RUN echo "mysql-server mysql-server/root_password_again password sa" | debconf-set-selections
 RUN apt-get update && apt-get install -y \
-    openjdk-8-jdk \
     openjdk-11-jdk \
     mysql-server \
  && rm -rf /var/lib/apt/lists/*
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
-ENV JDK_18 /usr/lib/jvm/java-8-openjdk-amd64
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx6g
 
@@ -22,5 +19,4 @@ RUN usermod -d /var/lib/mysql/ mysql && \
     mysql -u root --password=sa -e 'CREATE DATABASE `keel` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 
 CMD /etc/init.d/mysql restart && \
-    ./gradlew --no-daemon -PenableCrossCompilerPlugin=true -PbuildingInDocker=true \
-        keel-web:installDist -x test
+    ./gradlew Plugin=true -PbuildingInDocker=true keel-web:installDist -x test

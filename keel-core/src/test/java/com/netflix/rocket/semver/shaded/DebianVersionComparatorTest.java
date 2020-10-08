@@ -103,7 +103,7 @@ class DebianVersionComparatorTest {
   @Test
   void shouldSort3DigitSemverCorrectly() {
     // given
-    List<String> versions =
+    var versions =
         Stream.of("1.12.5", "1.0.0", "0.15.0", "1.5.1", "0.0.1").collect(Collectors.toList());
 
     // when
