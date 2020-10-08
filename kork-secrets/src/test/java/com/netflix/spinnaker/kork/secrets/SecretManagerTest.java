@@ -53,7 +53,7 @@ public class SecretManagerTest {
 
   @Test
   public void decryptTest() throws SecretDecryptionException {
-    String secretConfig = "encrypted:s3!paramName:paramValue";
+    var secretConfig = "encrypted:s3!paramName:paramValue";
     when(secretEngine.decrypt(any())).thenReturn("test".getBytes());
     assertEquals("test", secretManager.decrypt(secretConfig));
   }
