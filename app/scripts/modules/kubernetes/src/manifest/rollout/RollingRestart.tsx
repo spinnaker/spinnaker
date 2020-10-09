@@ -3,7 +3,7 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application, ManifestWriter, ConfirmationModalService } from '@spinnaker/core';
+import { Application, ManifestWriter, ConfirmationModalService, withErrorBoundary } from '@spinnaker/core';
 
 import { IKubernetesServerGroupManager } from '../../interfaces';
 
@@ -50,5 +50,5 @@ function RollingRestart({ application, serverGroupManager }: IRollingRestartProp
 export const KUBERNETES_ROLLING_RESTART = 'spinnaker.kubernetes.v2.rolling.restart';
 module(KUBERNETES_ROLLING_RESTART, []).component(
   'kubernetesRollingRestart',
-  react2angular(RollingRestart, ['application', 'serverGroupManager']),
+  react2angular(withErrorBoundary(RollingRestart, 'kubernetesRollingRestart'), ['application', 'serverGroupManager']),
 );

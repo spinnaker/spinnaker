@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 
 import { chain } from 'lodash';
@@ -16,7 +17,7 @@ interface IImageSelectProps {
 
 export class ImageSelect extends React.Component<IImageSelectProps> {
   private loadOptions = (inputValue: string): Promise<AutocompleteResult<string>> => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (!inputValue || inputValue.length < 3) {
         resolve({
           options: [],
@@ -24,9 +25,9 @@ export class ImageSelect extends React.Component<IImageSelectProps> {
         });
       } else {
         const filteredOptions = chain(this.props.availableImages)
-          .filter(i => i.imageName.toLowerCase().includes(inputValue))
+          .filter((i) => i.imageName.toLowerCase().includes(inputValue))
           .take(20)
-          .map(i => ({ value: i.imageName, label: i.imageName }))
+          .map((i) => ({ value: i.imageName, label: i.imageName }))
           .value();
         resolve({
           options: filteredOptions,
@@ -55,5 +56,10 @@ export class ImageSelect extends React.Component<IImageSelectProps> {
 export const GCE_IMAGE_SELECT = 'spinnaker.gce.imageSelect';
 module(GCE_IMAGE_SELECT, []).component(
   'gceImageSelect',
-  react2angular(ImageSelect, ['availableImages', 'selectedImage', 'selectImage', 'target']),
+  react2angular(withErrorBoundary(ImageSelect, 'gceImageSelect'), [
+    'availableImages',
+    'selectedImage',
+    'selectImage',
+    'target',
+  ]),
 );

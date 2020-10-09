@@ -11,6 +11,7 @@ import {
   TaskMonitorModal,
   Application,
   robotToHuman,
+  withErrorBoundary,
 } from '@spinnaker/core';
 
 import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
@@ -28,7 +29,7 @@ interface IEditTitusServiceJobProcessesModalProps extends IModalComponentProps {
   serverGroup: ITitusServerGroup;
 }
 
-const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcessesModalProps> = modalProps => {
+const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcessesModalProps> = (modalProps) => {
   const { application, serverGroup } = modalProps;
   const { region, id: jobId, account: credentials, cloudProvider } = serverGroup;
   const enabledServiceJobProcesses = enabledProcesses(serverGroup.serviceJobProcesses);
@@ -44,7 +45,7 @@ const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcesses
           <FormikFormField
             label="Service Job Processes"
             name="serviceJobProcesses"
-            input={props => (
+            input={(props) => (
               <ChecklistInput
                 {...props}
                 options={Object.keys(serverGroup.serviceJobProcesses).map((value: string) => ({
@@ -58,7 +59,7 @@ const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcesses
           <FormikFormField
             label="Reason"
             name="reason"
-            input={props => (
+            input={(props) => (
               <TextAreaInput
                 {...props}
                 rows={3}
@@ -107,7 +108,7 @@ export class ServiceJobProcessesSection extends React.Component<ITitusServerGrou
     return (
       <>
         <ul className="scaling-processes">
-          {Object.keys(serviceJobProcesses).map(process => (
+          {Object.keys(serviceJobProcesses).map((process) => (
             <li key={process}>
               <span
                 style={{ visibility: serviceJobProcesses[process] ? 'visible' : 'hidden' }}
@@ -129,5 +130,8 @@ export const SERVICE_JOB_PROCESSES_DETAILS_SECTION = 'spinnaker.titus.servicejob
 
 module(SERVICE_JOB_PROCESSES_DETAILS_SECTION, []).component(
   'titusServiceJobProcessesSection',
-  react2angular(ServiceJobProcessesSection, ['serverGroup', 'app']),
+  react2angular(withErrorBoundary(ServiceJobProcessesSection, 'titusServiceJobProcessesSection'), [
+    'serverGroup',
+    'app',
+  ]),
 );

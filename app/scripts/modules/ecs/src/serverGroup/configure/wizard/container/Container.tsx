@@ -7,7 +7,7 @@ import {
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../../serverGroupConfiguration.service';
-import { HelpField, TetheredSelect } from '@spinnaker/core';
+import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
 
@@ -62,7 +62,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       targetGroupsAvailable: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.targetGroups : [],
     };
 
-    this.state.targetGroupMappings.forEach(targetGroupMapping => {
+    this.state.targetGroupMappings.forEach((targetGroupMapping) => {
       targetGroupMapping.containerName = '';
     });
   }
@@ -80,7 +80,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
 
   private getIdToImageMap = (): Map<string, IEcsDockerImage> => {
     const imageIdToDescription = new Map<string, IEcsDockerImage>();
-    this.props.command.backingData.filtered.images.forEach(e => {
+    this.props.command.backingData.filtered.images.forEach((e) => {
       imageIdToDescription.set(e.imageId, e);
     });
 
@@ -160,7 +160,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const updateComputeUnits = this.updateComputeUnits;
     const updateReservedMemory = this.updateReservedMemory;
 
-    const dockerImageOptions = this.state.dockerImages.map(function(image) {
+    const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
       if (image.fromTrigger || image.fromContext) {
         msg = image.fromTrigger ? '(TRIGGER) ' : '(FIND IMAGE RESULT) ';
@@ -183,11 +183,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       </div>
     );
 
-    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup) {
+    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function (targetGroup) {
       return { label: `${targetGroup}`, value: targetGroup };
     });
 
-    const targetGroupInputs = this.state.targetGroupMappings.map(function(mapping, index) {
+    const targetGroupInputs = this.state.targetGroupMappings.map(function (mapping, index) {
       return (
         <tr key={index}>
           <td data-test-id="ContainerInputs.targetGroup">
@@ -206,7 +206,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
               className="form-control input-sm no-spel"
               required={true}
               value={mapping.containerPort.toString()}
-              onChange={e => updateTargetGroupMappingPort(index, e.target.valueAsNumber)}
+              onChange={(e) => updateTargetGroupMappingPort(index, e.target.valueAsNumber)}
             />
           </td>
           <td>
@@ -256,7 +256,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
               className="form-control input-sm no-spel"
               required={false}
               value={this.state.computeUnits}
-              onChange={e => updateComputeUnits(e.target.valueAsNumber)}
+              onChange={(e) => updateComputeUnits(e.target.valueAsNumber)}
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
               className="form-control input-sm no-spel"
               required={false}
               value={this.state.reservedMemory}
-              onChange={e => updateReservedMemory(e.target.valueAsNumber)}
+              onChange={(e) => updateReservedMemory(e.target.valueAsNumber)}
             />
           </div>
         </div>
@@ -313,5 +313,5 @@ export class Container extends React.Component<IContainerProps, IContainerState>
 export const CONTAINER_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.container.react';
 module(CONTAINER_REACT, []).component(
   'containerReact',
-  react2angular(Container, ['command', 'notifyAngular', 'configureCommand']),
+  react2angular(withErrorBoundary(Container, 'containerReact'), ['command', 'notifyAngular', 'configureCommand']),
 );

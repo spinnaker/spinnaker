@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -7,5 +8,11 @@ export const INSTANCE_STATUS_COMPONENT = 'spinnaker.application.instanceStatus.c
 
 module(INSTANCE_STATUS_COMPONENT, []).component(
   'instanceStatus',
-  react2angular(InstanceStatus, ['healthMetrics', 'healthState', 'metricTypes', 'customHealthUrl', 'privateIpAddress']),
+  react2angular(withErrorBoundary(InstanceStatus, 'instanceStatus'), [
+    'healthMetrics',
+    'healthState',
+    'metricTypes',
+    'customHealthUrl',
+    'privateIpAddress',
+  ]),
 );

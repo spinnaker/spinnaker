@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
@@ -47,5 +48,10 @@ export class ArtifactAccountSelector extends React.Component<IArtifactAccountSel
 export const ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT = 'spinnaker.core.artifacts.account.selector.react';
 module(ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT, []).component(
   'artifactAccountSelectorReact',
-  react2angular(ArtifactAccountSelector, ['accounts', 'className', 'onChange', 'selected']),
+  react2angular(withErrorBoundary(ArtifactAccountSelector, 'artifactAccountSelectorReact'), [
+    'accounts',
+    'className',
+    'onChange',
+    'selected',
+  ]),
 );

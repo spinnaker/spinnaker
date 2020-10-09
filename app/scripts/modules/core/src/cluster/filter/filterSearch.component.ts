@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -7,5 +8,5 @@ export const FILTER_SEARCH_COMPONENT = 'spinnaker.application.filterSearch.compo
 
 module(FILTER_SEARCH_COMPONENT, []).component(
   'filterSearch',
-  react2angular(FilterSearch, ['helpKey', 'value', 'onSearchChange', 'onBlur']),
+  react2angular(withErrorBoundary(FilterSearch, 'filterSearch'), ['helpKey', 'value', 'onSearchChange', 'onBlur']),
 );

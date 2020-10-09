@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -10,4 +11,7 @@ export interface IClusterMatch {
 }
 
 export const CLUSTER_MATCHES_COMPONENT = 'spinnaker.core.widget.cluster.clusterMatches.component';
-module(CLUSTER_MATCHES_COMPONENT, []).component('clusterMatches', react2angular(ClusterMatches, ['matches']));
+module(CLUSTER_MATCHES_COMPONENT, []).component(
+  'clusterMatches',
+  react2angular(withErrorBoundary(ClusterMatches, 'clusterMatches'), ['matches']),
+);

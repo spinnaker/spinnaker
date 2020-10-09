@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 
 import React from 'react';
@@ -22,11 +23,11 @@ export function StageStatusPreconditionConfig({
   return (
     <div className="form-group row">
       <FormField
-        input={inputProps => (
+        input={(inputProps) => (
           <ReactSelectInput
             {...inputProps}
             clearable={false}
-            options={upstreamStages.map(stage => ({ value: stage.name, label: stage.name }))}
+            options={upstreamStages.map((stage) => ({ value: stage.name, label: stage.name }))}
           />
         )}
         label="Stage"
@@ -36,7 +37,7 @@ export function StageStatusPreconditionConfig({
             stageName: e.target.value,
           })
         }
-        validate={stageName => {
+        validate={(stageName) => {
           if (!stageName) {
             return 'Please select a stage';
           }
@@ -45,7 +46,7 @@ export function StageStatusPreconditionConfig({
         value={get(preconditionContext, 'stageName', null)}
       />
       <FormField
-        input={inputProps => <ReactSelectInput {...inputProps} clearable={false} options={STATUS_OPTIONS} />}
+        input={(inputProps) => <ReactSelectInput {...inputProps} clearable={false} options={STATUS_OPTIONS} />}
         label="Status"
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           updatePreconditionContext({
@@ -53,7 +54,7 @@ export function StageStatusPreconditionConfig({
             stageStatus: e.target.value,
           })
         }
-        validate={stageStatus => {
+        validate={(stageStatus) => {
           if (!stageStatus) {
             return 'Please select a status';
           }
@@ -68,5 +69,9 @@ export function StageStatusPreconditionConfig({
 export const STAGE_STATUS_PRECONDITION_CONFIG = 'spinnaker.core.stageStatusPreconditionSelector';
 module(STAGE_STATUS_PRECONDITION_CONFIG, []).component(
   'stageStatusPreconditionConfig',
-  react2angular(StageStatusPreconditionConfig, ['preconditionContext', 'upstreamStages', 'updatePreconditionContext']),
+  react2angular(withErrorBoundary(StageStatusPreconditionConfig, 'stageStatusPreconditionConfig'), [
+    'preconditionContext',
+    'upstreamStages',
+    'updatePreconditionContext',
+  ]),
 );

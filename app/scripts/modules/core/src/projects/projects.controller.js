@@ -1,4 +1,5 @@
-'use strict';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+('use strict');
 import { module } from 'angular';
 
 import { react2angular } from 'react2angular';
@@ -22,13 +23,20 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
   CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE,
   INSIGHT_MENU_DIRECTIVE,
 ])
-  .component('projectInsightMenu', react2angular(ProjectInsightMenu, ['createApp', 'createProject', 'refreshCaches']))
+  .component(
+    'projectInsightMenu',
+    react2angular(withErrorBoundary(ProjectInsightMenu, 'projectInsightMenu'), [
+      'createApp',
+      'createProject',
+      'refreshCaches',
+    ]),
+  )
   .controller('ProjectsCtrl', [
     '$scope',
     '$uibModal',
     '$log',
     '$filter',
-    function($scope, $uibModal, $log, $filter) {
+    function ($scope, $uibModal, $log, $filter) {
       const projectsViewStateCache =
         ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
@@ -50,7 +58,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
       $scope.menuActions = [
         {
           displayName: 'Create Project',
-          action: function() {
+          action: function () {
             ConfigureProjectModal.show().catch(() => {});
           },
         },
@@ -93,7 +101,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
 
       const ctrl = this;
 
-      ProjectReader.listProjects().then(function(projects) {
+      ProjectReader.listProjects().then(function (projects) {
         $scope.projects = projects;
         ctrl.filterProjects();
         $scope.projectsLoaded = true;

@@ -5,7 +5,7 @@ import React from 'react';
 import Select, { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
-import { HelpField } from '@spinnaker/core';
+import { HelpField, withErrorBoundary } from '@spinnaker/core';
 
 import { IGceAcceleratorType } from './gceAccelerator.service';
 
@@ -66,7 +66,7 @@ export function GceAcceleratorConfigurer({
   };
 
   const getCountOptions = (acceleratorType: string): Array<Option<number>> => {
-    return getAvailableCardCounts(acceleratorType).map(count => ({
+    return getAvailableCardCounts(acceleratorType).map((count) => ({
       label: count.toString(),
       value: count,
     }));
@@ -211,7 +211,7 @@ export function GceAcceleratorConfigurer({
 export const GCE_ACCELERATOR_CONFIGURER = 'spinnaker.gce.accelerator.component';
 module(GCE_ACCELERATOR_CONFIGURER, []).component(
   'gceAcceleratorConfigurer',
-  react2angular(GceAcceleratorConfigurer, [
+  react2angular(withErrorBoundary(GceAcceleratorConfigurer, 'gceAcceleratorConfigurer'), [
     'acceleratorConfigs',
     'availableAccelerators',
     'regional',

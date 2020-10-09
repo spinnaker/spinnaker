@@ -18,6 +18,7 @@ import {
   IExpectedArtifact,
   StageArtifactSelectorDelegate,
   TetheredSelect,
+  withErrorBoundary,
 } from '@spinnaker/core';
 
 export interface ITaskDefinitionProps {
@@ -85,7 +86,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
 
   private getIdToImageMap = (): Map<string, IEcsDockerImage> => {
     const imageIdToDescription = new Map<string, IEcsDockerImage>();
-    this.props.command.backingData.filtered.images.forEach(e => {
+    this.props.command.backingData.filtered.images.forEach((e) => {
       imageIdToDescription.set(e.imageId, e);
     });
 
@@ -207,7 +208,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
 
-    const dockerImageOptions = this.state.dockerImages.map(function(image) {
+    const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
       if (image.fromTrigger || image.fromContext) {
         msg = image.fromTrigger ? '(TRIGGER) ' : '(FIND IMAGE RESULT) ';
@@ -215,11 +216,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
       return { label: `${msg} (${image.imageId})`, value: image.imageId };
     });
 
-    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup) {
+    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function (targetGroup) {
       return { label: `${targetGroup}`, value: targetGroup };
     });
 
-    const mappingInputs = this.state.containerMappings.map(function(mapping, index) {
+    const mappingInputs = this.state.containerMappings.map(function (mapping, index) {
       return (
         <tr key={index}>
           <td>
@@ -229,7 +230,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               required={true}
               placeholder="enter container name..."
               value={mapping.containerName.toString()}
-              onChange={e => updateContainerMappingName(index, e.target.value)}
+              onChange={(e) => updateContainerMappingName(index, e.target.value)}
             />
           </td>
           <td data-test-id="Artifacts.containerImage">
@@ -259,7 +260,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
       );
     });
 
-    const targetGroupInputs = this.state.targetGroupMappings.map(function(mapping, index) {
+    const targetGroupInputs = this.state.targetGroupMappings.map(function (mapping, index) {
       return (
         <tr key={index}>
           <td>
@@ -269,7 +270,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               required={true}
               placeholder="Enter a container name ..."
               value={mapping.containerName.toString()}
-              onChange={e => updateTargetGroupMappingContainer(index, e.target.value)}
+              onChange={(e) => updateTargetGroupMappingContainer(index, e.target.value)}
             />
           </td>
           <td data-test-id="Artifacts.targetGroup">
@@ -288,7 +289,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               className="form-control input-sm no-spel"
               required={true}
               value={mapping.containerPort.toString()}
-              onChange={e => updateTargetGroupMappingPort(index, e.target.valueAsNumber)}
+              onChange={(e) => updateTargetGroupMappingPort(index, e.target.valueAsNumber)}
             />
           </td>
           <td>
@@ -418,5 +419,9 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
 export const TASK_DEFINITION_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.taskDefinition.react';
 module(TASK_DEFINITION_REACT, []).component(
   'taskDefinitionReact',
-  react2angular(TaskDefinition, ['command', 'notifyAngular', 'configureCommand']),
+  react2angular(withErrorBoundary(TaskDefinition, 'taskDefinitionReact'), [
+    'command',
+    'notifyAngular',
+    'configureCommand',
+  ]),
 );

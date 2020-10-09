@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import React from 'react';
 
 import { IExpectedArtifact, IStage, IPipeline } from 'core/domain';
@@ -11,7 +12,7 @@ export interface IProducesArtifactsProps {
   onProducesChanged: (artifacts: IExpectedArtifact[], stage: IStage) => void;
 }
 
-export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
+export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = (props) => {
   const excludedArtifactTypePatterns = [ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE];
   const { pipeline, stage, onProducesChanged } = props;
   const produces: IExpectedArtifact[] = stage.expectedArtifacts || [];
@@ -19,7 +20,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
   const removeExpectedArtifact = (artifact: IExpectedArtifact) => {
     const producesAfterRemove = produces.slice(0);
     producesAfterRemove.splice(
-      produces.findIndex(a => artifact.id === a.id),
+      produces.findIndex((a) => artifact.id === a.id),
       1,
     );
     onProducesChanged(producesAfterRemove, stage);
@@ -32,7 +33,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
       excludedArtifactTypePatterns: excludedArtifactTypePatterns,
       excludedDefaultArtifactTypePatterns: excludedArtifactTypePatterns,
     }).then((editedArtifact: IExpectedArtifact) => {
-      const editIndex = produces.findIndex(a => a.id === editedArtifact.id);
+      const editIndex = produces.findIndex((a) => a.id === editedArtifact.id);
       const producesAfterEdit = produces.slice(0);
       producesAfterEdit[editIndex] = editedArtifact;
       onProducesChanged(producesAfterEdit, stage);
@@ -61,7 +62,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
           </tr>
         </thead>
         <tbody>
-          {produces.map(artifact => (
+          {produces.map((artifact) => (
             <tr key={artifact.id}>
               <td>{artifact.displayName}</td>
               <td>
@@ -82,5 +83,9 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
 export const PRODUCES_ARTIFACTS_REACT = 'spinnaker.core.pipeline.stages.produces.artifacts.react';
 module(PRODUCES_ARTIFACTS_REACT, []).component(
   'producesArtifactsReact',
-  react2angular(ProducesArtifacts, ['pipeline', 'stage', 'onProducesChanged']),
+  react2angular(withErrorBoundary(ProducesArtifacts, 'producesArtifactsReact'), [
+    'pipeline',
+    'stage',
+    'onProducesChanged',
+  ]),
 );

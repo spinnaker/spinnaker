@@ -3,7 +3,14 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { CheckboxInput, FormField, HelpField, IFormInputProps, LayoutProvider } from '@spinnaker/core';
+import {
+  CheckboxInput,
+  FormField,
+  HelpField,
+  IFormInputProps,
+  LayoutProvider,
+  withErrorBoundary,
+} from '@spinnaker/core';
 
 import { GceAutoScalingFieldLayout } from '../../GceAutoScalingFieldLayout';
 import { IGceAutoscalingPolicy, GcePredictiveMethod } from '../../IGceAutoscalingPolicy';
@@ -49,5 +56,5 @@ function GcePredictiveAutoscaling({ policy, updatePolicy }: IGcePredictiveAutosc
 export const GCE_PREDICTIVE_AUTOSCALING = 'spinnaker.gce.predictiveAutoscaling';
 module(GCE_PREDICTIVE_AUTOSCALING, []).component(
   'gcePredictiveAutoscaling',
-  react2angular(GcePredictiveAutoscaling, ['policy', 'updatePolicy']),
+  react2angular(withErrorBoundary(GcePredictiveAutoscaling, 'gcePredictiveAutoscaling'), ['policy', 'updatePolicy']),
 );

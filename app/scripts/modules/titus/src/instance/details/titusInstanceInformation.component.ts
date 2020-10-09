@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -7,5 +8,8 @@ export const TITUS_INSTANCE_INFORMATION_COMPONENT = 'spinnaker.application.titus
 
 module(TITUS_INSTANCE_INFORMATION_COMPONENT, []).component(
   'titusInstanceInformation',
-  react2angular(TitusInstanceInformation, ['instance', 'titusUiEndpoint']),
+  react2angular(withErrorBoundary(TitusInstanceInformation, 'titusInstanceInformation'), [
+    'instance',
+    'titusUiEndpoint',
+  ]),
 );

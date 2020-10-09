@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import { InstanceLinks } from './InstanceLinks';
@@ -7,5 +8,11 @@ export const name = CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT; // for backwa
 
 module(name, []).component(
   'instanceLinks',
-  react2angular(InstanceLinks, ['address', 'application', 'instance', 'moniker', 'environment']),
+  react2angular(withErrorBoundary(InstanceLinks, 'instanceLinks'), [
+    'address',
+    'application',
+    'instance',
+    'moniker',
+    'environment',
+  ]),
 );

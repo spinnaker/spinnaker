@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import { CreateScalingPolicyButton } from './CreateScalingPolicyButton';
@@ -5,5 +6,8 @@ import { CreateScalingPolicyButton } from './CreateScalingPolicyButton';
 export const TITUS_CREATE_SCALING_POLICY_BUTTON = 'spinnaker.titus.serverGroup.details.scaling.policy.button';
 module(TITUS_CREATE_SCALING_POLICY_BUTTON, []).component(
   'titusCreateScalingPolicyButton',
-  react2angular(CreateScalingPolicyButton, ['application', 'serverGroup']),
+  react2angular(withErrorBoundary(CreateScalingPolicyButton, 'titusCreateScalingPolicyButton'), [
+    'application',
+    'serverGroup',
+  ]),
 );

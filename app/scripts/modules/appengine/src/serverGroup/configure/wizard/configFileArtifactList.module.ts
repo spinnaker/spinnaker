@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
@@ -6,5 +7,10 @@ export const CONFIG_FILE_ARTIFACT_LIST = 'spinnaker.appengine.configFileArtifact
 
 module(CONFIG_FILE_ARTIFACT_LIST, []).component(
   'configFileArtifactList',
-  react2angular(ConfigFileArtifactList, ['configArtifacts', 'pipeline', 'stage', 'updateConfigArtifacts']),
+  react2angular(withErrorBoundary(ConfigFileArtifactList, 'configFileArtifactList'), [
+    'configArtifacts',
+    'pipeline',
+    'stage',
+    'updateConfigArtifacts',
+  ]),
 );

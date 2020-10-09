@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -12,4 +13,4 @@ module(SEARCH_INFRASTRUCTURE_V2_CONTROLLER, [
   PAGE_TITLE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,
-]).component('infrastructureSearchV2', react2angular(SearchV2));
+]).component('infrastructureSearchV2', react2angular(withErrorBoundary(SearchV2, 'infrastructureSearchV2')));

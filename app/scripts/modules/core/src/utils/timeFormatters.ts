@@ -77,4 +77,7 @@ module(TIME_FORMATTERS, [])
   .filter('relativeTime', () => relativeTime)
   .filter('duration', () => duration)
   .filter('timePickerTime', () => timePickerTime)
+  // Disable eslint react2angular-with-error-boundary rule
+  // Rule fixer would cause a circular package dependency between utils and presentation
+  // eslint-disable-next-line
   .component('systemTimezone', react2angular(SystemTimezone));

@@ -4,7 +4,7 @@ import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import prettyMilliseconds from 'pretty-ms';
 
-import { IServerGroupDetailsSectionProps, HelpField } from '@spinnaker/core';
+import { IServerGroupDetailsSectionProps, HelpField, withErrorBoundary } from '@spinnaker/core';
 import { TitusReactInjector } from 'titus/reactShims';
 
 import {
@@ -34,7 +34,7 @@ export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSe
     options: IFieldOption[];
     label: string;
   }): JSX.Element => {
-    const selected = options.find(o => !!budget[o.field]);
+    const selected = options.find((o) => !!budget[o.field]);
     if (!selected) {
       return null;
     }
@@ -134,7 +134,7 @@ export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSe
     const sortedDays = days.sort((d1, d2) => allDays.indexOf(d1) - allDays.indexOf(d2));
     const groups: string[] = [];
     const currentGroup: string[] = [];
-    allDays.slice(allDays.indexOf(sortedDays[0])).forEach(d => {
+    allDays.slice(allDays.indexOf(sortedDays[0])).forEach((d) => {
       if (sortedDays.includes(d)) {
         currentGroup.push(d);
       } else {
@@ -225,5 +225,5 @@ export const DISRUPTION_BUDGET_DETAILS_SECTION = 'spinnaker.titus.disruptionbudg
 
 module(DISRUPTION_BUDGET_DETAILS_SECTION, []).component(
   'titusDisruptionBudgetSection',
-  react2angular(DisruptionBudgetSection, ['serverGroup', 'app']),
+  react2angular(withErrorBoundary(DisruptionBudgetSection, 'titusDisruptionBudgetSection'), ['serverGroup', 'app']),
 );

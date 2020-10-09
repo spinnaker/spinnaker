@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
@@ -62,7 +63,7 @@ export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactS
   };
 
   private filterExpectedArtifacts(fn: IExpectedArtifactFilter): IExpectedArtifact[] {
-    return (this.props.expectedArtifacts || []).filter(ea => {
+    return (this.props.expectedArtifacts || []).filter((ea) => {
       const artifact = ExpectedArtifactService.artifactFromExpected(ea);
       if (!artifact) {
         return false;
@@ -77,17 +78,17 @@ export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactS
       let isIncluded = true;
       let isExcluded = false;
       if (offeredArtifactTypes && offeredArtifactTypes.length > 0) {
-        isIncluded = !!offeredArtifactTypes.find(patt => patt.test(artifact.type));
+        isIncluded = !!offeredArtifactTypes.find((patt) => patt.test(artifact.type));
       }
       if (excludedArtifactTypes && excludedArtifactTypes.length > 0) {
-        isExcluded = !!excludedArtifactTypes.find(patt => patt.test(artifact.type));
+        isExcluded = !!excludedArtifactTypes.find((patt) => patt.test(artifact.type));
       }
       return isIncluded && !isExcluded;
     });
   }
 
   public render() {
-    const options = this.getExpectedArtifacts().map(ea => {
+    const options = this.getExpectedArtifacts().map((ea) => {
       return { value: ea.id, expectedArtifact: ea, requestingNew: false };
     });
     if (this.props.onRequestCreate) {
@@ -119,7 +120,7 @@ module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT_REACT, [
   ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT,
 ]).component(
   'expectedArtifactSelectorReact',
-  react2angular(ExpectedArtifactSelector, [
+  react2angular(withErrorBoundary(ExpectedArtifactSelector, 'expectedArtifactSelectorReact'), [
     'expectedArtifacts',
     'selected',
     'requestingNew',

@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
@@ -33,7 +34,7 @@ export class ExpectedArtifactSourceSelector extends React.Component<
   constructor(props: IExpectedArtifactSourceSelectorProps) {
     super(props);
     this.state = {
-      options: props.sources.map(s => {
+      options: props.sources.map((s) => {
         if (s.value) {
           return s;
         } else {
@@ -48,7 +49,7 @@ export class ExpectedArtifactSourceSelector extends React.Component<
   };
 
   private onChange = (option: IExpectedArtifactSourceOption) => {
-    const source = this.props.sources.find(s => s.source === option.source);
+    const source = this.props.sources.find((s) => s.source === option.source);
     this.props.onChange(source);
   };
 
@@ -71,5 +72,10 @@ export const EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT =
   'spinnaker.core.artifacts.expected.source.selector.react';
 module(EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT, []).component(
   'expectedArtifactSourceSelectorReact',
-  react2angular(ExpectedArtifactSourceSelector, ['sources', 'className', 'onChange', 'selected']),
+  react2angular(withErrorBoundary(ExpectedArtifactSourceSelector, 'expectedArtifactSourceSelectorReact'), [
+    'sources',
+    'className',
+    'onChange',
+    'selected',
+  ]),
 );

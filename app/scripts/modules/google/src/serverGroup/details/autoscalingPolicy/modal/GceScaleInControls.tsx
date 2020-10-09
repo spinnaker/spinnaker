@@ -4,7 +4,14 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 import { isEmpty } from 'lodash';
 
-import { CheckboxInput, FormField, LayoutProvider, NumberInput, ReactSelectInput } from '@spinnaker/core';
+import {
+  CheckboxInput,
+  FormField,
+  LayoutProvider,
+  NumberInput,
+  ReactSelectInput,
+  withErrorBoundary,
+} from '@spinnaker/core';
 
 import { GceAutoScalingFieldLayout, IGceAutoscalingPolicy, IGceScaleInControl } from '../../../../autoscalingPolicy';
 
@@ -45,7 +52,7 @@ function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) 
     <LayoutProvider value={GceAutoScalingFieldLayout}>
       <div className="row">
         <FormField
-          input={inputProps => <CheckboxInput {...inputProps} />}
+          input={(inputProps) => <CheckboxInput {...inputProps} />}
           label="Enable scale-in controls"
           onChange={(e: React.ChangeEvent<any>) => {
             updateScaleInControl(e.target.checked ? defaultScaleInControl : {});
@@ -57,7 +64,7 @@ function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) 
         <>
           <div className="row">
             <FormField
-              input={inputProps => (
+              input={(inputProps) => (
                 <NumberInput
                   {...inputProps}
                   min={0}
@@ -76,7 +83,7 @@ function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) 
               value={policy.scaleInControl.maxScaledInReplicas[getMaxReplicasUnit()]}
             />
             <FormField
-              input={inputProps => (
+              input={(inputProps) => (
                 <ReactSelectInput
                   {...inputProps}
                   clearable={false}
@@ -97,7 +104,7 @@ function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) 
           </div>
           <div className="row">
             <FormField
-              input={inputProps => <NumberInput {...inputProps} min={60} max={3600} />}
+              input={(inputProps) => <NumberInput {...inputProps} min={60} max={3600} />}
               label="Time window (seconds)"
               onChange={(e: React.ChangeEvent<any>) => {
                 updateScaleInControl({
@@ -117,5 +124,5 @@ function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) 
 export const GCE_SCALE_IN_CONTROLS = 'spinnaker.gce.scaleInControls';
 module(GCE_SCALE_IN_CONTROLS, []).component(
   'gceScaleInControls',
-  react2angular(GceScaleInControls, ['policy', 'updatePolicy']),
+  react2angular(withErrorBoundary(GceScaleInControls, 'gceScaleInControls'), ['policy', 'updatePolicy']),
 );

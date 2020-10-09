@@ -4,7 +4,7 @@ import { get, last } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application } from '@spinnaker/core';
+import { Application, withErrorBoundary } from '@spinnaker/core';
 
 import { IGceDisk, IGceServerGroup } from '../../domain';
 import { StatefulMIGService } from './stateful/StatefulMIGService';
@@ -22,9 +22,10 @@ class ServerGroupDiskDescriptions extends React.Component<IServerGroupDiskDescri
     const disks: IGceDisk[] = get(serverGroup, 'launchConfig.instanceTemplate.properties.disks', []);
     const statefulOperationsEnabled: boolean = StatefulMIGService.statefulMigsEnabled();
     const canUpdateBootImage =
-      statefulOperationsEnabled && disks.some(disk => StatefulMIGService.isDiskStateful(disk.deviceName, serverGroup));
+      statefulOperationsEnabled &&
+      disks.some((disk) => StatefulMIGService.isDiskStateful(disk.deviceName, serverGroup));
 
-    return disks.map(disk => {
+    return disks.map((disk) => {
       if (disk.boot) {
         return (
           <React.Fragment key={disk.deviceName}>
@@ -89,5 +90,8 @@ class ServerGroupDiskDescriptions extends React.Component<IServerGroupDiskDescri
 export const GCE_SERVER_GROUP_DISK_DESCRIPTIONS = 'spinnaker.gce.serverGroupDiskDescriptions';
 module(GCE_SERVER_GROUP_DISK_DESCRIPTIONS, []).component(
   'gceServerGroupDiskDescriptions',
-  react2angular(ServerGroupDiskDescriptions, ['application', 'serverGroup']),
+  react2angular(withErrorBoundary(ServerGroupDiskDescriptions, 'gceServerGroupDiskDescriptions'), [
+    'application',
+    'serverGroup',
+  ]),
 );

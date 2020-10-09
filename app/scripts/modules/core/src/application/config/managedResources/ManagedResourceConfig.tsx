@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
@@ -128,5 +129,5 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
 export const MANAGED_RESOURCE_CONFIG = 'spinnaker.core.managedResourceConfig.component';
 module(MANAGED_RESOURCE_CONFIG, []).component(
   'managedResourceConfig',
-  react2angular(ManagedResourceConfig, ['application']),
+  react2angular(withErrorBoundary(ManagedResourceConfig, 'managedResourceConfig'), ['application']),
 );

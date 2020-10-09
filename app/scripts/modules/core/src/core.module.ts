@@ -23,11 +23,11 @@ import { UI_ROUTER_REACT_HYBRID } from '@uirouter/react-hybrid';
 require('Select2/select2.css');
 require('select2-bootstrap-css/select2-bootstrap.css');
 import 'source-sans-pro/source-sans-pro.css';
-import { RECENT_HISTORY_SERVICE } from 'core/history';
+import { RECENT_HISTORY_SERVICE } from './history/recentHistory.service';
 require('root/app/fonts/spinnaker/icons.css');
 
 import './analytics/GoogleAnalyticsInitializer';
-import { UI_ROUTER_REACT_ERROR_BOUNDARY } from 'core/presentation/SpinErrorBoundary';
+import { UI_ROUTER_REACT_ERROR_BOUNDARY } from './presentation/SpinErrorBoundary';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
@@ -53,7 +53,7 @@ import { FUNCTION_MODULE } from './function/function.module';
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
 
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
-import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
+import { PAGER_DUTY_MODULE } from './pagerDuty/pagerDuty.module';
 import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { PLUGINS_MODULE } from './plugins';
@@ -65,10 +65,10 @@ import { SLACK_COMPONENT } from './slack';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 
-import { FIREWALL_LABEL_COMPONENT } from 'core/securityGroup/label/firewallLabel.component';
+import { FIREWALL_LABEL_COMPONENT } from './securityGroup/label/firewallLabel.component';
 
-import { LABEL_FILTER_COMPONENT } from 'core/cluster/filter/labelFilter.component';
-import { FILTER_SEARCH_COMPONENT } from 'core/cluster/filter/filterSearch.component';
+import { LABEL_FILTER_COMPONENT } from './cluster/filter/labelFilter.component';
+import { FILTER_SEARCH_COMPONENT } from './cluster/filter/filterSearch.component';
 
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 

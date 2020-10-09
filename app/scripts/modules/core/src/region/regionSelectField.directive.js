@@ -1,4 +1,5 @@
-'use strict';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+('use strict');
 
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
@@ -10,7 +11,7 @@ export const name = CORE_REGION_REGIONSELECTFIELD_DIRECTIVE; // for backwards co
 module(CORE_REGION_REGIONSELECTFIELD_DIRECTIVE, [])
   .component(
     'regionSelectFieldWrapper',
-    react2angular(RegionSelectField, [
+    react2angular(withErrorBoundary(RegionSelectField, 'regionSelectFieldWrapper'), [
       'regions',
       'component',
       'field',
@@ -46,9 +47,9 @@ module(CORE_REGION_REGIONSELECTFIELD_DIRECTIVE, [])
       fieldColumns: '<',
       readOnly: '=',
     },
-    controller: function() {
+    controller: function () {
       const vm = this;
-      vm.propagate = function(data) {
+      vm.propagate = function (data) {
         vm.component[vm.field] = data;
         vm.onChange();
       };

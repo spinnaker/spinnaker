@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 
 import { react2angular } from 'react2angular';
@@ -9,7 +10,7 @@ const ngmodule = module(ENTITY_NOTIFICATIONS, []);
 
 ngmodule.component(
   'entityNotificationsWrapper',
-  react2angular(EntityNotifications, [
+  react2angular(withErrorBoundary(EntityNotifications, 'entityNotificationsWrapper'), [
     'entity',
     'application',
     'placement',

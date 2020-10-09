@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import { AccountSelectInput } from './AccountSelectInput';
@@ -7,5 +8,11 @@ const ngmodule = module(ACCOUNT_SELECT_WRAPPER, []);
 
 ngmodule.component(
   'accountSelectWrapper',
-  react2angular(AccountSelectInput, ['accounts', 'provider', 'readOnly', 'onChange', 'value']),
+  react2angular(withErrorBoundary(AccountSelectInput, 'accountSelectWrapper'), [
+    'accounts',
+    'provider',
+    'readOnly',
+    'onChange',
+    'value',
+  ]),
 );

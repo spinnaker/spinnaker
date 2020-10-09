@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -7,5 +8,5 @@ export const SLACK_COMPONENT = 'spinnaker.application.slackChannelSelector.compo
 
 module(SLACK_COMPONENT, []).component(
   'slackChannelSelector',
-  react2angular(SlackChannelSelector, ['channel', 'callback']),
+  react2angular(withErrorBoundary(SlackChannelSelector, 'slackChannelSelector'), ['channel', 'callback']),
 );

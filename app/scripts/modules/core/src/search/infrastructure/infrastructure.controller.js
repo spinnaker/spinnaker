@@ -1,4 +1,5 @@
-'use strict';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+('use strict');
 
 import _ from 'lodash';
 
@@ -34,7 +35,14 @@ angular
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
   ])
-  .component('searchInsightMenu', react2angular(SearchInsightMenu, ['createApp', 'createProject', 'refreshCaches']))
+  .component(
+    'searchInsightMenu',
+    react2angular(withErrorBoundary(SearchInsightMenu, 'searchInsightMenu'), [
+      'createApp',
+      'createProject',
+      'refreshCaches',
+    ]),
+  )
   .controller('InfrastructureCtrl', [
     '$scope',
     'infrastructureSearchService',
@@ -44,7 +52,7 @@ angular
     'pageTitleService',
     '$uibModal',
     '$state',
-    function(
+    function (
       $scope,
       infrastructureSearchService,
       $stateParams,
@@ -66,7 +74,7 @@ angular
         minCharactersToSearch: 3,
       };
 
-      this.clearFilters = r => ClusterState.filterService.overrideFiltersForUrl(r);
+      this.clearFilters = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
       function updateLocation() {
         $location.search('q', $scope.query || null);
@@ -83,7 +91,7 @@ angular
         // we don't want to automatically route the user or have them copy this as a link
         $location.search('route', null);
       }
-      $scope.$watch('query', function(query) {
+      $scope.$watch('query', function (query) {
         $scope.categories = [];
         $scope.projects = [];
         if (query && query.length < $scope.viewState.minCharactersToSearch) {
@@ -92,8 +100,8 @@ angular
           return;
         }
         $scope.viewState.searching = true;
-        search.query(query).then(function(resultSets) {
-          const allResults = _.flatten(resultSets.map(r => r.results));
+        search.query(query).then(function (resultSets) {
+          const allResults = _.flatten(resultSets.map((r) => r.results));
           if (allResults.length === 1 && autoNavigate) {
             $location.url(allResults[0].href.substring(1));
           } else {
@@ -102,13 +110,13 @@ angular
             autoNavigate = false;
           }
           $scope.categories = resultSets
-            .filter(resultSet => resultSet.type.id !== 'projects' && resultSet.results.length)
+            .filter((resultSet) => resultSet.type.id !== 'projects' && resultSet.results.length)
             .sort((a, b) => a.type.id - b.type.id);
           $scope.projects = resultSets.filter(
-            resultSet => resultSet.type.id === 'projects' && resultSet.results.length,
+            (resultSet) => resultSet.type.id === 'projects' && resultSet.results.length,
           );
           $scope.moreResults =
-            _.sumBy(resultSets, function(resultSet) {
+            _.sumBy(resultSets, function (resultSet) {
               return resultSet.results.length;
             }) === $scope.pageSize;
           updateLocation();
@@ -164,10 +172,10 @@ angular
       this.showRecentResults = () =>
         !$scope.viewState.searching &&
         !$scope.projects.length &&
-        $scope.categories.every(category => !category.results.length);
+        $scope.categories.every((category) => !category.results.length);
     },
   ])
-  .directive('infrastructureSearchV1', function() {
+  .directive('infrastructureSearchV1', function () {
     return {
       restrict: 'E',
       templateUrl: require('./infrastructure.html'),

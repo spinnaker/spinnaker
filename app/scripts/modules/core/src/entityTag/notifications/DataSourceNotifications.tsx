@@ -1,3 +1,4 @@
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 
 import React from 'react';
@@ -22,7 +23,7 @@ export interface IDataSourceNotificationsProps {
 export class DataSourceNotifications extends React.Component<IDataSourceNotificationsProps> {
   public getDataSourceAnalyticsLabel = (): string => {
     const { tabName, application, tags } = this.props;
-    const alertsStr = tags.map(tag => tag.alerts.map((alert: IEntityTag) => alert.name).join(','));
+    const alertsStr = tags.map((tag) => tag.alerts.map((alert: IEntityTag) => alert.name).join(','));
     return [tabName, application.name, alertsStr].join(':');
   };
 
@@ -48,5 +49,9 @@ const ngmodule = module(DATA_SOURCE_NOTIFICATIONS, []);
 
 ngmodule.component(
   'dataSourceNotifications',
-  react2angular(DataSourceNotifications, ['tags', 'application', 'tabName']),
+  react2angular(withErrorBoundary(DataSourceNotifications, 'dataSourceNotifications'), [
+    'tags',
+    'application',
+    'tabName',
+  ]),
 );

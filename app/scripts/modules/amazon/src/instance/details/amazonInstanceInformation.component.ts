@@ -1,3 +1,4 @@
+import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -7,5 +8,5 @@ export const AMAZON_INSTANCE_INFORMATION_COMPONENT = 'spinnaker.application.amaz
 
 module(AMAZON_INSTANCE_INFORMATION_COMPONENT, []).component(
   'amazonInstanceInformation',
-  react2angular(AmazonInstanceInformation, ['instance']),
+  react2angular(withErrorBoundary(AmazonInstanceInformation, 'amazonInstanceInformation'), ['instance']),
 );
