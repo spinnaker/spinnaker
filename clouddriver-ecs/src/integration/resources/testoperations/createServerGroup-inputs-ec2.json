@@ -17,11 +17,11 @@
   "containerPort": 80,
   "credentials": "ecs-account",
   "dockerImageAddress": "nginx",
-  "ecsClusterName": "spinnaker-deployment-cluster",
+  "ecsClusterName": "integInputsEc2LegacyTargetGroup-cluster",
   "launchType": "EC2",
   "networkMode": "bridge",
   "placementStrategySequence": [],
   "reservedMemory": 512,
-  "stack": "integ-test-stack",
-  "targetGroup": "spin-ec2-instanceTG"
+  "stack": "integInputsEc2LegacyTargetGroup",
+  "targetGroup": "integInputsEc2LegacyTargetGroup-targetGroup"
 }

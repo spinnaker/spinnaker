@@ -15,7 +15,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,18 +33,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import org.junit.Test;
+import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(
     classes = {Main.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -62,7 +61,7 @@ public class EcsSpec {
 
   @LocalServerPort private int port;
 
-  @MockBean AmazonClientProvider mockAwsProvider;
+  @MockBean protected AmazonClientProvider mockAwsProvider;
 
   @MockBean AmazonAccountsSynchronizer mockAccountsSyncer;
 
@@ -102,5 +101,17 @@ public class EcsSpec {
     dataMap.put(namespace, dataPoints);
 
     return new DefaultCacheResult(dataMap);
+  }
+
+  protected void retryUntilTrue(BooleanSupplier func, String failMsg, int retrySeconds)
+      throws InterruptedException {
+    for (int i = 0; i < retrySeconds; i++) {
+      if (!func.getAsBoolean()) {
+        Thread.sleep(1000);
+      } else {
+        return;
+      }
+    }
+    fail(failMsg);
   }
 }

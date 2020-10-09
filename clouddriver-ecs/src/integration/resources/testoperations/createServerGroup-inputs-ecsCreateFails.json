@@ -2,9 +2,9 @@
   "account": "ecs-account",
   "application": "ecs",
   "availabilityZones": {
-    "us-west-2": [
-      "us-west-2a",
-      "us-west-2c"
+    "us-west-1": [
+      "us-west-1a",
+      "us-west-1c"
     ]
   },
   "capacity": {
@@ -17,11 +17,11 @@
   "containerPort": 80,
   "credentials": "ecs-account",
   "dockerImageAddress": "nginx",
-  "ecsClusterName": "integInputsFargateLegacyTargetGroup-cluster",
-  "launchType": "FARGATE",
-  "networkMode": "aws-vpc",
+  "ecsClusterName": "integInputsErrorFromEcs-cluster",
+  "launchType": "EC2",
+  "networkMode": "bridge",
   "placementStrategySequence": [],
   "reservedMemory": 512,
-  "stack": "integInputsFargateLegacyTargetGroup",
-  "targetGroup": "integInputsFargateLegacyTargetGroup-targetGroup"
+  "stack": "integInputsErrorFromEcs",
+  "targetGroup": "integInputsErrorFromEcs-targetGroup"
 }

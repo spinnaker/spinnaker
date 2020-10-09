@@ -15,31 +15,91 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.test;
 
+import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
+import com.amazonaws.services.ecs.AmazonECS;
+import com.amazonaws.services.ecs.model.*;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import io.restassured.http.ContentType;
 import java.io.IOException;
 import java.util.Collections;
-import org.junit.Test;
+import java.util.HashMap;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * TODO (allisaurus): Ideally these tests would go further and actually assert that the resulting
- * ecs:create-service call is formed as expected, but for now, it asserts that the given operation
- * is correctly validated and submitted as a task.
- */
 public class CreateServerGroupSpec extends EcsSpec {
 
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
 
+  private final int TASK_RETRY_SECONDS = 3;
+  private AmazonECS mockECS = mock(AmazonECS.class);
+  private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
+
   private static final String CREATE_SG_TEST_PATH = "/ecs/ops/createServerGroup";
+
+  @BeforeEach
+  public void setup() {
+    // mock ECS responses
+    when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
+    when(mockECS.describeServices(any(DescribeServicesRequest.class)))
+        .thenReturn(new DescribeServicesResult());
+    when(mockECS.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
+        .thenAnswer(
+            (Answer<RegisterTaskDefinitionResult>)
+                invocation -> {
+                  RegisterTaskDefinitionRequest request =
+                      (RegisterTaskDefinitionRequest) invocation.getArguments()[0];
+                  String testArn = "arn:aws:ecs:::task-definition/" + request.getFamily() + ":1";
+                  TaskDefinition taskDef = new TaskDefinition().withTaskDefinitionArn(testArn);
+                  return new RegisterTaskDefinitionResult().withTaskDefinition(taskDef);
+                });
+    when(mockECS.createService(any(CreateServiceRequest.class)))
+        .thenReturn(
+            new CreateServiceResult().withService(new Service().withServiceName("createdService")));
+
+    when(mockAwsProvider.getAmazonEcs(
+            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+        .thenReturn(mockECS);
+
+    // mock ELB responses
+    when(mockELB.describeTargetGroups(any(DescribeTargetGroupsRequest.class)))
+        .thenAnswer(
+            (Answer<DescribeTargetGroupsResult>)
+                invocation -> {
+                  DescribeTargetGroupsRequest request =
+                      (DescribeTargetGroupsRequest) invocation.getArguments()[0];
+                  String testArn =
+                      "arn:aws:elasticloadbalancing:::targetgroup/"
+                          + request.getNames().get(0)
+                          + "/76tgredfc";
+                  TargetGroup testTg = new TargetGroup().withTargetGroupArn(testArn);
+
+                  return new DescribeTargetGroupsResult().withTargetGroups(testTg);
+                });
+
+    when(mockAwsProvider.getAmazonElasticLoadBalancingV2(
+            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+        .thenReturn(mockELB);
+  }
 
   @DisplayName(
       ".\n===\n"
@@ -47,25 +107,71 @@ public class CreateServerGroupSpec extends EcsSpec {
           + "successfully submit createServerGroup operation"
           + "\n===")
   @Test
-  public void createServerGroupOperationTest() throws IOException {
+  public void createServerGroup_InputsEc2LegacyTargetGroupTest()
+      throws IOException, InterruptedException {
 
     // given
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody = generateStringFromTestFile("/createServerGroup-inputs-ec2.json");
+    String expectedServerGroupName = "ecs-integInputsEc2LegacyTargetGroup";
     setEcsAccountCreds();
 
     // when
-    given()
-        .contentType(ContentType.JSON)
-        .body(requestBody)
-        .when()
-        .post(url)
-        // then
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .body("id", notNullValue())
-        .body("resourceUri", containsString("/task/"));
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    // then
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+
+    ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
+        ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
+    verify(mockELB).describeTargetGroups(elbArgCaptor.capture());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals("EC2", seenCreateServRequest.getLaunchType());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
+    assertEquals("v000", serviceLB.getContainerName());
+    assertEquals(80, serviceLB.getContainerPort().intValue());
+    assertEquals("integInputsEc2LegacyTargetGroup-cluster", seenCreateServRequest.getCluster());
   }
 
   @DisplayName(
@@ -74,28 +180,74 @@ public class CreateServerGroupSpec extends EcsSpec {
           + "successfully submit createServerGroup operation"
           + "\n===")
   @Test
-  public void createSGOWithInputsFargateLegacyTargetGroupTest() throws IOException {
+  public void createServerGroup_InputsFargateLegacyTargetGroupTest()
+      throws IOException, InterruptedException {
 
     // given
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody =
         generateStringFromTestFile(
             "/createServerGroupOperation-inputs-fargate-legacyTargetGroup.json");
+    String expectedServerGroupName = "ecs-integInputsFargateLegacyTargetGroup";
     setEcsAccountCreds();
 
     // when
-    given()
-        .contentType(ContentType.JSON)
-        .body(requestBody)
-        .when()
-        .post(url)
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
 
-        // then
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .body("id", notNullValue())
-        .body("resourceUri", containsString("/task/"));
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    // then
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals("aws-vpc", seenTaskDefRequest.getNetworkMode());
+
+    ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
+        ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
+    verify(mockELB).describeTargetGroups(elbArgCaptor.capture());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals("FARGATE", seenCreateServRequest.getLaunchType());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
+    assertEquals("v000", serviceLB.getContainerName());
+    assertEquals(80, serviceLB.getContainerPort().intValue());
+    assertEquals("integInputsFargateLegacyTargetGroup-cluster", seenCreateServRequest.getCluster());
   }
 
   @DisplayName(
@@ -104,35 +256,131 @@ public class CreateServerGroupSpec extends EcsSpec {
           + "successfully submit createServerGroup operation"
           + "\n===")
   @Test
-  public void createSGOWithInputsFargateNewTargetGroupMappingsTest() throws IOException {
+  public void createServerGroup_InputsFargateTgMappingsTest()
+      throws IOException, InterruptedException {
 
     // given
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody =
         generateStringFromTestFile(
             "/createServerGroupOperation-inputs-fargate-targetGroupMappings.json");
+    String expectedServerGroupName = "ecs-integInputsFargateTgMappings";
     setEcsAccountCreds();
 
     // when
-    given()
-        .contentType(ContentType.JSON)
-        .body(requestBody)
-        .when()
-        .post(url)
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
 
-        // then
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .body("id", notNullValue())
-        .body("resourceUri", containsString("/task/"));
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    // then
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals("aws-vpc", seenTaskDefRequest.getNetworkMode());
+
+    ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
+        ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
+    verify(mockELB).describeTargetGroups(elbArgCaptor.capture());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
+    assertEquals("FARGATE", seenCreateServRequest.getLaunchType());
+    // assert network stuff is set
+    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
+    assertEquals("main", serviceLB.getContainerName());
+    assertEquals(80, serviceLB.getContainerPort().intValue());
+    assertEquals("integInputsFargateTgMappings-cluster", seenCreateServRequest.getCluster());
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ task def inputs,"
+          + "task should fail if ECS service creation fails"
+          + "\n===")
+  @Test
+  public void createServerGroup_errorIfCreateServiceFails()
+      throws IOException, InterruptedException {
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile("/createServerGroup-inputs-ecsCreateFails.json");
+    setEcsAccountCreds();
+
+    // when
+    Mockito.doThrow(new InvalidParameterException("Something is wrong."))
+        .when(mockECS)
+        .createService(any(CreateServiceRequest.class));
+
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    // then
+    retryUntilTrue(
+        () -> {
+          HashMap<String, Boolean> status =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("status");
+
+          return status.get("failed").equals(true);
+        },
+        String.format("Failed to observe task failure after %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
   }
 
   private void setEcsAccountCreds() {
     AmazonCredentials.AWSRegion testRegion = new AmazonCredentials.AWSRegion(TEST_REGION, null);
 
-    NetflixAmazonCredentials ecsCreds =
-        new NetflixAmazonCredentials(
+    NetflixAssumeRoleAmazonCredentials ecsCreds =
+        new NetflixAssumeRoleAmazonCredentials(
             ECS_ACCOUNT_NAME,
             "test",
             "test",
@@ -154,7 +402,10 @@ public class CreateServerGroupSpec extends EcsSpec {
             null,
             false,
             false,
-            false);
+            "SpinnakerManaged",
+            "SpinnakerSession",
+            false,
+            "");
 
     accountCredentialsRepository.save(ECS_ACCOUNT_NAME, ecsCreds);
   }
