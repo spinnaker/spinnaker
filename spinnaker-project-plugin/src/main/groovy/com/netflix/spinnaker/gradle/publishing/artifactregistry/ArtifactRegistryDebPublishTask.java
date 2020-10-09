@@ -25,7 +25,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.jetbrains.annotations.NotNull;
 
 class ArtifactRegistryDebPublishTask extends DefaultTask {
 
@@ -124,7 +123,6 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
    * If the Operation is not done, that means we timed out before finishing the import. The operation
    * should also be checked for errors.
    */
-  @NotNull
   private Operation importDebToArtifactRegistry(BlobId blobId) throws GeneralSecurityException, IOException,
     InterruptedException {
 
