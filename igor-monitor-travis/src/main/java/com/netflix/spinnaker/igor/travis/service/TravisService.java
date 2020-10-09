@@ -179,11 +179,15 @@ public class TravisService implements BuildOperations, BuildProperties {
     String repoSlug = cleanRepoSlug(inputRepoSlug);
     String branch = branchFromRepoSlug(inputRepoSlug);
     RepoRequest repoRequest = new RepoRequest(branch.isEmpty() ? "master" : branch);
+    String buildMessage;
     if (buildMessageKey != null && queryParameters.containsKey(buildMessageKey)) {
-      String buildMessage = queryParameters.get(buildMessageKey);
+      buildMessage = queryParameters.get(buildMessageKey);
       queryParameters.remove(buildMessageKey);
-      repoRequest.setMessage(repoRequest.getMessage() + ": " + buildMessage);
+    } else {
+      buildMessage =
+          "Application: '${execution.application}', pipeline: '${execution.name}', execution: '${execution.id}'";
     }
+    repoRequest.setMessage(repoRequest.getMessage() + ": " + buildMessage);
     repoRequest.setConfig(new Config(queryParameters));
     final TriggerResponse triggerResponse =
         travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest);
