@@ -2,13 +2,13 @@ apply plugin: 'java-library'
 apply plugin: 'scala'
 
 dependencies {
-  api "org.apache.commons:commons-math3:$mathCommonsVersion"
+  api "org.apache.commons:commons-math3"
 
-  api 'org.scala-lang:scala-library-all:2.12.2'
-  api 'org.scala-lang:scala-reflect:2.12.2'
-  api 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
+  api 'org.scala-lang:scala-library-all'
+  api 'org.scala-lang:scala-reflect'
+  api 'com.typesafe.scala-logging:scala-logging_2.12'
 
-  testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
+  testImplementation 'org.scalatest:scalatest_2.12'
 }
 
 task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {

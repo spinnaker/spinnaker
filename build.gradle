@@ -74,6 +74,13 @@ subprojects { project ->
 
   if (name != "kayenta-bom") {
     dependencies {
+      constraints {
+        api "org.apache.commons:commons-math3:3.6.1"
+        api 'org.scala-lang:scala-library-all:2.12.12'
+        api 'org.scala-lang:scala-reflect:2.12.12'
+        api 'com.typesafe.scala-logging:scala-logging_2.12:3.9.2'
+        testImplementation 'org.scalatest:scalatest_2.12:3.0.9'
+      }
       implementation platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
       compileOnly "org.projectlombok:lombok"
       annotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
