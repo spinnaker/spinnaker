@@ -224,6 +224,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
         <tr key={index}>
           <td>
             <input
+              data-test-id="Artifacts.containerName"
               className="form-control input-sm"
               required={true}
               placeholder="enter container name..."
@@ -231,7 +232,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               onChange={e => updateContainerMappingName(index, e.target.value)}
             />
           </td>
-          <td>
+          <td data-test-id="Artifacts.containerImage">
             <TetheredSelect
               placeholder="Select an image to use..."
               options={dockerImageOptions}
@@ -244,7 +245,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </td>
           <td>
             <div className="form-control-static">
-              <a className="btn-link sm-label" onClick={() => removeMapping(index)}>
+              <a
+                className="btn-link sm-label"
+                data-test-id="Artifacts.containerRemove"
+                onClick={() => removeMapping(index)}
+              >
                 <span className="glyphicon glyphicon-trash" />
                 <span className="sr-only">Remove</span>
               </a>
@@ -259,6 +264,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
         <tr key={index}>
           <td>
             <input
+              data-test-id="Artifacts.targetGroupContainer"
               className="form-control input-sm"
               required={true}
               placeholder="Enter a container name ..."
@@ -266,7 +272,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               onChange={e => updateTargetGroupMappingContainer(index, e.target.value)}
             />
           </td>
-          <td>
+          <td data-test-id="Artifacts.targetGroup">
             <TetheredSelect
               placeholder="Select a target group to use..."
               options={targetGroupsAvailable}
@@ -277,6 +283,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </td>
           <td>
             <input
+              data-test-id="Artifacts.targetGroupPort"
               type="number"
               className="form-control input-sm no-spel"
               required={true}
@@ -286,7 +293,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
           </td>
           <td>
             <div className="form-control-static">
-              <a className="btn-link sm-label" onClick={() => removeTargetGroupMapping(index)}>
+              <a
+                className="btn-link sm-label"
+                data-test-id="Artifacts.targetGroupRemove"
+                onClick={() => removeTargetGroupMapping(index)}
+              >
                 <span className="glyphicon glyphicon-trash" />
                 <span className="sr-only">Remove</span>
               </a>
@@ -297,7 +308,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     });
 
     const newTargetGroupMapping = this.state.targetGroupsAvailable.length ? (
-      <button className="btn btn-block btn-sm add-new" onClick={this.pushTargetGroupMapping}>
+      <button
+        className="btn btn-block btn-sm add-new"
+        data-test-id="Artifacts.targetGroupAdd"
+        onClick={this.pushTargetGroupMapping}
+      >
         <span className="glyphicon glyphicon-plus-sign" />
         Add New Target Group Mapping
       </button>
@@ -348,7 +363,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               <tfoot>
                 <tr>
                   <td colSpan={3}>
-                    <button className="btn btn-block btn-sm add-new" onClick={this.pushMapping}>
+                    <button
+                      className="btn btn-block btn-sm add-new"
+                      data-test-id="Artifacts.containerAdd"
+                      onClick={this.pushMapping}
+                    >
                       <span className="glyphicon glyphicon-plus-sign" />
                       Add New Container Mapping
                     </button>

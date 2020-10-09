@@ -1,0 +1,40 @@
+[
+  {
+    "accountName": "ecs-my-aws-devel-acct",
+    "id": "arn:aws:iam::123456789012:role/ecsServiceRole",
+    "name": "ecsServiceRole",
+    "trustRelationships": [
+      {
+        "type": "Service",
+        "value": "ecs-tasks.amazonaws.com"
+      },
+      {
+        "type": "Service",
+        "value": "ecs.amazonaws.com"
+      }
+    ]
+  },
+  {
+    "accountName": "ecs-my-aws-devel-acct",
+    "id": "arn:aws:iam::123456789012:role/SpinnakerManaged",
+    "name": "SpinnakerManaged",
+    "trustRelationships": [
+      {
+        "type": "Service",
+        "value": "application-autoscaling.amazonaws.com"
+      },
+      {
+        "type": "Service",
+        "value": "ecs-tasks.amazonaws.com"
+      },
+      {
+        "type": "Service",
+        "value": "ecs.amazonaws.com"
+      },
+      {
+        "type": "AWS",
+        "value": "arn:aws:iam::123456789012:role/SpinnakerDevInstanceRole"
+      }
+    ]
+  }
+]

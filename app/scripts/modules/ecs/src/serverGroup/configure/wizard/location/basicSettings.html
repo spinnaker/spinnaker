@@ -39,6 +39,7 @@
           No ECS clusters found in the selected account/region
         </div>
         <ui-select
+          data-test-id="ServerGroup.clusterName"
           ng-model="command.ecsClusterName"
           ng-if="command.backingData.filtered.ecsClusters.length"
           class="form-control input-sm"
@@ -61,6 +62,7 @@
       </div>
       <div class="col-md-7">
         <input
+          data-test-id="ServerGroup.stack"
           type="text"
           class="form-control input-sm no-spel"
           ng-pattern="basicSettingsCtrl.stackPattern"
@@ -81,6 +83,7 @@
       </div>
       <div class="col-md-7">
         <input
+          data-test-id="ServerGroup.details"
           type="text"
           class="form-control input-sm no-spel"
           ng-pattern="basicSettingsCtrl.detailPattern"

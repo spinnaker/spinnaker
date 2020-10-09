@@ -1,0 +1,118 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "availabilityZones": ["us-west-2b", "us-west-2a"],
+    "cloudProvider": "ecs",
+    "createdTime": 1575856912220,
+    "dnsname": "spinnaker-ecs-demo-lb-123456789.us-west-2.elb.amazonaws.com",
+    "ipAddressType": "ipv4",
+    "labels": {},
+    "listeners": [
+      {
+        "defaultActions": [
+          {
+            "forwardConfig": {
+              "targetGroupStickinessConfig": {
+                "enabled": false
+              },
+              "targetGroups": [
+                {
+                  "targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-ecs-demo-tg/44d60f5ff69721bc",
+                  "weight": 1
+                }
+              ]
+            },
+            "type": "forward"
+          }
+        ],
+        "listenerArn": "arn:aws:elasticloadbalancing:us-west-2:123456789012:listener/app/spinnaker-ecs-demo-lb/c8e3fda5c0b6d6e9/fc8442eab9564077",
+        "port": 80,
+        "protocol": "HTTP"
+      }
+    ],
+    "loadBalancerArn": "arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/spinnaker-ecs-demo-lb/c8e3fda5c0b6d6e9",
+    "loadBalancerName": "spinnaker-ecs-demo-lb",
+    "loadBalancerType": "application",
+    "moniker": {
+      "app": "spinnaker",
+      "cluster": "spinnaker-ecs-demo-lb",
+      "detail": "demo-lb",
+      "stack": "ecs"
+    },
+    "name": "spinnaker-ecs-demo-lb",
+    "region": "us-west-2",
+    "securityGroups": ["sg-038cb6d3469b7cbf1", "sg-04a2c2220db56b206"],
+    "subnets": ["subnet-0a093ae1ca053ca26", "subnet-018fd385c68e86297"],
+    "targetGroupServices": {
+      "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-ec2-ecs-demo-tg/22af6ed04e7a8b0d": [
+        "aws-prod-ecsdemoec2-v019",
+        "aws-prod-ecsdemoec2-v018"
+      ],
+      "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-ecs-demo-tg/44d60f5ff69721bc": [
+        "aws-final-test-v000",
+        "aws-prod-ecsdemo-v028",
+        "aws-fix-sg-spinnaker-v002",
+        "aws-fix-sg-spinnaker-v001",
+        "aws-prod-ecsdemo-v029",
+        "aws-prod-fargatedemo-v000",
+        "aws-prod-fargatedemo-v001",
+        "aws-new-sg-spinnaker-v001"
+      ],
+      "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-ecs-ec2-demo-tg/684e864a39f8b9ed": [
+        "aws-prod-ecsdemoec2-v019",
+        "aws-prod-ecsdemoec2-v018"
+      ],
+      "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-fargate-demo-tg/e01fc21869908a98": [
+        "aws-final-test-v000",
+        "aws-fix-sg-spinnaker-v002",
+        "aws-new-sg-spinnaker-v001",
+        "aws-fix-sg-spinnaker-v001"
+      ]
+    },
+    "targetGroups": [
+      {
+        "attributes": {
+          "deregistration_delay.timeout_seconds": "30",
+          "load_balancing.algorithm.type": "round_robin",
+          "slow_start.duration_seconds": "0",
+          "stickiness.enabled": "false",
+          "stickiness.lb_cookie.duration_seconds": "86400",
+          "stickiness.type": "lb_cookie"
+        },
+        "healthCheckIntervalSeconds": 6,
+        "healthCheckPath": "/",
+        "healthCheckPort": "traffic-port",
+        "healthCheckProtocol": "HTTP",
+        "healthCheckTimeoutSeconds": 5,
+        "healthyThresholdCount": 2,
+        "instances": [
+          "10.0.226.126",
+          "10.0.166.99",
+          "10.0.185.148",
+          "10.0.226.110",
+          "10.0.182.79",
+          "10.0.255.114",
+          "10.0.153.137",
+          "10.0.176.163",
+          "10.0.252.35",
+          "10.0.169.134",
+          "10.0.239.212",
+          "10.0.148.202"
+        ],
+        "loadBalancerNames": ["spinnaker-ecs-demo-lb"],
+        "matcher": {
+          "httpCode": "200"
+        },
+        "port": 80,
+        "protocol": "HTTP",
+        "targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:123456789012:targetgroup/spinnaker-ecs-demo-tg/44d60f5ff69721bc",
+        "targetGroupName": "spinnaker-ecs-demo-tg",
+        "targetType": "ip",
+        "unhealthyThresholdCount": 2,
+        "vpcId": "vpc-0a9ccfd1cba7bc715"
+      }
+    ],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  }
+]

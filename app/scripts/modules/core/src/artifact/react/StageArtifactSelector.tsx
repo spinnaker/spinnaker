@@ -132,7 +132,9 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
 
     return (
       <>
-        <div className="sp-margin-m-bottom">{renderLabel ? renderLabel(select) : select}</div>
+        <div className="sp-margin-m-bottom" data-test-id="Stage.artifactSelector">
+          {renderLabel ? renderLabel(select) : select}
+        </div>
         {!!artifact && (
           <ArtifactEditor
             pipeline={pipeline}

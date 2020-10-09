@@ -135,6 +135,7 @@
     <div class="row main-footer fixed-footer horizontal">
       <div class="fixed-footer-button">
         <button
+          data-test-id="Pipeline.revertChanges"
           is-visible="!pipeline.locked && viewState.isDirty && !viewState.saving"
           class="btn btn-default"
           analytics-on="click"

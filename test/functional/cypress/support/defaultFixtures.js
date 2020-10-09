@@ -31,6 +31,7 @@ export const registerDefaultFixtures = () => {
   cy.route('/plugins/deck/plugin-manifest.json', []);
   cy.route('/search*', []);
   cy.route('/securityGroups', []);
+  cy.route('notifications/metadata', []);
   cy.route('/subnets/gce', 'fixture:default/subnets.gce.json');
   cy.route('/webhooks/preconfigured', []);
 };

@@ -63,9 +63,8 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     };
 
     this.state.targetGroupMappings.forEach(targetGroupMapping => {
-      targetGroupMapping.containerName = "";
+      targetGroupMapping.containerName = '';
     });
-
   }
 
   public componentDidMount() {
@@ -170,7 +169,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     });
 
     const newTargetGroupMapping = this.state.targetGroupsAvailable.length ? (
-      <button className="btn btn-block btn-sm add-new" onClick={this.pushTargetGroupMapping}>
+      <button
+        className="btn btn-block btn-sm add-new"
+        data-test-id="ContainerInputs.targetGroupAdd"
+        onClick={this.pushTargetGroupMapping}
+      >
         <span className="glyphicon glyphicon-plus-sign" />
         Add New Target Group Mapping
       </button>
@@ -187,7 +190,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const targetGroupInputs = this.state.targetGroupMappings.map(function(mapping, index) {
       return (
         <tr key={index}>
-          <td>
+          <td data-test-id="ContainerInputs.targetGroup">
             <TetheredSelect
               placeholder="Select a target group to use..."
               options={targetGroupsAvailable}
@@ -198,6 +201,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </td>
           <td>
             <input
+              data-test-id="ContainerInputs.targetGroupPort"
               type="number"
               className="form-control input-sm no-spel"
               required={true}
@@ -207,7 +211,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </td>
           <td>
             <div className="form-control-static">
-              <a className="btn-link sm-label" onClick={() => removeTargetGroupMapping(index)}>
+              <a
+                className="btn-link sm-label"
+                data-test-id="ContainerInputs.targetGroupRemove"
+                onClick={() => removeTargetGroupMapping(index)}
+              >
                 <span className="glyphicon glyphicon-trash" />
                 <span className="sr-only">Remove</span>
               </a>
@@ -224,7 +232,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
             <b>Container Image</b>
             <HelpField id="ecs.containerMappingImage" />
           </div>
-          <div className="col-md-9">
+          <div className="col-md-9" data-test-id="ContainerInputs.containerImage">
             <TetheredSelect
               placeholder="Select an image to use..."
               options={dockerImageOptions}
@@ -243,6 +251,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
           <div className="col-md-9" style={{ width: '100px' }}>
             <input
+              data-test-id="ContainerInputs.computeUnits"
               type="number"
               className="form-control input-sm no-spel"
               required={false}
@@ -258,6 +267,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
           <div className="col-md-9" style={{ width: '100px' }}>
             <input
+              data-test-id="ContainerInputs.reservedMemory"
               type="number"
               className="form-control input-sm no-spel"
               required={false}

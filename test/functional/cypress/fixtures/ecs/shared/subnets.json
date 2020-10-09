@@ -1,0 +1,16 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "accountId": "123456789012",
+    "availabilityZone": "us-west-2a",
+    "availableIpAddressCount": 16371,
+    "cidrBlock": "10.0.0.0/18",
+    "deprecated": false,
+    "id": "subnet-018fd385c68e86297",
+    "purpose": "public-subnet",
+    "region": "us-west-2",
+    "state": "available",
+    "type": "aws",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  }
+]

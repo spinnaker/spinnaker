@@ -4,7 +4,7 @@
       Launch Type
       <help-field key="ecs.launchtype"></help-field>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3" data-test-id="ServerGroup.launchType">
       <ui-select ng-model="$ctrl.command.launchType" class="form-control input-sm">
         <ui-select-match placeholder="Select...">{{ $select.selected }}</ui-select-match>
         <ui-select-choices repeat="launchType in $ctrl.command.backingData.launchTypes | filter: $select.search">

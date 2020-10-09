@@ -1,0 +1,27 @@
+[
+  {
+    "accounts": [
+      {
+        "name": "ecs-my-aws-devel-acct",
+        "regions": [
+          {
+            "loadBalancers": [
+              {
+                "account": "ecs-my-aws-devel-acct",
+                "loadBalancerType": "application",
+                "name": "spinnaker-ecs-demo-lb",
+                "region": "us-west-2",
+                "securityGroups": ["sg-038cb6d3469b7cbf1", "sg-04a2c2220db56b206"],
+                "targetGroups": ["spinnaker-ecs-demo-tg"],
+                "type": "ecs",
+                "vpcId": "vpc-0a9ccfd1cba7bc715"
+              }
+            ],
+            "name": "us-west-2"
+          }
+        ]
+      }
+    ],
+    "name": "spinnaker-ecs-demo-lb"
+  }
+]

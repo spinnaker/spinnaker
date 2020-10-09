@@ -7,6 +7,12 @@ describe('amazon ecs: ECSApp Pipeline', () => {
     cy.route('/applications/ecsapp/pipelines?expand=false&limit=2', 'fixture:ecs/pipelines/pipelines.json');
     cy.route('/images/find?*', 'fixture:google/shared/images.json');
     cy.route('/applications/ecsapp/pipelineConfigs', 'fixture:ecs/pipelines/pipelineConfigs.json');
+    cy.route('/networks/aws', 'fixture:ecs/default/networks.aws-ecs.json');
+    cy.route('/applications/ecsapp/serverGroups', 'fixture:ecs/clusters/serverGroups.json');
+    cy.route(
+      '/applications/ecsapp/serverGroups/**/aws-prod-ecsdemo-v000?includeDetails=false',
+      'fixture:ecs/clusters/serverGroup.ecsdemo-v000.json',
+    );
   });
 
   it('shows stored ECSApp pipelines with their account tag', () => {

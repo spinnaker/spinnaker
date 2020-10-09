@@ -1,0 +1,18 @@
+[
+  {
+    "name": "front50ArtifactCredentials",
+    "types": ["front50/pipelineTemplate"]
+  },
+  {
+    "name": "embedded-artifact",
+    "types": ["embedded/base64"]
+  },
+  {
+    "name": "my-github-artifact-account",
+    "types": ["github/file"]
+  },
+  {
+    "name": "custom-artifact",
+    "types": ["custom/object"]
+  }
+]
