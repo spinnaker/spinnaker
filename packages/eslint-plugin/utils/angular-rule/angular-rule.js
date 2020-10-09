@@ -138,7 +138,7 @@ function angularRule(ruleDefinition) {
     var callee = callExpressionNode.callee;
     if (callee.type === 'Identifier') {
       const args = callExpressionNode.arguments;
-      if ((callee.name === 'module' && args.every(x => !!x) && args.length === 1) || args.length === 2) {
+      if ((callee.name === 'module' && args.every((x) => !!x) && args.length === 1) || args.length === 2) {
         const [moduleName, deps] = args;
         const isString = moduleName.type === 'Literal' && typeof moduleName.value === 'string';
         const isIdentifier = moduleName.type === 'Identifier';
@@ -183,11 +183,11 @@ function angularRule(ruleDefinition) {
         // var app = angular.module(); app.factory()
         //                                 ^^^^^^^
         var scope = context.getScope();
-        var isAngularModule = scope.variables.some(function(variable) {
+        var isAngularModule = scope.variables.some(function (variable) {
           if (callee.object.name !== variable.name) {
             return false;
           }
-          return variable.identifiers.some(function(id) {
+          return variable.identifiers.some(function (id) {
             return angularModuleIdentifiers.indexOf(id) !== -1;
           });
         });
@@ -227,7 +227,7 @@ function angularRule(ruleDefinition) {
    * Call the Angular specific rules defined by the rule definition.
    */
   function callAngularRules(ruleObject, context) {
-    angularComponents.forEach(function(component) {
+    angularComponents.forEach(function (component) {
       var name = component.callExpression.callee.property.name;
       var fn = ruleObject['angular?' + name];
       if (!fn) {
@@ -237,7 +237,7 @@ function angularRule(ruleDefinition) {
     });
     var injectRule = ruleObject['angular?inject'];
     if (injectRule) {
-      injectCalls.forEach(function(thisGuy) {
+      injectCalls.forEach(function (thisGuy) {
         injectRule.call(ruleObject, thisGuy.callExpression.callee, thisGuy);
       });
     }
@@ -279,14 +279,14 @@ function angularRule(ruleDefinition) {
   function findProviderGet(thisGuy) {
     let providerFn = thisGuy.node;
     if (providerFn && providerFn.type === 'Identifier') {
-      providerFn = thisGuy.scope.variables.find(v => v.name === providerFn.name).defs[0].node;
+      providerFn = thisGuy.scope.variables.find((v) => v.name === providerFn.name).defs[0].node;
     }
     if (!providerFn) {
       return;
     }
 
-    const class$get = providerFn.body.body.find(node => node.type === 'MethodDefinition' && node.key.name === '$get');
-    const obj$get = providerFn.body.body.find(node => {
+    const class$get = providerFn.body.body.find((node) => node.type === 'MethodDefinition' && node.key.name === '$get');
+    const obj$get = providerFn.body.body.find((node) => {
       const expr = node.expression;
       return (
         expr &&

@@ -10,33 +10,35 @@ const findParentNodeByType = (node, type) =>
  * @version 0.1.0
  * @category conventions
  */
-const angularRule = require('../utils/angular-rule');
-const useObjectLiteral = function(context) {
+const angularRule = require('../utils/angular-rule/angular-rule');
+const useObjectLiteral = function (context) {
   return {
-    'angular?component': function(callee, thisGuy) {
+    'angular?component': function (callee, thisGuy) {
       const { node, scope } = thisGuy;
       if (node.type === 'NewExpression') {
-        const fix = fixer => {
-          const variable = scope.variables.find(x => x.name === node.callee.name);
+        const fix = (fixer) => {
+          const variable = scope.variables.find((x) => x.name === node.callee.name);
           const classDef = variable.defs[0].node;
           const name = classDef.id.name;
           const camelCaseName = camelCase(name);
           const rename = name !== camelCaseName;
 
-          const objProperties = classDef.body.body.map(node => {
+          const objProperties = classDef.body.body.map((node) => {
             return node.key.name + ': ' + context.getSourceCode().getText(node.value);
           });
 
-          const impls = (classDef.implements || []).map(impl => context.getSourceCode().getText(impl));
+          const impls = (classDef.implements || []).map((impl) => context.getSourceCode().getText(impl));
           const identifier = `const ${camelCaseName}${impls.length ? `: ${impls.join(' & ')}` : ''}`;
           const objectLiteral = `${identifier} = {\n` + `  ${objProperties.join(',\n  ')}\n` + `};`;
 
-          const otherReferences = findParentNodeByType(classDef, 'Program').tokens.filter(token => {
+          const otherReferences = findParentNodeByType(classDef, 'Program').tokens.filter((token) => {
             const ignores = [classDef.id.range[0], node.callee.range[0]];
-            return token.type === 'Identifier' && token.value === name && ignores.every(pos => pos !== token.range[0]);
+            return (
+              token.type === 'Identifier' && token.value === name && ignores.every((pos) => pos !== token.range[0])
+            );
           });
 
-          const otherFixes = rename ? [] : otherReferences.map(id => fixer.replaceText(id, camelCaseName));
+          const otherFixes = rename ? [] : otherReferences.map((id) => fixer.replaceText(id, camelCaseName));
 
           return [fixer.replaceText(classDef, objectLiteral), fixer.replaceText(node, camelCaseName), ...otherFixes];
         };

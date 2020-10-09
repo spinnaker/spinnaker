@@ -9,8 +9,8 @@
  * @category conventions
  * @sinceAngularVersion 1.x
  */
-const angularRule = require('../utils/angular-rule');
-const utils = require('../utils/utils');
+const angularRule = require('../utils/angular-rule/angular-rule');
+const utils = require('../utils/angular-rule/utils');
 const isEqual = require('lodash').isEqual;
 const stripUnderscores = true;
 
@@ -18,7 +18,7 @@ function normalizeParameter(param) {
   return stripUnderscores ? param : param.replace(/^_(.+)_$/, (match, p1) => p1);
 }
 
-const rule = function(context) {
+const rule = function (context) {
   const $injectProperties = {};
 
   function maybeNoteInjection(node) {
@@ -35,11 +35,11 @@ const rule = function(context) {
   function getDiStrings(name) {
     const $inject = $injectProperties[name];
     const elements = $inject && ($inject.elements || $inject.expression.elements);
-    return elements && elements.map(el => el.value);
+    return elements && elements.map((el) => el.value);
   }
 
   function compareParamsAndDI(node, name, type, context, params, diStrings) {
-    const paramNames = params.map(p => normalizeParameter(p));
+    const paramNames = params.map((p) => normalizeParameter(p));
     const diCount = diStrings ? diStrings.length : 'no';
     const paramCount = paramNames.length;
 
@@ -49,9 +49,9 @@ const rule = function(context) {
         `has ${paramCount} parameter(s): ${JSON.stringify(paramNames)}, ` +
         `but no annotation was found`;
 
-      const injectStrings = params.map(p => `'${p}'`).join(', ');
+      const injectStrings = params.map((p) => `'${p}'`).join(', ');
 
-      const fix = fixer => {
+      const fix = (fixer) => {
         if (name && type === 'tsclass') {
           return fixer.insertTextBefore(node, `public static $inject = [${injectStrings}];\n  `);
         } else if (name && type === 'class') {
@@ -92,22 +92,22 @@ const rule = function(context) {
     const { node, scope, callExpression } = thisGuy;
     const args = node.elements.slice(0, -1);
     const fn = node.elements.slice(-1)[0];
-    const diStrings = args.map(node => node.value);
+    const diStrings = args.map((node) => node.value);
 
     if (fn.type === 'Identifier') {
       const name = fn.name;
       const result = fromIdentifier({ node: fn, scope, callExpression });
-      const params = result.fn.params && result.fn.params.map(param => param.name);
+      const params = result.fn.params && result.fn.params.map((param) => param.name);
       return { type: 'array', fn: result.fn, name, params, diStrings };
     }
 
-    const params = fn.params && fn.params.map(param => param.name);
+    const params = fn.params && fn.params.map((param) => param.name);
     return { type: 'array', fn, name: undefined, params, diStrings };
   }
 
   function fromIdentifier(thisGuy) {
     const { node, scope } = thisGuy;
-    const reference = scope.references.find(r => r.identifier.name === node.name);
+    const reference = scope.references.find((r) => r.identifier.name === node.name);
     const resolved = reference && reference.resolved;
     if (resolved) {
       const { defs, scope: resolvedScope } = resolved;
@@ -120,7 +120,7 @@ const rule = function(context) {
     const { name } = node.id;
     const fn = node.init;
 
-    const variable = scope.variables.find(v => v.name === name);
+    const variable = scope.variables.find((v) => v.name === name);
 
     if (!variable) {
       throw new Error(`Weird, I couldn't find variable '${name}' in scope?`);
@@ -130,7 +130,7 @@ const rule = function(context) {
       throw new Error('It is pretty unexpected to find more than one def in this guys variable?');
     }
 
-    const params = fn.params.map(param => param.name);
+    const params = fn.params.map((param) => param.name);
     const diStrings = getDiStrings(name);
 
     // TODO: is this really function?
@@ -140,23 +140,23 @@ const rule = function(context) {
   function fromClassDeclaration(thisGuy) {
     const { node } = thisGuy;
     const { name } = node.id;
-    const ctor = node.body.body.find(node => node.type === 'MethodDefinition' && node.kind === 'constructor');
+    const ctor = node.body.body.find((node) => node.type === 'MethodDefinition' && node.kind === 'constructor');
     if (!ctor) return null;
     const isTypescript = !!context.getFilename().match(/\.tsx?$/);
-    const params = ctor.value.params.map(param =>
+    const params = ctor.value.params.map((param) =>
       param.type === 'TSParameterProperty' ? param.parameter.name : param.name,
     );
     const $inject = node.body.body.find(
-      node => node.type === 'ClassProperty' && node.static && node.key.name === '$inject',
+      (node) => node.type === 'ClassProperty' && node.static && node.key.name === '$inject',
     );
-    const diStrings = $inject ? $inject.value.elements.map(el => el.value) : getDiStrings(name);
+    const diStrings = $inject ? $inject.value.elements.map((el) => el.value) : getDiStrings(name);
     return { type: isTypescript ? 'tsclass' : 'class', fn: ctor, name, params, diStrings };
   }
 
   function fromFunction(thisGuy) {
     const { node: fn } = thisGuy;
     const name = fn.type === 'FunctionDeclaration' ? fn.id.name : fn.name;
-    const params = fn.params.map(param => param.name);
+    const params = fn.params.map((param) => param.name);
     const diStrings = getDiStrings(name);
     return { type: 'function', fn, name, params, diStrings };
   }
@@ -224,7 +224,7 @@ const rule = function(context) {
         return context.report({ node: fn, message });
       }
 
-      if (!diStrings.every(str => typeof str === 'string')) {
+      if (!diStrings.every((str) => typeof str === 'string')) {
         return context.report({ node: fn, message: `Array-style: Elements [0..n-2] should all be strings` });
       }
     }
@@ -238,9 +238,9 @@ const rule = function(context) {
     'angular?animation': checkDi,
     'angular?config': checkDi,
     'angular?controller': checkDi,
-    'angular?component': function(callee, thisGuy) {
+    'angular?component': function (callee, thisGuy) {
       if (thisGuy.node.type === 'ObjectExpression') {
-        const property = thisGuy.node.properties.find(prop => prop.key.name === 'controller');
+        const property = thisGuy.node.properties.find((prop) => prop.key.name === 'controller');
         if (property) {
           if (property.value.type !== 'Literal') {
             return checkDi(callee, Object.assign({}, thisGuy, { node: property.value }));
@@ -249,9 +249,9 @@ const rule = function(context) {
       }
     },
     'angular?decorator': checkDi,
-    'angular?directive': function(callee, thisGuy) {
+    'angular?directive': function (callee, thisGuy) {
       if (thisGuy.node.type === 'ObjectExpression') {
-        const property = thisGuy.node.properties.find(prop => prop.key.name === 'controller');
+        const property = thisGuy.node.properties.find((prop) => prop.key.name === 'controller');
         if (property) {
           if (property.value.type !== 'Literal') {
             return checkDi(callee, Object.assign({}, thisGuy, { node: property.value }));
@@ -264,22 +264,22 @@ const rule = function(context) {
     'angular?inject': checkDi,
     'angular?run': checkDi,
     'angular?service': checkDi,
-    'angular?provider': function(callee, providerFn, $get) {
+    'angular?provider': function (callee, providerFn, $get) {
       checkDi(null, providerFn);
       checkDi(null, $get);
     },
-    'CallExpression:exit': function(node) {
+    'CallExpression:exit': function (node) {
       const { object, property } = node.callee;
       if (object && object.name === '$provide' && property && property.name === 'decorator') {
         checkDi(null, { node: node.arguments[1], scope: context.getScope() });
       }
     },
-    AssignmentExpression: function(node) {
+    AssignmentExpression: function (node) {
       maybeNoteInjection(node);
     },
-    ClassDeclaration: function(node) {
+    ClassDeclaration: function (node) {
       const interfaces = ['IController' | 'ng.IController'];
-      const implementsIController = (node.implements || []).some(impl => interfaces.includes(impl.expression.name));
+      const implementsIController = (node.implements || []).some((impl) => interfaces.includes(impl.expression.name));
       const isNamedSortaLikeOne = node.id.name.match(/(Ctrl|Controller)$/);
       const isClassController = implementsIController || isNamedSortaLikeOne;
 

@@ -81,7 +81,7 @@ Add some boilerplate:
 ```js
 'use strict';
 const ruleTester = require('../utils/ruleTester');
-const rule = require('packages/eslint-plugin/rules/my-rule');
+const rule = require('../rules/my-rule');
 ruleTester.run('my-rule', rule, {
   valid: [],
   invalid: [],
