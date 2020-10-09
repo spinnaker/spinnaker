@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.gradle.extension.PluginObjectMapper
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
+import com.netflix.spinnaker.gradle.extension.extensions.VersionTestConfig
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -47,12 +48,14 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
     val bundle = project.rootProject.extensions.getByType(SpinnakerBundleExtension::class)
     val spinnakerVersionsClient = DefaultSpinnakerVersionsClient(bundle.compatibility.halconfigBaseURL)
 
-    val resolvedVersions = spinnakerVersionsClient.resolveVersionAliases(bundle.compatibility.spinnaker)
-    resolvedVersions.forEach { v ->
-      val sourceSet = "compatibility-$v"
-      val configuration = "${sourceSet}Implementation"
+    val versionTestConfigs = spinnakerVersionsClient.resolveVersionAliases(bundle.compatibility.versionTestConfigs)
+    versionTestConfigs.forEach { config ->
+      val sourceSet = "compatibility-${config.version}"
+      val runtimeConfiguration = "${sourceSet}Runtime"
+      val implementationConfiguration = "${sourceSet}Implementation"
 
-      project.configurations.create(configuration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}Implementation"))
+      project.configurations.create(runtimeConfiguration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}Runtime"))
+      project.configurations.create(implementationConfiguration).extendsFrom(project.configurations.getByName("${SourceSet.TEST_SOURCE_SET_NAME}Implementation"))
 
       project.sourceSets.create(sourceSet) {
         compileClasspath += project.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).output
@@ -65,32 +68,32 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
         }
       }
 
-      val test = project.tasks.create<CompatibilityTestTask>("compatibilityTest-${project.name}-$v") {
-        description = "Runs compatibility tests for Spinnaker $v"
+      val test = project.tasks.create<CompatibilityTestTask>("compatibilityTest-${project.name}-${config.version}") {
+        description = "Runs compatibility tests for Spinnaker ${config.version}"
         group = GROUP
         testClassesDirs = project.sourceSets.getByName(sourceSet).output.classesDirs
         classpath = project.sourceSets.getByName(sourceSet).runtimeClasspath
         ignoreFailures = project.gradle.startParameter.taskNames.contains(TASK_NAME)
-        result.set(project.layout.buildDirectory.file("compatibility/$v.json"))
+        result.set(project.layout.buildDirectory.file("compatibility/${config.version}.json"))
       }
 
       // Gradle hasn't seen the `SpinnakerPluginExtension` DSL values yet,
       // so push this last step into a lifecycle hook.
       project.afterEvaluate {
         val plugin = project.extensions.getByType(SpinnakerPluginExtension::class)
-        val resolvedServiceVersion = spinnakerVersionsClient.getSpinnakerBOM(v).let {
+        val resolvedServiceVersion = spinnakerVersionsClient.getSpinnakerBOM(config.version).let {
           it.services[plugin.serviceName]?.version ?: throw IllegalStateException("Could not find version for service ${plugin.serviceName}")
         }
 
         project.dependencies.platform("com.netflix.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion").apply {
           force = true
         }.also {
-          project.dependencies.add(configuration, it)
+          project.dependencies.add(runtimeConfiguration, it)
         }
 
         // Copy the kotlin test compilation options into the generated compile tasks.
         project.compileKotlinTask("compileTestKotlin")?.also { compileTestKt ->
-          project.compileKotlinTask("compileCompatibility-${v}Kotlin")?.apply {
+          project.compileKotlinTask("compileCompatibility-${config.version}Kotlin")?.apply {
             kotlinOptions {
               languageVersion = compileTestKt.kotlinOptions.languageVersion
               jvmTarget = compileTestKt.kotlinOptions.jvmTarget
@@ -102,7 +105,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
           if (descriptor.parent == null) {
             test.result.asFile.get().writeText(
               PluginObjectMapper.mapper.writeValueAsString(CompatibilityTestResult(
-                platformVersion = v,
+                platformVersion = config.version,
                 serviceVersion = resolvedServiceVersion,
                 service = plugin.serviceName!!,
                 result = result.resultType
@@ -116,17 +119,17 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
     project.rootProject.tasks.maybeCreate(TASK_NAME).apply {
       description = "Runs Spinnaker compatibility tests"
       group = GROUP
-      dependsOn(resolvedVersions.map { ":${project.name}:compatibilityTest-${project.name}-$it" })
+      dependsOn(versionTestConfigs.map { ":${project.name}:compatibilityTest-${project.name}-${it.version}" })
       doLast {
-        project.rootProject.subprojects
+        val failedTests = project.rootProject.subprojects
           .flatMap { it.tasks.withType(CompatibilityTestTask::class.java) }
           .map { PluginObjectMapper.mapper.readValue<CompatibilityTestResult>(it.result.asFile.get()) }
           .filter { it.result == TestResult.ResultType.FAILURE  }
-          .also { results ->
-            if (results.isNotEmpty()) {
-              throw GradleException("Compatibility tests failed for Spinnaker ${results.map { it.result }.joinToString(", ")}")
-            }
-          }
+
+        // Only fail the top-level task if one of the tests is required.
+        if (failedTests.any { result -> versionTestConfigs.findForResult(result).required }) {
+          throw GradleException("Compatibility tests failed for Spinnaker ${failedTests.joinToString(", ") { it.platformVersion }}")
+        }
       }
     }
   }
@@ -153,18 +156,23 @@ private fun Project.compileKotlinTask(task: String): KotlinCompile? =
 private fun Test.afterSuite(cb: (desc: TestDescriptor, result: TestResult) -> Unit) =
   afterSuite(KotlinClosure2(cb))
 
-private fun SpinnakerVersionsClient.resolveVersionAliases(versions: List<String>): Set<String> {
+private fun Collection<VersionTestConfig>.findForResult(result: CompatibilityTestResult): VersionTestConfig =
+  find { it.version == result.platformVersion }
+    // Should never happen.
+    ?: throw IllegalStateException("Test result for Spinnaker ${result.platformVersion} has no test config")
+
+private fun SpinnakerVersionsClient.resolveVersionAliases(versions: List<VersionTestConfig>): Set<VersionTestConfig> {
   // Save a lookup if none of the versions are aliases.
-  if (!versions.any { SpinnakerVersionAlias.isAlias(it) }) {
+  if (!versions.any { SpinnakerVersionAlias.isAlias(it.version) }) {
     return versions.toSet()
   }
 
   val versionsManifest = getVersionsManifest()
   return versions.flatMapTo(mutableSetOf()) { version ->
-    when (SpinnakerVersionAlias.from(version)) {
-      SpinnakerVersionAlias.LATEST -> listOf(versionsManifest.latestSpinnaker)
-      SpinnakerVersionAlias.SUPPORTED -> versionsManifest.versions.map { it.version }
-      SpinnakerVersionAlias.NIGHTLY -> listOf("master-latest-validated")
+    when (version.alias) {
+      SpinnakerVersionAlias.LATEST -> listOf(version.copy(version = versionsManifest.latestSpinnaker))
+      SpinnakerVersionAlias.SUPPORTED -> versionsManifest.versions.map { version.copy(version = it.version) }
+      SpinnakerVersionAlias.NIGHTLY -> listOf(version.copy(version = "master-latest-validated"))
       else -> listOf(version)
     }
   }

@@ -43,6 +43,46 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
         plugins.apply("io.spinnaker.plugin.bundler")
         spinnakerBundle {
           compatibility {
+            spinnaker {
+              compatibility.forEach {
+                test(it)
+              }
+            }
+          }
+        }
+      }
+      subproject("$service-plugin") {
+        plugins.apply("io.spinnaker.plugin.compatibility-test-runner")
+        plugins.apply("io.spinnaker.plugin.service-extension")
+        spinnakerPlugin {
+          serviceName = service
+        }
+      }
+    }
+
+    // Verify tasks, source sets, and configurations exist.
+    assertNotNull(rootProject.tasks.findByName(SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME))
+    compatibility.forEach {
+      subproject.tasks.findByName("${SpinnakerCompatibilityTestRunnerPlugin.TASK_NAME}-$service-plugin-$it").also { task ->
+        require(task is CompatibilityTestTask)
+        assertEquals(task.result.get().asFile.path, subproject.buildDir.toPath().resolve("compatibility/$it.json").toString())
+      }
+      assertNotNull(subproject.sourceSets.findByName("compatibility-$it"))
+      assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))
+      assertNotNull(subproject.configurations.findByName("compatibility-${it}Runtime"))
+    }
+  }
+
+  @Test
+  fun `compatibility-test-runner plugin registers tasks, source sets, and configurations (simple DSL style)`() {
+    val service = "orca"
+    val compatibility = listOf("1.21.1", "1.22.0")
+
+    val (rootProject, subproject) = withProjects {
+      rootProject {
+        plugins.apply("io.spinnaker.plugin.bundler")
+        spinnakerBundle {
+          compatibility {
             spinnaker = compatibility
           }
         }
@@ -65,6 +105,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
       }
       assertNotNull(subproject.sourceSets.findByName("compatibility-$it"))
       assertNotNull(subproject.configurations.findByName("compatibility-${it}Implementation"))
+      assertNotNull(subproject.configurations.findByName("compatibility-${it}Runtime"))
     }
   }
 
@@ -96,7 +137,11 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
         plugins.apply("io.spinnaker.plugin.bundler")
         spinnakerBundle {
           compatibility {
-            spinnaker = compatibility
+            spinnaker {
+              compatibility.forEach {
+                test(it)
+              }
+            }
             halconfigBaseURL = "http://localhost:${halconfigServer.address.port}"
           }
         }
@@ -114,10 +159,10 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
     subproject.evaluate()
 
     compatibility.forEach { version ->
-      val configuration = subproject.configurations.findByName("compatibility-${version}Implementation")
-      assertNotNull(configuration)
+      val runtime = subproject.configurations.findByName("compatibility-${version}Runtime")
+      assertNotNull(runtime)
 
-      val bom = configuration.dependencies.find { dependency ->
+      val bom = runtime.dependencies.find { dependency ->
         dependency.group == "com.netflix.spinnaker.${service}" && dependency.name == "$service-bom"
       }
       assertNotNull(bom)
@@ -153,7 +198,11 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
         plugins.apply("io.spinnaker.plugin.bundler")
         spinnakerBundle {
           compatibility {
-            spinnaker = compatibility
+            spinnaker {
+              compatibility.forEach {
+                test(it)
+              }
+            }
             halconfigBaseURL = "http://localhost:${halconfigServer.address.port}"
           }
         }

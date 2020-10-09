@@ -86,38 +86,19 @@ open class SpinnakerBundleExtension {
    * An extension block that describes a plugin's compatibility.
    */
   val compatibility
-    get() = (this as ExtensionAware).extensions.getByName(SpinnakerCompatibilityExtension.NAME) as SpinnakerCompatibilityExtension
+    get() = withExtensions { getByName(SpinnakerCompatibilityExtension.NAME) as SpinnakerCompatibilityExtension }
 
   // For Kotlin build scripts.
   fun compatibility(configure: SpinnakerCompatibilityExtension.() -> Unit) =
-    (this as ExtensionAware).also {
-      it.extensions.create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
-      it.extensions.configure(SpinnakerCompatibilityExtension.NAME, configure)
+    withExtensions {
+      create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
+      configure(SpinnakerCompatibilityExtension.NAME, configure)
     }
 
   // For Groovy build scripts.
   fun compatibility(configure: Action<SpinnakerCompatibilityExtension>) =
-    (this as ExtensionAware).also {
-      it.extensions.create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
-      it.extensions.configure(SpinnakerCompatibilityExtension.NAME, configure)
+    withExtensions {
+      create<SpinnakerCompatibilityExtension>(SpinnakerCompatibilityExtension.NAME)
+      configure(SpinnakerCompatibilityExtension.NAME, configure)
     }
-
-  open class SpinnakerCompatibilityExtension {
-    /**
-     * A list of top-level Spinnaker versions (e.g., 1.21.0, 1.22.0) that this plugin is compatible with.
-     */
-    var spinnaker: List<String>
-      set(value) {
-        _spinnaker = value
-      }
-      get() = _spinnaker ?: throw IllegalStateException("spinnakerBundle.compatibility.spinnaker must not be null")
-
-    private var _spinnaker: List<String>? = null
-
-    var halconfigBaseURL: String = "https://storage.googleapis.com/halconfig"
-
-    companion object {
-      const val NAME = "compatibility"
-    }
-  }
 }
