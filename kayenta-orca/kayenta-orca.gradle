@@ -1,7 +1,7 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  api "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
+  api "com.netflix.spinnaker.orca:keiko-spring"
   api "com.netflix.spinnaker.orca:orca-queue"
   api "com.netflix.spinnaker.orca:orca-queue-redis"
   api "com.netflix.spinnaker.orca:orca-redis"
