@@ -95,7 +95,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       String launchTemplateKey = Keys.getLaunchTemplateKey(launchTemplateName, account, region)
       CacheData launchTemplate = cacheView.get(LAUNCH_TEMPLATES.ns, launchTemplateKey)
       updateServerGroupLaunchSettings(serverGroupById, [launchTemplate])
-      imageId = serverGroup.launchTemplate["launchTemplateData"]["imageId"]
+      def launchTemplateData = (launchTemplate?.attributes?.get("latestVersion") as Map)?.get("launchTemplateData")
+      imageId = (launchTemplateData as Map)?.get("imageId")
     } else {
       String launchConfigKey = Keys.getLaunchConfigKey(serverGroupData?.attributes['launchConfigName'] as String, account, region)
       CacheData launchConfigs = cacheView.get(LAUNCH_CONFIGS.ns, launchConfigKey)
