@@ -92,8 +92,14 @@ class CreateBakeTask implements RetryableTask {
     try {
       // If the user has specified a base OS that is unrecognized by Rosco, this method will
       // throw a Retrofit exception (HTTP 404 Not Found)
-      def bake = bakeFromContext(stage, bakery)
+      BakeRequest bake = bakeFromContext(stage, bakery)
       String rebake = shouldRebake(stage) ? "1" : null
+
+      if (stage.context.amiSuffix != null && bake.amiSuffix != null && bake.amiSuffix != stage.context.amiSuffix) {
+        log.warn("Bake request amiSuffix ${bake.amiSuffix} differs from stage context amiSuffix ${stage.context.amiSuffix}, resolving...")
+        bake.amiSuffix = stage.context.amiSuffix
+      }
+
       def bakeStatus = bakery.service.createBake(stage.context.region as String, bake, rebake)
 
       def stageOutputs = [
