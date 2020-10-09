@@ -10,6 +10,7 @@ module.exports = {
     'ng-no-require-angularjs': require('./rules/ng-no-require-angularjs'),
     'ng-no-require-module-deps': require('./rules/ng-no-require-module-deps'),
     'ng-strictdi': require('./rules/ng-strictdi'),
+    'react2angular-with-error-boundary.spec.js': require('./rules/react2angular-with-error-boundary'),
   },
   configs: {
     base: require('./base.config.js'),

@@ -21,6 +21,13 @@ function getVariableInScope(context, identifier) {
   return variables.find((v) => v.name === identifier.name);
 }
 
+function getProgram(node) {
+  while (node.type !== 'Program' && node.parent) {
+    node = node.parent;
+  }
+  return node;
+}
+
 module.exports = {
   getCallingIdentifier,
   getVariableInScope,

@@ -14,6 +14,7 @@ module.exports = {
     '@spinnaker/ng-no-require-angularjs': 2,
     '@spinnaker/ng-no-require-module-deps': 2,
     '@spinnaker/ng-strictdi': 2,
+    '@spinnaker/react2angular-with-error-boundary.spec.js': 2,
     indent: 'off',
     'member-ordering': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
