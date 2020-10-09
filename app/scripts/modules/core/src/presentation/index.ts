@@ -20,6 +20,7 @@ export * from './RenderOutputFile';
 export * from './robotToHumanFilter/robotToHuman.filter';
 export * from './sortToggle';
 export * from './SpanDropdownTrigger';
+export * from './SpinErrorBoundary';
 export * from './spel';
 export * from './TabBoundary';
 export * from './tables';

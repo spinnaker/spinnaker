@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { UIView } from '@uirouter/react';
+import { SpinErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { RecoilRoot } from 'recoil';
 
 import { CustomBanner } from '../header/customBanner/CustomBanner';
@@ -13,19 +14,21 @@ export interface ISpinnakerContainerProps {
 }
 
 export const SpinnakerContainer = ({ authenticating, routing }: ISpinnakerContainerProps) => (
-  <RecoilRoot>
-    <div className="spinnaker-container grid-container">
-      {!authenticating && routing && (
-        <div className="transition-overlay">
-          <Spinner size="medium" />
+  <SpinErrorBoundary category="SpinnakerContainer">
+    <RecoilRoot>
+      <div className="spinnaker-container grid-container">
+        {!authenticating && routing && (
+          <div className="transition-overlay">
+            <Spinner size="medium" />
+          </div>
+        )}
+        <div className="navbar-inverse grid-header">
+          <CustomBanner />
+          <SpinnakerHeader />
         </div>
-      )}
-      <div className="navbar-inverse grid-header">
-        <CustomBanner />
-        <SpinnakerHeader />
+        <div className="spinnaker-content grid-contents">{!authenticating && <UIView name="main" />}</div>
       </div>
-      <div className="spinnaker-content grid-contents">{!authenticating && <UIView name="main" />}</div>
-    </div>
-    <Notifier />
-  </RecoilRoot>
+      <Notifier />
+    </RecoilRoot>
+  </SpinErrorBoundary>
 );

@@ -27,6 +27,7 @@ import { RECENT_HISTORY_SERVICE } from 'core/history';
 require('root/app/fonts/spinnaker/icons.css');
 
 import './analytics/GoogleAnalyticsInitializer';
+import { UI_ROUTER_REACT_ERROR_BOUNDARY } from 'core/presentation/SpinErrorBoundary';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
@@ -91,7 +92,7 @@ import UI_SELECT from 'ui-select';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 
@@ -102,6 +103,7 @@ module(CORE_MODULE, [
   UI_ROUTER,
   UI_ROUTER_STATE_EVENTS_SHIM,
   UI_ROUTER_REACT_HYBRID,
+  UI_ROUTER_REACT_ERROR_BOUNDARY,
   REACT_MODULE, // must precede modules which register states
   ANGULAR_UI_BOOTSTRAP as any,
   UI_SELECT,
