@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.cats.sql.cache
 
-import com.google.common.hash.Hashing
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -41,17 +40,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
 class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
-
-  companion object {
-    private const val idProd = "aws:instances:prod:us-east-1:i-abcd1234"
-    private const val idTest = "aws:instances:test:us-east-1:i-abcd1234"
-    private const val agentProd = "prod/TestAgent"
-    private const val agentTest = "test/TestAgent"
-    private const val relIdProd = "aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000"
-    private const val relIdTest = "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000"
-    private const val relAgentProd = "serverGroups:prod/TestAgent"
-    private const val relAgentTest = "serverGroups:test/TestAgent"
-  }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
@@ -96,12 +84,12 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
         test("relationships referencing old data are deleted") {
           expectThat(selectAllResources())
-            .hasSize(1)[0].isEqualTo(idProd)
+            .hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
         }
 
         test("resources referencing old data are deleted") {
           expectThat(selectAllRels())
-            .hasSize(1)[0].isEqualTo(relIdProd)
+            .hasSize(1)[0].isEqualTo("aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000")
         }
       }
     }
@@ -130,41 +118,26 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
     )
     val registry = NoopRegistry()
 
-    val subject =
-      SqlUnknownAgentCleanupAgent(
-        StaticObjectProvider(providerRegistry),
-        dslContext,
-        registry,
-        SqlNames()
-      )
+    val subject = SqlUnknownAgentCleanupAgent(StaticObjectProvider(providerRegistry), dslContext, registry, SqlNames())
 
     fun seedDatabase(includeTestAccount: Boolean, includeProdAccount: Boolean) {
       SqlNames().run {
         val resource = resourceTableName("instances")
         val rel = relTableName("instances")
-        dslContext.execute("CREATE TABLE IF NOT EXISTS $resource LIKE cats_v2_resource_template")
-        dslContext.execute("CREATE TABLE IF NOT EXISTS $rel LIKE cats_v2_rel_template")
+        dslContext.execute("CREATE TABLE IF NOT EXISTS $resource LIKE cats_v1_resource_template")
+        dslContext.execute("CREATE TABLE IF NOT EXISTS $rel LIKE cats_v1_rel_template")
       }
 
-      dslContext.insertInto(table("cats_v2_instances"))
+      dslContext.insertInto(table("cats_v1_instances"))
         .columns(
-          field("id_hash"),
-          field("id"),
-          field("agent_hash"),
-          field("agent"),
-          field("application"),
-          field("body_hash"),
-          field("body"),
-          field("last_updated")
+          field("id"), field("agent"), field("application"), field("body_hash"), field("body"), field("last_updated")
         )
         .let {
           if (includeProdAccount) {
             it
               .values(
-                getSha256Hash(idProd),
-                idProd,
-                getSha256Hash(agentProd),
-                agentProd,
+                "aws:instances:prod:us-east-1:i-abcd1234",
+                "prod/TestAgent",
                 "myapp",
                 "",
                 "",
@@ -178,10 +151,8 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
           if (includeTestAccount) {
             it
               .values(
-                getSha256Hash(idTest),
-                idTest,
-                getSha256Hash(agentTest),
-                agentTest,
+                "aws:instances:test:us-east-1:i-abcd1234",
+                "test/TestAgent",
                 "myapp",
                 "",
                 "",
@@ -193,14 +164,11 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         }
         .execute()
 
-      dslContext.insertInto(table("cats_v2_instances_rel"))
+      dslContext.insertInto(table("cats_v1_instances_rel"))
         .columns(
           field("uuid"),
-          field("id_hash"),
           field("id"),
-          field("rel_id_hash"),
           field("rel_id"),
-          field("rel_agent_hash"),
           field("rel_agent"),
           field("rel_type"),
           field("last_updated")
@@ -210,12 +178,9 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
             it
               .values(
                 ULID().nextULID(),
-                getSha256Hash(idProd),
-                idProd,
-                getSha256Hash(relIdProd),
-                relIdProd,
-                getSha256Hash(relAgentProd),
-                relAgentProd,
+                "aws:instances:prod:us-east-1:i-abcd1234",
+                "aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000",
+                "serverGroups:prod/TestAgent",
                 "serverGroups",
                 System.currentTimeMillis()
               )
@@ -228,12 +193,9 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
             it
               .values(
                 ULID().nextULID(),
-                getSha256Hash(idTest),
-                idTest,
-                getSha256Hash(relIdTest),
-                relIdTest,
-                getSha256Hash(relAgentTest),
-                relAgentTest,
+                "aws:instances:test:us-east-1:i-abcd1234",
+                "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000",
+                "serverGroups:test/TestAgent",
                 "serverGroups",
                 System.currentTimeMillis()
               )
@@ -252,10 +214,12 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         it.results = mapOf(
           INSTANCES.ns to listOf(
             DefaultCacheData(
-              idTest,
+              "aws:instances:test:us-east-1:i-abcd1234",
               mapOf(),
               mapOf(
-                SERVER_GROUPS.ns to listOf(relIdTest)
+                SERVER_GROUPS.ns to listOf(
+                  "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000"
+                )
               )
             )
           )
@@ -270,10 +234,12 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         it.results = mapOf(
           INSTANCES.ns to listOf(
             DefaultCacheData(
-              idProd,
+              "aws:instances:prod:us-east-1:i-abcd1234",
               mapOf(),
               mapOf(
-                SERVER_GROUPS.ns to listOf(relIdProd)
+                SERVER_GROUPS.ns to listOf(
+                  "aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000"
+                )
               )
             )
           )
@@ -296,13 +262,9 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
       dslContext.select(field("rel_id"))
         .from(table(SqlNames().relTableName("instances")))
         .fetch(0, String::class.java)
-
-    fun getSha256Hash(str: String): String =
-      Hashing.sha256().hashBytes(str.toByteArray()).toString()
   }
 
-  private inner class StaticObjectProvider(val obj: ProviderRegistry) :
-    ObjectProvider<ProviderRegistry> {
+  private inner class StaticObjectProvider(val obj: ProviderRegistry) : ObjectProvider<ProviderRegistry> {
     override fun getIfUnique(): ProviderRegistry? = obj
     override fun getObject(vararg args: Any?): ProviderRegistry = obj
     override fun getObject(): ProviderRegistry = obj
