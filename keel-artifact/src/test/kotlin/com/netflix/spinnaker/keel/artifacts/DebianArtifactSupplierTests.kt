@@ -31,7 +31,6 @@ import io.mockk.coVerify as verify
 internal class DebianArtifactSupplierTests : JUnit5Minutests {
   object Fixture {
     val artifactService: ArtifactService = mockk(relaxUnitFun = true)
-    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true)
     val eventBridge: SpringEventPublisherBridge = mockk(relaxUnitFun = true)
     val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
     val deliveryConfig = deliveryConfig()
@@ -78,7 +77,8 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
           message = "this is a commit message",
           link = ""
         ),
-        project = "spkr"
+        project = "spkr",
+        branch = "master"
       )
     )
     val debianArtifactSupplier = DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService)

@@ -80,7 +80,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
       statuses = setOf(RELEASE)
     )
-    
     val versionedDockerArtifact = DockerArtifact(
       name = "docker",
       deliveryConfigName = "my-manifest",

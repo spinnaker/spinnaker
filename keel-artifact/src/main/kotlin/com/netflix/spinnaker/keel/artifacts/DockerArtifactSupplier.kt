@@ -47,7 +47,9 @@ class DockerArtifactSupplier(
               if (dockerImage.commitId != null && dockerImage.buildNumber != null) {
                 mapOf(
                   "commitId" to dockerImage.commitId,
-                  "buildNumber" to dockerImage.buildNumber
+                  "buildNumber" to dockerImage.buildNumber,
+                  "branch" to dockerImage.branch,
+                  "createdAt" to dockerImage.date
                 )
               } else {
                 emptyMap()
@@ -89,7 +91,9 @@ class DockerArtifactSupplier(
                 if (dockerImage.commitId != null && dockerImage.buildNumber != null) {
                   mapOf(
                     "commitId" to dockerImage.commitId,
-                    "buildNumber" to dockerImage.buildNumber
+                    "buildNumber" to dockerImage.buildNumber,
+                    "branch" to dockerImage.branch,
+                    "createdAt" to dockerImage.date
                   )
                 } else {
                   emptyMap()
