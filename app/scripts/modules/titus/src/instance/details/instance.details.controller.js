@@ -36,7 +36,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   'moniker',
   'environment',
   'overrides',
-  function($scope, $q, $state, $uibModal, instanceWriter, instance, app, moniker, environment, overrides) {
+  function ($scope, $q, $state, $uibModal, instanceWriter, instance, app, moniker, environment, overrides) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
 
@@ -58,7 +58,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      const displayableMetrics = instance.health.filter(function(metric) {
+      const displayableMetrics = instance.health.filter(function (metric) {
         return metric.state !== 'Unknown';
       });
 
@@ -68,8 +68,8 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
 
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function(metric) {
-          const detailsMatch = latest.health.filter(function(latestHealth) {
+        displayableMetrics.forEach(function (metric) {
+          const detailsMatch = latest.health.filter(function (latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -83,8 +83,8 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     const retrieveInstance = () => {
       const extraData = {};
       let instanceSummary, loadBalancers, account, region, vpcId;
-      app.serverGroups.data.some(function(serverGroup) {
-        return serverGroup.instances.some(function(possibleInstance) {
+      app.serverGroups.data.some(function (serverGroup) {
+        return serverGroup.instances.some(function (possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
             $scope.serverGroup = serverGroup;
             instanceSummary = possibleInstance;
@@ -139,17 +139,17 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       $state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
     }
 
-    this.canRegisterWithLoadBalancer = function() {
+    this.canRegisterWithLoadBalancer = function () {
       return false;
     };
 
-    this.canDeregisterFromLoadBalancer = function() {
+    this.canDeregisterFromLoadBalancer = function () {
       return false;
     };
 
-    this.canRegisterWithDiscovery = function() {
+    this.canRegisterWithDiscovery = function () {
       const healthMetrics = $scope.instance.health || [];
-      const discoveryHealth = healthMetrics.filter(function(health) {
+      const discoveryHealth = healthMetrics.filter(function (health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -161,14 +161,14 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { id: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         const params = { cloudProvider: 'titus' };
         if (instance.serverGroup) {
           params.serverGroupName = instance.serverGroup;
@@ -191,14 +191,14 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.terminateInstancesAndShrinkServerGroups(
           [
             {
@@ -240,7 +240,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -262,7 +262,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -277,7 +277,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       const healthMetrics = $scope.instance.health || [];
-      return healthMetrics.some(function(health) {
+      return healthMetrics.some(function (health) {
         return health.type === healthProviderType && health.state === state;
       });
     };
@@ -285,7 +285,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     const getBastionAddressForAccount = (accountDetails, region) => {
       this.bastionHost = accountDetails.bastionHost || 'unknown';
 
-      const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
+      const discoveryHealth = $scope.instance.health.find((m) => m.type === 'Discovery');
       if (discoveryHealth) {
         this.discoveryInfoLink =
           `http://discoveryreadonly.${region}.dyn${accountDetails.environment}` +
@@ -309,9 +309,33 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       return Object.keys($scope.instance.resources.ports).length > 0;
     };
 
+    const constructTaskActions = () => {
+      const constantActions = [
+        { label: 'Terminate', triggerAction: this.terminateInstance },
+        { label: 'Terminate and Shrink Server Gorup', triggerAction: this.terminateInstanceAndShrinkServerGroup },
+      ];
+      const conditionalActions = [];
+
+      if (this.canRegisterWithDiscovery()) {
+        conditionalActions.push({
+          label: 'Enable In Discovery',
+          triggerAction: this.enableInstanceInDiscovery,
+        });
+      }
+
+      if (this.hasHealthState('Discovery', 'Up') || this.hasHealthState('Discovery', 'Down')) {
+        conditionalActions.push({
+          label: 'Disable in Discovery',
+          triggerAction: this.disableInstanceInDiscovery,
+        });
+      }
+      return conditionalActions.concat(constantActions);
+    };
+
     const initialize = app.isStandalone ? retrieveInstance() : app.serverGroups.ready().then(retrieveInstance);
 
     initialize.then(() => {
+      $scope.taskActions = constructTaskActions();
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
       //     is no point in subscribing to the refresh

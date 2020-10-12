@@ -35,7 +35,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   'environment',
   '$q',
   'overrides',
-  function($scope, $state, amazonInstanceWriter, instance, app, moniker, environment, $q, overrides) {
+  function ($scope, $state, amazonInstanceWriter, instance, app, moniker, environment, $q, overrides) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
@@ -58,22 +58,24 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      const displayableMetrics = instance.health.filter(function(metric) {
+      const displayableMetrics = instance.health.filter(function (metric) {
         return metric.type !== 'Amazon' || metric.state !== 'Unknown';
       });
 
       if (!app.isStandalone) {
         // augment with target group healthcheck data
-        const targetGroups = getAllTargetGroups(app.loadBalancers.data.filter(function(loadBalancer) {
-          return loadBalancer.cloudProvider === 'aws';
-        }));
+        const targetGroups = getAllTargetGroups(
+          app.loadBalancers.data.filter(function (loadBalancer) {
+            return loadBalancer.cloudProvider === 'aws';
+          }),
+        );
         applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups, instance.account);
       }
 
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function(metric) {
-          const detailsMatch = latest.health.filter(function(latestHealth) {
+        displayableMetrics.forEach(function (metric) {
+          const detailsMatch = latest.health.filter(function (latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -95,8 +97,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function(serverGroup) {
-          return serverGroup.instances.some(function(possibleInstance) {
+        app.serverGroups.data.some(function (serverGroup) {
+          return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -113,9 +115,9 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another app
-          app.loadBalancers.data.some(function(loadBalancer) {
+          app.loadBalancers.data.some(function (loadBalancer) {
             return (
-              loadBalancer.instances.some(function(possibleInstance) {
+              loadBalancer.instances.some(function (possibleInstance) {
                 if (possibleInstance.id === instance.instanceId) {
                   instanceSummary = possibleInstance;
                   loadBalancers = [loadBalancer.name];
@@ -125,8 +127,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
                   return true;
                 }
               }) ||
-              loadBalancer.targetGroups.some(function(targetGroup) {
-                return targetGroup.instances.some(function(possibleInstance) {
+              loadBalancer.targetGroups.some(function (targetGroup) {
+                return targetGroup.instances.some(function (possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     targetGroups = [targetGroup.name];
@@ -141,13 +143,13 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function(loadBalancer) {
+            app.loadBalancers.data.some(function (loadBalancer) {
               return (
-                loadBalancer.serverGroups.some(function(serverGroup) {
+                loadBalancer.serverGroups.some(function (serverGroup) {
                   if (!serverGroup.isDisabled) {
                     return false;
                   }
-                  return serverGroup.instances.some(function(possibleInstance) {
+                  return serverGroup.instances.some(function (possibleInstance) {
                     if (possibleInstance.id === instance.instanceId) {
                       instanceSummary = possibleInstance;
                       loadBalancers = [loadBalancer.name];
@@ -158,12 +160,12 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
                     }
                   });
                 }) ||
-                loadBalancer.targetGroups.some(function(targetGroup) {
-                  targetGroup.serverGroups.some(function(serverGroup) {
+                loadBalancer.targetGroups.some(function (targetGroup) {
+                  targetGroup.serverGroups.some(function (serverGroup) {
                     if (!serverGroup.isDisabled) {
                       return false;
                     }
-                    return serverGroup.instances.some(function(possibleInstance) {
+                    return serverGroup.instances.some(function (possibleInstance) {
                       if (possibleInstance.id === instance.instanceId) {
                         instanceSummary = possibleInstance;
                         loadBalancers = [loadBalancer.name];
@@ -186,7 +188,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then((details) => {
           if ($scope.$$destroyed) {
             return;
           }
@@ -200,15 +202,15 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           $scope.instance.loadBalancers = loadBalancers;
           $scope.instance.targetGroups = targetGroups;
           if ($scope.instance.networkInterfaces) {
-            $scope.instance.ipv6Addresses = _.flatMap($scope.instance.networkInterfaces, i =>
-              i.ipv6Addresses.map(a => a.ipv6Address),
+            $scope.instance.ipv6Addresses = _.flatMap($scope.instance.networkInterfaces, (i) =>
+              i.ipv6Addresses.map((a) => a.ipv6Address),
             );
 
             const permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(
-              f => f.attachment.deleteOnTermination === false,
+              (f) => f.attachment.deleteOnTermination === false,
             );
             if (permanentNetworkInterfaces.length) {
-              $scope.instance.permanentIps = permanentNetworkInterfaces.map(f => f.privateIpAddress);
+              $scope.instance.permanentIps = permanentNetworkInterfaces.map((f) => f.privateIpAddress);
             }
           }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
@@ -240,54 +242,54 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
     }
 
-    this.canDeregisterFromLoadBalancer = function() {
+    this.canDeregisterFromLoadBalancer = function () {
       const healthMetrics = $scope.instance.health || [];
-      return healthMetrics.some(function(health) {
+      return healthMetrics.some(function (health) {
         return health.type === 'LoadBalancer';
       });
     };
 
-    this.canRegisterWithLoadBalancer = function() {
+    this.canRegisterWithLoadBalancer = function () {
       const instance = $scope.instance;
       const healthMetrics = instance.health || [];
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
-      const outOfService = healthMetrics.some(function(health) {
+      const outOfService = healthMetrics.some(function (health) {
         return health.type === 'LoadBalancer' && health.state === 'OutOfService';
       });
-      const hasLoadBalancerHealth = healthMetrics.some(function(health) {
+      const hasLoadBalancerHealth = healthMetrics.some(function (health) {
         return health.type === 'LoadBalancer';
       });
       return outOfService || !hasLoadBalancerHealth;
     };
 
-    this.canDeregisterFromTargetGroup = function() {
+    this.canDeregisterFromTargetGroup = function () {
       const healthMetrics = $scope.instance.health || [];
-      return healthMetrics.some(function(health) {
+      return healthMetrics.some(function (health) {
         return health.type === 'TargetGroup' && health.state !== 'OutOfService';
       });
     };
 
-    this.canRegisterWithTargetGroup = function() {
+    this.canRegisterWithTargetGroup = function () {
       const instance = $scope.instance;
       const healthMetrics = instance.health || [];
       if (!instance.targetGroups || !instance.targetGroups.length) {
         return false;
       }
-      const outOfService = healthMetrics.some(function(health) {
+      const outOfService = healthMetrics.some(function (health) {
         return health.type === 'TargetGroup' && health.state === 'OutOfService';
       });
-      const hasTargetGroupHealth = healthMetrics.some(function(health) {
+      const hasTargetGroupHealth = healthMetrics.some(function (health) {
         return health.type === 'TargetGroup';
       });
       return outOfService || !hasTargetGroupHealth;
     };
 
-    this.canRegisterWithDiscovery = function() {
+    this.canRegisterWithDiscovery = function () {
       const instance = $scope.instance;
       const healthMetrics = instance.health || [];
-      const discoveryHealth = healthMetrics.filter(function(health) {
+      const discoveryHealth = healthMetrics.filter(function (health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -299,14 +301,14 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.terminateInstance(instance, app);
       };
 
@@ -325,14 +327,14 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
@@ -381,7 +383,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -403,7 +405,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -425,7 +427,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Registering ' + instance.instanceId + ' with ' + targetGroupNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.registerInstanceWithTargetGroup(instance, app);
       };
 
@@ -447,7 +449,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Deregistering ' + instance.instanceId + ' from ' + targetGroupNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.deregisterInstanceFromTargetGroup(instance, app);
       };
 
@@ -468,7 +470,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -489,7 +491,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return amazonInstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -505,9 +507,61 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       const instance = $scope.instance;
       const healthMetrics = instance.health || [];
-      return healthMetrics.some(function(health) {
+      return healthMetrics.some(function (health) {
         return health.type === healthProviderType && health.state === state;
       });
+    };
+
+    const constructInstanceActions = (instance) => {
+      const constantActions = [
+        { label: 'Reboot', triggerAction: this.rebootInstance },
+        { label: 'Terminate', triggerAction: this.terminateInstance },
+        { label: 'Terminate and Shrink Server Gorup', triggerAction: this.terminateInstanceAndShrinkServerGroup },
+      ];
+      const conditionalActions = [];
+
+      if (this.canRegisterWithDiscovery() && !instance.serverGroupDisabled) {
+        conditionalActions.push({
+          label: 'Enable In Discovery',
+          triggerAction: this.enableInstanceInDiscovery,
+        });
+      }
+
+      if (this.hasHealthState('Discovery', 'Up') || this.hasHealthState('Discovery', 'Down')) {
+        conditionalActions.push({
+          label: 'Disable in Discovery',
+          triggerAction: this.disableInstanceInDiscovery,
+        });
+      }
+
+      if (this.canRegisterWithLoadBalancer()) {
+        conditionalActions.push({
+          label: 'Register with Load Balancer',
+          triggerAction: this.registerInstanceWithLoadBalancer,
+        });
+      }
+
+      if (this.canDeregisterFromLoadBalancer()) {
+        conditionalActions.push({
+          label: 'Deregister from Load Balancer',
+          triggerAction: this.deregisterInstanceFromLoadBalancer,
+        });
+      }
+
+      if (this.canRegisterWithTargetGroup()) {
+        conditionalActions.push({
+          label: 'Register with Target Group',
+          triggerAction: this.registerInstanceWithTargetGroup,
+        });
+      }
+
+      if (this.canDeregisterFromTargetGroup()) {
+        conditionalActions.push({
+          label: 'Deregister from Target Group',
+          triggerAction: this.deregisterInstanceFromTargetGroup,
+        });
+      }
+      return conditionalActions.concat(constantActions);
     };
 
     const initialize = app.isStandalone
@@ -515,6 +569,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
+      $scope.instanceActions = constructInstanceActions($scope.instance);
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
       //     is no point in subscribing to the refresh

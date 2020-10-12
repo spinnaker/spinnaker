@@ -30,35 +30,7 @@
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
-        <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button
-            type="button"
-            class="btn btn-sm btn-primary dropdown-toggle"
-            ng-disabled="disabled"
-            uib-dropdown-toggle
-          >
-            Titus Task Actions <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li>
-              <a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()"
-                >Enable in Discovery</a
-              >
-            </li>
-            <li>
-              <a
-                href
-                ng-click="ctrl.disableInstanceInDiscovery()"
-                ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')"
-                >Disable in Discovery</a
-              >
-            </li>
-            <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
-            <li>
-              <a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a>
-            </li>
-          </ul>
-        </div>
+        <instance-actions actions="taskActions" title="'Titus Task Actions'"></instance-actions>
         <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
             Insight <span class="caret"></span>
