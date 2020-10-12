@@ -4,7 +4,6 @@ import com.netflix.spinnaker.config.UnhealthyNotificationConfig
 import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.events.NotificationEvent
@@ -48,7 +47,9 @@ class UnhealthyNotificationListener(
         unhealthyRepository.markUnhealthy(event.resource.id)
         val unhealthyDuration = unhealthyRepository.durationUnhealthy(event.resource.id)
         if (unhealthyDuration > config.minUnhealthyDuration) {
-          publisher.publishEvent(NotificationEvent(RESOURCE, event.resource.id, UNHEALTHY_RESOURCE, message(event.resource, unhealthyDuration)))
+          publisher.publishEvent(
+            NotificationEvent(RESOURCE, event.resource.id, UNHEALTHY_RESOURCE, message(event, unhealthyDuration))
+          )
         }
       }
     }
@@ -57,36 +58,46 @@ class UnhealthyNotificationListener(
   /**
    *  Assumption: health is only for clusters, and we have specific requirements
    *  about what the spec looks like in order to construct the notification link
-   *
-   *  Future improvement: add in how long the resource has been unhealthy for
    */
-  fun message(resource: Resource<*>, unhealthyDuration: Duration): Notification {
-    val spec = resource.spec
+  fun message(event: ResourceHealthEvent, unhealthyDuration: Duration): Notification {
+    val spec = event.resource.spec
     if (spec !is Monikered) {
-      throw UnsupportedResourceTypeException("Resource kind ${resource.kind} must be monikered to construct resource links")
+      throw UnsupportedResourceTypeException("Resource kind ${event.resource.kind} must be monikered to construct resource links")
     }
     if (spec !is Locatable<*>) {
-      throw UnsupportedResourceTypeException("Resource kind ${resource.kind} must be locatable to construct resource links")
+      throw UnsupportedResourceTypeException("Resource kind ${event.resource.kind} must be locatable to construct resource links")
     }
     val locations = spec.locations
     if (locations !is AccountAwareLocations) {
-      throw UnsupportedResourceTypeException("Resource kind ${resource.kind} must be have account aware locations to construct resource links")
+      throw UnsupportedResourceTypeException("Resource kind ${event.resource.kind} must be have account aware locations to construct resource links")
     }
 
     val params = ClusterViewParams(
       acct = locations.account,
-      q = resource.spec.displayName,
+      q = spec.displayName,
       stack = spec.moniker.stack ?: "(none)",
       detail = spec.moniker.detail ?: "(none)"
     )
-    val resourceUrl = "$spinnakerBaseUrl/#/applications/${resource.application}/clusters?${params.toURL()}"
+    val resourceUrl = "$spinnakerBaseUrl/#/applications/${event.resource.application}/clusters?${params.toURL()}"
 
     return Notification(
-      subject = "${resource.spec.displayName} is unhealthy",
-      body = "<$resourceUrl|${resource.id}> has been unhealthy for ${friendlyDuration(unhealthyDuration)} and " +
+      subject = "${spec.displayName} is unhealthy in ${friendlyRegionList(event.unhealthyRegions, event.totalRegions)}",
+      body = "<$resourceUrl|${event.resource.id}> has been unhealthy for ${friendlyDuration(unhealthyDuration)} and " +
         "Spinnaker can't fix it. " +
         "Manual intervention might be required. Please check the History view for more details.",
       color = "#FF4949"
     )
   }
+
+  fun friendlyRegionList(regions: List<String>, totalRegions: Int): String =
+    when {
+      regions.size == 1 -> regions.first()
+      regions.size == 2 && regions.size < totalRegions -> regions.joinToString(" and ")
+      regions.size < totalRegions -> {
+        val r = regions.toMutableList()
+        r[r.size - 1] = "and " + r.last()
+        r.joinToString(", ")
+      }
+      else -> "all regions"
+    }
 }

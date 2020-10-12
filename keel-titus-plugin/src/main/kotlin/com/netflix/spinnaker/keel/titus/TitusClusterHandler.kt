@@ -494,11 +494,14 @@ class TitusClusterHandler(
 
     // publish health events
     val sameContainer: Boolean = activeServerGroups.distinctBy { it.container.digest }.size == 1
-    val healthy: Boolean = activeServerGroups.all {
-      it.instanceCounts?.isHealthy(resource.spec.deployWith.health, resource.spec.resolveCapacity(it.location.region)) == true
+    val unhealthyRegions = mutableListOf<String>()
+    activeServerGroups.forEach {serverGroup ->
+      if (serverGroup.instanceCounts?.isHealthy(resource.spec.deployWith.health, resource.spec.resolveCapacity(serverGroup.location.region)) == false) {
+        unhealthyRegions.add(serverGroup.location.region)
+      }
     }
-
-    eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy))
+    val healthy: Boolean = unhealthyRegions.isEmpty()
+    eventPublisher.publishEvent(ResourceHealthEvent(resource, healthy, unhealthyRegions, resource.spec.locations.regions.size))
 
     if (sameContainer && healthy) {
       // only publish a successfully deployed event if the server group is healthy

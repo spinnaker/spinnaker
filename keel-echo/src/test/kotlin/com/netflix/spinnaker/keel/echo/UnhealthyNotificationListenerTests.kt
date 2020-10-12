@@ -37,6 +37,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
     )
 
     val r = locatableResource()
+    val event = ResourceHealthEvent(resource = r, isHealthy = false, listOf("us-east-1"), 1)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -58,7 +59,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
       }
 
       test("unhealthy adds a record") {
-        subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = false))
+        subject.onResourceHealthEvent(event)
         verify(exactly = 1) { unhealthyRepository.markUnhealthy(r.id) }
         verify(exactly = 0) { publisher.publishEvent(any()) }
       }
@@ -66,7 +67,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
 
     context("existing unhealthy record") {
       before {
-        subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = false))
+        subject.onResourceHealthEvent(event)
       }
 
       context("it's been 4 minutes (less than the min time)") {
@@ -77,7 +78,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
         }
 
         test("we still don't notify") {
-          subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = false))
+          subject.onResourceHealthEvent(event)
           verify(exactly = 0) { publisher.publishEvent(any()) }
         }
       }
@@ -90,10 +91,10 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
         }
 
         test("we notify") {
-          subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = false))
+          subject.onResourceHealthEvent(event)
           verify(exactly = 1) {
             publisher.publishEvent(
-              NotificationEvent(RESOURCE, r.id, UNHEALTHY_RESOURCE, subject.message(r, Duration.ofMinutes(6)))
+              NotificationEvent(RESOURCE, r.id, UNHEALTHY_RESOURCE, subject.message(event, Duration.ofMinutes(6)))
             )
           }
         }
