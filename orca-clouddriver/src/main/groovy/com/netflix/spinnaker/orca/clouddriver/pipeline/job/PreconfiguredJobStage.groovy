@@ -106,6 +106,10 @@ class PreconfiguredJobStage extends RunJobStage {
   }
 
   private static void setNestedValue(Object root, String mapping, Object value) {
+    if (mapping == null) {
+      return
+    }
+
     String[] props = mapping.split(/\./)
     Object current = root
     for (int i = 0; i < props.length - 1; i++) {

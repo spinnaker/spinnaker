@@ -49,6 +49,7 @@ class PreconfiguredJobStageSpec extends Specification {
     preconfiguredJobStage.buildTaskGraph(stage)
 
     then:
+    noExceptionThrown()
     stage.getContext().get(expectedField) == expectedValue
 
     where:
@@ -56,6 +57,7 @@ class PreconfiguredJobStageSpec extends Specification {
     "cloudProvider" | "kubernetes"    | "testJob" | [account: "test-account"]                                                 | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [], cloudProvider: "kubernetes")
     "cloudProvider" | "titus"         | "testJob" | [account: "test-account"]                                                 | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [new PreconfiguredJobStageParameter(mapping: "cloudProvider", defaultValue: "titus")], cloudProvider: "kubernetes")
     "cloudProvider" | "somethingElse" | "testJob" | [account: "test-account", parameters: ["cloudProvider": "somethingElse"]] | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [new PreconfiguredJobStageParameter(mapping: "cloudProvider", defaultValue: "titus", "name": "cloudProvider")], cloudProvider: "kubernetes")
+    "cloudProvider" | "kubernetes"    | "testJob" | [account: "test-account", parameters: ["cloudProvider": "somethingElse"]] | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [new PreconfiguredJobStageParameter(defaultValue: "titus", "name": "cloudProvider")], cloudProvider: "kubernetes")
   }
 
   def "should use copy of preconfigured job to populate context"() {
