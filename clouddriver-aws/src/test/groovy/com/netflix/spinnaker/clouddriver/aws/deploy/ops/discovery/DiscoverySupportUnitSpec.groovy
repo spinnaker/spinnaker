@@ -204,17 +204,18 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds, true)
 
     then:
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * task.fail()
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
-    1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(400)}
+    1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {response(200)}
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(400)}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
+    2 * task.updateStatus('PHASE', { it.startsWith("Failed updating status") })
     1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
     0 * _
 
@@ -224,7 +225,6 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.UP
     appName = "kato"
     instanceIds = ["good", "bad", "also-bad"]
-
   }
 
   void "should succeed despite some failures due to targetHealthyDeployPercentage"() {
@@ -235,6 +235,7 @@ class DiscoverySupportUnitSpec extends Specification {
       credentials: TestCredential.named('test', [discovery: discoveryUrl]),
       targetHealthyDeployPercentage: 20
     )
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax = 1
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
@@ -242,12 +243,14 @@ class DiscoverySupportUnitSpec extends Specification {
     then:
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     0 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
+    2 * task.updateStatus('PHASE', { it.startsWith("Failed updating status")})
+    1 * task.addResultObjects([['discoverySkippedInstanceIds':['bad', 'also-bad']]])
     0 * task.fail()
     0 * _
 
@@ -268,19 +271,21 @@ class DiscoverySupportUnitSpec extends Specification {
       credentials: TestCredential.named('test', [discovery: discoveryUrl]),
       targetHealthyDeployPercentage: 50
     )
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax = 1
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds, true)
 
     then:
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
+    2 * task.updateStatus('PHASE', { it.startsWith("Failed updating status of")})
     1 * task.fail()
     0 * _
 
@@ -290,46 +295,11 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.UP
     appName = "kato"
     instanceIds = ["good", "bad", "also-bad"]
-
   }
 
 
-  void "should retry on http errors from discovery"() {
-    given:
-    def task = Mock(Task)
-    def description = new EnableDisableInstanceDiscoveryDescription(
-      region: 'us-west-1',
-      credentials: TestCredential.named('test', [discovery: discoveryUrl])
-    )
-
-    when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
-
-    then: "should retry on NOT_FOUND"
-    3 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
-    0 * task.fail()
-    2 * eureka.getInstanceInfo(_) >> {
-      throw failure
-    } >>
-      [
-        instance: [
-          app: appName,
-          status: "UNKNOWN"
-        ]
-      ]
-
-    where:
-    failure << [httpError(404), httpError(406), httpError(503), amazonError(503)]
-
-    discoveryUrl = "http://us-west-1.discovery.netflix.net"
-    region = "us-west-1"
-    discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.UP
-    appName = "kato"
-    instanceIds = ["i-123"]
-
-  }
-
-  void "should retry on NOT_FOUND from discovery up to DISCOVERY_RETRY_MAX times"() {
+  @Unroll
+  void "should retry on NOT_FOUND from getInstanceInfo up to DISCOVERY_RETRY_MAX times"() {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
@@ -343,7 +313,7 @@ class DiscoverySupportUnitSpec extends Specification {
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
     discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     discoverySupport.eurekaSupportConfigurationProperties.retryMax * eureka.getInstanceInfo(_) >> {
-      throw httpError(404)
+      throw httpError(errorCode)
     }
     0 * task.fail()
     thrown(RetrofitError)
@@ -354,6 +324,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = AbstractEurekaSupport.DiscoveryStatus.UP
     appName = "kato"
     instanceIds = ["i-123"]
+    errorCode << [404, 406, 503]
   }
 
   void "should retry on non 200 response from discovery"() {
@@ -387,9 +358,9 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123"]
   }
 
-  void "should NOT fail disable operation if instance is not found"() {
+  @Unroll
+  void "should NOT fails if strict=#strict for #status operation if instance is not found"() {
     given:
-    def status = AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
       region: 'us-east-1',
@@ -407,11 +378,17 @@ class DiscoverySupportUnitSpec extends Specification {
         ]
       ]
     eureka.updateInstanceStatus(appName, 'i-123', status.value) >> { throw httpError(404) }
+    eureka.resetInstanceStatus(appName, 'i-123', AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> { throw httpError(404) }
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
 
     where:
     appName = "kato"
+    status                                                | strict
+    AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE  | false
+    AbstractEurekaSupport.DiscoveryStatus.UP              | false
+    AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE  | true
+    AbstractEurekaSupport.DiscoveryStatus.UP              | true
   }
 
   void "should attempt to mark each instance in discovery even if some fail"() {

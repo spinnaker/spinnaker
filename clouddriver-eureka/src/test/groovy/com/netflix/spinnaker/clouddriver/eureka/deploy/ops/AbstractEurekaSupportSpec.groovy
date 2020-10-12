@@ -63,45 +63,6 @@ class AbstractEurekaSupportSpec extends Specification {
     ["i-1", "i-2", "i-3", "i-4", "i-5"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP", "i-4": "UP", "i-5": "UP"] | 20                  || ["i-1"]
   }
 
-  @Unroll
-  def "updating discovery status to UP skips instances that are already UP"() {
-    given:
-    String instanceId = "abcd1234"
-    Task task = new DefaultTask("1", "running", "RUNNING")
-    Response eurekaResponse = new Response("http://eureka", 200, "ok", [], null)
-    eurekaSupport.eurekaSupportConfigurationProperties = Mock(EurekaSupportConfigurationProperties)
-
-    when:
-    eurekaSupport.updateDiscoveryStatusForInstances(
-      [credentials: "shh", region: "us-west-2"],
-      task,
-      "whatever",
-      AbstractEurekaSupport.DiscoveryStatus.UP,
-      [instanceId], 1, 1)
-
-    then:
-    1 * eureka.getInstanceInfo(instanceId) >> [
-      instance: [
-        app: "myapp",
-        name: "myistance",
-        status: status
-      ]
-    ]
-
-    0 * eureka.updateInstanceStatus("myapp", instanceId, status)
-    eurekaResetCount * eureka.resetInstanceStatus("myapp", instanceId, status)
-
-    if (status != "OUT_OF_SERVICE") {
-      task.getResultObjects() == [[discoverySkippedInstanceIds: [instanceId]]]
-    }
-
-    where:
-    status           | eurekaResetCount
-    "UP"             | 0
-    "STARTING"       | 0
-    "OUT_OF_SERVICE" | 1
-  }
-
   ServerGroup serverGroup(List<Instance> instances) {
     return Mock(ServerGroup) {
       _ * getInstances() >> { return instances }

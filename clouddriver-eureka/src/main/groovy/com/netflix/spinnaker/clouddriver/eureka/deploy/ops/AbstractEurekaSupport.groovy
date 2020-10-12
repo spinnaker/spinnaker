@@ -145,41 +145,29 @@ abstract class AbstractEurekaSupport {
           if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
             resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
           } else {
-            // If we're trying to set the status to UP, and the instance is already UP (or hasn't registered yet),
-            // skip it.
-            if (instanceDetails.instance.status == DiscoveryStatus.OUT_OF_SERVICE.value) {
-              resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.OUT_OF_SERVICE.value)
-            } else {
-              log.debug("Instance {} is {} in discovery, no override to remove", instanceId, instanceDetails.instance.status)
-              skipped.add(instanceId)
-              return
-            }
+            resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.OUT_OF_SERVICE.value)
           }
 
-          if (resp.status != 200) {
+          if (resp?.status != 200) {
             throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
           }
         }
       } catch (RetrofitError retrofitError) {
-        if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
-          def alwaysSkippable = retrofitError.response?.status == 404
-          def willSkip = alwaysSkippable || !strict
-          def skippingOrNot = willSkip ? "skipping" : "not skipping"
+        def alwaysSkippable = retrofitError.response?.status == 404
+        def willSkip = alwaysSkippable || !strict
+        def skippingOrNot = willSkip ? "skipping" : "not skipping"
 
-          String errorMessage = "Failed updating status of ${instanceId} in application $applicationName in discovery" +
-            " and strict=$strict, $skippingOrNot disable operation."
+        String errorMessage = "Failed updating status of $instanceId to '$discoveryStatus' in application '$applicationName' in discovery" +
+          " and strict=$strict, $skippingOrNot operation."
 
-          // in strict mode, only 404 errors on disable are ignored
-          if (!willSkip) {
-            errors[instanceId] = retrofitError
-          } else {
-            skipped.add(instanceId)
-          }
-
-          task.updateStatus phaseName, errorMessage
-        } else {
+        // in strict mode, only 404 errors are ignored
+        if (!willSkip) {
           errors[instanceId] = retrofitError
+        } else {
+          skipped.add(instanceId)
         }
+
+        task.updateStatus phaseName, errorMessage
       } catch (ex) {
         errors[instanceId] = ex
       }
@@ -209,7 +197,7 @@ abstract class AbstractEurekaSupport {
 
     if (!skipped.isEmpty()) {
       task.addResultObjects([
-        ["discoverySkippedInstanceIds": instanceIds]
+        ["discoverySkippedInstanceIds": skipped]
       ])
     }
   }

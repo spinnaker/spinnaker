@@ -122,7 +122,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
           app: "asg1"
         ]
       ]
-    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
+    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE') >> new Response('http://foo', 200, 'OK', [], null)
   }
 
   def 'should not fail because of discovery errors on disable'() {
