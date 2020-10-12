@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.plugins.deck.DeckPluginService
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.plugins.web.SpinnakerExtensionsConfigProperties
 import com.netflix.spinnaker.gate.services.TaskService
@@ -103,6 +104,9 @@ class PluginInfoControllerSpec extends Specification {
 
   @MockBean
   private SwabbieService swabbieService
+
+  @MockBean
+  private DeckPluginService deckPluginService
 
   private Map requestContent = ['name': 'test plugin', provider: 'Test Co']
 

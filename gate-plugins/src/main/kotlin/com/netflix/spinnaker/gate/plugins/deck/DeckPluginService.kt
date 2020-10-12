@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
  * Provides Deck with means of discovering what plugins it needs to download and a standard interface for
  * retrieving plugin assets.
  */
-class DeckPluginService(
+open class DeckPluginService(
   private val pluginCache: DeckPluginCache,
   private val registry: Registry
 ) {
