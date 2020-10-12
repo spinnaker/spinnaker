@@ -44,7 +44,7 @@ class AppengineCloneServerGroupCtrl implements IController {
     } else {
       appengineServerGroupCommandBuilder
         .buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
-        .then(constructedCommand => {
+        .then((constructedCommand) => {
           this.$scope.command = merge(constructedCommand, serverGroupCommand);
           // Re-establish references to the original pipeline and stage objects so that
           // we don't mutate copies of them when assigning expected artifacts.

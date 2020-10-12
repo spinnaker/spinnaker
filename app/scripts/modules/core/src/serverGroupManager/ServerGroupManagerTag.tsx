@@ -37,7 +37,7 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
       .getDataSource('serverGroupManagers')
       .data.find((manager: IServerGroupManager) =>
         manager.serverGroups.some(
-          group =>
+          (group) =>
             serverGroup.name === group.name &&
             serverGroup.region === manager.region &&
             serverGroup.account === manager.account,

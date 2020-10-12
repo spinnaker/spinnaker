@@ -36,15 +36,15 @@ export class SearchResults extends React.Component<ISearchResultsProps, ISearchR
 
   public componentWillReceiveProps(newProps: ISearchResultsProps): void {
     const { resultSets, selectedTab } = newProps;
-    const active: SearchResultType = resultSets.map(x => x.type).find(type => type.id === selectedTab);
+    const active: SearchResultType = resultSets.map((x) => x.type).find((type) => type.id === selectedTab);
     this.setState({ active });
   }
 
   public render() {
     const { resultSets, isSearching } = this.props;
     const { active } = this.state;
-    const activeResultSet = active && resultSets.find(resultSet => resultSet.type === active);
-    const noResults = resultSets.every(r => r.status === SearchStatus.FINISHED && r.results.length === 0);
+    const activeResultSet = active && resultSets.find((resultSet) => resultSet.type === active);
+    const noResults = resultSets.every((r) => r.status === SearchStatus.FINISHED && r.results.length === 0);
 
     return (
       <div className="search-results">

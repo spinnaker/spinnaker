@@ -19,10 +19,10 @@ export class ManifestKindSearchService {
       q: namespace,
       type: kind,
     })
-      .then(response =>
+      .then((response) =>
         chain(response ? response.results : [])
           .filter(
-            result => result.namespace === namespace && result.account === account && result.kubernetesKind === kind,
+            (result) => result.namespace === namespace && result.account === account && result.kubernetesKind === kind,
           )
           .uniqBy('name')
           .valueOf(),

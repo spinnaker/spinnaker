@@ -16,7 +16,7 @@ export function buildLabelsMap(serverGroups: IServerGroup[]): ILabelsMap {
     serverGroups,
     (map: ILabelsMap, serverGroup) => {
       const labelKeys = Object.keys(serverGroup.labels || {});
-      labelKeys.forEach(key => {
+      labelKeys.forEach((key) => {
         if (!map[key]) {
           map[key] = [];
         }

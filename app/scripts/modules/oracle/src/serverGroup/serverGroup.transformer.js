@@ -8,7 +8,7 @@ export const ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.oracle.serv
 export const name = ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
 module(ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('oracleServerGroupTransformer', [
   '$q',
-  function($q) {
+  function ($q) {
     const PROVIDER = 'oracle';
 
     function normalizeServerGroup(serverGroup) {

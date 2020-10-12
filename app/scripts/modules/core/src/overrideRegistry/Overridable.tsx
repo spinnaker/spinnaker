@@ -34,7 +34,7 @@ export interface IOverridableProps {
  * <MyCmp accountId={accountId} />
  */
 export function Overridable(key: string) {
-  return function<P, T extends React.ComponentClass<P>>(targetComponent: T): T {
+  return function <P, T extends React.ComponentClass<P>>(targetComponent: T): T {
     return overridableComponent(targetComponent, key);
   };
 }
@@ -66,16 +66,16 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
       let constructing = true;
 
       this.account$
-        .switchMap(accountName => {
+        .switchMap((accountName) => {
           if (!accountName) {
             return Observable.of(null);
           }
 
-          return AccountService.accounts$.map(accts => accts.find(acct => acct.name === accountName));
+          return AccountService.accounts$.map((accts) => accts.find((acct) => acct.name === accountName));
         })
         .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
         .takeUntil(this.destroy$)
-        .subscribe(Component => {
+        .subscribe((Component) => {
           // The component may be ready synchronously (when the constructor is run), or it might require async.
           // Handle either case here
           if (constructing) {
@@ -174,7 +174,9 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
         return <Spinner />;
       }
 
-      const isClassComponent = ['render', 'prototype.render'].some(prop => typeof get(Component, prop) === 'function');
+      const isClassComponent = ['render', 'prototype.render'].some(
+        (prop) => typeof get(Component, prop) === 'function',
+      );
       return isClassComponent ? <Component {...props} ref={this.props.forwardedRef} /> : <Component {...props} />;
     }
   }
@@ -185,8 +187,8 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
 
   // Copy static properties
   Object.getOwnPropertyNames(OriginalComponent)
-    .filter(propName => propName !== 'constructor' && !OverridableComponent.hasOwnProperty(propName))
-    .forEach(propName => ((forwardRef as any)[propName] = (OriginalComponent as any)[propName]));
+    .filter((propName) => propName !== 'constructor' && !OverridableComponent.hasOwnProperty(propName))
+    .forEach((propName) => ((forwardRef as any)[propName] = (OriginalComponent as any)[propName]));
 
   return forwardRef;
 }

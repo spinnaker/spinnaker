@@ -7,7 +7,7 @@ import { ApplicationNameValidator, FirewallLabels } from '@spinnaker/core';
 export const GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR = 'spinnaker.gce.validation.applicationName';
 export const name = GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR; // for backwards compatibility
 module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
-  .factory('gceApplicationNameValidator', function() {
+  .factory('gceApplicationNameValidator', function () {
     function validateSpecialCharacters(name, errors) {
       const pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
       if (!pattern.test(name)) {
@@ -108,7 +108,7 @@ module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
   })
   .run([
     'gceApplicationNameValidator',
-    function(gceApplicationNameValidator) {
+    function (gceApplicationNameValidator) {
       ApplicationNameValidator.registerValidator('gce', gceApplicationNameValidator);
     },
   ]);

@@ -9,7 +9,7 @@ export const name = CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards c
 module(CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory('serverGroupTransformer', [
   'providerServiceDelegate',
   '$q',
-  function(providerServiceDelegate, $q) {
+  function (providerServiceDelegate, $q) {
     function normalizeServerGroup(serverGroup, application) {
       if (!providerServiceDelegate.hasDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer')) {
         return null;

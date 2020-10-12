@@ -7,7 +7,7 @@ export const DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE = 'spinnaker.dcos.pip
 export const name = DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE; // for backwards compatibility
 angular
   .module(DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'dcos',
@@ -21,7 +21,7 @@ angular
   })
   .controller('dcosFindAmiStageController', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -29,7 +29,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

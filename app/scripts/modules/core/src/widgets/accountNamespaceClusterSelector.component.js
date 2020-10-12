@@ -12,7 +12,7 @@ export const CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT =
 export const name = CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT; // for backwards compatibility
 module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, []).directive(
   'accountNamespaceClusterSelector',
-  function() {
+  function () {
     return {
       restrict: 'E',
       scope: {},
@@ -34,7 +34,7 @@ module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, []).directive(
         let namespaces;
 
         const setNamespaceList = () => {
-          const accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
+          const accountFilter = (cluster) => (cluster ? cluster.account === vm.component.credentials : true);
           // TODO(lwander): Move away from regions to namespaces here.
           const namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
           vm.namespaces = namespaceList.length ? namespaceList : namespaces;
@@ -68,7 +68,7 @@ module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, []).directive(
           setNamespaceList();
         };
 
-        vm.clusterSelectInputToggled = isToggled => {
+        vm.clusterSelectInputToggled = (isToggled) => {
           isToggled ? setToggledState() : setUnToggledState();
         };
 
@@ -80,11 +80,11 @@ module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, []).directive(
 
         const init = () => {
           AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces')
-            .then(allNamespaces => {
+            .then((allNamespaces) => {
               namespaces = allNamespaces;
               return allNamespaces;
             })
-            .then(allNamespaces => {
+            .then((allNamespaces) => {
               setNamespaceList();
               setClusterList();
               vm.namespaces = _.includes(vm.clusterList, vm.component[this.clusterField])

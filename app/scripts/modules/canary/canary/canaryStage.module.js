@@ -26,7 +26,7 @@ module(CANARY_CANARY_CANARYSTAGE_MODULE, [
   CANARY_CANARY_CANARYSTATUS_DIRECTIVE,
 ]).run([
   'canaryStageTransformer',
-  function(canaryStageTransformer) {
+  function (canaryStageTransformer) {
     Registry.pipeline.registerTransformer(canaryStageTransformer);
   },
 ]);

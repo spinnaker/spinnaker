@@ -78,7 +78,7 @@ describe('defaultDocker.artifact', () => {
       },
     ];
 
-    correctArtifacts.forEach(correctArtifact => {
+    correctArtifacts.forEach((correctArtifact) => {
       const artifact: IArtifact = {
         id: '123',
         reference: correctArtifact.reference,

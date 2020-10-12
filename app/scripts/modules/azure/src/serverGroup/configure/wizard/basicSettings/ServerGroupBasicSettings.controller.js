@@ -23,8 +23,8 @@ angular
     '$uibModalStack',
     '$state',
     'imageReader',
-    function($scope, $controller, $uibModalStack, $state, imageReader) {
-      $scope.$watch('form.$valid', function(newVal) {
+    function ($scope, $controller, $uibModalStack, $state, imageReader) {
+      $scope.$watch('form.$valid', function (newVal) {
         if (newVal) {
           ModalWizard.markClean('basic-settings');
           ModalWizard.markComplete('basic-settings');
@@ -33,7 +33,7 @@ angular
         }
       });
 
-      this.imageChanged = image => {
+      this.imageChanged = (image) => {
         $scope.command.imageName = image.imageName;
         $scope.command.selectedImage = image;
         ModalWizard.markClean('basic-settings');
@@ -50,7 +50,7 @@ angular
       );
 
       this.stackPattern = {
-        test: function(stack) {
+        test: function (stack) {
           const pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
 
           return pattern.test(stack);
@@ -58,7 +58,7 @@ angular
       };
 
       this.detailPattern = {
-        test: function(detail) {
+        test: function (detail) {
           const pattern = $scope.command.viewState.templatingEnabled
             ? /^([a-zA-Z0-9-]*(\${.+})*)*$/
             : /^[a-zA-Z0-9-]*$/;

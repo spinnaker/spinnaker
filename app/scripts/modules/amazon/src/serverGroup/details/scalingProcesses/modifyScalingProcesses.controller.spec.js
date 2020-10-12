@@ -3,15 +3,15 @@
 import * as angular from 'angular';
 import { TaskExecutor } from '@spinnaker/core';
 
-describe('Controller: modifyScalingProcesses', function() {
+describe('Controller: modifyScalingProcesses', function () {
   beforeEach(window.module(require('./modifyScalingProcesses.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, $q) {
+    window.inject(function ($controller, $rootScope, $q) {
       this.$uibModalInstance = { close: angular.noop, result: { then: angular.noop } };
       this.$scope = $rootScope.$new();
 
-      this.initializeController = function(serverGroup, processes) {
+      this.initializeController = function (serverGroup, processes) {
         this.processes = processes;
         spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when(null));
 
@@ -26,20 +26,20 @@ describe('Controller: modifyScalingProcesses', function() {
     }),
   );
 
-  describe('isDirty', function() {
-    beforeEach(function() {
+  describe('isDirty', function () {
+    beforeEach(function () {
       this.serverGroup = { name: 'the-asg' };
       this.processes = [
         { name: 'Launch', enabled: true },
         { name: 'Terminate', enabled: true },
       ];
     });
-    it('starts as not dirty', function() {
+    it('starts as not dirty', function () {
       this.initializeController(this.serverGroup, this.processes);
       expect(this.controller.isDirty()).toBe(false);
     });
 
-    it('becomes dirty when a process is changed, becomes clean when the process is changed back', function() {
+    it('becomes dirty when a process is changed, becomes clean when the process is changed back', function () {
       this.initializeController(this.serverGroup, this.processes);
       expect(this.controller.isDirty()).toBe(false);
 
@@ -57,8 +57,8 @@ describe('Controller: modifyScalingProcesses', function() {
     });
   });
 
-  describe('form submission', function() {
-    beforeEach(function() {
+  describe('form submission', function () {
+    beforeEach(function () {
       this.serverGroup = { name: 'the-asg', region: 'us-east-1', account: 'test' };
       this.processes = [
         { name: 'Launch', enabled: true },
@@ -67,7 +67,7 @@ describe('Controller: modifyScalingProcesses', function() {
       ];
     });
 
-    it('sends a resume job when processes are enabled', function() {
+    it('sends a resume job when processes are enabled', function () {
       this.initializeController(this.serverGroup, this.processes);
       this.$scope.command[2].enabled = true;
       this.controller.submit();
@@ -78,7 +78,7 @@ describe('Controller: modifyScalingProcesses', function() {
       expect(job[0].processes).toEqual(['AddToLoadBalancer']);
     });
 
-    it('sends a suspend job when processes are enabled', function() {
+    it('sends a suspend job when processes are enabled', function () {
       this.initializeController(this.serverGroup, this.processes);
       this.$scope.command[1].enabled = false;
       this.controller.submit();
@@ -89,7 +89,7 @@ describe('Controller: modifyScalingProcesses', function() {
       expect(job[0].processes).toEqual(['Terminate']);
     });
 
-    it('sends both a resume and suspend job when processes are enabled', function() {
+    it('sends both a resume and suspend job when processes are enabled', function () {
       this.initializeController(this.serverGroup, this.processes);
       this.$scope.command[0].enabled = false;
       this.$scope.command[2].enabled = true;

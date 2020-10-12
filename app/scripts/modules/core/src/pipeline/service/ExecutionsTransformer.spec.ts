@@ -4,7 +4,7 @@ import { Application } from '../../application';
 import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { IExecution } from '../../domain';
 
-describe('ExecutionTransformerService', function() {
+describe('ExecutionTransformerService', function () {
   describe('transformExecution', () => {
     it('should flatten stages into summaries', () => {
       const execution = {

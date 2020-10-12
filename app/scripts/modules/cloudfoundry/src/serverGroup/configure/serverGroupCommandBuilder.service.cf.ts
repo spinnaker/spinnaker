@@ -63,12 +63,12 @@ export class CloudFoundryServerGroupCommandBuilder {
         diskQuota: serverGroup.diskQuota ? serverGroup.diskQuota + 'M' : '1024M',
         buildpacks:
           serverGroup.droplet && serverGroup.droplet.buildpacks
-            ? serverGroup.droplet.buildpacks.map(item => item.name)
+            ? serverGroup.droplet.buildpacks.map((item) => item.name)
             : [],
         instances: serverGroup.instances ? serverGroup.instances.length : 1,
         routes: serverGroup.loadBalancers || [],
         environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
-        services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
+        services: (serverGroup.serviceInstances || []).map((serviceInstance) => serviceInstance.name),
         healthCheckType: 'port',
       },
     };

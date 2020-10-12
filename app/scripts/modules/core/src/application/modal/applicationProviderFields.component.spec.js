@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
-describe('Controller: ApplicationProviderFieldsCtrl', function() {
+describe('Controller: ApplicationProviderFieldsCtrl', function () {
   let controller, scope;
 
   beforeEach(window.module(require('./applicationProviderFields.component').name));
@@ -15,7 +15,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
   });
 
   beforeEach(
-    window.inject(function($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
 
       let application = {
@@ -41,18 +41,18 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
 
   afterEach(SETTINGS.resetToOriginal);
 
-  it('should instantiate the controller', function() {
+  it('should instantiate the controller', function () {
     expect(controller).toBeDefined();
   });
 
-  describe('getRelevantProviderFieldsTemplates', function() {
-    it('returns all templateUrls if the application has no selected cloud providers', function() {
+  describe('getRelevantProviderFieldsTemplates', function () {
+    it('returns all templateUrls if the application has no selected cloud providers', function () {
       let templates = controller.getRelevantProviderFieldsTemplates();
       expect(templates.length).toEqual(2);
-      expect(templates.every(template => template === 'path/to/template')).toEqual(true);
+      expect(templates.every((template) => template === 'path/to/template')).toEqual(true);
     });
 
-    it('if application has selected cloud providers, it asks CloudProviderRegistry for only those templateUrls', function() {
+    it('if application has selected cloud providers, it asks CloudProviderRegistry for only those templateUrls', function () {
       controller.application.cloudProviders.push('gce');
 
       let templates = controller.getRelevantProviderFieldsTemplates();
@@ -60,13 +60,13 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
 
       let [hasValueSpy, getValueSpy] = [CloudProviderRegistry.hasValue, CloudProviderRegistry.getValue];
 
-      [hasValueSpy, getValueSpy].forEach(spy => {
+      [hasValueSpy, getValueSpy].forEach((spy) => {
         expect(spy).toHaveBeenCalledWith('gce', 'applicationProviderFields.templateUrl');
         expect(spy).not.toHaveBeenCalledWith('aws', 'applicationProviderFields.templateUrl');
       });
     });
 
-    it(`accommodates typeof application.cloudProviders === 'string'`, function() {
+    it(`accommodates typeof application.cloudProviders === 'string'`, function () {
       spyOn(controller, 'getRelevantProviderFieldsTemplates').and.callThrough();
 
       controller.application.cloudProviders = 'gce,aws';
@@ -76,8 +76,8 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
     });
   });
 
-  describe('initializeApplicationFields', function() {
-    it('does not mutate the application if the setting has been already defined within the application', function() {
+  describe('initializeApplicationFields', function () {
+    it('does not mutate the application if the setting has been already defined within the application', function () {
       _.set(controller.application, 'providerSettings.aws.defaultPath', '/path/to/somewhere/else');
       let applicationBeforeFunctionCall = _.cloneDeep(controller.application);
 
@@ -87,7 +87,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
       expect(_.get(controller.application, 'providerSettings.aws.defaultPath')).toEqual('/path/to/somewhere/else');
     });
 
-    it('does not mutate the application if the path does not exist within the global provider settings', function() {
+    it('does not mutate the application if the path does not exist within the global provider settings', function () {
       SETTINGS.providers.aws = undefined;
       let applicationBeforeFunctionCall = _.cloneDeep(controller.application);
 
@@ -97,7 +97,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
     });
 
     it(`mutates the application to match the global provider settings
-      if the setting has not been defined within the application`, function() {
+      if the setting has not been defined within the application`, function () {
       controller.initializeApplicationField('aws.defaultPath');
 
       expect(_.get(controller.application, 'providerSettings.aws.defaultPath')).toEqual('/path/to/somewhere');

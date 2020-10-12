@@ -7,7 +7,7 @@ export const CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER 
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER, [])
-  .provider('preconditionTypeConfig', function() {
+  .provider('preconditionTypeConfig', function () {
     const preconditionTypes = [];
 
     function registerPreconditionType(config) {
@@ -20,7 +20,7 @@ angular
 
     this.registerPreconditionType = registerPreconditionType;
 
-    this.$get = function() {
+    this.$get = function () {
       return {
         listPreconditionTypes: listPreconditionTypes,
       };

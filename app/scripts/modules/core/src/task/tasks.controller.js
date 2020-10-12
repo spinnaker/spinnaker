@@ -24,7 +24,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
   '$stateParams',
   '$q',
   'app',
-  function($scope, $state, $stateParams, $q, app) {
+  function ($scope, $state, $stateParams, $q, app) {
     if (app.notFound || app.hasError) {
       return;
     }
@@ -83,7 +83,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
 
     controller.sortedTasks = [];
 
-    controller.toggleDetails = function(taskId) {
+    controller.toggleDetails = function (taskId) {
       const index = $scope.viewState.expandedTasks.indexOf(taskId);
       if (index === -1) {
         $scope.viewState.expandedTasks.push(taskId);
@@ -92,34 +92,29 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       }
     };
 
-    controller.isExpanded = function(taskId) {
+    controller.isExpanded = function (taskId) {
       return taskId && $scope.viewState.expandedTasks.includes(taskId);
     };
 
-    controller.sortTasksAndResetPaginator = function() {
+    controller.sortTasksAndResetPaginator = function () {
       controller.sortTasks();
       controller.resetPaginator();
     };
 
-    controller.sortTasks = function() {
+    controller.sortTasks = function () {
       const joinedLists = filterRunningTasks().concat(filterNonRunningTasks());
       controller.sortedTasks = joinedLists;
       if ($scope.viewState.nameFilter) {
         const normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
-        controller.sortedTasks = _.filter(joinedLists, function(task) {
+        controller.sortedTasks = _.filter(joinedLists, function (task) {
           return (
             task.name.toLowerCase().includes(normalizedSearch) ||
             task.id.toLowerCase().includes(normalizedSearch) ||
             (task.getValueFor('credentials') || '').toLowerCase().includes(normalizedSearch) ||
             (task.getValueFor('region') || '').toLowerCase().includes(normalizedSearch) ||
-            (task.getValueFor('regions') || [])
-              .join(' ')
-              .toLowerCase()
-              .includes(normalizedSearch) ||
+            (task.getValueFor('regions') || []).join(' ').toLowerCase().includes(normalizedSearch) ||
             (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch) ||
-            _.get(task, 'execution.authentication.user', '')
-              .toLowerCase()
-              .includes(normalizedSearch)
+            _.get(task, 'execution.authentication.user', '').toLowerCase().includes(normalizedSearch)
           );
         });
       }
@@ -128,7 +123,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       }
     };
 
-    controller.clearNameFilter = function() {
+    controller.clearNameFilter = function () {
       $scope.viewState.nameFilter = '';
       controller.nameFilterUpdated();
     };
@@ -143,11 +138,11 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       controller.sortTasksAndResetPaginator();
     }, 300);
 
-    controller.cancelTask = function(taskId) {
-      const task = application.tasks.data.filter(function(task) {
+    controller.cancelTask = function (taskId) {
+      const task = application.tasks.data.filter(function (task) {
         return task.id === taskId;
       })[0];
-      const submitMethod = function() {
+      const submitMethod = function () {
         // cancelTask() polls aggressively waiting for a sucessful cancellation,
         // which triggers equally aggressive updates to the runningTimeInMs field
         // on the hydrated task object. Because we render that field in templates,
@@ -198,7 +193,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       return allFiltered.slice(start, end);
     };
 
-    controller.getFirstDeployServerGroupName = function(task) {
+    controller.getFirstDeployServerGroupName = function (task) {
       if (task.execution && task.execution.stages) {
         const stage = findStageWithTaskInExecution(task.execution, [
           'createCopyLastAsg',
@@ -206,25 +201,16 @@ module(CORE_TASK_TASKS_CONTROLLER, [
           'cloneServerGroup',
           'createServerGroup',
         ]);
-        return _.chain(stage)
-          .get('context')
-          .get('deploy.server.groups')
-          .values()
-          .head()
-          .head()
-          .value();
+        return _.chain(stage).get('context').get('deploy.server.groups').values().head().head().value();
       }
     };
 
-    controller.getAccountId = function(task) {
-      return _.chain(task.variables)
-        .find({ key: 'account' })
-        .result('value')
-        .value();
+    controller.getAccountId = function (task) {
+      return _.chain(task.variables).find({ key: 'account' }).result('value').value();
     };
 
-    controller.getRegion = function(task) {
-      const regionVariable = (task.variables || []).find(variable => {
+    controller.getRegion = function (task) {
+      const regionVariable = (task.variables || []).find((variable) => {
         return (
           ['deploy.server.groups', 'availabilityZones'].includes(variable.key) && Object.keys(variable.value).length
         );
@@ -232,10 +218,10 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       return regionVariable && Object.keys(regionVariable.value)[0];
     };
 
-    controller.getProviderForServerGroupByTask = function(task) {
+    controller.getProviderForServerGroupByTask = function (task) {
       const serverGroupName = controller.getFirstDeployServerGroupName(task);
       return _.chain(application.serverGroups.data)
-        .find(function(serverGroup) {
+        .find(function (serverGroup) {
           return serverGroup.name === serverGroupName;
         })
         .result('type')
@@ -244,8 +230,8 @@ module(CORE_TASK_TASKS_CONTROLLER, [
 
     function findStageWithTaskInExecution(execution, stageName) {
       return _.chain(execution.stages)
-        .find(function(stage) {
-          return _.some(stage.tasks, function(task) {
+        .find(function (stage) {
+          return _.some(stage.tasks, function (task) {
             return stageName.includes(task.name);
           });
         })
@@ -254,7 +240,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
 
     function filterRunningTasks() {
       const running = _.chain(application.tasks.data)
-        .filter(function(task) {
+        .filter(function (task) {
           return task.name && task.isActive;
         })
         .value();
@@ -264,7 +250,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
 
     function filterNonRunningTasks() {
       const notRunning = _.chain(application.tasks.data)
-        .filter(function(task) {
+        .filter(function (task) {
           return task.name && !task.isActive;
         })
         .value();
@@ -298,7 +284,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       application.tasks.deactivate();
     });
 
-    this.stateChanged = q => {
+    this.stateChanged = (q) => {
       if ($scope.viewState.nameFilter !== q) {
         $scope.viewState.nameFilter = q;
         this.sortTasksAndResetPaginator();

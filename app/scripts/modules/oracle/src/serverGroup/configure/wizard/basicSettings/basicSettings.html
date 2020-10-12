@@ -1,9 +1,7 @@
 <div class="container-fluid form-horizontal" ng-controller="oracleServerGroupBasicSettingsCtrl as basicSettingsCtrl">
   <div class="modal-body">
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Account
-      </div>
+      <div class="col-md-3 sm-label-right">Account</div>
       <div class="col-md-7">
         <account-select-field
           required
@@ -27,9 +25,7 @@
     ></region-select-field>
     <!-- VCN Selection (which will then filter subnets) -->
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        VCN
-      </div>
+      <div class="col-md-3 sm-label-right">VCN</div>
       <div class="col-md-9">
         <ui-select
           class="form-control input-sm"
@@ -66,9 +62,7 @@
 
     <!-- Subnet selection -->
     <div class="form-group" ng-show="command.availabilityDomain">
-      <div class="col-md-3 sm-label-right">
-        Subnet
-      </div>
+      <div class="col-md-3 sm-label-right">Subnet</div>
       <div class="col-md-9">
         <ui-select
           class="form-control input-sm"
@@ -85,17 +79,13 @@
     </div>
 
     <div class="form-group small" style="margin-top: 20px" ng-show="command.backingData.seclists">
-      <div class="col-md-3 sm-label-right">
-        Effective Security Lists
-      </div>
+      <div class="col-md-3 sm-label-right">Effective Security Lists</div>
       <div class="col-md-9">
         <p>Security Lists attached to selected subnet:</p>
         <ul ng-repeat="seclist in command.backingData.seclists">
           <div class="sm-label-left">{{seclist.name}}</div>
           <div ng-repeat="rule in seclist.inboundRules">
-            <li ng-repeat="range in rule.portRanges">
-              {{rule.protocol}}: {{range.startPort}} -> {{range.endPort}}
-            </li>
+            <li ng-repeat="range in rule.portRanges">{{rule.protocol}}: {{range.startPort}} -> {{range.endPort}}</li>
           </div>
         </ul>
       </div>

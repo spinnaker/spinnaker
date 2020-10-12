@@ -38,7 +38,7 @@ class ValidateApplicationNameController implements IController {
 
 export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.validateApplicationName.component';
 
-module(VALIDATE_APPLICATION_NAME, []).directive('validateApplicationName', function() {
+module(VALIDATE_APPLICATION_NAME, []).directive('validateApplicationName', function () {
   return {
     restrict: 'A',
     controller: ValidateApplicationNameController,

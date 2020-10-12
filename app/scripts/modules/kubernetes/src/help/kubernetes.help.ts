@@ -227,4 +227,4 @@ const helpContents: { [key: string]: string } = {
   'kubernetes.runJob.captureSource.containerName': `Use logs from this container to capture output data.`,
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

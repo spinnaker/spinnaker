@@ -9,7 +9,7 @@ module(DCOS_JOB_GENERAL_COMPONENT, []).component('dcosGeneral', {
     general: '=',
   },
   templateUrl: require('./general.component.html'),
-  controller: function() {
+  controller: function () {
     if (this.general === undefined || this.general == null) {
       this.general = {
         cpus: 0.01,
@@ -20,7 +20,7 @@ module(DCOS_JOB_GENERAL_COMPONENT, []).component('dcosGeneral', {
     }
 
     this.idPattern = {
-      test: function(id) {
+      test: function (id) {
         const pattern = /^([a-z0-9]*(\${.+})*)*$/;
         return pattern.test(id);
       },

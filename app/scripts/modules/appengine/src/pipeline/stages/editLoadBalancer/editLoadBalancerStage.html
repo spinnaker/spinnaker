@@ -20,12 +20,8 @@
             <td>
               <account-tag account="loadBalancer.credentials"></account-tag>
             </td>
-            <td>
-              {{ loadBalancer.name }}
-            </td>
-            <td>
-              {{ loadBalancer.region }}
-            </td>
+            <td>{{ loadBalancer.name }}</td>
+            <td>{{ loadBalancer.region }}</td>
             <td class="condensed-actions">
               <a class="btn btn-sm btn-link" href ng-click="editLoadBalancerStageCtrl.editLoadBalancer($index)">
                 <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span

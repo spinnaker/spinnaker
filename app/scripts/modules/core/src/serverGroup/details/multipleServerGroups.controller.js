@@ -25,7 +25,7 @@ angular
     'serverGroupWriter',
     'providerServiceDelegate',
     'app',
-    function($scope, $state, serverGroupWriter, providerServiceDelegate, app) {
+    function ($scope, $state, serverGroupWriter, providerServiceDelegate, app) {
       this.serverGroups = [];
 
       /**
@@ -43,7 +43,7 @@ angular
       const confirm = (submitMethodName, verbs) => {
         const descriptor = getDescriptor();
         const monitorInterval = this.serverGroups.length * 1000;
-        const taskMonitors = this.serverGroups.map(serverGroup => {
+        const taskMonitors = this.serverGroups.map((serverGroup) => {
           const provider = serverGroup.provider || serverGroup.type;
           const providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin')
             ? providerServiceDelegate.getDelegate(provider, 'serverGroup.paramsMixin')
@@ -58,7 +58,7 @@ angular
           return {
             application: app,
             title: serverGroup.name,
-            submitMethod: params =>
+            submitMethod: (params) =>
               serverGroupWriter[submitMethodName](serverGroup, app, angular.extend(params, mixinParams)),
             monitorInterval: monitorInterval,
           };
@@ -103,19 +103,19 @@ angular
         });
       };
 
-      this.canDisable = () => this.serverGroups.every(group => !group.disabled);
+      this.canDisable = () => this.serverGroups.every((group) => !group.disabled);
 
-      this.canEnable = () => this.serverGroups.every(group => group.disabled);
+      this.canEnable = () => this.serverGroups.every((group) => group.disabled);
 
       /***
        * View instantiation/synchronization
        */
 
       const retrieveServerGroups = () => {
-        this.serverGroups = ClusterState.multiselectModel.serverGroups.map(multiselectGroup => {
+        this.serverGroups = ClusterState.multiselectModel.serverGroups.map((multiselectGroup) => {
           const group = _.cloneDeep(multiselectGroup);
           const match = app.serverGroups.data.find(
-            check => check.name === group.name && check.account === group.account && check.region === group.region,
+            (check) => check.name === group.name && check.account === group.account && check.region === group.region,
           );
           if (match) {
             group.instanceCounts = _.cloneDeep(match.instanceCounts);

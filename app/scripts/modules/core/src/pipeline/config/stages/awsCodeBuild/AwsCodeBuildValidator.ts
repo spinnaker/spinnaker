@@ -3,10 +3,7 @@ import { FormValidator, IContextualValidator, IStage } from 'core';
 export const validate: IContextualValidator = (stage: IStage) => {
   const formValidator = new FormValidator(stage);
   formValidator.field('account', 'Account').required();
-  formValidator
-    .field('projectName', 'Project Name')
-    .required()
-    .withValidators(projectNameValidator);
+  formValidator.field('projectName', 'Project Name').required().withValidators(projectNameValidator);
   return formValidator.validateForm();
 };
 

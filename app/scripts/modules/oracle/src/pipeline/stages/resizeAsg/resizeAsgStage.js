@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE = 'spinnaker.oracle.pipeline.stage.resizeAsgStage';
 export const name = ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE; // for backwards compatibility
 module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       cloudProvider: 'oracle',
@@ -29,7 +29,7 @@ module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [])
   })
   .controller('oracleResizeAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const provider = 'oracle';
@@ -41,7 +41,7 @@ module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts(provider).then(function(accounts) {
+      AccountService.listAccounts(provider).then(function (accounts) {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -81,7 +81,7 @@ module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [])
         stage.regions.push($scope.application.defaultRegions.gce);
       }
 
-      ctrl.updateResizeType = function() {
+      ctrl.updateResizeType = function () {
         if (stage.action === 'scale_exact') {
           stage.resizeType = 'exact';
           delete stage.scalePct;

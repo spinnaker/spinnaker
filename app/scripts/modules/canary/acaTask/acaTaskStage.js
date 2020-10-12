@@ -11,7 +11,7 @@ export const CANARY_ACATASK_ACATASKSTAGE = 'spinnaker.canary.acaTaskStage';
 export const name = CANARY_ACATASK_ACATASKSTAGE; // for backwards compatibility
 angular
   .module(CANARY_ACATASK_ACATASKSTAGE, [CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER])
-  .config(function() {
+  .config(function () {
     if (SETTINGS.feature.canary) {
       Registry.pipeline.registerStage({
         label: 'ACA Task',
@@ -21,7 +21,7 @@ angular
         templateUrl: require('./acaTaskStage.html'),
         executionDetailsUrl: require('./acaTaskExecutionDetails.html'),
         executionSummaryUrl: require('./acaTaskExecutionSummary.html'),
-        stageFilter: stage => ['monitorAcaTask', 'acaTask'].includes(stage.type),
+        stageFilter: (stage) => ['monitorAcaTask', 'acaTask'].includes(stage.type),
         executionLabelComponent: CanaryExecutionLabel,
         controller: 'AcaTaskStageCtrl',
         controllerAs: 'acaTaskStageCtrl',
@@ -33,7 +33,7 @@ angular
     '$scope',
     '$uibModal',
     'stage',
-    function($scope, $uibModal, stage) {
+    function ($scope, $uibModal, stage) {
       const user = AuthenticationService.getAuthenticatedUser();
       $scope.stage = stage;
       $scope.stage.baseline = $scope.stage.baseline || {};
@@ -77,10 +77,10 @@ angular
         applicationProviders[0] = 'aws'; // default to AWS if no provider is set
       }
 
-      applicationProviders.forEach(p => {
-        AccountService.listAccounts(p).then(a => ($scope.accounts = $scope.accounts.concat(a)));
+      applicationProviders.forEach((p) => {
+        AccountService.listAccounts(p).then((a) => ($scope.accounts = $scope.accounts.concat(a)));
         AccountService.getUniqueAttributeForAllAccounts(p, 'regions').then(
-          r => ($scope.regions = $scope.regions.concat(r)),
+          (r) => ($scope.regions = $scope.regions.concat(r)),
         );
       });
 
@@ -91,7 +91,7 @@ angular
           $scope.stage.canary.watchers = this.recipients;
         } else {
           $scope.stage.canary.watchers = [];
-          this.recipients.split(',').forEach(email => {
+          this.recipients.split(',').forEach((email) => {
             $scope.stage.canary.watchers.push(email.trim());
           });
         }
@@ -101,14 +101,15 @@ angular
 
       this.splitNotificationHours = () => {
         const hoursField = this.notificationHours || '';
-        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(
-          str,
-        ) {
-          if (!parseInt(str.trim()).isNaN) {
-            return parseInt(str.trim());
-          }
-          return 0;
-        });
+        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(
+          hoursField.split(','),
+          function (str) {
+            if (!parseInt(str.trim()).isNaN) {
+              return parseInt(str.trim());
+            }
+            return 0;
+          },
+        );
       };
     },
   ]);

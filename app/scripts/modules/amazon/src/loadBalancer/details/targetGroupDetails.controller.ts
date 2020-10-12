@@ -64,7 +64,7 @@ export class AwsTargetGroupDetailsController implements IController {
       return this.$q.when(null);
     }
 
-    const targetGroup = appLoadBalancer.targetGroups.find(tg => tg.name === name);
+    const targetGroup = appLoadBalancer.targetGroups.find((tg) => tg.name === name);
     if (!targetGroup) {
       this.autoClose();
       return this.$q.when(null);
@@ -79,7 +79,7 @@ export class AwsTargetGroupDetailsController implements IController {
     this.state.loading = false;
 
     this.elbProtocol = 'http:';
-    if (this.loadBalancer.listeners && this.loadBalancer.listeners.some(l => l.protocol === 'HTTPS')) {
+    if (this.loadBalancer.listeners && this.loadBalancer.listeners.some((l) => l.protocol === 'HTTPS')) {
       this.elbProtocol = 'https:';
     }
 

@@ -38,7 +38,7 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
 
     const appCreationDate = Number(get(application, 'attributes.createTs', 0));
     const appCreatedAfterLockout = appCreationDate > (classicLaunchLockout || 0);
-    const isAllowlisted = !!allowlist && allowlist.some(e => e.region === region && e.credentials === credentials);
+    const isAllowlisted = !!allowlist && allowlist.some((e) => e.region === region && e.credentials === credentials);
     return appCreatedAfterLockout || !isAllowlisted;
   }
 
@@ -49,12 +49,12 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
     const classicOption = isClassicHidden ? [] : [{ label: 'None (EC2 Classic)', value: '' } as Option];
 
     const activeOptions = subnets
-      .filter(x => !x.deprecated)
+      .filter((x) => !x.deprecated)
       .sort(sortByLabel)
       .map(asOption);
 
     const deprecatedOptions = subnets
-      .filter(x => x.deprecated)
+      .filter((x) => x.deprecated)
       .sort(sortByLabel)
       .map(asOption);
 
@@ -90,7 +90,7 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
   public applyDefaultSubnet() {
     const { value, onChange, subnets } = this.props;
     const defaultSubnetType = get(SETTINGS, 'providers.aws.defaults.subnetType');
-    const defaultSubnet = subnets.find(subnet => defaultSubnetType === subnet.purpose) || subnets[0];
+    const defaultSubnet = subnets.find((subnet) => defaultSubnetType === subnet.purpose) || subnets[0];
     if (!value && defaultSubnet) {
       onChange(createFakeReactSyntheticEvent({ name, value: defaultSubnet.purpose }));
     }

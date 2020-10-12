@@ -75,7 +75,7 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
         <SpinFormik<T>
           initialValues={this.props.initialValues}
           onSubmit={this.submitTask}
-          render={formik => (
+          render={(formik) => (
             <Form className="form-horizontal">
               <ModalClose dismiss={this.close} />
               <Modal.Header>

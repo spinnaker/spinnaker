@@ -18,7 +18,7 @@ export class NumberListController implements IController {
     const model: number[] | string = this.model; // typescript union type woes
     if (model instanceof Array) {
       (model as number[]).length = 0;
-      this.backingModel.forEach(num => {
+      this.backingModel.forEach((num) => {
         if (num !== null) {
           (model as number[]).push(num);
         }

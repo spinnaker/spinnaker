@@ -34,7 +34,7 @@ export const SecurityGroupPod = ({ grouping, application, parentHeading }: ISecu
       </div>
     </div>
     <div className="rollup-details">
-      {grouping.subgroups.map(subgroup => (
+      {grouping.subgroups.map((subgroup) => (
         <div className="pod-subgroup" key={subgroup.heading}>
           <SecurityGroup
             application={application}

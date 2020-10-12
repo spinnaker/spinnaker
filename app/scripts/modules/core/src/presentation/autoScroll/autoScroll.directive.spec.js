@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 import { AUTO_SCROLL_DIRECTIVE } from './autoScroll.directive';
 
-describe('Directives: auto-scroll', function() {
+describe('Directives: auto-scroll', function () {
   beforeEach(window.module(AUTO_SCROLL_DIRECTIVE));
 
   function buildContainer(height) {
@@ -33,14 +33,14 @@ describe('Directives: auto-scroll', function() {
   }
 
   beforeEach(
-    window.inject(function($rootScope, $compile, _$timeout_) {
+    window.inject(function ($rootScope, $compile, _$timeout_) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
       this.timeout = _$timeout_;
     }),
   );
 
-  it('should scroll when a watched property is changed', function() {
+  it('should scroll when a watched property is changed', function () {
     var scope = this.scope;
     scope.watched = 1;
     var container = buildWatchableContainer('watched', this);
@@ -53,7 +53,7 @@ describe('Directives: auto-scroll', function() {
     expect(container.scrollTop()).toBe(35);
   });
 
-  it('should scroll on deep changes', function() {
+  it('should scroll on deep changes', function () {
     var scope = this.scope;
 
     scope.watched = {
@@ -68,7 +68,7 @@ describe('Directives: auto-scroll', function() {
     expect(container.scrollTop()).toBe(35);
   });
 
-  it('should scroll on multiple changes', function() {
+  it('should scroll on multiple changes', function () {
     var scope = this.scope;
 
     scope.watched = {
@@ -92,7 +92,7 @@ describe('Directives: auto-scroll', function() {
     expect(container.scrollTop()).toBe(35);
   });
 
-  it('should scroll after dom changes applied', function() {
+  it('should scroll after dom changes applied', function () {
     var compile = this.compile,
       scope = this.scope;
 
@@ -134,7 +134,7 @@ describe('Directives: auto-scroll', function() {
     expect(container.scrollTop()).toBe(0);
   });
 
-  it('should not scroll when autoscroll is disabled', function() {
+  it('should not scroll when autoscroll is disabled', function () {
     const scope = this.scope;
     scope.isEnabled = true;
     scope.a = 0;
@@ -161,7 +161,7 @@ describe('Directives: auto-scroll', function() {
     expect(container.scrollTop()).toBe(35);
   });
 
-  it('should scroll to top when triggered', function() {
+  it('should scroll to top when triggered', function () {
     const scrollToTop = new Subject(),
       scope = this.scope;
     scope.scrollToTop = scrollToTop;

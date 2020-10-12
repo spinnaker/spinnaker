@@ -17,7 +17,7 @@
           see a metric below, click "Configure available metrics" in the server group details to set up forwarding from
           Atlas to CloudWatch.
         </p>
-        <div class="row" style="margin-bottom: 10px;">
+        <div class="row" style="margin-bottom: 10px">
           <div class="col-md-2 sm-label-right">Metric</div>
           <div class="col-md-10 content-fields">
             <aws-metric-selector
@@ -28,7 +28,7 @@
           </div>
         </div>
 
-        <div class="row" style="margin-bottom: 10px;">
+        <div class="row" style="margin-bottom: 10px">
           <div class="col-md-2 sm-label-right">Target</div>
           <div class="col-md-10 content-fields">
             <select
@@ -37,8 +37,7 @@
               ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
               ng-change="$ctrl.alarmUpdated.next()"
               ng-options="stat for stat in $ctrl.statistics"
-            >
-            </select>
+            ></select>
             <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
             <div style="display: inline-block">
               <input
@@ -73,7 +72,7 @@
       <h4 class="section-heading">Additional Settings</h4>
       <div class="section-body section-additional-settings">
         <div class="row">
-          <div class="col-md-3   sm-label-right">Scale In</div>
+          <div class="col-md-3 sm-label-right">Scale In</div>
           <div class="col-md-9">
             <div class="checkbox" style="margin-top: 5px">
               <label>
@@ -90,9 +89,7 @@
                   events. This means that ASG will not scale in unless you explicitly set up a separate step policy to
                   scale it in.
                 </p>
-                <p>
-                  This is useful when you have special requirements, such as gradual or delayed scale in.
-                </p>
+                <p>This is useful when you have special requirements, such as gradual or delayed scale in.</p>
               </div>
             </div>
           </div>
@@ -124,9 +121,7 @@
               required
               ng-model="$ctrl.command.targetTrackingConfiguration.scaleInCooldown"
             />
-            <span class="input-label">
-              seconds
-            </span>
+            <span class="input-label"> seconds </span>
           </div>
         </div>
 
@@ -143,9 +138,7 @@
               required
               ng-model="$ctrl.command.targetTrackingConfiguration.scaleOutCooldown"
             />
-            <span class="input-label">
-              seconds
-            </span>
+            <span class="input-label"> seconds </span>
           </div>
         </div>
       </div>

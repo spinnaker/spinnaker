@@ -42,8 +42,8 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
 
   public componentDidMount() {
     const cronExpression = this.props.trigger.cronExpression || '0 0 0 1W 1/1 ? *';
-    this.tabOptions.forEach(o => {
-      o.regex.forEach(r => {
+    this.tabOptions.forEach((o) => {
+      o.regex.forEach((r) => {
         if (r.exec(cronExpression)) {
           this.setState({ activeTab: o.value });
         }
@@ -81,8 +81,8 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
       <FormField
         label="Frequency"
         value={activeTab}
-        onChange={e => this.setState({ activeTab: e.target.value })}
-        input={props => (
+        onChange={(e) => this.setState({ activeTab: e.target.value })}
+        input={(props) => (
           <div className="cron-gen-main form-inline no-spel">
             <div className="row">
               <div className="col-md-6">

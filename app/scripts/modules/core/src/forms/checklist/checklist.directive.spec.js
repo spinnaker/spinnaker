@@ -1,18 +1,18 @@
 'use strict';
 
-describe('Directives: checklist', function() {
+describe('Directives: checklist', function () {
   require('./checklist.directive.html');
 
   beforeEach(window.module(require('./checklist.directive').name));
 
   beforeEach(
-    window.inject(function($rootScope, $compile) {
+    window.inject(function ($rootScope, $compile) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
     }),
   );
 
-  it('initializes with provided values', function() {
+  it('initializes with provided values', function () {
     var scope = this.scope,
       compile = this.compile;
 
@@ -30,7 +30,7 @@ describe('Directives: checklist', function() {
     expect(checklist.find('input:checked').length).toBe(3);
   });
 
-  it('updates selections, model when model or items change externally', function() {
+  it('updates selections, model when model or items change externally', function () {
     var scope = this.scope,
       compile = this.compile;
 
@@ -63,7 +63,7 @@ describe('Directives: checklist', function() {
     expect(scope.model.selections).toEqual(['b']);
   });
 
-  it('selects all items when clicking "Select All"', function() {
+  it('selects all items when clicking "Select All"', function () {
     var scope = this.scope,
       compile = this.compile;
 
@@ -82,7 +82,7 @@ describe('Directives: checklist', function() {
     expect(checklist.find('input:checked').length).toBe(4);
   });
 
-  it('deselects all items when clicking "Deselect All"', function() {
+  it('deselects all items when clicking "Deselect All"', function () {
     var scope = this.scope,
       compile = this.compile;
 
@@ -102,7 +102,7 @@ describe('Directives: checklist', function() {
     expect(checklist.find('input:checked').length).toBe(0);
   });
 
-  it('shows correct text for "Deselect" or "Select" based on current selection', function() {
+  it('shows correct text for "Deselect" or "Select" based on current selection', function () {
     var scope = this.scope,
       compile = this.compile;
 
@@ -125,7 +125,7 @@ describe('Directives: checklist', function() {
     expect(selectButton.text).toBe('Select All'); // No items selected
   });
 
-  it('supports using Map (for key/value pairs) as items', function() {
+  it('supports using Map (for key/value pairs) as items', function () {
     const scope = this.scope,
       compile = this.compile;
 
@@ -149,11 +149,7 @@ describe('Directives: checklist', function() {
       checklist
         .find('input')
         .parent()
-        .map((index, element) =>
-          $(element)
-            .text()
-            .trim(),
-        )
+        .map((index, element) => $(element).text().trim())
         .get(),
     ).toEqual(['x', 'y', 'z']);
   });

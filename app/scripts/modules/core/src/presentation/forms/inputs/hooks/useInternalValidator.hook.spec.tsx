@@ -93,8 +93,8 @@ describe('useInternalValidator', () => {
     const validation = validationMock();
     let validators: IValidator[] = [];
     validation.addValidator.and.callFake((v: IValidator) => validators.push(v));
-    validation.removeValidator.and.callFake((v: IValidator) => (validators = validators.filter(x => x !== v)));
-    validation.revalidate.and.callFake(() => validators.forEach(v => v(null, null)));
+    validation.removeValidator.and.callFake((v: IValidator) => (validators = validators.filter((x) => x !== v)));
+    validation.revalidate.and.callFake(() => validators.forEach((v) => v(null, null)));
 
     const initialValidator: IValidator = jasmine.createSpy('initialValidator', () => 'initial');
     const component = mount(<TestInputComponent validation={validation} validator={initialValidator} />);

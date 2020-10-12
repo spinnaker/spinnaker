@@ -9,7 +9,8 @@ export interface IServerGroupZonesProps {
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
-export class ServerGroupZones extends React.Component<IServerGroupZonesProps>
+export class ServerGroupZones
+  extends React.Component<IServerGroupZonesProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors = {} as any;

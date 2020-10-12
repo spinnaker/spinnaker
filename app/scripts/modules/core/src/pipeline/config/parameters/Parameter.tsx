@@ -32,7 +32,7 @@ export class Parameter extends React.Component<IParameterProps> {
 
   private removeOption = (index: number): void => {
     const { options, updateParameterField } = this.props;
-    updateParameterField({ options: options.filter(o => o !== options[index]) });
+    updateParameterField({ options: options.filter((o) => o !== options[index]) });
   };
 
   private handleNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -193,7 +193,7 @@ export class Parameter extends React.Component<IParameterProps> {
 
                 {hasOptions && (
                   <StageConfigField label="Options">
-                    {options.map(function(option: IParameterOption, index: number) {
+                    {options.map(function (option: IParameterOption, index: number) {
                       return (
                         <div key={index} style={{ marginBottom: '5px' }}>
                           <input

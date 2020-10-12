@@ -23,7 +23,7 @@ const getMethodName = (target: any, propertyKey: string) => {
 export const DebugTiming = (label?: string) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const fn = descriptor.value;
   label = padStart(label ? label : getMethodName(target, propertyKey), 50);
-  descriptor.value = function() {
+  descriptor.value = function () {
     const start = now();
     const result = fn.apply(this, arguments);
     const delta = now() - start;
@@ -52,7 +52,7 @@ export const DebugTimingCumulative = (label?: string, logInterval = 5000) => (
   label = padStart(label ? label : getMethodName(target, propertyKey), 50);
   let cumulativeTime = 0;
   setInterval(() => log(`${label} ${padStart('' + count, 10)} calls in ${cumulativeTime} ms`), logInterval);
-  descriptor.value = function() {
+  descriptor.value = function () {
     count++;
     const start = now();
     const result = fn.apply(this, arguments);

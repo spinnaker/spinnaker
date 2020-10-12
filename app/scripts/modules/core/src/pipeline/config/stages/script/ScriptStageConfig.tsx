@@ -5,7 +5,7 @@ import { FormikStageConfig, IContextualValidator } from '../FormikStageConfig';
 import { FormikFormField, TextInput, TextAreaInput, CheckboxInput, FormValidator } from 'core/presentation';
 import { HelpField } from 'core/help';
 
-export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps => (
+export const ScriptStageConfig: React.SFC<IStageConfigProps> = (stageConfigProps) => (
   <FormikStageConfig
     {...stageConfigProps}
     onChange={stageConfigProps.updateStage}
@@ -16,26 +16,26 @@ export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps 
           name="repoUrl"
           label="Repository Url"
           help={<HelpField id="pipeline.config.script.repoUrl" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
         <FormikFormField
           name="repoBranch"
           label="Repository Branch"
           help={<HelpField id="pipeline.config.script.repoBranch" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
         <FormikFormField
           name="scriptPath"
           label="Script Path"
           help={<HelpField id="pipeline.config.script.path" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
         <FormikFormField
           name="command"
           label="Command"
           required={true}
           help={<HelpField id="pipeline.config.script.command" />}
-          input={props => <TextAreaInput {...props} />}
+          input={(props) => <TextAreaInput {...props} />}
         />
         {!pipeline.strategy && (
           <>
@@ -43,25 +43,25 @@ export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps 
               name="image"
               label="Image"
               help={<HelpField id="pipeline.config.script.image" />}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
             />
             <FormikFormField
               name="account"
               label="Account"
               help={<HelpField id="pipeline.config.script.account" />}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
             />
             <FormikFormField
               name="region"
               label="Region"
               help={<HelpField id="pipeline.config.script.region" />}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
             />
             <FormikFormField
               name="cluster"
               label="Cluster"
               help={<HelpField id="pipeline.config.script.cluster" />}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
             />
           </>
         )}
@@ -69,26 +69,26 @@ export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps 
           name="cmc"
           label="Cmc"
           help={<HelpField id="pipeline.config.script.cmc" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
         <FormikFormField
           name="waitForCompletion"
           label="Wait for results"
           help={<HelpField id="script.waitForCompletion" />}
-          input={props => <CheckboxInput {...props} />}
+          input={(props) => <CheckboxInput {...props} />}
         />
         <FormikFormField
           name="propertyFile"
           label="Property File"
           help={<HelpField id="pipeline.config.script.propertyFile" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
       </div>
     )}
   />
 );
 
-export const validate: IContextualValidator = stage => {
+export const validate: IContextualValidator = (stage) => {
   const formValidator = new FormValidator(stage);
   formValidator.field('command', 'Command').required();
   formValidator.field('scriptPath', 'Script Path').required();

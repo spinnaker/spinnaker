@@ -1,8 +1,6 @@
 <!-- Load Balancer selection -->
 <div class="form-group">
-  <div class="col-md-3 sm-label-right">
-    Load Balancer
-  </div>
+  <div class="col-md-3 sm-label-right">Load Balancer</div>
   <div class="col-md-9">
     <ui-select
       class="form-control input-sm"
@@ -19,9 +17,7 @@
 
 <!-- Backend set selection -->
 <div class="form-group" ng-if="command.loadBalancerId">
-  <div class="col-md-3 sm-label-right">
-    Backend Set
-  </div>
+  <div class="col-md-3 sm-label-right">Backend Set</div>
   <div class="col-md-9">
     <ui-select
       class="form-control input-sm"
@@ -39,9 +35,7 @@
 
 <!-- Show listeners associated with selected backend set -->
 <div class="form-group" ng-if="command.loadBalancerId && command.backendSetName">
-  <div class="col-md-3 sm-label-right">
-    Listeners for {{command.backendSetName}}
-  </div>
+  <div class="col-md-3 sm-label-right">Listeners for {{command.backendSetName}}</div>
   <div class="col-md-9">
     <ul ng-repeat="(lisName, listener) in command.backingData.filtered.listeners">
       <li>{{listener.protocol}}:{{listener.port}}</li>

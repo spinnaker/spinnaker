@@ -11,7 +11,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUP
   'azureServerGroupSecurityGroupsCtrl',
   [
     '$scope',
-    function($scope) {
+    function ($scope) {
       ModalWizard.markClean('security-groups');
       ModalWizard.markComplete('security-groups');
 
@@ -19,7 +19,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUP
         id: $scope.command.securityGroupName,
       };
 
-      this.securityGroupChanged = function(securityGroup) {
+      this.securityGroupChanged = function (securityGroup) {
         $scope.command.securityGroupName = securityGroup.id;
         ModalWizard.markComplete('security-groups');
       };

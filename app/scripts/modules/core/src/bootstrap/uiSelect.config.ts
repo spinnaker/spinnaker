@@ -6,16 +6,16 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
   $provide.decorator('uiSelectMultipleDirective', [
     '$delegate',
     '$timeout',
-    function($delegate: any, $timeout: ng.ITimeoutService) {
+    function ($delegate: any, $timeout: ng.ITimeoutService) {
       const [uiSelect] = $delegate;
       const originalLink = uiSelect.link;
       const SELECT_EVENT_KEY = 'uis:select';
 
-      uiSelect.link = function(scope: IScope, _element: any, _attrs: any, ctrls: any) {
+      uiSelect.link = function (scope: IScope, _element: any, _attrs: any, ctrls: any) {
         originalLink.apply(this, arguments);
         const [$select] = ctrls;
         scope.$$listeners[SELECT_EVENT_KEY] = [];
-        scope.$on(SELECT_EVENT_KEY, function(event, item) {
+        scope.$on(SELECT_EVENT_KEY, function (event, item) {
           if ($select.selected.length >= $select.limit) {
             return;
           }
@@ -24,7 +24,7 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
             const locals = {
               [$select.parserResult.itemName]: item,
             };
-            $timeout(function() {
+            $timeout(function () {
               if ($select.onSelectCallback) {
                 $select.onSelectCallback(scope, {
                   $item: item,
@@ -46,7 +46,7 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
 
   $provide.decorator('uiSelectMinErr', [
     '$delegate',
-    function($delegate: any) {
+    function ($delegate: any) {
       return function handledError() {
         const original = $delegate;
         if (arguments.length === 3) {
@@ -66,14 +66,14 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
 
   $provide.decorator('$exceptionHandler', [
     '$delegate',
-    function($delegate: any) {
-      return function(exception: Error, cause: any) {
+    function ($delegate: any) {
+      return function (exception: Error, cause: any) {
         if (exception && exception.message === 'IGNORE') {
           return;
         }
 
         if (Array.isArray(exception) && exception.length && exception[0] instanceof Error) {
-          exception.forEach(e => $delegate(e, cause));
+          exception.forEach((e) => $delegate(e, cause));
         } else {
           $delegate(exception, cause);
         }

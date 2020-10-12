@@ -50,15 +50,14 @@
         class="input-sm"
         ng-options="c for c in ['==', '<', '<=', '>=', '>']"
         ng-model="precondition.context.comparison"
-      >
-      </select>
+      ></select>
     </div>
     <div class="col-sm-3">
       <input
         type="number"
         min="0"
         name="expected"
-        class="form-control input-sm "
+        class="form-control input-sm"
         ng-model="precondition.context.expected"
         required
       />

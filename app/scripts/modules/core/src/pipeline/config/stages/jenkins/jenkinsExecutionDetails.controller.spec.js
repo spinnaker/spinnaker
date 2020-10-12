@@ -1,13 +1,13 @@
 'use strict';
 
-describe('Jenkins Execution Details Controller:', function() {
+describe('Jenkins Execution Details Controller:', function () {
   var $scope;
 
   beforeEach(window.module(require('./jenkinsExecutionDetails.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope) {
-      this.initializeController = function(stage) {
+    window.inject(function ($controller, $rootScope) {
+      this.initializeController = function (stage) {
         var scope = $rootScope.$new();
         scope.stage = stage;
         $controller('JenkinsExecutionDetailsCtrl', {
@@ -19,8 +19,8 @@ describe('Jenkins Execution Details Controller:', function() {
     }),
   );
 
-  describe('getting failure message', function() {
-    it('should count number of failing tests', function() {
+  describe('getting failure message', function () {
+    it('should count number of failing tests', function () {
       var stage = {
         context: {
           buildInfo: {
@@ -34,7 +34,7 @@ describe('Jenkins Execution Details Controller:', function() {
       expect($scope.failureMessage).toBe('5 test(s) failed.');
     });
 
-    it('should fall back to "build failed" message when no failed tests found, but result is "FAILURE"', function() {
+    it('should fall back to "build failed" message when no failed tests found, but result is "FAILURE"', function () {
       var stage = {
         context: {
           buildInfo: {
@@ -62,7 +62,7 @@ describe('Jenkins Execution Details Controller:', function() {
       expect($scope.failureMessage).toBe('Build failed.');
     });
 
-    it('should set failureMessage to undefined when not failing', function() {
+    it('should set failureMessage to undefined when not failing', function () {
       this.initializeController({});
       expect($scope.failureMessage).toBeUndefined();
     });

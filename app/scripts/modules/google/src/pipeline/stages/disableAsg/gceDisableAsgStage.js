@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE = 'spinnaker.gce.pipeline.stage..disableAsgStage';
 export const name = GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'gce',
@@ -28,7 +28,7 @@ module(GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE, [])
   })
   .controller('gceDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -36,7 +36,7 @@ module(GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

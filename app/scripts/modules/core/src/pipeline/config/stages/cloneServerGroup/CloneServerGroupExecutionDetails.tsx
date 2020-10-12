@@ -49,7 +49,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
     let deployResults: IDeployResult[] = [];
     const deployedArtifacts = find(resultObjects, 'serverGroupNames');
     if (deployedArtifacts) {
-      const deployedServerGroups = (deployedArtifacts['serverGroupNames'] || []).filter(a => a.includes(':'));
+      const deployedServerGroups = (deployedArtifacts['serverGroupNames'] || []).filter((a) => a.includes(':'));
       deployResults = deployedServerGroups.map((serverGroupNameAndRegion: string) => {
         const [region, serverGroupName] = serverGroupNameAndRegion.split(':');
         const result: IDeployResult = {
@@ -114,7 +114,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
             <div className="col-md-12">
               <div className="well alert alert-info">
                 <strong>Deployed: </strong>
-                {(deployResults || []).map(result => (
+                {(deployResults || []).map((result) => (
                   <DeployedServerGroup key={result.href} result={result} />
                 ))}
               </div>

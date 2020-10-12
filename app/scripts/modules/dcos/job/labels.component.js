@@ -9,7 +9,7 @@ module(DCOS_JOB_LABELS_COMPONENT, []).component('dcosLabels', {
     labels: '=',
   },
   templateUrl: require('./labels.component.html'),
-  controller: function() {
+  controller: function () {
     if (this.labels === undefined || this.labels == null) {
       this.labels = {};
     }

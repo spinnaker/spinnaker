@@ -92,11 +92,11 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
 
   public selectStrategy(strategy: string): void {
     const { command, onStrategyChange } = this.props;
-    const oldStrategy = this.state.strategies.find(s => s.key === this.state.currentStrategy);
-    const newStrategy = this.state.strategies.find(s => s.key === strategy);
+    const oldStrategy = this.state.strategies.find((s) => s.key === this.state.currentStrategy);
+    const newStrategy = this.state.strategies.find((s) => s.key === strategy);
 
     if (oldStrategy && oldStrategy.additionalFields) {
-      oldStrategy.additionalFields.forEach(field => {
+      oldStrategy.additionalFields.forEach((field) => {
         if (!newStrategy || !newStrategy.additionalFields || !newStrategy.additionalFields.includes(field)) {
           unset(command, field);
         }
@@ -146,7 +146,7 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
                 valueKey="key"
                 value={currentStrategy}
                 optionRenderer={this.strategyOptionRenderer}
-                valueRenderer={o => <>{o.label}</>}
+                valueRenderer={(o) => <>{o.label}</>}
                 onChange={this.strategyChanged}
               />
             </div>

@@ -15,8 +15,6 @@ export class NetworkReader {
   }
 
   public static listNetworksByProvider(cloudProvider: string) {
-    return API.one('networks')
-      .one(cloudProvider)
-      .getList();
+    return API.one('networks').one(cloudProvider).getList();
   }
 }

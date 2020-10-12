@@ -21,6 +21,6 @@ export class VariableError extends React.Component<IVariableErrorProps, IVariabl
   }
 
   private renderErrors(): JSX.Element[] {
-    return this.props.errors.map(e => <li key={e.key || e.message}>{e.message}</li>);
+    return this.props.errors.map((e) => <li key={e.key || e.message}>{e.message}</li>);
   }
 }

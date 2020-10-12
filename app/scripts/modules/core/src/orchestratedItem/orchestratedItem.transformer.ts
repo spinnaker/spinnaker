@@ -86,7 +86,7 @@ export class OrchestratedItemTransformer {
       status: {
         // Returns either SUCCEEDED, RUNNING, FAILED, CANCELED, or NOT_STARTED
         get: (): string => this.normalizeStatus(item),
-        set: status => {
+        set: (status) => {
           item.originalStatus = status;
           this.normalizeStatus(item);
         },
@@ -111,7 +111,7 @@ export class OrchestratedItemTransformer {
       this.getCustomException(item),
       this.getGeneralException(item),
       this.getOrchestrationException(item),
-    ].filter(it => !!it);
+    ].filter((it) => !!it);
     if (exceptions.length === 0) {
       return null;
     }
@@ -121,7 +121,7 @@ export class OrchestratedItemTransformer {
   private static getOrchestrationException(task: ITask): string {
     const katoTasks: any[] = task.getValueFor('kato.tasks');
     if (katoTasks && katoTasks.length) {
-      const failedTask: any = katoTasks.find(t => t.status && t.status.failed);
+      const failedTask: any = katoTasks.find((t) => t.status && t.status.failed);
       if (!failedTask) {
         return null;
       }

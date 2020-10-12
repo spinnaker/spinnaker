@@ -54,7 +54,7 @@ class AppengineLoadBalancerWizardController implements IController {
       ].join(':')}`;
       this.appengineLoadBalancerTransformer
         .convertLoadBalancerForEditing(loadBalancer, application)
-        .then(convertedLoadBalancer => {
+        .then((convertedLoadBalancer) => {
           this.loadBalancer = this.appengineLoadBalancerTransformer.convertLoadBalancerToUpsertDescription(
             convertedLoadBalancer,
           );

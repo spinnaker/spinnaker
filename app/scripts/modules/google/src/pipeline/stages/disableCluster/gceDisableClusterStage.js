@@ -8,7 +8,7 @@ export const GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE =
   'spinnaker.gce.pipeline.stage..disableClusterStage';
 export const name = GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',
       cloudProvider: 'gce',
@@ -27,7 +27,7 @@ module(GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE, [])
   })
   .controller('gceDisableClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -37,7 +37,7 @@ module(GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -64,7 +64,7 @@ module(GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE, [])
         stage.remainingEnabledServerGroups = 1;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         if (val === 1) {
           return str;
         }

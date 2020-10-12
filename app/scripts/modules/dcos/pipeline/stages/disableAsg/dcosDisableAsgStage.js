@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE = 'spinnaker.dcos.pipeline.stage.disableAsgStage';
 export const name = DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE; // for backwards compatibility
 module(DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       alias: 'disableAsg',
@@ -29,7 +29,7 @@ module(DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE, [])
   })
   .controller('dcosDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -37,7 +37,7 @@ module(DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

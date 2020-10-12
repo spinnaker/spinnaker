@@ -23,7 +23,7 @@ const skipRemainingWait = (
   const { executionService } = ReactInjector;
   (event.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
   const matcher = ({ stages }: IExecution) => {
-    const match = stages.find(test => test.id === stage.id);
+    const match = stages.find((test) => test.id === stage.id);
     return match.status !== 'RUNNING';
   };
 
@@ -36,7 +36,7 @@ const skipRemainingWait = (
       return executionService
         .patchExecution(execution.id, stage.id, data)
         .then(() => executionService.waitUntilExecutionMatches(execution.id, matcher))
-        .then(updated => executionService.updateExecution(application, updated));
+        .then((updated) => executionService.updateExecution(application, updated));
     },
   });
 };
@@ -61,7 +61,7 @@ export const SkipConditionWait = ({ stage, execution, application }: ISkipCondit
         <div className="action-buttons">
           <button
             className="btn btn-xs btn-primary"
-            onClick={event => skipRemainingWait(event, stage, execution, application)}
+            onClick={(event) => skipRemainingWait(event, stage, execution, application)}
           >
             <span style={{ marginRight: '5px' }} className="small glyphicon glyphicon-fast-forward" />
             Skip remaining wait

@@ -10,12 +10,12 @@ export const AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE = 'spinnaker.azure.
 export const name = AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE; // for backwards compatibility
 module(AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE, [UIROUTER_ANGULARJS]).factory(
   'azureSecurityGroupWriter',
-  function() {
+  function () {
     function upsertSecurityGroup(securityGroup, application, descriptor, params = {}) {
       params.securityGroupName = securityGroup.name;
 
       // We want to extend params with all attributes from securityGroup, but only if they don't already exist.
-      _.assignWith(params, securityGroup, function(value, other) {
+      _.assignWith(params, securityGroup, function (value, other) {
         return _.isUndefined(value) ? other : value;
       });
 

@@ -10,7 +10,7 @@ import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dat
 
 import { IEntityTag, IEntityTags, IServerGroup, IInstanceCounts, ILoadBalancer } from 'core/domain';
 
-describe('Application Model', function() {
+describe('Application Model', function () {
   let application: Application,
     securityGroupReader: SecurityGroupReader,
     loadBalancerReader: any,
@@ -23,7 +23,7 @@ describe('Application Model', function() {
   beforeEach(mock.module(SECURITY_GROUP_DATA_SOURCE, SERVER_GROUP_DATA_SOURCE, LOAD_BALANCER_DATA_SOURCE));
 
   beforeEach(
-    mock.inject(function(
+    mock.inject(function (
       _securityGroupReader_: SecurityGroupReader,
       _clusterService_: any,
       _$q_: ng.IQService,
@@ -45,7 +45,7 @@ describe('Application Model', function() {
     spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when(loadBalancers));
     spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when(serverGroups));
     spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([]));
-    spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(
+    spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
       _app: Application,
       groupsByName: any[],
     ) {
@@ -59,8 +59,8 @@ describe('Application Model', function() {
     $scope.$digest();
   }
 
-  describe('lazy dataSources', function() {
-    beforeEach(function() {
+  describe('lazy dataSources', function () {
+    beforeEach(function () {
       ApplicationDataSourceRegistry.registerDataSource({
         key: 'lazySource',
         lazy: true,
@@ -70,8 +70,8 @@ describe('Application Model', function() {
       });
     });
 
-    describe('activate', function() {
-      it('refreshes section if not already active and not already loaded', function() {
+    describe('activate', function () {
+      it('refreshes section if not already active and not already loaded', function () {
         configureApplication([], [], []);
         spyOn(application.getDataSource('lazySource'), 'refresh').and.callThrough();
 
@@ -95,8 +95,8 @@ describe('Application Model', function() {
       });
     });
 
-    describe('refresh behavior', function() {
-      it('clears data on inactive lazy dataSources and sets loaded flag to false', function() {
+    describe('refresh behavior', function () {
+      it('clears data on inactive lazy dataSources and sets loaded flag to false', function () {
         configureApplication([], [], []);
 
         expect(application.getDataSource('lazySource').active).toBeFalsy();
@@ -115,7 +115,7 @@ describe('Application Model', function() {
         expect(application.getDataSource('lazySource').loaded).toBe(false);
       });
 
-      it('adds entityTags that contain alerts if found on data', function() {
+      it('adds entityTags that contain alerts if found on data', function () {
         const alertTag: IEntityTag = { name: 'spinnaker_ui_alert:alert1', value: { message: 'an alert' } };
         const tags: IEntityTags = {
           id: 'zzzz',
@@ -172,8 +172,8 @@ describe('Application Model', function() {
       });
     });
 
-    describe('application ready', function() {
-      it('ignores lazy dataSources when determining if application is ready', function() {
+    describe('application ready', function () {
+      it('ignores lazy dataSources when determining if application is ready', function () {
         let isReady = false;
         configureApplication([], [], []);
 
@@ -184,8 +184,8 @@ describe('Application Model', function() {
     });
   });
 
-  describe('setting default credentials and regions', function() {
-    it('sets default credentials and region from server group when only one account/region found', function() {
+  describe('setting default credentials and regions', function () {
+    it('sets default credentials and region from server group when only one account/region found', function () {
       const serverGroups: IServerGroup[] = [
           {
             name: 'deck-test-v001',
@@ -206,7 +206,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.aws).toBe('us-west-2');
     });
 
-    it('sets default credentials and region from load balancer when only one account/region found', function() {
+    it('sets default credentials and region from load balancer when only one account/region found', function () {
       const serverGroups: IServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [
           { name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' },
@@ -218,7 +218,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.gce).toBe('us-central-1');
     });
 
-    it('sets default credentials and region from firewall', function() {
+    it('sets default credentials and region from firewall', function () {
       const serverGroups: any[] = [],
         loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [
@@ -230,7 +230,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.cf).toBe('us-south-7');
     });
 
-    it('does not set defaults when multiple values found for the same provider', function() {
+    it('does not set defaults when multiple values found for the same provider', function () {
       const serverGroups: IServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [
           { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod' },
@@ -244,7 +244,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('sets default region or default credentials if possible', function() {
+    it('sets default region or default credentials if possible', function () {
       const serverGroups: IServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [
           { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod' },
@@ -258,7 +258,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.aws).toBe('us-east-1');
     });
 
-    it('sets default credentials, even if region cannot be set', function() {
+    it('sets default credentials, even if region cannot be set', function () {
       const serverGroups: IServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [
           { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test' },
@@ -272,7 +272,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('should set defaults for multiple providers', function() {
+    it('should set defaults for multiple providers', function () {
       const serverGroups: any[] = [
           {
             name: 'deck-test-v001',

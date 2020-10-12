@@ -35,7 +35,7 @@ export const MapPair = (props: {
             className="form-control input input-sm"
             type="text"
             value={pair.key}
-            onChange={e => onChange({ key: e.target.value, value: pair.value })}
+            onChange={(e) => onChange({ key: e.target.value, value: pair.value })}
           />
         </td>
         {labelsLeft && (
@@ -49,14 +49,14 @@ export const MapPair = (props: {
               value={pair.value}
               pipeline={pipeline}
               docLink={true}
-              onChange={value => onChange({ key: pair.key, value: value })}
+              onChange={(value) => onChange({ key: pair.key, value: value })}
             />
           ) : (
             <input
               className="form-control input input-sm"
               type="text"
               value={pair.value}
-              onChange={e => onChange({ key: pair.key, value: e.target.value })}
+              onChange={(e) => onChange({ key: pair.key, value: e.target.value })}
             />
           )}
         </td>

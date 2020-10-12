@@ -68,15 +68,15 @@ export class FormikExpressionRegexField extends React.Component<
           <FormikFormField
             name={regexName}
             validate={validateRegexString}
-            layout={props => <RegexLayout {...props} />}
-            input={props => <TextInput {...props} />}
+            layout={(props) => <RegexLayout {...props} />}
+            input={(props) => <TextInput {...props} />}
             touched={true}
           />
           <code>/</code>
           <FormikFormField
             name={replaceName}
-            layout={props => <RegexLayout {...props} />}
-            input={props => <TextInput {...props} />}
+            layout={(props) => <RegexLayout {...props} />}
+            input={(props) => <TextInput {...props} />}
           />
           <code>/g</code>
         </div>
@@ -111,10 +111,10 @@ export class FormikExpressionRegexField extends React.Component<
     return (
       <FormikFormField
         name={this.props.name}
-        input={props => (
+        input={(props) => (
           <div className="flex-container-v flex-grow">
             <ExpressionInput
-              onExpressionChange={exprChange => this.setState(exprChange)}
+              onExpressionChange={(exprChange) => this.setState(exprChange)}
               context={context}
               placeholder={placeholder}
               {...props}
@@ -138,7 +138,7 @@ export class FormikExpressionRegexField extends React.Component<
 
     return (
       <FormikForm
-        render={formik => {
+        render={(formik) => {
           const regex: string = getIn(formik.values, regexName);
           const replace: string = getIn(formik.values, replaceName);
 

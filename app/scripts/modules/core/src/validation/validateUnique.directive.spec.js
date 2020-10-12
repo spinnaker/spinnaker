@@ -1,21 +1,21 @@
 'use strict';
 
-describe('Validator: validateUnique', function() {
+describe('Validator: validateUnique', function () {
   beforeEach(window.module(require('./validateUnique.directive').name));
 
   beforeEach(
-    window.inject(function($rootScope, $compile, $controller) {
+    window.inject(function ($rootScope, $compile, $controller) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
       this.$controller = $controller;
     }),
   );
 
-  beforeEach(function() {
+  beforeEach(function () {
     var scope = this.scope,
       compile = this.compile;
 
-    this.initialize = function(val, options, ignoreCase) {
+    this.initialize = function (val, options, ignoreCase) {
       scope.command = { field: val };
       scope.options = options;
 
@@ -31,47 +31,47 @@ describe('Validator: validateUnique', function() {
       scope.$digest();
     };
 
-    this.isValid = function() {
+    this.isValid = function () {
       return scope.form.firstName.$valid;
     };
   });
 
-  describe('valid cases', function() {
-    it('should be valid when no options present', function() {
+  describe('valid cases', function () {
+    it('should be valid when no options present', function () {
       this.initialize('joe', null);
       expect(this.isValid()).toBe(true);
     });
 
-    it('should be valid when options are empty', function() {
+    it('should be valid when options are empty', function () {
       this.initialize('joe', []);
       expect(this.isValid()).toBe(true);
     });
 
-    it('should be valid when options do not include value', function() {
+    it('should be valid when options do not include value', function () {
       this.initialize('joe', ['mike']);
       expect(this.isValid()).toBe(true);
     });
 
-    it('should be valid when case does not match', function() {
+    it('should be valid when case does not match', function () {
       this.initialize('joe', ['Joe']);
       expect(this.isValid()).toBe(true);
     });
   });
 
-  describe('invalid cases', function() {
-    it('should be invalid when value is present', function() {
+  describe('invalid cases', function () {
+    it('should be invalid when value is present', function () {
       this.initialize('joe', ['joe']);
       expect(this.isValid()).toBe(false);
     });
 
-    it('should be invalid when ignore case sensitive flag is set', function() {
+    it('should be invalid when ignore case sensitive flag is set', function () {
       this.initialize('joe', ['Joe'], true);
       expect(this.isValid()).toBe(false);
     });
   });
 
-  describe('value/option changes', function() {
-    it('should flip to false when options change and include set value', function() {
+  describe('value/option changes', function () {
+    it('should flip to false when options change and include set value', function () {
       this.initialize('joe', ['mike']);
       expect(this.isValid()).toBe(true);
 
@@ -80,7 +80,7 @@ describe('Validator: validateUnique', function() {
       expect(this.isValid()).toBe(false);
     });
 
-    it('should flip to true when options change and remove set value', function() {
+    it('should flip to true when options change and remove set value', function () {
       this.initialize('joe', ['mike', 'joe']);
       expect(this.isValid()).toBe(false);
 
@@ -89,7 +89,7 @@ describe('Validator: validateUnique', function() {
       expect(this.isValid()).toBe(true);
     });
 
-    it('should flip to false when value changes and is in options', function() {
+    it('should flip to false when value changes and is in options', function () {
       this.initialize('joe', ['mike']);
       expect(this.isValid()).toBe(true);
 
@@ -98,7 +98,7 @@ describe('Validator: validateUnique', function() {
       expect(this.isValid()).toBe(false);
     });
 
-    it('should flip to true when value changes and is not in options', function() {
+    it('should flip to true when value changes and is not in options', function () {
       this.initialize('mike', ['mike']);
       expect(this.isValid()).toBe(false);
 

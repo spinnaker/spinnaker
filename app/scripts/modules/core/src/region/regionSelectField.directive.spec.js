@@ -3,10 +3,10 @@
 import * as angular from 'angular';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 
-describe('Directives: regionSelectField', function() {
-  beforeEach(function() {
-    window.module(require('./regionSelectField.directive').name, CACHE_INITIALIZER_SERVICE, function($provide) {
-      $provide.decorator('cacheInitializer', function() {
+describe('Directives: regionSelectField', function () {
+  beforeEach(function () {
+    window.module(require('./regionSelectField.directive').name, CACHE_INITIALIZER_SERVICE, function ($provide) {
+      $provide.decorator('cacheInitializer', function () {
         return {
           initialize: angular.noop,
         };
@@ -15,13 +15,13 @@ describe('Directives: regionSelectField', function() {
   });
 
   beforeEach(
-    window.inject(function($rootScope, $compile) {
+    window.inject(function ($rootScope, $compile) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
     }),
   );
 
-  it('updates values when regions change', function() {
+  it('updates values when regions change', function () {
     var scope = this.scope;
 
     scope.regions = [{ name: 'us-east-1' }];
@@ -43,12 +43,12 @@ describe('Directives: regionSelectField', function() {
     var expected = ['', 'us-east-1', 'us-west-1'];
 
     expect(options.length).toBe(3);
-    options.each(function(idx, option) {
+    options.each(function (idx, option) {
       expect(option.value).toBe(expected[idx]);
     });
   });
 
-  it('selects correct initial value', function() {
+  it('selects correct initial value', function () {
     var scope = this.scope;
 
     scope.regions = [{ name: 'us-east-1' }, { name: 'us-west-1' }];

@@ -44,7 +44,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.filterTypes = this.reorderFilterTypesForSearch(SearchFilterTypeRegistry.getValues());
     layouts.push({
       header: 'FILTER ON',
-      filterTypes: this.filterTypes.filter(type => type.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key),
+      filterTypes: this.filterTypes.filter((type) => type.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key),
     });
 
     this.keys = new Set<string>(SearchFilterTypeRegistry.getValues().map((type: IFilterType) => type.key));
@@ -78,12 +78,12 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   // Merge param changes with existing tags, maintaining the current order (new tags should go at the end)
   private buildTagsFromParams(params: { [key: string]: any }, currentTags: ITag[]): ITag[] {
     const tagsToKeep: ITag[] = currentTags
-      .filter(tag => params[tag.key])
-      .map(tag => ({ key: tag.key, text: params[tag.key] }));
+      .filter((tag) => params[tag.key])
+      .map((tag) => ({ key: tag.key, text: params[tag.key] }));
 
     const tagsToAdd: ITag[] = Object.keys(params)
-      .filter(key => !!params[key] && !tagsToKeep.some(tag => tag.key === key))
-      .map(key => ({ key, text: params[key] }));
+      .filter((key) => !!params[key] && !tagsToKeep.some((tag) => tag.key === key))
+      .map((key) => ({ key, text: params[key] }));
 
     return tagsToKeep.concat(tagsToAdd);
   }
@@ -215,7 +215,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   private handleFilterSelection(filter?: IFilterType): void {
     const tag = this.buildTagFromInputString(filter);
     if (tag && this.isLongEnoughIfKeyword(tag)) {
-      const tags: ITag[] = this.state.tags.filter(x => x.key !== tag.key).concat(tag);
+      const tags: ITag[] = this.state.tags.filter((x) => x.key !== tag.key).concat(tag);
       this.setState({
         activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
         isOpen: false,

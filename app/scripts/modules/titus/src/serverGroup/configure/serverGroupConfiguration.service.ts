@@ -129,7 +129,7 @@ export class TitusServerGroupConfigurationService {
       if (command.credentials) {
         command.registry = (backingData.credentialsKeyedByAccount[command.credentials] as any).registry;
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
-        if (!backingData.filtered.regions.some(r => r.name === command.region)) {
+        if (!backingData.filtered.regions.some((r) => r.name === command.region)) {
           command.region = null;
           command.regionChanged(command);
         }
@@ -203,7 +203,7 @@ export class TitusServerGroupConfigurationService {
   private getVpcId(command: ITitusServerGroupCommand): string {
     const credentials = this.getCredentials(command);
     const match = command.backingData.vpcs.find(
-      vpc =>
+      (vpc) =>
         vpc.name === credentials.awsVpc &&
         vpc.account === credentials.awsAccount &&
         vpc.region === this.getRegion(command) &&
@@ -224,7 +224,7 @@ export class TitusServerGroupConfigurationService {
     const currentOptions = command.backingData.filtered.securityGroups;
     if (command.credentials.includes('${') || (command.region && command.region.includes('${'))) {
       // If any of our dependencies are expressions, the only thing we can do is preserve current values
-      command.backingData.filtered.securityGroups = command.securityGroups.map(group => ({ name: group, id: group }));
+      command.backingData.filtered.securityGroups = command.securityGroups.map((group) => ({ name: group, id: group }));
     } else {
       const newRegionalSecurityGroups = this.getRegionalSecurityGroups(command);
       const isExpression =
@@ -232,21 +232,21 @@ export class TitusServerGroupConfigurationService {
       if (currentOptions && command.securityGroups && !isExpression) {
         // not initializing - we are actually changing groups
         const currentGroupNames: string[] = command.securityGroups.map((groupId: string) => {
-          const match = currentOptions.find(o => o.id === groupId);
+          const match = currentOptions.find((o) => o.id === groupId);
           return match ? match.name : groupId;
         });
 
         const matchedGroups = command.securityGroups
           .map((groupId: string) => {
-            const securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
+            const securityGroup: any = currentOptions.find((o) => o.id === groupId || o.name === groupId);
             return securityGroup ? securityGroup.name : null;
           })
-          .map((groupName: string) => newRegionalSecurityGroups.find(g => g.name === groupName))
+          .map((groupName: string) => newRegionalSecurityGroups.find((g) => g.name === groupName))
           .filter((group: any) => group);
 
-        const matchedGroupNames: string[] = matchedGroups.map(g => g.name);
+        const matchedGroupNames: string[] = matchedGroups.map((g) => g.name);
         const removed: string[] = xor(currentGroupNames, matchedGroupNames);
-        command.securityGroups = matchedGroups.map(g => g.id);
+        command.securityGroups = matchedGroups.map((g) => g.id);
         if (removed.length) {
           command.viewState.dirty.securityGroups = removed;
         }
@@ -288,12 +288,12 @@ export class TitusServerGroupConfigurationService {
 
   public getTargetGroupNames(command: ITitusServerGroupCommand): string[] {
     const loadBalancersV2 = this.getLoadBalancerMap(command).filter(
-      lb => lb.loadBalancerType !== 'classic',
+      (lb) => lb.loadBalancerType !== 'classic',
     ) as IAmazonApplicationLoadBalancer[];
     const instanceTargetGroups = flatten(
-      loadBalancersV2.map<any>(lb => lb.targetGroups.filter(tg => tg.targetType === 'ip')),
+      loadBalancersV2.map<any>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'ip')),
     );
-    return instanceTargetGroups.map(tg => tg.name).sort();
+    return instanceTargetGroups.map((tg) => tg.name).sort();
   }
 
   private getLoadBalancerMap(command: ITitusServerGroupCommand): IAmazonLoadBalancer[] {
@@ -333,7 +333,7 @@ export class TitusServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: ITitusServerGroupCommand) {
-    return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
+    return this.loadBalancerReader.listLoadBalancers('aws').then((loadBalancers) => {
       command.backingData.loadBalancers = loadBalancers;
       this.configureLoadBalancerOptions(command);
     });

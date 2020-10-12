@@ -23,7 +23,7 @@
         multiple
         tagging
         tagging-label=""
-        style="width: 380px;"
+        style="width: 380px"
         name="configFilepaths"
         ng-model="$ctrl.command.configFilepaths"
         class="form-control input-sm"
@@ -47,24 +47,24 @@
       </span>
     </div>
     <div ng-repeat="configFile in $ctrl.command.configFiles track by $index">
-      <div class="col-md-7" ng-class="{'col-md-offset-3': $index > 0}" style="margin-top: 5px;">
+      <div class="col-md-7" ng-class="{ 'col-md-offset-3': $index > 0 }" style="margin-top: 5px">
         <textarea
           cols="46"
           rows="10"
           class="small"
           spellcheck="false"
           ng-keydown="$ctrl.mapTabToSpaces($event)"
-          style="font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;"
+          style="font-family: Menlo, Monaco, Consolas, 'Courier New', monospace"
           ng-model="$ctrl.command.configFiles[$index]"
         ></textarea>
       </div>
-      <div class="col-md-1" style="margin-top: 5px;">
+      <div class="col-md-1" style="margin-top: 5px">
         <button type="button" class="btn btn-sm btn-default" ng-click="$ctrl.deleteConfigFile($index)">
           <span class="glyphicon glyphicon-trash"></span> Delete
         </button>
       </div>
     </div>
-    <div class="col-md-7" ng-class="{'col-md-offset-3': $ctrl.command.configFiles.length > 0}">
+    <div class="col-md-7" ng-class="{ 'col-md-offset-3': $ctrl.command.configFiles.length > 0 }">
       <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addConfigFile()">
         <span class="glyphicon glyphicon-plus-sign"></span> Add Config File
       </button>

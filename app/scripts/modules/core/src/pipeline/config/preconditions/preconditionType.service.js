@@ -10,7 +10,7 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPE_SERVICE, [
   CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER,
 ]).factory('preconditionTypeService', [
   'preconditionTypeConfig',
-  function(preconditionTypeConfig) {
+  function (preconditionTypeConfig) {
     function listPreconditionTypes() {
       return preconditionTypeConfig.listPreconditionTypes();
     }

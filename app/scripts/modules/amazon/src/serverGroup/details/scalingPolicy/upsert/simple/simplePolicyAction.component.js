@@ -13,7 +13,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION
       viewState: '=',
     },
     templateUrl: require('./simplePolicyAction.component.html'),
-    controller: function() {
+    controller: function () {
       this.operatorChanged = () => {
         this.adjustmentTypeOptions =
           this.viewState.operator === 'Set to' ? ['instances'] : ['instances', 'percent of group'];

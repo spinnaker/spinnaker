@@ -68,7 +68,7 @@ describe('Wercker Execution Details Controller:', () => {
       expect(controller.failureMessage).toBe('Build failed.');
     });
 
-    it('should set failureMessage to undefined when not failing', function() {
+    it('should set failureMessage to undefined when not failing', function () {
       const controller = initializeController({});
       expect(controller.failureMessage).toBeUndefined();
     });

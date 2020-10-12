@@ -16,9 +16,9 @@ export class NamespaceSelector extends React.Component<INamespaceSelectorProps> 
 
   private getNamespaceOptions(): Array<Option<string>> {
     const { accounts, selectedAccount, selectedNamespace } = this.props;
-    const selectedAccountDetails = find(accounts, a => a.name === selectedAccount);
+    const selectedAccountDetails = find(accounts, (a) => a.name === selectedAccount);
     const namespaces = get(selectedAccountDetails, 'namespaces', []);
-    const options = map(namespaces, n => ({ label: n, value: n }));
+    const options = map(namespaces, (n) => ({ label: n, value: n }));
     // only create a value for selectedNamespace if it contains a SPeL expression
     if (this.props.createable && selectedNamespace.includes('${')) {
       options.push({ label: selectedNamespace, value: selectedNamespace });

@@ -49,6 +49,6 @@ describe('PermissionsConfigurer', () => {
       onPermissionsChange: () => null,
     });
 
-    expect(component.state.roleOptions.map(option => option.value)).toEqual(['groupC']);
+    expect(component.state.roleOptions.map((option) => option.value)).toEqual(['groupC']);
   });
 });

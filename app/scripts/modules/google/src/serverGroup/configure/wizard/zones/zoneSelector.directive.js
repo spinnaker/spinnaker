@@ -7,7 +7,7 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE =
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE, [])
-  .directive('gceZoneSelector', function() {
+  .directive('gceZoneSelector', function () {
     return {
       restrict: 'E',
       templateUrl: require('./zoneSelector.directive.html'),

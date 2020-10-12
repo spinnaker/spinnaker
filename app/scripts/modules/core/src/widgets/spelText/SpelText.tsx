@@ -43,7 +43,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
     );
     Observable.fromPromise(this.autocompleteService.addPipelineInfo(this.props.pipeline))
       .takeUntil(this.destroy$)
-      .subscribe(textcompleteConfig => {
+      .subscribe((textcompleteConfig) => {
         this.setState({ textcompleteConfig: textcompleteConfig });
       });
     this.spelInputRef = React.createRef();

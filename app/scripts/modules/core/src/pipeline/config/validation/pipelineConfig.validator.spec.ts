@@ -32,7 +32,7 @@ describe('pipelineConfigValidator', () => {
         stage.requisiteStageRefIds = [];
       }
     });
-    triggers.forEach(t => (t.enabled = true));
+    triggers.forEach((t) => (t.enabled = true));
 
     return {
       id: 'a',
@@ -65,7 +65,7 @@ describe('pipelineConfigValidator', () => {
 
   beforeEach(mock.module(require('../pipelineConfig.module').name));
 
-  beforeEach(function() {
+  beforeEach(function () {
     SETTINGS.feature.fiatEnabled = true;
   });
 
@@ -74,7 +74,7 @@ describe('pipelineConfigValidator', () => {
       $q = _$q_;
       validate = () => {
         validationResults = null;
-        PipelineConfigValidator.validatePipeline(pipeline).then(result => (validationResults = result));
+        PipelineConfigValidator.validatePipeline(pipeline).then((result) => (validationResults = result));
         $rootScope.$new().$digest();
       };
     });

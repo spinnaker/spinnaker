@@ -14,7 +14,10 @@
           if {{ $ctrl.alarm.metricName }}
           <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Greater') === 0">
             <span
-              ng-if="stepAdjustment.metricIntervalUpperBound !== undefined && stepAdjustment.metricIntervalLowerBound !== undefined"
+              ng-if="
+                stepAdjustment.metricIntervalUpperBound !== undefined &&
+                stepAdjustment.metricIntervalLowerBound !== undefined
+              "
             >
               is between
               {{ $ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound }}
@@ -28,7 +31,10 @@
 
           <span ng-if="$ctrl.alarm.comparisonOperator.indexOf('Less') === 0">
             <span
-              ng-if="stepAdjustment.metricIntervalUpperBound !== undefined && stepAdjustment.metricIntervalLowerBound !== undefined"
+              ng-if="
+                stepAdjustment.metricIntervalUpperBound !== undefined &&
+                stepAdjustment.metricIntervalLowerBound !== undefined
+              "
             >
               is between
               {{ $ctrl.alarm.threshold + stepAdjustment.metricIntervalLowerBound }}
@@ -47,7 +53,10 @@
           >
         </span>
         <span
-          ng-if="$ctrl.policy.adjustmentType === 'ChangeInCapacity' || $ctrl.policy.adjustmentType === 'PercentChangeInCapacity'"
+          ng-if="
+            $ctrl.policy.adjustmentType === 'ChangeInCapacity' ||
+            $ctrl.policy.adjustmentType === 'PercentChangeInCapacity'
+          "
         >
           {{ stepAdjustment.operator }} capacity
           <span ng-if="$ctrl.policy.adjustmentType === 'PercentChangeInCapacity'">
@@ -66,7 +75,10 @@
         >
       </span>
       <span
-        ng-if="$ctrl.policy.adjustmentType === 'ChangeInCapacity' || $ctrl.policy.adjustmentType === 'PercentChangeInCapacity'"
+        ng-if="
+          $ctrl.policy.adjustmentType === 'ChangeInCapacity' ||
+          $ctrl.policy.adjustmentType === 'PercentChangeInCapacity'
+        "
       >
         {{ $ctrl.policy.operator }} capacity
         <span ng-if="$ctrl.policy.adjustmentType === 'PercentChangeInCapacity'">
@@ -91,7 +103,7 @@
     </dd>
   </dl>
   <metric-alarm-chart
-    style="height: 100px;"
+    style="height: 100px"
     alarm="$ctrl.policy.alarms[0]"
     margins="{top: 5, left: 50}"
     server-group="$ctrl.serverGroup"

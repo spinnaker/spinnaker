@@ -16,7 +16,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
     'serverGroup',
     'application',
     'policy',
-    function($uibModalInstance, alarmServerGroup, serverGroup, application, policy) {
+    function ($uibModalInstance, alarmServerGroup, serverGroup, application, policy) {
       this.serverGroup = serverGroup;
       // alarmServerGroup is used to trick the chart rendering into using AWS metrics
       this.alarmServerGroup = alarmServerGroup;
@@ -86,7 +86,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
           cooldown: policy.cooldown || 300,
           metricAggregationType: 'Average',
         };
-        command.step.stepAdjustments = policy.stepAdjustments.map(adjustment => {
+        command.step.stepAdjustments = policy.stepAdjustments.map((adjustment) => {
           const step = {
             scalingAdjustment: Math.abs(adjustment.scalingAdjustment),
           };
@@ -128,7 +128,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
 
         if (command.step) {
           // adjust metricIntervalLowerBound/UpperBound for each step based on alarm threshold
-          command.step.stepAdjustments.forEach(step => {
+          command.step.stepAdjustments.forEach((step) => {
             if (this.viewState.operator === 'Remove') {
               step.scalingAdjustment = 0 - step.scalingAdjustment;
               delete command.step.estimatedInstanceWarmup;

@@ -14,7 +14,7 @@ module(CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE, [EXECUTION_SERVICE]).fact
     const autocomplete = new SpelAutocompleteService($q, executionService);
     return {
       textcompleteConfig: autocomplete.textcompleteConfig,
-      addPipelineInfo: pipelineConfig => autocomplete.addPipelineInfo(pipelineConfig),
+      addPipelineInfo: (pipelineConfig) => autocomplete.addPipelineInfo(pipelineConfig),
     };
   },
 ]);

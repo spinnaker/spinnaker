@@ -121,7 +121,7 @@ describe('Component: metric selector', () => {
       $scope.$digest();
 
       expect($ctrl.state.metrics.length).toBe(2);
-      expect($ctrl.state.metrics.map(m => m.name)).toEqual(['CPUUtilization', 'NetworkIn']);
+      expect($ctrl.state.metrics.map((m) => m.name)).toEqual(['CPUUtilization', 'NetworkIn']);
       expect($ctrl.state.selectedMetric).toBe($ctrl.state.metrics[0]);
       expect($ctrl.state.metricsLoaded).toBe(true);
       expect(alarmUpdatedSpy.calls.count()).toBe(1);
@@ -225,7 +225,7 @@ describe('Component: metric selector', () => {
     });
 
     it('adds label to each metric, sorts by label', () => {
-      expect($ctrl.state.metrics.map(m => m.label)).toEqual([
+      expect($ctrl.state.metrics.map((m) => m.label)).toEqual([
         '(AWS/EBS) somethingElse',
         '(AWS/EC2) CPUUtilization',
         '(AWS/EC2) NetworkIn',
@@ -237,7 +237,7 @@ describe('Component: metric selector', () => {
     });
 
     it('adds dimensionValues to each dimension', () => {
-      expect($ctrl.state.metrics.map(m => m.dimensionValues)).toEqual(['', 'asg-v000', 'asg-v000, 71']);
+      expect($ctrl.state.metrics.map((m) => m.dimensionValues)).toEqual(['', 'asg-v000', 'asg-v000, 71']);
     });
   });
 

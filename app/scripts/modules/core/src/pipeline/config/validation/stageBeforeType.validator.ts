@@ -22,7 +22,7 @@ export class StageBeforeTypeValidator implements IStageOrTriggerValidator {
 
     const stageTypes: string[] = validator.stageTypes || [validator.stageType];
     const stagesToTest = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
-    if (stagesToTest.every(test => !stageTypes.includes(test.type))) {
+    if (stagesToTest.every((test) => !stageTypes.includes(test.type))) {
       return validator.message;
     }
     return null;

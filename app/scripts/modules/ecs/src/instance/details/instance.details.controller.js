@@ -29,7 +29,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
     'environment',
     '$q',
     'overrides',
-    function($scope, $state, $uibModal, instanceWriter, instance, app, moniker, environment, $q, overrides) {
+    function ($scope, $state, $uibModal, instanceWriter, instance, app, moniker, environment, $q, overrides) {
       // needed for standalone instances
       $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('ecs', 'instance.detailsTemplateUrl');
 
@@ -53,7 +53,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
         }
 
         instance.health = instance.health || [];
-        const displayableMetrics = instance.health.filter(function(metric) {
+        const displayableMetrics = instance.health.filter(function (metric) {
           return metric.type !== 'Ecs' || metric.state !== 'Unknown';
         });
 
@@ -63,8 +63,8 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
 
         // backfill details where applicable
         if (latest.health) {
-          displayableMetrics.forEach(function(metric) {
-            const detailsMatch = latest.health.filter(function(latestHealth) {
+          displayableMetrics.forEach(function (metric) {
+            const detailsMatch = latest.health.filter(function (latestHealth) {
               return latestHealth.type === metric.type;
             });
             if (detailsMatch.length) {
@@ -86,8 +86,8 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
           account = instance.account;
           region = instance.region;
         } else {
-          app.serverGroups.data.some(function(serverGroup) {
-            return serverGroup.instances.some(function(possibleInstance) {
+          app.serverGroups.data.some(function (serverGroup) {
+            return serverGroup.instances.some(function (possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = serverGroup.loadBalancers;
@@ -103,9 +103,9 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
           });
           if (!instanceSummary) {
             // perhaps it is in a server group that is part of another app
-            app.loadBalancers.data.some(function(loadBalancer) {
+            app.loadBalancers.data.some(function (loadBalancer) {
               return (
-                loadBalancer.instances.some(function(possibleInstance) {
+                loadBalancer.instances.some(function (possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     loadBalancers = [loadBalancer.name];
@@ -115,8 +115,8 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
                     return true;
                   }
                 }) ||
-                loadBalancer.targetGroup.some(function(targetGroup) {
-                  return targetGroup.instances.some(function(possibleInstance) {
+                loadBalancer.targetGroup.some(function (targetGroup) {
+                  return targetGroup.instances.some(function (possibleInstance) {
                     if (possibleInstance.id === instance.instanceId) {
                       instanceSummary = possibleInstance;
                       targetGroup = targetGroup.name;
@@ -131,13 +131,13 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
             });
             if (!instanceSummary) {
               // perhaps it is in a disabled server group via a load balancer
-              app.loadBalancers.data.some(function(loadBalancer) {
+              app.loadBalancers.data.some(function (loadBalancer) {
                 return (
-                  loadBalancer.serverGroups.some(function(serverGroup) {
+                  loadBalancer.serverGroups.some(function (serverGroup) {
                     if (!serverGroup.isDisabled) {
                       return false;
                     }
-                    return serverGroup.instances.some(function(possibleInstance) {
+                    return serverGroup.instances.some(function (possibleInstance) {
                       if (possibleInstance.id === instance.instanceId) {
                         instanceSummary = possibleInstance;
                         loadBalancers = [loadBalancer.name];
@@ -148,12 +148,12 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
                       }
                     });
                   }) ||
-                  loadBalancer.targetGroup.some(function(targetGroup) {
-                    targetGroup.serverGroups.some(function(serverGroup) {
+                  loadBalancer.targetGroup.some(function (targetGroup) {
+                    targetGroup.serverGroups.some(function (serverGroup) {
                       if (!serverGroup.isDisabled) {
                         return false;
                       }
-                      return serverGroup.instances.some(function(possibleInstance) {
+                      return serverGroup.instances.some(function (possibleInstance) {
                         if (possibleInstance.id === instance.instanceId) {
                           instanceSummary = possibleInstance;
                           loadBalancers = [loadBalancer.name];
@@ -176,7 +176,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
           extraData.account = account;
           extraData.region = region;
           RecentHistoryService.addExtraDataToLatest('instances', extraData);
-          return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+          return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then((details) => {
             if ($scope.$$destroyed) {
               return;
             }
@@ -190,10 +190,10 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
             $scope.instance.targetGroup = targetGroup;
             if ($scope.instance.networkInterfaces) {
               const permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(
-                f => f.attachment.deleteOnTermination === false,
+                (f) => f.attachment.deleteOnTermination === false,
               );
               if (permanentNetworkInterfaces.length) {
-                $scope.instance.permanentIps = permanentNetworkInterfaces.map(f => f.privateIpAddress);
+                $scope.instance.permanentIps = permanentNetworkInterfaces.map((f) => f.privateIpAddress);
               }
             }
             $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
@@ -225,10 +225,10 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
         }
       }
 
-      this.canRegisterWithDiscovery = function() {
+      this.canRegisterWithDiscovery = function () {
         const instance = $scope.instance;
         const healthMetrics = instance.health || [];
-        const discoveryHealth = healthMetrics.filter(function(health) {
+        const discoveryHealth = healthMetrics.filter(function (health) {
           return health.type === 'Discovery';
         });
         return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -240,14 +240,14 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
         const taskMonitor = {
           application: app,
           title: 'Terminating ' + instance.instanceId,
-          onTaskComplete: function() {
+          onTaskComplete: function () {
             if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
               $state.go('^');
             }
           },
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return instanceWriter.terminateInstance(instance, app, defaultRequestParams);
         };
 
@@ -266,14 +266,14 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
         const taskMonitor = {
           application: app,
           title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
-          onTaskComplete: function() {
+          onTaskComplete: function () {
             if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
               $state.go('^');
             }
           },
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, defaultRequestParams);
         };
 
@@ -294,7 +294,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
           title: 'Enabling ' + instance.instanceId + ' in discovery',
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return instanceWriter.enableInstanceInDiscovery(instance, app, defaultRequestParams);
         };
 
@@ -315,7 +315,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
           title: 'Disabling ' + instance.instanceId + ' in discovery',
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return instanceWriter.disableInstanceInDiscovery(instance, app, defaultRequestParams);
         };
 
@@ -331,7 +331,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, AN
       this.hasHealthState = function hasHealthState(healthProviderType, state) {
         const instance = $scope.instance;
         const healthMetrics = instance.health || [];
-        return healthMetrics.some(function(health) {
+        return healthMetrics.some(function (health) {
           return health.type === healthProviderType && health.state === state;
         });
       };

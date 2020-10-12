@@ -11,7 +11,7 @@ const RatePercentagePerInterval = (componentProps: IFieldOptionComponentProps) =
     <FormikFormField
       name="disruptionBudget.ratePercentagePerInterval.intervalMs"
       label="Interval"
-      input={props => (
+      input={(props) => (
         <div>
           <NumberInput {...props} disabled={componentProps.isDisabled} />
           <HelpField expand={true} content="(milliseconds)" />
@@ -21,7 +21,7 @@ const RatePercentagePerInterval = (componentProps: IFieldOptionComponentProps) =
     <FormikFormField
       name="disruptionBudget.ratePercentagePerInterval.percentageLimitPerInterval"
       label="Percentage Per Interval"
-      input={props => (
+      input={(props) => (
         <div>
           <NumberInput {...props} disabled={componentProps.isDisabled} />
           <HelpField expand={true} content="0.0-100.0 (double)" />
@@ -36,7 +36,7 @@ const RatePerInterval = () => (
     <FormikFormField
       name="disruptionBudget.ratePerInterval.intervalMs"
       label="Interval"
-      input={props => (
+      input={(props) => (
         <div>
           <NumberInput {...props} />
           <HelpField expand={true} content="(milliseconds)" />
@@ -46,7 +46,7 @@ const RatePerInterval = () => (
     <FormikFormField
       name="disruptionBudget.ratePerInterval.limitPerInterval"
       label="Limit Per Interval"
-      input={props => (
+      input={(props) => (
         <div>
           <NumberInput {...props} />
           <HelpField expand={true} content="(tasks)" />

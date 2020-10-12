@@ -26,12 +26,10 @@
   </div>
 </div>
 <div class="form-group">
-  <div class="well col-md-11" style="padding-top: 5px; padding-bottom: 10px;">
+  <div class="well col-md-11" style="padding-top: 5px; padding-bottom: 10px">
     <div class="row">
       <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Locator
-        </div>
+        <div class="col-md-3 sm-label-right">Locator</div>
         <div class="col-md-7">
           <form>
             <div class="form-group">
@@ -72,9 +70,7 @@
     <div class="row">
       <div class="form-group" ng-switch on="$ctrl.allocationDescription.locatorType">
         <div ng-switch-when="fromExisting">
-          <div class="col-md-3 sm-label-right" style="padding-left: 0px;">
-            Server group
-          </div>
+          <div class="col-md-3 sm-label-right" style="padding-left: 0px">Server group</div>
           <div class="col-md-7">
             <ui-select
               ng-model="$ctrl.allocationDescription.serverGroupName"
@@ -93,9 +89,7 @@
           </div>
         </div>
         <div ng-switch-when="targetCoordinate">
-          <div class="col-md-3 sm-label-right">
-            Cluster
-          </div>
+          <div class="col-md-3 sm-label-right">Cluster</div>
           <div class="col-md-7">
             <cluster-selector
               class="small"
@@ -103,9 +97,7 @@
               model="$ctrl.allocationDescription.cluster"
             ></cluster-selector>
           </div>
-          <div class="col-md-3 sm-label-right">
-            Target
-          </div>
+          <div class="col-md-3 sm-label-right">Target</div>
           <div class="col-md-7">
             <target-select model="$ctrl.allocationDescription" options="$ctrl.targets"></target-select>
           </div>

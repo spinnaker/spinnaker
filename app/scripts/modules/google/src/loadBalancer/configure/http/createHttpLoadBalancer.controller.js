@@ -48,7 +48,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
   'wizardSubFormValidation',
   'gceHttpLoadBalancerCommandBuilder',
   'gceHttpLoadBalancerTransformer',
-  function(
+  function (
     $scope,
     $uibModal,
     $uibModalInstance,
@@ -83,7 +83,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
       listeners: ListenerTemplate,
     };
 
-    this.add = key => {
+    this.add = (key) => {
       this.command.loadBalancer[key].push(new keyToTemplateMap[key]());
     };
 
@@ -134,7 +134,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
       );
     };
 
-    gceHttpLoadBalancerCommandBuilder.buildCommand({ isNew, originalLoadBalancer: loadBalancer }).then(command => {
+    gceHttpLoadBalancerCommandBuilder.buildCommand({ isNew, originalLoadBalancer: loadBalancer }).then((command) => {
       this.command = command;
 
       wizardSubFormValidation
@@ -146,7 +146,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
           validators: [
             {
               watchString: 'ctrl.command.loadBalancer.listeners',
-              validator: listeners => listeners.length > 0,
+              validator: (listeners) => listeners.length > 0,
               collection: true,
             },
           ],

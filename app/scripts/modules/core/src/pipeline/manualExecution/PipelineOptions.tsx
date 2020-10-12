@@ -66,7 +66,7 @@ export class PipelineOptions extends React.Component<IPipelineOptionsProps, IPip
   private pipelineSelected = (option: Option<string>) => {
     const { formatPipeline, pipelineOptions } = this.props;
     const pipelineId = option.value;
-    const pipeline = formatPipeline(pipelineOptions.find(p => p.id === pipelineId));
+    const pipeline = formatPipeline(pipelineOptions.find((p) => p.id === pipelineId));
     this.setPipelinePlan(pipeline);
   };
 
@@ -109,12 +109,12 @@ export class PipelineOptions extends React.Component<IPipelineOptionsProps, IPip
             label="Pipeline"
             onChange={this.pipelineSelected}
             value={formik.values.pipeline ? formik.values.pipeline.id : ''}
-            input={props => (
+            input={(props) => (
               <TetheredSelect
                 {...props}
                 clearable={false}
                 className="pipeline-select"
-                options={pipelineOptions.map(p => ({
+                options={pipelineOptions.map((p) => ({
                   label: p.name,
                   value: p.id,
                 }))}

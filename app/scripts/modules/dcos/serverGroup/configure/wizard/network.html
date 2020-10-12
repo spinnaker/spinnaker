@@ -8,9 +8,7 @@
       </a>
     </h5>
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Network Type
-      </div>
+      <div class="col-md-3 sm-label-right">Network Type</div>
       <div class="col-md-4">
         <ui-select
           name="typeSelect"
@@ -29,9 +27,7 @@
       </div>
     </div>
     <div class="form-group" ng-show="networkController.isUserNetwork(command.networkType)">
-      <div class="col-md-3 sm-label-right">
-        Network Name
-      </div>
+      <div class="col-md-3 sm-label-right">Network Name</div>
       <div class="col-md-4">
         <input
           type="text"
@@ -57,15 +53,11 @@
           >
             <td>
               <div class="form-group">
-                <div class="col-md-3 sm-label-right">
-                  Name
-                </div>
+                <div class="col-md-3 sm-label-right">Name</div>
                 <div class="col-md-2">
                   <input type="text" class="form-control input-sm" name="name" ng-model="serviceEndpoint.name" />
                 </div>
-                <div class="col-md-3 sm-label-right">
-                  Protocol
-                </div>
+                <div class="col-md-3 sm-label-right">Protocol</div>
 
                 <div class="col-md-2">
                   <ui-select name="protocolSelect" ng-model="serviceEndpoint.protocol" class="form-control input-sm">
@@ -97,17 +89,13 @@
                                     serviceEndpoint.loadBalanced"
                   />
                 </div>
-                <div class="col-md-3 sm-label-right">
-                  Load Balanced
-                </div>
+                <div class="col-md-3 sm-label-right">Load Balanced</div>
                 <div class="col-md-2 checkbox-inline">
                   <input type="checkbox" name="loadBalanced" ng-model="serviceEndpoint.loadBalanced" />
                 </div>
               </div>
               <div class="form-group" ng-show="networkController.isUserNetwork(serviceEndpoint)">
-                <div class="col-md-3 sm-label-right">
-                  Expose endpoints on host network
-                </div>
+                <div class="col-md-3 sm-label-right">Expose endpoints on host network</div>
                 <div class="col-md-2 checkbox-inline">
                   <input type="checkbox" name="exposeToHost" ng-model="serviceEndpoint.exposeToHost" />
                 </div>

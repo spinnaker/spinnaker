@@ -13,7 +13,7 @@ angular
     '$uibModalStack',
     '$state',
     'dcosImageReader',
-    function($scope, $controller, $uibModalStack, $state, dcosImageReader) {
+    function ($scope, $controller, $uibModalStack, $state, dcosImageReader) {
       angular.extend(
         this,
         $controller('BasicSettingsMixin', {
@@ -25,7 +25,7 @@ angular
       );
 
       this.regionPattern = {
-        test: function(stack) {
+        test: function (stack) {
           const pattern = $scope.command.viewState.templatingEnabled
             ? /^((\/?((\.{2})|([a-z0-9][a-z0-9\-.]*[a-z0-9]+)|([a-z0-9]*))($|\/))*(\${.+})*)*$/
             : /^(\/?((\.{2})|([a-z0-9][a-z0-9\-.]*[a-z0-9]+)|([a-z0-9]*))($|\/))+$/;
@@ -34,14 +34,14 @@ angular
       };
 
       this.stackPattern = {
-        test: function(stack) {
+        test: function (stack) {
           const pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9]*(\${.+})*)*$/ : /^[a-z0-9]*$/;
           return pattern.test(stack);
         },
       };
 
       this.detailPattern = {
-        test: function(detail) {
+        test: function (detail) {
           const pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9-]*(\${.+})*)*$/ : /^[a-z0-9-]*$/;
           return pattern.test(detail);
         },

@@ -84,7 +84,7 @@ export class InstanceTypeService {
   public getInstanceTypeDetails(cloudProvider: string, instanceType: string): IPromise<IPreferredInstanceType> {
     return this.getInstanceTypeCategory(cloudProvider, instanceType).then((category: IInstanceTypeCategory) => {
       if (category && category.families && category.families.length && category.families[0].instanceTypes) {
-        return category.families[0].instanceTypes.find(i => i.name === instanceType);
+        return category.families[0].instanceTypes.find((i) => i.name === instanceType);
       } else {
         if (this.getDelegate(cloudProvider).resolveInstanceTypeDetails) {
           return this.getDelegate(cloudProvider).resolveInstanceTypeDetails(instanceType);
@@ -96,9 +96,9 @@ export class InstanceTypeService {
 
   private getInstanceTypeCategory(cloudProvider: string, instanceType: string): IPromise<IInstanceTypeCategory> {
     return this.getCategories(cloudProvider).then((categories: IInstanceTypeCategory[]) => {
-      return (categories || []).find(c =>
-        c.families.some(f =>
-          f.instanceTypes.some(i => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType))),
+      return (categories || []).find((c) =>
+        c.families.some((f) =>
+          f.instanceTypes.some((i) => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType))),
         ),
       );
     });

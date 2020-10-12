@@ -25,7 +25,7 @@ export class VersionChecker {
     const url = `/version.json?_=${Date.now()}`;
     $http
       .get(url)
-      .then(resp => this.versionRetrieved(resp))
+      .then((resp) => this.versionRetrieved(resp))
       .catch(() => {});
   }
 

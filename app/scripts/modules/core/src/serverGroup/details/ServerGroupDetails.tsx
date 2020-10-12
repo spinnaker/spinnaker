@@ -38,24 +38,15 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
   };
 
   public componentDidMount(): void {
-    this.props
-      .detailsGetter(this.props, this.autoClose)
-      .takeUntil(this.destroy$)
-      .subscribe(this.updateServerGroup);
+    this.props.detailsGetter(this.props, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup);
     this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(null, () => {
-      this.props
-        .detailsGetter(this.props, this.autoClose)
-        .takeUntil(this.destroy$)
-        .subscribe(this.updateServerGroup);
+      this.props.detailsGetter(this.props, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup);
     });
   }
 
   public componentWillReceiveProps(nextProps: IServerGroupDetailsProps): void {
     if (nextProps.serverGroup !== this.props.serverGroup) {
-      this.props
-        .detailsGetter(nextProps, this.autoClose)
-        .takeUntil(this.destroy$)
-        .subscribe(this.updateServerGroup);
+      this.props.detailsGetter(nextProps, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup);
     }
   }
 

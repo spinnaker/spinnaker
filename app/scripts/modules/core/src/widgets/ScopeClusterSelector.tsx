@@ -15,7 +15,7 @@ export class ScopeClusterSelector extends React.Component<IScopeClusterSelectorP
   constructor(props: IScopeClusterSelectorProps) {
     super(props);
     const { clusters, model } = this.props;
-    const selectedNotInClusterList = !(Array.isArray(clusters) && clusters.some(cluster => cluster === model));
+    const selectedNotInClusterList = !(Array.isArray(clusters) && clusters.some((cluster) => cluster === model));
 
     const modelIsSet = model != null || (model || '').trim() !== '';
 
@@ -42,7 +42,7 @@ export class ScopeClusterSelector extends React.Component<IScopeClusterSelectorP
               value={this.props.model || ''}
             >
               <option value={''}>-- select cluster --</option>
-              {(this.props.clusters || []).map(cluster => (
+              {(this.props.clusters || []).map((cluster) => (
                 <option key={cluster} value={cluster}>
                   {cluster}
                 </option>

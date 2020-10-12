@@ -1,8 +1,6 @@
 <!-- Image selection -->
 <div class="form-group" ng-if="!command.viewState.disableImageSelection">
-  <div class="col-md-3 sm-label-right">
-    Image
-  </div>
+  <div class="col-md-3 sm-label-right">Image</div>
   <div class="col-md-9">
     <ui-select class="form-control input-sm" required ng-model="command.imageId">
       <ui-select-match placeholder="Select an image">{{$select.selected.name}}</ui-select-match>
@@ -15,9 +13,7 @@
 
 <!-- Shape selection -->
 <div class="form-group">
-  <div class="col-md-3 sm-label-right">
-    Shape
-  </div>
+  <div class="col-md-3 sm-label-right">Shape</div>
   <div class="col-md-9">
     <ui-select class="form-control input-sm" required ng-model="command.shape">
       <ui-select-match placeholder="Select compatible shape">{{$select.selected.name}}</ui-select-match>

@@ -10,14 +10,14 @@ export class ALBAdvancedSettings extends React.Component {
           name="idleTimeout"
           label="Idle Timeout"
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
-          input={props => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
           name="deletionProtection"
           label="Protection"
           help={<HelpField id="loadBalancer.advancedSettings.deletionProtection" />}
-          input={props => <CheckboxInput {...props} text="Enable delete protection" />}
+          input={(props) => <CheckboxInput {...props} text="Enable delete protection" />}
         />
       </div>
     );

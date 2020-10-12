@@ -63,13 +63,13 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
   }
 
   public mapAllocationsToDecimals() {
-    this.splitDescription.allocationDescriptions.forEach(description => {
+    this.splitDescription.allocationDescriptions.forEach((description) => {
       description.allocation = description.allocation / 100;
     });
   }
 
   public mapAllocationsToPercentages() {
-    this.splitDescription.allocationDescriptions.forEach(description => {
+    this.splitDescription.allocationDescriptions.forEach((description) => {
       // An allocation percent has at most one decimal place.
       description.allocation = Math.round(description.allocation * 1000) / 10;
     });
@@ -84,7 +84,7 @@ export class AppengineLoadBalancerTransformer {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
-    loadBalancer.serverGroups.forEach(serverGroup => {
+    loadBalancer.serverGroups.forEach((serverGroup) => {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;
 
@@ -97,10 +97,7 @@ export class AppengineLoadBalancerTransformer {
     });
 
     const activeServerGroups = filter(loadBalancer.serverGroups, { isDisabled: false });
-    loadBalancer.instances = chain(activeServerGroups)
-      .map('instances')
-      .flatten()
-      .value() as IInstance[];
+    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
     return this.$q.resolve(loadBalancer);
   }
 
@@ -149,10 +146,7 @@ export class AppengineLoadBalancerTransformer {
       )
       .value();
 
-    instanceCounts.outOfService += chain(serverGroups)
-      .map('detachedInstances')
-      .flatten()
-      .value().length;
+    instanceCounts.outOfService += chain(serverGroups).map('detachedInstances').flatten().value().length;
     return instanceCounts;
   }
 

@@ -8,7 +8,7 @@ import { OrchestratedItemTransformer } from '@spinnaker/core';
 
 export const CANARY_CANARY_CANARYSTAGE_TRANSFORMER = 'spinnaker.canary.transformer';
 export const name = CANARY_CANARY_CANARYSTAGE_TRANSFORMER; // for backwards compatibility
-module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransformer', function() {
+module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransformer', function () {
   // adds "canary" or "baseline" to the deploy stage name when converting it to a task
   function getDeployTaskName(stage) {
     if (stage.context.freeFormDetails) {
@@ -41,8 +41,8 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
   }
 
   function buildCanaryDeploymentsFromClusterPairs(stage) {
-    return _.map(stage.context.clusterPairs, function(pair) {
-      const name = function(cluster) {
+    return _.map(stage.context.clusterPairs, function (pair) {
+      const name = function (cluster) {
         const parts = [cluster.application];
         if (cluster.stack) {
           parts.push(cluster.stack);
@@ -54,7 +54,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
         }
         return parts.join('-');
       };
-      const region = function(cluster) {
+      const region = function (cluster) {
         return _.head(_.keys(cluster.availabilityZones));
       };
       return {
@@ -124,13 +124,13 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
     };
   }
 
-  this.transform = function(application, execution) {
+  this.transform = function (application, execution) {
     const syntheticStagesToAdd = [];
     if (!execution.hydrated) {
       // don't bother trying to transform if it isn't hydrated
       return;
     }
-    execution.stages.forEach(function(stage) {
+    execution.stages.forEach(function (stage) {
       if (stage.type === 'canary') {
         OrchestratedItemTransformer.defineProperties(stage);
         stage.exceptions = [];
@@ -158,7 +158,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
         }
 
         const deployStages = execution.stages.filter(
-          s => s.parentStageId === deployParent.id && ['deploy', 'createServerGroup'].includes(s.type),
+          (s) => s.parentStageId === deployParent.id && ['deploy', 'createServerGroup'].includes(s.type),
         );
 
         if (getException(monitorStage)) {
@@ -169,7 +169,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
           stage.exceptions.push('Deploy Canary failure: ' + getException(deployParent));
         }
 
-        deployStages.forEach(deployStage => {
+        deployStages.forEach((deployStage) => {
           if (getException(deployStage)) {
             stage.exceptions.push(deployStage.name + ': ' + getException(deployStage));
           }
@@ -220,7 +220,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
         }
         stage.status = status;
 
-        const tasks = _.map(deployStages, function(deployStage) {
+        const tasks = _.map(deployStages, function (deployStage) {
           const region = _.head(_.keys(deployStage.context.availabilityZones));
           return {
             id: deployStage.id,
@@ -243,8 +243,8 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
 
         stage.tasks = tasks;
 
-        const deployments = stage.context.canary.canaryDeployments.filter(d => d.baselineCluster && d.canaryCluster);
-        deployments.forEach(function(deployment, deploymentIdx) {
+        const deployments = stage.context.canary.canaryDeployments.filter((d) => d.baselineCluster && d.canaryCluster);
+        deployments.forEach(function (deployment, deploymentIdx) {
           deployment.id = deployment.id || deploymentIdx;
 
           const deployedClusterPair = _.find(monitorStage.context.deployedClusterPairs, {
@@ -272,7 +272,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
           deployment.canaryResult = deployment.canaryAnalysisResult || {};
           deployment.canaryCluster = deployment.canaryCluster || {};
 
-          const foundTask = _.find(stage.tasks, function(task) {
+          const foundTask = _.find(stage.tasks, function (task) {
             return (
               task.region === deployment.baselineCluster.region && task.commits !== undefined && task.commits.length > 0
             );
@@ -330,7 +330,7 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
             ),
           );
         });
-        execution.stages = execution.stages.filter(stage => !deployStages.includes(stage));
+        execution.stages = execution.stages.filter((stage) => !deployStages.includes(stage));
       }
     });
     execution.stages = execution.stages.concat(syntheticStagesToAdd);

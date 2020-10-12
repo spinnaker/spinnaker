@@ -91,7 +91,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   };
 
   public componentDidMount(): void {
-    LoadBalancerDataUtils.populateLoadBalancers(this.props.application, this.props.serverGroup).then(loadBalancers =>
+    LoadBalancerDataUtils.populateLoadBalancers(this.props.application, this.props.serverGroup).then((loadBalancers) =>
       this.setState({ loadBalancers, isLoading: false }),
     );
 
@@ -120,7 +120,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     const popover = (
       <div className="menu-load-balancers">
         <div className="menu-load-balancers-header"> Load Balancers </div>
-        {sortBy(loadBalancers, 'name').map(loadBalancer => (
+        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
           <LoadBalancerListItem
             key={loadBalancer.name}
             loadBalancer={loadBalancer}
@@ -156,7 +156,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
 
         {totalCount === 1 && (
           <span className="btn-load-balancer">
-            {sortBy(loadBalancers, 'name').map(loadBalancer => (
+            {sortBy(loadBalancers, 'name').map((loadBalancer) => (
               <LoadBalancerButton
                 key={loadBalancer.name}
                 loadBalancer={loadBalancer}

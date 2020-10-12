@@ -1,13 +1,13 @@
 'use strict';
 
-describe('Controller: gceServerGroupDetailsCtrl', function() {
+describe('Controller: gceServerGroupDetailsCtrl', function () {
   let controller;
   let scope;
 
   beforeEach(window.module(require('./serverGroupDetails.gce.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('gceServerGroupDetailsCtrl', {
         $scope: scope,
@@ -20,7 +20,7 @@ describe('Controller: gceServerGroupDetailsCtrl', function() {
     }),
   );
 
-  it('should instantiate the controller', function() {
+  it('should instantiate the controller', function () {
     expect(controller).toBeDefined();
   });
 });

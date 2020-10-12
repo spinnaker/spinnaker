@@ -12,7 +12,7 @@ describe('ApplicationsPickerInput', () => {
   }
 
   function asyncTick() {
-    return new Promise(resolve => setTimeout(resolve));
+    return new Promise((resolve) => setTimeout(resolve));
   }
 
   it('lists applications on mount', () => {

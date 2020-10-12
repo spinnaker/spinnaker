@@ -16,7 +16,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL
   'application',
   'serverGroup',
   'awsServerGroupCommandBuilder',
-  function($scope, $uibModalInstance, application, serverGroup, awsServerGroupCommandBuilder) {
+  function ($scope, $uibModalInstance, application, serverGroup, awsServerGroupCommandBuilder) {
     $scope.command = awsServerGroupCommandBuilder.buildUpdateServerGroupCommand(serverGroup);
 
     $scope.serverGroup = serverGroup;
@@ -31,7 +31,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL
     this.submit = () => {
       const job = [$scope.command];
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return TaskExecutor.executeTask({
           job: job,
           application: application,

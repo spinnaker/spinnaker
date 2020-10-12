@@ -22,7 +22,7 @@ import './pipeline/stages/deployAppengineConfig/deployAppengineConfigStage';
 import './logo/appengine.logo.less';
 
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

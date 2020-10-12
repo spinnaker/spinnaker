@@ -150,7 +150,7 @@ export class ExecutionMarkerInformationModal extends React.PureComponent<
 
     const content = this.state.showPipelineGraph ? (
       <div className="">
-        {this.allExecutions.map(item => {
+        {this.allExecutions.map((item) => {
           return (
             <div key={`${item.execution.id}-${item.execution.name}`} className="execution-graph">
               {item.execution.application} - {item.execution.name}

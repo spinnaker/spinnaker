@@ -114,7 +114,7 @@ export class PipelineGraphService {
     };
     nodes.push(configNode);
 
-    pipeline.stages.forEach(function(stage: IExecutionStageSummary, idx: number) {
+    pipeline.stages.forEach(function (stage: IExecutionStageSummary, idx: number) {
       const warnings = pipelineValidations.stages.find((e: any) => e.stage === stage);
       const parentIds = (stage.requisiteStageRefIds || []).slice();
       const node: IPipelineGraphNode = {

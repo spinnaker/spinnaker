@@ -91,7 +91,7 @@ export class FormikAccountRegionSelector extends React.Component<
           <FormikFormField
             name={componentName ? `${componentName}.${credentialsField}` : `${credentialsField}`}
             label="Account"
-            input={props => (
+            input={(props) => (
               <ReactSelectInput
                 {...props}
                 stringOptions={accounts && accounts.map((acc: IAccount) => acc.name)}
@@ -107,7 +107,7 @@ export class FormikAccountRegionSelector extends React.Component<
           <FormikFormField
             name={componentName ? `${componentName}.region` : 'region'}
             label="Region"
-            input={props => <ReactSelectInput {...props} stringOptions={availableRegions} clearable={false} />}
+            input={(props) => <ReactSelectInput {...props} stringOptions={availableRegions} clearable={false} />}
             required={true}
           />
         </div>

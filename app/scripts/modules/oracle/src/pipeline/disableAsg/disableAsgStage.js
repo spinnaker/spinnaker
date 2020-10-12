@@ -8,7 +8,7 @@ export const ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE = 'spinnaker.oracle.pipe
 export const name = ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE; // for backwards compatibility
 angular
   .module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'oracle',
@@ -29,7 +29,7 @@ angular
   })
   .controller('oracleDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       const provider = 'oracle';
@@ -39,7 +39,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts(provider).then(function(accounts) {
+      AccountService.listAccounts(provider).then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

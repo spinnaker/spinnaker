@@ -14,8 +14,8 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_SIMPLECAPACITYSELECTOR_COMPO
     },
     controller: 'gceServerGroupSimpleCapacitySelectorCtrl',
   })
-  .controller('gceServerGroupSimpleCapacitySelectorCtrl', function() {
-    this.setMinMax = newVal => {
+  .controller('gceServerGroupSimpleCapacitySelectorCtrl', function () {
+    this.setMinMax = (newVal) => {
       this.command.capacity.min = newVal;
       this.command.capacity.max = newVal;
     };

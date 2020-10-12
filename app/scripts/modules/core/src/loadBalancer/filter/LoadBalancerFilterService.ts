@@ -50,19 +50,21 @@ export class LoadBalancerFilterService {
 
   public filterLoadBalancersForDisplay(loadBalancers: ILoadBalancer[]): ILoadBalancer[] {
     return chain(loadBalancers)
-      .filter(lb => this.checkSearchTextFilter(lb))
-      .filter(lb => FilterModelService.checkAccountFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkRegionFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkStackFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkDetailFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkStatusFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkProviderFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
-      .filter(lb => this.instanceFilters(lb))
+      .filter((lb) => this.checkSearchTextFilter(lb))
+      .filter((lb) => FilterModelService.checkAccountFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => FilterModelService.checkRegionFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => FilterModelService.checkStackFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => FilterModelService.checkDetailFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => FilterModelService.checkStatusFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => FilterModelService.checkProviderFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter((lb) => this.instanceFilters(lb))
       .value();
   }
 
   private instanceFilters(loadBalancer: ILoadBalancer): boolean {
-    return !this.shouldFilterInstances() || some(loadBalancer.instances, instance => this.shouldShowInstance(instance));
+    return (
+      !this.shouldFilterInstances() || some(loadBalancer.instances, (instance) => this.shouldShowInstance(instance))
+    );
   }
 
   private shouldFilterInstances(): boolean {
@@ -112,10 +114,10 @@ export class LoadBalancerFilterService {
         }
       }
     });
-    groupsToRemove.reverse().forEach(idx => {
+    groupsToRemove.reverse().forEach((idx) => {
       oldGroups.splice(idx, 1);
     });
-    newGroups.forEach(newGroup => {
+    newGroups.forEach((newGroup) => {
       const match = find(oldGroups, { heading: newGroup.heading });
       if (!match) {
         oldGroups.push(newGroup);
@@ -153,10 +155,10 @@ export class LoadBalancerFilterService {
         }
       }
     });
-    toRemove.reverse().forEach(idx => {
+    toRemove.reverse().forEach((idx) => {
       oldGroup.serverGroups.splice(idx, 1);
     });
-    newGroup.serverGroups.forEach(serverGroup => {
+    newGroup.serverGroups.forEach((serverGroup) => {
       const oldServerGroup = find(oldGroup.serverGroups, {
         name: serverGroup.name,
         account: serverGroup.account,
@@ -191,7 +193,7 @@ export class LoadBalancerFilterService {
 
   private filterServerGroups(loadBalancer: ILoadBalancer): IServerGroup[] {
     if (this.shouldFilterInstances()) {
-      return loadBalancer.serverGroups.filter(serverGroup => {
+      return loadBalancer.serverGroups.filter((serverGroup) => {
         return serverGroup.instances.some((instance: IInstance) => this.shouldShowInstance(instance));
       });
     }
@@ -220,7 +222,7 @@ export class LoadBalancerFilterService {
 
     forOwn(grouped, (group, account) => {
       const groupedByType = values(groupBy(group, 'loadBalancerType'));
-      const namesByType = groupedByType.map(g => g.map(lb => lb.name));
+      const namesByType = groupedByType.map((g) => g.map((lb) => lb.name));
       const crossTypeLoadBalancerNames =
         namesByType.length > 1
           ? intersection(...namesByType).reduce<{ [key: string]: boolean }>((acc, name) => {
@@ -228,13 +230,13 @@ export class LoadBalancerFilterService {
               return acc;
             }, {})
           : {};
-      const subGroupings = groupBy(group, lb => `${lb.name}:${lb.loadBalancerType}`);
+      const subGroupings = groupBy(group, (lb) => `${lb.name}:${lb.loadBalancerType}`);
       const subGroups: ILoadBalancerGroup[] = [];
 
       forOwn(subGroupings, (subGroup, nameAndType) => {
         const [name, type] = nameAndType.split(':');
         const subSubGroups: ILoadBalancerGroup[] = [];
-        subGroup.forEach(loadBalancer => {
+        subGroup.forEach((loadBalancer) => {
           subSubGroups.push({
             heading: loadBalancer.region,
             loadBalancer,

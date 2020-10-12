@@ -11,7 +11,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELE
   UI_SELECT,
   GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
 ])
-  .directive('gceServerGroupAdvancedSettingsSelector', function() {
+  .directive('gceServerGroupAdvancedSettingsSelector', function () {
     return {
       restrict: 'E',
       templateUrl: require('./advancedSettings.directive.html'),
@@ -26,17 +26,17 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELE
   .controller('gceServerGroupAdvancedSettingsSelectorCtrl', [
     '$scope',
     'gceTagManager',
-    function($scope, gceTagManager) {
+    function ($scope, gceTagManager) {
       this.addTag = () => {
         this.command.tags.push({});
       };
 
-      this.removeTag = index => {
+      this.removeTag = (index) => {
         this.command.tags.splice(index, 1);
         gceTagManager.updateSelectedTags();
       };
 
-      this.setDisks = disks => {
+      this.setDisks = (disks) => {
         this.command.disks = disks;
       };
 
@@ -61,7 +61,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELE
         }
       };
 
-      this.setAcceleratorConfigs = configs => {
+      this.setAcceleratorConfigs = (configs) => {
         $scope.$apply(() => {
           this.command.acceleratorConfigs = configs;
         });

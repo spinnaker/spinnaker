@@ -65,7 +65,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
     this.reloadRegions();
   }
 
@@ -78,7 +78,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     if (credentials) {
       Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
         .takeUntil(this.destroy$)
-        .subscribe(regions => this.setState({ regions }));
+        .subscribe((regions) => this.setState({ regions }));
     }
   };
 
@@ -131,14 +131,14 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
         <CreateUserProvidedInput
           onChange={this.serviceManifestSourceUpdated}
           service={directManifest}
-          onServiceChanged={direct => this.serviceManifestSourceUpdated({ direct })}
+          onServiceChanged={(direct) => this.serviceManifestSourceUpdated({ direct })}
         />
       ) : (
         <CreateServiceInstanceDirectInput
           credentials={credentials}
           region={region}
           service={directManifest}
-          onServiceChanged={direct => this.serviceManifestSourceUpdated({ direct })}
+          onServiceChanged={(direct) => this.serviceManifestSourceUpdated({ direct })}
         />
       );
     } else {
@@ -168,7 +168,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
             clearable={false}
             onChange={this.accountUpdated}
             value={credentials}
-            stringOptions={accounts.map(it => it.name)}
+            stringOptions={accounts.map((it) => it.name)}
           />
         </StageConfigField>
         <StageConfigField label="Region">
@@ -176,7 +176,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
             clearable={false}
             onChange={this.regionUpdated}
             value={region}
-            stringOptions={regions.map(it => it.name)}
+            stringOptions={regions.map((it) => it.name)}
           />
         </StageConfigField>
         <StageConfigField label="User-provided">

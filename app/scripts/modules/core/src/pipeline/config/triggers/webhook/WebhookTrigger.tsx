@@ -22,7 +22,7 @@ export function WebhookTrigger(webhookTriggerProps: IWebhookTriggerProps) {
         name="source"
         label="Source"
         help={<HelpField id="pipeline.config.trigger.webhook.source" />}
-        input={props => (
+        input={(props) => (
           <div className="flex-container-v">
             <TextInput {...props} />
             <i>{`${SETTINGS.gateUrl}/webhooks/${type}/${source || '<source>'}`}</i>
@@ -34,7 +34,7 @@ export function WebhookTrigger(webhookTriggerProps: IWebhookTriggerProps) {
         name="payloadConstraints"
         label="Payload Constraints"
         help={<HelpField id="pipeline.config.trigger.webhook.payloadConstraints" />}
-        input={props => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
+        input={(props) => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
       />
     </>
   );

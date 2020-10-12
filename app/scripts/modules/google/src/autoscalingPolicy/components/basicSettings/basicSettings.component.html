@@ -1,8 +1,6 @@
 <ng-form name="basicSettingsForm">
   <div class="row">
-    <div class="col-md-3 sm-label-right">
-      Minimum number of instances
-    </div>
+    <div class="col-md-3 sm-label-right">Minimum number of instances</div>
     <div class="col-md-2 content-fields">
       <input
         type="number"
@@ -19,9 +17,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-3 sm-label-right">
-      Maximum number of instances
-    </div>
+    <div class="col-md-3 sm-label-right">Maximum number of instances</div>
     <div class="col-md-2 content-fields">
       <input
         type="number"
@@ -65,9 +61,9 @@
     </div>
     <div class="col-md-2 content-fields">
       <select class="form-control input-sm" name="mode" ng-model="$ctrl.policy.mode">
-        <option ng-repeat="mode in $ctrl.modes" value="{{ mode }}" ng-selected="$ctrl.policy.mode === mode">{{
-          mode
-        }}</option>
+        <option ng-repeat="mode in $ctrl.modes" value="{{ mode }}" ng-selected="$ctrl.policy.mode === mode">
+          {{ mode }}
+        </option>
       </select>
     </div>
   </div>

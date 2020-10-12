@@ -44,7 +44,7 @@ function SpinFormikImpl<Values extends {}>(props: FormikConfig<Values>, ref?: Re
       ref={saveRef}
       {...props}
       isInitialValid={props.isInitialValid || defaultIsInitialValid}
-      render={renderProps => ready && props.render && props.render(renderProps)}
+      render={(renderProps) => ready && props.render && props.render(renderProps)}
     />
   );
 }

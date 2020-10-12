@@ -11,7 +11,7 @@ interface IKeys {
   sg: string[];
 }
 
-describe('Service: cacheInitializer', function() {
+describe('Service: cacheInitializer', function () {
   let $q: IQService;
   let $root: IRootScopeService;
   let cacheInitializer: CacheInitializerService;
@@ -19,7 +19,7 @@ describe('Service: cacheInitializer', function() {
 
   beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
-    mock.inject(function(
+    mock.inject(function (
       _$q_: IQService,
       _$rootScope_: IRootScopeService,
       _cacheInitializer_: CacheInitializerService,
@@ -35,7 +35,7 @@ describe('Service: cacheInitializer', function() {
     InfrastructureCaches.destroyCaches();
   });
 
-  it('should initialize injected dependencies', function() {
+  it('should initialize injected dependencies', function () {
     expect($q).toBeDefined();
     expect($root).toBeDefined();
     expect(cacheInitializer).toBeDefined();

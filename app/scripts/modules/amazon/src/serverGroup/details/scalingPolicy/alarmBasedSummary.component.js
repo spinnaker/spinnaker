@@ -25,7 +25,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
   templateUrl: require('./alarmBasedSummary.component.html'),
   controller: [
     '$uibModal',
-    function($uibModal) {
+    function ($uibModal) {
       this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
       this.editPolicy = () => {

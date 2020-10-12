@@ -60,22 +60,22 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
     this.query$
       .debounceTime(300)
-      .do(query => {
+      .do((query) => {
         ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
         this.setState({ querying: true });
       })
       .switchMap((query: string) => Observable.fromPromise(search.query(query)))
-      .map(result =>
+      .map((result) =>
         result
           .filter(({ results }) => results.length)
-          .map(category => ({
+          .map((category) => ({
             ...category,
             results: searchRank(category.results, category.query).slice(0, 5),
           }))
           .sort((a, b) => a.type.order - b.type.order),
       )
       .takeUntil(this.destroy$)
-      .subscribe(categories => {
+      .subscribe((categories) => {
         this.resultRefs = categories.map(() => []);
 
         this.setState({ querying: false, categories });
@@ -278,12 +278,12 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     const { showDropdown, query } = this.state;
 
     return (
-      <li ref={ref => (this.container = ref)} className="global-search open">
+      <li ref={(ref) => (this.container = ref)} className="global-search open">
         <form className="right global-search">
           <div className="form-group has-feedback">
             <div className="input-group">
               <input
-                ref={ref => (this.searchField = ref)}
+                ref={(ref) => (this.searchField = ref)}
                 type="search"
                 className="form-control flat input-sm no-border"
                 placeholder="Search"

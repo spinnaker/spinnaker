@@ -26,10 +26,10 @@ interface IFilterModel {
 
 const Groupings = ({ groups, app }: { groups: ISecurityGroupGroup[]; app: Application }) => (
   <div>
-    {groups.map(group => (
+    {groups.map((group) => (
       <div key={group.heading} className="rollup">
         {group.subgroups &&
-          group.subgroups.map(subgroup => (
+          group.subgroups.map((subgroup) => (
             <SecurityGroupPod
               key={subgroup.heading}
               grouping={subgroup}

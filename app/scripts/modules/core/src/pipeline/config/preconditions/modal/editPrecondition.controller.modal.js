@@ -16,14 +16,14 @@ angular
     'strategy',
     'application',
     'upstreamStages',
-    function($scope, $uibModalInstance, precondition, strategy, application, upstreamStages) {
+    function ($scope, $uibModalInstance, precondition, strategy, application, upstreamStages) {
       const vm = this;
 
       vm.strategy = strategy;
       vm.application = application;
       vm.precondition = angular.copy(precondition);
       vm.upstreamStages = upstreamStages;
-      vm.submit = function() {
+      vm.submit = function () {
         $uibModalInstance.close(vm.precondition);
       };
 

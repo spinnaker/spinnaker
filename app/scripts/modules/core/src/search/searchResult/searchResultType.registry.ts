@@ -8,7 +8,7 @@ export class SearchResultTypeRegistry {
   }
 
   public get(typeId: string): SearchResultType {
-    return this.types.find(f => f.id === typeId);
+    return this.types.find((f) => f.id === typeId);
   }
 
   public getAll(): SearchResultType[] {
@@ -16,7 +16,7 @@ export class SearchResultTypeRegistry {
   }
 
   public getSearchCategories(): string[] {
-    return this.types.map(f => f.id);
+    return this.types.map((f) => f.id);
   }
 }
 

@@ -22,9 +22,6 @@ export interface IPreconfiguredJob {
 
 export const PreconfiguredJobReader = {
   list(): IPromise<IPreconfiguredJob[]> {
-    return API.one('jobs')
-      .all('preconfigured')
-      .useCache()
-      .getList();
+    return API.one('jobs').all('preconfigured').useCache().getList();
   },
 };

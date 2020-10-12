@@ -95,7 +95,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
     const { disabledServerGroups } = this.props;
     const newCommand = { ...this.state.command };
     newCommand.rollbackContext.restoreServerGroupName = restoreServerGroupOption.value;
-    const restoreServerGroup = this.filterServerGroups(disabledServerGroups).find(function(disabledServerGroup: any) {
+    const restoreServerGroup = this.filterServerGroups(disabledServerGroups).find(function (disabledServerGroup: any) {
       return disabledServerGroup.name === restoreServerGroupOption.value;
     });
     newCommand.targetSize = restoreServerGroup.capacity.max;

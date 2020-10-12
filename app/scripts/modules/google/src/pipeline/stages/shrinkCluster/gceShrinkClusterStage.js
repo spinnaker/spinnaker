@@ -8,13 +8,13 @@ export const GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE =
   'spinnaker.gce.pipeline.stage..shrinkClusterStage';
 export const name = GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'gce',
       templateUrl: require('./shrinkClusterStage.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
@@ -25,7 +25,7 @@ module(GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE, [])
   })
   .controller('gceShrinkClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -35,7 +35,7 @@ module(GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -58,7 +58,7 @@ module(GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE, [])
         stage.allowDeleteActive = false;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         if (val === 1) {
           return str;
         }

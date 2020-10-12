@@ -4,13 +4,13 @@ import { AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor } from '.
 import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
-describe('authenticationInterceptor', function() {
+describe('authenticationInterceptor', function () {
   let interceptor: AuthenticationInterceptor, $rootScope: IRootScopeService;
 
   beforeEach(mock.module(AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
-    mock.inject(function(
+    mock.inject(function (
       _$q_: IQService,
       _$rootScope_: IRootScopeService,
       _authenticationInterceptor_: AuthenticationInterceptor,
@@ -20,28 +20,28 @@ describe('authenticationInterceptor', function() {
     }),
   );
 
-  describe('non-intercepted requests', function() {
-    it('resolves immediately for auth endpoint', function() {
+  describe('non-intercepted requests', function () {
+    it('resolves immediately for auth endpoint', function () {
       let resolved: IRequestConfig = null;
       const request: IRequestConfig = { url: SETTINGS.authEndpoint, method: 'GET' };
-      interceptor.request(request).then(function(result) {
+      interceptor.request(request).then(function (result) {
         resolved = result;
       });
       $rootScope.$digest();
       expect(resolved).toBe(request);
     });
 
-    it('resolves immediately for relative and non-http requests', function() {
+    it('resolves immediately for relative and non-http requests', function () {
       let resolved: IRequestConfig = null;
       const request: IRequestConfig = { url: '/something/relative', method: 'GET' };
-      interceptor.request(request).then(function(result) {
+      interceptor.request(request).then(function (result) {
         resolved = result;
       });
       $rootScope.$digest();
       expect(resolved.url).toBe(request.url);
 
       request.url = 'tcp://what.are.you.doing.here';
-      interceptor.request(request).then(function(result) {
+      interceptor.request(request).then(function (result) {
         resolved = result;
       });
       $rootScope.$digest();
@@ -49,8 +49,8 @@ describe('authenticationInterceptor', function() {
     });
   });
 
-  describe('intercepted requests', function() {
-    it('registers event with authentication service and does not resolve when not authenticated', function() {
+  describe('intercepted requests', function () {
+    it('registers event with authentication service and does not resolve when not authenticated', function () {
       let resolved: IRequestConfig = null;
       const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
       const pendingRequests: Function[] = [];
@@ -60,7 +60,7 @@ describe('authenticationInterceptor', function() {
         pendingRequests.push(pendingRequest),
       );
 
-      interceptor.request(request).then(function(result) {
+      interceptor.request(request).then(function (result) {
         resolved = result;
       });
       $rootScope.$digest();
@@ -73,7 +73,7 @@ describe('authenticationInterceptor', function() {
       expect(resolved).toBe(request);
     });
 
-    it('resolves immediately when authenticated', function() {
+    it('resolves immediately when authenticated', function () {
       let resolved: IRequestConfig = null;
       const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
 
@@ -82,7 +82,7 @@ describe('authenticationInterceptor', function() {
         lastAuthenticated: new Date().getTime(),
       });
 
-      interceptor.request(request).then(function(result) {
+      interceptor.request(request).then(function (result) {
         resolved = result;
       });
       $rootScope.$digest();

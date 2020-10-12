@@ -2,11 +2,11 @@
 
 import { AccountService } from '@spinnaker/core';
 
-describe('dcosServerGroupCommandBuilder', function() {
+describe('dcosServerGroupCommandBuilder', function () {
   beforeEach(window.module(require('./CommandBuilder').name));
 
   beforeEach(
-    window.inject(function(dcosServerGroupCommandBuilder, $q, $rootScope) {
+    window.inject(function (dcosServerGroupCommandBuilder, $q, $rootScope) {
       this.dcosServerGroupCommandBuilder = dcosServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.$q = $q;
@@ -14,12 +14,12 @@ describe('dcosServerGroupCommandBuilder', function() {
     }),
   );
 
-  describe('buildNewServerGroupCommand', function() {
-    it('should initialize to default values', function() {
+  describe('buildNewServerGroupCommand', function () {
+    it('should initialize to default values', function () {
       var command = null;
       this.dcosServerGroupCommandBuilder
         .buildNewServerGroupCommand({ name: 'dcosApp', accounts: ['test'] })
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 
@@ -28,8 +28,8 @@ describe('dcosServerGroupCommandBuilder', function() {
     });
   });
 
-  describe('buildServerGroupCommandFromExisting', function() {
-    it('should use base server group otherwise use the default', function() {
+  describe('buildServerGroupCommandFromExisting', function () {
+    it('should use base server group otherwise use the default', function () {
       var baseServerGroup = {};
       baseServerGroup.deployDescription = {
         account: 'test-account',
@@ -45,7 +45,7 @@ describe('dcosServerGroupCommandBuilder', function() {
       var command = null;
       this.dcosServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'dcosApp' }, baseServerGroup)
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 

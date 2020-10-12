@@ -30,7 +30,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
     templateUrl: require('./metricAlarmChart.component.html'),
     controller: [
       '$filter',
-      function($filter) {
+      function ($filter) {
         // converts alarm into parameters used to retrieve statistic data
         const getFilterParameters = () => {
           const alarm = this.alarm;
@@ -79,13 +79,13 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
         };
 
         // forces tooltips to render with the same time format we use throughout the application
-        const tooltipHook = rows => {
+        const tooltipHook = (rows) => {
           if (!rows) {
             return null;
           }
           return {
             abscissas: $filter('timestamp')(rows[0].row.x.getTime()),
-            rows: rows.map(function(row) {
+            rows: rows.map(function (row) {
               return {
                 label: row.series.label,
                 value: _.round(row.row.y1, 2),
@@ -104,14 +104,14 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
             this.alarm.metricName,
             getFilterParameters(),
           )
-            .then(stats => {
+            .then((stats) => {
               if (this.stats) {
                 this.stats.unit = stats.unit;
               }
               this.chartData.loading = false;
               this.chartData.noData = false;
               if (stats.datapoints && stats.datapoints.length) {
-                stats.datapoints.forEach(point => {
+                stats.datapoints.forEach((point) => {
                   point.timestamp = new Date(point.timestamp); // convert to Date object for graph
                 });
                 this.chartData.datapoints = stats.datapoints;

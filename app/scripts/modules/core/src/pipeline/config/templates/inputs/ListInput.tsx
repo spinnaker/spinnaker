@@ -44,7 +44,7 @@ class ListInput extends React.Component<IVariableProps, IVariableState> {
   }
 
   private findErrorsForInput(inputKey: number): IVariableError[] {
-    return this.props.variable.errors ? this.props.variable.errors.filter(e => e.key === inputKey) : [];
+    return this.props.variable.errors ? this.props.variable.errors.filter((e) => e.key === inputKey) : [];
   }
 
   private extractValue(i: number) {

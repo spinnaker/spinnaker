@@ -44,11 +44,11 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
     this.refresh$
       .switchMap((categories: string[]) => {
         return Observable.forkJoin(
-          categories.map(category => {
+          categories.map((category) => {
             const config = this.search.getCategoryConfig(category);
             const items = RecentHistoryService.getItems(category);
-            const promises = items.map(item => this.getFullHistoryEntry(category, item));
-            return Promise.all(promises).then(results => ({
+            const promises = items.map((item) => this.getFullHistoryEntry(category, item));
+            return Promise.all(promises).then((results) => ({
               category,
               config,
               results: this.props.limit ? results.slice(0, this.props.limit) : results,
@@ -56,11 +56,11 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
           }),
         );
       })
-      .map(recentItems => {
-        return recentItems.filter(item => item.results.length);
+      .map((recentItems) => {
+        return recentItems.filter((item) => item.results.length);
       })
       .takeUntil(this.destroy$)
-      .subscribe(recentItems => {
+      .subscribe((recentItems) => {
         this.setState({ recentItems });
       });
 
@@ -70,7 +70,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   /** fetches the displayName and adds it to the history entry */
   private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): IPromise<ISearchResult> {
     const routeParams = { ...item.params, ...item.extraData };
-    return this.search.formatRouteResult(category, routeParams).then(displayName => ({ ...item, displayName }));
+    return this.search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
   }
 
   private handleRemoveProject = (projectId: string) => {

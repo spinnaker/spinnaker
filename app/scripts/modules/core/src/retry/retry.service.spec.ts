@@ -1,12 +1,12 @@
 import { mock } from 'angular';
 import { RetryService } from './retry.service';
 
-describe('Service: Retry', function() {
+describe('Service: Retry', function () {
   let $q: ng.IQService;
   let $timeout: ng.ITimeoutService;
 
   beforeEach(
-    mock.inject(function(_$q_: ng.IQService, _$timeout_: ng.ITimeoutService) {
+    mock.inject(function (_$q_: ng.IQService, _$timeout_: ng.ITimeoutService) {
       $q = _$q_;
       $timeout = _$timeout_;
     }),

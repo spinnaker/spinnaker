@@ -17,7 +17,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
   '$scope',
   'stage',
   '$timeout',
-  function($scope, stage, $timeout) {
+  function ($scope, stage, $timeout) {
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     const dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
@@ -34,15 +34,15 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
 
     AccountService.listProviders$($scope.application)
       .take(1)
-      .subscribe(function(providers) {
+      .subscribe(function (providers) {
         $scope.viewState.loading = false;
         const availableProviders = [];
-        stageProviders.forEach(sp => {
+        stageProviders.forEach((sp) => {
           if (sp.cloudProvider && providers.includes(sp.cloudProvider)) {
             // default to the specified cloud provider if the app supports it
             availableProviders.push(sp.cloudProvider);
           } else if (sp.providesFor) {
-            availableProviders.push(...sp.providesFor.filter(p => providers.includes(p)));
+            availableProviders.push(...sp.providesFor.filter((p) => providers.includes(p)));
           }
         });
         if (dockerBakeEnabled) {
@@ -61,7 +61,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
     let reactMounted = false;
     function loadProvider() {
       const stageProvider = (stageProviders || []).find(
-        s => s.cloudProvider === stage.cloudProviderType || (s.providesFor || []).includes(stage.cloudProviderType),
+        (s) => s.cloudProvider === stage.cloudProviderType || (s.providesFor || []).includes(stage.cloudProviderType),
       );
       if (stageProvider) {
         $scope.stage.type = stageProvider.key || $scope.stage.type;

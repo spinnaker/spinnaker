@@ -16,7 +16,7 @@ bootstrapModule.run([
         } else if (newValue.toUpperCase() === 'ALL') {
           trace.enable();
         } else {
-          const traceValues = newValue.split(',').map(str => str.trim().toUpperCase());
+          const traceValues = newValue.split(',').map((str) => str.trim().toUpperCase());
           trace.enable(...(traceValues as any));
         }
       }

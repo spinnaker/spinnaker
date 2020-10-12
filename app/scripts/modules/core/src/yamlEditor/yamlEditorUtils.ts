@@ -16,7 +16,7 @@ export function yamlStringToDocuments(yamlString: string): any[] {
 
 export function yamlDocumentsToString(yamlDocuments: any[]): string {
   try {
-    return yamlDocuments.map(m => dump(m)).join('---\n');
+    return yamlDocuments.map((m) => dump(m)).join('---\n');
   } catch (e) {
     return '';
   }

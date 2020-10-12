@@ -12,7 +12,7 @@ module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).control
   '$http',
   '$uibModalInstance',
   'canaryId',
-  function($scope, $http, $uibModalInstance, canaryId) {
+  function ($scope, $http, $uibModalInstance, canaryId) {
     $scope.command = {
       reason: null,
       result: 'SUCCESS',
@@ -20,7 +20,7 @@ module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).control
 
     $scope.state = 'editing';
 
-    this.endCanary = function() {
+    this.endCanary = function () {
       $scope.state = 'submitting';
       const targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'end'].join('/');
       $http

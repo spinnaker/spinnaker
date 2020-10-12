@@ -22,7 +22,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
   'application',
   'loadBalancer',
   'isNew',
-  function($scope, $uibModalInstance, $state, gceLoadBalancerTransformer, application, loadBalancer, isNew) {
+  function ($scope, $uibModalInstance, $state, gceLoadBalancerTransformer, application, loadBalancer, isNew) {
     const ctrl = this;
 
     $scope.isNew = isNew;
@@ -79,7 +79,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
     function initializeEditMode() {}
 
     function initializeCreateMode() {
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -100,7 +100,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
         .getDataSource('loadBalancers')
         .refresh(true)
         .then(() => {
-          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+          application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
             if (loadBalancer.account === account) {
               accountLoadBalancersByRegion[loadBalancer.region] =
                 accountLoadBalancersByRegion[loadBalancer.region] || [];
@@ -124,26 +124,26 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
 
     // Controller API
 
-    this.requiresHealthCheckPath = function() {
+    this.requiresHealthCheckPath = function () {
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
     };
 
-    this.prependForwardSlash = text => {
+    this.prependForwardSlash = (text) => {
       return text && text.indexOf('/') !== 0 ? `/${text}` : text;
     };
 
-    this.updateName = function() {
+    this.updateName = function () {
       $scope.loadBalancer.name = this.getName();
     };
 
-    this.getName = function() {
+    this.getName = function () {
       const loadBalancer = $scope.loadBalancer;
       const loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
-    this.accountUpdated = function() {
-      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+    this.accountUpdated = function () {
+      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function (regions) {
         if (_.isArray(regions)) {
           $scope.regions = _.map(regions, 'name');
         } else {
@@ -154,12 +154,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
       });
     };
 
-    this.regionUpdated = function() {
+    this.regionUpdated = function () {
       updateLoadBalancerNames();
       ctrl.updateName();
     };
 
-    this.setVisibilityHealthCheckTab = function() {
+    this.setVisibilityHealthCheckTab = function () {
       const wizard = ModalWizard;
 
       if ($scope.loadBalancer.listeners[0].healthCheck) {
@@ -176,10 +176,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
       }
     };
 
-    this.submit = function() {
+    this.submit = function () {
       const descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(function() {
+      $scope.taskMonitor.submit(function () {
         const params = {
           cloudProvider: 'gce',
           loadBalancerName: $scope.loadBalancer.name,
@@ -216,7 +216,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
       });
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
   },

@@ -8,7 +8,7 @@ export const name = CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER; //
 angular.module(CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER, []).controller('EditLinksModalCtrl', [
   'sections',
   '$uibModalInstance',
-  function(sections, $uibModalInstance) {
+  function (sections, $uibModalInstance) {
     this.cancel = $uibModalInstance.dismiss;
 
     this.initialize = () => {

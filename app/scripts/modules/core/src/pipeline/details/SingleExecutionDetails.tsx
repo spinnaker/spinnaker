@@ -64,7 +64,7 @@ export class SingleExecutionDetails extends React.Component<
     }
 
     executionService.getExecution($state.params.executionId).then(
-      execution => {
+      (execution) => {
         ExecutionsTransformer.transformExecution(app, execution);
         if (execution.isActive && !this.executionScheduler) {
           this.executionScheduler = SchedulerFactory.createScheduler(5000);
@@ -141,7 +141,7 @@ export class SingleExecutionDetails extends React.Component<
       pipeline: pipeline,
       application: app,
       trigger: execution.trigger,
-    }).then(command => {
+    }).then((command) => {
       const { executionService } = ReactInjector;
       executionService.startAndMonitorPipeline(app, command.pipelineName, command.trigger);
       ReactInjector.$state.go('^.^.executions');

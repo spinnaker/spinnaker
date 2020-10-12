@@ -16,7 +16,7 @@ import { AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './ba
 export const AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE = 'spinnaker.azure.pipeline.stage.bakeStage';
 export const name = AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE; // for backwards compatibility
 module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'azure',
@@ -25,7 +25,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
-      extraLabelLines: stage => {
+      extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       supportsCustomTimeout: true,
@@ -35,10 +35,10 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
         {
           type: 'upstreamVersionProvided',
           checkParentTriggers: true,
-          getMessage: labels =>
+          getMessage: (labels) =>
             'Bake stages should always have a stage or trigger preceding them that provides version information: ' +
             '<ul>' +
-            labels.map(label => `<li>${label}</li>`).join('') +
+            labels.map((label) => `<li>${label}</li>`).join('') +
             '</ul>' +
             'Otherwise, Spinnaker will bake and deploy the most-recently built package.',
         },
@@ -50,7 +50,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
     '$scope',
     '$q',
     '$uibModal',
-    function($scope, $q, $uibModal) {
+    function ($scope, $q, $uibModal) {
       $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
       $scope.stage.regions = $scope.stage.regions || [];
 
@@ -67,7 +67,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
           regions: BakeryReader.getRegions('azure'),
           baseOsOptions: BakeryReader.getBaseOsOptions('azure'),
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        }).then(function(results) {
+        }).then(function (results) {
           $scope.regions = results.regions;
           if ($scope.regions.length === 1) {
             $scope.stage.region = $scope.regions[0];
@@ -125,14 +125,14 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
       }
 
       function deleteEmptyProperties() {
-        _.forOwn($scope.stage, function(val, key) {
+        _.forOwn($scope.stage, function (val, key) {
           if (val === '') {
             delete $scope.stage[key];
           }
         });
       }
 
-      this.addExtendedAttribute = function() {
+      this.addExtendedAttribute = function () {
         if (!$scope.stage.extendedAttributes) {
           $scope.stage.extendedAttributes = {};
         }
@@ -142,7 +142,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
             controller: 'bakeStageAddExtendedAttributeController',
             controllerAs: 'addExtendedAttribute',
             resolve: {
-              extendedAttribute: function() {
+              extendedAttribute: function () {
                 return {
                   key: '',
                   value: '',
@@ -150,27 +150,27 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
               },
             },
           })
-          .result.then(function(extendedAttribute) {
+          .result.then(function (extendedAttribute) {
             $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
           })
           .catch(() => {});
       };
 
-      this.removeExtendedAttribute = function(key) {
+      this.removeExtendedAttribute = function (key) {
         delete $scope.stage.extendedAttributes[key];
       };
 
-      this.showTemplateFileName = function() {
+      this.showTemplateFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.templateFileName;
       };
 
-      this.showExtendedAttributes = function() {
+      this.showExtendedAttributes = function () {
         return (
           $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0)
         );
       };
 
-      this.showVarFileName = function() {
+      this.showVarFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.varFileName;
       };
 

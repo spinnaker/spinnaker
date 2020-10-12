@@ -43,7 +43,7 @@ export const Table = (props: ITableProps) => {
 
   const { layout, ...propsWithoutLayout } = props;
 
-  const normalizedColumns = props.columns.map(column => (typeof column === 'string' ? { name: column } : column));
+  const normalizedColumns = props.columns.map((column) => (typeof column === 'string' ? { name: column } : column));
   const tableContext = useMemo(
     () => ({
       layout,

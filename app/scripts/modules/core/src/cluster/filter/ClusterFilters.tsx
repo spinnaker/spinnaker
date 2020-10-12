@@ -180,7 +180,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
         <div className="content">
           {headings.providerType.length > 1 && (
             <FilterSection key="filter-provider" heading="Provider" expanded={true}>
-              {headings.providerType.map(heading => (
+              {headings.providerType.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   isCloudProvider={true}
@@ -192,7 +192,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             </FilterSection>
           )}
           <FilterSection key="filter-account" heading="Account" expanded={true}>
-            {headings.account.map(heading => (
+            {headings.account.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}
@@ -202,7 +202,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             ))}
           </FilterSection>
           <FilterSection key="filter-region" heading="Region" expanded={true}>
-            {headings.region.map(heading => (
+            {headings.region.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}
@@ -212,7 +212,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             ))}
           </FilterSection>
           <FilterSection key="filter-category" heading="Category" expanded={true}>
-            {headings.category.map(heading => (
+            {headings.category.map((heading) => (
               <FilterCheckbox
                 heading={robotToHuman(heading)}
                 key={heading}
@@ -222,7 +222,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             ))}
           </FilterSection>
           <FilterSection key="filter-stack" heading="Stack" expanded={true}>
-            {headings.stack.map(heading => (
+            {headings.stack.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}
@@ -232,7 +232,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             ))}
           </FilterSection>
           <FilterSection key="filter-detail" heading="Detail" expanded={true}>
-            {headings.detail.map(heading => (
+            {headings.detail.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}
@@ -243,7 +243,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
           </FilterSection>
           <FilterSection key="filter-status" heading="Status" expanded={true}>
             <div className="form">
-              {['Up', 'Down', 'Disabled', 'Starting', 'OutOfService', 'Unknown'].map(status => (
+              {['Up', 'Down', 'Disabled', 'Starting', 'OutOfService', 'Unknown'].map((status) => (
                 <div className="checkbox">
                   <label>
                     <input
@@ -260,7 +260,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             </div>
           </FilterSection>
           <FilterSection key="filter-az" heading="Availability Zones" expanded={true}>
-            {headings.availabilityZone.map(heading => (
+            {headings.availabilityZone.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}
@@ -270,7 +270,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
             ))}
           </FilterSection>
           <FilterSection key="filter-instance-types" heading="Instance Types" expanded={true}>
-            {headings.instanceType.map(heading => (
+            {headings.instanceType.map((heading) => (
               <FilterCheckbox
                 heading={heading}
                 key={heading}

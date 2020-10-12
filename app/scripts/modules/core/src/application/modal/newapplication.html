@@ -9,9 +9,9 @@
   <div ng-if="newAppModal.state.initializeFailed" style="...">
     <div
       class="horizontal middle center heading-4"
-      style="padding-left: 15px; padding-right: 15px; margin-bottom: 250px; height: 150px;"
+      style="padding-left: 15px; padding-right: 15px; margin-bottom: 250px; height: 150px"
     >
-      <i class="fa fa-exclamation-triangle" style="padding-right: 8px;"></i>
+      <i class="fa fa-exclamation-triangle" style="padding-right: 8px"></i>
       <span>
         Error initializing dialog. Check that your gate endpoint is accessible. Further information on troubleshooting
         this error is available <a href="https://www.spinnaker.io/setup/quickstart/faq/">here</a>.
@@ -63,7 +63,7 @@
           <input
             type="email"
             name="email"
-            class="form-control input-sm "
+            class="form-control input-sm"
             data-purpose="application-email"
             ng-model="newAppModal.application.email"
             placeholder="Enter an email address"
@@ -153,9 +153,7 @@
         <div class="col-md-3 sm-label-right">Cloud Providers</div>
         <div class="col-md-5">
           <ui-select multiple ng-model="newAppModal.application.cloudProviders" class="form-control input-sm">
-            <ui-select-match>
-              {{$item}}
-            </ui-select-match>
+            <ui-select-match> {{$item}} </ui-select-match>
             <ui-select-choices repeat="provider in newAppModal.data.cloudProviders | filter: $select.search">
               {{provider}}
             </ui-select-choices>

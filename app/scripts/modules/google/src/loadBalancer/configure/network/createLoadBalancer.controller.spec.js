@@ -3,15 +3,15 @@
 import * as angular from 'angular';
 import { ApplicationModelBuilder, ModalWizard } from '@spinnaker/core';
 
-describe('Controller: gceCreateLoadBalancerCtrl', function() {
+describe('Controller: gceCreateLoadBalancerCtrl', function () {
   // load the controller's module
-  beforeEach(function() {
+  beforeEach(function () {
     window.module(require('./createLoadBalancer.controller').name);
   });
 
   // Initialize the controller and a mock scope
   beforeEach(
-    window.inject(function($controller, $rootScope) {
+    window.inject(function ($controller, $rootScope) {
       this.$scope = $rootScope.$new();
       const app = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'loadBalancers',
@@ -28,7 +28,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
     }),
   );
 
-  it('requires health check path for HTTP/S', function() {
+  it('requires health check path for HTTP/S', function () {
     const loadBalancer = {
       healthCheckProtocol: 'HTTP',
     };
@@ -47,7 +47,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
     expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
   });
 
-  it('should update name', function() {
+  it('should update name', function () {
     const lb = this.$scope.loadBalancer;
     expect(lb).toBeDefined();
     expect(lb.name).toBeUndefined();
@@ -60,7 +60,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
     expect(lb.name).toBe('app-testStack');
   });
 
-  it('should make the health check tab invisible then visible again', function() {
+  it('should make the health check tab invisible then visible again', function () {
     spyOn(ModalWizard, 'includePage');
     spyOn(ModalWizard, 'markIncomplete');
     spyOn(ModalWizard, 'excludePage');

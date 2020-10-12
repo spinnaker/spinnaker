@@ -45,7 +45,7 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
       .ready()
       .then(() => {
         this.loadBalancers = (this.application.loadBalancers.data as ILoadBalancer[]).filter(
-          candidate => candidate.cloudProvider === 'appengine',
+          (candidate) => candidate.cloudProvider === 'appengine',
         );
 
         if (this.loadBalancers.length) {

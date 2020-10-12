@@ -8,7 +8,7 @@ export const ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE = 'spinnaker.oracle.pip
 export const name = ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE; // for backwards compatibility
 angular
   .module(ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'oracle',
@@ -23,7 +23,7 @@ angular
   })
   .controller('oracleFindAmiStageCtrl', [
     '$scope',
-    $scope => {
+    ($scope) => {
       const provider = 'oracle';
 
       const stage = $scope.stage;
@@ -33,7 +33,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts(provider).then(accounts => {
+      AccountService.listAccounts(provider).then((accounts) => {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

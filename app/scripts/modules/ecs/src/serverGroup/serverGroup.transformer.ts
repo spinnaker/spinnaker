@@ -82,7 +82,7 @@ export class EcsServerGroupTransformer {
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {
     return (vpcs: IVpc[]) => {
-      const match = vpcs.find(test => test.id === serverGroup.vpcId);
+      const match = vpcs.find((test) => test.id === serverGroup.vpcId);
       serverGroup.vpcName = match ? match.name : '';
       return serverGroup;
     };

@@ -57,7 +57,7 @@ class PageNavigatorController implements IController {
     const navigatorRect = this.$element.get(0).getBoundingClientRect();
     const scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
 
-    const currentPage = PageNavigationState.pages.find(p => {
+    const currentPage = PageNavigationState.pages.find((p) => {
       const content = this.container.find(`[data-page-content=${p.key}]`);
       if (content.length) {
         return content.get(0).getBoundingClientRect().bottom > scrollableContainerTop;

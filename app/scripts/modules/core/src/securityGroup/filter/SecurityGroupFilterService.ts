@@ -52,12 +52,12 @@ export class SecurityGroupFilterService {
     const service = FilterModelService;
     const model = SecurityGroupState.filterModel.asFilterModel;
     return chain(securityGroups)
-      .filter(sg => this.checkSearchTextFilter(sg))
-      .filter(sg => service.checkAccountFilters(model)(sg))
-      .filter(sg => service.checkRegionFilters(model)(sg))
-      .filter(sg => service.checkStackFilters(model)(sg))
-      .filter(sg => service.checkDetailFilters(model)(sg))
-      .filter(sg => service.checkProviderFilters(model)(sg))
+      .filter((sg) => this.checkSearchTextFilter(sg))
+      .filter((sg) => service.checkAccountFilters(model)(sg))
+      .filter((sg) => service.checkRegionFilters(model)(sg))
+      .filter((sg) => service.checkStackFilters(model)(sg))
+      .filter((sg) => service.checkDetailFilters(model)(sg))
+      .filter((sg) => service.checkProviderFilters(model)(sg))
       .value();
   }
 
@@ -81,7 +81,7 @@ export class SecurityGroupFilterService {
     const groupsToRemove: number[] = [];
 
     oldGroups.forEach((oldGroup, idx) => {
-      const newGroup = (newGroups || []).find(g => g.heading === oldGroup.heading && g.vpcName === oldGroup.vpcName);
+      const newGroup = (newGroups || []).find((g) => g.heading === oldGroup.heading && g.vpcName === oldGroup.vpcName);
       if (!newGroup) {
         groupsToRemove.push(idx);
       } else {
@@ -97,10 +97,10 @@ export class SecurityGroupFilterService {
         }
       }
     });
-    groupsToRemove.reverse().forEach(idx => {
+    groupsToRemove.reverse().forEach((idx) => {
       oldGroups.splice(idx, 1);
     });
-    newGroups.forEach(newGroup => {
+    newGroups.forEach((newGroup) => {
       const match = find(oldGroups, { heading: newGroup.heading });
       if (!match) {
         oldGroups.push(newGroup);
@@ -127,7 +127,7 @@ export class SecurityGroupFilterService {
 
       forOwn(subGroupings, (subGroup, subKey) => {
         const subSubGroups: ISecurityGroupGroup[] = [];
-        subGroup.forEach(securityGroup => {
+        subGroup.forEach((securityGroup) => {
           const heading = securityGroup.vpcName
             ? `${securityGroup.region} (${securityGroup.vpcName})`
             : securityGroup.region;

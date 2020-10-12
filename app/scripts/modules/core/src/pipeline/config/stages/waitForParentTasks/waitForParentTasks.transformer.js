@@ -6,7 +6,7 @@ export const CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_T
 export const name = CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER, []).service(
   'waitForParentTasksTransformer',
-  function() {
+  function () {
     // injects wait for parent tasks stage
     function injectWaitForParentStages(execution) {
       /*
@@ -14,18 +14,18 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFO
        * */
       const stagesToInject = [];
       execution.stages
-        .filter(stage => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)
-        .forEach(function(stage) {
+        .filter((stage) => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)
+        .forEach(function (stage) {
           const waitStages = execution.stages.filter(
-            candidate =>
+            (candidate) =>
               candidate.type === 'waitForRequisiteCompletion' &&
               candidate.context.requisiteIds &&
               candidate.context.requisiteIds.length === stage.requisiteStageRefIds.length &&
-              candidate.context.requisiteIds.every(reqId => stage.requisiteStageRefIds.includes(reqId)),
+              candidate.context.requisiteIds.every((reqId) => stage.requisiteStageRefIds.includes(reqId)),
           );
           if (waitStages.length) {
             const waitStage = waitStages[0];
-            const parentStages = execution.stages.filter(parent =>
+            const parentStages = execution.stages.filter((parent) =>
               waitStage.context.requisiteIds.includes(parent.refId),
             );
             stagesToInject.push({
@@ -44,7 +44,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFO
         });
       execution.stages = execution.stages.concat(stagesToInject);
     }
-    this.transform = function(application, execution) {
+    this.transform = function (application, execution) {
       injectWaitForParentStages(execution);
     };
   },

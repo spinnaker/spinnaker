@@ -41,7 +41,7 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
       <FormikFormField
         name="master"
         label={label}
-        input={props => (
+        input={(props) => (
           <RefreshableReactSelectInput
             {...props}
             stringOptions={fetchMasters.result}
@@ -57,7 +57,7 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
       <FormikFormField
         name="job"
         label="Job"
-        input={props => (
+        input={(props) => (
           <RefreshableReactSelectInput
             {...props}
             mode="VIRTUALIZED"
@@ -75,7 +75,7 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
         name="propertyFile"
         label="Property File"
         help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
-        input={props => <TextInput {...props} />}
+        input={(props) => <TextInput {...props} />}
       />
     </>
   );

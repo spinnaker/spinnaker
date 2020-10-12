@@ -50,9 +50,9 @@
                 required
                 ng-if="guard.account"
               >
-                <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{ location }}">{{
-                  location
-                }}</option>
+                <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{ location }}">
+                  {{ location }}
+                </option>
               </select>
             </td>
             <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">

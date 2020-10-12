@@ -37,7 +37,7 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
@@ -52,7 +52,7 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
     Observable.fromPromise(AccountService.getRegionsForAccount(this.props.stage.credentials))
       .takeUntil(this.destroy$)
       .subscribe((regionList: IRegion[]) => {
-        const regions = regionList.map(r => r.name);
+        const regions = regionList.map((r) => r.name);
         regions.sort((a, b) => a.localeCompare(b));
         this.setState({ regions });
       });
@@ -89,7 +89,7 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
             clearable={false}
             onChange={this.accountUpdated}
             value={credentials}
-            stringOptions={accounts.map(it => it.name)}
+            stringOptions={accounts.map((it) => it.name)}
           />
         </StageConfigField>
         <StageConfigField label="Service Instance Name">

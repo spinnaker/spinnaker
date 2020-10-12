@@ -15,7 +15,7 @@ import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../templat
 export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE = 'spinnaker.core.pipeline.stage.pipelineStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       label: 'Pipeline',
       description: 'Runs a pipeline',
@@ -37,7 +37,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
   .controller('pipelineStageCtrl', [
     '$scope',
     'stage',
-    function($scope, stage) {
+    function ($scope, stage) {
       $scope.stage = stage;
       $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
       $scope.stage.waitForCompletion =
@@ -60,21 +60,21 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
         },
       };
 
-      this.addMoreItems = function() {
+      this.addMoreItems = function () {
         $scope.viewState.infiniteScroll.currentItems += $scope.viewState.infiniteScroll.numToAdd;
       };
 
-      ApplicationReader.listApplications().then(function(applications) {
+      ApplicationReader.listApplications().then(function (applications) {
         $scope.applications = _.map(applications, 'name').sort();
         initializeMasters();
       });
 
       function initializeMasters() {
         if ($scope.stage.application && !$scope.stage.application.includes('${')) {
-          PipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function(pipelines) {
-            $scope.pipelines = _.filter(pipelines, pipeline => pipeline.id !== $scope.pipeline.id);
+          PipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
+            $scope.pipelines = _.filter(pipelines, (pipeline) => pipeline.id !== $scope.pipeline.id);
             const pipelineId = $scope.stage.pipeline;
-            const isFound = _.find(pipelines, pipeline => pipeline.id === pipelineId);
+            const isFound = _.find(pipelines, (pipeline) => pipeline.id === pipelineId);
             if (!isFound && pipelineId && !pipelineId.includes('${')) {
               $scope.stage.pipeline = null;
             }
@@ -91,10 +91,10 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
         }
 
         if ($scope.stage && $scope.stage.application && pipeline) {
-          const config = _.find($scope.pipelines, pipeline => pipeline.id === $scope.stage.pipeline);
+          const config = _.find($scope.pipelines, (pipeline) => pipeline.id === $scope.stage.pipeline);
           if (config && PipelineTemplateV2Service.isV2PipelineConfig(config)) {
             PipelineTemplateReader.getPipelinePlan(config)
-              .then(plan => applyPipelineConfigParameters(plan))
+              .then((plan) => applyPipelineConfigParameters(plan))
               .catch(() => clearParams());
           } else {
             applyPipelineConfigParameters(config);
@@ -110,11 +110,11 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
             $scope.stage.pipelineParameters = {};
           }
           $scope.pipelineParameters = config.parameterConfig;
-          $scope.pipelineParameters.forEach(parameterConfig => {
+          $scope.pipelineParameters.forEach((parameterConfig) => {
             if (
               parameterConfig.default &&
               parameterConfig.options &&
-              !parameterConfig.options.some(option => option.value === parameterConfig.default)
+              !parameterConfig.options.some((option) => option.value === parameterConfig.default)
             ) {
               parameterConfig.options.unshift({ value: parameterConfig.default });
             }
@@ -122,7 +122,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
           $scope.userSuppliedParameters = $scope.stage.pipelineParameters;
 
           if ($scope.pipelineParameters) {
-            const acceptedPipelineParams = $scope.pipelineParameters.map(param => param.name);
+            const acceptedPipelineParams = $scope.pipelineParameters.map((param) => param.name);
             $scope.invalidParameters = pickBy(
               $scope.userSuppliedParameters,
               (value, name) => !acceptedPipelineParams.includes(name),
@@ -131,7 +131,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
 
           $scope.hasInvalidParameters = () => Object.keys($scope.invalidParameters || {}).length;
           $scope.useDefaultParameters = {};
-          _.each($scope.pipelineParameters, function(property) {
+          _.each($scope.pipelineParameters, function (property) {
             if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
               $scope.useDefaultParameters[property.name] = true;
             }
@@ -150,7 +150,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
       $scope.useDefaultParameters = {};
       $scope.userSuppliedParameters = {};
 
-      this.updateParam = function(parameter) {
+      this.updateParam = function (parameter) {
         if ($scope.useDefaultParameters[parameter] === true) {
           delete $scope.userSuppliedParameters[parameter];
           delete $scope.stage.pipelineParameters[parameter];
@@ -159,8 +159,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
         }
       };
 
-      this.removeInvalidParameters = function() {
-        Object.keys($scope.invalidParameters).forEach(param => {
+      this.removeInvalidParameters = function () {
+        Object.keys($scope.invalidParameters).forEach((param) => {
           if ($scope.stage.pipelineParameters[param] !== 'undefined') {
             delete $scope.stage.pipelineParameters[param];
           }

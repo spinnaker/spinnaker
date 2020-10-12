@@ -8,7 +8,7 @@ export const name = AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE; // for backwards c
 module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeService', [
   '$http',
   '$q',
-  function($http, $q) {
+  function ($http, $q) {
     const B = {
       type: 'B-series',
       description:
@@ -780,7 +780,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       };
 
       if (category.families && category.families.length) {
-        category.families.forEach(function(family) {
+        category.families.forEach(function (family) {
           stats.families.push(family.type);
           const cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE;
           const cpuMax = _.maxBy(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE;
@@ -802,7 +802,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
     }
 
     function getCategories() {
-      categories.map(function(category) {
+      categories.map(function (category) {
         for (const family of category.families) {
           for (const inst of family.instanceTypes) {
             if (inst.costFactor == undefined) inst.costFactor = 0;

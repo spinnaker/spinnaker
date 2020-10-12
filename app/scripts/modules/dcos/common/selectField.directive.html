@@ -12,9 +12,9 @@
       required
     >
       <option value="" disabled>Select...</option>
-      <option ng-repeat="cluster in clusters" value="{{cluster.name}}" ng-selected="component[field] === cluster.name"
-        >{{cluster.name}}</option
-      >
+      <option ng-repeat="cluster in clusters" value="{{cluster.name}}" ng-selected="component[field] === cluster.name">
+        {{cluster.name}}
+      </option>
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

@@ -49,4 +49,4 @@ const helpContents = [
   },
 ];
 
-helpContents.forEach(entry => HelpContentsRegistry.register(entry.key, entry.value));
+helpContents.forEach((entry) => HelpContentsRegistry.register(entry.key, entry.value));

@@ -44,24 +44,16 @@
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li>
-            <a href ng-click="ctrl.scaleServerGroupManager()">
-              Scale
-            </a>
+            <a href ng-click="ctrl.scaleServerGroupManager()"> Scale </a>
           </li>
           <li ng-if="ctrl.canUndoRolloutServerGroupManager()">
-            <a href ng-click="ctrl.undoRolloutServerGroupManager()">
-              Undo Rollout
-            </a>
+            <a href ng-click="ctrl.undoRolloutServerGroupManager()"> Undo Rollout </a>
           </li>
           <li ng-if="ctrl.manifest.status.paused.state">
-            <a href ng-click="ctrl.resumeRolloutServerGroupManager()">
-              Resume Rollout
-            </a>
+            <a href ng-click="ctrl.resumeRolloutServerGroupManager()"> Resume Rollout </a>
           </li>
           <li ng-if="!ctrl.manifest.status.paused.state && !ctrl.manifest.status.stable.state">
-            <a href ng-click="ctrl.pauseRolloutServerGroupManager()">
-              Pause Rollout
-            </a>
+            <a href ng-click="ctrl.pauseRolloutServerGroupManager()"> Pause Rollout </a>
           </li>
           <kubernetes-rolling-restart
             ng-if="!ctrl.manifest.status.paused.state"
@@ -70,14 +62,10 @@
           ></kubernetes-rolling-restart>
           <li role="presentation" class="divider"></li>
           <li>
-            <a href ng-click="ctrl.editServerGroupManager()">
-              Edit
-            </a>
+            <a href ng-click="ctrl.editServerGroupManager()"> Edit </a>
           </li>
           <li>
-            <a href ng-click="ctrl.deleteServerGroupManager()">
-              Delete
-            </a>
+            <a href ng-click="ctrl.deleteServerGroupManager()"> Delete </a>
           </li>
           <render-if-feature feature="entityTags">
             <add-entity-tag-links

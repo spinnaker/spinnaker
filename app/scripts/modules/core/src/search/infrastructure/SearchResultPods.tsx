@@ -30,9 +30,9 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
       return null;
     }
 
-    const projects: ISearchResultPodData = results.find(x => x.category === 'projects');
+    const projects: ISearchResultPodData = results.find((x) => x.category === 'projects');
     const otherCategories: ISearchResultPodData[] = results
-      .filter(x => x.category !== 'projects')
+      .filter((x) => x.category !== 'projects')
       .sort((a, b) => a.category.localeCompare(b.category));
 
     return (
@@ -45,7 +45,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
               <div className="col-md-3">
                 <div className="row">
                   <div className="col-md-12">
-                    {projects.results.map(project => (
+                    {projects.results.map((project) => (
                       <ProjectSummaryPod
                         key={project.id}
                         id={project.id}
@@ -62,7 +62,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
 
             <div className={`col-md-${projects ? 9 : 12}`}>
               <div className="row">
-                {otherCategories.map(category => (
+                {otherCategories.map((category) => (
                   <SearchResultPod
                     key={category.category}
                     podData={category}

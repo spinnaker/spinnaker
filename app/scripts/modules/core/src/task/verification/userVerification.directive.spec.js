@@ -2,17 +2,17 @@
 
 import { AccountService } from 'core/account/AccountService';
 
-describe('Controller: UserVerification', function() {
+describe('Controller: UserVerification', function () {
   var controller, $scope, $q;
 
   beforeEach(window.module(require('./userVerification.directive').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$q_) {
+    window.inject(function ($controller, $rootScope, _$q_) {
       $scope = $rootScope.$new();
       $q = _$q_;
 
-      this.initialize = function(verification, account) {
+      this.initialize = function (verification, account) {
         controller = $controller(
           'UserVerificationCtrl',
           {
@@ -29,8 +29,8 @@ describe('Controller: UserVerification', function() {
     }),
   );
 
-  describe('initialization', function() {
-    it('should set required to true, verified to false if toVerify is present', function() {
+  describe('initialization', function () {
+    it('should set required to true, verified to false if toVerify is present', function () {
       spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {
         toVerify: 'a',
@@ -40,7 +40,7 @@ describe('Controller: UserVerification', function() {
       expect(verification.verified).toBe(false);
     });
 
-    it('should set required to true, verified to false if account requires challenge to destructive actions', function() {
+    it('should set required to true, verified to false if account requires challenge to destructive actions', function () {
       spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(true));
       let verification = {};
       this.initialize(verification, 'prod');
@@ -48,7 +48,7 @@ describe('Controller: UserVerification', function() {
       expect(verification.verified).toBe(false);
     });
 
-    it('should set required to false, verified to true if account does not require challenge to destructive actions', function() {
+    it('should set required to false, verified to true if account does not require challenge to destructive actions', function () {
       spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {};
       this.initialize(verification, 'test');
@@ -56,8 +56,8 @@ describe('Controller: UserVerification', function() {
       expect(verification.verified).toBe(true);
     });
 
-    it('should re-initialize when account changes', function() {
-      spyOn(AccountService, 'challengeDestructiveActions').and.callFake(function(account) {
+    it('should re-initialize when account changes', function () {
+      spyOn(AccountService, 'challengeDestructiveActions').and.callFake(function (account) {
         return $q.when(account === 'prod');
       });
       let verification = {};
@@ -72,7 +72,7 @@ describe('Controller: UserVerification', function() {
       expect(verification.verified).toBe(false);
     });
 
-    it('should prefer account when both toVerify and account are present', function() {
+    it('should prefer account when both toVerify and account are present', function () {
       spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {
         toVerify: 'a',
@@ -83,8 +83,8 @@ describe('Controller: UserVerification', function() {
     });
   });
 
-  describe('verify', function() {
-    it('should set verified to false when entry does not match', function() {
+  describe('verify', function () {
+    it('should set verified to false when entry does not match', function () {
       let verification = { toVerify: 'a' };
       this.initialize(verification);
       controller.userVerification = 'b';
@@ -92,14 +92,14 @@ describe('Controller: UserVerification', function() {
       expect(verification.verified).toBe(false);
     });
 
-    it('should set verified to false when nothing entered', function() {
+    it('should set verified to false when nothing entered', function () {
       let verification = { toVerify: 'a' };
       this.initialize(verification);
       controller.verify();
       expect(verification.verified).toBe(false);
     });
 
-    it('should set verified to true when entry matches, ignoring case', function() {
+    it('should set verified to true when entry matches, ignoring case', function () {
       let verification = { toVerify: 'a' };
       this.initialize(verification);
 

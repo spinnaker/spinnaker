@@ -20,7 +20,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
   DCOS_JOB_LABELS_COMPONENT,
   DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
 ])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'runJob',
       cloudProvider: 'dcos',
@@ -35,7 +35,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
   .controller('dcosRunJobStageCtrl', [
     '$scope',
     '$q',
-    function($scope, $q) {
+    function ($scope, $q) {
       const stage = $scope.stage;
       this.stage = $scope.stage;
 
@@ -60,7 +60,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
       this.updateRegions = () => {
         if (stage.account) {
           $scope.stage.dcosClusters = $scope.backingData.credentialsKeyedByAccount[stage.account].dcosClusters;
-          if ($scope.stage.dcosClusters.map(r => r.name).every(r => r !== stage.region)) {
+          if ($scope.stage.dcosClusters.map((r) => r.name).every((r) => r !== stage.region)) {
             this.regionChanged();
             delete stage.region;
           }
@@ -69,7 +69,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
         }
       };
 
-      this.onChange = changes => {
+      this.onChange = (changes) => {
         stage.docker.image.registry = changes.registry;
       };
 
@@ -120,7 +120,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
 
       $q.all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
-      }).then(backingData => {
+      }).then((backingData) => {
         backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
         $scope.backingData = backingData;
 

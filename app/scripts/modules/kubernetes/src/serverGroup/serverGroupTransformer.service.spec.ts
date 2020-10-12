@@ -2,7 +2,7 @@ import { KubernetesV2ServerGroupTransformer } from './serverGroupTransformer.ser
 import { Application } from '@spinnaker/core';
 import { IKubernetesServerGroup } from '../interfaces';
 
-describe('KubernetesV2ServerGroupTransformer', function() {
+describe('KubernetesV2ServerGroupTransformer', function () {
   it('normalizes server group name', async () => {
     const transformer = new KubernetesV2ServerGroupTransformer();
     const ACCOUNT = 'myaccount';

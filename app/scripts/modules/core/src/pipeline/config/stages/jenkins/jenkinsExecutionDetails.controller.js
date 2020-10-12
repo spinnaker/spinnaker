@@ -12,7 +12,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
     '$scope',
     '$stateParams',
     'executionDetailsSectionService',
-    function($scope, $stateParams, executionDetailsSectionService) {
+    function ($scope, $stateParams, executionDetailsSectionService) {
       $scope.configSections = ['jenkinsConfig', 'taskStatus', 'artifactStatus'];
 
       const initialized = () => {
@@ -26,10 +26,10 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
         const buildInfo = context.buildInfo || {};
         const testResults =
           buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [];
-        const failingTests = testResults.filter(function(results) {
+        const failingTests = testResults.filter(function (results) {
           return results.failCount > 0;
         });
-        const failingTestCount = failingTests.reduce(function(acc, results) {
+        const failingTestCount = failingTests.reduce(function (acc, results) {
           return acc + results.failCount;
         }, 0);
 

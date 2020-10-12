@@ -44,7 +44,7 @@ angular
     '$q',
     'loadBalancerTypeToWizardMap',
     'gceXpnNamingService',
-    function(
+    function (
       $scope,
       $state,
       $uibModal,
@@ -63,7 +63,7 @@ angular
       };
 
       function extractLoadBalancer() {
-        $scope.loadBalancer = application.loadBalancers.data.filter(function(test) {
+        $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
           const testVpc = test.vpcId || null;
           return (
             test.name === loadBalancer.name &&
@@ -74,16 +74,16 @@ angular
         })[0];
 
         if ($scope.loadBalancer) {
-          return createDetailsLoader().then(function(details) {
+          return createDetailsLoader().then(function (details) {
             $scope.state.loading = false;
-            const filtered = details.filter(function(test) {
+            const filtered = details.filter(function (test) {
               return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
             });
             if (filtered.length) {
               $scope.loadBalancer.elb = filtered[0];
               $scope.loadBalancer.account = loadBalancer.accountId;
 
-              AccountService.getCredentialsKeyedByAccount('gce').then(function() {
+              AccountService.getCredentialsKeyedByAccount('gce').then(function () {
                 if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
                   $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
                   $scope.loadBalancer.elb.healthChecks = _.chain($scope.loadBalancer.elb.backendServices)
@@ -93,7 +93,7 @@ angular
                 }
               });
             }
-            AccountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+            AccountService.getAccountDetails(loadBalancer.accountId).then(function (accountDetails) {
               let resourceTypes;
 
               if ($scope.loadBalancer.loadBalancerType === 'INTERNAL') {
@@ -133,7 +133,7 @@ angular
 
       function createDetailsLoader() {
         if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
-          const detailsPromises = $scope.loadBalancer.listeners.map(listener => {
+          const detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
             return loadBalancerReader.getLoadBalancerDetails(
               $scope.loadBalancer.provider,
               loadBalancer.accountId,
@@ -142,10 +142,10 @@ angular
             );
           });
 
-          return $q.all(detailsPromises).then(loadBalancers => {
+          return $q.all(detailsPromises).then((loadBalancers) => {
             loadBalancers = _.flatten(loadBalancers);
             const representativeLb = loadBalancers[0];
-            representativeLb.dns = loadBalancers.map(loadBalancer => {
+            representativeLb.dns = loadBalancers.map((loadBalancer) => {
               let protocol;
               if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
                 protocol = 'https:';
@@ -155,7 +155,7 @@ angular
               return { dnsname: loadBalancer.dnsname, protocol: protocol };
             });
             representativeLb.dns = _.uniqBy(representativeLb.dns, 'dnsname');
-            representativeLb.listenerDescriptions = _.flatten(loadBalancers.map(lb => lb.listenerDescriptions));
+            representativeLb.listenerDescriptions = _.flatten(loadBalancers.map((lb) => lb.listenerDescriptions));
             return [representativeLb];
           });
         } else {
@@ -166,7 +166,7 @@ angular
               $scope.loadBalancer.region,
               $scope.loadBalancer.name,
             )
-            .then(loadBalancerDetails => {
+            .then((loadBalancerDetails) => {
               const loadBalancer = loadBalancerDetails[0];
               let protocol;
               if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
@@ -221,13 +221,13 @@ angular
           controller: `${wizard.controller} as ctrl`,
           size: 'lg',
           resolve: {
-            application: function() {
+            application: function () {
               return application;
             },
-            loadBalancer: function() {
+            loadBalancer: function () {
               return angular.copy($scope.loadBalancer);
             },
-            isNew: function() {
+            isNew: function () {
               return false;
             },
           },
@@ -247,7 +247,7 @@ angular
         }
       };
 
-      this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+      this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
 
       this.getNetworkId = function getNetworkId(loadBalancer) {
         return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.network);

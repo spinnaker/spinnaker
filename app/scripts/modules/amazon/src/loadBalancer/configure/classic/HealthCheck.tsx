@@ -40,21 +40,21 @@ export class HealthCheck extends React.Component<IHealthCheckProps> {
                   <FormikFormField
                     name="healthCheckProtocol"
                     required={true}
-                    input={props => <SelectInput {...props} options={['HTTP', 'HTTPS', 'SSL', 'TCP']} />}
+                    input={(props) => <SelectInput {...props} options={['HTTP', 'HTTPS', 'SSL', 'TCP']} />}
                   />
                 </td>
                 <td>
                   <FormikFormField
                     name="healthCheckPort"
                     required={true}
-                    input={props => <NumberInput {...props} min={1} max={65534} />}
+                    input={(props) => <NumberInput {...props} min={1} max={65534} />}
                   />
                 </td>
                 <td>
                   {this.requiresHealthCheckPath() && (
                     <FormikFormField
                       name="healthCheckPath"
-                      input={props => <TextInput {...props} />}
+                      input={(props) => <TextInput {...props} />}
                       required={true}
                       onChange={this.healthCheckPathChanged}
                     />

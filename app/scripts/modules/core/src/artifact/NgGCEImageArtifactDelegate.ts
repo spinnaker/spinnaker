@@ -30,7 +30,7 @@ export class NgGCEImageArtifactDelegate
   }
 
   public getSelectedExpectedArtifact(): IExpectedArtifact {
-    return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.imageArtifactId);
+    return (this.getExpectedArtifacts() || []).find((ea) => ea.id === this.$scope.command.imageArtifactId);
   }
 
   public getSelectedAccount(): IArtifactAccount {

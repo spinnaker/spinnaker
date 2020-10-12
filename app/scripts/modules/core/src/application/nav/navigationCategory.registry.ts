@@ -19,11 +19,11 @@ export class NavigationCategoryRegistry {
   }
 
   public get(key: string): INavigationCategory {
-    return cloneDeep(this.categories.find(c => c.key === key));
+    return cloneDeep(this.categories.find((c) => c.key === key));
   }
 
   public has(key: string): boolean {
-    return this.categories.some(c => c.key === key);
+    return this.categories.some((c) => c.key === key);
   }
 
   public getAll(): INavigationCategory[] {
@@ -35,7 +35,7 @@ export class NavigationCategoryRegistry {
   }
 
   public getHighestOrder(): number {
-    return Math.max(...this.categories.map(c => c.order).concat(Array.from(this.orderOverrides.values())));
+    return Math.max(...this.categories.map((c) => c.order).concat(Array.from(this.orderOverrides.values())));
   }
 
   public getOrder(category: INavigationCategory): number {

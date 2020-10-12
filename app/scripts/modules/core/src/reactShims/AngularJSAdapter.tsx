@@ -36,7 +36,7 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
 
     const _locals = { ...this.props, ...locals };
     if (templateUrl) {
-      $templateRequest(templateUrl).then(templateString => {
+      $templateRequest(templateUrl).then((templateString) => {
         this.renderAngularTemplateAndController(ref, templateString, controller, controllerAs, _locals);
       });
     } else {
@@ -71,6 +71,6 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
   }
 
   public render() {
-    return <div className="AngularJSAdapter" ref={ref => this.refCallback(ref)} />;
+    return <div className="AngularJSAdapter" ref={(ref) => this.refCallback(ref)} />;
   }
 }

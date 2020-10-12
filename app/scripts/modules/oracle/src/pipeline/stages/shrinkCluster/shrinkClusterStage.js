@@ -8,7 +8,7 @@ export const ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE =
   'spinnaker.core.pipeline.stage.oracle.shrinkClusterStage';
 export const name = ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE; // for backwards compatibility
 module(ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'oracle',
@@ -23,7 +23,7 @@ module(ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE, [])
   })
   .controller('oracleShrinkClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -33,7 +33,7 @@ module(ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('oracle').then(function(accounts) {
+      AccountService.listAccounts('oracle').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -58,7 +58,7 @@ module(ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE, [])
         stage.allowDeleteActive = false;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         return val === 1 ? str : str + 's';
       };
 

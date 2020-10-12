@@ -32,7 +32,8 @@ export interface ISecurityGroupsState {
   refreshTime: number;
 }
 
-export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecurityGroupsState>
+export class SecurityGroups
+  extends React.Component<ISecurityGroupsProps, ISecurityGroupsState>
   implements IWizardPageComponent<IAmazonLoadBalancerUpsertCommand> {
   private destroy$ = new Subject<void>();
   private props$ = new Subject<ISecurityGroupsProps>();
@@ -75,13 +76,14 @@ export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecur
       return uniq(defaults.concat(desired));
     };
 
-    const getAvailableSecurityGroup = (name: string) => availableGroups.find(sg => sg.name === name || sg.id === name);
+    const getAvailableSecurityGroup = (name: string) =>
+      availableGroups.find((sg) => sg.name === name || sg.id === name);
 
     // Organize selected security groups into available/not available
-    const [available, notAvailable] = partition(getDesiredGroupNames(), name => !!getAvailableSecurityGroup(name));
+    const [available, notAvailable] = partition(getDesiredGroupNames(), (name) => !!getAvailableSecurityGroup(name));
 
     // Normalize available security groups from [name or id] to name
-    const securityGroups = available.map(name => getAvailableSecurityGroup(name).name);
+    const securityGroups = available.map((name) => getAvailableSecurityGroup(name).name);
     if (!isEqual(selectedGroups, securityGroups)) {
       this.props.formik.setFieldValue('securityGroups', securityGroups);
     }
@@ -91,7 +93,7 @@ export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecur
   private handleSecurityGroupsChanged = (newValues: Array<{ label: string; value: string }>): void => {
     this.props.formik.setFieldValue(
       'securityGroups',
-      newValues.map(sg => sg.value),
+      newValues.map((sg) => sg.value),
     );
   };
 
@@ -113,15 +115,15 @@ export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecur
       .mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups())
       .do(() => this.onRefreshComplete());
 
-    const formValues$ = this.props$.map(props => props.formik.values);
-    const vpcId$ = formValues$.map(values => values.vpcId).distinctUntilChanged();
+    const formValues$ = this.props$.map((props) => props.formik.values);
+    const vpcId$ = formValues$.map((values) => values.vpcId).distinctUntilChanged();
 
     const availableSecurityGroups$ = Observable.combineLatest(vpcId$, allSecurityGroups$)
       .withLatestFrom(formValues$)
       .map(([[vpcId, allSecurityGroups], formValues]) => {
         const forAccount = allSecurityGroups[formValues.credentials] || {};
         const forRegion = (forAccount.aws && forAccount.aws[formValues.region]) || [];
-        return forRegion.filter(securityGroup => vpcId === securityGroup.vpcId).sort();
+        return forRegion.filter((securityGroup) => vpcId === securityGroup.vpcId).sort();
       });
 
     availableSecurityGroups$
@@ -162,7 +164,7 @@ export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecur
                     account/region/VPC and were removed:
                   </p>
                   <ul>
-                    {removed.map(sg => (
+                    {removed.map((sg) => (
                       <li key={sg}>{sg}</li>
                     ))}
                   </ul>

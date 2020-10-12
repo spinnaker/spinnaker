@@ -43,7 +43,7 @@ export class EditNotificationModal extends React.Component<IEditNotificationModa
         initialValues={notification}
         onSubmit={this.submit}
         validate={this.validate}
-        render={formik => (
+        render={(formik) => (
           <Form className={`form-horizontal`}>
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>

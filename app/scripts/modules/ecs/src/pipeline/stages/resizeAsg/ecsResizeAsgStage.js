@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE = 'spinnaker.ecs.pipeline.stage.ecs.resizeAsgStage';
 export const name = ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE; // for backwards compatibility
 module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       alias: 'resizeAsg',
@@ -15,8 +15,8 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
       templateUrl: require('./resizeAsgStage.html'),
       executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -33,7 +33,7 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
   })
   .controller('ecsResizeAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -43,7 +43,7 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('ecs').then(function(accounts) {
+      AccountService.listAccounts('ecs').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -108,7 +108,7 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
         stage.regions.push($scope.application.defaultRegions.ecs);
       }
 
-      ctrl.updateResizeType = function() {
+      ctrl.updateResizeType = function () {
         if (stage.action === 'scale_exact') {
           stage.resizeType = 'exact';
           delete stage.scalePct;

@@ -50,12 +50,12 @@ module(CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT, []).component('spelSelect', {
     model: '=',
   },
   transclude: true,
-  controller: function() {
+  controller: function () {
     const ctrl = this;
     const select = 'select';
     const textType = 'text';
 
-    const setState = inputType => {
+    const setState = (inputType) => {
       if (inputType == textType) {
         ctrl.expressionActive = true;
         ctrl.selectActive = false;
@@ -78,7 +78,7 @@ module(CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT, []).component('spelSelect', {
       setState(textType);
     };
 
-    ctrl.glow = isGlowing => {
+    ctrl.glow = (isGlowing) => {
       ctrl.isGlowing = isGlowing;
     };
   },

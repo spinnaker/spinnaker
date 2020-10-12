@@ -5,10 +5,7 @@ import { IMetricAlarmDescriptor } from './MetricAlarm';
 
 export class MetricAlarmReader {
   public listMetricAlarms(): ng.IPromise<IMetricAlarmDescriptor[]> {
-    return API.all('ecs')
-      .all('cloudMetrics')
-      .all('alarms')
-      .getList();
+    return API.all('ecs').all('cloudMetrics').all('alarms').getList();
   }
 }
 

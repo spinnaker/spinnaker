@@ -1,16 +1,16 @@
 'use strict';
 
-describe('bakeStageTransformer', function() {
+describe('bakeStageTransformer', function () {
   beforeEach(window.module(require('./bakeStage.transformer').name));
 
   beforeEach(
-    window.inject(function(bakeStageTransformer) {
+    window.inject(function (bakeStageTransformer) {
       this.transformer = bakeStageTransformer;
     }),
   );
 
-  describe('transform', function() {
-    it('should add allPreviouslyBaked/somePreviouslyBaked flags when all/some child bake stages are marked previouslyBaked', function() {
+  describe('transform', function () {
+    it('should add allPreviouslyBaked/somePreviouslyBaked flags when all/some child bake stages are marked previouslyBaked', function () {
       var execution = {
         stages: [
           { id: 'a', name: 'a', context: {} },
@@ -25,7 +25,7 @@ describe('bakeStageTransformer', function() {
         ],
       };
 
-      execution.stages.forEach(stage => (stage.type = 'bake'));
+      execution.stages.forEach((stage) => (stage.type = 'bake'));
 
       this.transformer.transform({}, execution);
 

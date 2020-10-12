@@ -25,13 +25,13 @@
 /*
   taken from https://github.com/bunkat/later, developer abandoned project
  */
-export const later = (function() {
+export const later = (function () {
   'use strict';
   let later = {
     version: '1.2.0',
   };
   if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function(searchElement) {
+    Array.prototype.indexOf = function (searchElement) {
       'use strict';
       if (this == null) {
         throw new TypeError();
@@ -63,20 +63,20 @@ export const later = (function() {
     };
   }
   if (!String.prototype.trim) {
-    String.prototype.trim = function() {
+    String.prototype.trim = function () {
       return this.replace(/^\s+|\s+$/g, '');
     };
   }
   later.array = {};
-  later.array.sort = function(arr, zeroIsLast) {
-    arr.sort(function(a, b) {
+  later.array.sort = function (arr, zeroIsLast) {
+    arr.sort(function (a, b) {
       return +a - +b;
     });
     if (zeroIsLast && arr[0] === 0) {
       arr.push(arr.shift());
     }
   };
-  later.array.next = function(val, values, extent) {
+  later.array.next = function (val, values, extent) {
     let cur,
       zeroIsLargest = extent[0] !== 0,
       nextIdx = 0;
@@ -93,7 +93,7 @@ export const later = (function() {
     }
     return values[nextIdx];
   };
-  later.array.nextInvalid = function(val, values, extent) {
+  later.array.nextInvalid = function (val, values, extent) {
     let min = extent[0],
       max = extent[1],
       len = values.length,
@@ -116,7 +116,7 @@ export const later = (function() {
     }
     return next;
   };
-  later.array.prev = function(val, values, extent) {
+  later.array.prev = function (val, values, extent) {
     let cur,
       len = values.length,
       zeroIsLargest = extent[0] !== 0,
@@ -134,7 +134,7 @@ export const later = (function() {
     }
     return values[prevIdx];
   };
-  later.array.prevInvalid = function(val, values, extent) {
+  later.array.prevInvalid = function (val, values, extent) {
     let min = extent[0],
       max = extent[1],
       len = values.length,
@@ -160,13 +160,13 @@ export const later = (function() {
   later.day = later.D = {
     name: 'day',
     range: 86400,
-    val: function(d) {
+    val: function (d) {
       return d.D || (d.D = later.date.getDate.call(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.D.val(d) === (val || later.D.extent(d)[1]);
     },
-    extent: function(d) {
+    extent: function (d) {
       if (d.DExtent) return d.DExtent;
       let month = later.M.val(d),
         max = later.DAYS_IN_MONTH[month - 1];
@@ -175,20 +175,20 @@ export const later = (function() {
       }
       return (d.DExtent = [1, max]);
     },
-    start: function(d) {
+    start: function (d) {
       return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
     },
-    end: function(d) {
+    end: function (d) {
       return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > later.D.extent(d)[1] ? 1 : val;
       let month = later.date.nextRollover(d, val, later.D, later.M),
         DMax = later.D.extent(month)[1];
       val = val > DMax ? 1 : val || DMax;
       return later.date.next(later.Y.val(month), later.M.val(month), val);
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       let month = later.date.prevRollover(d, val, later.D, later.M),
         DMax = later.D.extent(month)[1];
       return later.date.prev(later.Y.val(month), later.M.val(month), val > DMax ? DMax : val || DMax);
@@ -197,28 +197,28 @@ export const later = (function() {
   later.dayOfWeekCount = later.dc = {
     name: 'day of week count',
     range: 604800,
-    val: function(d) {
+    val: function (d) {
       return d.dc || (d.dc = Math.floor((later.D.val(d) - 1) / 7) + 1);
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.dc.val(d) === val || (val === 0 && later.D.val(d) > later.D.extent(d)[1] - 7);
     },
-    extent: function(d) {
+    extent: function (d) {
       return d.dcExtent || (d.dcExtent = [1, Math.ceil(later.D.extent(d)[1] / 7)]);
     },
-    start: function(d) {
+    start: function (d) {
       return (
         d.dcStart ||
         (d.dcStart = later.date.next(later.Y.val(d), later.M.val(d), Math.max(1, (later.dc.val(d) - 1) * 7 + 1 || 1)))
       );
     },
-    end: function(d) {
+    end: function (d) {
       return (
         d.dcEnd ||
         (d.dcEnd = later.date.prev(later.Y.val(d), later.M.val(d), Math.min(later.dc.val(d) * 7, later.D.extent(d)[1])))
       );
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > later.dc.extent(d)[1] ? 1 : val;
       let month = later.date.nextRollover(d, val, later.dc, later.M),
         dcMax = later.dc.extent(month)[1];
@@ -238,7 +238,7 @@ export const later = (function() {
       }
       return next;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       let month = later.date.prevRollover(d, val, later.dc, later.M),
         dcMax = later.dc.extent(month)[1];
       val = val > dcMax ? dcMax : val || dcMax;
@@ -248,22 +248,22 @@ export const later = (function() {
   later.dayOfWeek = later.dw = later.d = {
     name: 'day of week',
     range: 86400,
-    val: function(d) {
+    val: function (d) {
       return d.dw || (d.dw = later.date.getDay.call(d) + 1);
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.dw.val(d) === (val || 7);
     },
-    extent: function() {
+    extent: function () {
       return [1, 7];
     },
-    start: function(d) {
+    start: function (d) {
       return later.D.start(d);
     },
-    end: function(d) {
+    end: function (d) {
       return later.D.end(d);
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > 7 ? 1 : val || 7;
       return later.date.next(
         later.Y.val(d),
@@ -271,7 +271,7 @@ export const later = (function() {
         later.D.val(d) + (val - later.dw.val(d)) + (val <= later.dw.val(d) ? 7 : 0),
       );
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       val = val > 7 ? 7 : val || 7;
       return later.date.prev(
         later.Y.val(d),
@@ -283,30 +283,30 @@ export const later = (function() {
   later.dayOfYear = later.dy = {
     name: 'day of year',
     range: 86400,
-    val: function(d) {
+    val: function (d) {
       return d.dy || (d.dy = Math.ceil(1 + (later.D.start(d).getTime() - later.Y.start(d).getTime()) / later.DAY));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.dy.val(d) === (val || later.dy.extent(d)[1]);
     },
-    extent: function(d) {
+    extent: function (d) {
       let year = later.Y.val(d);
       return d.dyExtent || (d.dyExtent = [1, year % 4 ? 365 : 366]);
     },
-    start: function(d) {
+    start: function (d) {
       return later.D.start(d);
     },
-    end: function(d) {
+    end: function (d) {
       return later.D.end(d);
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > later.dy.extent(d)[1] ? 1 : val;
       let year = later.date.nextRollover(d, val, later.dy, later.Y),
         dyMax = later.dy.extent(year)[1];
       val = val > dyMax ? 1 : val || dyMax;
       return later.date.next(later.Y.val(year), later.M.val(year), val);
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       let year = later.date.prevRollover(d, val, later.dy, later.Y),
         dyMax = later.dy.extent(year)[1];
       val = val > dyMax ? dyMax : val || dyMax;
@@ -316,22 +316,22 @@ export const later = (function() {
   later.hour = later.h = {
     name: 'hour',
     range: 3600,
-    val: function(d) {
+    val: function (d) {
       return d.h || (d.h = later.date.getHour.call(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.h.val(d) === val;
     },
-    extent: function() {
+    extent: function () {
       return [0, 23];
     },
-    start: function(d) {
+    start: function (d) {
       return d.hStart || (d.hStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d), later.h.val(d)));
     },
-    end: function(d) {
+    end: function (d) {
       return d.hEnd || (d.hEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d), later.h.val(d)));
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > 23 ? 0 : val;
       let next = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d) + (val <= later.h.val(d) ? 1 : 0), val);
       if (!later.date.isUTC && next.getTime() <= d.getTime()) {
@@ -339,7 +339,7 @@ export const later = (function() {
       }
       return next;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       val = val > 23 ? 23 : val;
       return later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d) + (val >= later.h.val(d) ? -1 : 0), val);
     },
@@ -347,28 +347,28 @@ export const later = (function() {
   later.minute = later.m = {
     name: 'minute',
     range: 60,
-    val: function(d) {
+    val: function (d) {
       return d.m || (d.m = later.date.getMin.call(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.m.val(d) === val;
     },
-    extent: function(d) {
+    extent: function (d) {
       return [0, 59];
     },
-    start: function(d) {
+    start: function (d) {
       return (
         d.mStart ||
         (d.mStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d), later.h.val(d), later.m.val(d)))
       );
     },
-    end: function(d) {
+    end: function (d) {
       return (
         d.mEnd ||
         (d.mEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d), later.h.val(d), later.m.val(d)))
       );
     },
-    next: function(d, val) {
+    next: function (d, val) {
       let m = later.m.val(d),
         s = later.s.val(d),
         inc = val > 59 ? 60 - m : val <= m ? 60 - m + val : val - m,
@@ -378,7 +378,7 @@ export const later = (function() {
       }
       return next;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       val = val > 59 ? 59 : val;
       return later.date.prev(
         later.Y.val(d),
@@ -392,26 +392,26 @@ export const later = (function() {
   later.month = later.M = {
     name: 'month',
     range: 2629740,
-    val: function(d) {
+    val: function (d) {
       return d.M || (d.M = later.date.getMonth.call(d) + 1);
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.M.val(d) === (val || 12);
     },
-    extent: function() {
+    extent: function () {
       return [1, 12];
     },
-    start: function(d) {
+    start: function (d) {
       return d.MStart || (d.MStart = later.date.next(later.Y.val(d), later.M.val(d)));
     },
-    end: function(d) {
+    end: function (d) {
       return d.MEnd || (d.MEnd = later.date.prev(later.Y.val(d), later.M.val(d)));
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > 12 ? 1 : val || 12;
       return later.date.next(later.Y.val(d) + (val > later.M.val(d) ? 0 : 1), val);
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       val = val > 12 ? 12 : val || 12;
       return later.date.prev(later.Y.val(d) - (val >= later.M.val(d) ? 1 : 0), val);
     },
@@ -419,22 +419,22 @@ export const later = (function() {
   later.second = later.s = {
     name: 'second',
     range: 1,
-    val: function(d) {
+    val: function (d) {
       return d.s || (d.s = later.date.getSec.call(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.s.val(d) === val;
     },
-    extent: function() {
+    extent: function () {
       return [0, 59];
     },
-    start: function(d) {
+    start: function (d) {
       return d;
     },
-    end: function(d) {
+    end: function (d) {
       return d;
     },
-    next: function(d, val) {
+    next: function (d, val) {
       let s = later.s.val(d),
         inc = val > 59 ? 60 - s : val <= s ? 60 - s + val : val - s,
         next = new Date(d.getTime() + inc * later.SEC);
@@ -443,7 +443,7 @@ export const later = (function() {
       }
       return next;
     },
-    prev: function(d, val, cache) {
+    prev: function (d, val, cache) {
       val = val > 59 ? 59 : val;
       return later.date.prev(
         later.Y.val(d),
@@ -458,22 +458,22 @@ export const later = (function() {
   later.time = later.t = {
     name: 'time',
     range: 1,
-    val: function(d) {
+    val: function (d) {
       return d.t || (d.t = later.h.val(d) * 3600 + later.m.val(d) * 60 + later.s.val(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.t.val(d) === val;
     },
-    extent: function() {
+    extent: function () {
       return [0, 86399];
     },
-    start: function(d) {
+    start: function (d) {
       return d;
     },
-    end: function(d) {
+    end: function (d) {
       return d;
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > 86399 ? 0 : val;
       let next = later.date.next(
         later.Y.val(d),
@@ -495,7 +495,7 @@ export const later = (function() {
       }
       return next;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       val = val > 86399 ? 86399 : val;
       return later.date.next(
         later.Y.val(d),
@@ -510,13 +510,13 @@ export const later = (function() {
   later.weekOfMonth = later.wm = {
     name: 'week of month',
     range: 604800,
-    val: function(d) {
+    val: function (d) {
       return d.wm || (d.wm = (later.D.val(d) + (later.dw.val(later.M.start(d)) - 1) + (7 - later.dw.val(d))) / 7);
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.wm.val(d) === (val || later.wm.extent(d)[1]);
     },
-    extent: function(d) {
+    extent: function (d) {
       return (
         d.wmExtent ||
         (d.wmExtent = [
@@ -525,13 +525,13 @@ export const later = (function() {
         ])
       );
     },
-    start: function(d) {
+    start: function (d) {
       return (
         d.wmStart ||
         (d.wmStart = later.date.next(later.Y.val(d), later.M.val(d), Math.max(later.D.val(d) - later.dw.val(d) + 1, 1)))
       );
     },
-    end: function(d) {
+    end: function (d) {
       return (
         d.wmEnd ||
         (d.wmEnd = later.date.prev(
@@ -541,7 +541,7 @@ export const later = (function() {
         ))
       );
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > later.wm.extent(d)[1] ? 1 : val;
       let month = later.date.nextRollover(d, val, later.wm, later.M),
         wmMax = later.wm.extent(month)[1];
@@ -552,7 +552,7 @@ export const later = (function() {
         Math.max(1, (val - 1) * 7 - (later.dw.val(month) - 2)),
       );
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       let month = later.date.prevRollover(d, val, later.wm, later.M),
         wmMax = later.wm.extent(month)[1];
       val = val > wmMax ? wmMax : val || wmMax;
@@ -564,23 +564,23 @@ export const later = (function() {
   later.weekOfYear = later.wy = {
     name: 'week of year (ISO)',
     range: 604800,
-    val: function(d) {
+    val: function (d) {
       if (d.wy) return d.wy;
       let wThur = later.dw.next(later.wy.start(d), 5),
         YThur = later.dw.next(later.Y.prev(wThur, later.Y.val(wThur) - 1), 5);
       return (d.wy = 1 + Math.ceil((wThur.getTime() - YThur.getTime()) / later.WEEK));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.wy.val(d) === (val || later.wy.extent(d)[1]);
     },
-    extent: function(d) {
+    extent: function (d) {
       if (d.wyExtent) return d.wyExtent;
       let year = later.dw.next(later.wy.start(d), 5),
         dwFirst = later.dw.val(later.Y.start(year)),
         dwLast = later.dw.val(later.Y.end(year));
       return (d.wyExtent = [1, dwFirst === 5 || dwLast === 5 ? 53 : 52]);
     },
-    start: function(d) {
+    start: function (d) {
       return (
         d.wyStart ||
         (d.wyStart = later.date.next(
@@ -590,7 +590,7 @@ export const later = (function() {
         ))
       );
     },
-    end: function(d) {
+    end: function (d) {
       return (
         d.wyEnd ||
         (d.wyEnd = later.date.prev(
@@ -600,7 +600,7 @@ export const later = (function() {
         ))
       );
     },
-    next: function(d, val) {
+    next: function (d, val) {
       val = val > later.wy.extent(d)[1] ? 1 : val;
       let wyThur = later.dw.next(later.wy.start(d), 5),
         year = later.date.nextRollover(wyThur, val, later.wy, later.Y);
@@ -612,7 +612,7 @@ export const later = (function() {
       val = val > wyMax ? 1 : val || wyMax;
       return later.date.next(later.Y.val(wyStart), later.M.val(wyStart), later.D.val(wyStart) + 7 * (val - 1));
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       let wyThur = later.dw.next(later.wy.start(d), 5),
         year = later.date.prevRollover(wyThur, val, later.wy, later.Y);
       if (later.wy.val(year) !== 1) {
@@ -627,99 +627,99 @@ export const later = (function() {
   later.year = later.Y = {
     name: 'year',
     range: 31556900,
-    val: function(d) {
+    val: function (d) {
       return d.Y || (d.Y = later.date.getYear.call(d));
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.Y.val(d) === val;
     },
-    extent: function() {
+    extent: function () {
       return [1970, 2099];
     },
-    start: function(d) {
+    start: function (d) {
       return d.YStart || (d.YStart = later.date.next(later.Y.val(d)));
     },
-    end: function(d) {
+    end: function (d) {
       return d.YEnd || (d.YEnd = later.date.prev(later.Y.val(d)));
     },
-    next: function(d, val) {
+    next: function (d, val) {
       return val > later.Y.val(d) && val <= later.Y.extent()[1] ? later.date.next(val) : later.NEVER;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       return val < later.Y.val(d) && val >= later.Y.extent()[0] ? later.date.prev(val) : later.NEVER;
     },
   };
   later.fullDate = later.fd = {
     name: 'full date',
     range: 1,
-    val: function(d) {
+    val: function (d) {
       return d.fd || (d.fd = d.getTime());
     },
-    isValid: function(d, val) {
+    isValid: function (d, val) {
       return later.fd.val(d) === val;
     },
-    extent: function() {
+    extent: function () {
       return [0, 3250368e7];
     },
-    start: function(d) {
+    start: function (d) {
       return d;
     },
-    end: function(d) {
+    end: function (d) {
       return d;
     },
-    next: function(d, val) {
+    next: function (d, val) {
       return later.fd.val(d) < val ? new Date(val) : later.NEVER;
     },
-    prev: function(d, val) {
+    prev: function (d, val) {
       return later.fd.val(d) > val ? new Date(val) : later.NEVER;
     },
   };
   later.modifier = {};
-  later.modifier.after = later.modifier.a = function(constraint, values) {
+  later.modifier.after = later.modifier.a = function (constraint, values) {
     let value = values[0];
     return {
       name: 'after ' + constraint.name,
       range: (constraint.extent(new Date())[1] - value) * constraint.range,
       val: constraint.val,
-      isValid: function(d, val) {
+      isValid: function (d, val) {
         return this.val(d) >= value;
       },
       extent: constraint.extent,
       start: constraint.start,
       end: constraint.end,
-      next: function(startDate, val) {
+      next: function (startDate, val) {
         if (val != value) val = constraint.extent(startDate)[0];
         return constraint.next(startDate, val);
       },
-      prev: function(startDate, val) {
+      prev: function (startDate, val) {
         val = val === value ? constraint.extent(startDate)[1] : value - 1;
         return constraint.prev(startDate, val);
       },
     };
   };
-  later.modifier.before = later.modifier.b = function(constraint, values) {
+  later.modifier.before = later.modifier.b = function (constraint, values) {
     let value = values[values.length - 1];
     return {
       name: 'before ' + constraint.name,
       range: constraint.range * (value - 1),
       val: constraint.val,
-      isValid: function(d, val) {
+      isValid: function (d, val) {
         return this.val(d) < value;
       },
       extent: constraint.extent,
       start: constraint.start,
       end: constraint.end,
-      next: function(startDate, val) {
+      next: function (startDate, val) {
         val = val === value ? constraint.extent(startDate)[0] : value;
         return constraint.next(startDate, val);
       },
-      prev: function(startDate, val) {
+      prev: function (startDate, val) {
         val = val === value ? value - 1 : constraint.extent(startDate)[1];
         return constraint.prev(startDate, val);
       },
     };
   };
-  later.compile = function(schedDef) {
+  later.compile = function (schedDef) {
     let constraints = [],
       constraintsLen = 0,
       tickConstraint;
@@ -735,7 +735,7 @@ export const later = (function() {
       });
       constraintsLen++;
     }
-    constraints.sort(function(a, b) {
+    constraints.sort(function (a, b) {
       let ra = a.constraint.range,
         rb = b.constraint.range;
       return rb < ra ? -1 : rb > ra ? 1 : 0;
@@ -743,15 +743,15 @@ export const later = (function() {
     tickConstraint = constraints[constraintsLen - 1].constraint;
     function compareFn(dir) {
       return dir === 'next'
-        ? function(a, b) {
+        ? function (a, b) {
             return a.getTime() > b.getTime();
           }
-        : function(a, b) {
+        : function (a, b) {
             return b.getTime() > a.getTime();
           };
     }
     return {
-      start: function(dir, startDate) {
+      start: function (dir, startDate) {
         let next = startDate,
           nextVal = later.array[dir],
           maxAttempts = 1e3,
@@ -775,7 +775,7 @@ export const later = (function() {
         }
         return next;
       },
-      end: function(dir, startDate) {
+      end: function (dir, startDate) {
         let result,
           nextVal = later.array[dir + 'Invalid'],
           compare = compareFn(dir);
@@ -794,19 +794,19 @@ export const later = (function() {
         }
         return result;
       },
-      tick: function(dir, date) {
+      tick: function (dir, date) {
         return new Date(
           dir === 'next'
             ? tickConstraint.end(date).getTime() + later.SEC
             : tickConstraint.start(date).getTime() - later.SEC,
         );
       },
-      tickStart: function(date) {
+      tickStart: function (date) {
         return tickConstraint.start(date);
       },
     };
   };
-  later.schedule = function(sched) {
+  later.schedule = function (sched) {
     if (!sched) throw new Error('Missing schedule definition.');
     if (!sched.schedules) throw new Error('Definition must include at least one schedule.');
     let schedules = [],
@@ -990,10 +990,10 @@ export const later = (function() {
     }
     function compareFn(dir) {
       return dir === 'next'
-        ? function(a, b) {
+        ? function (a, b) {
             return !b || a.getTime() > b.getTime();
           }
-        : function(a, b) {
+        : function (a, b) {
             return !a || b.getTime() > a.getTime();
           };
     }
@@ -1007,24 +1007,24 @@ export const later = (function() {
       return next;
     }
     return {
-      isValid: function(d) {
+      isValid: function (d) {
         return getInstances('next', 1, d, d) !== later.NEVER;
       },
-      next: function(count, startDate, endDate) {
+      next: function (count, startDate, endDate) {
         return getInstances('next', count || 1, startDate, endDate);
       },
-      prev: function(count, startDate, endDate) {
+      prev: function (count, startDate, endDate) {
         return getInstances('prev', count || 1, startDate, endDate);
       },
-      nextRange: function(count, startDate, endDate) {
+      nextRange: function (count, startDate, endDate) {
         return getInstances('next', count || 1, startDate, endDate, true);
       },
-      prevRange: function(count, startDate, endDate) {
+      prevRange: function (count, startDate, endDate) {
         return getInstances('prev', count || 1, startDate, endDate, true);
       },
     };
   };
-  later.setTimeout = function(fn, sched) {
+  later.setTimeout = function (fn, sched) {
     let s = later.schedule(sched),
       t;
     if (fn) {
@@ -1048,15 +1048,15 @@ export const later = (function() {
       }
     }
     return {
-      isDone: function() {
+      isDone: function () {
         return !t;
       },
-      clear: function() {
+      clear: function () {
         clearTimeout(t);
       },
     };
   };
-  later.setInterval = function(fn, sched) {
+  later.setInterval = function (fn, sched) {
     if (!fn) {
       return;
     }
@@ -1069,22 +1069,22 @@ export const later = (function() {
       }
     }
     return {
-      isDone: function() {
+      isDone: function () {
         return t.isDone();
       },
-      clear: function() {
+      clear: function () {
         done = true;
         t.clear();
       },
     };
   };
   later.date = {};
-  later.date.timezone = function(useLocalTime) {
+  later.date.timezone = function (useLocalTime) {
     later.date.build = useLocalTime
-      ? function(Y, M, D, h, m, s) {
+      ? function (Y, M, D, h, m, s) {
           return new Date(Y, M, D, h, m, s);
         }
-      : function(Y, M, D, h, m, s) {
+      : function (Y, M, D, h, m, s) {
           return new Date(Date.UTC(Y, M, D, h, m, s));
         };
     let get = useLocalTime ? 'get' : 'getUTC',
@@ -1098,10 +1098,10 @@ export const later = (function() {
     later.date.getSec = d[get + 'Seconds'];
     later.date.isUTC = !useLocalTime;
   };
-  later.date.UTC = function() {
+  later.date.UTC = function () {
     later.date.timezone(false);
   };
-  later.date.localTime = function() {
+  later.date.localTime = function () {
     later.date.timezone(true);
   };
   later.date.UTC();
@@ -1112,15 +1112,15 @@ export const later = (function() {
   later.WEEK = later.DAY * 7;
   later.DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   later.NEVER = 0;
-  later.date.next = function(Y, M, D, h, m, s) {
+  later.date.next = function (Y, M, D, h, m, s) {
     return later.date.build(Y, M !== undefined ? M - 1 : 0, D !== undefined ? D : 1, h || 0, m || 0, s || 0);
   };
-  later.date.nextRollover = function(d, val, constraint, period) {
+  later.date.nextRollover = function (d, val, constraint, period) {
     let cur = constraint.val(d),
       max = constraint.extent(d)[1];
     return (val || max) <= cur || val > max ? new Date(period.end(d).getTime() + later.SEC) : period.start(d);
   };
-  later.date.prev = function(Y, M, D, h, m, s) {
+  later.date.prev = function (Y, M, D, h, m, s) {
     let len = arguments.length;
     M = len < 2 ? 11 : M - 1;
     D = len < 3 ? later.D.extent(later.date.next(Y, M + 1))[1] : D;
@@ -1129,12 +1129,12 @@ export const later = (function() {
     s = len < 6 ? 59 : s;
     return later.date.build(Y, M, D, h, m, s);
   };
-  later.date.prevRollover = function(d, val, constraint, period) {
+  later.date.prevRollover = function (d, val, constraint, period) {
     let cur = constraint.val(d);
     return val >= cur || !val ? period.start(period.prev(d, period.val(d) - 1)) : period.start(d);
   };
   later.parse = {};
-  later.parse.cron = function(expr, hasSeconds) {
+  later.parse.cron = function (expr, hasSeconds) {
     let NAMES = {
       JAN: 1,
       FEB: 2,
@@ -1198,7 +1198,7 @@ export const later = (function() {
         }
         i += inc || 1;
       }
-      sched[name].sort(function(a, b) {
+      sched[name].sort(function (a, b) {
         return a - b;
       });
     }
@@ -1300,7 +1300,7 @@ export const later = (function() {
     let e = prepareExpr(expr);
     return parseExpr(hasSeconds ? e : '0 ' + e);
   };
-  later.parse.recur = function() {
+  later.parse.recur = function () {
     let schedules = [],
       exceptions = [],
       cur,
@@ -1348,33 +1348,33 @@ export const later = (function() {
     return {
       schedules: schedules,
       exceptions: exceptions,
-      on: function() {
+      on: function () {
         values = arguments[0] instanceof Array ? arguments[0] : arguments;
         return this;
       },
-      every: function(x) {
+      every: function (x) {
         every = x || 1;
         return this;
       },
-      after: function(x) {
+      after: function (x) {
         modifier = 'a';
         values = [x];
         return this;
       },
-      before: function(x) {
+      before: function (x) {
         modifier = 'b';
         values = [x];
         return this;
       },
-      first: function() {
+      first: function () {
         applyMin = 1;
         return this;
       },
-      last: function() {
+      last: function () {
         applyMax = 1;
         return this;
       },
-      time: function() {
+      time: function () {
         for (let i = 0, len = values.length; i < len; i++) {
           let split = values[i].split(':');
           if (split.length < 3) split.push(0);
@@ -1383,99 +1383,99 @@ export const later = (function() {
         add('t');
         return this;
       },
-      second: function() {
+      second: function () {
         add('s', 0, 59);
         return this;
       },
-      minute: function() {
+      minute: function () {
         add('m', 0, 59);
         return this;
       },
-      hour: function() {
+      hour: function () {
         add('h', 0, 23);
         return this;
       },
-      dayOfMonth: function() {
+      dayOfMonth: function () {
         add('D', 1, applyMax ? 0 : 31);
         return this;
       },
-      dayOfWeek: function() {
+      dayOfWeek: function () {
         add('d', 1, 7);
         return this;
       },
-      onWeekend: function() {
+      onWeekend: function () {
         values = [1, 7];
         return this.dayOfWeek();
       },
-      onWeekday: function() {
+      onWeekday: function () {
         values = [2, 3, 4, 5, 6];
         return this.dayOfWeek();
       },
-      dayOfWeekCount: function() {
+      dayOfWeekCount: function () {
         add('dc', 1, applyMax ? 0 : 5);
         return this;
       },
-      dayOfYear: function() {
+      dayOfYear: function () {
         add('dy', 1, applyMax ? 0 : 366);
         return this;
       },
-      weekOfMonth: function() {
+      weekOfMonth: function () {
         add('wm', 1, applyMax ? 0 : 5);
         return this;
       },
-      weekOfYear: function() {
+      weekOfYear: function () {
         add('wy', 1, applyMax ? 0 : 53);
         return this;
       },
-      month: function() {
+      month: function () {
         add('M', 1, 12);
         return this;
       },
-      year: function() {
+      year: function () {
         add('Y', 1970, 2450);
         return this;
       },
-      fullDate: function() {
+      fullDate: function () {
         for (let i = 0, len = values.length; i < len; i++) {
           values[i] = values[i].getTime();
         }
         add('fd');
         return this;
       },
-      customModifier: function(id, vals) {
+      customModifier: function (id, vals) {
         let custom = later.modifier[id];
         if (!custom) throw new Error('Custom modifier ' + id + ' not recognized!');
         modifier = id;
         values = arguments[1] instanceof Array ? arguments[1] : [arguments[1]];
         return this;
       },
-      customPeriod: function(id) {
+      customPeriod: function (id) {
         let custom = later[id];
         if (!custom) throw new Error('Custom time period ' + id + ' not recognized!');
         add(id, custom.extent(new Date())[0], custom.extent(new Date())[1]);
         return this;
       },
-      startingOn: function(start) {
+      startingOn: function (start) {
         return this.between(start, last.m);
       },
-      between: function(start, end) {
+      between: function (start, end) {
         cur[last.n] = cur[last.n].splice(0, last.c);
         every = last.x;
         add(last.n, start, end);
         return this;
       },
-      and: function() {
+      and: function () {
         cur = curArr[curArr.push({}) - 1];
         return this;
       },
-      except: function() {
+      except: function () {
         curArr = exceptions;
         cur = null;
         return this;
       },
     };
   };
-  later.parse.text = function(str) {
+  later.parse.text = function (str) {
     let recur = later.parse.recur,
       pos = 0,
       input = '',

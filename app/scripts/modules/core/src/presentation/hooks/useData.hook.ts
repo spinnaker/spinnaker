@@ -21,7 +21,7 @@ import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise.ho
  */
 export function useData<T>(callback: () => PromiseLike<T>, defaultResult: T, deps: any[]): IUseLatestPromiseResult<T> {
   const memoizedDefaultResult = useMemo(() => defaultResult, []);
-  const anyDepsMissing = deps.some(dep => isNil(dep));
+  const anyDepsMissing = deps.some((dep) => isNil(dep));
   const result = useLatestPromise<T>(anyDepsMissing ? () => null : callback, deps);
   const hasResolvedAtLeastOnceRef = useRef(false);
   if (result.status === 'RESOLVED') {

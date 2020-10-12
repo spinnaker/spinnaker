@@ -46,7 +46,7 @@ export class EcsTargetGroup extends React.Component<IEcsTargetGroupProps> {
           </UISref>
         </UISrefActive>
         {showServerGroups &&
-          targetGroup.serverGroups.map(sgName => {
+          targetGroup.serverGroups.map((sgName) => {
             return (
               <LoadBalancerServerGroup
                 key={sgName}

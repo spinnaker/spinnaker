@@ -28,9 +28,9 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={memoryFieldName}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
               label="Memory"
-              onChange={value => {
+              onChange={(value) => {
                 onMemoryChange && onMemoryChange(value);
               }}
             />
@@ -38,9 +38,9 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={diskQuotaFieldName}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
               label="Disk Quota"
-              onChange={value => {
+              onChange={(value) => {
                 onDiskQuotaChange && onDiskQuotaChange(value);
               }}
             />
@@ -48,9 +48,9 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={instancesFieldName}
-              input={props => <TextInput type="number" {...props} />}
+              input={(props) => <TextInput type="number" {...props} />}
               label="Instances"
-              onChange={value => {
+              onChange={(value) => {
                 onInstancesChange && onInstancesChange(value);
               }}
               required={true}

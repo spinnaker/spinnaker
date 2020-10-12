@@ -55,7 +55,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
     }
     setIsSubmitting(true);
     if (taskMonitors) {
-      taskMonitors.forEach(m => m.callPreconfiguredSubmit({ reason }));
+      taskMonitors.forEach((m) => m.callPreconfiguredSubmit({ reason }));
     } else if (taskMonitor) {
       taskMonitor.submit(() => {
         return submitMethod({

@@ -56,7 +56,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     this.close();
     this.state.selectedChoice.component
       .show(loadBalancerProps)
-      .then(loadBalancer => {
+      .then((loadBalancer) => {
         this.props.closeModal(loadBalancer);
       })
       .catch(() => {});
@@ -72,7 +72,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
       incompatibleLoadBalancerTypes = [],
     }: { incompatibleLoadBalancerTypes: ILoadBalancerIncompatibility[] } = loadBalancer;
 
-    return incompatibleLoadBalancerTypes.find(lb => lb.type === choice.type);
+    return incompatibleLoadBalancerTypes.find((lb) => lb.type === choice.type);
   }
 
   private isIncompatibleWithAllProviders(choice: IAmazonLoadBalancerConfig) {
@@ -97,11 +97,11 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     const { choices, selectedChoice } = this.state;
 
     // Remove any choices that are not compatible with all configured cloud providers
-    const filteredChoices = choices.filter(choice => !this.isIncompatibleWithAllProviders(choice));
+    const filteredChoices = choices.filter((choice) => !this.isIncompatibleWithAllProviders(choice));
 
     // Compute incompatibilities with the current selected choice so we can display a warning
     const incompatibilities: ILoadBalancerIncompatibility[] = cloudProviders
-      .map(cloudProvider => this.getIncompatibility(selectedChoice, cloudProvider))
+      .map((cloudProvider) => this.getIncompatibility(selectedChoice, cloudProvider))
       .filter((x: ILoadBalancerIncompatibility) => x);
 
     const loadBalancerWarning =
@@ -117,7 +117,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
         <Modal.Body>
           <div className="modal-body">
             <div className="card-choices">
-              {filteredChoices.map(choice => (
+              {filteredChoices.map((choice) => (
                 <div
                   key={choice.type}
                   className={`card ${selectedChoice === choice ? 'active' : ''}`}
@@ -131,7 +131,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
             </div>
             <>
               {incompatibilities.length > 0 &&
-                incompatibilities.map(incompatibility => (
+                incompatibilities.map((incompatibility) => (
                   <div className="alert alert-warning">
                     <p>
                       <i className="fa fa-exclamation-triangle" /> {incompatibility.reason}

@@ -65,7 +65,7 @@ export class EditDisruptionBudgetModal extends React.Component<IEditDisruptionBu
         <SpinFormik<ITitusServerGroupCommand>
           initialValues={command}
           onSubmit={(values: ITitusServerGroupCommand) => this.submit(values, taskMonitor)}
-          render={formik => (
+          render={(formik) => (
             <>
               <ModalClose dismiss={dismissModal} />
               <Modal.Header>

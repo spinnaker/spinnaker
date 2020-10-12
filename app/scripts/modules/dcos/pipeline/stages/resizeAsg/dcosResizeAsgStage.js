@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE = 'spinnaker.dcos.pipeline.stage.resizeAsgStage';
 export const name = DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE; // for backwards compatibility
 module(DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       alias: 'resizeAsg',
@@ -31,7 +31,7 @@ module(DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE, [])
   })
   .controller('dcosResizeAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -41,7 +41,7 @@ module(DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -95,7 +95,7 @@ module(DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE, [])
         stage.regions.push($scope.application.defaultRegions.dcos);
       }
 
-      ctrl.updateResizeType = function() {
+      ctrl.updateResizeType = function () {
         if (stage.action === 'scale_exact') {
           stage.resizeType = 'exact';
           delete stage.scalePct;

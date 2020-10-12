@@ -25,7 +25,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
             <input
               type="checkbox"
               checked={command.rollback?.onFailure ?? false}
-              onChange={e => this.handleChange('rollback.onFailure', e.target.checked)}
+              onChange={(e) => this.handleChange('rollback.onFailure', e.target.checked)}
             />
             Rollback to previous server group if deployment fails <HelpField id="strategy.redblack.rollback" />
           </label>
@@ -35,7 +35,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
             <input
               type="checkbox"
               checked={command.scaleDown}
-              onChange={e => this.handleChange('scaleDown', e.target.checked)}
+              onChange={(e) => this.handleChange('scaleDown', e.target.checked)}
             />
             Scale down replaced server groups to zero instances
             <HelpField id="strategy.redblack.scaleDown" />
@@ -51,7 +51,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
             style={{ width: '50px' }}
             type="number"
             value={command.maxRemainingAsgs}
-            onChange={e => this.handleChange('maxRemainingAsgs', e.target.value)}
+            onChange={(e) => this.handleChange('maxRemainingAsgs', e.target.value)}
             min="2"
           />
         </div>
@@ -66,7 +66,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
             min="0"
             type="number"
             value={command.delayBeforeDisableSec}
-            onChange={e => this.handleChange('delayBeforeDisableSec', e.target.value)}
+            onChange={(e) => this.handleChange('delayBeforeDisableSec', e.target.value)}
             placeholder="0"
           />
           seconds
@@ -83,7 +83,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
               min="0"
               type="number"
               value={command.delayBeforeScaleDownSec}
-              onChange={e => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
+              onChange={(e) => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
               placeholder="0"
             />
             seconds

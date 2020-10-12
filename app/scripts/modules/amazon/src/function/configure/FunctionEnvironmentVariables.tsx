@@ -19,14 +19,12 @@ export interface IFunctionEnvironmentVariablesProps {
   functionDef: IAmazonFunction;
 }
 
-export class FunctionEnvironmentVariables extends React.Component<IFunctionEnvironmentVariablesProps>
+export class FunctionEnvironmentVariables
+  extends React.Component<IFunctionEnvironmentVariablesProps>
   implements IWizardPageComponent<IAmazonFunctionUpsertCommand> {
   public validate = (values: IAmazonFunctionUpsertCommand) => {
     const validator = new FormValidator(values);
-    validator
-      .field('kmskeyArn', 'KMS Key ARN')
-      .optional()
-      .withValidators(awsArnValidator);
+    validator.field('kmskeyArn', 'KMS Key ARN').optional().withValidators(awsArnValidator);
     return validator.validateForm();
   };
 
@@ -36,13 +34,13 @@ export class FunctionEnvironmentVariables extends React.Component<IFunctionEnvir
         <FormikFormField
           name="envVariables"
           label="Env Variables"
-          input={props => <MapEditorInput {...props} allowEmptyValues={true} addButtonLabel="Add" />}
+          input={(props) => <MapEditorInput {...props} allowEmptyValues={true} addButtonLabel="Add" />}
         />
         <FormikFormField
           name="kmskeyArn"
           label="Key ARN"
           help={<HelpField id="aws.function.kmsKeyArn" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
       </div>
     );

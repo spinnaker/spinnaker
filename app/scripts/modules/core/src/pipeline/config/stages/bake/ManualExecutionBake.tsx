@@ -22,7 +22,7 @@ export class ManualExecutionBake extends React.Component<ITriggerTemplateCompone
         onChange={this.handleChange}
         value={force}
         help={<HelpField id="execution.forceRebake" />}
-        input={props => <CheckboxInput {...props} text="Force Rebake" />}
+        input={(props) => <CheckboxInput {...props} text="Force Rebake" />}
       />
     );
   }

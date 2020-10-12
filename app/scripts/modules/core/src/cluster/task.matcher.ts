@@ -52,8 +52,8 @@ export class TaskMatcher {
 
   public taskMatches(task: ITask, serverGroup: IServerGroup) {
     const matchers: { [type: string]: ITaskMatcher } = { ...this.customMatchers };
-    this.instanceIdMatchers.forEach(m => (matchers[m] = instanceIdsTaskMatcher));
-    this.baseTaskMatchers.forEach(m => (matchers[m] = baseTaskMatcher));
+    this.instanceIdMatchers.forEach((m) => (matchers[m] = instanceIdsTaskMatcher));
+    this.baseTaskMatchers.forEach((m) => (matchers[m] = baseTaskMatcher));
 
     const firstStage = task.execution?.stages?.[0] ?? { context: {} };
     const notificationType: string =

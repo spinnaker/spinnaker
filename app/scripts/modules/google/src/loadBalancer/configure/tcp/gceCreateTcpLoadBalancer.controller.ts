@@ -111,7 +111,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
   public $onInit(): void {
     this.gceCommonLoadBalancerCommandBuilder
       .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'healthChecks'])
-      .then(backingData => {
+      .then((backingData) => {
         if (!this.isNew) {
           this.initializeEditMode();
         } else {
@@ -159,7 +159,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['healthChecks']).then(data => {
+    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['healthChecks']).then((data) => {
       this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder.groupHealthChecksByAccountAndType(
         data.healthChecks as IGceHealthCheck[],
       );

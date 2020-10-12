@@ -85,7 +85,7 @@ export class AmazonInfoDetailsSection extends React.Component<
           {serverGroup.asg && (
             <dd>
               <ul>
-                {serverGroup.asg.availabilityZones.map(zone => (
+                {serverGroup.asg.availabilityZones.map((zone) => (
                   <li key={zone}>{zone}</li>
                 ))}
               </ul>

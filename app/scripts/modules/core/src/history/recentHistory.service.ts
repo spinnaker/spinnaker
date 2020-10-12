@@ -47,8 +47,8 @@ export class RecentHistoryService {
       // },
     ];
     const items: IRecentHistoryEntry[] = this.cache.get(type) || [];
-    items.forEach(item => {
-      replacements.forEach(replacement => {
+    items.forEach((item) => {
+      replacements.forEach((replacement) => {
         if (item.state && item.state.includes(replacement.state)) {
           item.state = item.state.replace(replacement.state, replacement.replacement);
         }
@@ -79,7 +79,7 @@ export class RecentHistoryService {
 
   public static removeItem(type: string, id: string): void {
     const items: IRecentHistoryEntry[] = this.getItems(type);
-    const existing: IRecentHistoryEntry = items.find(i => i.id === id);
+    const existing: IRecentHistoryEntry = items.find((i) => i.id === id);
 
     if (existing) {
       items.splice(items.indexOf(existing), 1);
@@ -117,7 +117,7 @@ export class RecentHistoryService {
   public static removeByAppName(appName: string) {
     const type = 'applications';
     const items: IRecentHistoryEntry[] = this.getItems(type);
-    const remaining: IRecentHistoryEntry[] = items.filter(item => item.params.application !== appName);
+    const remaining: IRecentHistoryEntry[] = items.filter((item) => item.params.application !== appName);
     if (remaining) {
       this.cache.put(type, remaining);
     }
@@ -127,7 +127,7 @@ export class RecentHistoryService {
     if (!keyParams || !keyParams.length) {
       return find(items, { params: omitBy(params, isUndefined) });
     }
-    return items.find(item => keyParams.every(p => item.params[p] === params[p]));
+    return items.find((item) => keyParams.every((p) => item.params[p] === params[p]));
   }
 }
 

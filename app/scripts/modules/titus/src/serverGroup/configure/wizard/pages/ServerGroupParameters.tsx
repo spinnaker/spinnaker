@@ -28,7 +28,8 @@ const migrationPolicyOptions = [
   { label: 'Self Managed', value: 'selfManaged' },
 ];
 
-export class ServerGroupParameters extends React.Component<IServerGroupParametersProps>
+export class ServerGroupParameters
+  extends React.Component<IServerGroupParametersProps>
   implements IWizardPageComponent<ITitusServerGroupCommand> {
   private duplicateKeys: { [name: string]: boolean } = {};
 

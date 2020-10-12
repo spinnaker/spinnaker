@@ -51,12 +51,12 @@ class InstancesInternal extends React.Component<IInstancesInternalProps, IInstan
 
   public shouldComponentUpdate(nextProps: IInstancesInternalProps, nextState: IInstancesState) {
     const propsKeys: Array<keyof IInstancesInternalProps> = ['instances', 'highlight'];
-    if (propsKeys.some(key => this.props[key] !== nextProps[key])) {
+    if (propsKeys.some((key) => this.props[key] !== nextProps[key])) {
       return true;
     }
 
     if (this.state.detailsInstanceId !== nextState.detailsInstanceId) {
-      const ids = nextProps.instances.map(x => x.id);
+      const ids = nextProps.instances.map((x) => x.id);
       if (ids.includes(this.state.detailsInstanceId) || ids.includes(nextState.detailsInstanceId)) {
         return true;
       }
@@ -83,7 +83,7 @@ class InstancesInternal extends React.Component<IInstancesInternalProps, IInstan
     }
     let currentPartition: IInstance[] = [];
     let currentState = instances[0].healthState;
-    instances.forEach(i => {
+    instances.forEach((i) => {
       if (i.healthState !== currentState) {
         partitions.push(currentPartition);
         currentPartition = [];
@@ -101,7 +101,7 @@ class InstancesInternal extends React.Component<IInstancesInternalProps, IInstan
       <div className="instances">
         {partitions.map((p, i) => (
           <span key={i} className={`instance-group instance-group-${p[0].healthState}`}>
-            {p.map(instance => (
+            {p.map((instance) => (
               <Instance
                 key={instance.id}
                 instance={instance}

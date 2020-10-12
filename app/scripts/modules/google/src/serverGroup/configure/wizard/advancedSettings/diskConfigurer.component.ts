@@ -83,7 +83,7 @@ class GceDiskConfigurerController implements IComponentController {
   }
 
   private sortDisks(disks: IGceDisk[]): IGceDisk[] {
-    const diskWithoutImage = disks.find(disk => disk.type.startsWith('pd-') && disk.sourceImage === undefined);
+    const diskWithoutImage = disks.find((disk) => disk.type.startsWith('pd-') && disk.sourceImage === undefined);
     return [diskWithoutImage].concat(without(disks, diskWithoutImage));
   }
 

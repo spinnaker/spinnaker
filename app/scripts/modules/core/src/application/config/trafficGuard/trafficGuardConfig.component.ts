@@ -94,22 +94,22 @@ export class TrafficGuardConfigController {
 
   public configureMatches(): void {
     this.clusterMatches.length = 0;
-    this.config.forEach(guard => {
+    this.config.forEach((guard) => {
       this.clusterMatches.push(
         this.application.clusters
-          .filter(c =>
-            c.serverGroups.some(s => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [guard]) !== null),
+          .filter((c) =>
+            c.serverGroups.some((s) => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [guard]) !== null),
           )
-          .map(c => {
+          .map((c) => {
             return {
               name: c.name,
               account: guard.account,
-              regions: guard.location === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [guard.location],
+              regions: guard.location === '*' ? uniq(c.serverGroups.map((g) => g.region)).sort() : [guard.location],
             };
           }),
       );
     });
-    this.clusterMatches.forEach(m => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
+    this.clusterMatches.forEach((m) => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
   }
 }
 

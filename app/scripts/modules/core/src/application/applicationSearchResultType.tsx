@@ -64,7 +64,7 @@ class ApplicationSearchResultType extends SearchResultType<IApplicationSearchRes
 
     return (
       <SearchTableBody>
-        {results.map(item => (
+        {results.map((item) => (
           <SearchTableRow key={itemKeyFn(item)}>
             <HrefCell item={item} col={this.cols.APPLICATION} />
             <AccountCell item={item} col={this.cols.ACCOUNT} />

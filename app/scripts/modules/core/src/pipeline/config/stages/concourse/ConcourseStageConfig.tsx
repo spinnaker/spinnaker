@@ -146,14 +146,14 @@ export class ConcourseStageConfig extends React.Component<IStageConfigProps, ICo
   private fetchAvailableTeams = () => {
     const { master } = this.getStage();
     if (master) {
-      ConcourseService.listTeamsForMaster(master).then(teams => this.setState({ teams: teams }));
+      ConcourseService.listTeamsForMaster(master).then((teams) => this.setState({ teams: teams }));
     }
   };
 
   private fetchAvailablePipelines = () => {
     const { master, teamName } = this.getStage();
     if (master && teamName) {
-      ConcourseService.listPipelinesForTeam(master, teamName).then(pipelines =>
+      ConcourseService.listPipelinesForTeam(master, teamName).then((pipelines) =>
         this.setState({ pipelines: pipelines }),
       );
     }
@@ -162,7 +162,7 @@ export class ConcourseStageConfig extends React.Component<IStageConfigProps, ICo
   private fetchAvailableResourceNames = () => {
     const { master, teamName, pipelineName } = this.getStage();
     if (master && teamName && pipelineName) {
-      ConcourseService.listResourcesForPipeline(master, teamName, pipelineName).then(resourceNames =>
+      ConcourseService.listResourcesForPipeline(master, teamName, pipelineName).then((resourceNames) =>
         this.setState({ resourceNames: resourceNames }),
       );
     }

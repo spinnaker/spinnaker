@@ -12,8 +12,8 @@ module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, 
   bindings: {
     loadBalancer: '=',
   },
-  controller: function() {
-    this.type = (function(lb) {
+  controller: function () {
+    this.type = (function (lb) {
       if (lb.loadBalancerType === 'HTTP') {
         if (_.isString(lb.certificate)) {
           return 'HTTPS';

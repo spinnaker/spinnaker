@@ -22,7 +22,7 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [ANGULAR_UI_BOOTSTRAP, MANAGED_
     'app',
     '$uibModal',
     '$timeout',
-    function($scope, app, $uibModal, $timeout) {
+    function ($scope, app, $uibModal, $timeout) {
       this.$onInit = () => {
         const groupsUpdatedSubscription = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(() =>
           groupsUpdated(),
@@ -64,7 +64,7 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [ANGULAR_UI_BOOTSTRAP, MANAGED_
         });
       };
 
-      this.clearFilters = function() {
+      this.clearFilters = function () {
         SecurityGroupState.filterService.clearFilters();
         updateSecurityGroups();
       };
@@ -80,7 +80,7 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [ANGULAR_UI_BOOTSTRAP, MANAGED_
 
       this.createSecurityGroup = function createSecurityGroup() {
         ProviderSelectionService.selectProvider(app, 'securityGroup', createSecurityGroupProviderFilterFn)
-          .then(selectedProvider => {
+          .then((selectedProvider) => {
             const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
             const defaultCredentials =
               app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account;

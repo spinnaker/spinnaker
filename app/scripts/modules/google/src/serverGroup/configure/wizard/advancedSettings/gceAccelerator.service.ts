@@ -40,7 +40,7 @@ export class GceAcceleratorService {
 
     if (regional && selectZones) {
       const zones = get(distributionPolicy, 'zones', []);
-      const allZonesAcceleratorTypes = zones.map(z => this.getAcceleratorTypesForZone(acceleratorMap, z));
+      const allZonesAcceleratorTypes = zones.map((z) => this.getAcceleratorTypesForZone(acceleratorMap, z));
       return intersectionBy.apply(null, [...allZonesAcceleratorTypes, 'name']);
     }
 
@@ -55,7 +55,7 @@ export class GceAcceleratorService {
     acceleratorMap: IZoneToAcceleratorTypesMap,
     zone: string,
   ): IGceAcceleratorType[] {
-    return get(acceleratorMap, [zone, 'acceleratorTypes', 'acceleratorTypes'], []).map(a => {
+    return get(acceleratorMap, [zone, 'acceleratorTypes', 'acceleratorTypes'], []).map((a) => {
       return {
         ...a,
         availableCardCounts: this.getAvailableCardCounts(a),

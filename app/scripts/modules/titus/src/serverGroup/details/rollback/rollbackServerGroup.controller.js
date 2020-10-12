@@ -19,7 +19,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
     'previousServerGroup',
     'disabledServerGroups',
     'allServerGroups',
-    function(
+    function (
       $scope,
       $uibModalInstance,
       serverGroupWriter,
@@ -76,7 +76,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
         securityGroups: serverGroup.securityGroups,
       };
 
-      $scope.minHealthy = function(percent) {
+      $scope.minHealthy = function (percent) {
         return Math.ceil((desired * percent) / 100);
       };
 
@@ -88,7 +88,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 
-      this.isValid = function() {
+      this.isValid = function () {
         const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
@@ -108,23 +108,23 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
         modalInstance: $uibModalInstance,
       });
 
-      this.rollback = function() {
+      this.rollback = function () {
         if (!this.isValid()) {
           return;
         }
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 
         $scope.taskMonitor.submit(submitMethod);
       };
 
-      this.cancel = function() {
+      this.cancel = function () {
         $uibModalInstance.dismiss();
       };
 
-      this.label = function(serverGroup) {
+      this.label = function (serverGroup) {
         if (!serverGroup) {
           return '';
         }
@@ -141,7 +141,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
         return serverGroup.name + ' (' + imageName + ')';
       };
 
-      this.group = function(serverGroup) {
+      this.group = function (serverGroup) {
         return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
       };
     },

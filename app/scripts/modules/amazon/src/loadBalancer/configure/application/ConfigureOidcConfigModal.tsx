@@ -85,42 +85,42 @@ export class ConfigureOidcConfigModal extends React.Component<
                   name="issuer"
                   label="Issuer"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter the OpenId Provider" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter the OpenId Provider" />}
                 />
 
                 <FormikFormField
                   name="authorizationEndpoint"
                   label="Authorization Endpoint"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter OpenID provider server endpoint" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter OpenID provider server endpoint" />}
                 />
 
                 <FormikFormField
                   name="tokenEndpoint"
                   label="Token Endpoint"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter a URI for your token endpoint" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter a URI for your token endpoint" />}
                 />
 
                 <FormikFormField
                   name="userInfoEndpoint"
                   label="User info Endpoint"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter a URI for your user info endpoint" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter a URI for your user info endpoint" />}
                 />
 
                 <FormikFormField
                   name="clientId"
                   label="Client ID"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter the client ID" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter the client ID" />}
                 />
 
                 <FormikFormField
                   name="clientSecret"
                   label="Client secret"
                   required={true}
-                  input={props => <TextInput {...props} placeholder="Enter the client secret" />}
+                  input={(props) => <TextInput {...props} placeholder="Enter the client secret" />}
                 />
               </Modal.Body>
 

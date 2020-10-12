@@ -49,7 +49,7 @@ const getReactModalOptions = (selectedProvider: string, app: Application) => ({
 
 export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
   const createSecurityGroup = (): void => {
-    ProviderSelectionService.selectProvider(app, 'securityGroup', providerFilterFn).then(selectedProvider => {
+    ProviderSelectionService.selectProvider(app, 'securityGroup', providerFilterFn).then((selectedProvider) => {
       const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
 
       if (provider.CreateSecurityGroupModal) {

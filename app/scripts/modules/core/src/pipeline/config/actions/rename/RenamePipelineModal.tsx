@@ -48,7 +48,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
         application.pipelineConfigs.refresh();
         closeModal(command.name);
       },
-      response => {
+      (response) => {
         setSaving(false);
         setSaveError(true);
         setErrorMessage(response.message || 'No message provided');
@@ -61,7 +61,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
       <SpinFormik<IRenamePipelineCommand>
         initialValues={initialValues}
         onSubmit={renamePipeline}
-        render={formik => (
+        render={(formik) => (
           <Form className="form-horizontal">
             <Modal key="modal" show={true} onHide={() => {}}>
               <ModalClose dismiss={dismissModal} />
@@ -79,7 +79,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
                     <p>
                       <a
                         className="btn btn-link"
-                        onClick={e => {
+                        onClick={(e) => {
                           e.preventDefault();
                           setSaveError(false);
                         }}
@@ -92,7 +92,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
                 <FormikFormField
                   name="name"
                   label={`${pipelineType} Name`}
-                  input={inputProps => <TextInput {...inputProps} className="form-control input-sm" />}
+                  input={(inputProps) => <TextInput {...inputProps} className="form-control input-sm" />}
                   required={true}
                   validate={[
                     Validators.valueUnique(existingNames, `There is already a ${pipelineType} with that name.`),

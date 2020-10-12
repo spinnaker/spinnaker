@@ -22,7 +22,7 @@ interface DiffRow {
 const traverseDiffFields = (diff: IManagedResourceDiff, depth: number, rows: DiffRow[]) => {
   Object.keys(diff)
     .sort((a, b) => a.localeCompare(b))
-    .forEach(name => {
+    .forEach((name) => {
       const { key, diffType, actual, desired, fields } = diff[name];
       rows.push({
         key,

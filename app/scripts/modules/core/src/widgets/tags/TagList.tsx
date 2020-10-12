@@ -107,7 +107,7 @@ export class TagList extends React.Component<ITagListProps> {
 
     return (
       <div className="tag-list">
-        {tags.map(tag => (
+        {tags.map((tag) => (
           <Tag
             key={[tag.key, tag.text].join('|')}
             tag={tag}

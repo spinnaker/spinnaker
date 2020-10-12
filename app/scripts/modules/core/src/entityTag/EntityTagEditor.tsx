@@ -79,7 +79,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
     const { tag } = this.props;
     const ownerOptions = this.props.ownerOptions || [];
-    const defaultOwnerOption = ownerOptions.find(opt => opt.isDefault) || ownerOptions[0];
+    const defaultOwnerOption = ownerOptions.find((opt) => opt.isDefault) || ownerOptions[0];
     tag.name = tag.name || `spinnaker_ui_${tag.value.type}:${UUIDGenerator.generateUuid()}`;
 
     this.state = {
@@ -162,7 +162,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                     label="Message"
                     name="message"
                     required={true}
-                    input={props => <TextAreaInput {...props} rows={5} required={true} />}
+                    input={(props) => <TextAreaInput {...props} rows={5} required={true} />}
                   />
                   <div className="small text-right">
                     Markdown is okay <HelpField id="markdown.examples" />
@@ -187,10 +187,12 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                     required={true}
                     value={values.ownerOption.label}
                     onChange={(evt: any) => {
-                      const option = ownerOptions.find(opt => opt.label === evt.target.value);
+                      const option = ownerOptions.find((opt) => opt.label === evt.target.value);
                       setFieldValue('ownerOption', option);
                     }}
-                    input={props => <RadioButtonInput {...props} stringOptions={ownerOptions.map(opt => opt.label)} />}
+                    input={(props) => (
+                      <RadioButtonInput {...props} stringOptions={ownerOptions.map((opt) => opt.label)} />
+                    )}
                   />
                 )}
               </Modal.Body>

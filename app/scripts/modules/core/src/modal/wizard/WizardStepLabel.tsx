@@ -18,7 +18,7 @@ const flattenErrors = (errors: any) => {
     } else if (isString(obj)) {
       flattenedErrors[path] = obj;
     } else if (isObject(obj)) {
-      Object.keys(obj).forEach(key => traverse(obj[key], `${path}.${key}`, flattenedErrors));
+      Object.keys(obj).forEach((key) => traverse(obj[key], `${path}.${key}`, flattenedErrors));
     }
 
     return flattenedErrors;
@@ -51,7 +51,7 @@ export class WizardStepLabel extends React.Component<IWizardStepLabelProps> {
 
     const Errors = (
       <span>
-        {Object.keys(flattenedErrors).map(key => (
+        {Object.keys(flattenedErrors).map((key) => (
           <span key={key}>
             {flattenedErrors[key]} <br />
           </span>

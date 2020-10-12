@@ -10,7 +10,7 @@ export class SlackNotificationType extends React.Component<INotificationTypeCust
         <FormikFormField
           label="Slack Channel"
           name={fieldName ? `${fieldName}.address` : 'address'}
-          input={props => (
+          input={(props) => (
             <TextInput inputClassName={'form-control input-sm'} {...props} placeholder="enter a Slack channel" />
           )}
           required={true}

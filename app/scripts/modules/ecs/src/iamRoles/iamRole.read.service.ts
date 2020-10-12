@@ -5,9 +5,7 @@ import { IRoleDescriptor } from './IRole';
 
 export class IamRoleReader {
   public listRoles(provider: string): IPromise<IRoleDescriptor[]> {
-    return API.all('roles')
-      .all(provider)
-      .getList();
+    return API.all('roles').all(provider).getList();
   }
 }
 

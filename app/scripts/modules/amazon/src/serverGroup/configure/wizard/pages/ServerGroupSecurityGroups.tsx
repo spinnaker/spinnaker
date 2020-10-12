@@ -10,7 +10,8 @@ export interface IServerGroupSecurityGroupsProps {
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
-export class ServerGroupSecurityGroups extends React.Component<IServerGroupSecurityGroupsProps>
+export class ServerGroupSecurityGroups
+  extends React.Component<IServerGroupSecurityGroupsProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors = {} as any;

@@ -6,7 +6,7 @@ import { IStageConfigProps } from '../common';
 import { FormikFormField, TextInput } from 'core/presentation';
 import { HelpField } from 'core/help';
 
-export const ImportDeliveryConfigStageConfig: React.ComponentType<IStageConfigProps> = stageConfigProps => (
+export const ImportDeliveryConfigStageConfig: React.ComponentType<IStageConfigProps> = (stageConfigProps) => (
   <FormikStageConfig
     {...stageConfigProps}
     onChange={stageConfigProps.updateStage}
@@ -16,7 +16,7 @@ export const ImportDeliveryConfigStageConfig: React.ComponentType<IStageConfigPr
           name="manifest"
           label="Manifest Path"
           help={<HelpField id="pipeline.config.deliveryConfig.manifest" />}
-          input={props => (
+          input={(props) => (
             <TextInput
               {...props}
               prefix={SETTINGS.managedDelivery?.manifestBasePath + '/'}

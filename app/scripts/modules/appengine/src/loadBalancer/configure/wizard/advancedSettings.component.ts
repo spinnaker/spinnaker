@@ -11,7 +11,7 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
     } else {
       const targetServerGroupName = this.loadBalancer.splitDescription.allocationDescriptions[0].serverGroupName;
       const targetServerGroup = this.loadBalancer.serverGroups.find(
-        candidate => candidate.name === targetServerGroupName,
+        (candidate) => candidate.name === targetServerGroupName,
       );
 
       if (targetServerGroup) {

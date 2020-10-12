@@ -19,7 +19,7 @@ export class ProviderSelectionService {
     return AccountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
-        reducedAccounts = accounts.filter(a => CloudProviderRegistry.hasValue(a.cloudProvider, feature));
+        reducedAccounts = accounts.filter((a) => CloudProviderRegistry.hasValue(a.cloudProvider, feature));
       }
 
       if (filterFn) {
@@ -30,7 +30,7 @@ export class ProviderSelectionService {
 
       // reduce the accounts to the smallest, unique collection taking into consideration the useProvider values
       const providerOptions = uniq(
-        reducedAccounts.map(a => {
+        reducedAccounts.map((a) => {
           const providerFeature = CloudProviderRegistry.getProvider(a.cloudProvider)[feature] || {};
           return providerFeature.useProvider || a.cloudProvider;
         }),

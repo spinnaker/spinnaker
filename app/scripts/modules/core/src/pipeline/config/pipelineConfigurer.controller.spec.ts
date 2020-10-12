@@ -111,7 +111,7 @@ const plan: IPipelineTemplatePlanV2 = {
 
 declare const window: IWindowService;
 
-describe('Controller: pipelineConfigurer', function() {
+describe('Controller: pipelineConfigurer', function () {
   let $scope: IScope;
   let vm: IController;
   let $q: IQService;
@@ -119,7 +119,7 @@ describe('Controller: pipelineConfigurer', function() {
   beforeEach(window.module(require('./pipelineConfigurer').name));
 
   beforeEach(
-    window.inject(function($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService) {
+    window.inject(function ($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService) {
       $q = _$q_;
 
       $scope = $rootScope.$new();
@@ -144,20 +144,20 @@ describe('Controller: pipelineConfigurer', function() {
     }),
   );
 
-  describe('initialization', function() {
-    it('sets $scope.renderablePipeline to the plan for templated pipelines', function() {
+  describe('initialization', function () {
+    it('sets $scope.renderablePipeline to the plan for templated pipelines', function () {
       this.initialize();
       expect($scope.renderablePipeline).toEqual(plan);
     });
   });
 
-  describe('adding configuration options', function() {
-    beforeEach(function() {
+  describe('adding configuration options', function () {
+    beforeEach(function () {
       spyOn(PipelineConfigService, 'getHistory').and.returnValue($q.when([]));
       this.initialize();
     });
 
-    it('can add and remove a trigger to the pipeline config and plan', function() {
+    it('can add and remove a trigger to the pipeline config and plan', function () {
       expect($scope.pipeline.triggers.length).toBe(0);
       vm.updatePipelineConfig({ triggers: [inheritedDockerTrigger, githubTrigger] });
 
@@ -175,7 +175,7 @@ describe('Controller: pipelineConfigurer', function() {
       expect($scope.renderablePipeline.triggers).toEqual([inheritedDockerTrigger]);
     });
 
-    it('can add and remove a parameter to the pipeline config and plan', function() {
+    it('can add and remove a parameter to the pipeline config and plan', function () {
       expect($scope.pipeline.parameterConfig.length).toBe(0);
       vm.updatePipelineConfig({ parameterConfig: [inheritedParameter, pipelineParameter] });
 
@@ -193,7 +193,7 @@ describe('Controller: pipelineConfigurer', function() {
       expect($scope.renderablePipeline.parameterConfig).toEqual([inheritedParameter]);
     });
 
-    it('can add and remove a notification to the pipeline config and plan', function() {
+    it('can add and remove a notification to the pipeline config and plan', function () {
       expect($scope.pipeline.notifications.length).toBe(0);
       vm.updatePipelineConfig({ notifications: [inheritedNotification, pipelineNotification] });
 

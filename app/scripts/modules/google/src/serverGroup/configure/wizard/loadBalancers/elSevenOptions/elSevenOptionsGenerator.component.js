@@ -12,7 +12,7 @@ angular
   ])
   .directive('gceElSevenOptionsGenerator', [
     '$compile',
-    function($compile) {
+    function ($compile) {
       const template = `<gce-backend-service-selector load-balancer-name="loadBalancerName" command="command">
                     </gce-backend-service-selector>`;
 
@@ -22,7 +22,7 @@ angular
           command: '=',
           loadBalancerName: '@',
         },
-        link: function(scope, element) {
+        link: function (scope, element) {
           const compiledTemplate = $compile(template)(scope);
 
           // Look up DOM to find container for selected load balancer.

@@ -1,12 +1,12 @@
 'use strict';
 
-describe('Service: azureServerGroupConfiguration', function() {
+describe('Service: azureServerGroupConfiguration', function () {
   var service;
 
   beforeEach(window.module(require('./serverGroupConfiguration.service').name));
 
   beforeEach(
-    window.inject(function(_azureServerGroupConfigurationService_) {
+    window.inject(function (_azureServerGroupConfigurationService_) {
       service = _azureServerGroupConfigurationService_;
 
       this.allLoadBalancers = [
@@ -52,8 +52,8 @@ describe('Service: azureServerGroupConfiguration', function() {
     }),
   );
 
-  describe('configureSecurityGroupOptions', function() {
-    beforeEach(function() {
+  describe('configureSecurityGroupOptions', function () {
+    beforeEach(function () {
       this.allSecurityGroups = {
         azurecred1: {
           eastus: [
@@ -109,7 +109,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       };
     });
 
-    it('finds matching firewalls and assigns them to the filtered list the first time', function() {
+    it('finds matching firewalls and assigns them to the filtered list the first time', function () {
       this.command.region = 'westus';
       var expected = this.allSecurityGroups.azurecred1['westus'];
 
@@ -120,7 +120,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeTrue;
     });
 
-    it('finds matching firewalls, sets dirty flag for subsequent time', function() {
+    it('finds matching firewalls, sets dirty flag for subsequent time', function () {
       this.command.region = 'eastus';
       this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
       var expected = this.allSecurityGroups.azurecred1['eastus'];
@@ -132,7 +132,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeTrue;
     });
 
-    it('clears the selected securityGroup', function() {
+    it('clears the selected securityGroup', function () {
       this.command.selectedSecurityGroup = {
         'onlyazure-web': {
           account: 'azure-cred1',
@@ -153,7 +153,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeTrue;
     });
 
-    it('returns no firewalls if none match', function() {
+    it('returns no firewalls if none match', function () {
       this.command.region = 'eastasia';
       this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
 
@@ -165,7 +165,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeFalse;
     });
 
-    it('returns empty zone list if region is not supported', function() {
+    it('returns empty zone list if region is not supported', function () {
       this.command.region = 'eastasia';
       this.command.backingData.credentialsKeyedByAccount = {};
       this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
@@ -178,7 +178,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.backingData.filtered.zones).toEqual([]);
     });
 
-    it('returns actual zone list if region is supported', function() {
+    it('returns actual zone list if region is supported', function () {
       this.command.region = 'eastasia';
       this.command.backingData.credentialsKeyedByAccount = {};
       this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
@@ -193,7 +193,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       );
     });
 
-    it('does not return zone list if region is not specified', function() {
+    it('does not return zone list if region is not specified', function () {
       this.command.region = null;
       this.command.backingData.credentialsKeyedByAccount = {};
       this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {

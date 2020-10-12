@@ -10,7 +10,7 @@ export function ServerGroupStageContext(props: { serverGroups: { [region: string
         <dl className="dl-narrow dl-horizontal">
           <dt>Disabled</dt>
           <dd />
-          {Object.keys(props.serverGroups).map(region => {
+          {Object.keys(props.serverGroups).map((region) => {
             return [
               <dt key={`t${region}`}>{region}</dt>,
               <dd key={`d${region}`}>{props.serverGroups[region].join(', ')}</dd>,

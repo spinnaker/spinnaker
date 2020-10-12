@@ -56,11 +56,11 @@ export class DeployInitializerController implements IController {
       .getDataSource('serverGroups')
       .data.filter((s: IServerGroup) => s.cloudProvider === this.cloudProvider && s.category === 'serverGroup');
 
-    const grouped = groupBy(serverGroups, serverGroup =>
+    const grouped = groupBy(serverGroups, (serverGroup) =>
       [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':'),
     );
 
-    Object.keys(grouped).forEach(key => {
+    Object.keys(grouped).forEach((key) => {
       const latest = sortBy(grouped[key], 'name').pop();
       this.templates.push({
         cluster: latest.cluster,
@@ -106,7 +106,7 @@ export class DeployInitializerController implements IController {
       serverGroup.account,
       serverGroup.region,
       serverGroup.name,
-    ).then(details => {
+    ).then((details) => {
       details.account = serverGroup.account;
       return commandBuilder.buildServerGroupCommandFromExisting(this.application, details, 'editPipeline');
     });

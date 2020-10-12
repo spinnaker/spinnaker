@@ -20,7 +20,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
   },
   controller: [
     '$state',
-    function($state) {
+    function ($state) {
       if (this.application.notFound || this.application.hasError) {
         return;
       }

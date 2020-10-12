@@ -109,7 +109,7 @@ export class FormValidator implements IFormValidator {
     const optionalValidator = !field.isRequired ? isOptionalValidator() : null;
     const spelValidator = isSpelAware ? spelAwareValidator() : null;
 
-    return [requiredValidator, optionalValidator, spelValidator, ...field.validators].filter(x => !!x);
+    return [requiredValidator, optionalValidator, spelValidator, ...field.validators].filter((x) => !!x);
   }
 
   /**
@@ -119,7 +119,7 @@ export class FormValidator implements IFormValidator {
    * Each field error is stored in the resulting object using the field's 'name' as a path.
    */
   public validateForm(): any {
-    const results: INamedValidatorResult[] = this.fields.map(field => {
+    const results: INamedValidatorResult[] = this.fields.map((field) => {
       const { name, label } = field;
 
       const value = get(this.values, name);
@@ -129,13 +129,13 @@ export class FormValidator implements IFormValidator {
       return { name, error };
     });
 
-    const errors = results.filter(fieldResult => isError(fieldResult.error));
+    const errors = results.filter((fieldResult) => isError(fieldResult.error));
 
     return expandErrors(errors, Array.isArray(this.values));
   }
 
   public arrayForEach(iteratee: IArrayItemValidator): any {
-    return arrayForEach(values => new FormValidator(values), iteratee);
+    return arrayForEach((values) => new FormValidator(values), iteratee);
   }
 }
 
@@ -144,7 +144,7 @@ export class FormValidator implements IFormValidator {
  * Use via ValidatableField.optional().
  */
 function isOptionalValidator(): IValidator {
-  return value => {
+  return (value) => {
     const isValueMissing = value === undefined || value === null || value === '';
     return isValueMissing ? FORM_VALIDATION_VALIDATABLE_FIELD_IS_VALID_SHORT_CIRCUIT : null;
   };
@@ -155,7 +155,7 @@ function isOptionalValidator(): IValidator {
  * Use via ValidatableField.spelAware().
  */
 function spelAwareValidator(): IValidator {
-  return value => {
+  return (value) => {
     const isSpelContent = typeof value === 'string' && value.includes('${');
     return isSpelContent ? FORM_VALIDATION_VALIDATABLE_FIELD_IS_VALID_SHORT_CIRCUIT : null;
   };

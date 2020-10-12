@@ -5,7 +5,7 @@ import { DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE } from './pipeline/stages/b
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

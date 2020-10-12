@@ -8,13 +8,13 @@ export const AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE =
   'spinnaker.amazon.pipeline.stage.scaleDownClusterStage';
 export const name = AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',
       cloudProvider: 'aws',
       templateUrl: require('./scaleDownClusterStage.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         {
@@ -30,7 +30,7 @@ module(AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE, [])
   })
   .controller('awsScaleDownClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -40,7 +40,7 @@ module(AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -63,7 +63,7 @@ module(AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE, [])
         stage.allowScaleDownActive = false;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         if (val === 1) {
           return str;
         }

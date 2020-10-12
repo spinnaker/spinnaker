@@ -36,7 +36,7 @@ describe('gceServerGroupTransformer', () => {
       };
     });
 
-    it('should map listener names to url map names', function() {
+    it('should map listener names to url map names', function () {
       const serverGroup = {
         account: 'my-google-account',
         loadBalancers: [
@@ -48,7 +48,7 @@ describe('gceServerGroupTransformer', () => {
       };
 
       let normalizedServerGroup;
-      transformer.normalizeServerGroup(serverGroup, app).then(normalized => (normalizedServerGroup = normalized));
+      transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
       $scope.$digest();
       expect(normalizedServerGroup.loadBalancers.length).toBe(3);
       expect(normalizedServerGroup.loadBalancers.includes('url-map-name')).toEqual(true);

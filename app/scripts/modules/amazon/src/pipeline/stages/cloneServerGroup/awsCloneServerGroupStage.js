@@ -9,13 +9,13 @@ export const AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE =
   'spinnaker.amazon.pipeline.stage.cloneServerGroupStage';
 export const name = AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'aws',
       templateUrl: require('./cloneServerGroupStage.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
@@ -26,14 +26,14 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
   })
   .controller('awsCloneServerGroupStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(accounts => {
+      AccountService.listAccounts('aws').then((accounts) => {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -94,7 +94,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
         stage.useSourceCapacity = true;
       }
 
-      this.toggleSuspendedProcess = process => {
+      this.toggleSuspendedProcess = (process) => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
         const processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
@@ -104,7 +104,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
         }
       };
 
-      this.processIsSuspended = process => {
+      this.processIsSuspended = (process) => {
         return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
       };
 
@@ -117,7 +117,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
         return 'default';
       };
 
-      this.selectBlockDeviceMappingsSource = selection => {
+      this.selectBlockDeviceMappingsSource = (selection) => {
         if (selection === 'source') {
           // copy block device mappings from source asg
           stage.copySourceCustomBlockDeviceMappings = true;

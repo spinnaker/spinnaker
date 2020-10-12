@@ -7,14 +7,14 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE = 'spinnaker.gce.pipeline.stage..destroyAsgStage';
 export const name = GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -30,7 +30,7 @@ module(GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE, [])
   })
   .controller('gceDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -38,7 +38,7 @@ module(GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

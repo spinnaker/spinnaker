@@ -2,11 +2,11 @@ import { mock } from 'angular';
 
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 
-describe('CloudProviderRegistry: API', function() {
-  describe('registration', function() {
+describe('CloudProviderRegistry: API', function () {
+  describe('registration', function () {
     it(
       'registers providers',
-      mock.inject(function() {
+      mock.inject(function () {
         expect(CloudProviderRegistry.getProvider('aws')).toBeNull();
         const config = { name: 'a', key: 'a' };
         CloudProviderRegistry.registerProvider('aws', config);
@@ -15,8 +15,8 @@ describe('CloudProviderRegistry: API', function() {
     );
   });
 
-  describe('property lookup', function() {
-    beforeEach(function() {
+  describe('property lookup', function () {
+    beforeEach(function () {
       this.config = {
         key: 'a',
         nested: {
@@ -28,14 +28,14 @@ describe('CloudProviderRegistry: API', function() {
       };
     });
 
-    it('returns simple or nested properties', function() {
+    it('returns simple or nested properties', function () {
       CloudProviderRegistry.registerProvider('aws', this.config);
       expect(CloudProviderRegistry.getValue('aws', 'key')).toEqual('a');
       expect(CloudProviderRegistry.getValue('aws', 'nested')).toEqual(this.config.nested);
       expect(CloudProviderRegistry.getValue('aws', 'nested.good')).toEqual('nice');
     });
 
-    it('returns a copy of properties, not actual registered values', function() {
+    it('returns a copy of properties, not actual registered values', function () {
       CloudProviderRegistry.registerProvider('aws', this.config);
 
       expect(CloudProviderRegistry.getValue('aws', 'nested')).not.toBe(this.config.nested);
@@ -50,7 +50,7 @@ describe('CloudProviderRegistry: API', function() {
 
     it(
       'returns falsy values',
-      mock.inject(function() {
+      mock.inject(function () {
         CloudProviderRegistry.registerProvider('aws', this.config);
         expect(CloudProviderRegistry.getValue('aws', 'nested.falsy')).toBe(false);
         expect(CloudProviderRegistry.getValue('aws', 'nested.nully')).toBe(null);
@@ -60,7 +60,7 @@ describe('CloudProviderRegistry: API', function() {
 
     it(
       'returns null when provider or property is not found',
-      mock.inject(function() {
+      mock.inject(function () {
         CloudProviderRegistry.registerProvider('aws', this.config);
         expect(CloudProviderRegistry.getValue('gce', 'a')).toBe(null);
         expect(CloudProviderRegistry.getValue('aws', 'b')).toBe(null);
@@ -69,8 +69,8 @@ describe('CloudProviderRegistry: API', function() {
     );
   });
 
-  describe('hasValue', function() {
-    beforeEach(function() {
+  describe('hasValue', function () {
+    beforeEach(function () {
       this.config = {
         key: 'a',
         nested: {
@@ -82,7 +82,7 @@ describe('CloudProviderRegistry: API', function() {
       };
     });
 
-    it('returns true on simple or nested properties', function() {
+    it('returns true on simple or nested properties', function () {
       CloudProviderRegistry.registerProvider('aws', this.config);
       expect(CloudProviderRegistry.hasValue('aws', 'key')).toBe(true);
       expect(CloudProviderRegistry.hasValue('aws', 'nested')).toBe(true);
@@ -91,7 +91,7 @@ describe('CloudProviderRegistry: API', function() {
       expect(CloudProviderRegistry.hasValue('aws', 'nested.zero')).toBe(true);
     });
 
-    it('returns false on null properties, non-existent properties or non-existent providers', function() {
+    it('returns false on null properties, non-existent properties or non-existent providers', function () {
       CloudProviderRegistry.registerProvider('aws', this.config);
       expect(CloudProviderRegistry.hasValue('aws', 'nested.nully')).toBe(false);
       expect(CloudProviderRegistry.hasValue('aws', 'nonexistent')).toBe(false);

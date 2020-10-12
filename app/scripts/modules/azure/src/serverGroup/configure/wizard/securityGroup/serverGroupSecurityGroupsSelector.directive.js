@@ -11,23 +11,23 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUP
   'azureServerGroupSecurityGroupsSelector',
   [
     'azureServerGroupConfigurationService',
-    function(azureServerGroupConfigurationService) {
+    function (azureServerGroupConfigurationService) {
       return {
         restrict: 'E',
         scope: {
           command: '=',
         },
         templateUrl: require('./serverGroupSecurityGroupsSelector.directive.html'),
-        link: function(scope) {
+        link: function (scope) {
           scope.firewallLabel = FirewallLabels.get('firewall');
 
-          scope.getSecurityGroupRefreshTime = function() {
+          scope.getSecurityGroupRefreshTime = function () {
             return InfrastructureCaches.get('securityGroups').getStats().ageMax;
           };
 
-          scope.refreshSecurityGroups = function() {
+          scope.refreshSecurityGroups = function () {
             scope.refreshing = true;
-            azureServerGroupConfigurationService.refreshSecurityGroups(scope.command).then(function() {
+            azureServerGroupConfigurationService.refreshSecurityGroups(scope.command).then(function () {
               scope.refreshing = false;
             });
           };

@@ -29,18 +29,10 @@
           <td>
             <account-tag account="cluster.account"></account-tag>
           </td>
-          <td>
-            {{ deployStageCtrl.getClusterName(cluster) }}
-          </td>
-          <td>
-            {{ deployStageCtrl.getRegion(cluster) }}
-          </td>
-          <td ng-if="deployStageCtrl.hasSubnetDeployments()">
-            {{deployStageCtrl.getSubnet(cluster)}}
-          </td>
-          <td>
-            {{cluster.strategy || '[none]'}}
-          </td>
+          <td>{{ deployStageCtrl.getClusterName(cluster) }}</td>
+          <td>{{ deployStageCtrl.getRegion(cluster) }}</td>
+          <td ng-if="deployStageCtrl.hasSubnetDeployments()">{{deployStageCtrl.getSubnet(cluster)}}</td>
+          <td>{{cluster.strategy || '[none]'}}</td>
           <td>
             <div ng-if="cluster.useSourceCapacity">Current Server Group</div>
             <div ng-if="cluster.capacity">
@@ -51,16 +43,10 @@
                 Min: {{cluster.capacity.min}}, Max: {{cluster.capacity.max}}, Desired: {{cluster.capacity.desired}}
               </div>
             </div>
-            <div ng-if="!cluster.capacity">
-              {{cluster.targetSize}}
-            </div>
-            <div ng-if="!(cluster.useSourceCapacity || cluster.capacity || cluster.targetSize)">
-              N/A
-            </div>
+            <div ng-if="!cluster.capacity">{{cluster.targetSize}}</div>
+            <div ng-if="!(cluster.useSourceCapacity || cluster.capacity || cluster.targetSize)">N/A</div>
           </td>
-          <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">
-            {{ cluster.instanceType || '[none]' }}
-          </td>
+          <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">{{ cluster.instanceType || '[none]' }}</td>
           <td class="condensed-actions">
             <a class="btn btn-sm btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">
               <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span

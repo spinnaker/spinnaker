@@ -6,7 +6,7 @@ import { DisableClusterExecutionDetails } from './DisableClusterExecutionDetails
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
 
 export const DISABLE_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.disableClusterStage';
-module(DISABLE_CLUSTER_STAGE, []).config(function() {
+module(DISABLE_CLUSTER_STAGE, []).config(function () {
   Registry.pipeline.registerStage({
     useBaseProvider: true,
     key: 'disableCluster',

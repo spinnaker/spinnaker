@@ -88,7 +88,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
     Observable.merge(showHideMouseEvents$, hideProgramatically$)
       .map(({ shouldOpen, eventDelay, animation }) => Observable.of({ shouldOpen, animation }).delay(eventDelay))
-      .switchMap(result => result)
+      .switchMap((result) => result)
       .filter(({ shouldOpen }) => shouldOpen !== this.state.popoverIsOpen)
       .takeUntil(this.destroy$)
       .subscribe(({ shouldOpen, animation }) => this.setPopoverOpen(shouldOpen, animation));

@@ -5,23 +5,20 @@ const $ = require('jquery');
 
 export const CORE_MODAL_MODALPAGE_DIRECTIVE = 'spinnaker.core.modal.modalPage.directive';
 export const name = CORE_MODAL_MODALPAGE_DIRECTIVE; // for backwards compatibility
-module(CORE_MODAL_MODALPAGE_DIRECTIVE, []).directive('modalPage', function() {
+module(CORE_MODAL_MODALPAGE_DIRECTIVE, []).directive('modalPage', function () {
   return {
     restrict: 'EA',
-    link: function(scope, elem, attrs) {
+    link: function (scope, elem, attrs) {
       if (attrs.modalPage === 'false') {
         return;
       }
       function getTabbableElements() {
         const tagSelector = 'a[href],input,select,button,textarea';
-        return elem
-          .find(tagSelector)
-          .filter(':visible')
-          .not(':disabled');
+        return elem.find(tagSelector).filter(':visible').not(':disabled');
       }
 
       const ts = Math.floor(Math.random() * 4294967295);
-      $(document).on('keydown.modalPage-' + ts, function(event) {
+      $(document).on('keydown.modalPage-' + ts, function (event) {
         if (event.keyCode === 9) {
           const $tabbableElements = getTabbableElements();
           const $firstElem = $tabbableElements[0];
@@ -47,7 +44,7 @@ module(CORE_MODAL_MODALPAGE_DIRECTIVE, []).directive('modalPage', function() {
         }
       });
 
-      scope.$on('$destroy', function() {
+      scope.$on('$destroy', function () {
         $(document).off('.modalPage-' + ts);
       });
     },

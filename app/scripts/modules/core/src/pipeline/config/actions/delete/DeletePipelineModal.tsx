@@ -45,7 +45,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         ReactInjector.$state.go('^.executions', null, { location: 'replace' });
         closeModal();
       },
-      response => {
+      (response) => {
         $log.warn(response);
         setDeleting(false);
         setDeleteError(true);
@@ -72,7 +72,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
               <p>
                 <a
                   className="btn btn-link"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     setDeleteError(false);
                   }}

@@ -21,7 +21,7 @@ angular
     controller: [
       '$scope',
       'serverGroupWriter',
-      function($scope, serverGroupWriter) {
+      function ($scope, serverGroupWriter) {
         this.command.newSize = null;
 
         angular.extend(this.formMethods, {

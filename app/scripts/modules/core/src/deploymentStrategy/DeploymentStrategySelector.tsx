@@ -50,7 +50,7 @@ export class DeploymentStrategySelector extends React.Component<
     const newStrategy = DeploymentStrategyRegistry.getStrategy(strategy);
 
     if (oldStrategy && oldStrategy.additionalFields) {
-      oldStrategy.additionalFields.forEach(field => {
+      oldStrategy.additionalFields.forEach((field) => {
         if (!newStrategy || !newStrategy.additionalFields || !newStrategy.additionalFields.includes(field)) {
           unset(command, field);
         }
@@ -103,7 +103,7 @@ export class DeploymentStrategySelector extends React.Component<
               valueKey="key"
               value={currentStrategy}
               optionRenderer={this.strategyOptionRenderer}
-              valueRenderer={o => <>{o.label}</>}
+              valueRenderer={(o) => <>{o.label}</>}
               onChange={this.strategyChanged}
             />
           </div>

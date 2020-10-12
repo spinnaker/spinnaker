@@ -17,9 +17,9 @@ interface IApplicationsPickerInputProps extends IFormInputProps {
 
 /** This input supports single or multiple selection of applications */
 export function ApplicationsPickerInput(props: IApplicationsPickerInputProps) {
-  const getAppNames = () => ApplicationReader.listApplications().then(apps => apps.map(app => app.name).sort());
+  const getAppNames = () => ApplicationReader.listApplications().then((apps) => apps.map((app) => app.name).sort());
   const { result: apps, status } = useData(getAppNames, [], []);
-  const options = useMemo(() => apps.map(app => ({ label: app, value: app })), [apps]);
+  const options = useMemo(() => apps.map((app) => ({ label: app, value: app })), [apps]);
 
   const validator = useLatestCallback((value: string | string[]) => {
     if (status === 'PENDING') {
@@ -27,7 +27,7 @@ export function ApplicationsPickerInput(props: IApplicationsPickerInputProps) {
     }
 
     const selectedApps: string[] = !value ? [] : typeof value === 'string' ? [value] : value;
-    const missing = selectedApps.find(app => !apps.includes(app));
+    const missing = selectedApps.find((app) => !apps.includes(app));
     return missing ? errorMessage(`Application ${missing} does not exist.`) : undefined;
   });
 

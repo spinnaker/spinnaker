@@ -24,7 +24,7 @@ module(CHECK_PRECONDITIONS_STAGE, [])
   })
   .controller('CheckPreconditionsStageCtrl', [
     '$scope',
-    function($scope: IScope) {
+    function ($scope: IScope) {
       $scope.stage.preconditions = $scope.stage.preconditions || [];
       $scope.upstreamStages = PipelineConfigService.getAllUpstreamDependencies($scope.pipeline, $scope.stage);
     },

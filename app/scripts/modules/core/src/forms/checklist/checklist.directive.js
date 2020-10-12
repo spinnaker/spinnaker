@@ -15,20 +15,20 @@ angular.module(CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE, []).directive('checklis
       inline: '=',
       includeSelectAllButton: '=',
     },
-    link: scope => {
+    link: (scope) => {
       function initializeModelHolder() {
         scope.values = scope.values || {};
         scope.itemsNormalized = scope.itemsNormalized || [];
         scope.model = scope.model || [];
         scope.modelHolder = {};
-        scope.model.forEach(val => {
+        scope.model.forEach((val) => {
           scope.modelHolder[val] = true;
         });
       }
 
       function updateModel() {
         const updatedModel = [];
-        scope.itemsNormalized.forEach(testKey => {
+        scope.itemsNormalized.forEach((testKey) => {
           if (scope.modelHolder[testKey]) {
             updatedModel.push(testKey);
           }
@@ -43,7 +43,7 @@ angular.module(CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE, []).directive('checklis
 
       function allItemsSelected() {
         let allSelected = true;
-        scope.itemsNormalized.forEach(key => {
+        scope.itemsNormalized.forEach((key) => {
           if (!scope.modelHolder[key]) {
             allSelected = false;
           }
@@ -59,7 +59,7 @@ angular.module(CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE, []).directive('checklis
             });
             scope.itemsNormalized = Array.from(items, ([key]) => key);
           } else {
-            items.forEach(item => {
+            items.forEach((item) => {
               scope.values[item] = item;
             });
             scope.itemsNormalized = items;
@@ -69,11 +69,11 @@ angular.module(CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE, []).directive('checklis
 
       scope.selectAllOrNone = () => {
         if (allItemsSelected()) {
-          scope.itemsNormalized.forEach(key => {
+          scope.itemsNormalized.forEach((key) => {
             scope.modelHolder[key] = false;
           });
         } else {
-          scope.itemsNormalized.forEach(key => {
+          scope.itemsNormalized.forEach((key) => {
             scope.modelHolder[key] = true;
           });
         }

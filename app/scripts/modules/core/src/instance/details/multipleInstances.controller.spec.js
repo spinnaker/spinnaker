@@ -1,7 +1,7 @@
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import * as State from 'core/state';
 
-describe('Controller: MultipleInstances', function() {
+describe('Controller: MultipleInstances', function () {
   var controller;
   var scope;
 
@@ -10,10 +10,10 @@ describe('Controller: MultipleInstances', function() {
   beforeEach(window.module(require('./multipleInstances.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
 
-      this.createController = function(serverGroups) {
+      this.createController = function (serverGroups) {
         let application = ApplicationModelBuilder.createApplicationForTests('app', {
           key: 'serverGroups',
           lazy: true,
@@ -31,7 +31,7 @@ describe('Controller: MultipleInstances', function() {
     }),
   );
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.serverGroupA = {
       type: 'aws',
       name: 'asg-v001',
@@ -57,7 +57,7 @@ describe('Controller: MultipleInstances', function() {
       instances: [{ id: 'g-234', availabilityZone: 'f', launchTime: 2, healthState: 'Up' }],
     };
 
-    this.getInstanceGroup = serverGroup => {
+    this.getInstanceGroup = (serverGroup) => {
       return State.ClusterState.multiselectModel.getOrCreateInstanceGroup(serverGroup);
     };
 
@@ -67,8 +67,8 @@ describe('Controller: MultipleInstances', function() {
     };
   });
 
-  describe('instance retrieval', function() {
-    it('gets details for each selected instance and maps it to instanceGroup', function() {
+  describe('instance retrieval', function () {
+    it('gets details for each selected instance and maps it to instanceGroup', function () {
       this.addInstance(this.serverGroupA, 'i-234');
       this.addInstance(this.serverGroupB, 'g-234');
       // no instances
@@ -90,7 +90,7 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.instancesCount).toBe(2);
     });
 
-    it('re-retrieves instances when serverGroups refresh', function() {
+    it('re-retrieves instances when serverGroups refresh', function () {
       this.addInstance(this.serverGroupA, 'i-234');
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
@@ -103,7 +103,7 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.selectedGroups[0].instances[0].healthState).toBe('Down');
     });
 
-    it('re-retrieves instances when instancesStream refreshes', function() {
+    it('re-retrieves instances when instancesStream refreshes', function () {
       this.addInstance(this.serverGroupA, 'i-234');
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
@@ -120,13 +120,13 @@ describe('Controller: MultipleInstances', function() {
     });
   });
 
-  describe('discovery actions', function() {
-    it('can register with discovery when discovery is out of service for all selected instances', function() {
-      this.serverGroupA.instances.forEach(instance => {
+  describe('discovery actions', function () {
+    it('can register with discovery when discovery is out of service for all selected instances', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'OutOfService' }];
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'OutOfService' }];
         this.addInstance(this.serverGroupB, instance.id);
       });
@@ -135,12 +135,12 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.canDeregisterWithDiscovery()).toBe(false);
     });
 
-    it('can deregister with discovery when discovery is up for all selected instances', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('can deregister with discovery when discovery is up for all selected instances', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'Up' }];
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'Up' }];
         this.addInstance(this.serverGroupB, instance.id);
       });
@@ -149,12 +149,12 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.canRegisterWithDiscovery()).toBe(false);
     });
 
-    it('has no discovery actions when some instance is not reporting discovery health', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('has no discovery actions when some instance is not reporting discovery health', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'OutOfService' }];
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
@@ -162,12 +162,12 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.canDeregisterWithDiscovery()).toBe(false);
     });
 
-    it('has no discovery actions when instances have different discovery health states', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('has no discovery actions when instances have different discovery health states', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'Up' }];
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         instance.health = [{ type: 'Discovery', state: 'OutOfService' }];
         this.addInstance(this.serverGroupB, instance.id);
       });
@@ -177,8 +177,8 @@ describe('Controller: MultipleInstances', function() {
     });
   });
 
-  describe('load balancer actions', function() {
-    beforeEach(function() {
+  describe('load balancer actions', function () {
+    beforeEach(function () {
       this.makeLoadBalancerHealth = () => {
         return [{ type: 'LoadBalancer', loadBalancers: [{ name: 'lb-1' }, { name: 'lb-2' }] }];
       };
@@ -186,44 +186,44 @@ describe('Controller: MultipleInstances', function() {
       this.serverGroupB.loadBalancers = ['lb-2', 'lb-1'];
     });
 
-    it('can register with load balancers when server groups have the same load balancers and no instances have lb health', function() {
-      this.serverGroupA.instances.forEach(instance => this.addInstance(this.serverGroupA, instance.id));
-      this.serverGroupB.instances.forEach(instance => this.addInstance(this.serverGroupB, instance.id));
+    it('can register with load balancers when server groups have the same load balancers and no instances have lb health', function () {
+      this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
+      this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(true);
     });
 
-    it('cannot register with load balancers when server groups have the same load balancers but any instance has lb health', function() {
-      this.serverGroupA.instances.forEach(instance => this.addInstance(this.serverGroupA, instance.id));
-      this.serverGroupB.instances.forEach(instance => this.addInstance(this.serverGroupB, instance.id));
+    it('cannot register with load balancers when server groups have the same load balancers but any instance has lb health', function () {
+      this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
+      this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupB.instances[0].health = [{ type: 'LoadBalancer' }];
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
-    it('cannot register with load balancers when server groups have different load balancers', function() {
-      this.serverGroupA.instances.forEach(instance => this.addInstance(this.serverGroupA, instance.id));
-      this.serverGroupB.instances.forEach(instance => this.addInstance(this.serverGroupB, instance.id));
+    it('cannot register with load balancers when server groups have different load balancers', function () {
+      this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
+      this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupB.loadBalancers = ['lb-1', 'lb-3'];
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
-    it('cannot register with load balancers when server groups have no load balancers', function() {
-      this.serverGroupA.instances.forEach(instance => this.addInstance(this.serverGroupA, instance.id));
-      this.serverGroupB.instances.forEach(instance => this.addInstance(this.serverGroupB, instance.id));
+    it('cannot register with load balancers when server groups have no load balancers', function () {
+      this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
+      this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupA.loadBalancers = [];
       this.serverGroupB.loadBalancers = [];
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
-    it('can deregister from load balancers when instances are registered with the all load balancers, which are the same', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('can deregister from load balancers when instances are registered with the all load balancers, which are the same', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupB, instance.id);
       });
@@ -231,22 +231,22 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.canDeregisterFromLoadBalancers()).toBe(true);
     });
 
-    it('cannot deregister from load balancers when some instance is not registered', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('cannot deregister from load balancers when some instance is not registered', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => this.addInstance(this.serverGroupB, instance.id));
+      this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterFromLoadBalancers()).toBe(false);
     });
 
-    it('cannot deregister from load balancers when some instance is registered with different load balancers', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('cannot deregister from load balancers when some instance is registered with different load balancers', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         let health = this.makeLoadBalancerHealth();
         health[0].loadBalancers.push({ name: 'lb-3' });
         instance.health = health;
@@ -256,12 +256,12 @@ describe('Controller: MultipleInstances', function() {
       expect(controller.canDeregisterFromLoadBalancers()).toBe(false);
     });
 
-    it('cannot deregister from load balancers when some server group has different load balancers', function() {
-      this.serverGroupA.instances.forEach(instance => {
+    it('cannot deregister from load balancers when some server group has different load balancers', function () {
+      this.serverGroupA.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
-      this.serverGroupB.instances.forEach(instance => {
+      this.serverGroupB.instances.forEach((instance) => {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupB, instance.id);
       });

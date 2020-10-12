@@ -11,7 +11,7 @@ export const name = CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENT
 module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS, [
   CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER,
 ])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       key: 'waitForRequisiteCompletion',
       synthetic: true,
@@ -20,7 +20,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS, [
   })
   .run([
     'waitForParentTasksTransformer',
-    function(waitForParentTasksTransformer) {
+    function (waitForParentTasksTransformer) {
       Registry.pipeline.registerTransformer(waitForParentTasksTransformer);
     },
   ]);

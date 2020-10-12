@@ -60,7 +60,7 @@ export function RollbackClusterStageForm({ application, formik, pipeline }: IFor
         <div className="row">
           <div className="col-sm-10 col-sm-offset-2">
             Wait
-            <FormikFormField name="wait" required input={props => <NumberInput {...props} min={0} />} />
+            <FormikFormField name="wait" required input={(props) => <NumberInput {...props} min={0} />} />
             seconds between regional rollbacks.
           </div>
           <div className="col-sm-10 col-sm-offset-2">
@@ -68,7 +68,7 @@ export function RollbackClusterStageForm({ application, formik, pipeline }: IFor
             <FormikFormField
               name="remainingEnabledServerGroups"
               required
-              input={props => <NumberInput {...props} min={0} max={100} />}
+              input={(props) => <NumberInput {...props} min={0} max={100} />}
             />
             percent of instances are healthy.
           </div>

@@ -43,7 +43,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
     props.restrictExecutionDuringTimeWindow.includes('${');
   const hours = TimePickerOptions.getHours();
   const minutes = TimePickerOptions.getMinutes();
-  const dividers = hours.map(hour => ({
+  const dividers = hours.map((hour) => ({
     label: hour.label,
     left: (hour.value / 24) * 100 + '%',
   }));
@@ -264,7 +264,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       clearable={false}
                       inputClassName={SELECT_EXECUTION_WINDOW_CLASSES}
                       value={w.startHour}
-                      options={hours.map(h => ({ label: h.label, value: h.value }))}
+                      options={hours.map((h) => ({ label: h.label, value: h.value }))}
                       onChange={(option: Option<number>) => {
                         updateAllowlist({ startHour: option.target.value }, i);
                       }}
@@ -274,7 +274,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       clearable={false}
                       inputClassName={SELECT_EXECUTION_WINDOW_CLASSES}
                       value={w.startMin}
-                      options={minutes.map(m => ({ label: m.label, value: m.value }))}
+                      options={minutes.map((m) => ({ label: m.label, value: m.value }))}
                       onChange={(option: Option<number>) => {
                         updateAllowlist({ startMin: option.target.value }, i);
                       }}
@@ -284,7 +284,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       clearable={false}
                       inputClassName={SELECT_EXECUTION_WINDOW_CLASSES}
                       value={w.endHour}
-                      options={hours.map(h => ({ label: h.label, value: h.value }))}
+                      options={hours.map((h) => ({ label: h.label, value: h.value }))}
                       onChange={(option: Option<number>) => {
                         updateAllowlist({ endHour: option.target.value }, i);
                       }}
@@ -294,7 +294,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       clearable={false}
                       inputClassName={SELECT_EXECUTION_WINDOW_CLASSES}
                       value={w.endMin}
-                      options={minutes.map(m => ({ label: m.label, value: m.value }))}
+                      options={minutes.map((m) => ({ label: m.label, value: m.value }))}
                       onChange={(option: Option<number>) => {
                         updateAllowlist({ endMin: option.target.value }, i);
                       }}

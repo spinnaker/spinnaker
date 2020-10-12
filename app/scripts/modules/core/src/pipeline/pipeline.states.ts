@@ -102,7 +102,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
       params: {
         executionId: { dynamic: true },
       },
-      redirectTo: transition => {
+      redirectTo: (transition) => {
         const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
         const executionService: ExecutionService = transition.injector().get('executionService');
 
@@ -111,7 +111,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
         }
 
         return Promise.resolve(executionService.getExecution(executionId))
-          .then(execution =>
+          .then((execution) =>
             transition.router.stateService.target(
               'home.applications.application.pipelines.executionDetails.execution',
               {

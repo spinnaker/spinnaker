@@ -9,9 +9,9 @@
       ng-change="onChange()"
       required
     >
-      <option ng-repeat="region in regions" value="{{region}}" ng-selected="component[field] === region"
-        >{{region}}</option
-      >
+      <option ng-repeat="region in regions" value="{{region}}" ng-selected="component[field] === region">
+        {{region}}
+      </option>
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

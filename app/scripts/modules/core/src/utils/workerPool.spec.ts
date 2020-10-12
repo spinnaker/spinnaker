@@ -1,6 +1,6 @@
 import { Task, WorkerPool } from './workerPool';
 
-const delay = (millis = 0) => new Promise<void>(resolve => setTimeout(resolve, millis));
+const delay = (millis = 0) => new Promise<void>((resolve) => setTimeout(resolve, millis));
 
 // Testing class to track running tasks
 class TaskTracker {
@@ -34,14 +34,14 @@ class TaskTracker {
 
 describe('Worker pool', () => {
   describe('.task()', () => {
-    it('registers a task and returns a promise that resolves to the task result', done => {
+    it('registers a task and returns a promise that resolves to the task result', (done) => {
       new WorkerPool(1)
         .task(() => Promise.resolve(2))
-        .then(val => expect(val).toBe(2))
+        .then((val) => expect(val).toBe(2))
         .then(done);
     });
 
-    it('runs one task at a time when concurrency === 1', async done => {
+    it('runs one task at a time when concurrency === 1', async (done) => {
       const pool = new WorkerPool(1);
       const tracker = new TaskTracker();
 
@@ -60,7 +60,7 @@ describe('Worker pool', () => {
       done();
     });
 
-    it('runs two tasks at a time when concurrency === 2', async done => {
+    it('runs two tasks at a time when concurrency === 2', async (done) => {
       const pool = new WorkerPool(2);
       const tracker = new TaskTracker();
 
@@ -92,7 +92,7 @@ describe('Worker pool', () => {
   });
 
   describe('.cancelAll()', () => {
-    it('cancels running tasks and rejects their promises', async done => {
+    it('cancels running tasks and rejects their promises', async (done) => {
       const pool = new WorkerPool(1);
       const tracker = new TaskTracker();
 
@@ -112,7 +112,7 @@ describe('Worker pool', () => {
       }
     });
 
-    it('cancels running AND pending tasks and rejects their promises', async done => {
+    it('cancels running AND pending tasks and rejects their promises', async (done) => {
       const pool = new WorkerPool(1);
       const tracker = new TaskTracker();
 

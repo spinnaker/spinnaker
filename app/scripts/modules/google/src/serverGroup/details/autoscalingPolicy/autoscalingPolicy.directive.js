@@ -25,7 +25,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
   controller: [
     '$uibModal',
     'gceAutoscalingPolicyWriter',
-    function($uibModal, gceAutoscalingPolicyWriter) {
+    function ($uibModal, gceAutoscalingPolicyWriter) {
       const policy = this.policy;
 
       policy.bases = [];
@@ -64,7 +64,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
 
         if (policy.customMetricUtilizations.length > 0) {
           basis.targets = [];
-          policy.customMetricUtilizations.forEach(metric => {
+          policy.customMetricUtilizations.forEach((metric) => {
             let target = metric.metric + ': ' + metric.utilizationTarget;
 
             if (metric.utilizationTargetType === 'DELTA_PER_SECOND') {

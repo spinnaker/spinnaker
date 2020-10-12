@@ -38,7 +38,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { stage, application } = this.props;
     const matcher = (execution: IExecution) => {
-      const match = execution.stages.find(test => test.id === stage.id);
+      const match = execution.stages.find((test) => test.id === stage.id);
       return match.status !== 'RUNNING';
     };
 
@@ -51,7 +51,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
         return executionService
           .patchExecution(this.props.execution.id, stage.id, data)
           .then(() => executionService.waitUntilExecutionMatches(this.props.execution.id, matcher))
-          .then(updated => executionService.updateExecution(application, updated));
+          .then((updated) => executionService.updateExecution(application, updated));
       },
     });
   };

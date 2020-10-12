@@ -59,18 +59,12 @@ describe('Component: numberList', () => {
   describe('model synchronization', () => {
     it('does not add invalid entry to model', () => {
       initialize([]);
-      elem
-        .find('input[type="number"]')
-        .val('invalid')
-        .change();
+      elem.find('input[type="number"]').val('invalid').change();
       elem.find('input[type="number"]').change();
       $scope.$digest();
       expect(model).toEqual([]);
 
-      elem
-        .find('input[type="number"]')
-        .val('3')
-        .change();
+      elem.find('input[type="number"]').val('3').change();
       elem.find('input[type="number"]').change();
       $scope.$digest();
       expect(model).toEqual([3]);
@@ -97,10 +91,7 @@ describe('Component: numberList', () => {
         onChangeCalled = true;
       };
       initialize([1]);
-      elem
-        .find('input[type="number"]')
-        .val('2')
-        .change();
+      elem.find('input[type="number"]').val('2').change();
       $scope.$digest();
       expect(onChangeCalled).toBe(true);
     });

@@ -32,7 +32,7 @@ export const RenderWhenVisible = ({
   React.useEffect(() => {
     let visible = isVisible;
     observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         const inView = entries[0].isIntersecting;
         if (inView && !visible) {
           visible = true;

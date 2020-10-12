@@ -49,11 +49,11 @@ export class AwsServerGroupTransformer {
       a.metricIntervalLowerBound - b.metricIntervalLowerBound;
 
     view.alarms = policy.alarms || [];
-    view.alarms.forEach(alarm => this.addComparator(alarm));
+    view.alarms.forEach((alarm) => this.addComparator(alarm));
     this.addAdjustmentAttributes(view); // simple policies
     if (view.stepAdjustments && view.stepAdjustments.length) {
-      view.stepAdjustments.forEach(sa => this.addAdjustmentAttributes(sa)); // step policies
-      const sorter = policy.stepAdjustments.every(a => a.metricIntervalUpperBound !== undefined)
+      view.stepAdjustments.forEach((sa) => this.addAdjustmentAttributes(sa)); // step policies
+      const sorter = policy.stepAdjustments.every((a) => a.metricIntervalUpperBound !== undefined)
         ? upperBoundSorter
         : lowerBoundSorter;
       view.stepAdjustments.sort((a, b) => sorter(a, b));
@@ -64,21 +64,21 @@ export class AwsServerGroupTransformer {
   public normalizeServerGroupDetails(serverGroup: IAmazonServerGroup): IAmazonServerGroupView {
     const view: IAmazonServerGroupView = { ...serverGroup } as IAmazonServerGroupView;
     if (serverGroup.scalingPolicies) {
-      view.scalingPolicies = serverGroup.scalingPolicies.map(policy => this.transformScalingPolicy(policy));
+      view.scalingPolicies = serverGroup.scalingPolicies.map((policy) => this.transformScalingPolicy(policy));
     }
     return view;
   }
 
   public normalizeServerGroup(serverGroup: IAmazonServerGroup): IPromise<IAmazonServerGroup> {
-    serverGroup.instances.forEach(instance => {
+    serverGroup.instances.forEach((instance) => {
       instance.vpcId = serverGroup.vpcId;
     });
-    return VpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
+    return VpcReader.listVpcs().then((vpc) => this.addVpcNameToServerGroup(serverGroup)(vpc));
   }
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {
     return (vpcs: IVpc[]) => {
-      const match = vpcs.find(test => test.id === serverGroup.vpcId);
+      const match = vpcs.find((test) => test.id === serverGroup.vpcId);
       serverGroup.vpcName = match ? match.name : '';
       return serverGroup;
     };

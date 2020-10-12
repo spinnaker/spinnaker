@@ -39,6 +39,6 @@ module(DEBUG_WINDOW, []).run([
   '$injector',
   ($injector: IInjectorService) => {
     DebugWindow.$injector = $injector;
-    injectables.forEach(k => (DebugWindow[k] = $injector.get(k)));
+    injectables.forEach((k) => (DebugWindow[k] = $injector.get(k)));
   },
 ]);

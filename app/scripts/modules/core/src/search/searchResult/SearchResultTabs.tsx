@@ -18,7 +18,7 @@ export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
 
     return (
       <ul className="search-groups nostyle">
-        {resultSets.map(resultSet => {
+        {resultSets.map((resultSet) => {
           const { type } = resultSet;
           const { TabComponent } = type;
           const active = type === activeSearchResultType;

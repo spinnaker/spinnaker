@@ -15,7 +15,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT,
       application: '=',
     },
     templateUrl: require('./basicSettings.component.html'),
-    controller: function() {
+    controller: function () {
       const c = this.command;
       this.loadBalancer = c.loadBalancer;
       this.accounts = c.backingData.accounts;
@@ -30,7 +30,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT,
         lb.urlMapName = this.getName(lb, appName);
       };
 
-      this.accountChanged = account => {
+      this.accountChanged = (account) => {
         this.existingLoadBalancerNames = _.get(loadBalancerMap, [account, 'urlMapNames']) || [];
         c.onAccountChange(c);
       };

@@ -21,12 +21,12 @@ class Providers {
     // The tests depend on this behavior, but maybe something else does as well.
     this.providers = without(
       this.providers,
-      this.providers.find(p => p.cloudProvider === cloudProvider),
+      this.providers.find((p) => p.cloudProvider === cloudProvider),
     ).concat([{ cloudProvider, config }]);
   }
 
   public get(cloudProvider: string): ICloudProviderConfig {
-    const provider = this.providers.find(p => p.cloudProvider === cloudProvider);
+    const provider = this.providers.find((p) => p.cloudProvider === cloudProvider);
     return provider ? provider.config : null;
   }
 
@@ -35,7 +35,7 @@ class Providers {
   }
 
   public keys(): string[] {
-    return uniq(this.providers.map(p => p.cloudProvider));
+    return uniq(this.providers.map((p) => p.cloudProvider));
   }
 }
 
@@ -69,7 +69,7 @@ export class CloudProviderRegistry {
     const lastKey = parentKeys.pop();
     let current = config;
 
-    parentKeys.forEach(parentKey => {
+    parentKeys.forEach((parentKey) => {
       if (!current[parentKey]) {
         current[parentKey] = {};
       }
@@ -92,7 +92,7 @@ export class CloudProviderRegistry {
     let current = config;
     let notFound = false;
 
-    keyParts.forEach(keyPart => {
+    keyParts.forEach((keyPart) => {
       if (!notFound && current.hasOwnProperty(keyPart)) {
         current = current[keyPart];
       } else {

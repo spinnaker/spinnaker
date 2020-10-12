@@ -17,12 +17,12 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT,
   controller: [
     '$scope',
     'gceTagManager',
-    function($scope, gceTagManager) {
+    function ($scope, gceTagManager) {
       this.securityGroup = gceTagManager.securityGroupObjectsKeyedById[this.securityGroupId];
       this.onSelect = gceTagManager.addTag;
       this.onRemove = gceTagManager.removeTag;
 
-      $scope.$on('uis:select', function(event) {
+      $scope.$on('uis:select', function (event) {
         event.preventDefault();
       });
     },

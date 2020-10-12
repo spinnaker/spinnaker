@@ -12,10 +12,10 @@ export class LoadBalancerDataUtils {
     const loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
     loadBalancer.instanceCounts = { up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 };
 
-    serverGroup.instances.forEach(instance => {
-      const lbHealth: IHealth = instance.health.find(h => h.type === 'LoadBalancer');
+    serverGroup.instances.forEach((instance) => {
+      const lbHealth: IHealth = instance.health.find((h) => h.type === 'LoadBalancer');
       if (lbHealth) {
-        const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
+        const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find((lb) => lb.name === match.name);
 
         if (
           matchedHealth !== undefined &&
@@ -46,7 +46,7 @@ export class LoadBalancerDataUtils {
           return this.buildLoadBalancer(match, serverGroup);
         });
 
-        return loadBalancers.filter(x => !!x);
+        return loadBalancers.filter((x) => !!x);
       });
   }
 }

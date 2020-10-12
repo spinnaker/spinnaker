@@ -70,11 +70,11 @@ export class PatchManifestStageForm extends React.Component<
   private onRequiredArtifactsChanged = (bindings: IManifestBindArtifact[]): void => {
     this.props.formik.setFieldValue(
       'requiredArtifactIds',
-      bindings.filter(b => b.expectedArtifactId).map(b => b.expectedArtifactId),
+      bindings.filter((b) => b.expectedArtifactId).map((b) => b.expectedArtifactId),
     );
     this.props.formik.setFieldValue(
       'requiredArtifacts',
-      bindings.filter(b => b.artifact),
+      bindings.filter((b) => b.artifact),
     );
   };
 
@@ -90,7 +90,7 @@ export class PatchManifestStageForm extends React.Component<
   };
 
   private getSourceOptions = (): Array<Option<string>> => {
-    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], option => ({
+    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], (option) => ({
       label: capitalize(option),
       value: option,
     }));

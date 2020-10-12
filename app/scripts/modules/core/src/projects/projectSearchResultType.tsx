@@ -65,7 +65,7 @@ class ProjectsSearchResultType extends SearchResultType<IProjectSearchResult> {
         {results
           .slice()
           .sort(itemSortFn)
-          .map(item => (
+          .map((item) => (
             <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.NAME} />
               <BasicCell item={item} col={this.cols.EMAIL} />

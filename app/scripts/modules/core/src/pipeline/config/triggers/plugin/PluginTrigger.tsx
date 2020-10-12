@@ -21,7 +21,7 @@ export function PluginTrigger(props: any) {
             name="pluginEventType"
             label="Plugin Event"
             touched={true}
-            input={props => <SelectInput {...props} defaultValue="PUBLISHED" options={options} />}
+            input={(props) => <SelectInput {...props} defaultValue="PUBLISHED" options={options} />}
           />
         </LayoutProvider>
       )}

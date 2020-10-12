@@ -34,7 +34,7 @@ export class TravisExecutionDetailsCtrl implements IController {
     const context = this.stage.context || {};
     const buildInfo = context.buildInfo || {};
     const testResults: Array<{ failCount: number }> = buildInfo.testResults ?? [];
-    const failingTests = testResults.filter(results => results.failCount > 0);
+    const failingTests = testResults.filter((results) => results.failCount > 0);
     const failingTestCount = failingTests.reduce((acc, results) => acc + results.failCount, 0);
     if (buildInfo.result === 'FAILURE') {
       failureMessage = 'Build failed.';

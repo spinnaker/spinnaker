@@ -29,7 +29,7 @@ require('./logo/dcos.logo.less');
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 
@@ -56,7 +56,7 @@ module(DCOS_DCOS_MODULE, [
   DCOS_SERVERGROUP_TRANSFORMER,
   DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR,
   DCOS_COMMON_SELECTFIELD_DIRECTIVE,
-]).config(function() {
+]).config(function () {
   CloudProviderRegistry.registerProvider('dcos', {
     name: 'DC/OS',
     logo: {

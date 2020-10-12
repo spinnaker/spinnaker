@@ -4,7 +4,7 @@ import { IStageContext } from 'core/domain';
 import { NameUtils } from 'core/naming';
 
 export function clusterNameFilter(): any {
-  return function(input: IStageContext) {
+  return function (input: IStageContext) {
     if (!input) {
       return 'n/a';
     }

@@ -20,7 +20,7 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
-          onChange={_ea => {}}
+          onChange={(_ea) => {}}
           offeredArtifactTypes={[/.*gcs.*/]}
         />,
       );
@@ -34,7 +34,7 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
-          onChange={_ea => {}}
+          onChange={(_ea) => {}}
           offeredArtifactTypes={[/.*gcs.*/, /.*docker.*/]}
         />,
       );
@@ -51,7 +51,7 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
-          onChange={_ea => {}}
+          onChange={(_ea) => {}}
           excludedArtifactTypes={[/.*gcs.*/]}
         />,
       );
@@ -65,7 +65,7 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
-          onChange={_ea => {}}
+          onChange={(_ea) => {}}
           excludedArtifactTypes={[/.*gcs.*/]}
         />,
       );
@@ -79,7 +79,7 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
-          onChange={_ea => {}}
+          onChange={(_ea) => {}}
           excludedArtifactTypes={[/.*gcs.*/, /.*docker.*/]}
         />,
       );
@@ -92,7 +92,7 @@ describe('<ExpectedArtifactSelector/>', () => {
     it('provides an option to create a new artifact when an onRequestCreate prop is given', () => {
       const artifacts = [artifact('gcs/object')];
       const sel = mount(
-        <ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} onRequestCreate={() => {}} />,
+        <ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={(_ea) => {}} onRequestCreate={() => {}} />,
       );
       const options = sel.find('TetheredSelect').prop('options') as any[];
       expect(options.length).toBe(2);
@@ -100,7 +100,7 @@ describe('<ExpectedArtifactSelector/>', () => {
 
     it('doesnt provide an option to create a new artifact when an onRequestCreate prop is not given', () => {
       const artifacts = [artifact('gcs/object')];
-      const sel = mount(<ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} />);
+      const sel = mount(<ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={(_ea) => {}} />);
       const options = sel.find('TetheredSelect').prop('options') as any[];
       expect(options.length).toBe(1);
     });

@@ -4,7 +4,10 @@
       <div class="form-group">
         <div
           class="col-md-12 well"
-          ng-class="{'alert-danger': basicSettings.urlMapName.$error.validateUnique, 'alert-info': !basicSettings.urlMapName.$error.validateUnique}"
+          ng-class="{
+            'alert-danger': basicSettings.urlMapName.$error.validateUnique,
+            'alert-info': !basicSettings.urlMapName.$error.validateUnique
+          }"
         >
           <strong>Your load balancer will be named:</strong>
           <span>{{ $ctrl.getName($ctrl.loadBalancer, $ctrl.application.name) }}</span>

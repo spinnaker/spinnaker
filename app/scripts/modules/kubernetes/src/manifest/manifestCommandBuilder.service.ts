@@ -77,8 +77,8 @@ export class KubernetesManifestCommandBuilder {
       .then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IArtifactAccount[] }) => {
         const { accounts, artifactAccounts } = backingData;
 
-        const account = accounts.some(a => a.name === sourceAccount)
-          ? accounts.find(a => a.name === sourceAccount).name
+        const account = accounts.some((a) => a.name === sourceAccount)
+          ? accounts.find((a) => a.name === sourceAccount).name
           : accounts.length
           ? accounts[0].name
           : null;

@@ -9,7 +9,7 @@ describe('filterObjectValues', () => {
         nest2: null,
         nest3: 'abcdef',
       },
-      fn: function() {},
+      fn: function () {},
     },
   };
 
@@ -19,7 +19,7 @@ describe('filterObjectValues', () => {
   });
 
   it('does not populate properties which have had all their children filtered out', () => {
-    const result = filterObjectValues(source, val => typeof val === 'string');
+    const result = filterObjectValues(source, (val) => typeof val === 'string');
     const expected = {
       foo: {
         baz: {
@@ -31,7 +31,7 @@ describe('filterObjectValues', () => {
   });
 
   it('returns sparse arrays when filtered', () => {
-    const result = filterObjectValues(source, val => val === 2);
+    const result = filterObjectValues(source, (val) => val === 2);
     const expected = {
       foo: {
         bar: [undefined, 2],

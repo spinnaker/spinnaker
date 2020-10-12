@@ -77,7 +77,7 @@ export class MultiselectModel {
   }
 
   public deselectAllInstances(): void {
-    this.instanceGroups.forEach(instanceGroup => {
+    this.instanceGroups.forEach((instanceGroup) => {
       instanceGroup.instanceIds.length = 0;
       instanceGroup.selectAll = false;
     });
@@ -104,7 +104,7 @@ export class MultiselectModel {
     const region = serverGroup.region;
     const cloudProvider = serverGroup.type;
     let result = this.instanceGroups.find(
-      instanceGroup =>
+      (instanceGroup) =>
         instanceGroup.serverGroup === serverGroupName &&
         instanceGroup.account === account &&
         instanceGroup.region === region &&
@@ -114,8 +114,8 @@ export class MultiselectModel {
       // when creating a new group, include an instance ID if we're deep-linked into the details view
       const params = ReactInjector.$state.params;
       const instanceIds = (serverGroup.instances || [])
-        .filter(instance => instance.provider === params.provider && instance.id === params.instanceId)
-        .map(instance => instance.id);
+        .filter((instance) => instance.provider === params.provider && instance.id === params.instanceId)
+        .map((instance) => instance.id);
       result = {
         serverGroup: serverGroupName,
         account,
@@ -141,7 +141,7 @@ export class MultiselectModel {
       return false;
     }
     const key = this.makeServerGroupKey(serverGroup);
-    return this.serverGroups.filter(sg => sg.key === key).length > 0;
+    return this.serverGroups.filter((sg) => sg.key === key).length > 0;
   }
 
   public toggleServerGroup(serverGroup: IServerGroup): void {
@@ -166,7 +166,7 @@ export class MultiselectModel {
     }
     this.deselectAllInstances();
     const key = this.makeServerGroupKey(serverGroup);
-    const selected = this.serverGroups.find(sg => sg.key === key);
+    const selected = this.serverGroups.find((sg) => sg.key === key);
     if (selected) {
       this.serverGroups.splice(this.serverGroups.indexOf(selected), 1);
     } else {

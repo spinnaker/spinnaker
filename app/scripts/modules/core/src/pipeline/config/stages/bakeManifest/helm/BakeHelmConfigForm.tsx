@@ -129,7 +129,7 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
           expectedArtifactId={this.getInputArtifact(stage, 0).id}
           helpKey="pipeline.config.bake.manifest.expectedArtifact"
           label="Expected Artifact"
-          onArtifactEdited={artifact => {
+          onArtifactEdited={(artifact) => {
             this.onTemplateArtifactEdited(artifact, 0);
           }}
           onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.onTemplateArtifactSelected(artifact.id, 0)}
@@ -148,7 +148,7 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
                       excludedArtifactTypePatterns={[]}
                       expectedArtifactId={a.id}
                       label="Expected Artifact"
-                      onArtifactEdited={artifact => {
+                      onArtifactEdited={(artifact) => {
                         this.onTemplateArtifactEdited(artifact, index + 1);
                       }}
                       onExpectedArtifactSelected={(artifact: IExpectedArtifact) =>

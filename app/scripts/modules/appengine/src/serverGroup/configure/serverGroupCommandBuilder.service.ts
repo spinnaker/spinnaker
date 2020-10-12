@@ -76,7 +76,7 @@ export interface IViewState {
 export class AppengineServerGroupCommandBuilder {
   private static getTriggerOptions(pipeline: IPipeline): Array<IAppengineGitTrigger | IAppengineJenkinsTrigger> {
     return (pipeline.triggers || [])
-      .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins' || trigger.type === 'travis')
+      .filter((trigger) => trigger.type === 'git' || trigger.type === 'jenkins' || trigger.type === 'travis')
       .map((trigger: IGitTrigger | IBuildTrigger) => {
         if (trigger.type === 'git') {
           return {
@@ -140,7 +140,7 @@ export class AppengineServerGroupCommandBuilder {
     app: Application,
     serverGroup: IAppengineServerGroup,
   ): IPromise<IAppengineServerGroupCommand> {
-    return this.buildNewServerGroupCommand(app, 'appengine', 'clone').then(command => {
+    return this.buildNewServerGroupCommand(app, 'appengine', 'clone').then((command) => {
       command.stack = serverGroup.stack;
       command.freeFormDetails = serverGroup.detail;
       return command;
@@ -203,14 +203,14 @@ export class AppengineServerGroupCommandBuilder {
   }
 
   private getCredentials(accounts: IAppengineAccount[]): string {
-    const accountNames: string[] = (accounts || []).map(account => account.name);
+    const accountNames: string[] = (accounts || []).map((account) => account.name);
     const defaultCredentials: string = AppengineProviderSettings.defaults.account;
 
     return accountNames.includes(defaultCredentials) ? defaultCredentials : accountNames[0];
   }
 
   private getRegion(accounts: IAppengineAccount[], credentials: string): string {
-    const account = accounts.find(_account => _account.name === credentials);
+    const account = accounts.find((_account) => _account.name === credentials);
     return account ? account.region : null;
   }
 

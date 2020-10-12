@@ -65,17 +65,17 @@ export class ServerGroupLoadBalancers
   }
 
   private targetGroupsChanged = (options: Array<Option<string>>) => {
-    const targetGroups = options.map(o => o.value);
+    const targetGroups = options.map((o) => o.value);
     this.props.formik.setFieldValue('targetGroups', targetGroups);
   };
 
   private loadBalancersChanged = (options: Array<Option<string>>) => {
-    const loadBalancers = options.map(o => o.value);
+    const loadBalancers = options.map((o) => o.value);
     this.props.formik.setFieldValue('loadBalancers', loadBalancers);
   };
 
   private vpcLoadBalancersChanged = (options: Array<Option<string>>) => {
-    const vpcLoadBalancers = options.map(o => o.value);
+    const vpcLoadBalancers = options.map((o) => o.value);
     this.props.formik.setFieldValue('vpcLoadBalancers', vpcLoadBalancers);
   };
 
@@ -101,7 +101,7 @@ export class ServerGroupLoadBalancers
                   The following target groups could not be found in the selected account/region/VPC and were removed:
                 </p>
                 <ul>
-                  {dirty.targetGroups.map(tg => (
+                  {dirty.targetGroups.map((tg) => (
                     <li key={tg}>{tg}</li>
                   ))}
                 </ul>
@@ -158,7 +158,7 @@ export class ServerGroupLoadBalancers
                   The following load balancers could not be found in the selected account/region/VPC and were removed:
                 </p>
                 <ul>
-                  {dirty.loadBalancers.map(lb => (
+                  {dirty.loadBalancers.map((lb) => (
                     <li key={lb}>{lb}</li>
                   ))}
                 </ul>

@@ -9,7 +9,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
   constructor(props: IExecutionDetailsProps) {
     super(props);
     this.state = {
-      configSections: props.detailsSections.map(s => s.title),
+      configSections: props.detailsSections.map((s) => s.title),
       currentSection: null,
     };
   }
@@ -30,7 +30,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
   }
 
   public componentWillReceiveProps(nextProps: IExecutionDetailsProps): void {
-    const configSections = nextProps.detailsSections.map(s => s.title);
+    const configSections = nextProps.detailsSections.map((s) => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
       this.syncDetails(configSections);
@@ -44,7 +44,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
     return (
       <div>
         <ExecutionDetailsSectionNav sections={configSections} />
-        {this.props.detailsSections.map(Section => (
+        {this.props.detailsSections.map((Section) => (
           <Section key={Section.title} name={Section.title} current={currentSection} {...this.props} />
         ))}
       </div>

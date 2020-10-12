@@ -22,11 +22,11 @@ export interface IDeckPlugin {
 
 /** Given a plugin, registers the plugin's extensions with Deck registries */
 export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> {
-  plugin.stages?.forEach(stage => Registry.pipeline.registerStage(stage));
-  plugin.preconfiguredJobStages?.forEach(stage => Registry.pipeline.registerPreconfiguredJobStage(stage));
-  plugin.resourceKinds?.forEach(kind => registerResourceKind(kind));
+  plugin.stages?.forEach((stage) => Registry.pipeline.registerStage(stage));
+  plugin.preconfiguredJobStages?.forEach((stage) => Registry.pipeline.registerPreconfiguredJobStage(stage));
+  plugin.resourceKinds?.forEach((kind) => registerResourceKind(kind));
   toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
-  plugin.search?.forEach(search => searchResultTypeRegistry.register(search));
+  plugin.search?.forEach((search) => searchResultTypeRegistry.register(search));
 
   // Run arbitrary plugin initialization code
   return Promise.resolve(plugin.initialize?.(plugin));

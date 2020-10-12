@@ -78,7 +78,7 @@ export class EditAwsCodeBuildSourceModal extends React.Component<IEditAwsCodeBui
         initialValues={source}
         onSubmit={this.submit}
         validate={this.validate}
-        render={formik => (
+        render={(formik) => (
           <Form className={`form-horizontal`}>
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>

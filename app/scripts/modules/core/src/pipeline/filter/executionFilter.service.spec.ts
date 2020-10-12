@@ -2,10 +2,10 @@ import { ExecutionFilterService } from './executionFilter.service';
 import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
 import { ExecutionState } from 'core/state';
 
-describe('ExecutionFilterService', function() {
+describe('ExecutionFilterService', function () {
   let model: ExecutionFilterModel;
 
-  beforeEach(function() {
+  beforeEach(function () {
     model = ExecutionState.filterModel;
     model.asFilterModel.groups = [];
     spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});

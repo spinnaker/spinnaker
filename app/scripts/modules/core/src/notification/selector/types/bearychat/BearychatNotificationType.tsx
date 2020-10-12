@@ -10,7 +10,7 @@ export class BearychatNotificationType extends React.Component<INotificationType
         label="Email Address"
         name={fieldName ? `${fieldName}.address` : 'address'}
         validate={Validators.emailValue('Please enter a valid email address')}
-        input={props => <TextInput inputClassName={'form-control input-sm'} {...props} />}
+        input={(props) => <TextInput inputClassName={'form-control input-sm'} {...props} />}
         required={true}
       />
     );

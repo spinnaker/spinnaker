@@ -35,7 +35,7 @@ angular
     'azureServerGroupCommandBuilder',
     '$uibModal',
     'serverGroupWriter',
-    function(
+    function (
       $scope,
       $state,
       $templateCache,
@@ -54,7 +54,7 @@ angular
       this.application = app;
 
       function extractServerGroupSummary() {
-        let summary = _.find(app.serverGroups.data, function(toCheck) {
+        let summary = _.find(app.serverGroups.data, function (toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -62,9 +62,9 @@ angular
           );
         });
         if (!summary) {
-          app.loadBalancers.data.some(function(loadBalancer) {
+          app.loadBalancers.data.some(function (loadBalancer) {
             if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-              return loadBalancer.serverGroups.some(function(possibleServerGroup) {
+              return loadBalancer.serverGroups.some(function (possibleServerGroup) {
                 if (possibleServerGroup.name === serverGroup.name) {
                   summary = possibleServerGroup;
                   return true;
@@ -86,7 +86,7 @@ angular
           serverGroup.accountId,
           serverGroup.region,
           serverGroup.name,
-        ).then(function(details) {
+        ).then(function (details) {
           cancelLoader();
 
           angular.extend(details, summary);
@@ -99,7 +99,7 @@ angular
 
             if (details.image && details.image.description) {
               const tags = details.image.description.split(', ');
-              tags.forEach(function(tag) {
+              tags.forEach(function (tag) {
                 const keyVal = tag.split('=');
                 if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                   details.image.baseImage = keyVal[1];
@@ -109,7 +109,7 @@ angular
 
             if (details.launchConfig && details.launchConfig.securityGroups) {
               $scope.securityGroups = _.chain(details.launchConfig.securityGroups)
-                .map(function(id) {
+                .map(function (id) {
                   return (
                     _.find(app.securityGroups.data, {
                       accountName: serverGroup.accountId,
@@ -156,14 +156,14 @@ angular
         const taskMonitor = {
           application: app,
           title: 'Destroying ' + serverGroup.name,
-          onTaskComplete: function() {
+          onTaskComplete: function () {
             if ($state.includes('**.serverGroup', stateParams)) {
               $state.go('^');
             }
           },
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return serverGroupWriter.destroyServerGroup(serverGroup, app);
         };
 
@@ -211,7 +211,7 @@ angular
           title: 'Enabling ' + serverGroup.name,
         };
 
-        const submitMethod = params => {
+        const submitMethod = (params) => {
           return serverGroupWriter.enableServerGroup(
             serverGroup,
             app,
@@ -237,7 +237,7 @@ angular
         AzureRollbackServerGroupModal.show({ application: app, serverGroup, disabledServerGroups });
       };
 
-      this.cloneServerGroup = serverGroup => {
+      this.cloneServerGroup = (serverGroup) => {
         $uibModal.open({
           templateUrl: require('../configure/wizard/serverGroupWizard.html'),
           controller: 'azureCloneServerGroupCtrl as ctrl',
@@ -251,7 +251,7 @@ angular
         });
       };
 
-      this.truncateCommitHash = function() {
+      this.truncateCommitHash = function () {
         if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
           return $scope.serverGroup.buildInfo.commit.substring(0, 8);
         }

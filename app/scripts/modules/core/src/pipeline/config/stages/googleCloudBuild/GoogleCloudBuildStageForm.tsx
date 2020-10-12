@@ -179,7 +179,7 @@ export function GoogleCloudBuildStageForm(props: IFormikStageConfigInjectedProps
                   clearable={false}
                   disabled={!stage.account}
                   isLoading={fetchTriggersStatus === 'PENDING'}
-                  options={(fetchTriggersResult || []).map(trigger => ({
+                  options={(fetchTriggersResult || []).map((trigger) => ({
                     label: trigger.name,
                     value: trigger.id,
                   }))}

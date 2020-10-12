@@ -21,7 +21,7 @@ export class EnvironmentVariables extends React.Component<IEnvironmentVariablesP
             <b>Environment Variables</b>
             <FieldArray
               name={fieldName}
-              render={arrayHelpers => {
+              render={(arrayHelpers) => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
                 const environmentVariables: string[] = getIn(serverGroupCommand, fieldName) || [];
 
@@ -44,7 +44,7 @@ export class EnvironmentVariables extends React.Component<IEnvironmentVariablesP
                                 onChange={() => {
                                   onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
                                 }}
-                                input={props => <TextInput {...props} />}
+                                input={(props) => <TextInput {...props} />}
                                 required={true}
                               />
                             </td>
@@ -54,7 +54,7 @@ export class EnvironmentVariables extends React.Component<IEnvironmentVariablesP
                                 onChange={() => {
                                   onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
                                 }}
-                                input={props => <TextInput {...props} />}
+                                input={(props) => <TextInput {...props} />}
                                 required={true}
                               />
                             </td>

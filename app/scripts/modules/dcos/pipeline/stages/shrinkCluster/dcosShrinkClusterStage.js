@@ -8,7 +8,7 @@ export const DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE =
   'spinnaker.dcos.pipeline.stage.shrinkClusterStage';
 export const name = DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE; // for backwards compatibility
 module(DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'dcos',
@@ -23,7 +23,7 @@ module(DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE, [])
   })
   .controller('dcosShrinkClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -33,7 +33,7 @@ module(DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -56,7 +56,7 @@ module(DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE, [])
         stage.allowDeleteActive = false;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         if (val === 1) {
           return str;
         }

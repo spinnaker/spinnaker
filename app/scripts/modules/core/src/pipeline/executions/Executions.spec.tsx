@@ -45,7 +45,7 @@ describe('<Executions/>', () => {
     }),
   );
 
-  it('should not set loading flag to false until executions and pipeline configs have been loaded', done => {
+  it('should not set loading flag to false until executions and pipeline configs have been loaded', (done) => {
     initializeApplication();
     expect(component.state().loading).toBe(true);
     application.executions.dataUpdated();

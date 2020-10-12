@@ -9,10 +9,10 @@ import { module } from 'angular';
 export const CORE_NOTIFICATION_NOTIFICATIONS_MODULE = 'spinnaker.core.notifications';
 export const name = CORE_NOTIFICATION_NOTIFICATIONS_MODULE; // for backwards compatibility
 module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE, [NOTIFICATION_LIST]).run(() => {
-  NotificationService.getNotificationTypeMetadata().then(types => {
+  NotificationService.getNotificationTypeMetadata().then((types) => {
     types
-      .filter(t => t.uiType === 'BASIC')
-      .forEach(t => {
+      .filter((t) => t.uiType === 'BASIC')
+      .forEach((t) => {
         Registry.pipeline.registerNotification({
           config: {},
           component: extensionNotificationConfig(t.parameters),

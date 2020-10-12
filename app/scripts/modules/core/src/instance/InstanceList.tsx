@@ -53,7 +53,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     });
 
     this.$uiRouter.globals.params$
-      .map(params => [params.multiselect, params.instanceSort])
+      .map((params) => [params.multiselect, params.instanceSort])
       .distinctUntilChanged(isEqual)
       .takeUntil(this.destroy$)
       .subscribe(() => {
@@ -71,7 +71,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
   private toggleSelectAll = (event: React.MouseEvent<HTMLElement>): void => {
     event.stopPropagation();
     const { instances, serverGroup } = this.props;
-    const selectedInstances = instances.map(i => i.id);
+    const selectedInstances = instances.map((i) => i.id);
     ClusterState.multiselectModel.toggleSelectAll(serverGroup, selectedInstances);
     this.setState({ allSelected: !this.state.allSelected });
   };
@@ -106,11 +106,11 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     }
     if (
       this.props.instances
-        .map(i => i.id)
+        .map((i) => i.id)
         .sort()
         .join(',') !==
       nextProps.instances
-        .map(i => i.id)
+        .map((i) => i.id)
         .sort()
         .join(',')
     ) {

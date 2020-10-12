@@ -7,7 +7,7 @@ import { AccountService, StageConstants, Registry } from '@spinnaker/core';
 export const DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE = 'spinnaker.dcos.pipeline.stage.destroyAsgStage';
 export const name = DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE; // for backwards compatibility
 module(DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       alias: 'destroyAsg',
@@ -29,7 +29,7 @@ module(DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE, [])
   })
   .controller('dcosDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -37,7 +37,7 @@ module(DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

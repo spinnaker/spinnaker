@@ -16,9 +16,9 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
   '$rootScope',
   '$window',
   '$timeout',
-  function($rootScope, $window, $timeout) {
+  function ($rootScope, $window, $timeout) {
     return {
-      link: function(scope, elem, attrs) {
+      link: function (scope, elem, attrs) {
         let scrollDistance = 0;
         let scrollEnabled = true;
         let checkWhenEnabled = false;
@@ -28,12 +28,12 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
         elem.css('overflow-x', 'hidden');
         elem.css('height', 'inherit');
         if (attrs.infiniteScrollDistance != null) {
-          scope.$watch(attrs.infiniteScrollDistance, function(value) {
+          scope.$watch(attrs.infiniteScrollDistance, function (value) {
             return (scrollDistance = parseInt(value, 10));
           });
         }
         if (attrs.infiniteScrollDisabled != null) {
-          scope.$watch(attrs.infiniteScrollDisabled, function(value) {
+          scope.$watch(attrs.infiniteScrollDisabled, function (value) {
             scrollEnabled = !value;
             if (scrollEnabled && checkWhenEnabled) {
               checkWhenEnabled = false;
@@ -41,10 +41,10 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
             }
           });
         }
-        $rootScope.$on('refreshStart', function() {
+        $rootScope.$on('refreshStart', function () {
           elem.animate({ scrollTop: '0' });
         });
-        const handler = function() {
+        const handler = function () {
           const container = $(elem.children()[0]);
           const elementBottom = elem.offset().top + elem.height();
           const containerBottom = container.offset().top + container.height();
@@ -61,10 +61,10 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
           }
         };
         elem.on('scroll', handler);
-        scope.$on('$destroy', function() {
+        scope.$on('$destroy', function () {
           return $window.off('scroll', handler);
         });
-        return $timeout(function() {
+        return $timeout(function () {
           if (attrs.infiniteScrollImmediateCheck) {
             if (scope.$eval(attrs.infiniteScrollImmediateCheck)) {
               return handler();

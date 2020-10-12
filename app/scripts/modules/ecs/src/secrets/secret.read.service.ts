@@ -5,9 +5,7 @@ import { ISecretDescriptor } from './ISecret';
 
 export class SecretReader {
   public listSecrets(): ng.IPromise<ISecretDescriptor[]> {
-    return API.all('ecs')
-      .all('secrets')
-      .getList();
+    return API.all('ecs').all('secrets').getList();
   }
 }
 

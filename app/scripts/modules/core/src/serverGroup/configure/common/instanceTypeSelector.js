@@ -8,7 +8,7 @@ export const CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR =
   'spinnaker.core.serverGroup.configure.common.instanceTypeSelector';
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR; // for backwards compatibility
 module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
-  .directive('instanceTypeSelector', function() {
+  .directive('instanceTypeSelector', function () {
     return {
       restrict: 'E',
       scope: {
@@ -21,15 +21,15 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
   .controller('InstanceTypeSelectorCtrl', [
     '$scope',
     'instanceTypeService',
-    function($scope, instanceTypeService) {
+    function ($scope, instanceTypeService) {
       function updateFamilies() {
         const availableTypes = $scope.command.backingData.filtered.instanceTypes;
-        instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
-          categories.forEach(function(profile) {
+        instanceTypeService.getCategories($scope.command.selectedProvider).then(function (categories) {
+          categories.forEach(function (profile) {
             if (profile.type === $scope.command.viewState.instanceProfile) {
-              profile.families.forEach(family => {
-                family.instanceTypes.forEach(instanceType => {
-                  instanceType.unavailable = availableTypes.every(available => available !== instanceType.name);
+              profile.families.forEach((family) => {
+                family.instanceTypes.forEach((instanceType) => {
+                  instanceType.unavailable = availableTypes.every((available) => available !== instanceType.name);
                 });
               });
               $scope.selectedInstanceProfile = profile;
@@ -41,7 +41,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
       $scope.$watch('command.viewState.instanceProfile', updateFamilies);
       $scope.$watch('command.virtualizationType', updateFamilies);
 
-      this.selectInstanceType = function(type) {
+      this.selectInstanceType = function (type) {
         if (type.unavailable) {
           return;
         }
@@ -52,12 +52,12 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
 
         instanceTypeService
           .getInstanceTypeDetails($scope.command.selectedProvider, type.name)
-          .then(function(instanceTypeDetails) {
+          .then(function (instanceTypeDetails) {
             $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
           });
       };
 
-      this.getStorageDescription = function(instanceType) {
+      this.getStorageDescription = function (instanceType) {
         if (
           $scope.command.instanceType === instanceType.name &&
           $scope.command.viewState.overriddenStorageDescription
@@ -68,7 +68,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
         }
       };
 
-      this.getStorageDescriptionHelpKey = function(instanceType) {
+      this.getStorageDescriptionHelpKey = function (instanceType) {
         return $scope.command.instanceType === instanceType.name &&
           $scope.command.viewState.overriddenStorageDescription
           ? 'instanceType.storageOverridden'

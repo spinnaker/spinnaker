@@ -49,7 +49,7 @@ export class NotificationSelector extends React.Component<INotificationSelectorP
         <FormikFormField
           label="Notify via"
           name={fieldName ? `${fieldName}.type` : 'type'}
-          input={props => (
+          input={(props) => (
             <ReactSelectInput
               clearable={false}
               {...props}

@@ -23,7 +23,7 @@ export class VpcTag extends React.Component<IVpcTagProps, IVpcTagState> {
     if (!props.vpcId) {
       this.setState({ label: this.defaultLabel });
     } else {
-      VpcReader.getVpcName(props.vpcId).then(name => {
+      VpcReader.getVpcName(props.vpcId).then((name) => {
         const label = name ? `${name} (${props.vpcId})` : `(${props.vpcId})`;
         this.setState({ label });
       });

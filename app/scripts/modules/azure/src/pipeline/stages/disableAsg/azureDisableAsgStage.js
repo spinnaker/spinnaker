@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE = 'spinnaker.azure.pipeline.stage.disableAsgStage';
 export const name = AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE; // for backwards compatibility
 module(AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       alias: 'disableAsg',
@@ -29,7 +29,7 @@ module(AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE, [])
   })
   .controller('azureDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -37,7 +37,7 @@ module(AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('azure').then(function(accounts) {
+      AccountService.listAccounts('azure').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

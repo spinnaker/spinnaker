@@ -7,21 +7,18 @@ const ansi = require('sisteransi');
 const yargs = require('yargs');
 const { execSync } = require('child_process');
 
-yargs
-  .scriptName('publish.js')
-  .usage('$0 [args] [explicitPackage1...] [explicitPackage2...]')
-  .option('assert-master', {
-    type: 'boolean',
-    describe: 'turn off with --no-assert-master',
-    default: true,
-  });
+yargs.scriptName('publish.js').usage('$0 [args] [explicitPackage1...] [explicitPackage2...]').option('assert-master', {
+  type: 'boolean',
+  describe: 'turn off with --no-assert-master',
+  default: true,
+});
 
 const explicitPackages = yargs.argv._;
 
 process.cwd(__dirname);
-const p = str => process.stdout.write(str);
+const p = (str) => process.stdout.write(str);
 const files = fs.readdirSync(process.cwd());
-const pkgs = files.filter(file => fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'package.json')));
+const pkgs = files.filter((file) => fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'package.json')));
 
 // Ensure 'gh' is installed
 try {
@@ -36,7 +33,7 @@ try {
 const remotes = execSync('git remote -v')
   .toString()
   .split(/[\r\n]/);
-const isHttpsUpstream = remotes.find(x => x.includes('https://github.com/spinnaker/deck.git (push)'));
+const isHttpsUpstream = remotes.find((x) => x.includes('https://github.com/spinnaker/deck.git (push)'));
 if (isHttpsUpstream) {
   const upstream = /^([\w]+)/.exec(isHttpsUpstream)[1];
   console.error(`The ${upstream} remote for spinnaker is using https protocol but should be using git`);
@@ -46,7 +43,7 @@ if (isHttpsUpstream) {
   process.exit(2);
 }
 
-const upstreamRemoteLine = remotes.find(x => x.includes('git@github.com:spinnaker/deck.git (push)'));
+const upstreamRemoteLine = remotes.find((x) => x.includes('git@github.com:spinnaker/deck.git (push)'));
 const upstream = upstreamRemoteLine ? /^([\w]+)/.exec(upstreamRemoteLine)[1] : null;
 
 // Ensure the working directory is clean and tracks master
@@ -77,7 +74,7 @@ const changelogs = pkgs.map((pkg, index) => {
     lines: execSync(`/bin/sh -c './show_changelog.sh "${pkg}/package.json"'`)
       .toString()
       .split(/[\r\n]/)
-      .filter(str => !!str),
+      .filter((str) => !!str),
   };
 });
 
@@ -104,11 +101,11 @@ function renderChangelog(changelog) {
   const maxWidth = typeof process.stdout.getWindowSize === 'function' ? process.stdout.getWindowSize()[0] : 100;
 
   const lines = changelog.lines
-    .map(str => str.replace(/^([a-f0-9]{7})[a-f0-9]{33} /, '$1 ')) // show first 7 chars of hash
-    .map(str => (str.length > maxWidth ? str.slice(0, maxWidth - 3) + kleur.dim('...') : str)) // truncate and ellipsis
-    .map(str => str.replace(/^[a-f0-9]{7} /, match => kleur.green(match)))
-    .map(str => str.replace(/(?:fix|chore|feat|docs|test|refactor)\([^)]*\): /, match => kleur.blue(match)))
-    .map(str => str.replace(/\(#[0-9]+\)$/, match => kleur.green(match)));
+    .map((str) => str.replace(/^([a-f0-9]{7})[a-f0-9]{33} /, '$1 ')) // show first 7 chars of hash
+    .map((str) => (str.length > maxWidth ? str.slice(0, maxWidth - 3) + kleur.dim('...') : str)) // truncate and ellipsis
+    .map((str) => str.replace(/^[a-f0-9]{7} /, (match) => kleur.green(match)))
+    .map((str) => str.replace(/(?:fix|chore|feat|docs|test|refactor)\([^)]*\): /, (match) => kleur.blue(match)))
+    .map((str) => str.replace(/\(#[0-9]+\)$/, (match) => kleur.green(match)));
 
   // Add "blank" lines so the number of lines is consistent and the screen doesn't jump around
   return '\n' + (lines.length ? lines.join('\n') + '\n' : '') + '#\n'.repeat(maxLineCount - lineCount);
@@ -120,11 +117,11 @@ const prompt = {
   message: 'Publish which packages?',
   optionsPerPage: 15,
   choices,
-  onRender: function() {
+  onRender: function () {
     const changeLogForHighlighted = renderChangelog(changelogs[this.cursor]);
     const selections = this.value
-      .filter(x => x.selected)
-      .map(x => kleur.green(x.value))
+      .filter((x) => x.selected)
+      .map((x) => kleur.green(x.value))
       .join(', ');
     this.instructions = `${selections}\n${changeLogForHighlighted}`;
   },
@@ -153,14 +150,14 @@ function bumpPackages(packages = []) {
 
     const publishes = [];
     // Update package.json and build the branch name
-    packages.forEach(pkg => {
+    packages.forEach((pkg) => {
       execSync(`sh -c "cd ${pkg}; npm version patch --no-git-tag-version"`);
       const version = JSON.parse(fs.readFileSync(`${pkg}/package.json`).toString()).version;
-      const changelog = changelogs.find(cl => cl.pkg === pkg);
+      const changelog = changelogs.find((cl) => cl.pkg === pkg);
       publishes.push({ pkg, version, lines: changelog && changelog.lines });
     });
 
-    const branchString = publishes.map(p => `${p.pkg}-${p.version}`).join('-');
+    const branchString = publishes.map((p) => `${p.pkg}-${p.version}`).join('-');
     const branchName = `package-bump-${committer}-${branchString}`;
     execSync(`sh -c "git checkout -b ${branchName}"`);
     branchNameCreated = branchName;
@@ -187,9 +184,9 @@ function bumpPackages(packages = []) {
     }
 
     // export msg=$(cat msg) ; gh create pr -b "$msg"
-    const changes = publishes.map(p => `## ${p.pkg}@${p.version}\n\n${p.lines.join('\n')}`);
+    const changes = publishes.map((p) => `## ${p.pkg}@${p.version}\n\n${p.lines.join('\n')}`);
     fs.writeFileSync(CHANGELOGTEMP, changes.join('\n\n') + '\n\nPR created via `modules/publish.js`\n\n');
-    const title = 'chore(package): ' + publishes.map(p => `${p.pkg}@${p.version}`).join(' ');
+    const title = 'chore(package): ' + publishes.map((p) => `${p.pkg}@${p.version}`).join(' ');
     execSync(`sh -c 'export msg=$(cat "${CHANGELOGTEMP}") ; gh pr create --title "${title}" --body "$msg"'`);
   } finally {
     execSync(`sh -c "git checkout master"`);

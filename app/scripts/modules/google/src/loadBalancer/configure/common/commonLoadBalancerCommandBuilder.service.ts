@@ -25,7 +25,7 @@ export class GceCommonLoadBalancerCommandBuilder {
           .map('accounts')
           .flatten()
           .groupBy('name') // account name
-          .mapValues(regionWrappers =>
+          .mapValues((regionWrappers) =>
             _.chain(regionWrappers)
               .map('regions')
               .flatten()
@@ -78,12 +78,7 @@ export class GceCommonLoadBalancerCommandBuilder {
   ): { [account: string]: string[] } {
     return _.chain(healthChecks)
       .groupBy('account')
-      .mapValues((grouped: IGceHealthCheck[]) =>
-        _.chain(grouped)
-          .map('name')
-          .difference(namesToOmit)
-          .value(),
-      )
+      .mapValues((grouped: IGceHealthCheck[]) => _.chain(grouped).map('name').difference(namesToOmit).value())
       .value() as { [account: string]: string[] };
   }
 }

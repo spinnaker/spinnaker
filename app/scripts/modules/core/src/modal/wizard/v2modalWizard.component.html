@@ -4,17 +4,17 @@
   <div class="modal-header" ng-if="$ctrl.wizard.heading">
     <h4 class="modal-title">{{ $ctrl.wizard.heading }}</h4>
   </div>
-  <div ng-class="{'modal-body': !$ctrl.notReallyModal}">
+  <div ng-class="{ 'modal-body': !$ctrl.notReallyModal }">
     <div class="row">
       <div class="col-md-3 hidden-sm hidden-xs">
         <ul class="steps-indicator wizard-navigation">
           <li
             ng-repeat="page in $ctrl.wizard.renderedPages"
             ng-class="{
-                  default: !page.state.done,
-                  current: page.state.current,
-                  done: page.state.done,
-                  dirty: page.state.dirty
+              default: !page.state.done,
+              current: page.state.current,
+              done: page.state.done,
+              dirty: page.state.dirty
             }"
           >
             <a href ng-click="$ctrl.wizard.setCurrentPage(page)">{{ page.label }}</a>

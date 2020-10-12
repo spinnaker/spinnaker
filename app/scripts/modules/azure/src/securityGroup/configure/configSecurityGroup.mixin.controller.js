@@ -27,7 +27,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
   'securityGroupReader',
   'modalWizardService',
   'cacheInitializer',
-  function(
+  function (
     $scope,
     $state,
     $uibModalInstance,
@@ -52,7 +52,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       },
     };
 
-    ctrl.addMoreItems = function() {
+    ctrl.addMoreItems = function () {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
@@ -90,8 +90,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
 
     $scope.securityGroup = securityGroup;
 
-    ctrl.upsert = function() {
-      $scope.taskMonitor.submit(function() {
+    ctrl.upsert = function () {
+      $scope.taskMonitor.submit(function () {
         return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
       });
     };
@@ -101,9 +101,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       $scope.existingSecurityGroupNames = [];
     }
 
-    ctrl.accountUpdated = function() {
+    ctrl.accountUpdated = function () {
       const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      AccountService.getRegionsForAccount(account).then(function(regions) {
+      AccountService.getRegionsForAccount(account).then(function (regions) {
         $scope.regions = _.map(regions, 'name');
         clearSecurityGroups();
         ctrl.regionUpdated();
@@ -121,9 +121,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     //  return foundInAllRegions;
     //};
 
-    ctrl.regionUpdated = function() {};
+    ctrl.regionUpdated = function () {};
 
-    this.vpcUpdated = function() {
+    this.vpcUpdated = function () {
       const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
       const regions = $scope.securityGroup.regions;
       if (account && regions && regions.length) {
@@ -140,7 +140,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       let existingSecurityGroupNames = [];
       let availableSecurityGroups = [];
 
-      regions.forEach(function(region) {
+      regions.forEach(function (region) {
         let regionalVpcId = null;
         if (vpcId) {
           const baseVpc = _.find($scope.allVpcs, { id: vpcId });
@@ -164,15 +164,15 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       clearInvalidSecurityGroups();
     }
 
-    ctrl.mixinUpsert = function(descriptor) {
-      $scope.taskMonitor.submit(function() {
+    ctrl.mixinUpsert = function (descriptor) {
+      $scope.taskMonitor.submit(function () {
         return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
       });
     };
 
     function clearInvalidSecurityGroups() {
       const removed = $scope.state.removedRules;
-      $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
+      $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function (rule) {
         if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
           removed.push(rule.name);
           return false;
@@ -184,10 +184,10 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       }
     }
 
-    ctrl.refreshSecurityGroups = function() {
+    ctrl.refreshSecurityGroups = function () {
       $scope.state.refreshingSecurityGroups = true;
-      return cacheInitializer.refreshCache('securityGroups').then(function() {
-        return ctrl.initializeSecurityGroups().then(function() {
+      return cacheInitializer.refreshCache('securityGroups').then(function () {
+        return ctrl.initializeSecurityGroups().then(function () {
           ctrl.vpcUpdated();
           $scope.state.refreshingSecurityGroups = false;
         });
@@ -196,8 +196,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
 
     allSecurityGroups = {};
 
-    ctrl.initializeSecurityGroups = function() {
-      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
+    ctrl.initializeSecurityGroups = function () {
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
         const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         const region = $scope.securityGroup.regions[0];
@@ -214,18 +214,18 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       });
     };
 
-    ctrl.cancel = function() {
+    ctrl.cancel = function () {
       $uibModalInstance.dismiss();
     };
 
     const classicPattern = /^[\x20-\x7F]+$/;
     const vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
 
-    ctrl.getCurrentNamePattern = function() {
+    ctrl.getCurrentNamePattern = function () {
       return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
     };
 
-    ctrl.updateName = function() {
+    ctrl.updateName = function () {
       const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
@@ -236,12 +236,12 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     ctrl.namePattern = {
-      test: function(name) {
+      test: function (name) {
         return ctrl.getCurrentNamePattern().test(name);
       },
     };
 
-    ctrl.addRule = function(ruleset) {
+    ctrl.addRule = function (ruleset) {
       ruleset.push({
         type: 'tcp',
         startPort: 7001,
@@ -249,11 +249,11 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       });
     };
 
-    ctrl.removeRule = function(ruleset, index) {
+    ctrl.removeRule = function (ruleset, index) {
       ruleset.splice(index, 1);
     };
 
-    ctrl.dismissRemovedRules = function() {
+    ctrl.dismissRemovedRules = function () {
       $scope.state.removedRules = [];
       modalWizardService.getWizard().markClean('Ingress');
       modalWizardService.getWizard().markComplete('Ingress');

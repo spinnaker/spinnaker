@@ -6,7 +6,7 @@ import * as angular from 'angular';
 
 export const CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE = 'spinnaker.core.forms.checkmap.checkmap.directive';
 export const name = CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE, []).directive('checkmap', function() {
+angular.module(CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE, []).directive('checkmap', function () {
   return {
     restrict: 'E',
     templateUrl: require('./checkmap.directive.html'),
@@ -17,20 +17,20 @@ angular.module(CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE, []).directive('checkmap',
       selectedItems: '=',
       onChange: '&',
     },
-    link: function(scope) {
+    link: function (scope) {
       function initializeModelHolder() {
         scope.selectedItems = scope.selectedItems || [];
         // modelHolder is a map of key --> val --> "checked" boolean.
         scope.modelHolder = {};
-        _.forEach(scope.itemMap, function(itemList, key) {
+        _.forEach(scope.itemMap, function (itemList, key) {
           scope.modelHolder[key] = {};
-          _.forEach(itemList, function(item) {
+          _.forEach(itemList, function (item) {
             scope.modelHolder[key][item] = _.includes(scope.selectedItems, item);
           });
         });
 
-        _.forEach(scope.selectedItems, function(selectedItem) {
-          _.forEach(scope.modelHolder, function(itemList, key) {
+        _.forEach(scope.selectedItems, function (selectedItem) {
+          _.forEach(scope.modelHolder, function (itemList, key) {
             if (_.includes(itemList, selectedItem)) {
               scope.modelHolder[key][selectedItem] = true;
             }
@@ -40,8 +40,8 @@ angular.module(CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE, []).directive('checkmap',
 
       function updateSelectedItems() {
         const newSelectedItems = [];
-        _.forEach(scope.modelHolder, function(valMap) {
-          _.forEach(valMap, function(selected, item) {
+        _.forEach(scope.modelHolder, function (valMap) {
+          _.forEach(valMap, function (selected, item) {
             if (selected) {
               newSelectedItems.push(item);
             }

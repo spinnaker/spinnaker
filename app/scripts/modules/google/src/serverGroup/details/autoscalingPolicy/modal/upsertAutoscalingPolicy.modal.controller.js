@@ -23,7 +23,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLIC
   '$uibModalInstance',
   'gceAutoscalingPolicyWriter',
   '$scope',
-  function(policy, application, serverGroup, $uibModalInstance, gceAutoscalingPolicyWriter, $scope) {
+  function (policy, application, serverGroup, $uibModalInstance, gceAutoscalingPolicyWriter, $scope) {
     [this.action, this.isNew] = policy ? ['Edit', false] : ['New', true];
     this.policy = _.cloneDeep(policy || {});
 
@@ -42,7 +42,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLIC
       this.taskMonitor.submit(submitMethod);
     };
 
-    this.updatePolicy = updatedPolicy => {
+    this.updatePolicy = (updatedPolicy) => {
       $scope.$applyAsync(() => {
         this.policy = updatedPolicy;
       });

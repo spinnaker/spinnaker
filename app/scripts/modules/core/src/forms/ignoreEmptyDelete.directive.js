@@ -7,10 +7,10 @@ export const CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE = 'spinnaker.core.utils.igno
 export const name = CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE; // for backwards compatibility
 module(CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE, [UI_SELECT]).config([
   '$provide',
-  function($provide) {
+  function ($provide) {
     $provide.decorator('uiSelectMultipleDirective', [
       '$delegate',
-      function($delegate) {
+      function ($delegate) {
         // because we hacked the multiple select directive CSS so drastically,
         // when the focus is in the search field in multiselect mode, pressing delete
         // behaves unexpectedly out of the box: it will delete previous selections,
@@ -20,8 +20,8 @@ module(CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE, [UI_SELECT]).config([
         // Still, it's better than nothing.
         const directive = $delegate[0];
         const originalLink = directive.link;
-        directive.compile = function() {
-          return function(scope, elem, attrs, ctrls) {
+        directive.compile = function () {
+          return function (scope, elem, attrs, ctrls) {
             originalLink.apply(this, arguments);
             const $select = ctrls[0];
             function ignoreDelete(e) {

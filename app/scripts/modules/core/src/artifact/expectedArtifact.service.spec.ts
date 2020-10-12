@@ -39,10 +39,10 @@ describe('ExpectedArtifactService', () => {
         key: 'bar-default',
         isDefault: true,
       },
-    ].map(k => ({ ...baseKindConfig, ...k }));
+    ].map((k) => ({ ...baseKindConfig, ...k }));
 
     beforeAll(() => {
-      kindConfigs.forEach(kindConfig => Registry.pipeline.registerArtifactKind(kindConfig));
+      kindConfigs.forEach((kindConfig) => Registry.pipeline.registerArtifactKind(kindConfig));
     });
 
     it('infers kind from type', () => {

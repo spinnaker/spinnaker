@@ -34,7 +34,7 @@ export const getGridColumnsStyle = (sizes: ITableColumnSizes, expandable: boolea
     return undefined;
   }
 
-  const gridColumns = sizes.map(sizing => {
+  const gridColumns = sizes.map((sizing) => {
     if (typeof sizing === 'number') {
       return `${sizing}fr`;
     } else if (Array.isArray(sizing) && sizing.length === 2) {

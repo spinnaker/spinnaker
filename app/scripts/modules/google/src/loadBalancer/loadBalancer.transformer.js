@@ -10,20 +10,20 @@ export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadB
 export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
 module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalancerTransformer', [
   '$q',
-  function($q) {
+  function ($q) {
     function updateHealthCounts(container) {
       const instances = container.instances;
       const serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
-        up: instances.filter(instance => {
+        up: instances.filter((instance) => {
           return instance.health[0].state === 'InService';
         }).length,
-        down: instances.filter(instance => {
+        down: instances.filter((instance) => {
           return instance.health[0].state === 'OutOfService';
         }).length,
         outOfService: serverGroups.reduce((acc, serverGroup) => {
           return (
-            serverGroup.instances.filter(instance => {
+            serverGroup.instances.filter((instance) => {
               return instance.healthState === 'OutOfService';
             }).length + acc
           );
@@ -47,10 +47,10 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
     }
 
     function normalizeLoadBalancer(loadBalancer) {
-      loadBalancer.serverGroups.forEach(function(serverGroup) {
+      loadBalancer.serverGroups.forEach(function (serverGroup) {
         serverGroup.account = loadBalancer.account;
         if (serverGroup.detachedInstances) {
-          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function (instanceId) {
             return { id: instanceId };
           });
           serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
@@ -58,21 +58,15 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
           serverGroup.detachedInstances = [];
         }
 
-        serverGroup.instances.forEach(function(instance) {
+        serverGroup.instances.forEach(function (instance) {
           transformInstance(instance, loadBalancer);
         });
         updateHealthCounts(serverGroup);
       });
       const activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _.chain(activeServerGroups)
-        .map('instances')
-        .flatten()
-        .value();
-      loadBalancer.detachedInstances = _.chain(activeServerGroups)
-        .map('detachedInstances')
-        .flatten()
-        .value();
+      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       if (_.get(loadBalancer, 'backendService.healthCheck')) {
         loadBalancer.backendService.healthCheck.timeout = loadBalancer.backendService.healthCheck.timeoutSec;
         loadBalancer.backendService.healthCheck.interval = loadBalancer.backendService.healthCheck.checkIntervalSec;
@@ -97,7 +91,7 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
         toEdit.vpcId = elb.vpcid;
 
         if (elb.listenerDescriptions) {
-          toEdit.listeners = elb.listenerDescriptions.map(function(description) {
+          toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             const listener = description.listener;
             return {
               protocol: listener.protocol,

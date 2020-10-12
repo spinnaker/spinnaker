@@ -5,9 +5,7 @@ import { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EcsClusterReader {
   public listClusters(): ng.IPromise<IEcsClusterDescriptor[]> {
-    return API.all('ecs')
-      .all('ecsClusters')
-      .getList();
+    return API.all('ecs').all('ecsClusters').getList();
   }
 }
 

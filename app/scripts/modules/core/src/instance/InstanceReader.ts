@@ -14,11 +14,7 @@ export interface IInstanceMultiOutputLog {
 
 export class InstanceReader {
   public static getInstanceDetails(account: string, region: string, id: string): IPromise<IInstance> {
-    return API.one('instances')
-      .one(account)
-      .one(region)
-      .one(id)
-      .get();
+    return API.one('instances').one(account).one(region).one(id).get();
   }
 
   public static getConsoleOutput(

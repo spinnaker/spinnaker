@@ -12,7 +12,7 @@ describe('<ExecutionParameters/>', () => {
   beforeEach(mock.module(REACT_MODULE));
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
-  it(`show only pin params, but there's no pinnedDisplayableParameters should return null`, function() {
+  it(`show only pin params, but there's no pinnedDisplayableParameters should return null`, function () {
     const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }];
 
     component = shallow(
@@ -26,7 +26,7 @@ describe('<ExecutionParameters/>', () => {
     expect(component.get(0)).toEqual(null);
   });
 
-  it(`show only pinned parameters in 2 columns format`, function() {
+  it(`show only pinned parameters in 2 columns format`, function () {
     const parameters: IDisplayableParameter[] = [
       { key: '1', value: 'a' },
       { key: '2', value: 'b' },
@@ -45,7 +45,7 @@ describe('<ExecutionParameters/>', () => {
     expect(component.find('.parameter-value').length).toEqual(2);
   });
 
-  it(`show all params, but there's no displayableParameters should return null`, function() {
+  it(`show all params, but there's no displayableParameters should return null`, function () {
     const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }];
 
     component = shallow(
@@ -59,7 +59,7 @@ describe('<ExecutionParameters/>', () => {
     expect(component.get(0)).toEqual(null);
   });
 
-  it(`show all parameters in 2 columns format`, function() {
+  it(`show all parameters in 2 columns format`, function () {
     const parameters: IDisplayableParameter[] = [
       { key: '1', value: 'a' },
       { key: '2', value: 'b' },

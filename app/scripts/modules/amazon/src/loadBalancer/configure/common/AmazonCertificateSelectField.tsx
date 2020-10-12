@@ -17,10 +17,10 @@ export class AmazonCertificateSelectField extends React.Component<IAmazonCertifi
   public render() {
     const { certificates, accountName, onCertificateSelect, currentValue } = this.props;
     const certificatesForAccount = certificates[accountName] || [];
-    const certificateOptions = certificatesForAccount.map(cert => {
+    const certificateOptions = certificatesForAccount.map((cert) => {
       return { label: cert.serverCertificateName, value: cert.serverCertificateName };
     });
-    const currentCert = certificatesForAccount.find(c => c.serverCertificateName === currentValue);
+    const currentCert = certificatesForAccount.find((c) => c.serverCertificateName === currentValue);
     return (
       <div style={{ width: '100%' }}>
         <Select

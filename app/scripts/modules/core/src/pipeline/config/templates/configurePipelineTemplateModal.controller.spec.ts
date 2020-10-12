@@ -115,7 +115,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
 
       expect(ctrl.variableMetadataGroups).toBeDefined();
       expect(ctrl.variableMetadataGroups.length).toEqual(3);
-      expect(ctrl.variableMetadataGroups.find(g => g.name === 'Basic Settings').variableMetadata.length).toEqual(2);
+      expect(ctrl.variableMetadataGroups.find((g) => g.name === 'Basic Settings').variableMetadata.length).toEqual(2);
     });
 
     it('sets `variables` on the controller, each with a property `value` provided by variable metadata `defaultValue`', () => {
@@ -124,7 +124,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
 
       expect(ctrl.variables).toBeDefined();
       expect(ctrl.variables.length).toEqual(5);
-      expect(ctrl.variables.map(v => v.value)).toEqual(['my-google-account', 'gce', yaml, ['a', 'b', 'c'], 42]);
+      expect(ctrl.variables.map((v) => v.value)).toEqual(['my-google-account', 'gce', yaml, ['a', 'b', 'c'], 42]);
     });
 
     it('initializes variables on controller with variables provided from the pipeline template config ', () => {
@@ -139,7 +139,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       ctrl.initialize();
       $scope.$digest();
 
-      expect(ctrl.variables.map(v => v.value)).toEqual(['my-credentials', 'gce', 'key: value\n', ['a'], 123]);
+      expect(ctrl.variables.map((v) => v.value)).toEqual(['my-credentials', 'gce', 'key: value\n', ['a'], 123]);
     });
   });
 

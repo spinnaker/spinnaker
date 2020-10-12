@@ -75,11 +75,11 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             <Select
               multi={true}
               value={values.enabledMetrics}
-              options={values.backingData.enabledMetrics.map(m => ({ label: m, value: m }))}
+              options={values.backingData.enabledMetrics.map((m) => ({ label: m, value: m }))}
               onChange={(option: Option[]) =>
                 setFieldValue(
                   'enabledMetrics',
-                  option.map(o => o.value),
+                  option.map((o) => o.value),
                 )
               }
             />
@@ -95,7 +95,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               value={values.healthCheckType}
               clearable={false}
               placeholder="Select..."
-              options={values.backingData.healthCheckTypes.map(t => ({ label: t, value: t }))}
+              options={values.backingData.healthCheckTypes.map((t) => ({ label: t, value: t }))}
               onChange={(option: Option) => setFieldValue('healthCheckType', option.value)}
             />
           </div>
@@ -122,11 +122,11 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             <Select
               multi={true}
               value={values.terminationPolicies}
-              options={values.backingData.terminationPolicies.map(m => ({ label: m, value: m }))}
+              options={values.backingData.terminationPolicies.map((m) => ({ label: m, value: m }))}
               onChange={(option: Option[]) =>
                 setFieldValue(
                   'terminationPolicies',
-                  option.map(o => o.value),
+                  option.map((o) => o.value),
                 )
               }
             />
@@ -142,7 +142,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               value={values.keyPair}
               required={true}
               clearable={false}
-              options={keyPairs.map(t => ({ label: t, value: t }))}
+              options={keyPairs.map((t) => ({ label: t, value: t }))}
               onChange={(option: Option) => setFieldValue('keyPair', option.value)}
             />
           </div>
@@ -183,7 +183,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               <input
                 type="checkbox"
                 checked={values.instanceMonitoring}
-                onChange={e => setFieldValue('instanceMonitoring', e.target.checked)}
+                onChange={(e) => setFieldValue('instanceMonitoring', e.target.checked)}
               />{' '}
               Enforce Instance Monitoring{' '}
             </label>
@@ -198,7 +198,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               <input
                 type="checkbox"
                 checked={values.ebsOptimized}
-                onChange={e => setFieldValue('ebsOptimized', e.target.checked)}
+                onChange={(e) => setFieldValue('ebsOptimized', e.target.checked)}
               />{' '}
               Optimize Instances for EBS
             </label>
@@ -215,7 +215,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
                 <input
                   type="checkbox"
                   checked={values.requireIMDSv2 === true}
-                  onChange={e => setFieldValue('requireIMDSv2', e.target.checked)}
+                  onChange={(e) => setFieldValue('requireIMDSv2', e.target.checked)}
                 />{' '}
                 Enable IMDSv2{' '}
               </label>
@@ -282,7 +282,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
                 <input
                   type="checkbox"
                   checked={values.associateIPv6Address === true}
-                  onChange={e => setFieldValue('associateIPv6Address', e.target.checked)}
+                  onChange={(e) => setFieldValue('associateIPv6Address', e.target.checked)}
                   id="associateIPv6AddressToggle"
                 />{' '}
                 Assign an IPv6 address to instances{' '}
@@ -332,7 +332,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             <b>Scaling Processes</b>
           </div>
           <div className="col-md-6 checkbox">
-            {values.backingData.scalingProcesses.map(process => (
+            {values.backingData.scalingProcesses.map((process) => (
               <div key={process.name}>
                 <label>
                   <input

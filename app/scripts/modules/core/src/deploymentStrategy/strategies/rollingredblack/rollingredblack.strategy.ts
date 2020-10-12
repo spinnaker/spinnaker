@@ -9,7 +9,7 @@ DeploymentStrategyRegistry.registerStrategy({
   providerRestricted: true,
   additionalFields: ['targetPercentages', 'scaleDown'],
   AdditionalFieldsComponent: AdditionalFields,
-  initializationMethod: command => {
+  initializationMethod: (command) => {
     if (!command.targetPercentages) {
       command.targetPercentages = [50, 100];
     }

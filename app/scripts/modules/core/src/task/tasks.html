@@ -29,12 +29,11 @@
           </label>
         </div>
       </div>
-      <div class="col-md-4 text-right horizontal right" style="padding-right: 0;margin-left: auto">
+      <div class="col-md-4 text-right horizontal right" style="padding-right: 0; margin-left: auto">
         <a
           class="btn btn-link"
           ng-click="tasks.clearNameFilter()"
-          style="
-        padding-right: 5px"
+          style="padding-right: 5px"
           ng-if="viewState.nameFilter.length > 0"
         >
           <span class="glyphicon glyphicon-remove" uib-tooltip="clear search filter"></span>
@@ -59,9 +58,7 @@
           We couldn't find any tasks for {{tasks.application.name}}
         </h4>
         <div ng-if="viewState.nameFilter  || viewState.taskStateFilter">
-          <h4>
-            We couldn't find any tasks matching the filters you've specified.
-          </h4>
+          <h4>We couldn't find any tasks matching the filters you've specified.</h4>
           <p style="margin-top: 20px"><strong>Note</strong> that Spinnaker only tracks tasks for two weeks.</p>
         </div>
       </div>
@@ -127,23 +124,15 @@
               <td>
                 <task-progress-bar task="task"></task-progress-bar>
               </td>
-              <td>
-                {{ task.startTime | timestamp }}
-              </td>
-              <td>
-                {{ task.endTime | timestamp }}
-              </td>
+              <td>{{ task.startTime | timestamp }}</td>
+              <td>{{ task.endTime | timestamp }}</td>
               <td>
                 <span ng-if="task.runningTimeInMs && !viewState.cancelling">
                   {{ task.runningTimeInMs | duration }}
                 </span>
-                <span ng-if="viewState.cancelling || !task.runningTimeInMs">
-                  -
-                </span>
+                <span ng-if="viewState.cancelling || !task.runningTimeInMs"> - </span>
               </td>
-              <td>
-                {{ task.getDisplayUser() }}
-              </td>
+              <td>{{ task.getDisplayUser() }}</td>
               <td class="small text-center">
                 <a
                   ng-if="task.isRunning || task.hasNotStarted"
@@ -159,15 +148,9 @@
                 <status-glyph item="step"></status-glyph>
                 {{step.name | robotToHuman }}
               </td>
-              <td>
-                {{ step.startTime | timestamp }}
-              </td>
-              <td>
-                {{ step.endTime | timestamp }}
-              </td>
-              <td colspan="3">
-                {{ step.runningTimeInMs | duration }}
-              </td>
+              <td>{{ step.startTime | timestamp }}</td>
+              <td>{{ step.endTime | timestamp }}</td>
+              <td colspan="3">{{ step.runningTimeInMs | duration }}</td>
             </tr>
             <tr class="task-error-message danger" ng-if="task.isFailed && tasks.isExpanded(task.id)">
               <td colspan="9">
@@ -212,8 +195,7 @@
             ng-change="tasks.sortTasksAndResetPaginator()"
             ng-options="count for count in filterCountOptions"
             style="width: 50px"
-          >
-          </select>
+          ></select>
           per page
         </div>
       </div>

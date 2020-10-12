@@ -11,9 +11,7 @@
             <span class="cluster-health">
               {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
             </span>
-            <span class="cluster-health">
-              {{vm.instanceCounts.total}} Instances
-            </span>
+            <span class="cluster-health"> {{vm.instanceCounts.total}} Instances </span>
             <health-counts container="vm.instanceCounts"></health-counts>
           </div>
         </div>
@@ -33,9 +31,7 @@
           <th width="18%"></th>
           <th width="9%"></th>
           <th width="15%">Last Push</th>
-          <th ng-repeat="region in vm.regions" width="{{57/vm.regions.length}}%">
-            {{region}}
-          </th>
+          <th ng-repeat="region in vm.regions" width="{{57/vm.regions.length}}%">{{region}}</th>
         </tr>
       </thead>
       <tbody>
@@ -69,12 +65,8 @@
             ></i>
           </td>
           <td>
-            <span ng-if="!application.lastPush">
-              -
-            </span>
-            <span class="small" ng-if="application.lastPush">
-              {{application.lastPush | relativeTime }}
-            </span>
+            <span ng-if="!application.lastPush"> - </span>
+            <span class="small" ng-if="application.lastPush"> {{application.lastPush | relativeTime }} </span>
           </td>
           <td ng-repeat="region in vm.regions">
             <span ng-if="application.regions[region]">
@@ -92,9 +84,7 @@
                 <i class="fa fa-exclamation-triangle" uib-tooltip-template="vm.inconsistentBuildsTemplate"></i>
               </span>
             </span>
-            <span ng-if="!application.regions[region]">
-              -
-            </span>
+            <span ng-if="!application.regions[region]"> - </span>
           </td>
         </tr>
       </tbody>

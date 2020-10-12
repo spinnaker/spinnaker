@@ -41,10 +41,10 @@
     <b>Max Unavailable <help-field key="gce.serverGroup.maxUnavailable"></help-field></b>
   </div>
   <div class="col-md-3" ng-switch-default>
-    <input type="number" style="width: 130px;" readonly class="form-control input-sm" />
+    <input type="number" style="width: 130px" readonly class="form-control input-sm" />
   </div>
   <div class="col-md-3" ng-switch-when="percent">
-    <div class="input-group" style="width: 130px;">
+    <div class="input-group" style="width: 130px">
       <input
         class="form-control input-sm"
         ng-model="$ctrl.autoHealingPolicy.maxUnavailable.percent"
@@ -59,7 +59,7 @@
   <div class="col-md-3" ng-switch-when="fixed">
     <input
       class="form-control input-sm"
-      style="width: 130px;"
+      style="width: 130px"
       required
       ng-model="$ctrl.autoHealingPolicy.maxUnavailable.fixed"
       type="number"

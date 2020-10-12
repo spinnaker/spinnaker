@@ -31,7 +31,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
-  private INITIAL_RESULTS: ISearchResultSet[] = this.searchResultTypes.map(type => ({
+  private INITIAL_RESULTS: ISearchResultSet[] = this.searchResultTypes.map((type) => ({
     type,
     status: SearchStatus.SEARCHING,
     results: [],
@@ -70,9 +70,9 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     // when searching for an instance ID
     const autoNavigate = window.location.href.endsWith('route=true');
     this.$uiRouter.globals.params$
-      .map(stateParams => this.getApiFilterParams(stateParams))
+      .map((stateParams) => this.getApiFilterParams(stateParams))
       .do((params: IQueryParams) => this.setState({ params }))
-      .distinctUntilChanged((a, b) => API_PARAMS.every(key => a[key] === b[key]))
+      .distinctUntilChanged((a, b) => API_PARAMS.every((key) => a[key] === b[key]))
       .do(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true }))
       // Got new params... fire off new queries for each backend
       // Use switchMap so new queries cancel any pending previous queries
@@ -89,7 +89,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
               const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
               resultSet = { ...resultSet, status };
               // Replace the result set placeholder with the results for this type
-              return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
+              return acc.filter((set) => set.type !== resultSet.type).concat(resultSet);
             },
             this.INITIAL_RESULTS,
           );
@@ -97,8 +97,8 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       )
       .takeUntil(this.destroy$)
       .subscribe(
-        resultSets => {
-          const finishedSearching = resultSets.map(r => r.status).every(s => s === SearchStatus.FINISHED);
+        (resultSets) => {
+          const finishedSearching = resultSets.map((r) => r.status).every((s) => s === SearchStatus.FINISHED);
           if (finishedSearching && autoNavigate) {
             const allResults = resultSets.reduce((acc, rs) => acc.concat(rs.results), []);
             if (allResults.length === 1) {
@@ -116,10 +116,10 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       );
 
     this.$uiRouter.globals.params$
-      .map(params => params.tab)
+      .map((params) => params.tab)
       .distinctUntilChanged()
       .takeUntil(this.destroy$)
-      .subscribe(selectedTab => this.setState({ selectedTab }));
+      .subscribe((selectedTab) => this.setState({ selectedTab }));
   }
 
   /** Select the first tab with results */

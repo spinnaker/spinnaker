@@ -6,12 +6,12 @@ import { AccountService } from 'core/account';
 import { useData } from 'core/presentation';
 
 export const useEnvironmentTypeFromResources = (resources: IManagedResourceSummary[]): boolean => {
-  const accountNames = uniq(resources.map(resource => resource?.locations?.account).filter(Boolean));
+  const accountNames = uniq(resources.map((resource) => resource?.locations?.account).filter(Boolean));
   return useData<boolean>(
     () =>
       $q
-        .all(accountNames.map(accountName => AccountService.challengeDestructiveActions(accountName)))
-        .then(result => result.some(value => !!value)),
+        .all(accountNames.map((accountName) => AccountService.challengeDestructiveActions(accountName)))
+        .then((result) => result.some((value) => !!value)),
     false,
     [accountNames.sort().join()],
   ).result;

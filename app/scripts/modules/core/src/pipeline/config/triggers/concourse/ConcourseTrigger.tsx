@@ -39,8 +39,8 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
   const fetchPipelines = useData(() => ConcourseService.listPipelinesForTeam(master, team), [], [master, team]);
   const fetchJobs = useData(
     () =>
-      ConcourseService.listJobsForPipeline(master, team, pipeline).then(jobs =>
-        jobs.map(job => `${team}/${pipeline}/${job}`),
+      ConcourseService.listJobsForPipeline(master, team, pipeline).then((jobs) =>
+        jobs.map((job) => `${team}/${pipeline}/${job}`),
       ),
     [],
     [master, team, pipeline],
@@ -53,7 +53,7 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
       <FormikFormField
         name="master"
         label="Build Service"
-        input={props => (
+        input={(props) => (
           <ReactSelectInput
             {...props}
             clearable={false}
@@ -69,7 +69,7 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
         name="team"
         label="Team"
         onChange={onTeamChanged}
-        input={props => (
+        input={(props) => (
           <ReactSelectInput
             {...props}
             clearable={false}
@@ -85,7 +85,7 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
         name="project"
         label="Pipeline"
         onChange={onProjectChanged}
-        input={props => (
+        input={(props) => (
           <ReactSelectInput
             {...props}
             clearable={false}
@@ -103,7 +103,7 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
         name="job"
         label="Job"
         onChange={onJobChanged}
-        input={props => (
+        input={(props) => (
           <ReactSelectInput
             {...props}
             clearable={false}

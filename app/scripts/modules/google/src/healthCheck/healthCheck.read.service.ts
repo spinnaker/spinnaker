@@ -18,8 +18,8 @@ interface IHealthCheckSearchResults {
 export class GceHealthCheckReader {
   public listHealthChecks(type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {
-      return this.listHealthChecks().then(healthChecks =>
-        healthChecks.filter(healthCheck => healthCheck.healthCheckType === type),
+      return this.listHealthChecks().then((healthChecks) =>
+        healthChecks.filter((healthCheck) => healthCheck.healthCheckType === type),
       );
     } else {
       return SearchService.search(
@@ -29,8 +29,8 @@ export class GceHealthCheckReader {
         .then((searchResults: ISearchResults<IHealthCheckSearchResults>) => {
           if (searchResults && searchResults.results) {
             const healthChecks = searchResults.results
-              .filter(result => result.provider === 'gce')
-              .map(result => {
+              .filter((result) => result.provider === 'gce')
+              .map((result) => {
                 const healthCheck = JSON.parse(result.healthCheck) as IGceHealthCheck;
                 healthCheck.account = result.account;
                 return healthCheck;

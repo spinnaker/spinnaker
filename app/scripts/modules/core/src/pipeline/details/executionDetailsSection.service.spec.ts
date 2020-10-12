@@ -3,7 +3,7 @@ import { StateParams, StateService } from '@uirouter/angularjs';
 
 import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from './executionDetailsSection.service';
 
-describe('executionDetailsSectionService', function() {
+describe('executionDetailsSectionService', function () {
   let $state: StateService,
     $stateParams: StateParams,
     $timeout: ng.ITimeoutService,
@@ -27,7 +27,7 @@ describe('executionDetailsSectionService', function() {
   );
 
   describe('synchronizeSection', () => {
-    it('does nothing when state is not in execution details', function() {
+    it('does nothing when state is not in execution details', function () {
       spyOn($state, 'includes').and.returnValue(false);
       spyOn($state, 'go');
 
@@ -37,7 +37,7 @@ describe('executionDetailsSectionService', function() {
       expect($state.go).not.toHaveBeenCalled();
     });
 
-    it('reuses current section if still valid', function() {
+    it('reuses current section if still valid', function () {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
@@ -49,7 +49,7 @@ describe('executionDetailsSectionService', function() {
       expect($state.go).not.toHaveBeenCalled();
     });
 
-    it('replaces current section if not valid', function() {
+    it('replaces current section if not valid', function () {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
@@ -61,7 +61,7 @@ describe('executionDetailsSectionService', function() {
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
 
-    it('uses first section if none present in state params', function() {
+    it('uses first section if none present in state params', function () {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
@@ -73,7 +73,7 @@ describe('executionDetailsSectionService', function() {
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
 
-    it('calls initialization after timeout', function() {
+    it('calls initialization after timeout', function () {
       let completed = false;
       const init = () => (completed = true);
 
@@ -86,7 +86,7 @@ describe('executionDetailsSectionService', function() {
       expect(completed).toBe(true);
     });
 
-    it('cancels prior initialization on second synchronization call', function() {
+    it('cancels prior initialization on second synchronization call', function () {
       let completed = false;
       const init = () => (completed = true);
 

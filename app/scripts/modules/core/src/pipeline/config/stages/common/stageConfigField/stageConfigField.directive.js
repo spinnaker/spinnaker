@@ -11,7 +11,7 @@ export const CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIEL
 export const name = CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE, [
   HELP_FIELD_COMPONENT,
-]).directive('stageConfigField', function() {
+]).directive('stageConfigField', function () {
   return {
     restrict: 'E',
     transclude: true,
@@ -24,7 +24,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRE
       helpKeyExpand: '@',
       fieldColumns: '@',
     },
-    controller: function() {
+    controller: function () {
       this.fieldColumns = this.fieldColumns || 8;
     },
   };

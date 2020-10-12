@@ -4,7 +4,7 @@ describe('EventBus', () => {
   describe('observe', () => {
     it('only picks up messages with the specified key', () => {
       const results: number[] = [];
-      const subscription = EventBus.observe<number>('z').subscribe(n => results.push(n));
+      const subscription = EventBus.observe<number>('z').subscribe((n) => results.push(n));
       EventBus.publish('a', 1);
       EventBus.publish('z', 2);
       EventBus.publish('b', 3);

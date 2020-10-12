@@ -12,7 +12,7 @@ describe('Health check display utils', () => {
   });
   describe('parseHealthCheckUrl', () => {
     it('extracts name and kind from health check url', () => {
-      healthChecks.forEach(hc => {
+      healthChecks.forEach((hc) => {
         expect(parseHealthCheckUrl(hc.selfLink)).toEqual({
           healthCheckName: hc.name,
           healthCheckKind: hc.kind,
@@ -22,7 +22,7 @@ describe('Health check display utils', () => {
   });
   describe('getHealthCheckOptions', () => {
     it('adds appropriate displayName to each health check, including kind when name is duplicate', () => {
-      expect(getHealthCheckOptions(healthChecks).map(hc => hc.displayName)).toEqual([
+      expect(getHealthCheckOptions(healthChecks).map((hc) => hc.displayName)).toEqual([
         'hello (healthCheck)',
         'hello (httpsHealthCheck)',
         'ping',

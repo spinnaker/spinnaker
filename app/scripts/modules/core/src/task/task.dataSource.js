@@ -9,16 +9,16 @@ export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility
 angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run([
   '$q',
   'clusterService',
-  function($q, clusterService) {
+  function ($q, clusterService) {
     const addTasks = (application, tasks) => {
       return $q.when(angular.isArray(tasks) ? tasks : []);
     };
 
-    const loadTasks = application => {
+    const loadTasks = (application) => {
       return TaskReader.getTasks(application.name);
     };
 
-    const loadRunningTasks = application => {
+    const loadRunningTasks = (application) => {
       return TaskReader.getRunningTasks(application.name);
     };
 
@@ -26,7 +26,7 @@ angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run([
       return $q.when(data);
     };
 
-    const runningTasksLoaded = application => {
+    const runningTasksLoaded = (application) => {
       clusterService.addTasksToServerGroups(application);
       application.getDataSource('serverGroups').dataUpdated();
     };

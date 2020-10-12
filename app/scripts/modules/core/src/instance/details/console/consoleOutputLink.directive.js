@@ -13,7 +13,7 @@ export const name = CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE; /
 module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE, [
   ANGULAR_UI_BOOTSTRAP,
   CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER,
-]).directive('consoleOutputLink', function() {
+]).directive('consoleOutputLink', function () {
   return {
     restrict: 'E',
     template: '<a href ng-click="vm.showConsoleOutput()">{{vm.text}}</a>',
@@ -26,10 +26,10 @@ module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE, [
     controllerAs: 'vm',
     controller: [
       '$uibModal',
-      function($uibModal) {
+      function ($uibModal) {
         this.text = this.text || 'Console Output (Raw)';
         this.usesMultiOutput = this.usesMultiOutput || false;
-        this.showConsoleOutput = function() {
+        this.showConsoleOutput = function () {
           $uibModal.open({
             templateUrl: InstanceTemplates.consoleOutputModal,
             controller: 'ConsoleOutputCtrl as ctrl',

@@ -19,7 +19,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
   'isNew',
   'loadBalancerReader',
   'dcosLoadBalancerTransformer',
-  function(
+  function (
     $scope,
     $uibModalInstance,
     $state,
@@ -79,7 +79,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function initializeCreateMode() {
-      AccountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -101,7 +101,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         .getDataSource('loadBalancers')
         .refresh(true)
         .then(() => {
-          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+          application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
             if (loadBalancer.account === account) {
               accountLoadBalancersByRegion[loadBalancer.region] =
                 accountLoadBalancersByRegion[loadBalancer.region] || [];
@@ -124,33 +124,33 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     // Controller API
-    this.updateName = function() {
+    this.updateName = function () {
       $scope.loadBalancer.name = this.getName();
     };
 
-    this.getName = function() {
+    this.getName = function () {
       const loadBalancer = $scope.loadBalancer;
       const loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
-    this.accountUpdated = function() {
-      AccountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
+    this.accountUpdated = function () {
+      AccountService.getAccountDetails($scope.loadBalancer.account).then(function (details) {
         $scope.dcosClusters = details.dcosClusters;
         ctrl.dcosClusterUpdated();
       });
     };
 
-    this.dcosClusterUpdated = function() {
+    this.dcosClusterUpdated = function () {
       updateLoadBalancerNames();
       ctrl.updateName();
     };
 
-    this.submit = function() {
+    this.submit = function () {
       const descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
-      $scope.taskMonitor.submit(function() {
+      $scope.taskMonitor.submit(function () {
         const zones = {};
         zones[$scope.loadBalancer.region] = [$scope.loadBalancer.region];
         const params = {
@@ -161,7 +161,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
       });
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
   },

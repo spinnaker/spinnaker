@@ -73,7 +73,7 @@ describe('ProviderSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -83,7 +83,7 @@ describe('ProviderSelectionService: API', () => {
   it('should use "aws" as the default provider if the requested provider cannot be found and there is no default set', () => {
     let provider = '';
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -95,7 +95,7 @@ describe('ProviderSelectionService: API', () => {
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
     CloudProviderRegistry.registerProvider('testProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -108,7 +108,7 @@ describe('ProviderSelectionService: API', () => {
     accounts = [fakeAccount('testProvider')];
     config.securityGroup.useProvider = 'titus';
     CloudProviderRegistry.registerProvider('testProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -122,7 +122,7 @@ describe('ProviderSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('aws', { securityGroup: {} } as any);
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
 
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -137,7 +137,7 @@ describe('ProviderSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
     CloudProviderRegistry.registerProvider('testProvider', config);
 
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -153,7 +153,7 @@ describe('ProviderSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
@@ -169,7 +169,7 @@ describe('ProviderSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('kubernetes', config);
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();

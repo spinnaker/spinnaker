@@ -6,7 +6,7 @@ import { RollbackClusterExecutionDetails } from './RollbackClusterExecutionDetai
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
 
 export const ROLLBACK_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.rollbackClusterStage';
-module(ROLLBACK_CLUSTER_STAGE, []).config(function() {
+module(ROLLBACK_CLUSTER_STAGE, []).config(function () {
   Registry.pipeline.registerStage({
     useBaseProvider: true,
     key: 'rollbackCluster',

@@ -67,9 +67,7 @@
     </span>
 
     <span ng-if="$ctrl.viewState.comparatorBound === 'min'">
-      <span class="input-label" ng-if="!$last">
-        is between
-      </span>
+      <span class="input-label" ng-if="!$last"> is between </span>
       <input
         type="number"
         ng-if="!$last"
@@ -88,7 +86,7 @@
       <span class="input-label text-right" ng-bind="step.metricIntervalUpperBound"></span>
     </span>
 
-    <span ng-if="!$first" class="pull-right" style="padding: 5px 0;">
+    <span ng-if="!$first" class="pull-right" style="padding: 5px 0">
       <a href ng-click="$ctrl.removeStep($index)">
         <span class="glyphicon glyphicon-trash"></span>
       </a>

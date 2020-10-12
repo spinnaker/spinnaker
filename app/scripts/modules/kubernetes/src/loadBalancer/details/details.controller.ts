@@ -60,7 +60,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
       this.manifest.manifest,
       this.loadBalancer.moniker,
       this.loadBalancer.account,
-    ).then(builtCommand => {
+    ).then((builtCommand) => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }

@@ -2,7 +2,7 @@
   <ng-form name="listenerForm">
     <div class="form-group">
       <div class="col-md-9 col-md-offset-2">
-        <table class="table table-condensed packed" style="table-layout: fixed; width: 390px;">
+        <table class="table table-condensed packed" style="table-layout: fixed; width: 390px">
           <thead>
             <tr>
               <th>Certificate</th>
@@ -27,8 +27,7 @@
                   ng-options="port for port in ctrl.portOptions"
                   ng-disabled="!ctrl.isNew"
                   ng-model="ctrl.loadBalancer.portRange"
-                >
-                </select>
+                ></select>
               </td>
             </tr>
           </tbody>
@@ -36,7 +35,7 @@
       </div>
     </div>
   </ng-form>
-  <div class="form-group small" style="margin-top: 20px;">
+  <div class="form-group small" style="margin-top: 20px">
     <div class="col-md-offset-2 col-md-6">
       <gce-cache-refresh cache-key="certificates" on-refresh="ctrl.onCertificateRefresh()"></gce-cache-refresh>
     </div>

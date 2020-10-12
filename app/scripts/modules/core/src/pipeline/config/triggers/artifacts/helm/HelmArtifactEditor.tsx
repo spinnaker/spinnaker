@@ -41,7 +41,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
     }
 
     ArtifactService.getArtifactNames(TYPE, this.props.account.name).then(
-      names => {
+      (names) => {
         this.setState({
           names,
           namesLoading: false,
@@ -68,7 +68,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
   public componentDidUpdate(prevProps: IArtifactEditorProps) {
     if (this.props.account.name !== prevProps.account.name) {
       ArtifactService.getArtifactNames(TYPE, this.props.account.name).then(
-        names => {
+        (names) => {
           this.setState({
             names,
             namesLoading: false,
@@ -88,7 +88,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
 
   public render() {
     const { artifact } = this.props;
-    const nameOptions = this.state.names.map(name => ({ value: name, label: name }));
+    const nameOptions = this.state.names.map((name) => ({ value: name, label: name }));
 
     return (
       <>
@@ -139,7 +139,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
         versions = versions.concat(artifact.version);
       }
       this.setState({
-        versions: versions.map(v => ({ label: v, value: v })),
+        versions: versions.map((v) => ({ label: v, value: v })),
         versionsLoading: false,
       });
     });

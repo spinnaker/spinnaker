@@ -7,13 +7,13 @@ import { OrchestratedItemTransformer } from '@spinnaker/core';
 
 export const CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER = 'spinnaker.canary.acaTask.transformer';
 export const name = CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER; // for backwards compatibility
-module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer', function() {
+module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer', function () {
   function getException(stage) {
     return stage && stage.isFailed ? stage.failureMessage : null;
   }
 
-  this.transform = function(application, execution) {
-    execution.stages.forEach(function(stage) {
+  this.transform = function (application, execution) {
+    execution.stages.forEach(function (stage) {
       if (stage.type === 'acaTask' && execution.hydrated) {
         OrchestratedItemTransformer.defineProperties(stage);
         stage.exceptions = [];

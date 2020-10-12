@@ -32,7 +32,7 @@ export const reactSelectValidationErrorStyle = {
  */
 export const reactSelectOnChangeAdapter = (name: string, onChange: IReactSelectInputProps['onChange']) => {
   return (selection: Option | Option[]) => {
-    const value = !selection ? null : Array.isArray(selection) ? selection.map(x => x.value) : selection.value;
+    const value = !selection ? null : Array.isArray(selection) ? selection.map((x) => x.value) : selection.value;
     const target = { name, value };
     const event = createFakeReactSyntheticEvent(target);
     return (onChange || noop)(event);
@@ -98,7 +98,7 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
 
   if (isStringArray(stringOptions)) {
     return (
-      <StringsAsOptions strings={stringOptions}>{options => <SelectElement options={options} />}</StringsAsOptions>
+      <StringsAsOptions strings={stringOptions}>{(options) => <SelectElement options={options} />}</StringsAsOptions>
     );
   } else {
     return <SelectElement options={optionOptions} />;

@@ -58,8 +58,8 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
   function removeTrigger(indexToRemove: number): void {
     const triggerToRemove = triggers[indexToRemove];
     const updatedTriggers = triggers.filter((_t, i) => i !== indexToRemove);
-    const artifactIdsToRemove = (triggerToRemove?.expectedArtifactIds ?? []).filter(id => {
-      return !updatedTriggers.some(trigger => (trigger.expectedArtifactIds || []).includes(id));
+    const artifactIdsToRemove = (triggerToRemove?.expectedArtifactIds ?? []).filter((id) => {
+      return !updatedTriggers.some((trigger) => (trigger.expectedArtifactIds || []).includes(id));
     });
     const pipelineUpdate: Partial<IPipeline> = {
       triggers: updatedTriggers,
@@ -111,7 +111,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
    */
   function updateExpectedArtifact(updatedArtifact: IExpectedArtifact): void {
     updatePipelineConfig({
-      expectedArtifacts: expectedArtifacts.map(artifact => {
+      expectedArtifacts: expectedArtifacts.map((artifact) => {
         if (artifact.id === updatedArtifact.id) {
           return updatedArtifact;
         }
@@ -134,7 +134,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
    */
   function removeExpectedArtifact(artifactToRemove: IExpectedArtifact): void {
     updatePipelineConfig({
-      expectedArtifacts: expectedArtifacts.filter(a => a.id !== artifactToRemove.id),
+      expectedArtifacts: expectedArtifacts.filter((a) => a.id !== artifactToRemove.id),
     });
     ArtifactReferenceService.removeReferenceFromStages(artifactToRemove.id, pipeline.stages);
   }
@@ -159,7 +159,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
                             updatePipelineConfig({ respectQuietPeriod: !pipeline.respectQuietPeriod });
                           }}
                           value={pipeline.respectQuietPeriod}
-                          input={inputProps => (
+                          input={(inputProps) => (
                             <CheckboxInput
                               {...inputProps}
                               text={

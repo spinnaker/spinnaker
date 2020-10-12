@@ -17,7 +17,7 @@ const poolValueCoordinates = [
 
 function poolBuilder(functions: any[]) {
   const pool = chain(functions)
-    .map(fn => {
+    .map((fn) => {
       const poolUnits = chain(poolValueCoordinates)
         .filter({ on: 'function' })
         .reduce((acc, coordinate) => {
@@ -144,7 +144,7 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
           <div className="content">
             {providerTypeHeadings.length > 1 && (
               <FilterSection heading="Provider" expanded={true}>
-                {providerTypeHeadings.map(heading => (
+                {providerTypeHeadings.map((heading) => (
                   <FilterCheckbox
                     heading={heading}
                     isCloudProvider={true}
@@ -157,7 +157,7 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
             )}
 
             <FilterSection heading="Account" expanded={true}>
-              {accountHeadings.map(heading => (
+              {accountHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}
@@ -168,7 +168,7 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
             </FilterSection>
 
             <FilterSection heading="Region" expanded={true}>
-              {regionHeadings.map(heading => (
+              {regionHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}

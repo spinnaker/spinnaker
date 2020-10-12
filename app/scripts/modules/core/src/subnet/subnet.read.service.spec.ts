@@ -4,17 +4,17 @@ import { API } from 'core/api/ApiService';
 import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
-describe('SubnetReader', function() {
+describe('SubnetReader', function () {
   let $http: IHttpBackendService, $scope: IScope;
 
   beforeEach(
-    mock.inject(function($httpBackend: IHttpBackendService, $rootScope: IRootScopeService) {
+    mock.inject(function ($httpBackend: IHttpBackendService, $rootScope: IRootScopeService) {
       $http = $httpBackend;
       $scope = $rootScope.$new();
     }),
   );
 
-  it('adds label to subnet, including (deprecated) if deprecated field is true', function() {
+  it('adds label to subnet, including (deprecated) if deprecated field is true', function () {
     $http
       .whenGET(API.baseUrl + '/subnets')
       .respond(200, [

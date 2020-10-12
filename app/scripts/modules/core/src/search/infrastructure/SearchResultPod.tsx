@@ -27,7 +27,7 @@ export class SearchResultPod extends React.Component<ISearchResultPodProps> {
           </div>
 
           <div className="details-container list-group">
-            {podData.results.map(result => (
+            {podData.results.map((result) => (
               <SearchResultPodItem
                 key={result.id}
                 categoryName={category}

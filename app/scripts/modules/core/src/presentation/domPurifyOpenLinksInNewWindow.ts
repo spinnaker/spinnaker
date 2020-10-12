@@ -3,7 +3,7 @@ import DOMPurify from 'dompurify';
 export function domPurifyOpenLinksInNewWindow() {
   // Add a hook to make all DOMPurify'd links open a new window
   // See: https://github.com/cure53/DOMPurify/tree/master/demos#hook-to-open-all-links-in-a-new-window-link
-  DOMPurify.addHook('afterSanitizeAttributes', function(node: any) {
+  DOMPurify.addHook('afterSanitizeAttributes', function (node: any) {
     // set all elements owning target to target=_blank
     if ('target' in node) {
       node.setAttribute('target', '_blank');

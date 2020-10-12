@@ -13,7 +13,7 @@ export const ExecutionPermalink = ({ standalone }: IExecutionPermalinkProps) => 
   const [url, setUrl] = React.useState(asPermalink(location.href));
 
   React.useEffect(() => {
-    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe(newUrl => {
+    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe((newUrl) => {
       if (url !== newUrl) {
         setUrl(asPermalink(newUrl));
       }

@@ -17,7 +17,7 @@ describe('<Artifact/>', () => {
   beforeEach(mock.module(REACT_MODULE));
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
-  it("renders an artifact's name", function() {
+  it("renders an artifact's name", function () {
     const artifact: IArtifact = {
       id: 'abcd',
       type: ARTIFACT_TYPE,
@@ -32,7 +32,7 @@ describe('<Artifact/>', () => {
     expect(artifactName.text()).toEqual(ARTIFACT_NAME);
   });
 
-  it('renders an artifact version if present', function() {
+  it('renders an artifact version if present', function () {
     const version = 'v001';
     const artifact: IArtifact = {
       id: 'abcd',
@@ -48,7 +48,7 @@ describe('<Artifact/>', () => {
     expect(artifactVersion.text()).toEqual(` - ${version}`);
   });
 
-  it('includes the artifact reference in the tootip', function() {
+  it('includes the artifact reference in the tootip', function () {
     const artifact: IArtifact = {
       id: 'abcd',
       type: ARTIFACT_TYPE,
@@ -62,7 +62,7 @@ describe('<Artifact/>', () => {
     expect(title).toMatch('Reference: ' + ARTIFACT_REFERENCE);
   });
 
-  it('does not include a reference in the tooltip if none is specified', function() {
+  it('does not include a reference in the tooltip if none is specified', function () {
     const artifact: IArtifact = {
       id: 'abcd',
       type: ARTIFACT_TYPE,

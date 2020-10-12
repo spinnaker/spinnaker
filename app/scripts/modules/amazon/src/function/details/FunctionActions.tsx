@@ -41,7 +41,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
     } else {
       // Load balancer is a part of a different application
       ApplicationReader.getApplication(functionAppName)
-        .then(functionApp => {
+        .then((functionApp) => {
           this.setState({ application: functionApp });
         })
         .catch(() => {

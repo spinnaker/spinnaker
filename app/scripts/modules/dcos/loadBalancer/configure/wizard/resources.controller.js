@@ -7,7 +7,7 @@ export const DCOS_LOADBALANCER_CONFIGURE_WIZARD_RESOURCES_CONTROLLER =
 export const name = DCOS_LOADBALANCER_CONFIGURE_WIZARD_RESOURCES_CONTROLLER; // for backwards compatibility
 module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_RESOURCES_CONTROLLER, []).controller(
   'dcosLoadBalancerResourcesController',
-  function() {
+  function () {
     this.minCpus = 0.01;
   },
 );

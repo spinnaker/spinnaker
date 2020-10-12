@@ -9,7 +9,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller
   'dcosServerGroupHealthChecksController',
   [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const HTTP_PROTOCOL = 'HTTP';
       const HTTPS_PROTOCOL = 'HTTPS';
       const TCP_PROTOCOL = 'TCP';
@@ -29,17 +29,17 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller
       ];
       this.healthCheckPortTypes = ['Port Index', 'Port Number'];
 
-      this.isHealthChecksValid = function(healthChecks) {
+      this.isHealthChecksValid = function (healthChecks) {
         return !(typeof healthChecks === 'string' || healthChecks instanceof String);
       };
 
       if (this.isHealthChecksValid($scope.command.healthChecks)) {
-        $scope.command.healthChecks.forEach(hc => {
+        $scope.command.healthChecks.forEach((hc) => {
           hc.portType = hc.port ? this.healthCheckPortTypes[1] : this.healthCheckPortTypes[0];
         });
       }
 
-      this.isHttpProtocol = function(healthCheck) {
+      this.isHttpProtocol = function (healthCheck) {
         return (
           healthCheck.protocol === HTTP_PROTOCOL ||
           healthCheck.protocol === HTTPS_PROTOCOL ||
@@ -48,16 +48,16 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller
         );
       };
 
-      this.isCommandProtocol = function(healthCheck) {
+      this.isCommandProtocol = function (healthCheck) {
         return healthCheck.protocol === COMMAND_PROTOCOL;
       };
 
-      this.isTcpProtocol = function(healthCheck) {
+      this.isTcpProtocol = function (healthCheck) {
         return healthCheck.protocol === TCP_PROTOCOL || healthCheck.protocol === MESOS_TCP_PROTOCOL;
       };
 
       // TODO can be smarter about this based on current ports defined
-      this.addHealthCheck = function() {
+      this.addHealthCheck = function () {
         if (!this.isHealthChecksValid($scope.command.healthChecks)) {
           $scope.command.healthChecks = [];
         }
@@ -77,7 +77,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller
         });
       };
 
-      this.removeHealthCheck = function(index) {
+      this.removeHealthCheck = function (index) {
         $scope.command.healthChecks.splice(index, 1);
       };
     },

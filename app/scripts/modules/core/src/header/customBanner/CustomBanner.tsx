@@ -47,7 +47,7 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
 
   public updateBannerConfig(attributes: any): void {
     const bannerConfigs: ICustomBannerConfig[] = get(attributes, 'customBanners') || [];
-    const bannerConfig = bannerConfigs.find(config => config.enabled) || null;
+    const bannerConfig = bannerConfigs.find((config) => config.enabled) || null;
     this.setState({
       bannerConfig,
     });

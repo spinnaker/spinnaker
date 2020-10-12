@@ -57,8 +57,9 @@
             ng-repeat="protocol in portsController.protocols"
             value="{{protocol}}"
             ng-selected="loadBalancer.portRange.protocol === protocol"
-            >{{protocol}}</option
           >
+            {{protocol}}
+          </option>
         </select>
       </div>
     </div>

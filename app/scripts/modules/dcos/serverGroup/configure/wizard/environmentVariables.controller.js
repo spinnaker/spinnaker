@@ -9,16 +9,16 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
   'dcosServerGroupEnvironmentVariablesController',
   [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.command.viewModel.env = [];
 
-      this.isEnvironmentValid = function(env) {
+      this.isEnvironmentValid = function (env) {
         return !(typeof env === 'string' || env instanceof String);
       };
 
       // init from the model
       if ($scope.command.env && this.isEnvironmentValid($scope.command.env)) {
-        Object.keys($scope.command.env).forEach(key => {
+        Object.keys($scope.command.env).forEach((key) => {
           const val = $scope.command.env[key];
           let secretSource = null;
           if (val.secret) {
@@ -34,7 +34,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
         });
       }
 
-      this.addEnvironmentVariable = function() {
+      this.addEnvironmentVariable = function () {
         if (!this.isEnvironmentValid($scope.command.env)) {
           $scope.command.env = {};
         }
@@ -46,12 +46,12 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
         });
       };
 
-      this.removeEnvironmentVariable = function(index) {
+      this.removeEnvironmentVariable = function (index) {
         $scope.command.viewModel.env.splice(index, 1);
         this.synchronize();
       };
 
-      this.updateValue = function(index) {
+      this.updateValue = function (index) {
         if ($scope.command.viewModel.env[index].isSecret === true) {
           $scope.command.secrets['secret' + index].source = $scope.command.viewModel.env[index].rawValue;
         } else {
@@ -59,7 +59,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
         }
       };
 
-      this.updateSecret = function(index, state) {
+      this.updateSecret = function (index, state) {
         // this is the previous state before the update is applied
         if (state !== true) {
           this.addSecret(index);
@@ -68,7 +68,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
         }
       };
 
-      this.addSecret = function(index) {
+      this.addSecret = function (index) {
         $scope.command.viewModel.env[index].rawValue = null;
         $scope.command.secrets['secret' + index] = {
           source: null,
@@ -79,23 +79,23 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
         };
       };
 
-      this.removeSecret = function(index) {
+      this.removeSecret = function (index) {
         $scope.command.viewModel.env[index].value = null;
         $scope.command.viewModel.env[index].rawValue = null;
         delete $scope.command.secrets['secret' + index];
       };
 
       this.synchronize = () => {
-        const allNames = $scope.command.viewModel.env.map(item => item.name);
+        const allNames = $scope.command.viewModel.env.map((item) => item.name);
 
         $scope.command.env = {};
 
-        $scope.command.viewModel.env.forEach(item => {
+        $scope.command.viewModel.env.forEach((item) => {
           if (item.name) {
             $scope.command.env[item.name] = item.value;
           }
 
-          item.checkUnique = allNames.filter(name => item.name !== name);
+          item.checkUnique = allNames.filter((name) => item.name !== name);
         });
       };
       $scope.$watch(() => JSON.stringify($scope.command.viewModel.env), this.synchronize);

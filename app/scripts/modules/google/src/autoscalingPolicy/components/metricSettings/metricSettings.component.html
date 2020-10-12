@@ -68,7 +68,10 @@
         </div>
         <div class="col-md-5 error-message">
           <span
-            ng-if="loadBalancingUtilization.utilizationTarget.$error.min || loadBalancingUtilization.utilizationTarget.$error.max"
+            ng-if="
+              loadBalancingUtilization.utilizationTarget.$error.min ||
+              loadBalancingUtilization.utilizationTarget.$error.max
+            "
           >
             Must be between 1 and 99.
           </span>
@@ -95,9 +98,7 @@
   <div class="section-body" ng-repeat="custom in $ctrl.policy.customMetricUtilizations track by $index">
     <hr ng-if="$index > 0" />
     <div class="row">
-      <div class="col-md-3 sm-label-right">
-        Metric Identifier
-      </div>
+      <div class="col-md-3 sm-label-right">Metric Identifier</div>
       <div class="col-md-2 content-fields">
         <input class="form-control input-sm" required ng-model="custom.metric" />
       </div>
@@ -125,7 +126,7 @@
       <div class="col-md-2">
         <select
           class="form-control input-sm"
-          style="margin: 0px;"
+          style="margin: 0px"
           ng-options="value as displayValue for (value, displayValue) in $ctrl.targetTypesToDisplayMap"
           ng-model="custom.utilizationTargetType"
           required

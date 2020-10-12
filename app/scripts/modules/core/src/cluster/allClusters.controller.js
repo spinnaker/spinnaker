@@ -30,7 +30,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
   '$timeout',
   'insightFilterStateModel',
   'serverGroupCommandBuilder',
-  function($scope, app, $uibModal, $timeout, insightFilterStateModel, serverGroupCommandBuilder) {
+  function ($scope, app, $uibModal, $timeout, insightFilterStateModel, serverGroupCommandBuilder) {
     this.$onInit = () => {
       const groupsUpdatedSubscription = ClusterState.filterService.groupsUpdatedStream.subscribe(() =>
         clusterGroupsUpdated(),
@@ -96,15 +96,15 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
       this.updateClusterGroups();
     };
 
-    this.clearFilters = function() {
+    this.clearFilters = function () {
       ClusterState.filterService.clearFilters();
       updateClusterGroups();
     };
 
     this.createServerGroup = function createServerGroup() {
       ProviderSelectionService.selectProvider(app, 'serverGroup')
-        .then(function(provider) {
-          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null).then(command => {
+        .then(function (provider) {
+          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null).then((command) => {
             const providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup');
             const title = 'Create New Server Group';
             const serverGroup = null;

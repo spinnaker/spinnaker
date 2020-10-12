@@ -42,7 +42,7 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
   }
 
   private mapModel(model: { [key: string]: string }): IMapPair[] {
-    return Object.keys(model).map(key => ({ key: key, value: model[key] }));
+    return Object.keys(model).map((key) => ({ key: key, value: model[key] }));
   }
 
   private reduceModel(backingModel: IMapPair[]): { [key: string]: string } {
@@ -59,7 +59,7 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
 
     const usedKeys = new Set();
 
-    model.forEach(p => {
+    model.forEach((p) => {
       if (usedKeys.has(p.key)) {
         p.error = 'Duplicate key';
         error = true;
@@ -135,12 +135,12 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
             </thead>
             <tbody>
               {backingModel
-                .filter(p => !hiddenKeys.includes(p.key))
+                .filter((p) => !hiddenKeys.includes(p.key))
                 .map((pair, index) => (
                   <MapPair
                     key={index}
                     {...rowProps}
-                    onChange={value => this.onChange(value, index)}
+                    onChange={(value) => this.onChange(value, index)}
                     onDelete={() => this.onDelete(index)}
                     pair={pair}
                     valueCanContainSpel={valueCanContainSpel}

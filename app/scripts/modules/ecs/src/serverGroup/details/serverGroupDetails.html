@@ -84,9 +84,7 @@
       </div>
     </div>
   </div>
-  <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled">
-    Disabled {{ctrl.disabledDate | timestamp}}
-  </div>
+  <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled">Disabled {{ctrl.disabledDate | timestamp}}</div>
   <div class="content" ng-if="!ctrl.state.loading">
     <server-group-running-tasks-details
       server-group="ctrl.serverGroup"
@@ -162,9 +160,7 @@
     </collapsible-section>
     <collapsible-section heading="{{ctrl.firewallsLabel}}" expanded="false">
       <ul>
-        <li ng-repeat="securityGroup in ctrl.serverGroup.securityGroups">
-          {{securityGroup}}
-        </li>
+        <li ng-repeat="securityGroup in ctrl.serverGroup.securityGroups">{{securityGroup}}</li>
       </ul>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="false">

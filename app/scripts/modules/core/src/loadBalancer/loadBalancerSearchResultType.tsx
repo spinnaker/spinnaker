@@ -70,7 +70,7 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
         {results
           .slice()
           .sort(itemSortFn)
-          .map(item => (
+          .map((item) => (
             <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.LOADBALANCER} />
               <AccountCell item={item} col={this.cols.ACCOUNT} />

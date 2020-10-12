@@ -12,7 +12,7 @@ export const name = TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUP
 module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
   TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER,
 ])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'titus',
@@ -29,14 +29,14 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
   })
   .controller('titusCloneServerGroupStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
       };
 
-      AccountService.listAccounts('titus').then(accounts => {
+      AccountService.listAccounts('titus').then((accounts) => {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -80,7 +80,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
         stage.useSourceCapacity = true;
       }
 
-      this.toggleSuspendedProcess = process => {
+      this.toggleSuspendedProcess = (process) => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
         const processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
@@ -90,7 +90,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
         }
       };
 
-      this.processIsSuspended = process => {
+      this.processIsSuspended = (process) => {
         return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
       };
     },

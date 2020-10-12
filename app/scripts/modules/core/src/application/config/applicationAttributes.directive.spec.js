@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: Config', function() {
+describe('Controller: Config', function () {
   var $controller;
   var configController;
   var $uibModal;
@@ -9,14 +9,14 @@ describe('Controller: Config', function() {
   beforeEach(window.module(require('./applicationAttributes.directive').name, require('angular-ui-bootstrap')));
 
   beforeEach(
-    window.inject(function(_$controller_, _$uibModal_) {
+    window.inject(function (_$controller_, _$uibModal_) {
       $controller = _$controller_;
       $uibModal = _$uibModal_;
     }),
   );
 
-  describe('edit application ', function() {
-    beforeEach(function() {
+  describe('edit application ', function () {
+    beforeEach(function () {
       application = {
         serverGroups: [],
         name: 'test-app',
@@ -32,11 +32,11 @@ describe('Controller: Config', function() {
       );
     });
 
-    it('should copy attributes when edit application is successful', function() {
+    it('should copy attributes when edit application is successful', function () {
       var newAttributes = { foo: 'bar' };
       const modalStub = {
         result: {
-          then: function(method) {
+          then: function (method) {
             method(newAttributes);
             return modalStub.result;
           },

@@ -8,7 +8,7 @@ export const AMAZON_PIPELINE_STAGES_FINDIMAGEFROMTAGS_AWSFINDIMAGEFROMTAGSSTAGE 
   'spinnaker.amazon.pipeline.stage.findImageFromTagsStage';
 export const name = AMAZON_PIPELINE_STAGES_FINDIMAGEFROMTAGS_AWSFINDIMAGEFROMTAGSSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_FINDIMAGEFROMTAGS_AWSFINDIMAGEFROMTAGSSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'aws',
@@ -24,12 +24,12 @@ module(AMAZON_PIPELINE_STAGES_FINDIMAGEFROMTAGS_AWSFINDIMAGEFROMTAGSSTAGE, [])
   })
   .controller('awsFindImageFromTagsStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.stage.tags = $scope.stage.tags || {};
       $scope.stage.regions = $scope.stage.regions || [];
       $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
 
-      BakeryReader.getRegions('aws').then(function(regions) {
+      BakeryReader.getRegions('aws').then(function (regions) {
         $scope.regions = regions;
       });
     },

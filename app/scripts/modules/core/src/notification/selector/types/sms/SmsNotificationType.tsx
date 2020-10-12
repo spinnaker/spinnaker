@@ -18,7 +18,7 @@ export class SmsNotificationType extends React.Component<INotificationTypeCustom
         label="Phone Number"
         name={fieldName ? `${fieldName}.address` : 'address'}
         validate={this.validate}
-        input={props => (
+        input={(props) => (
           <TextInput inputClassName={'form-control input-sm'} {...props} placeholder="enter a phone number" />
         )}
         required={true}

@@ -18,7 +18,7 @@ export const useContainerClassNames = (classNames: string[]) => {
     // If any of the classes in a previous `classNames` array are no longer present,
     // let's make sure they get cleaned up on the DOM
     if (previousClassNames) {
-      const removedClassNames = previousClassNames.filter(className => !classNames.includes(className));
+      const removedClassNames = previousClassNames.filter((className) => !classNames.includes(className));
       containerElement.classList.remove(...removedClassNames);
     }
 

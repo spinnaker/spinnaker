@@ -61,7 +61,7 @@ export class CloudFoundryInstanceDetails extends React.Component<
 
   private retrieveInstance(instanceFromParams: InstanceFromStateParams): void {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
-      return dataSource.instances.some(possibleMatch => possibleMatch.id === instanceFromParams.instanceId);
+      return dataSource.instances.some((possibleMatch) => possibleMatch.id === instanceFromParams.instanceId);
     };
 
     const dataSources: InstanceManager[] = flattenDeep([
@@ -89,7 +89,7 @@ export class CloudFoundryInstanceDetails extends React.Component<
           instanceDetails.region = instanceManager.region;
           return instanceDetails;
         })
-        .then(instance => {
+        .then((instance) => {
           this.setState({
             instance,
             loading: false,

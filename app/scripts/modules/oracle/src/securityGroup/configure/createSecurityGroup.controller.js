@@ -10,7 +10,7 @@ export const name = ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLE
 module(ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER, []).controller('oracleCreateSecurityGroupCtrl', [
   '$scope',
   '$uibModalInstance',
-  function($scope, $uibModalInstance) {
+  function ($scope, $uibModalInstance) {
     this.cancel = () => {
       $uibModalInstance.dismiss();
     };

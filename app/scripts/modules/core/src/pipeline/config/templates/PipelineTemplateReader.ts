@@ -106,17 +106,15 @@ export class PipelineTemplateReader {
   }
 
   public static getPipelineTemplatesByScope = (scope: string): IPromise<IPipelineTemplate[]> => {
-    return API.one('pipelineTemplates')
-      .withParams({ scope })
-      .get();
+    return API.one('pipelineTemplates').withParams({ scope }).get();
   };
 
   public static getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
     return $q
       .all(scopes.map(this.getPipelineTemplatesByScope))
-      .then(templates => flatten(templates))
-      .then(templates => {
-        templates.forEach(template => (template.selfLink = `spinnaker://${template.id}`));
+      .then((templates) => flatten(templates))
+      .then((templates) => {
+        templates.forEach((template) => (template.selfLink = `spinnaker://${template.id}`));
         return templates;
       });
   }

@@ -14,7 +14,7 @@ describe('PagerDutyReader', () => {
     }),
   );
 
-  afterEach(function() {
+  afterEach(function () {
     $http.verifyNoOutstandingExpectation();
     $http.verifyNoOutstandingRequest();
   });

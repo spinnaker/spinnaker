@@ -6,7 +6,7 @@ export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER = 'spinnaker.d
 export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER; // for backwards compatibility
 module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER, []).controller('dcosServerGroupNetworkController', [
   '$scope',
-  function($scope) {
+  function ($scope) {
     const HOST_NETWORK = 'HOST';
     const BRIDGE_NETWORK = 'BRIDGE';
     const USER_NETWORK = 'USER';
@@ -26,21 +26,21 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER, []).controller('dco
       },
     ];
 
-    this.isHostNetwork = function(serviceEndpoint) {
+    this.isHostNetwork = function (serviceEndpoint) {
       return serviceEndpoint === HOST_NETWORK || serviceEndpoint.networkType === HOST_NETWORK;
     };
 
-    this.isUserNetwork = function(serviceEndpoint) {
+    this.isUserNetwork = function (serviceEndpoint) {
       return serviceEndpoint === USER_NETWORK || serviceEndpoint.networkType === USER_NETWORK;
     };
 
-    this.isServiceEndpointsValid = function(serviceEndpoints) {
+    this.isServiceEndpointsValid = function (serviceEndpoints) {
       return !(typeof serviceEndpoints === 'string' || serviceEndpoints instanceof String);
     };
 
     this.serviceEndpointProtocols = ['tcp', 'udp', 'udp,tcp'];
 
-    this.addServiceEndpoint = function() {
+    this.addServiceEndpoint = function () {
       if (!this.isServiceEndpointsValid($scope.command.serviceEndpoints)) {
         $scope.command.serviceEndpoints = [];
       }
@@ -55,12 +55,12 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER, []).controller('dco
       });
     };
 
-    this.removeServiceEndpoint = function(index) {
+    this.removeServiceEndpoint = function (index) {
       $scope.command.serviceEndpoints.splice(index, 1);
     };
 
-    this.changeNetworkType = function() {
-      $scope.command.serviceEndpoints.forEach(function(endpoint) {
+    this.changeNetworkType = function () {
+      $scope.command.serviceEndpoints.forEach(function (endpoint) {
         endpoint.networkType = $scope.command.networkType;
       });
     };

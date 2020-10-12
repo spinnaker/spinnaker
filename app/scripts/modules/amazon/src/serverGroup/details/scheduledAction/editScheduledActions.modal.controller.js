@@ -14,9 +14,9 @@ module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CON
     '$uibModalInstance',
     'application',
     'serverGroup',
-    function($scope, $uibModalInstance, application, serverGroup) {
+    function ($scope, $uibModalInstance, application, serverGroup) {
       $scope.command = {
-        scheduledActions: serverGroup.scheduledActions.map(action => {
+        scheduledActions: serverGroup.scheduledActions.map((action) => {
           return {
             recurrence: action.recurrence,
             minSize: action.minSize,
@@ -32,7 +32,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CON
         $scope.command.scheduledActions.push({});
       };
 
-      this.removeScheduledAction = index => {
+      this.removeScheduledAction = (index) => {
         $scope.command.scheduledActions.splice(index, 1);
       };
 
@@ -53,7 +53,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CON
           },
         ];
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return TaskExecutor.executeTask({
             job: job,
             application: application,

@@ -30,7 +30,7 @@ export class ServerGroupDetailsField<T extends IServerGroupCommand> extends Reac
               type="text"
               className="form-control input-sm no-spel"
               value={values.freeFormDetails}
-              onChange={e => this.freeFormDetailsChanged(e.target.value)}
+              onChange={(e) => this.freeFormDetailsChanged(e.target.value)}
             />
           </div>
         </div>

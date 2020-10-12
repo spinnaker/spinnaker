@@ -15,7 +15,7 @@ export class PageNavigationState {
   }
 
   public static setCurrentPage(key: string) {
-    if (this.pages.some(p => p.key === key)) {
+    if (this.pages.some((p) => p.key === key)) {
       this.currentPageKey = key;
     }
   }

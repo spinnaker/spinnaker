@@ -18,11 +18,11 @@
         <table class="table">
           <tbody>
             <tr>
-              <td style="border-top: none !important;"><strong>Deployment</strong></td>
-              <td style="border-top: none !important;"><strong>Canary Result</strong></td>
-              <td style="border-top: none !important;"><strong>Duration</strong></td>
-              <td style="border-top: none !important;"><strong>Report</strong></td>
-              <td style="border-top: none !important;"><strong>Last Updated</strong></td>
+              <td style="border-top: none !important"><strong>Deployment</strong></td>
+              <td style="border-top: none !important"><strong>Canary Result</strong></td>
+              <td style="border-top: none !important"><strong>Duration</strong></td>
+              <td style="border-top: none !important"><strong>Report</strong></td>
+              <td style="border-top: none !important"><strong>Last Updated</strong></td>
             </tr>
             <tr ng-repeat="canaryDeployment in canaryDeployments">
               <td>
@@ -39,9 +39,7 @@
                 <span ng-if="canaryDeployment.canaryResult.timeDuration.durationString">
                   {{ canaryDeployment.canaryResult.timeDuration.durationString }}
                 </span>
-                <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString">
-                  -
-                </span>
+                <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString"> - </span>
               </td>
               <td>
                 <a
@@ -56,9 +54,7 @@
                 <span ng-if="canaryDeployment.canaryAnalysisResult.lastUpdated">
                   {{ canaryDeployment.canaryResult.lastUpdated | timestamp}}
                 </span>
-                <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated">
-                  -
-                </span>
+                <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated"> - </span>
               </td>
             </tr>
           </tbody>
@@ -76,7 +72,7 @@
               <span>{{ canary.launchedDate | timestamp }}</span>
             </div>
           </div>
-          <div class="row" ng-if="canary.endDate" style="margin-top: 6px;">
+          <div class="row" ng-if="canary.endDate" style="margin-top: 6px">
             <div class="col-md-2">
               <strong>Ended</strong>
             </div>
@@ -84,7 +80,7 @@
               <span>{{ canary.endDate | timestamp }}</span>
             </div>
           </div>
-          <div class="row" style="margin-top: 6px;">
+          <div class="row" style="margin-top: 6px">
             <div class="col-md-2">
               <strong>Status</strong>
             </div>
@@ -100,7 +96,7 @@
               <span>{{ canary.status.reason }}</span>
             </div>
           </div>
-          <div class="row" ng-if="canary.canaryResult.manual" style="margin-top: 6px;">
+          <div class="row" ng-if="canary.canaryResult.manual" style="margin-top: 6px">
             <div class="col-md-2">
               <strong>Result</strong>
             </div>
@@ -116,7 +112,7 @@
                       && canary.status.complete
                       && canary.canaryResult.overallResult === 'failure'
                       && canary.canaryResult.message"
-            style="margin-top: 6px;"
+            style="margin-top: 6px"
           >
             <div class="col-md-2">
               <strong>Result</strong>
@@ -181,9 +177,7 @@
             >
               {{canaryConfig.canaryAnalysisConfig.name}}
             </a>
-            <span ng-if="!configUrl">
-              {{canaryConfig.canaryAnalysisConfig.name}}
-            </span>
+            <span ng-if="!configUrl"> {{canaryConfig.canaryAnalysisConfig.name}} </span>
           </div>
         </div>
         <div class="row">
@@ -217,9 +211,7 @@
           <div class="col-md-6">
             <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
               <strong>{{ canaryAction.action }}</strong>
-              <span ng-if="canaryAction.delayBeforeActionInMins <= 0">
-                immediately
-              </span>
+              <span ng-if="canaryAction.delayBeforeActionInMins <= 0"> immediately </span>
               <span ng-if="!(canaryAction.delayBeforeActionInMins <= 0)">
                 after {{ canaryAction.delayBeforeActionInMins }} minutes
               </span>

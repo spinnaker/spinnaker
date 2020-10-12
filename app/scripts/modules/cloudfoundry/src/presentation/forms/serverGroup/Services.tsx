@@ -17,7 +17,7 @@ export const Services: React.SFC<IServicesProps> = ({ fieldName }: IServicesProp
           <b>Bind Services</b>
           <FieldArray
             name={fieldName}
-            render={arrayHelpers => {
+            render={(arrayHelpers) => {
               const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
               const services: string[] = getIn(serverGroupCommand, fieldName) || [];
 
@@ -30,7 +30,7 @@ export const Services: React.SFC<IServicesProps> = ({ fieldName }: IServicesProp
                           <div className="sp-margin-m-bottom">
                             <FormikFormField
                               name={`${fieldName}[${index}]`}
-                              input={props => <TextInput {...props} />}
+                              input={(props) => <TextInput {...props} />}
                               required={true}
                             />
                           </div>

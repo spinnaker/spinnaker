@@ -125,11 +125,13 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       this.forceUpdate();
     });
 
-    LoadBalancerDataUtils.populateLoadBalancers(this.props.application, this.props.serverGroup).then(loadBalancers => {
-      if (this.mounted) {
-        this.setState({ loadBalancers, isLoading: false });
-      }
-    });
+    LoadBalancerDataUtils.populateLoadBalancers(this.props.application, this.props.serverGroup).then(
+      (loadBalancers) => {
+        if (this.mounted) {
+          this.setState({ loadBalancers, isLoading: false });
+        }
+      },
+    );
     AmazonLoadBalancerDataUtils.populateTargetGroups(
       this.props.application,
       this.props.serverGroup as IAmazonServerGroup,
@@ -160,7 +162,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     const popover = (
       <div className="menu-load-balancers">
         {loadBalancerCount > 0 && <div className="menu-load-balancers-header">Load Balancers</div>}
-        {sortBy(loadBalancers, 'name').map(loadBalancer => (
+        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
           <LoadBalancerListItem
             key={loadBalancer.name}
             loadBalancer={loadBalancer}
@@ -169,7 +171,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
         ))}
 
         {targetGroupCount > 0 && <div className="menu-load-balancers-header">Target Groups</div>}
-        {sortBy(targetGroups, 'name').map(targetGroup => (
+        {sortBy(targetGroups, 'name').map((targetGroup) => (
           <LoadBalancerListItem
             key={targetGroup.name}
             loadBalancer={targetGroup}

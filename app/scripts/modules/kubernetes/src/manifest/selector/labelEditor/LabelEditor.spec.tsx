@@ -33,18 +33,8 @@ describe('<LabelEditor />', () => {
       expect(component.find('.label-editor-selector-row').length).toEqual(props.labelSelectors.length);
     });
     it('renders selector values as comma-separated lists', () => {
-      expect(
-        component
-          .find('.label-editor-values-input')
-          .at(0)
-          .props().value,
-      ).toEqual('my-value-1, my-value-2');
-      expect(
-        component
-          .find('.label-editor-values-input')
-          .at(1)
-          .props().value,
-      ).toEqual('my-value-3');
+      expect(component.find('.label-editor-values-input').at(0).props().value).toEqual('my-value-1, my-value-2');
+      expect(component.find('.label-editor-values-input').at(1).props().value).toEqual('my-value-3');
     });
   });
 
@@ -78,10 +68,7 @@ describe('<LabelEditor />', () => {
       expect(onChangeSpy).toHaveBeenCalledWith([...props.labelSelectors, { key: '', kind: 'EQUALS', values: [] }]);
     });
     it('handles removing label selectors', () => {
-      component
-        .find('.label-editor-remove')
-        .at(1)
-        .simulate('click');
+      component.find('.label-editor-remove').at(1).simulate('click');
       expect(onChangeSpy).toHaveBeenCalledWith([
         {
           ...props.labelSelectors[0],

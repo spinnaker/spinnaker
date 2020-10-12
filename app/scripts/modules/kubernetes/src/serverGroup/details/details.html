@@ -44,29 +44,19 @@
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li ng-if="ctrl.canEditServerGroup()">
-            <a href ng-click="ctrl.editServerGroup()">
-              Edit
-            </a>
+            <a href ng-click="ctrl.editServerGroup()"> Edit </a>
           </li>
           <li ng-if="ctrl.canScaleServerGroup()">
-            <a href ng-click="ctrl.scaleServerGroup()">
-              Scale
-            </a>
+            <a href ng-click="ctrl.scaleServerGroup()"> Scale </a>
           </li>
           <li ng-if="ctrl.canEnable()">
-            <a href ng-click="ctrl.enableServerGroup()">
-              Enable
-            </a>
+            <a href ng-click="ctrl.enableServerGroup()"> Enable </a>
           </li>
           <li ng-if="ctrl.canDisable()">
-            <a href ng-click="ctrl.disableServerGroup()">
-              Disable
-            </a>
+            <a href ng-click="ctrl.disableServerGroup()"> Disable </a>
           </li>
           <li>
-            <a href ng-click="ctrl.deleteServerGroup()">
-              Delete
-            </a>
+            <a href ng-click="ctrl.deleteServerGroup()"> Delete </a>
           </li>
           <render-if-feature feature="entityTags">
             <add-entity-tag-links

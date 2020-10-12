@@ -33,4 +33,4 @@ const helpContents: { [key: string]: string } = {
     '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

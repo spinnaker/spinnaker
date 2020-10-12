@@ -24,7 +24,7 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
   const navClass = useRecoilValue(verticalNavExpandedAtom) ? 'nav-expanded' : 'nav-collapsed';
 
   const { state: currentState } = useCurrentStateAndParams();
-  const showDetailsView = Boolean(Object.keys(currentState.views).find(v => v.indexOf('detail@') !== -1));
+  const showDetailsView = Boolean(Object.keys(currentState.views).find((v) => v.indexOf('detail@') !== -1));
   const detailsClass = showDetailsView ? 'details-open' : 'details-closed';
 
   if (app.notFound || app.hasError) {

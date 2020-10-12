@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE = 'spinnaker.amazon.pipeline.stage.disableAsgStage';
 export const name = AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       alias: 'disableAsg',
@@ -29,7 +29,7 @@ module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
   })
   .controller('awsDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -37,7 +37,7 @@ module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

@@ -29,8 +29,8 @@ export class ScheduledActionsDetailsSection extends React.Component<
     const scheduledActionsDisabled =
       serverGroup.scheduledActions.length > 0 &&
       autoScalingProcesses
-        .filter(p => !p.enabled)
-        .some(p => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
+        .filter((p) => !p.enabled)
+        .some((p) => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
 
     return { scheduledActionsDisabled };
   }

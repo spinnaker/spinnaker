@@ -40,10 +40,10 @@ export class FunctionFilterService {
 
   public filterFunctionsForDisplay(functions: IFunction[]): IFunction[] {
     return chain(functions)
-      .filter(fn => this.checkSearchTextFilter(fn))
-      .filter(fn => FilterModelService.checkAccountFilters(FunctionState.filterModel.asFilterModel)(fn))
-      .filter(fn => FilterModelService.checkRegionFilters(FunctionState.filterModel.asFilterModel)(fn))
-      .filter(fn => FilterModelService.checkProviderFilters(FunctionState.filterModel.asFilterModel)(fn))
+      .filter((fn) => this.checkSearchTextFilter(fn))
+      .filter((fn) => FilterModelService.checkAccountFilters(FunctionState.filterModel.asFilterModel)(fn))
+      .filter((fn) => FilterModelService.checkRegionFilters(FunctionState.filterModel.asFilterModel)(fn))
+      .filter((fn) => FilterModelService.checkProviderFilters(FunctionState.filterModel.asFilterModel)(fn))
       .value();
   }
 
@@ -63,7 +63,7 @@ export class FunctionFilterService {
     const groups: IFunctionGroup[] = [];
     forOwn(groupedByAccount, (group, account) => {
       const groupedByRegion = values(groupBy(group, 'region'));
-      const namesByRegion = groupedByRegion.map(g => g.map(fn => fn.functionName));
+      const namesByRegion = groupedByRegion.map((g) => g.map((fn) => fn.functionName));
       /** gather functions with same name but different region */
       const functionNames =
         namesByRegion.length > 1
@@ -73,14 +73,14 @@ export class FunctionFilterService {
             }, {})
           : {};
       /* Group by functionName:region */
-      const subGroupings = groupBy(group, fn => `${fn.functionName}:${fn.region}`);
+      const subGroupings = groupBy(group, (fn) => `${fn.functionName}:${fn.region}`);
       const subGroups: IFunctionGroup[] = [];
 
       forOwn(subGroupings, (subGroup, nameAndRegion) => {
         const [name, region] = nameAndRegion.split(':');
         const subSubGroups: IFunctionGroup[] = [];
 
-        subGroup.forEach(functionDef => {
+        subGroup.forEach((functionDef) => {
           subSubGroups.push({
             heading: functionDef.region,
             functionDef,

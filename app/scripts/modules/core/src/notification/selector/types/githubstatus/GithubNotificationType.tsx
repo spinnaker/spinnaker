@@ -11,13 +11,13 @@ export class GithubNotificationType extends React.Component<INotificationTypeCus
         <FormikFormField
           label="Github Repository"
           name={fieldName ? `${fieldName}.repo` : 'repo'}
-          input={props => <TextInput inputClassName={'form-control input-sm'} {...props} />}
+          input={(props) => <TextInput inputClassName={'form-control input-sm'} {...props} />}
           required={true}
         />
         <FormikFormField
           label="Commit SHA"
           name={fieldName ? `${fieldName}.commit` : 'commit'}
-          input={props => <TextInput inputClassName={'form-control input-sm'} {...props} />}
+          input={(props) => <TextInput inputClassName={'form-control input-sm'} {...props} />}
         />
       </>
     );

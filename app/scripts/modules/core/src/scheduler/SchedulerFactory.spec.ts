@@ -2,15 +2,15 @@ import * as angular from 'angular';
 import { ITimeoutService, mock } from 'angular';
 import { SchedulerFactory } from './SchedulerFactory';
 
-describe('scheduler', function() {
+describe('scheduler', function () {
   let $timeout: ITimeoutService;
 
-  beforeEach(function() {
+  beforeEach(function () {
     const pollSchedule = 25;
 
     this.pollSchedule = pollSchedule;
 
-    mock.inject(function(_$timeout_: ITimeoutService) {
+    mock.inject(function (_$timeout_: ITimeoutService) {
       this.scheduler = SchedulerFactory.createScheduler();
       $timeout = _$timeout_;
     });
@@ -20,8 +20,8 @@ describe('scheduler', function() {
     };
   });
 
-  describe('#scheduleImmediate', function() {
-    it('invokes all subscribed callbacks immediately', function() {
+  describe('#scheduleImmediate', function () {
+    it('invokes all subscribed callbacks immediately', function () {
       const numSubscribers = 20;
 
       spyOn(this.test, 'call');
@@ -33,7 +33,7 @@ describe('scheduler', function() {
       expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
     });
 
-    it('does not fire next repeatedly when scheduleImmediate is called within the interval window', function() {
+    it('does not fire next repeatedly when scheduleImmediate is called within the interval window', function () {
       spyOn(this.test, 'call');
       this.scheduler.subscribe(this.test.call);
       this.scheduler.scheduleImmediate();

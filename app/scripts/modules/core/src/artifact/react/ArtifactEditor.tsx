@@ -46,8 +46,8 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
     const { artifact, artifactAccounts } = this.props;
     if (!artifact.artifactAccount && artifactAccounts.length > 0) {
       this.onArtifactAccountChanged(
-        head(artifactAccounts.filter(a => a.types.includes(artifact.type))) ||
-          head(artifactAccounts.filter(a => a.types.includes(CUSTOM_TYPE))) ||
+        head(artifactAccounts.filter((a) => a.types.includes(artifact.type))) ||
+          head(artifactAccounts.filter((a) => a.types.includes(CUSTOM_TYPE))) ||
           head(artifactAccounts),
       );
     }
@@ -63,10 +63,11 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
 
   public render(): React.ReactNode {
     const { pipeline, artifact, artifactAccounts, onArtifactEdit, isDefault } = this.props;
-    const artifactAccount = artifactAccounts.find(acc => acc.name === artifact.artifactAccount) || artifactAccounts[0];
+    const artifactAccount =
+      artifactAccounts.find((acc) => acc.name === artifact.artifactAccount) || artifactAccounts[0];
     const accountTypes = artifactAccount ? artifactAccount.types : undefined;
     const kinds = isDefault ? Registry.pipeline.getDefaultArtifactKinds() : Registry.pipeline.getMatchArtifactKinds();
-    const kind = accountTypes ? kinds.find(a => accountTypes.some(typ => a.typePattern.test(typ))) : undefined;
+    const kind = accountTypes ? kinds.find((a) => accountTypes.some((typ) => a.typePattern.test(typ))) : undefined;
     const EditCmp = kind && kind.editCmp;
 
     return (

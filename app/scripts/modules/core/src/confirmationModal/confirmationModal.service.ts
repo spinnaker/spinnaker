@@ -47,7 +47,7 @@ export class ConfirmationModalService {
       extendedParams.taskMonitor = new TaskMonitor(taskMonitorConfig);
     }
     if (taskMonitorConfigs) {
-      extendedParams.taskMonitors = taskMonitorConfigs.map(m => new TaskMonitor(m));
+      extendedParams.taskMonitors = taskMonitorConfigs.map((m) => new TaskMonitor(m));
     }
 
     const { promise, resolve, reject } = $q.defer();

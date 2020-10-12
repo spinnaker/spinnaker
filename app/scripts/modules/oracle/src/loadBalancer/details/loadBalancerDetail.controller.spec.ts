@@ -12,7 +12,7 @@ import {
   LoadBalancerReader,
 } from '@spinnaker/core';
 
-describe('Controller: oracleLoadBalancerDetailCtrl', function() {
+describe('Controller: oracleLoadBalancerDetailCtrl', function () {
   let controller: OracleLoadBalancerDetailController;
   let $scope: IScope;
   let $state: StateService;
@@ -60,7 +60,7 @@ describe('Controller: oracleLoadBalancerDetailCtrl', function() {
     ),
   );
 
-  it('should have an instantiated controller', function() {
+  it('should have an instantiated controller', function () {
     expect(controller).toBeDefined();
   });
 });

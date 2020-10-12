@@ -50,7 +50,7 @@ export class ProviderSelectionModal extends React.Component<
         </Modal.Header>
         <Modal.Body>
           <div className="card-choices">
-            {providerOptions.map(provider => (
+            {providerOptions.map((provider) => (
               <div
                 className={`card vertical center middle ${selectedProvider === provider && 'active'}`}
                 key={provider}

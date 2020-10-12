@@ -10,14 +10,14 @@ export const DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER = 'spinnaker.dcos.serverG
 export const name = DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER; // for backwards compatibility
 angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServerGroupCommandBuilder', [
   '$q',
-  function($q) {
+  function ($q) {
     function attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command) {
-      return AccountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
+      return AccountService.getCredentialsKeyedByAccount('dcos').then(function (dcosAccountsByName) {
         const dcosAccountNames = _.keys(dcosAccountsByName);
         let firstDcosAccount = null;
 
         if (application.accounts.length) {
-          firstDcosAccount = _.find(application.accounts, function(applicationAccount) {
+          firstDcosAccount = _.find(application.accounts, function (applicationAccount) {
             return dcosAccountNames.includes(applicationAccount);
           });
         } else if (dcosAccountNames.length) {
@@ -52,7 +52,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
 
     function reconcileUpstreamImages(image, upstreamImages) {
       if (image.fromContext) {
-        const matchingImage = upstreamImages.find(otherImage => image.stageId === otherImage.stageId);
+        const matchingImage = upstreamImages.find((otherImage) => image.stageId === otherImage.stageId);
 
         if (matchingImage) {
           image.cluster = matchingImage.cluster;
@@ -63,7 +63,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
           return null;
         }
       } else if (image.fromTrigger) {
-        const matchingImage = upstreamImages.find(otherImage => {
+        const matchingImage = upstreamImages.find((otherImage) => {
           return (
             image.registry === otherImage.registry &&
             image.repository === otherImage.repository &&
@@ -98,8 +98,8 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
           stageId: current.refId,
         });
       }
-      current.requisiteStageRefIds.forEach(function(id) {
-        const next = all.find(stage => stage.refId === id);
+      current.requisiteStageRefIds.forEach(function (id) {
+        const next = all.find((stage) => stage.refId === id);
         if (next) {
           result = result.concat(findUpstreamImages(next, all, visited));
         }
@@ -110,10 +110,10 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
 
     function findTriggerImages(triggers) {
       return triggers
-        .filter(trigger => {
+        .filter((trigger) => {
           return trigger.type === 'docker';
         })
-        .map(trigger => {
+        .map((trigger) => {
           return {
             fromTrigger: true,
             repository: trigger.repository,
@@ -233,7 +233,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
       const commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
       const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-      return asyncLoader.then(function(asyncData) {
+      return asyncLoader.then(function (asyncData) {
         const command = asyncData.command;
 
         let contextImages = findUpstreamImages(current, pipeline.stages) || [];

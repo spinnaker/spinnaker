@@ -33,7 +33,7 @@ import { ORACLE_LOAD_BALANCER_TRANSFORMER, OracleLoadBalancerTransformer } from 
 export class OracleLoadBalancerController implements IController {
   public oracle = 'oracle';
   public shapes: string[] = ['100Mbps', '400Mbps', '8000Mbps']; // TODO desagar use listShapes to get this from clouddriver later
-  public loadBalancingPolicies: string[] = Object.keys(LoadBalancingPolicy).map(k => (LoadBalancingPolicy as any)[k]);
+  public loadBalancingPolicies: string[] = Object.keys(LoadBalancingPolicy).map((k) => (LoadBalancingPolicy as any)[k]);
   public pages: { [key: string]: any } = {
     properties: require('./createLoadBalancerProperties.html'),
     listeners: require('./listeners.html'),
@@ -117,17 +117,17 @@ export class OracleLoadBalancerController implements IController {
   private initControllerFromLoadBalancerCmd() {
     this.numSubnetsAllowed = this.calcNumSubnetsAllowed();
     if (this.$scope.loadBalancerCmd.listeners) {
-      Object.keys(this.$scope.loadBalancerCmd.listeners).forEach(lis => {
+      Object.keys(this.$scope.loadBalancerCmd.listeners).forEach((lis) => {
         this.listeners.push(this.$scope.loadBalancerCmd.listeners[lis]);
       });
     }
     if (this.$scope.loadBalancerCmd.backendSets) {
-      Object.keys(this.$scope.loadBalancerCmd.backendSets).forEach(b => {
+      Object.keys(this.$scope.loadBalancerCmd.backendSets).forEach((b) => {
         this.backendSets.push(this.$scope.loadBalancerCmd.backendSets[b]);
       });
     }
     if (this.$scope.loadBalancerCmd.certificates) {
-      Object.keys(this.$scope.loadBalancerCmd.certificates).forEach(b => {
+      Object.keys(this.$scope.loadBalancerCmd.certificates).forEach((b) => {
         this.certificates.push(this.$scope.loadBalancerCmd.certificates[b]);
       });
     }
@@ -173,7 +173,7 @@ export class OracleLoadBalancerController implements IController {
       .refresh(true)
       .then(() => {
         const loadBalancers: ILoadBalancer[] = this.application.loadBalancers.data;
-        loadBalancers.forEach(loadBalancer => {
+        loadBalancers.forEach((loadBalancer) => {
           if (loadBalancer.account === account) {
             accountLoadBalancerNamesByRegion[loadBalancer.region] =
               accountLoadBalancerNamesByRegion[loadBalancer.region] || [];
@@ -216,7 +216,7 @@ export class OracleLoadBalancerController implements IController {
     }, countsMap);
     // There should be no protocol/port combo in the countsMap with a count > 1
     return (
-      Object.keys(countsMap).filter(key => {
+      Object.keys(countsMap).filter((key) => {
         return countsMap[key] > 1;
       }).length === 0
     );
@@ -226,7 +226,7 @@ export class OracleLoadBalancerController implements IController {
     // validate that the listeners' selected backend sets must exist. This is needed because Angular
     // does not clear the selected backendSet from the drop down if the backend set is deleted.
     const listenersWithNonExistentBackendSet: IOracleListener[] = this.listeners.filter(
-      listener => !this.backendSets.find(backendSet => backendSet.name === listener.defaultBackendSetName),
+      (listener) => !this.backendSets.find((backendSet) => backendSet.name === listener.defaultBackendSetName),
     );
     return listenersWithNonExistentBackendSet.length === 0;
   }
@@ -235,9 +235,9 @@ export class OracleLoadBalancerController implements IController {
     // validate that the listeners' selected certificate names exist. This is needed because Angular
     // does not clear the selected certificate from the drop down if the certificate is deleted.
     const listenersWithNonExistentCertificate: IOracleListener[] = this.listeners.filter(
-      listener =>
+      (listener) =>
         listener.sslConfiguration &&
-        !this.certificates.find(cert => cert.certificateName === listener.sslConfiguration.certificateName),
+        !this.certificates.find((cert) => cert.certificateName === listener.sslConfiguration.certificateName),
     );
     return listenersWithNonExistentCertificate.length === 0;
   }
@@ -337,7 +337,7 @@ export class OracleLoadBalancerController implements IController {
     this.backendSets.splice(idx, 1);
     this.$scope.prevBackendSetNames.splice(idx, 1);
     // Also clear the defaultBackendSetName field of any listeners who are using this backendSet
-    this.listeners.forEach(lis => {
+    this.listeners.forEach((lis) => {
       if (lis.defaultBackendSetName === backendSet.name) {
         lis.defaultBackendSetName = undefined;
       }
@@ -350,7 +350,7 @@ export class OracleLoadBalancerController implements IController {
       return false;
     }
     let hasListener = false;
-    this.listeners.forEach(lis => {
+    this.listeners.forEach((lis) => {
       if (lis.defaultBackendSetName === backendSet.name) {
         hasListener = true;
       }
@@ -369,8 +369,8 @@ export class OracleLoadBalancerController implements IController {
     const prevName = this.$scope.prevBackendSetNames && this.$scope.prevBackendSetNames[idx];
     if (prevName && prevName !== this.backendSets[idx].name) {
       this.listeners
-        .filter(lis => lis.defaultBackendSetName === prevName)
-        .forEach(lis => {
+        .filter((lis) => lis.defaultBackendSetName === prevName)
+        .forEach((lis) => {
           lis.defaultBackendSetName = this.backendSets[idx].name;
         });
     }
@@ -379,7 +379,7 @@ export class OracleLoadBalancerController implements IController {
   public isCertRemovable(idx: number): boolean {
     const cert = this.certificates[idx];
     let hasListener = false;
-    this.listeners.forEach(lis => {
+    this.listeners.forEach((lis) => {
       if (lis.isSsl && lis.sslConfiguration && lis.sslConfiguration.certificateName === cert.certificateName) {
         hasListener = true;
       }
@@ -392,7 +392,7 @@ export class OracleLoadBalancerController implements IController {
     this.certificates.splice(idx, 1);
     this.$scope.prevCertNames.splice(idx, 1);
     // Also clear the certificateName field of any listeners who are using this certificate
-    this.listeners.forEach(lis => {
+    this.listeners.forEach((lis) => {
       if (lis.sslConfiguration && lis.sslConfiguration.certificateName === cert.certificateName) {
         lis.sslConfiguration.certificateName = undefined;
       }
@@ -410,8 +410,8 @@ export class OracleLoadBalancerController implements IController {
     const prevName = this.$scope.prevCertNames && this.$scope.prevCertNames[idx];
     if (prevName && prevName !== this.certificates[idx].certificateName) {
       this.listeners
-        .filter(lis => lis.sslConfiguration && lis.sslConfiguration.certificateName === prevName)
-        .forEach(lis => {
+        .filter((lis) => lis.sslConfiguration && lis.sslConfiguration.certificateName === prevName)
+        .forEach((lis) => {
           lis.sslConfiguration.certificateName = this.certificates[idx].certificateName;
         });
     }

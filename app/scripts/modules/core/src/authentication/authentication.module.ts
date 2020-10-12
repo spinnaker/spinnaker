@@ -10,11 +10,11 @@ export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE, CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE])
   .config([
     '$httpProvider',
-    function($httpProvider: ng.IHttpProvider) {
+    function ($httpProvider: ng.IHttpProvider) {
       $httpProvider.interceptors.push('gateRequestInterceptor');
     },
   ])
-  .factory('gateRequestInterceptor', function() {
+  .factory('gateRequestInterceptor', function () {
     return {
       request(config: ng.IRequestConfig) {
         if (config.url.indexOf(SETTINGS.gateUrl) === 0) {
@@ -24,7 +24,7 @@ module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE, CORE_AUTHENTI
       },
     };
   })
-  .run(function() {
+  .run(function () {
     if (SETTINGS.authEnabled) {
       // schedule deck to re-authenticate every 10 min.
       SchedulerFactory.createScheduler(SETTINGS.authTtl || 600000).subscribe(() =>

@@ -15,7 +15,7 @@ export class SubnetTag extends React.Component<ISubnetTagProps, ISubnetTagState>
   public componentDidMount() {
     const { subnetId } = this.props;
     if (subnetId) {
-      SubnetReader.getSubnetPurpose(subnetId).then(name => {
+      SubnetReader.getSubnetPurpose(subnetId).then((name) => {
         this.setState({
           subnetLabel: name,
         });

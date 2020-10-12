@@ -20,7 +20,7 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
   HEALTH_COUNTS_COMPONENT,
   CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
 ])
-  .directive('projectCluster', function() {
+  .directive('projectCluster', function () {
     return {
       restrict: 'E',
       templateUrl: require('./projectCluster.directive.html'),
@@ -36,12 +36,12 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
   .controller('ProjectClusterCtrl', [
     '$scope',
     'regionFilterService',
-    function($scope, regionFilterService) {
+    function ($scope, regionFilterService) {
       const stateCache = CollapsibleSectionStateCache;
 
       const getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
 
-      this.clearFilters = r => ClusterState.filterService.overrideFiltersForUrl(r);
+      this.clearFilters = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
       this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
       this.inconsistentBuildsTemplate = require('./inconsistentBuilds.tooltip.html');
@@ -51,7 +51,7 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         stateCache.setExpanded(getCacheKey(), this.state.expanded);
       };
 
-      const getMetadata = application => {
+      const getMetadata = (application) => {
         const stack = this.cluster.stack;
         const detail = this.cluster.detail;
         const clusterParam = !stack && !detail ? application.name : null;
@@ -69,11 +69,11 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         };
       };
 
-      const addMetadata = application => {
+      const addMetadata = (application) => {
         const baseMetadata = getMetadata(application);
         application.metadata = baseMetadata;
         application.metadata.href = UrlBuilder.buildFromMetadata(baseMetadata);
-        application.clusters.forEach(cluster => {
+        application.clusters.forEach((cluster) => {
           const clusterMetadata = getMetadata(application);
           clusterMetadata.region = cluster.region;
           clusterMetadata.href = UrlBuilder.buildFromMetadata(clusterMetadata);
@@ -81,28 +81,28 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         });
       };
 
-      const getBuildUrl = build => [build.host + 'job', build.job, build.buildNumber, ''].join('/');
+      const getBuildUrl = (build) => [build.host + 'job', build.job, build.buildNumber, ''].join('/');
 
-      const addApplicationBuild = application => {
-        const allBuilds = _.chain((application.clusters || []).map(cluster => cluster.builds))
+      const addApplicationBuild = (application) => {
+        const allBuilds = _.chain((application.clusters || []).map((cluster) => cluster.builds))
           .flatten()
           .compact()
-          .uniqBy(build => build.buildNumber)
+          .uniqBy((build) => build.buildNumber)
           .value();
         if (allBuilds.length) {
-          application.build = _.maxBy(allBuilds, build => Number(build.buildNumber));
+          application.build = _.maxBy(allBuilds, (build) => Number(build.buildNumber));
           application.build.url = getBuildUrl(application.build);
           application.hasInconsistentBuilds = allBuilds.length > 1;
         }
       };
 
-      const applyInconsistentBuildFlag = application => {
-        application.clusters.forEach(cluster => {
+      const applyInconsistentBuildFlag = (application) => {
+        application.clusters.forEach((cluster) => {
           const builds = cluster.builds || [];
           if (builds.length && (builds.length > 1 || builds[0].buildNumber !== application.build.buildNumber)) {
             application.hasInconsistentBuilds = true;
             cluster.inconsistentBuilds = cluster.builds.filter(
-              build => build.buildNumber !== application.build.buildNumber,
+              (build) => build.buildNumber !== application.build.buildNumber,
             );
           }
         });
@@ -110,29 +110,34 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
 
       const mapClustersToRegions = (cluster, application) => {
         application.regions = {};
-        cluster.regions.forEach(region => {
-          application.regions[region] = _.find(application.clusters, regionCluster => regionCluster.region === region);
+        cluster.regions.forEach((region) => {
+          application.regions[region] = _.find(
+            application.clusters,
+            (regionCluster) => regionCluster.region === region,
+          );
         });
       };
 
-      const addRegions = cluster => {
+      const addRegions = (cluster) => {
         cluster.regions = _.uniq(
           _.flatten(
-            cluster.applications.map(application => application.clusters.map(regionCluster => regionCluster.region)),
+            cluster.applications.map((application) =>
+              application.clusters.map((regionCluster) => regionCluster.region),
+            ),
           ),
         ).sort();
       };
 
-      const setViewRegions = updatedFilter => {
+      const setViewRegions = (updatedFilter) => {
         const unfilteredRegions = this.cluster.regions;
         if (Object.keys(_.filter(updatedFilter)).length) {
-          this.regions = unfilteredRegions.filter(region => updatedFilter[region]);
+          this.regions = unfilteredRegions.filter((region) => updatedFilter[region]);
         } else {
           this.regions = unfilteredRegions;
         }
       };
 
-      const setViewInstanceCounts = updatedFilter => {
+      const setViewInstanceCounts = (updatedFilter) => {
         if (Object.keys(_.filter(updatedFilter)).length) {
           this.instanceCounts = _.chain(this.cluster.applications)
             .map('clusters')
@@ -159,13 +164,13 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
           expanded: stateCache.isSet(getCacheKey()) ? stateCache.isExpanded(getCacheKey()) : true,
         };
 
-        [setViewInstanceCounts, setViewRegions].forEach(cb => {
+        [setViewInstanceCounts, setViewRegions].forEach((cb) => {
           regionFilterService.registerCallback(cb);
           $scope.$on('$destroy', () => regionFilterService.deregisterCallback(cb));
         });
         addRegions(this.cluster);
         regionFilterService.runCallbacks();
-        this.cluster.applications.forEach(application => {
+        this.cluster.applications.forEach((application) => {
           mapClustersToRegions(this.cluster, application);
           addApplicationBuild(application);
           applyInconsistentBuildFlag(application);

@@ -3,7 +3,7 @@
 import { INSTANCE_TYPE_SERVICE } from 'core/instance/instanceType.service';
 import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
 
-describe('Controller: Instance Archetype Selector', function() {
+describe('Controller: Instance Archetype Selector', function () {
   var categories = [
     {
       type: 'cpu',
@@ -22,7 +22,7 @@ describe('Controller: Instance Archetype Selector', function() {
   );
 
   beforeEach(
-    window.inject(function($controller, $rootScope, instanceTypeService, serverGroupConfigurationService, $q) {
+    window.inject(function ($controller, $rootScope, instanceTypeService, serverGroupConfigurationService, $q) {
       this.$scope = $rootScope.$new();
       this.$scope.command = { viewState: { instanceProfile: null } };
       this.$controller = $controller;
@@ -36,7 +36,7 @@ describe('Controller: Instance Archetype Selector', function() {
     }),
   );
 
-  it('should select a profile, change it, then unselect it', function() {
+  it('should select a profile, change it, then unselect it', function () {
     this.$scope.command.selectedProvider = 'gce'; // Doesn't matter which, since this module is shared.
     this.ctrl = this.$controller('InstanceArchetypeSelectorCtrl', this.controllerDeps);
     this.$scope.$apply();

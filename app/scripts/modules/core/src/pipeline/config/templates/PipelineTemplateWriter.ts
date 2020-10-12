@@ -6,18 +6,12 @@ import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 export class PipelineTemplateWriter {
   public static savePipelineTemplateV2(template: IPipelineTemplateV2): IPromise<any> {
     return $q((resolve, reject) => {
-      API.one('v2')
-        .one('pipelineTemplates')
-        .one('create')
-        .post(template)
-        .then(resolve, reject);
+      API.one('v2').one('pipelineTemplates').one('create').post(template).then(resolve, reject);
     });
   }
 
   public static deleteTemplate(template: { id: string; digest?: string; tag?: string }): IPromise<any> {
-    let request = API.one('v2')
-      .one('pipelineTemplates')
-      .one(template.id);
+    let request = API.one('v2').one('pipelineTemplates').one(template.id);
 
     const params: { digest?: string; tag?: string } = {};
     if (template.digest) {

@@ -4,17 +4,17 @@ import { ApplicationWriter, IApplicationAttributes } from './ApplicationWriter';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 import Spy = jasmine.Spy;
 
-describe('ApplicationWriter', function() {
+describe('ApplicationWriter', function () {
   let $q: ng.IQService;
 
   beforeEach(
-    mock.inject(function(_$q_: ng.IQService) {
+    mock.inject(function (_$q_: ng.IQService) {
       $q = _$q_;
     }),
   );
 
-  describe('update an application', function() {
-    it('should execute task', function() {
+  describe('update an application', function () {
+    it('should execute task', function () {
       spyOn(TaskExecutor, 'executeTask');
 
       const application: IApplicationAttributes = {
@@ -27,7 +27,7 @@ describe('ApplicationWriter', function() {
       expect((TaskExecutor.executeTask as Spy).calls.count()).toEqual(1);
     });
 
-    it('should join cloud providers into a single string', function() {
+    it('should join cloud providers into a single string', function () {
       let job: IJob = null;
       spyOn(TaskExecutor, 'executeTask').and.callFake((task: any) => (job = task.job[0]));
 
@@ -43,8 +43,8 @@ describe('ApplicationWriter', function() {
     });
   });
 
-  describe('delete an application', function() {
-    it('should execute task', function() {
+  describe('delete an application', function () {
+    it('should execute task', function () {
       spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when({}));
 
       const application: IApplicationAttributes = {

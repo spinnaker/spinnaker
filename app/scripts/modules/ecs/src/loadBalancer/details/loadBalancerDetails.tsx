@@ -139,7 +139,7 @@ export class EcsLoadBalancerDetails extends React.Component<
             <dt>Availability Zones</dt>
             <dd>
               <ul>
-                {loadBalancer.availabilityZones.map(az => {
+                {loadBalancer.availabilityZones.map((az) => {
                   return <li key={az}>{az}</li>;
                 })}
               </ul>
@@ -149,7 +149,7 @@ export class EcsLoadBalancerDetails extends React.Component<
             <dt>Target Groups</dt>
             <dd>
               <ul>
-                {loadBalancer.targetGroups.map(tg => {
+                {loadBalancer.targetGroups.map((tg) => {
                   return (
                     <li key={tg.targetGroupName}>
                       <UISrefActive class="active">
@@ -203,7 +203,7 @@ export class EcsLoadBalancerDetails extends React.Component<
         <CollapsibleSection heading="Firewalls" defaultExpanded={false}>
           <ul>
             {loadBalancer.securityGroups ? (
-              loadBalancer.securityGroups.map(sg => {
+              loadBalancer.securityGroups.map((sg) => {
                 return <li key={sg}>{sg}</li>;
               })
             ) : (
@@ -213,7 +213,7 @@ export class EcsLoadBalancerDetails extends React.Component<
         </CollapsibleSection>
         <CollapsibleSection heading="Subnets" defaultExpanded={false}>
           <ul>
-            {loadBalancer.subnets.map(subnet => {
+            {loadBalancer.subnets.map((subnet) => {
               return <li key={subnet}>{subnet}</li>;
             })}
           </ul>

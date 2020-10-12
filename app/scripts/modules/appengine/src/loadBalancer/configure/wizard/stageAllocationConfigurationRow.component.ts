@@ -10,7 +10,7 @@ class AppengineStageAllocationLabelCtrl implements IController {
   private allocationDescription: IAppengineAllocationDescription;
 
   private static mapTargetCoordinateToLabel(targetCoordinate: string): string {
-    const target = StageConstants.TARGET_LIST.find(t => t.val === targetCoordinate);
+    const target = StageConstants.TARGET_LIST.find((t) => t.val === targetCoordinate);
     if (target) {
       return target.label;
     } else {

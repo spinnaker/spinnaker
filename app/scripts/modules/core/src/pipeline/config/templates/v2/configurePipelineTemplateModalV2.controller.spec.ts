@@ -114,7 +114,7 @@ describe('Controller: ConfigurePipelineTemplateModalV2Ctrl', () => {
 
       expect(ctrl.variableMetadataGroups).toBeDefined();
       expect(ctrl.variableMetadataGroups.length).toEqual(3);
-      expect(ctrl.variableMetadataGroups.find(g => g.name === 'Basic Settings').variableMetadata.length).toEqual(2);
+      expect(ctrl.variableMetadataGroups.find((g) => g.name === 'Basic Settings').variableMetadata.length).toEqual(2);
     });
 
     it('sets `variables` on the controller, each with a property `value` provided by variable metadata `defaultValue`', () => {
@@ -123,7 +123,7 @@ describe('Controller: ConfigurePipelineTemplateModalV2Ctrl', () => {
 
       expect(ctrl.variables).toBeDefined();
       expect(ctrl.variables.length).toEqual(5);
-      expect(ctrl.variables.map(v => v.value)).toEqual([
+      expect(ctrl.variables.map((v) => v.value)).toEqual([
         'my-google-account',
         'gce',
         parsedTemplateObjVariable,
@@ -144,7 +144,7 @@ describe('Controller: ConfigurePipelineTemplateModalV2Ctrl', () => {
       ctrl.initialize();
       $scope.$digest();
 
-      expect(ctrl.variables.map(v => v.value)).toEqual(['my-credentials', 'gce', '{"key":"value"}', ['a'], 123]);
+      expect(ctrl.variables.map((v) => v.value)).toEqual(['my-credentials', 'gce', '{"key":"value"}', ['a'], 123]);
     });
   });
 

@@ -17,7 +17,7 @@ export class FindArtifactFromExecutionExecutionDetails extends React.Component<I
     return (
       <ExecutionDetailsSection name={name} current={current}>
         <div className="row">
-          {expectedArtifacts.map(expectedArtifact => (
+          {expectedArtifacts.map((expectedArtifact) => (
             <div key={expectedArtifact.id}>
               <h5>{expectedArtifact.displayName}</h5>
               <div>Match Artifact</div>

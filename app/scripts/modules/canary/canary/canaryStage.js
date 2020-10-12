@@ -22,7 +22,7 @@ export const CANARY_CANARY_CANARYSTAGE = 'spinnaker.canary.canaryStage';
 export const name = CANARY_CANARY_CANARYSTAGE; // for backwards compatibility
 angular
   .module(CANARY_CANARY_CANARYSTAGE, [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT])
-  .config(function() {
+  .config(function () {
     function isExpression(value) {
       return isString(value) && value.includes('${');
     }
@@ -50,11 +50,11 @@ angular
         executionDetailsUrl: require('./canaryExecutionDetails.html'),
         executionSummaryUrl: require('./canaryExecutionSummary.html'),
         executionLabelComponent: CanaryExecutionLabel,
-        stageFilter: stage => ['canaryDeployment', 'canary'].includes(stage.type),
+        stageFilter: (stage) => ['canaryDeployment', 'canary'].includes(stage.type),
         controller: 'CanaryStageCtrl',
         controllerAs: 'canaryStageCtrl',
-        accountExtractor: stage => (stage.context.clusterPairs || []).map(c => c.baseline.account),
-        configAccountExtractor: stage => (stage.clusterPairs || []).map(c => c.baseline.account),
+        accountExtractor: (stage) => (stage.context.clusterPairs || []).map((c) => c.baseline.account),
+        configAccountExtractor: (stage) => (stage.clusterPairs || []).map((c) => c.baseline.account),
         validators: [
           {
             type: 'stageBeforeType',
@@ -186,8 +186,8 @@ angular
     'stage',
     'serverGroupCommandBuilder',
     'awsServerGroupTransformer',
-    function($scope, $uibModal, stage, serverGroupCommandBuilder, awsServerGroupTransformer) {
-      $scope.isExpression = function(value) {
+    function ($scope, $uibModal, stage, serverGroupCommandBuilder, awsServerGroupTransformer) {
+      $scope.isExpression = function (value) {
         return isString(value) && value.includes('${');
       };
 
@@ -204,7 +204,7 @@ angular
       if (cc) {
         if (
           cc.actionsForUnhealthyCanary &&
-          cc.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE')
+          cc.actionsForUnhealthyCanary.some((action) => action.action === 'TERMINATE')
         ) {
           this.terminateUnhealthyCanaryEnabled = true;
         }
@@ -261,7 +261,7 @@ angular
           },
         };
 
-        AccountService.listProviders($scope.application).then(function(providers) {
+        AccountService.listProviders($scope.application).then(function (providers) {
           if (providers.length === 1) {
             overriddenCloudProvider = providers[0];
           } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
@@ -284,13 +284,13 @@ angular
           $scope.stage.canary.watchers = this.recipients;
         } else {
           $scope.stage.canary.watchers = [];
-          this.recipients.split(',').forEach(email => {
+          this.recipients.split(',').forEach((email) => {
             $scope.stage.canary.watchers.push(email.trim());
           });
         }
       };
 
-      this.toggleTerminateUnhealthyCanary = function() {
+      this.toggleTerminateUnhealthyCanary = function () {
         if (this.terminateUnhealthyCanaryEnabled) {
           $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
             { action: 'DISABLE' },
@@ -300,12 +300,14 @@ angular
           $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [{ action: 'DISABLE' }];
         }
 
-        return $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE');
+        return $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.some(
+          (action) => action.action === 'TERMINATE',
+        );
       };
 
-      this.terminateUnhealthyCanaryMinutes = function(delayBeforeActionInMins) {
+      this.terminateUnhealthyCanaryMinutes = function (delayBeforeActionInMins) {
         const terminateAction = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.find(
-          action => action.action === 'TERMINATE',
+          (action) => action.action === 'TERMINATE',
         );
 
         if (delayBeforeActionInMins) {
@@ -316,7 +318,7 @@ angular
       };
 
       const filterServerGroups = () => {
-        AccountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
+        AccountService.listAccounts(this.getCloudProvider()).then((accounts) => ($scope.accounts = accounts));
         setClusterList();
       };
 
@@ -328,7 +330,7 @@ angular
 
       this.splitNotificationHours = () => {
         const hoursField = this.notificationHours || '';
-        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = hoursField.split(',').map(item => {
+        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = hoursField.split(',').map((item) => {
           const parsed = parseInt(item.trim());
           if (!isNaN(parsed)) {
             return parsed;
@@ -338,7 +340,7 @@ angular
         });
       };
 
-      this.getRegion = function(cluster) {
+      this.getRegion = function (cluster) {
         if (cluster.region) {
           return cluster.region;
         }
@@ -352,14 +354,14 @@ angular
         return 'n/a';
       };
 
-      this.updateLookback = function() {
+      this.updateLookback = function () {
         $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = this.analysisType === 'SLIDING_LOOKBACK';
         if (this.analysisType !== 'SLIDING_LOOKBACK') {
           $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = 0;
         }
       };
 
-      const clusterFilter = cluster => {
+      const clusterFilter = (cluster) => {
         return $scope.stage.baseline.account ? cluster.account === $scope.stage.baseline.account : true;
       };
 
@@ -414,12 +416,12 @@ angular
         delete command.strategy;
       }
 
-      this.addClusterPair = function() {
+      this.addClusterPair = function () {
         $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
-        ProviderSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
+        ProviderSelectionService.selectProvider($scope.application).then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
 
-          const handleResult = function(command) {
+          const handleResult = function (command) {
             const baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
             const canaryCluster = _.cloneDeep(baselineCluster);
             cleanupClusterConfig(baselineCluster, 'baseline');
@@ -432,7 +434,7 @@ angular
 
           serverGroupCommandBuilder
             .buildNewServerGroupCommandForPipeline(selectedProvider)
-            .then(function(command) {
+            .then(function (command) {
               configureServerGroupCommandForEditing(command);
               command.viewState.overrides = {
                 capacity: {
@@ -470,11 +472,11 @@ angular
         });
       };
 
-      this.editCluster = function(cluster, index, type) {
+      this.editCluster = function (cluster, index, type) {
         cluster.provider = cluster.provider || getCloudProvider() || 'aws';
         const config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
 
-        const handleResult = command => {
+        const handleResult = (command) => {
           const stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
           cleanupClusterConfig(stageCluster, type);
           $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
@@ -485,7 +487,7 @@ angular
 
         serverGroupCommandBuilder
           .buildServerGroupCommandFromPipeline(application, cluster)
-          .then(command => {
+          .then((command) => {
             configureServerGroupCommandForEditing(command);
             const detailsParts = command.freeFormDetails.split('-');
             const lastPart = detailsParts.pop();
@@ -494,7 +496,7 @@ angular
             }
             return command;
           })
-          .then(command => {
+          .then((command) => {
             if (config.CloneServerGroupModal) {
               // react
               return config.CloneServerGroupModal.show({ title, application, command });
@@ -516,7 +518,7 @@ angular
           .catch(() => {});
       };
 
-      this.deleteClusterPair = function(index) {
+      this.deleteClusterPair = function (index) {
         $scope.stage.clusterPairs.splice(index, 1);
       };
 

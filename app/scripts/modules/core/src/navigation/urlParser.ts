@@ -15,7 +15,7 @@ export class UrlParser {
    */
   public static parseQueryString(query = ''): IQueryParams {
     const result = {} as IQueryParams;
-    query.split('&').forEach(keyValue => {
+    query.split('&').forEach((keyValue) => {
       let splitPoint, key, val;
       if (keyValue) {
         key = keyValue = keyValue.replace(/\+/g, '%20');

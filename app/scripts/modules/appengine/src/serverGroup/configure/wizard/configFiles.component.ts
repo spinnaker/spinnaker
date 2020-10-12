@@ -56,7 +56,7 @@ class AppengineConfigFileConfigurerCtrl implements IController {
     if (!this.$scope.command) {
       this.$scope.command = this.command;
     }
-    this.command.configArtifacts = this.command.configArtifacts.map(artifactAccountPair => {
+    this.command.configArtifacts = this.command.configArtifacts.map((artifactAccountPair) => {
       return new ConfigArtifact(this.$scope, artifactAccountPair);
     });
     AccountService.getArtifactAccounts().then((accounts: IArtifactAccount[]) => {

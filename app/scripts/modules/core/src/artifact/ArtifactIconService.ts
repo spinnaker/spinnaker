@@ -33,7 +33,7 @@ export class ArtifactIconService {
     if (type == null) {
       return unknownArtifactIcon;
     }
-    const icon = ArtifactIconService.icons.find(entry => entry.type.test(type));
+    const icon = ArtifactIconService.icons.find((entry) => entry.type.test(type));
     if (icon === undefined) {
       return null;
     }

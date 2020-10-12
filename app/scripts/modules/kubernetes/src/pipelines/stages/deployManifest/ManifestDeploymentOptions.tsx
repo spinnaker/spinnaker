@@ -61,14 +61,14 @@ export class ManifestDeploymentOptions extends React.Component<
         services: [],
       });
     }
-    ManifestKindSearchService.search('service', namespace, account).then(services => {
+    ManifestKindSearchService.search('service', namespace, account).then((services) => {
       this.setState({ services: map(services, 'name') });
     });
   };
 
   private getServiceOptions = (): Array<Option<string>> => {
-    const options = this.state.services.map(service => ({ label: split(service, ' ')[1], value: service }));
-    (this.props.config.options.services || []).forEach(service => {
+    const options = this.state.services.map((service) => ({ label: split(service, ' ')[1], value: service }));
+    (this.props.config.options.services || []).forEach((service) => {
       if (!this.state.services.includes(service)) {
         options.push({ label: service, value: service });
       }
@@ -118,7 +118,7 @@ export class ManifestDeploymentOptions extends React.Component<
             <label>
               <input
                 checked={config.enabled}
-                onChange={e => this.onConfigChange('enabled', e.target.checked)}
+                onChange={(e) => this.onConfigChange('enabled', e.target.checked)}
                 type="checkbox"
               />
               Spinnaker manages traffic based on your selected strategy
@@ -140,7 +140,7 @@ export class ManifestDeploymentOptions extends React.Component<
               <Creatable
                 clearable={false}
                 multi={true}
-                onChange={options => this.onConfigChange('options.services', map(options, 'value'))}
+                onChange={(options) => this.onConfigChange('options.services', map(options, 'value'))}
                 options={this.getServiceOptions()}
                 value={config.options.services}
               />
@@ -151,7 +151,7 @@ export class ManifestDeploymentOptions extends React.Component<
                   <input
                     checked={config.options.enableTraffic}
                     disabled={!!config.options.strategy}
-                    onChange={e => this.onConfigChange('options.enableTraffic', e.target.checked)}
+                    onChange={(e) => this.onConfigChange('options.enableTraffic', e.target.checked)}
                     type="checkbox"
                   />
                   Send client requests to new pods
@@ -167,7 +167,7 @@ export class ManifestDeploymentOptions extends React.Component<
                 placeholder="None"
                 value={config.options.strategy}
                 valueKey="key"
-                valueRenderer={o => <>{o.label}</>}
+                valueRenderer={(o) => <>{o.label}</>}
               />
             </StageConfigField>
           </>

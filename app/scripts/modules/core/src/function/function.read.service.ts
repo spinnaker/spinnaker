@@ -26,7 +26,7 @@ export class FunctionReader {
       .getList()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
-        return functions.map(fn => this.normalizeFunction(fn));
+        return functions.map((fn) => this.normalizeFunction(fn));
       });
   }
 
@@ -41,14 +41,12 @@ export class FunctionReader {
       .get()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
-        return functions.map(fn => this.normalizeFunction(fn));
+        return functions.map((fn) => this.normalizeFunction(fn));
       });
   }
 
   public listFunctions(cloudProvider: string): IPromise<IFunctionByAccount[]> {
-    return API.all('functions')
-      .withParams({ provider: cloudProvider })
-      .getList();
+    return API.all('functions').withParams({ provider: cloudProvider }).getList();
   }
 
   private normalizeFunction(functionDef: IFunctionSourceData): IFunctionSourceData {

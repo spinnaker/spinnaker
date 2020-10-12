@@ -19,8 +19,8 @@ export class TaskWriter {
       .one(taskId, 'cancel')
       .put()
       .then(() =>
-        TaskReader.getTask(taskId).then(task =>
-          TaskReader.waitUntilTaskMatches(task, updatedTask => updatedTask.status === 'CANCELED'),
+        TaskReader.getTask(taskId).then((task) =>
+          TaskReader.waitUntilTaskMatches(task, (updatedTask) => updatedTask.status === 'CANCELED'),
         ),
       );
   }

@@ -17,8 +17,8 @@ describe('Controller: ScalingActivitiesCtrl', () => {
 
   beforeEach(mock.module(SCALING_ACTIVITIES_CTRL));
 
-  beforeEach(function() {
-    mock.inject(function($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _$q_: ng.IQService) {
+  beforeEach(function () {
+    mock.inject(function ($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _$q_: ng.IQService) {
       $scope = $rootScope.$new();
       $q = _$q_;
 
@@ -36,8 +36,8 @@ describe('Controller: ScalingActivitiesCtrl', () => {
     });
   });
 
-  describe('Activity grouping', function() {
-    it('groups activities by cause, parsing availability zone from details, sorted by start date, newest first', function() {
+  describe('Activity grouping', function () {
+    it('groups activities by cause, parsing availability zone from details, sorted by start date, newest first', function () {
       activities = [
         {
           description: 'Launching a new EC2 instance: i-05c487e8',
@@ -75,7 +75,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
       expect(result[0].events[1].availabilityZone).toBe('us-east-1e');
     });
 
-    it('returns "unknown" for availability zone if details field not present, cannot be parsed, or does not contain key "Availability Zone"', function() {
+    it('returns "unknown" for availability zone if details field not present, cannot be parsed, or does not contain key "Availability Zone"', function () {
       activities = [
         {
           description: 'a',

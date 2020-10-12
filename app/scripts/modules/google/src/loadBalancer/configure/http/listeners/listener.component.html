@@ -6,7 +6,10 @@
         <div
           class="col-md-12 well"
           ng-show="listener.stackName.$dirty || listener.detailName.$dirty || !$ctrl.listener.created"
-          ng-class="{'alert-danger': listener.listenerName.$error.validateUnique, 'alert-info': !listener.listenerName.$error.validateUnique}"
+          ng-class="{
+            'alert-danger': listener.listenerName.$error.validateUnique,
+            'alert-info': !listener.listenerName.$error.validateUnique
+          }"
         >
           <strong>Your listener will be named:</strong>
           <span>{{ $ctrl.getName($ctrl.listener, $ctrl.application.name) }}</span>
@@ -76,16 +79,15 @@
               ng-repeat="subnet in $ctrl.getSubnets()"
               value="{{ subnet }}"
               ng-selected="$ctrl.listener.subnet === subnet"
-              >{{ subnet }}</option
             >
+              {{ subnet }}
+            </option>
           </select>
         </div>
       </div>
 
       <div class="form-group" ng-if="$ctrl.command.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED'">
-        <div class="col-md-2 sm-label-right">
-          Internal IP
-        </div>
+        <div class="col-md-2 sm-label-right">Internal IP</div>
         <div class="col-md-8">
           <select
             class="form-control input-sm"
@@ -97,8 +99,9 @@
               ng-repeat="address in $ctrl.getInternalAddresses()"
               value="{{ address.address }}"
               ng-selected="$ctrl.listener.ipAddress === address.address"
-              >{{ address.name }}</option
             >
+              {{ address.name }}
+            </option>
           </select>
         </div>
       </div>
@@ -138,7 +141,7 @@
               </ui-select-choices>
             </ui-select>
           </div>
-          <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
+          <div class="col-md-1" style="padding-left: 0; margin-top: 4px">
             <gce-cache-refresh
               cache-key="certificates"
               render-compact="true"
@@ -162,7 +165,7 @@
             on-address-select="$ctrl.onAddressSelect(address)"
           ></gce-address-selector>
         </div>
-        <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
+        <div class="col-md-1" style="padding-left: 0; margin-top: 4px">
           <gce-cache-refresh
             ng-if="!$ctrl.listener.created"
             cache-key="addresses"

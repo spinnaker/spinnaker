@@ -68,7 +68,7 @@ class AppengineLoadBalancerSettingsController implements IController {
 
   public initializeAsTextInput(serverGroupName: string): boolean {
     if (this.forPipelineConfig) {
-      return !this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name).includes(serverGroupName);
+      return !this.loadBalancer.serverGroups.map((serverGroup) => serverGroup.name).includes(serverGroupName);
     } else {
       return false;
     }
@@ -76,9 +76,9 @@ class AppengineLoadBalancerSettingsController implements IController {
 
   private serverGroupsWithoutAllocation(): string[] {
     const serverGroupsWithAllocation = this.loadBalancer.splitDescription.allocationDescriptions.map(
-      description => description.serverGroupName,
+      (description) => description.serverGroupName,
     );
-    const allServerGroups = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
+    const allServerGroups = this.loadBalancer.serverGroups.map((serverGroup) => serverGroup.name);
     return difference(allServerGroups, serverGroupsWithAllocation);
   }
 }

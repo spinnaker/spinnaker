@@ -21,7 +21,7 @@ export const deployManifestValidators = (): IValidatorConfig[] => {
         }
         if (enabled && stage.source === ManifestSource.TEXT) {
           const manifests = get(stage, 'manifests', []);
-          const replicaSetManifests = manifests.filter(m => m.kind === 'ReplicaSet');
+          const replicaSetManifests = manifests.filter((m) => m.kind === 'ReplicaSet');
           const strategy = get(stage, 'trafficManagement.options.strategy');
           const maxVersionHistory = parseInt(
             get(replicaSetManifests, [0, 'metadata', 'annotations', MAX_VERSION_HISTORY_ANNOTATION]),

@@ -154,7 +154,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
   }
 
   private getSourceOptions = (): Array<Option<string>> => {
-    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], option => ({
+    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], (option) => ({
       label: capitalize(option),
       value: option,
     }));
@@ -169,9 +169,9 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
 
   private onRequiredArtifactsChanged = (bindings: IManifestBindArtifact[]): void => {
     this.props.updateStageField({
-      requiredArtifactIds: bindings.filter(b => b.expectedArtifactId).map(b => b.expectedArtifactId),
+      requiredArtifactIds: bindings.filter((b) => b.expectedArtifactId).map((b) => b.expectedArtifactId),
     });
-    this.props.updateStageField({ requiredArtifacts: bindings.filter(b => b.artifact) });
+    this.props.updateStageField({ requiredArtifacts: bindings.filter((b) => b.artifact) });
   };
 
   public render() {

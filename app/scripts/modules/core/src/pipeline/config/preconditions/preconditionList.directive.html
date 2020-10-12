@@ -10,9 +10,7 @@
       </thead>
       <tbody>
         <tr ng-repeat="precondition in preconditions">
-          <td>
-            {{precondition.type|preconditionType}}
-          </td>
+          <td>{{precondition.type|preconditionType}}</td>
           <td class="precondition-details">
             <div ng-repeat="(key, val) in precondition.context"><strong>{{key | robotToHuman}}: </strong> {{val}}</div>
             <strong>Fail Pipeline: </strong> {{precondition.failPipeline}}

@@ -75,7 +75,7 @@ class IngressRuleSelectorController implements IController {
     this.crossAccountAccounts = this.accounts;
     const exclusions = AWSProviderSettings?.crossAccountIngressExclusions[this.securityGroup.credentials];
     if (exclusions && Array.isArray(exclusions)) {
-      this.crossAccountAccounts = this.accounts.filter(account => !exclusions.includes(account.name));
+      this.crossAccountAccounts = this.accounts.filter((account) => !exclusions.includes(account.name));
     }
     this.rule.accountName = this.securityGroup.credentials;
     this.rule.vpcId = this.securityGroup.vpcId;
@@ -112,19 +112,19 @@ class IngressRuleSelectorController implements IController {
       this.disableCrossAccount();
     }
 
-    regions.forEach(region => {
+    regions.forEach((region) => {
       let regionalVpcId: string = null;
       if (vpcId) {
-        const baseVpc: IVpc = this.vpcs.find(vpc => vpc.id === vpcId);
+        const baseVpc: IVpc = this.vpcs.find((vpc) => vpc.id === vpcId);
         const regionalVpc: IVpc = this.vpcs.find(
-          vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name,
+          (vpc) => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name,
         );
         regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
       }
 
       const regionalGroupNames = (this.allSecurityGroups?.[account]?.aws?.[region] ?? [])
-        .filter(sg => sg.vpcId === regionalVpcId)
-        .map(sg => sg.name);
+        .filter((sg) => sg.vpcId === regionalVpcId)
+        .map((sg) => sg.name);
 
       existingSecurityGroupNames = uniq(existingSecurityGroupNames.concat(regionalGroupNames));
 
@@ -145,9 +145,9 @@ class IngressRuleSelectorController implements IController {
 
   public configureAvailableVpcs(): void {
     const region = this.securityGroup.regions[0];
-    const filtered = this.vpcs.filter(vpc => vpc.region === region);
+    const filtered = this.vpcs.filter((vpc) => vpc.region === region);
     this.regionalVpcs = {};
-    filtered.forEach(vpc => this.addRegionalVpc(vpc));
+    filtered.forEach((vpc) => this.addRegionalVpc(vpc));
     this.reconcileRuleVpc(filtered);
   }
 
@@ -158,8 +158,8 @@ class IngressRuleSelectorController implements IController {
         this.rule.name = null;
         return;
       }
-      const baseVpc = filtered.find(vpc => vpc.id === this.rule.vpcId);
-      const regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
+      const baseVpc = filtered.find((vpc) => vpc.id === this.rule.vpcId);
+      const regionalVpc = filtered.find((vpc) => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
       if (regionalVpc) {
         this.rule.vpcId = regionalVpc.id;
       } else {

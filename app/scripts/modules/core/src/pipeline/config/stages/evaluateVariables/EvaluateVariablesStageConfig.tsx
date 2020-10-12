@@ -38,8 +38,8 @@ const variableNameValidator: IValidator = (val: string, label: string) =>
 
 const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
   const keyCounts = countBy(
-    variables.map(x => x.key),
-    x => x,
+    variables.map((x) => x.key),
+    (x) => x,
   );
   return (key: string) => keyCounts[key] > 1 && `Duplicate key '${key}'`;
 };
@@ -48,11 +48,8 @@ export function validateEvaluateVariablesStage(stage: IStage) {
   const formValidator = new FormValidator(stage);
   const duplicateKeyValidator = duplicateKeyValidatorFactory(stage.variables);
   formValidator.field('variables').withValidators(
-    formValidator.arrayForEach(item => {
-      item
-        .field('key', 'Variable Name')
-        .required()
-        .withValidators(variableNameValidator, duplicateKeyValidator);
+    formValidator.arrayForEach((item) => {
+      item.field('key', 'Variable Name').required().withValidators(variableNameValidator, duplicateKeyValidator);
       item.field('value', 'Expression').required();
     }),
   );
@@ -92,7 +89,7 @@ export function EvaluateVariablesStageConfig(props: IStageConfigProps) {
       pipeline={pipeline}
       validate={validateEvaluateVariablesStage}
       onChange={updateStage}
-      render={renderProps => {
+      render={(renderProps) => {
         return (
           <LayoutProvider value={StandardFieldLayout}>
             <div className="flex-container-v margin-between-lg">
@@ -135,7 +132,7 @@ function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormProps) {
     <FieldArray
       key={deleteCount}
       name="variables"
-      render={arrayHelpers => (
+      render={(arrayHelpers) => (
         <div className="EvaluateVariablesStageConfig form-horizontal">
           <FieldLayoutComponent
             label={<h4>Variable Name</h4>}
@@ -145,7 +142,7 @@ function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormProps) {
 
           {variables.map((_, index) => {
             const onDeleteClicked = () => {
-              setDeleteCount(count => count + 1);
+              setDeleteCount((count) => count + 1);
               arrayHelpers.handleRemove(index)();
             };
 
@@ -186,7 +183,7 @@ function FormikVariable({ index, onDeleteClicked, previewStage }: IFormikVariabl
     <FormikFormField
       name={`variables[${index}].key`}
       required={true}
-      input={inputProps => <TextInput {...inputProps} placeholder="Variable name" />}
+      input={(inputProps) => <TextInput {...inputProps} placeholder="Variable name" />}
       layout={VariableNameFormLayout}
     />
   );
@@ -204,7 +201,7 @@ function FormikVariable({ index, onDeleteClicked, previewStage }: IFormikVariabl
   return (
     <FormikFormField
       name={fieldName}
-      onChange={value => {
+      onChange={(value) => {
         // When the user has entered anything, mark the field as touched so warnings are shown
         if (value && !touchedOverride) {
           setTouchedOverride(true);
@@ -213,7 +210,7 @@ function FormikVariable({ index, onDeleteClicked, previewStage }: IFormikVariabl
       touched={touchedOverride}
       label={variableNameInputAsLabel}
       actions={actions}
-      input={inputProps => (
+      input={(inputProps) => (
         <SpelInput
           {...inputProps}
           placeholder="Variable value, e.g. ${trigger.buildInfo.number}"

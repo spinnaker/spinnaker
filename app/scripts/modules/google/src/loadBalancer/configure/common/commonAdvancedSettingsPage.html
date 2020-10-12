@@ -9,8 +9,7 @@
           ng-model="ctrl.viewState.sessionAffinity"
           ng-change="ctrl.setSessionAffinity(ctrl.viewState)"
           ng-options="view for (model, view) in ctrl.sessionAffinityModelToViewMap"
-        >
-        </select>
+        ></select>
       </div>
     </div>
     <div class="form-group" ng-if="ctrl.viewState.sessionAffinity === 'Generated Cookie'">

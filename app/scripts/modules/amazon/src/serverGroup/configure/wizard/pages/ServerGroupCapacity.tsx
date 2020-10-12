@@ -12,7 +12,8 @@ export interface IServerGroupCapacityProps {
   hideTargetHealthyDeployPercentage?: boolean;
 }
 
-export class ServerGroupCapacity extends React.Component<IServerGroupCapacityProps>
+export class ServerGroupCapacity
+  extends React.Component<IServerGroupCapacityProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IServerGroupCommand): { [key: string]: string } {
     const errors: { [key: string]: string } = {};

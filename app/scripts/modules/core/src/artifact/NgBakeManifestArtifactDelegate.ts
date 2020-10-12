@@ -36,11 +36,11 @@ export class NgBakeManifestArtifactDelegate
   }
 
   public getSelectedExpectedArtifact(): IExpectedArtifact {
-    return this.expectedArtifacts.find(ea => ea.id === this.artifact.id);
+    return this.expectedArtifacts.find((ea) => ea.id === this.artifact.id);
   }
 
   public getSelectedAccount(): IArtifactAccount {
-    return this.accounts.find(a => a.name === this.artifact.account);
+    return this.accounts.find((a) => a.name === this.artifact.account);
   }
 
   public setSelectedExpectedArtifact(e: IExpectedArtifact): void {

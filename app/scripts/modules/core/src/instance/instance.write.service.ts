@@ -93,7 +93,7 @@ export class InstanceWriter {
     loadBalancerNames: string[],
   ): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
-    jobs.forEach(job => (job.loadBalancerNames = loadBalancerNames));
+    jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -126,7 +126,7 @@ export class InstanceWriter {
     loadBalancerNames: string[],
   ): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
-    jobs.forEach(job => (job.loadBalancerNames = loadBalancerNames));
+    jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -258,8 +258,8 @@ export class InstanceWriter {
 
   protected buildMultiInstanceJob(instanceGroups: IMultiInstanceGroup[], type: string, additionalJobProperties = {}) {
     return instanceGroups
-      .filter(instanceGroup => instanceGroup.instances.length > 0)
-      .map(instanceGroup => this.convertGroupToJob(instanceGroup, type, additionalJobProperties));
+      .filter((instanceGroup) => instanceGroup.instances.length > 0)
+      .map((instanceGroup) => this.convertGroupToJob(instanceGroup, type, additionalJobProperties));
   }
 
   protected buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {

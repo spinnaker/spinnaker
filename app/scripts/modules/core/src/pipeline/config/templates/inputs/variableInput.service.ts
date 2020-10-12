@@ -35,6 +35,6 @@ export class VariableInputService {
   }
 
   public static getInputForType(type = 'string'): IVariableInputBuilder {
-    return Array.from(this.inputs).find(i => i.handles(type));
+    return Array.from(this.inputs).find((i) => i.handles(type));
   }
 }

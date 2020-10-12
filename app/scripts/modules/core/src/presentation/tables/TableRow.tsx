@@ -64,7 +64,7 @@ export const TableRow = ({ defaultExpanded, renderExpandedContent, children }: I
       tableExpandable={expandable}
       rowExpandable={expandable && !!renderExpandedContent}
       expanded={expanded}
-      setExpanded={expand => {
+      setExpanded={(expand) => {
         setExpanded(expand);
         // When all rows were previously expanded, clear away that state
         // the first time an individual row is collapsed

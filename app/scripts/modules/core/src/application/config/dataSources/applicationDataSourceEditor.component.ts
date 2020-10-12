@@ -31,10 +31,10 @@ export class DataSourceEditorController implements IController {
     if (!this.application.attributes.dataSources) {
       this.application.attributes.dataSources = { enabled: [], disabled: [] };
     }
-    this.dataSources = this.application.dataSources.filter(ds => ds.visible && ds.optional && !ds.hidden);
+    this.dataSources = this.application.dataSources.filter((ds) => ds.visible && ds.optional && !ds.hidden);
     this.explicitlyEnabled = this.application.attributes.dataSources.enabled;
     this.explicitlyDisabled = this.application.attributes.dataSources.disabled;
-    this.dataSources.forEach(ds => {
+    this.dataSources.forEach((ds) => {
       this.model[ds.key] = !ds.disabled;
     });
     this.original = JSON.stringify(this.model);
@@ -45,12 +45,12 @@ export class DataSourceEditorController implements IController {
       if (!this.explicitlyEnabled.includes(key)) {
         this.explicitlyEnabled.push(key);
       }
-      this.explicitlyDisabled = this.explicitlyDisabled.filter(s => s !== key);
+      this.explicitlyDisabled = this.explicitlyDisabled.filter((s) => s !== key);
     } else {
       if (!this.explicitlyDisabled.includes(key)) {
         this.explicitlyDisabled.push(key);
       }
-      this.explicitlyEnabled = this.explicitlyEnabled.filter(s => s !== key);
+      this.explicitlyEnabled = this.explicitlyEnabled.filter((s) => s !== key);
     }
     this.isDirty = JSON.stringify(this.model) !== this.original;
   }
@@ -68,7 +68,7 @@ export class DataSourceEditorController implements IController {
       accounts: this.application.attributes.accounts,
       dataSources: newDataSources,
     })
-      .then(task => {
+      .then((task) => {
         return TaskReader.waitUntilTaskCompletes(task);
       })
       .then(

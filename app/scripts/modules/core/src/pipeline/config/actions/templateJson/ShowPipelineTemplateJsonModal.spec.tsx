@@ -21,7 +21,7 @@ describe('<ShowPipelineTemplateJsonModal />', () => {
   it('dismisses modal with close button', () => {
     const dismissModal = jasmine.createSpy('dismissModal');
     const wrapper = mount(<ShowPipelineTemplateJsonModal template={mockTemplate} dismissModal={dismissModal} />);
-    const button = wrapper.find('button').filterWhere(n => n.text() === 'Close');
+    const button = wrapper.find('button').filterWhere((n) => n.text() === 'Close');
     button.simulate('click');
     expect(dismissModal).toHaveBeenCalled();
   });

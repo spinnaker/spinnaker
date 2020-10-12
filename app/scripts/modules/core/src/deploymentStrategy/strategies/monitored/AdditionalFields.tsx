@@ -49,7 +49,7 @@ export class AdditionalFields extends React.Component<
   };
 
   public componentDidMount() {
-    DeploymentMonitorReader.getDeploymentMonitors().then(deploymentMonitors => {
+    DeploymentMonitorReader.getDeploymentMonitors().then((deploymentMonitors) => {
       this.setState({ deploymentMonitors });
     });
   }
@@ -106,7 +106,7 @@ export class AdditionalFields extends React.Component<
             <Select
               clearable={false}
               required={true}
-              options={this.state.deploymentMonitors.map(deploymentMonitor => ({
+              options={this.state.deploymentMonitors.map((deploymentMonitor) => ({
                 label: deploymentMonitor?.name || '',
                 value: deploymentMonitor?.id || '',
               }))}
@@ -166,7 +166,7 @@ export class AdditionalFields extends React.Component<
               min="0"
               type="number"
               value={command.delayBeforeScaleDownSec}
-              onChange={e => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
+              onChange={(e) => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
               placeholder="0"
             />
             seconds

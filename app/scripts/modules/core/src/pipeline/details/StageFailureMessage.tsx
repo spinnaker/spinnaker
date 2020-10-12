@@ -41,7 +41,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
   private getState(props: IStageFailureMessageProps): IStageFailureMessageState {
     const { stage } = props;
     if (stage && (stage.isFailed || stage.isStopped)) {
-      const failedTask = (stage.tasks || []).find(t => t.status === 'TERMINAL' || t.status === 'STOPPED');
+      const failedTask = (stage.tasks || []).find((t) => t.status === 'TERMINAL' || t.status === 'STOPPED');
       let failedStageName = stage.name;
       let failedExecutionId;
       let failedStageId;
@@ -53,7 +53,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
           failedExecutionId = exceptionSource.executionId;
           failedStageId = exceptionSource.stageId;
         } else if (stage.after) {
-          const failedStage = stage.after.find(s => s.status === 'TERMINAL' || s.status === 'STOPPED');
+          const failedStage = stage.after.find((s) => s.status === 'TERMINAL' || s.status === 'STOPPED');
           if (failedStage) {
             failedStageName = robotToHuman(failedStage.name);
             failedStageId = failedStage.id;

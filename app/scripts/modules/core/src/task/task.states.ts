@@ -49,7 +49,7 @@ module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config([
       params: {
         taskId: { dynamic: true },
       },
-      redirectTo: transition => {
+      redirectTo: (transition) => {
         const { taskId } = transition.params();
 
         if (!taskId) {
@@ -57,7 +57,7 @@ module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config([
         }
 
         return Promise.resolve(TaskReader.getTask(taskId))
-          .then(task =>
+          .then((task) =>
             transition.router.stateService.target('home.applications.application.tasks.taskDetails', {
               application: task.application,
               taskId,

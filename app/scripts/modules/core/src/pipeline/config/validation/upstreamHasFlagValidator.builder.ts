@@ -22,8 +22,8 @@ export const buildUpstreamHasFlagValidator = (flag: keyof IStageOrTriggerTypeCon
       validator: IUpstreamFlagProvidedValidationConfig,
       _config: IStageOrTriggerTypeConfig,
     ) => {
-      const providingStages = Registry.pipeline.getStageTypes().filter(x => x[flag]);
-      const providingTriggers = Registry.pipeline.getTriggerTypes().filter(x => x[flag]);
+      const providingStages = Registry.pipeline.getStageTypes().filter((x) => x[flag]);
+      const providingTriggers = Registry.pipeline.getTriggerTypes().filter((x) => x[flag]);
       const defaultProviders = providingStages.concat(providingTriggers);
 
       const genericUpstreamValidator = new StageOrTriggerBeforeTypeValidator();

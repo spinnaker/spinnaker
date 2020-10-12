@@ -8,7 +8,7 @@ export const GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE 
   'spinnaker.gce.pipeline.stage..findImageFromTagsStage';
 export const name = GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'gce',
@@ -23,12 +23,12 @@ module(GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE, [])
   })
   .controller('gceFindImageFromTagsStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.stage.tags = $scope.stage.tags || {};
       $scope.stage.regions = $scope.stage.regions || [];
       $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'gce';
 
-      BakeryReader.getRegions('gce').then(function(regions) {
+      BakeryReader.getRegions('gce').then(function (regions) {
         $scope.regions = regions;
       });
     },

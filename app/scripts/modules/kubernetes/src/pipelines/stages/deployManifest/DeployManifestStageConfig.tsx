@@ -68,7 +68,7 @@ export class DeployManifestStageConfig extends React.Component<IStageConfigProps
         {...this.props}
         stage={this.stage}
         onChange={this.props.updateStage}
-        render={props => <DeployManifestStageForm {...props} accounts={this.state.accounts} />}
+        render={(props) => <DeployManifestStageForm {...props} accounts={this.state.accounts} />}
       />
     );
   }

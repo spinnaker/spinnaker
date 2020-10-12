@@ -4,13 +4,13 @@ import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
-describe('awsServerGroupCommandBuilder', function() {
+describe('awsServerGroupCommandBuilder', function () {
   const AccountServiceFixture = require('./AccountServiceFixtures');
 
   beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
 
   beforeEach(
-    window.inject(function(awsServerGroupCommandBuilder, $q, $rootScope, instanceTypeService) {
+    window.inject(function (awsServerGroupCommandBuilder, $q, $rootScope, instanceTypeService) {
       this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.instanceTypeService = instanceTypeService;
@@ -28,13 +28,13 @@ describe('awsServerGroupCommandBuilder', function() {
 
   afterEach(AWSProviderSettings.resetToOriginal);
 
-  describe('buildNewServerGroupCommand', function() {
-    it('initializes to default values, setting usePreferredZone flag to true', function() {
+  describe('buildNewServerGroupCommand', function () {
+    it('initializes to default values, setting usePreferredZone flag to true', function () {
       var command = null;
       AWSProviderSettings.defaults.iamRole = '{{application}}IAMRole';
       this.awsServerGroupCommandBuilder
         .buildNewServerGroupCommand({ name: 'appo', defaultCredentials: {}, defaultRegions: {} }, 'aws')
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 
@@ -46,8 +46,8 @@ describe('awsServerGroupCommandBuilder', function() {
     });
   });
 
-  describe('buildServerGroupCommandFromExisting', function() {
-    it('sets usePreferredZones flag based on initial value', function() {
+  describe('buildServerGroupCommandFromExisting', function () {
+    it('sets usePreferredZones flag based on initial value', function () {
       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('custom'));
       var baseServerGroup = {
         account: 'prod',
@@ -61,7 +61,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 
@@ -74,7 +74,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 
@@ -84,7 +84,7 @@ describe('awsServerGroupCommandBuilder', function() {
       expect(command.availabilityZones).toEqual(['g']);
     });
 
-    it('sets profile and instance type if available', function() {
+    it('sets profile and instance type if available', function () {
       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
 
       var baseServerGroup = {
@@ -104,7 +104,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 
@@ -114,7 +114,7 @@ describe('awsServerGroupCommandBuilder', function() {
       expect(command.instanceType).toBe('something-custom');
     });
 
-    it('copies suspended processes unless the mode is "editPipeline"', function() {
+    it('copies suspended processes unless the mode is "editPipeline"', function () {
       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
 
       var baseServerGroup = {
@@ -135,7 +135,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(result => (command = result));
+        .then((result) => (command = result));
 
       this.$scope.$digest();
 
@@ -143,14 +143,14 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup, 'editPipeline')
-        .then(result => (command = result));
+        .then((result) => (command = result));
 
       this.$scope.$digest();
 
       expect(command.suspendedProcesses).toEqual([]);
     });
 
-    it('copies tags not in the reserved list:', function() {
+    it('copies tags not in the reserved list:', function () {
       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
 
       const baseServerGroup = {
@@ -184,7 +184,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
       this.awsServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(result => (command = result));
+        .then((result) => (command = result));
 
       this.$scope.$digest();
 

@@ -56,8 +56,8 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceHealthCheckReader.listHealthChecks().then(healthChecks => {
-      const matchingHealthChecks = healthChecks.filter(hc => hc.account === this.serverGroup.account);
+    this.gceHealthCheckReader.listHealthChecks().then((healthChecks) => {
+      const matchingHealthChecks = healthChecks.filter((hc) => hc.account === this.serverGroup.account);
       this.healthChecks = getHealthCheckOptions(matchingHealthChecks);
     });
   }

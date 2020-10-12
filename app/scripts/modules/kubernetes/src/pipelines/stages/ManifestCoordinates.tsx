@@ -37,13 +37,13 @@ export enum SelectorKind {
 
 const mapCriteriaToLabel = (criteria: string): string =>
   get(
-    StageConstants.MANIFEST_CRITERIA_OPTIONS.find(option => option.val === criteria),
+    StageConstants.MANIFEST_CRITERIA_OPTIONS.find((option) => option.val === criteria),
     'label',
   );
 
 export const formatLabelSelectors = (labelSelectors: ILabelSelectors): string => {
   return (labelSelectors.selectors || [])
-    .map(selector => {
+    .map((selector) => {
       const { key, kind, values = [] } = selector;
       switch (kind) {
         case SelectorKind.ANY:
@@ -64,7 +64,7 @@ export const formatLabelSelectors = (labelSelectors: ILabelSelectors): string =>
           return null;
       }
     })
-    .filter(formatted => !!formatted)
+    .filter((formatted) => !!formatted)
     .join(', ');
 };
 

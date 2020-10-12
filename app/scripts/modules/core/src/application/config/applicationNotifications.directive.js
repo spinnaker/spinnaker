@@ -11,7 +11,7 @@ angular
   .module(CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE, [OVERRIDE_REGISTRY])
   .directive('applicationNotifications', [
     'overrideRegistry',
-    function(overrideRegistry) {
+    function (overrideRegistry) {
       return {
         restrict: 'E',
         templateUrl: overrideRegistry.getTemplate(

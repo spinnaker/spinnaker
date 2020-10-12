@@ -37,7 +37,7 @@ interface ITitusResizeServerGroupCommand {
 function surfacedErrorMessage(formik: FormikContext<ITitusResizeServerGroupCommand>) {
   const capacityErrors = formik.errors.capacity || ({} as any);
   const { min, max, desired } = capacityErrors;
-  return [min, max, desired].find(x => !!x);
+  return [min, max, desired].find((x) => !!x);
 }
 
 function SimpleMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
@@ -81,7 +81,7 @@ function SimpleMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
           <div className="horizontal middle">
             <FormikFormField
               name="capacity.desired"
-              input={props => <NumberInput {...props} min={0} />}
+              input={(props) => <NumberInput {...props} min={0} />}
               layout={({ input }) => <>{input}</>}
               touched={true}
               onChange={() => {}}
@@ -152,7 +152,7 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
         <div className="col-md-2">
           <FormikFormField
             name="capacity.min"
-            input={props => <NumberInput {...props} min={0} max={max} />}
+            input={(props) => <NumberInput {...props} min={0} max={max} />}
             layout={({ input }) => <>{input}</>}
             touched={true}
           />
@@ -161,7 +161,7 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
         <div className="col-md-2">
           <FormikFormField
             name="capacity.max"
-            input={props => <NumberInput {...props} min={min} />}
+            input={(props) => <NumberInput {...props} min={min} />}
             layout={({ input }) => <>{input}</>}
             touched={true}
           />
@@ -170,7 +170,7 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
         <div className="col-md-2">
           <FormikFormField
             name="capacity.desired"
-            input={props => <NumberInput {...props} min={min} max={max} />}
+            input={(props) => <NumberInput {...props} min={min} max={max} />}
             layout={({ input }) => <>{input}</>}
             touched={true}
           />
@@ -248,7 +248,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
         initialValues={initialValues}
         validate={validateResizeCommand}
         onSubmit={submit}
-        render={formik => {
+        render={(formik) => {
           return (
             <>
               <ModalClose dismiss={dismissModal} />
@@ -269,7 +269,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
                       interestingHealthProviderNames={formik.values.interestingHealthProviderNames}
                       platformHealthType="Titus"
                       showHelpDetails={true}
-                      onChange={names =>
+                      onChange={(names) =>
                         formik.setFieldValue('interestingHealthProviderNames', names ? names : undefined)
                       }
                     />

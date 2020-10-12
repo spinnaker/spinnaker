@@ -18,7 +18,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
       application: '=',
     },
     templateUrl: require('./listener.component.html'),
-    controller: function() {
+    controller: function () {
       this.certificates = this.command.backingData.certificates;
       const loadBalancerMap = this.command.backingData.loadBalancerMap;
 
@@ -29,20 +29,21 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
 
       this.getCertificates = () => {
         return this.command.backingData.certificates
-          .filter(certificate => certificate.account === this.command.loadBalancer.credentials)
-          .map(certificate => certificate.name);
+          .filter((certificate) => certificate.account === this.command.loadBalancer.credentials)
+          .map((certificate) => certificate.name);
       };
 
       this.getSubnets = () => {
         const ret = this.command.backingData.subnetMap[this.command.loadBalancer.network]
-          .filter(subnet => subnet.region === this.command.loadBalancer.region)
-          .map(subnet => subnet.name);
+          .filter((subnet) => subnet.region === this.command.loadBalancer.region)
+          .map((subnet) => subnet.name);
         return _.uniq(ret);
       };
 
       this.getInternalAddresses = () => {
         const ret = this.command.backingData.addresses.filter(
-          address => address.addressType === 'INTERNAL' && address.subnetwork.split('/').pop() === this.listener.subnet,
+          (address) =>
+            address.addressType === 'INTERNAL' && address.subnetwork.split('/').pop() === this.listener.subnet,
         );
         return ret;
       };
@@ -52,20 +53,22 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
       };
 
       this.localListenerHasSameName = () => {
-        return this.command.loadBalancer.listeners.filter(listener => listener.name === this.listener.name).length > 1;
+        return (
+          this.command.loadBalancer.listeners.filter((listener) => listener.name === this.listener.name).length > 1
+        );
       };
 
       this.existingListenerNames = () => {
         return _.get(loadBalancerMap, [this.command.loadBalancer.credentials, 'listeners']);
       };
 
-      this.isHttps = port => port === 443 || port === '443';
+      this.isHttps = (port) => port === 443 || port === '443';
 
       if (!this.listener.name) {
         this.updateName(this.listener, this.application.name);
       }
 
-      this.onAddressSelect = address => {
+      this.onAddressSelect = (address) => {
         if (address) {
           this.listener.ipAddress = address.address;
         } else {

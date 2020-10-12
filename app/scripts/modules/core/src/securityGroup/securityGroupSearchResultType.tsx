@@ -66,7 +66,7 @@ class SecurityGroupsSearchResultType extends SearchResultType<ISecurityGroupSear
         {results
           .slice()
           .sort(itemSortFn)
-          .map(item => (
+          .map((item) => (
             <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.NAME} />
               <AccountCell item={item} col={this.cols.ACCOUNT} />

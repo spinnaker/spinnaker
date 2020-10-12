@@ -171,11 +171,11 @@ describe('Service: executionService', () => {
       $httpBackend.flush();
 
       responsePromise
-        .then(result => {
+        .then((result) => {
           expect(result).toBeDefined(); // only success should be called
           expect(result).toEqual([]);
         })
-        .catch(reject => {
+        .catch((reject) => {
           expect(reject).toBeUndefined();
         });
     });
@@ -190,10 +190,10 @@ describe('Service: executionService', () => {
       $httpBackend.flush();
 
       responsePromise
-        .then(result => {
+        .then((result) => {
           expect(result).toBeUndefined();
         })
-        .catch(result => {
+        .catch((result) => {
           expect(result).toBeDefined(); // only reject should be called
         });
     });
@@ -208,7 +208,7 @@ describe('Service: executionService', () => {
       $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
 
       executionService
-        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
@@ -225,7 +225,7 @@ describe('Service: executionService', () => {
       $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
 
       executionService
-        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
@@ -257,7 +257,7 @@ describe('Service: executionService', () => {
       $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
 
       executionService
-        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(
           () => (succeeded = true),
           () => (failed = true),

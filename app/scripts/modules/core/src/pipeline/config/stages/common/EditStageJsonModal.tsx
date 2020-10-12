@@ -33,7 +33,7 @@ export class EditStageJsonModal extends React.Component<IEditStageJsonModalProps
       }
       return undefined; // required for clone operation and typescript happiness
     });
-    this.immutableFields.forEach(k => delete copy[k]);
+    this.immutableFields.forEach((k) => delete copy[k]);
 
     this.state = {
       stageJSON: JsonUtils.makeSortedStringFromObject(copy),
@@ -48,8 +48,8 @@ export class EditStageJsonModal extends React.Component<IEditStageJsonModalProps
       const parsed = JSON.parse(stageJSON);
 
       Object.keys(stage)
-        .filter(k => !this.immutableFields.includes(k))
-        .forEach(k => delete stage[k]);
+        .filter((k) => !this.immutableFields.includes(k))
+        .forEach((k) => delete stage[k]);
       Object.assign(stage, parsed);
 
       this.props.closeModal();

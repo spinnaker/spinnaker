@@ -25,7 +25,7 @@ export class CreateFunctionButton extends React.Component<ICreateFunctionButtonP
   private createFunction = (): void => {
     const { app } = this.props;
 
-    ProviderSelectionService.selectProvider(app, 'function').then(selectedProvider => {
+    ProviderSelectionService.selectProvider(app, 'function').then((selectedProvider) => {
       const provider = CloudProviderRegistry.getValue(selectedProvider, 'function');
       provider.CreateFunctionModal.show({
         app: app,

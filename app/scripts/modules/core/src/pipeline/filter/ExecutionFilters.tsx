@@ -47,7 +47,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
     const searchString = ExecutionState.filterModel.asFilterModel.sortFilter.filter;
     this.state = {
-      pipelineNames: this.getPipelineNames(false).filter(pipelineName =>
+      pipelineNames: this.getPipelineNames(false).filter((pipelineName) =>
         searchString ? pipelineName.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) : true,
       ),
       strategyNames: this.getPipelineNames(true),
@@ -111,7 +111,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     const otherSource = strategy ? 'pipelineConfigs' : 'strategyConfigs';
     const configs = get(application, `${source}.data`, []);
     const otherConfigs = get(application, `${otherSource}.data`, []);
-    const allConfigIds = configs.concat(otherConfigs).map(c => c.id);
+    const allConfigIds = configs.concat(otherConfigs).map((c) => c.id);
     // assume executions which don't have a match by pipelineConfigId are regular executions, not strategies
     const unmatchedExecutions = strategy
       ? []
@@ -127,7 +127,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     const { pipelineNames, strategyNames, searchString } = this.state;
     let newPipelineNames = this.getPipelineNames(false);
     if (searchString.length > 0) {
-      newPipelineNames = newPipelineNames.filter(pipelineName =>
+      newPipelineNames = newPipelineNames.filter((pipelineName) =>
         pipelineName.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()),
       );
     }
@@ -330,7 +330,7 @@ const Pipelines = SortableContainer(
   (props: { names: string[]; tags: IFilterTag[]; dragEnabled: boolean; update: () => void }) => (
     <div>
       {props.names.map((pipeline, index) => {
-        const tag = props.tags.find(t => t.key === 'pipeline' && t.value === pipeline);
+        const tag = props.tags.find((t) => t.key === 'pipeline' && t.value === pipeline);
 
         return (
           <Pipeline

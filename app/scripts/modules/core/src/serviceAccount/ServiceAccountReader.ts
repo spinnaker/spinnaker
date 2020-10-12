@@ -10,10 +10,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.one('auth')
-        .one('user')
-        .one('serviceAccounts')
-        .get();
+      return API.one('auth').one('user').one('serviceAccounts').get();
     }
   }
 
@@ -21,11 +18,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.one('auth')
-        .one('user')
-        .one('serviceAccounts')
-        .withParams({ application: application })
-        .get();
+      return API.one('auth').one('user').one('serviceAccounts').withParams({ application: application }).get();
     }
   }
 }

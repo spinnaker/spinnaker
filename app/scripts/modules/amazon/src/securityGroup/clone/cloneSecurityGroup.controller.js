@@ -19,7 +19,7 @@ angular
     '$controller',
     'securityGroup',
     'application',
-    function($scope, $uibModalInstance, $controller, securityGroup, application) {
+    function ($scope, $uibModalInstance, $controller, securityGroup, application) {
       const vm = this;
 
       vm.firewallLabel = FirewallLabels.get('Firewall');
@@ -46,17 +46,17 @@ angular
       // regions so don't block them because the names already exist.
       $scope.allowDuplicateNames = true;
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         vm.accountUpdated();
       });
 
       securityGroup.securityGroupIngress = _.chain(securityGroup.inboundRules)
-        .filter(function(rule) {
+        .filter(function (rule) {
           return rule.securityGroup;
         })
-        .map(function(rule) {
-          return rule.portRanges.map(function(portRange) {
+        .map(function (rule) {
+          return rule.portRanges.map(function (portRange) {
             return {
               name: rule.securityGroup.name,
               type: rule.protocol,
@@ -69,11 +69,11 @@ angular
         .value();
 
       securityGroup.ipIngress = _.chain(securityGroup.inboundRules)
-        .filter(function(rule) {
+        .filter(function (rule) {
           return rule.range;
         })
-        .map(function(rule) {
-          return rule.portRanges.map(function(portRange) {
+        .map(function (rule) {
+          return rule.portRanges.map(function (portRange) {
             return {
               cidr: rule.range.ip + rule.range.cidr,
               type: rule.protocol,
@@ -85,7 +85,7 @@ angular
         .flatten()
         .value();
 
-      vm.upsert = function() {
+      vm.upsert = function () {
         // <account-select-field> only updates securityGroup.credentials, but Orca looks at account* before looking at credentials
         // Updating the rest of the attributes to send the correct (expected) account for all attributes
         const { credentials } = $scope.securityGroup;

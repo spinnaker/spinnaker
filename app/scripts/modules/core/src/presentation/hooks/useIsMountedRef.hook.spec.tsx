@@ -12,7 +12,7 @@ describe('useIsMountedRef hook', () => {
   beforeEach(() => {
     useIsMountedRefSpy = jasmine.createSpy('useIsMountedRef', useIsMountedRef).and.callThrough();
 
-    TestComponent = function() {
+    TestComponent = function () {
       ref = useIsMountedRefSpy();
       isMountedInRender = ref.current;
       return null;
@@ -49,7 +49,7 @@ describe('useIsMountedRef hook', () => {
     expect(ref.current).toBe(true);
   });
 
-  it('ref.current is false after the component unmounts', async done => {
+  it('ref.current is false after the component unmounts', async (done) => {
     const component = mount(<TestComponent />);
     expect(ref.current).toBe(true);
 

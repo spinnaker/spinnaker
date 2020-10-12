@@ -48,7 +48,7 @@ export class PatchManifestStageConfig extends React.Component<IStageConfigProps>
         {...this.props}
         stage={this.stage}
         onChange={this.props.updateStage}
-        render={props => <PatchManifestStageForm {...props} stageFieldUpdated={this.props.stageFieldUpdated} />}
+        render={(props) => <PatchManifestStageForm {...props} stageFieldUpdated={this.props.stageFieldUpdated} />}
       />
     );
   }

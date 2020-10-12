@@ -64,8 +64,8 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
 
   private fetchTemplates() {
     PipelineTemplateReader.getV2PipelineTemplateList().then(
-      templates => this.setState({ templates, templateVersionSelections: {} }),
-      err => {
+      (templates) => this.setState({ templates, templateVersionSelections: {} }),
+      (err) => {
         const errorString = get(err, 'data.message', get(err, 'message', ''));
         if (errorString) {
           this.setState({ fetchError: errorString });
@@ -125,7 +125,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     query: string,
   ): string => {
     const templateIds = flatMap(templateCollections, ([, templateCollection]) =>
-      templateCollection.map(template => getTemplateVersion(template)),
+      templateCollection.map((template) => getTemplateVersion(template)),
     );
     return `${templateIds.join('')}${query}`;
   };
@@ -160,7 +160,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     const { [actionKey]: templateVersion, templates } = this.state;
     const templateId = convertTemplateVersionToId(templateVersion);
     const { [templateId]: templateCollection = [] } = templates;
-    return templateCollection.find(template => getTemplateVersion(template) === templateVersion);
+    return templateCollection.find((template) => getTemplateVersion(template) === templateVersion);
   }
 
   private handleCreatePipelineClick(template: IPipelineTemplateV2): void {
@@ -203,7 +203,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                   type="search"
                   placeholder="Search pipeline templates"
                   className="form-control input-md"
-                  ref={input => input && input.focus()}
+                  ref={(input) => input && input.focus()}
                   onChange={this.onSearchFieldChanged}
                   value={searchValue}
                 />
@@ -238,7 +238,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                     const templateVersion =
                       templateVersionSelections[templateId] || getTemplateVersion(templateCollection[0]);
                     const currentTemplate = templateCollection.find(
-                      template => getTemplateVersion(template) === templateVersion,
+                      (template) => getTemplateVersion(template) === templateVersion,
                     );
                     const { metadata } = currentTemplate;
 
@@ -250,9 +250,11 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                         <td className="templates-table__template-versions">
                           <ReactSelectInput
                             clearable={false}
-                            onChange={e => this.handleSelectedTemplateVersionChange(e, templateId)}
+                            onChange={(e) => this.handleSelectedTemplateVersionChange(e, templateId)}
                             value={templateVersion}
-                            stringOptions={templateCollection.map(templateOption => getTemplateVersion(templateOption))}
+                            stringOptions={templateCollection.map((templateOption) =>
+                              getTemplateVersion(templateOption),
+                            )}
                           />
                         </td>
                         <td className="templates-table__template-actions">

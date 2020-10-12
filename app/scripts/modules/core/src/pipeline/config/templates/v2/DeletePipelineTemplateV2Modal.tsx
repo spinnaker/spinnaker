@@ -30,7 +30,7 @@ export class DeletePipelineTemplateV2Modal extends React.Component<
   private deleteTemplate = () => {
     PipelineTemplateWriter.deleteTemplate(this.props.template).then(
       () => this.props.onClose(),
-      err => this.setState({ deleteError: err }),
+      (err) => this.setState({ deleteError: err }),
     );
   };
 

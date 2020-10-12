@@ -18,7 +18,7 @@ module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT, [
   templateUrl: require('./regionFilter.component.html'),
   controller: [
     'regionFilterService',
-    function(regionFilterService) {
+    function (regionFilterService) {
       this.clearFilter = regionFilterService.clearFilter;
       this.toggleRegion = regionFilterService.toggleRegion;
       this.sortFilter = regionFilterService.sortFilter;

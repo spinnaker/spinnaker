@@ -18,7 +18,7 @@ module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
   'application',
   'serverGroup',
   'disabledServerGroups',
-  function($scope, $uibModalInstance, serverGroupWriter, application, serverGroup, disabledServerGroups) {
+  function ($scope, $uibModalInstance, serverGroupWriter, application, serverGroup, disabledServerGroups) {
     $scope.serverGroup = serverGroup;
     $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
     $scope.verification = {};
@@ -38,7 +38,7 @@ module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function() {
+    this.isValid = function () {
       const command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
@@ -53,20 +53,20 @@ module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
       modalInstance: $uibModalInstance,
     });
 
-    this.rollback = function() {
+    this.rollback = function () {
       this.submitting = true;
       if (!this.isValid()) {
         return;
       }
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
       };
 
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
   },

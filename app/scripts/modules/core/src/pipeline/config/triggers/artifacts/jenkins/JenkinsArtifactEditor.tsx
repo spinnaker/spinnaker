@@ -62,9 +62,9 @@ export const JenkinsDefault: IArtifactKindConfig = {
       IgorService.listBuildsForJob(this.props.account.name, name).then(
         (allBuilds: IBuild[]) => {
           const buildNumbers = allBuilds
-            .filter(build => !build.building && build.result === 'SUCCESS')
+            .filter((build) => !build.building && build.result === 'SUCCESS')
             .sort((a, b) => b.number - a.number)
-            .map(b => b.number);
+            .map((b) => b.number);
           this.setState({ buildNumbers });
         },
         () => {

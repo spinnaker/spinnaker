@@ -12,7 +12,7 @@ export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards co
 module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeService', [
   '$http',
   '$q',
-  function($http, $q) {
+  function ($http, $q) {
     const m5 = {
       type: 'm5',
       description:
@@ -170,7 +170,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
 
     const categories = defaultCategories
       .filter(({ type }) => !_.get(AWSProviderSettings, 'instanceTypes.exclude.categories', []).includes(type))
-      .map(category =>
+      .map((category) =>
         Object.assign({}, category, {
           families: category.families.filter(
             ({ type }) => !_.get(AWSProviderSettings, 'instanceTypes.exclude.families', []).includes(type),
@@ -185,9 +185,9 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
     const getAllTypesByRegion = function getAllTypesByRegion() {
       return API.one('instanceTypes')
         .get()
-        .then(function(types) {
+        .then(function (types) {
           return _.chain(types)
-            .map(function(type) {
+            .map(function (type) {
               return {
                 region: type.region,
                 account: type.account,
@@ -219,8 +219,8 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         return 0;
       }
 
-      const t1Idx = instanceClassOrder.findIndex(el => class1.endsWith(el));
-      const t2Idx = instanceClassOrder.findIndex(el => class2.endsWith(el));
+      const t1Idx = instanceClassOrder.findIndex((el) => class1.endsWith(el));
+      const t2Idx = instanceClassOrder.findIndex((el) => class2.endsWith(el));
 
       if (t1Idx === -1 || t2Idx === -1) {
         return 0;
@@ -256,7 +256,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       }
 
       // this will perform an unnecessary intersection with the first region, which is fine
-      selectedRegions.forEach(function(selectedRegion) {
+      selectedRegions.forEach(function (selectedRegion) {
         if (availableRegions[selectedRegion]) {
           availableTypes = _.intersection(availableTypes, _.map(availableRegions[selectedRegion], 'name'));
         }
@@ -273,7 +273,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
     };
 
     function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
-      return instanceTypes.filter(instanceType => {
+      return instanceTypes.filter((instanceType) => {
         if (virtualizationType === '*') {
           // show all instance types
           return true;

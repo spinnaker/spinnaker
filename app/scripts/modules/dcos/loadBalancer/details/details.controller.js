@@ -14,7 +14,7 @@ angular.module(DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, []).controller('dco
   'app',
   'dcosProxyUiService',
   '$q',
-  function($scope, $state, $uibModal, loadBalancer, app, dcosProxyUiService, $q) {
+  function ($scope, $state, $uibModal, loadBalancer, app, dcosProxyUiService, $q) {
     const application = app;
 
     $scope.state = {
@@ -22,7 +22,7 @@ angular.module(DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, []).controller('dco
     };
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.data.find(function(test) {
+      $scope.loadBalancer = application.loadBalancers.data.find(function (test) {
         return test.name === loadBalancer.name && test.account === loadBalancer.accountId;
       });
 
@@ -73,13 +73,13 @@ angular.module(DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, []).controller('dco
         controller: 'dcosUpsertLoadBalancerController as ctrl',
         size: 'lg',
         resolve: {
-          application: function() {
+          application: function () {
             return application;
           },
-          loadBalancer: function() {
+          loadBalancer: function () {
             return angular.copy($scope.loadBalancer);
           },
-          isNew: function() {
+          isNew: function () {
             return false;
           },
         },

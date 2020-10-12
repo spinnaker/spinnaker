@@ -33,7 +33,7 @@ angular
     'securityGroupReader',
     'loadBalancerReader',
     '$q',
-    function(
+    function (
       $scope,
       $state,
       $exceptionHandler,
@@ -51,7 +51,7 @@ angular
       $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
       function extractLoadBalancer() {
-        $scope.loadBalancer = app.loadBalancers.data.filter(function(test) {
+        $scope.loadBalancer = app.loadBalancers.data.filter(function (test) {
           return (
             test.name === loadBalancer.name &&
             test.region === loadBalancer.region &&
@@ -67,11 +67,11 @@ angular
             loadBalancer.name,
           );
 
-          return detailsLoader.then(function(details) {
+          return detailsLoader.then(function (details) {
             $scope.state.loading = false;
             const securityGroups = [];
 
-            const filtered = details.filter(function(test) {
+            const filtered = details.filter(function (test) {
               return test.name === loadBalancer.name;
             });
 
@@ -81,7 +81,7 @@ angular
               $scope.loadBalancer.account = loadBalancer.accountId;
 
               if ($scope.loadBalancer.elb.securityGroups) {
-                $scope.loadBalancer.elb.securityGroups.forEach(function(securityGroupId) {
+                $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
                   const match = securityGroupReader.getApplicationSecurityGroup(
                     app,
                     loadBalancer.accountId,
@@ -99,7 +99,7 @@ angular
                 const type = $scope.loadBalancer.loadBalancerType;
                 $scope.loadBalancer.loadBalancerType = type
                   .split('_')
-                  .map(s => {
+                  .map((s) => {
                     const ss = s.toLowerCase();
                     return ss.substring(0, 1).toUpperCase() + ss.substring(1);
                   })
@@ -132,16 +132,16 @@ angular
           controller: 'azureCreateLoadBalancerCtrl as ctrl',
           size: 'lg',
           resolve: {
-            application: function() {
+            application: function () {
               return app;
             },
-            loadBalancer: function() {
+            loadBalancer: function () {
               return angular.copy($scope.loadBalancer);
             },
-            isNew: function() {
+            isNew: function () {
               return false;
             },
-            loadBalancerType: function() {
+            loadBalancerType: function () {
               return { type: $scope.loadBalancer.loadBalancerType };
             },
           },

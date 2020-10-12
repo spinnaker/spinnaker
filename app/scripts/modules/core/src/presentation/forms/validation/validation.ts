@@ -53,7 +53,7 @@ export interface IArrayItemValidationBuilder extends IFormValidator {
 export const FORM_VALIDATION_VALIDATABLE_FIELD_IS_VALID_SHORT_CIRCUIT = '__FIELD_IS_VALID_SHORT_CIRCUIT__';
 
 export const composeValidators = (validators: IValidator[]): IValidator => {
-  const validatorList = validators.filter(x => !!x);
+  const validatorList = validators.filter((x) => !!x);
   if (!validatorList.length) {
     return null;
   } else if (validatorList.length === 1) {
@@ -61,9 +61,9 @@ export const composeValidators = (validators: IValidator[]): IValidator => {
   }
 
   const composedValidators: IValidator = (value: any, label?: string) => {
-    const results: IValidatorResult[] = validatorList.map(validator => validator(value, label));
+    const results: IValidatorResult[] = validatorList.map((validator) => validator(value, label));
     // Return the first error returned from a validator
-    return results.find(error => !!error);
+    return results.find((error) => !!error);
   };
 
   return composedValidators;

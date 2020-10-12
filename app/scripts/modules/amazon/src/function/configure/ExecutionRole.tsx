@@ -12,7 +12,8 @@ export interface IExecutionRoleProps {
   functionDef: IAmazonFunction;
 }
 
-export class ExecutionRole extends React.Component<IExecutionRoleProps>
+export class ExecutionRole
+  extends React.Component<IExecutionRoleProps>
   implements IWizardPageComponent<IAmazonFunctionUpsertCommand> {
   constructor(props: IExecutionRoleProps) {
     super(props);
@@ -20,10 +21,7 @@ export class ExecutionRole extends React.Component<IExecutionRoleProps>
 
   public validate(values: IAmazonFunctionUpsertCommand): FormikErrors<IAmazonFunctionUpsertCommand> {
     const validator = new FormValidator(values);
-    validator
-      .field('role', 'Role ARN')
-      .required()
-      .withValidators(iamRoleValidator);
+    validator.field('role', 'Role ARN').required().withValidators(iamRoleValidator);
     return validator.validateForm();
   }
 
@@ -35,7 +33,7 @@ export class ExecutionRole extends React.Component<IExecutionRoleProps>
             <FormikFormField
               name="role"
               label="Role ARN"
-              input={props => <TextInput {...props} placeholder="Enter role ARN" name="role" />}
+              input={(props) => <TextInput {...props} placeholder="Enter role ARN" name="role" />}
               required={true}
             />
           </div>

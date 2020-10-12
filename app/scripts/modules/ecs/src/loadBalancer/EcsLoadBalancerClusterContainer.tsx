@@ -10,13 +10,13 @@ export class EcsLoadBalancerClusterContainer extends React.Component<ILoadBalanc
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {
     const serverGroupsDiffer = () =>
       !isEqual(
-        (nextProps.serverGroups || []).map(g => g.name),
-        (this.props.serverGroups || []).map(g => g.name),
+        (nextProps.serverGroups || []).map((g) => g.name),
+        (this.props.serverGroups || []).map((g) => g.name),
       );
     const targetGroupsDiffer = () =>
       !isEqual(
-        ((nextProps.loadBalancer as IEcsLoadBalancer).targetGroups || []).map(t => t.targetGroupName),
-        ((this.props.loadBalancer as IEcsLoadBalancer).targetGroups || []).map(t => t.targetGroupName),
+        ((nextProps.loadBalancer as IEcsLoadBalancer).targetGroups || []).map((t) => t.targetGroupName),
+        ((this.props.loadBalancer as IEcsLoadBalancer).targetGroups || []).map((t) => t.targetGroupName),
       );
     return (
       nextProps.showInstances !== this.props.showInstances ||
@@ -31,7 +31,7 @@ export class EcsLoadBalancerClusterContainer extends React.Component<ILoadBalanc
     const { loadBalancer, showInstances, showServerGroups } = this.props;
     const lb = loadBalancer as IEcsLoadBalancer;
 
-    const TargetGroups = lb.targetGroups.map(targetGroup => {
+    const TargetGroups = lb.targetGroups.map((targetGroup) => {
       return (
         <EcsTargetGroup
           key={targetGroup.targetGroupName}

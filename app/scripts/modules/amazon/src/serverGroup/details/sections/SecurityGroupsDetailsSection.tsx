@@ -88,7 +88,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
   private updateSecurityGroups = (): void => {
     const { app, serverGroup } = this.props;
     confirmNotManaged(serverGroup, app).then(
-      notManaged =>
+      (notManaged) =>
         notManaged &&
         ModalInjector.modalService.open({
           templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
@@ -113,7 +113,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
     return (
       <CollapsibleSection heading={FirewallLabels.get('Firewalls')}>
         <ul>
-          {sortBy(securityGroups, 'name').map(securityGroup => (
+          {sortBy(securityGroups, 'name').map((securityGroup) => (
             <li key={securityGroup.name}>
               <UISref
                 to="^.firewallDetails"

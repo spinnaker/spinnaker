@@ -12,7 +12,7 @@ module(CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER, [UIROUTER_ANGULARJS]).con
   '$http',
   '$uibModalInstance',
   'canaryId',
-  function($scope, $http, $uibModalInstance, canaryId) {
+  function ($scope, $http, $uibModalInstance, canaryId) {
     $scope.command = {
       duration: null,
       durationUnit: 'h',
@@ -20,7 +20,7 @@ module(CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER, [UIROUTER_ANGULARJS]).con
 
     $scope.state = 'editing';
 
-    this.generateCanaryScore = function() {
+    this.generateCanaryScore = function () {
       $scope.state = 'submitting';
       const targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
       $http

@@ -11,7 +11,7 @@ import { module } from 'angular';
 
 export const CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE = 'spinnaker.core.modalWizard.subFormValidation.service';
 export const name = CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE; // for backwards compatibility
-module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSubFormValidation', function() {
+module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSubFormValidation', function () {
   let validatorRegistry = {};
 
   function buildWatchString(form, subForm, formKey) {
@@ -28,16 +28,16 @@ module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSub
   this.register = ({ subForm, page, validators = [] }) => {
     validators.push({
       watchString: buildWatchString(this.form, subForm, '$valid'),
-      validator: subFormIsValid => subFormIsValid,
+      validator: (subFormIsValid) => subFormIsValid,
     });
 
-    validatorRegistry[page] = validators.map(v => new Validator(v, this.scope, page));
+    validatorRegistry[page] = validators.map((v) => new Validator(v, this.scope, page));
 
     return this;
   };
 
   this.subFormsAreValid = () => {
-    return _.every(validatorRegistry, validatorsForPage => validatorsForPage.every(v => v.state.valid));
+    return _.every(validatorRegistry, (validatorsForPage) => validatorsForPage.every((v) => v.state.valid));
   };
 
   this.reset = () => {
@@ -55,7 +55,7 @@ module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSub
 
       scope[watchType](
         watchString,
-        value => {
+        (value) => {
           this.state.valid = validator(value);
 
           if (ModalWizard.getPage(this.page)) {
@@ -71,7 +71,7 @@ module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSub
     }
 
     emitValid() {
-      const pageIsValid = validatorRegistry[this.page].every(v => v.state.valid);
+      const pageIsValid = validatorRegistry[this.page].every((v) => v.state.valid);
 
       if (pageIsValid) {
         ModalWizard.markComplete(this.page);

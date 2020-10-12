@@ -17,19 +17,19 @@ describe('<ArtifactList/>', () => {
   beforeEach(mock.module(REACT_MODULE));
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
-  it('renders null when null artifacts are passed in', function() {
+  it('renders null when null artifacts are passed in', function () {
     const artifacts: IArtifact[] = null;
     component = shallow(<ArtifactList artifacts={artifacts} />);
     expect(component.get(0)).toEqual(null);
   });
 
-  it('renders null when 0 artifacts are passed in', function() {
+  it('renders null when 0 artifacts are passed in', function () {
     const artifacts: IArtifact[] = [];
     component = shallow(<ArtifactList artifacts={artifacts} />);
     expect(component.get(0)).toEqual(null);
   });
 
-  it('renders a list when artifacts are passed in', function() {
+  it('renders a list when artifacts are passed in', function () {
     const artifacts: IArtifact[] = [
       {
         id: 'abcd',

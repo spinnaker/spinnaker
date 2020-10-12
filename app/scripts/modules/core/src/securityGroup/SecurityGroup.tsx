@@ -81,7 +81,7 @@ const ServerGroups = ({ serverGroups }: { serverGroups: IServerGroupUsage[] }) =
       {serverGroups.length === 0 && <div className="small">No server groups</div>}
       {serverGroups.length > 0 && (
         <>
-          {serverGroups.map(serverGroup => (
+          {serverGroups.map((serverGroup) => (
             <ServerGroup key={serverGroup.name} serverGroup={serverGroup} />
           ))}
         </>
@@ -124,7 +124,7 @@ const LoadBalancers = ({ securityGroup }: { securityGroup: ISecurityGroup }) => 
       {securityGroup.usages.loadBalancers.length === 0 && <div className="small">No load balancers</div>}
       {securityGroup.usages.loadBalancers.length > 0 && (
         <>
-          {securityGroup.usages.loadBalancers.map(loadBalancer => (
+          {securityGroup.usages.loadBalancers.map((loadBalancer) => (
             <LoadBalancer key={loadBalancer.name} loadBalancer={loadBalancer} securityGroup={securityGroup} />
           ))}
         </>

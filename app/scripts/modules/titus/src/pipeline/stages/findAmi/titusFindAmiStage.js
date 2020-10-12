@@ -8,7 +8,7 @@ export const TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE = 'spinnaker.titus.
 export const name = TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE; // for backwards compatibility
 angular
   .module(TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImage',
       alias: 'findAmi',
@@ -23,7 +23,7 @@ angular
   })
   .controller('titusFindAmiStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -31,7 +31,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('titus').then(function(accounts) {
+      AccountService.listAccounts('titus').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

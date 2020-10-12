@@ -4,11 +4,11 @@ import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
-describe('Service: awsServerGroup', function() {
+describe('Service: awsServerGroup', function () {
   beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
 
   beforeEach(
-    window.inject(function(_$httpBackend_, awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {
+    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {
       this.$httpBackend = _$httpBackend_;
       this.service = awsServerGroupCommandBuilder;
       this.$q = _$q_;
@@ -19,8 +19,8 @@ describe('Service: awsServerGroup', function() {
 
   afterEach(AWSProviderSettings.resetToOriginal);
 
-  describe('buildServerGroupCommandFromPipeline', function() {
-    beforeEach(function() {
+  describe('buildServerGroupCommandFromPipeline', function () {
+    beforeEach(function () {
       this.cluster = {
         loadBalancers: ['elb-1'],
         account: 'prod',
@@ -48,9 +48,9 @@ describe('Service: awsServerGroup', function() {
       );
     });
 
-    it('applies account, region from cluster', function() {
+    it('applies account, region from cluster', function () {
       var command = null;
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function (result) {
         command = result;
       });
 
@@ -60,9 +60,9 @@ describe('Service: awsServerGroup', function() {
       expect(command.region).toBe('us-west-1');
     });
 
-    it('sets usePreferredZones', function() {
+    it('sets usePreferredZones', function () {
       var command = null;
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function (result) {
         command = result;
       });
 
@@ -71,7 +71,7 @@ describe('Service: awsServerGroup', function() {
 
       // remove an availability zone, should be false
       this.cluster.availabilityZones['us-west-1'].pop();
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function (result) {
         command = result;
       });
 
@@ -80,13 +80,13 @@ describe('Service: awsServerGroup', function() {
     });
   });
 
-  describe('buildServerGroupCommandFromExisting', function() {
-    beforeEach(function() {
+  describe('buildServerGroupCommandFromExisting', function () {
+    beforeEach(function () {
       spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(this.$q.when([]));
       spyOn(SubnetReader, 'listSubnets').and.returnValue(this.$q.when([]));
     });
 
-    it('retains non-core suspended processes', function() {
+    it('retains non-core suspended processes', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
@@ -100,7 +100,7 @@ describe('Service: awsServerGroup', function() {
         },
       };
       var command = null;
-      this.service.buildServerGroupCommandFromExisting({}, serverGroup).then(function(result) {
+      this.service.buildServerGroupCommandFromExisting({}, serverGroup).then(function (result) {
         command = result;
       });
 
@@ -108,7 +108,7 @@ describe('Service: awsServerGroup', function() {
       expect(command.suspendedProcesses).toEqual(['AZRebalance']);
     });
 
-    it('sets source capacity flags when creating for pipeline', function() {
+    it('sets source capacity flags when creating for pipeline', function () {
       var serverGroup = {
         asg: {
           availabilityZones: [],
@@ -117,7 +117,7 @@ describe('Service: awsServerGroup', function() {
         },
       };
       var command = null;
-      this.service.buildServerGroupCommandFromExisting({}, serverGroup, 'editPipeline').then(function(result) {
+      this.service.buildServerGroupCommandFromExisting({}, serverGroup, 'editPipeline').then(function (result) {
         command = result;
       });
 

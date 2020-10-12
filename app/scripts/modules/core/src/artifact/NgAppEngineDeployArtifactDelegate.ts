@@ -16,7 +16,7 @@ export class NgAppEngineDeployArtifactDelegate
     const { viewState } = $scope.command;
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(() => viewState.pipeline, viewState.stage);
     this.kinds = Registry.pipeline.getMatchArtifactKinds().filter((a: IArtifactKindConfig) => {
-      return a.customKind || offeredArtifactTypes.find(oat => oat.test(a.type));
+      return a.customKind || offeredArtifactTypes.find((oat) => oat.test(a.type));
     });
     this.refreshExpectedArtifacts();
   }
@@ -27,7 +27,7 @@ export class NgAppEngineDeployArtifactDelegate
   }
 
   public getSelectedExpectedArtifact(): IExpectedArtifact {
-    return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.expectedArtifactId);
+    return (this.getExpectedArtifacts() || []).find((ea) => ea.id === this.$scope.command.expectedArtifactId);
   }
 
   public getSelectedAccount(): IArtifactAccount {

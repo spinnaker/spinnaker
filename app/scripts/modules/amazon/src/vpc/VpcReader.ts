@@ -10,7 +10,7 @@ export class VpcReader {
       return this.cache;
     }
     this.cache = NetworkReader.listNetworksByProvider('aws').then((vpcs: IVpc[]) => {
-      return vpcs.map(vpc => {
+      return vpcs.map((vpc) => {
         vpc.label = vpc.name;
         vpc.deprecated = !!vpc.deprecated;
         if (vpc.deprecated) {
@@ -27,8 +27,8 @@ export class VpcReader {
   }
 
   public static getVpcName(id: string) {
-    return this.listVpcs().then(vpcs => {
-      const match = vpcs.find(test => {
+    return this.listVpcs().then((vpcs) => {
+      const match = vpcs.find((test) => {
         return test.id === id;
       });
       return match ? match.name : null;

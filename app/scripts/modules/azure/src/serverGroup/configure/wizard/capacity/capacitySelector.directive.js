@@ -6,7 +6,7 @@ export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECT
   'spinnaker.azure.serverGroup.configure.wizard.capacity.selector.directive';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE; // for backwards compatibility
 module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE, [])
-  .directive('azureServerGroupCapacitySelector', function() {
+  .directive('azureServerGroupCapacitySelector', function () {
     return {
       restrict: 'E',
       templateUrl: require('./capacitySelector.directive.html'),
@@ -18,4 +18,4 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE, [
       controller: 'azureServerGroupCapacitySelectorCtrl',
     };
   })
-  .controller('azureServerGroupCapacitySelectorCtrl', function() {});
+  .controller('azureServerGroupCapacitySelectorCtrl', function () {});

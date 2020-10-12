@@ -25,7 +25,7 @@ export const evaluateExpression = (context: object, value: string): IExpressionC
 
   try {
     const exprs = parseSpelExpressions(value);
-    const results = exprs.map(expr => expr.eval(context));
+    const results = exprs.map((expr) => expr.eval(context));
     return { value, spelError: null, spelPreview: results.join('') };
   } catch (err) {
     const spelError: ISpelError = {

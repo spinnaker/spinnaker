@@ -4,7 +4,7 @@ import { module } from 'angular';
 
 export const CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR = 'spinnaker.core.serverGroup.configure.common.costFactor';
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR; // for backwards compatibility
-module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor', function() {
+module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor', function () {
   return {
     restrict: 'E',
     scope: {
@@ -12,7 +12,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor',
       range: '=',
     },
     templateUrl: require('./costFactor.html'),
-    link: function(scope) {
+    link: function (scope) {
       function getUsage(factor) {
         return {
           used: new Array(factor + 1).join('$'),

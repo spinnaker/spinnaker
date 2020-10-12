@@ -9,7 +9,7 @@ import * as State from 'core/state';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
 
-describe('Service: instance writer', function() {
+describe('Service: instance writer', function () {
   let service: InstanceWriter, $q: ng.IQService, $scope: ng.IScope;
 
   beforeEach(() => State.initialize());
@@ -25,7 +25,7 @@ describe('Service: instance writer', function() {
   );
 
   describe('terminate and decrement server group', () => {
-    it('should set setMaxToNewDesired flag based on current server group capacity', function() {
+    it('should set setMaxToNewDesired flag based on current server group capacity', function () {
       const serverGroup = {
         asg: {
           minSize: 4,
@@ -77,7 +77,7 @@ describe('Service: instance writer', function() {
       instanceGroup.instances.push(instance);
     }
 
-    beforeEach(function() {
+    beforeEach(function () {
       task = null;
       serverGroupA = {
         type: 'aws',
@@ -195,7 +195,7 @@ describe('Service: instance writer', function() {
       expect(task.description).toBe('Terminate 2 instances');
     });
 
-    it('includes a useful descriptor on reboot instances', function() {
+    it('includes a useful descriptor on reboot instances', function () {
       const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
@@ -221,7 +221,7 @@ describe('Service: instance writer', function() {
       expect(task.description).toBe('Reboot 2 instances');
     });
 
-    it('includes a useful descriptor on disable in discovery', function() {
+    it('includes a useful descriptor on disable in discovery', function () {
       const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
@@ -247,7 +247,7 @@ describe('Service: instance writer', function() {
       expect(task.description).toBe('Disable 2 instances in discovery');
     });
 
-    it('includes a useful descriptor on enable in discovery', function() {
+    it('includes a useful descriptor on enable in discovery', function () {
       const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',

@@ -17,7 +17,7 @@ angular
     'application',
     'securityGroup',
     '$controller',
-    function($scope, $uibModalInstance, $state, application, securityGroup, $controller) {
+    function ($scope, $uibModalInstance, $state, application, securityGroup, $controller) {
       $scope.pages = {
         targets: require('./createSecurityGroupTargets.html'),
         sourceFilters: require('./createSecurityGroupSourceFilters.html'),
@@ -50,14 +50,14 @@ angular
         onTaskComplete: () => application.securityGroups.refresh(),
       });
 
-      securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {
+      securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function (sourceRange) {
         return { value: sourceRange };
       });
 
       securityGroup.ipIngress = _.chain(securityGroup.ipIngressRules)
-        .map(function(rule) {
+        .map(function (rule) {
           if (rule.portRanges && rule.portRanges.length > 0) {
-            return rule.portRanges.map(function(portRange) {
+            return rule.portRanges.map(function (portRange) {
               return {
                 type: rule.protocol,
                 startPort: portRange.startPort,
@@ -77,19 +77,19 @@ angular
 
       securityGroup.sourceTags = securityGroup.sourceTags || [];
 
-      this.getSecurityGroupRefreshTime = function() {
+      this.getSecurityGroupRefreshTime = function () {
         return InfrastructureCaches.get('securityGroups').getStats().ageMax;
       };
 
-      this.addSourceCIDR = function(sourceRanges) {
+      this.addSourceCIDR = function (sourceRanges) {
         sourceRanges.push({ value: '0.0.0.0/0' });
       };
 
-      this.removeSourceCIDR = function(sourceRanges, index) {
+      this.removeSourceCIDR = function (sourceRanges, index) {
         sourceRanges.splice(index, 1);
       };
 
-      this.addRule = function(ruleset) {
+      this.addRule = function (ruleset) {
         ruleset.push({
           type: 'tcp',
           startPort: 7001,
@@ -97,13 +97,13 @@ angular
         });
       };
 
-      this.removeRule = function(ruleset, index) {
+      this.removeRule = function (ruleset, index) {
         ruleset.splice(index, 1);
       };
 
-      this.upsert = function() {
-        $scope.taskMonitor.submit(function() {
-          const allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+      this.upsert = function () {
+        $scope.taskMonitor.submit(function () {
+          const allowed = _.map($scope.securityGroup.ipIngress, function (ipIngressRule) {
             const rule = {
               ipProtocol: ipIngressRule.type,
             };
@@ -125,7 +125,7 @@ angular
         });
       };
 
-      this.cancel = function() {
+      this.cancel = function () {
         $uibModalInstance.dismiss();
       };
     },

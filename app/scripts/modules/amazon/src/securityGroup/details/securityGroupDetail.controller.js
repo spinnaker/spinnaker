@@ -36,7 +36,7 @@ angular
     'app',
     'securityGroupReader',
     '$uibModal',
-    function($scope, $state, resolvedSecurityGroup, app, securityGroupReader, $uibModal) {
+    function ($scope, $state, resolvedSecurityGroup, app, securityGroupReader, $uibModal) {
       this.application = app;
       const application = app;
       const securityGroup = resolvedSecurityGroup;
@@ -60,13 +60,13 @@ angular
             securityGroup.vpcId,
             securityGroup.name,
           )
-          .then(function(details) {
-            return VpcReader.getVpcName(details.vpcId).then(name => {
+          .then(function (details) {
+            return VpcReader.getVpcName(details.vpcId).then((name) => {
               details.vpcName = name;
               return details;
             });
           })
-          .then(function(details) {
+          .then(function (details) {
             $scope.state.loading = false;
 
             if (!details || _.isEmpty(details)) {
@@ -88,33 +88,33 @@ angular
       }
 
       function buildIpRulesModel(details) {
-        const groupedRangeRules = _.groupBy(details.ipRangeRules, rule => rule.range.ip + rule.range.cidr);
+        const groupedRangeRules = _.groupBy(details.ipRangeRules, (rule) => rule.range.ip + rule.range.cidr);
         return Object.keys(groupedRangeRules)
-          .map(addr => {
+          .map((addr) => {
             return {
               address: addr,
               rules: buildRuleModel(groupedRangeRules, addr),
             };
           })
-          .filter(rule => rule.rules.length);
+          .filter((rule) => rule.rules.length);
       }
 
       function buildSecurityGroupRulesModel(details) {
-        const groupedRangeRules = _.groupBy(details.securityGroupRules, rule => rule.securityGroup.id);
+        const groupedRangeRules = _.groupBy(details.securityGroupRules, (rule) => rule.securityGroup.id);
         return Object.keys(groupedRangeRules)
-          .map(addr => {
+          .map((addr) => {
             return {
               securityGroup: groupedRangeRules[addr][0].securityGroup,
               rules: buildRuleModel(groupedRangeRules, addr),
             };
           })
-          .filter(rule => rule.rules.length);
+          .filter((rule) => rule.rules.length);
       }
 
       function buildRuleModel(groupedRangeRules, addr) {
         const rules = [];
-        groupedRangeRules[addr].forEach(rule => {
-          (rule.portRanges || []).forEach(range => {
+        groupedRangeRules[addr].forEach((rule) => {
+          (rule.portRanges || []).forEach((range) => {
             if (rule.protocol === '-1' || (range.startPort !== undefined && range.endPort !== undefined)) {
               rules.push({
                 startPort: range.startPort,
@@ -155,17 +155,17 @@ angular
       }
 
       this.editInboundRules = function editInboundRules() {
-        confirmNotManaged($scope.securityGroup, application).then(notManaged => {
+        confirmNotManaged($scope.securityGroup, application).then((notManaged) => {
           notManaged &&
             $uibModal.open({
               templateUrl: require('../configure/editSecurityGroup.html'),
               controller: 'awsEditSecurityGroupCtrl as ctrl',
               size: 'lg',
               resolve: {
-                securityGroup: function() {
+                securityGroup: function () {
                   return angular.copy($scope.securityGroup);
                 },
-                application: function() {
+                application: function () {
                   return application;
                 },
               },
@@ -179,14 +179,14 @@ angular
           controller: 'awsCloneSecurityGroupController as ctrl',
           size: 'lg',
           resolve: {
-            securityGroup: function() {
+            securityGroup: function () {
               const securityGroup = angular.copy($scope.securityGroup);
               if (securityGroup.region) {
                 securityGroup.regions = [securityGroup.region];
               }
               return securityGroup;
             },
-            application: function() {
+            application: function () {
               return application;
             },
           },
@@ -216,7 +216,7 @@ angular
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
         };
 
-        confirmNotManaged($scope.securityGroup, application).then(notManaged => {
+        confirmNotManaged($scope.securityGroup, application).then((notManaged) => {
           notManaged &&
             ConfirmationModalService.confirm({
               header: 'Really delete ' + securityGroup.name + '?',

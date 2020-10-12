@@ -27,8 +27,9 @@
           ng-repeat="vpc in $ctrl.regionalVpcs[$ctrl.rule.accountName]"
           value="{{ vpc.id }}"
           ng-selected="$ctrl.rule.vpcId === vpc.id"
-          >{{ vpc.label }}</option
         >
+          {{ vpc.label }}
+        </option>
       </select>
     </div>
   </div>

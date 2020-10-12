@@ -66,11 +66,11 @@ export class ServerGroupBasicSettings
     const { values } = props.formik;
     const { mode } = values.viewState;
     const namePreview = NameUtils.getClusterName(app.name, values.stack, values.freeFormDetails);
-    const createsNewCluster = !app.clusters.find(c => c.name === namePreview);
+    const createsNewCluster = !app.clusters.find((c) => c.name === namePreview);
     const showPreviewAsWarning = (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
 
     const inCluster = (app.serverGroups.data as IServerGroup[])
-      .filter(serverGroup => {
+      .filter((serverGroup) => {
         return (
           serverGroup.cluster === namePreview &&
           serverGroup.account === values.credentials &&
@@ -160,7 +160,7 @@ export class ServerGroupBasicSettings
   };
 
   private dockerValuesChanged = (dockerValues: any) => {
-    Object.keys(dockerValues).forEach(key => {
+    Object.keys(dockerValues).forEach((key) => {
       this.props.formik.setFieldValue(key, dockerValues[key]);
     });
   };
@@ -221,7 +221,7 @@ export class ServerGroupBasicSettings
               type="text"
               className="form-control input-sm no-spel"
               value={values.stack || ''}
-              onChange={e => this.stackChanged(e.target.value)}
+              onChange={(e) => this.stackChanged(e.target.value)}
             />
           </div>
         </div>
@@ -269,7 +269,7 @@ export class ServerGroupBasicSettings
                 <input
                   type="checkbox"
                   checked={values.inService}
-                  onChange={e => setFieldValue('inService', e.target.checked)}
+                  onChange={(e) => setFieldValue('inService', e.target.checked)}
                   disabled={values.strategy !== '' && values.strategy !== 'custom'}
                 />{' '}
                 Send client requests to new instances

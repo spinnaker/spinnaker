@@ -94,7 +94,7 @@ export class JsonUtils {
     let unchanged = 0;
     let total = 0;
     const changeBlocks: IChangeBlock[] = [];
-    diffs.forEach(diff => {
+    diffs.forEach((diff) => {
       const lines = diff[1].split('\n');
       if (lines[lines.length - 1] === '') {
         lines.pop(); // always a trailing new line...
@@ -116,7 +116,7 @@ export class JsonUtils {
       lines.forEach((l: string) => diffLines.push({ type, text: l }));
       total += lines.length;
     });
-    changeBlocks.forEach(b => {
+    changeBlocks.forEach((b) => {
       b.height = (b.lines * 100) / total;
       b.top = (b.start * 100) / total;
     });

@@ -12,7 +12,7 @@ export interface IFilterSearchProps {
 
 export const FilterSearch = ({ helpKey, onBlur, onSearchChange, value }: IFilterSearchProps) => (
   <div className="FilterSearch sp-margin-s-right">
-    <form className="horizontal middle" role="form" onSubmit={e => e.preventDefault()}>
+    <form className="horizontal middle" role="form" onSubmit={(e) => e.preventDefault()}>
       <div className="form-group nav-search">
         <input
           type="search"

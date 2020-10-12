@@ -9,7 +9,7 @@ module(DCOS_JOB_SCHEDULE_COMPONENT, []).component('dcosSchedule', {
     schedule: '=',
   },
   templateUrl: require('./schedule.component.html'),
-  controller: function() {
+  controller: function () {
     if (this.schedule === undefined || this.schedule == null) {
       this.schedule = {};
     }

@@ -60,11 +60,11 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
         !(s.serverGroupManagers || []).length,
     );
 
-    const grouped = groupBy(serverGroups, serverGroup =>
+    const grouped = groupBy(serverGroups, (serverGroup) =>
       [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':'),
     );
 
-    Object.keys(grouped).forEach(key => {
+    Object.keys(grouped).forEach((key) => {
       // Only include the most recent server group in a cluster (e.g., if v001 and v002 exist, only include v002).
       const latest = sortBy(grouped[key], 'name').pop();
       const [kind, name] = latest.name.split(' ');
@@ -101,7 +101,7 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
 
     manifests = sortBy(
       manifests,
-      manifest => {
+      (manifest) => {
         // TODO(dpeach): Could load an account here, then use the spinnakerKind -> kubernetesKind map to
         // construct a more maintainable ordering.
         const order = [

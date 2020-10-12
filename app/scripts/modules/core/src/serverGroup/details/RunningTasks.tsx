@@ -29,10 +29,10 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
         >
           {tasks
             .sort((a, b) => a.startTime - b.startTime)
-            .map(task => (
+            .map((task) => (
               <Task key={task.id} task={task} application={application} />
             ))}
-          {executions.map(execution => (
+          {executions.map((execution) => (
             <Execution key={execution.id} execution={execution} />
           ))}
         </CollapsibleSection>
@@ -66,7 +66,7 @@ const Task = (props: { task: ITask; application: Application }): JSX.Element => 
 const Execution = (props: { execution: IExecution }): JSX.Element => (
   <div>
     <strong>Pipeline: {props.execution.name}</strong>
-    {props.execution.stages.map(stage => (
+    {props.execution.stages.map((stage) => (
       <div className="flex-container-h baseline margin-between-sm">
         <span className="small">
           <StatusGlyph item={stage} />

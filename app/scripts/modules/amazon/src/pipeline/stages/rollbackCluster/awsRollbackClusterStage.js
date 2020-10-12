@@ -8,7 +8,7 @@ export const AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE =
   'spinnaker.amazon.pipeline.stage.rollbackClusterStage';
 export const name = AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'rollbackCluster',
       cloudProvider: 'aws',
@@ -22,7 +22,7 @@ module(AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE, [])
   })
   .controller('awsRollbackClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -32,7 +32,7 @@ module(AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

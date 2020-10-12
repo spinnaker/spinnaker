@@ -115,7 +115,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}
-          render={formik => {
+          render={(formik) => {
             return (
               <>
                 <ModalClose dismiss={this.close} />
@@ -130,7 +130,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
                         <FormikFormField
                           name="restoreServerGroupName"
                           fastField={true}
-                          input={props => (
+                          input={(props) => (
                             <ReactSelectInput
                               inputClassName="cloudfoundry-react-select"
                               {...props}
@@ -144,7 +144,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
                         />
                       </div>
                     </div>
-                    <TaskReason reason={formik.values.reason} onChange={val => formik.setFieldValue('reason', val)} />
+                    <TaskReason reason={formik.values.reason} onChange={(val) => formik.setFieldValue('reason', val)} />
                   </Form>
                   <div className="row">
                     <div className="col-sm-4 sm-label-right">Rollback Operations</div>

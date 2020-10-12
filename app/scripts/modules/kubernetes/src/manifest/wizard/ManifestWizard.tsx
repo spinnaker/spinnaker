@@ -42,7 +42,7 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
   constructor(props: IKubernetesManifestModalProps) {
     super(props);
     if (!props.command) {
-      KubernetesManifestCommandBuilder.buildNewManifestCommand(props.application).then(command => {
+      KubernetesManifestCommandBuilder.buildNewManifestCommand(props.application).then((command) => {
         Object.assign(this.state.command, command);
         this.setState({ loaded: true });
       });

@@ -131,7 +131,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     return (
       <>
         <textarea
-          onChange={e => e} // no-op to prevent warnings
+          onChange={(e) => e} // no-op to prevent warnings
           ref={this.inputRef}
           value={text}
           tabIndex={-1}

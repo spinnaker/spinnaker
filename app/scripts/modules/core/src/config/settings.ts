@@ -145,8 +145,8 @@ SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
 const originalSettings: ISpinnakerSettings = cloneDeep(SETTINGS);
 SETTINGS.resetToOriginal = () => {
   Object.keys(SETTINGS)
-    .filter(k => typeof SETTINGS[k] !== 'function') // maybe don't self-destruct
-    .forEach(k => delete SETTINGS[k]);
+    .filter((k) => typeof SETTINGS[k] !== 'function') // maybe don't self-destruct
+    .forEach((k) => delete SETTINGS[k]);
   merge(SETTINGS, originalSettings);
 };
 
@@ -154,8 +154,8 @@ SETTINGS.resetProvider = (provider: string) => {
   return () => {
     const providerSettings: IProviderSettings = SETTINGS.providers[provider];
     Object.keys(providerSettings)
-      .filter(k => typeof (providerSettings as any)[k] !== 'function')
-      .forEach(k => delete (providerSettings as any)[k]);
+      .filter((k) => typeof (providerSettings as any)[k] !== 'function')
+      .forEach((k) => delete (providerSettings as any)[k]);
     merge(providerSettings, originalSettings.providers[provider]);
   };
 };

@@ -129,10 +129,10 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
             <div className="horizontal middle">
               <FormikFormField
                 name="desired"
-                input={props => <NumberInput {...props} min={0} />}
+                input={(props) => <NumberInput {...props} min={0} />}
                 touched={true}
                 required={true}
-                onChange={value => {
+                onChange={(value) => {
                   formik.setFieldValue('min', value);
                   formik.setFieldValue('max', value);
                 }}
@@ -170,10 +170,10 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
             <div className="horizontal middle">
               <FormikFormField
                 name={field}
-                input={props => <NumberInput {...props} min={64} />}
+                input={(props) => <NumberInput {...props} min={64} />}
                 touched={true}
                 required={true}
-                onChange={value => {
+                onChange={(value) => {
                   formik.setFieldValue('min', value);
                   formik.setFieldValue('max', value);
                 }}
@@ -198,7 +198,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}
-          render={formik => {
+          render={(formik) => {
             return (
               <>
                 <ModalClose dismiss={this.close} />
@@ -210,7 +210,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
                     {this.renderDesired(formik)}
                     {this.renderQuota(formik, 'diskQuota', 'Disk (MB)', diskQuota)}
                     {this.renderQuota(formik, 'memory', 'Mem (MB)', memory)}
-                    <TaskReason reason={formik.values.reason} onChange={val => formik.setFieldValue('reason', val)} />
+                    <TaskReason reason={formik.values.reason} onChange={(val) => formik.setFieldValue('reason', val)} />
                   </Form>
                 </Modal.Body>
                 <ModalFooter>

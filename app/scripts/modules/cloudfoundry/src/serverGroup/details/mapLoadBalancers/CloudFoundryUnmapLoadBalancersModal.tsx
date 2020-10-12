@@ -106,7 +106,7 @@ export class CloudFoundryUnmapLoadBalancersModal extends React.Component<
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}
-          render={formik => {
+          render={(formik) => {
             return (
               <>
                 <ModalClose dismiss={this.close} />

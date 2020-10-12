@@ -1,6 +1,6 @@
 import { ApplicationModelBuilder, InstanceReader } from '@spinnaker/core';
 
-describe('Controller: awsInstanceDetailsCtrl', function() {
+describe('Controller: awsInstanceDetailsCtrl', function () {
   var controller;
   var scope;
   var $q;
@@ -9,11 +9,11 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
   beforeEach(window.module(require('./instance.details.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_) {
+    window.inject(function ($rootScope, $controller, _$q_) {
       scope = $rootScope.$new();
       $q = _$q_;
 
-      this.createController = function(application, instance) {
+      this.createController = function (application, instance) {
         controller = $controller('awsInstanceDetailsCtrl', {
           $scope: scope,
           app: application,
@@ -32,8 +32,8 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
     }),
   );
 
-  describe('health metrics', function() {
-    it('overrides new health with health from application, adding new fields', function() {
+  describe('health metrics', function () {
+    it('overrides new health with health from application, adding new fields', function () {
       var details = {
         health: [{ type: 'Discovery', status: 'Up', extra: 'details field', reason: 'mutated' }],
       };
@@ -71,8 +71,8 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
     });
   });
 
-  describe('canRegister methods', function() {
-    beforeEach(function() {
+  describe('canRegister methods', function () {
+    beforeEach(function () {
       var details = {};
       var params = {
         instanceId: 'i-123',
@@ -82,7 +82,7 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
 
       spyOn(InstanceReader, 'getInstanceDetails').and.returnValue(
         $q.when({
-          plain: function() {
+          plain: function () {
             return details;
           },
         }),
@@ -108,7 +108,7 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
       scope.$digest();
     });
 
-    it('can register with discovery when discovery', function() {
+    it('can register with discovery when discovery', function () {
       expect(controller.canRegisterWithDiscovery()).toBe(false);
       scope.instance.health[0].state = 'OutOfService';
       expect(controller.canRegisterWithDiscovery()).toBe(true);
@@ -118,7 +118,7 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
       expect(controller.canRegisterWithDiscovery()).toBe(false);
     });
 
-    it('can register with load balancer', function() {
+    it('can register with load balancer', function () {
       expect(controller.canRegisterWithLoadBalancer()).toBe(false);
       scope.instance.health[0].type = 'LoadBalancer';
       scope.instance.health[0].state = 'OutOfService';

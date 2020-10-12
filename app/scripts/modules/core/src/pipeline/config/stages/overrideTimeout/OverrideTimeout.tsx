@@ -22,9 +22,7 @@ const toHoursAndMinutes = (ms: number) => {
   if (!ms) {
     return { hours: 0, minutes: 0 };
   } else {
-    const { hours, minutes } = Duration.fromMillis(ms)
-      .shiftTo('hours', 'minutes')
-      .toObject();
+    const { hours, minutes } = Duration.fromMillis(ms).shiftTo('hours', 'minutes').toObject();
 
     return {
       hours: Math.floor(hours),

@@ -9,7 +9,7 @@ describe('JsonUtilityService', () => {
     expect(result.summary).toEqual({ additions: 5, removals: 4, unchanged: 14, total: 23 });
     expect(result.changeBlocks.length).toBe(8);
     expect(result.details.length).toBe(23);
-    expect(result.details.map(d => d.text)).toEqual([
+    expect(result.details.map((d) => d.text)).toEqual([
       '{',
       '  "arr": [',
       '    "b",',

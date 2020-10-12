@@ -1,10 +1,10 @@
 'use strict';
 
-describe('Filter: regional', function() {
+describe('Filter: regional', function () {
   beforeEach(window.module(require('./image.regional.filter').name));
 
   beforeEach(
-    window.inject(function(_regionalFilter_) {
+    window.inject(function (_regionalFilter_) {
       this.regionalFilter = _regionalFilter_;
       this._ = _;
 
@@ -25,7 +25,7 @@ describe('Filter: regional', function() {
     }),
   );
 
-  it('filters the images based on the selected region and null', function() {
+  it('filters the images based on the selected region and null', function () {
     var noEast = [
       {
         name: 'null',

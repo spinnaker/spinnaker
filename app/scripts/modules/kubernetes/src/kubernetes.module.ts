@@ -48,7 +48,7 @@ import './pipelines/validation/manifestSelector.validator';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

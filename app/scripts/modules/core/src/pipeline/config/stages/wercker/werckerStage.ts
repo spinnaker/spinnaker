@@ -102,11 +102,11 @@ export class WerckerStage implements IController {
     if (this.stage && this.stage.master) {
       this.viewState.appsLoaded = false;
       this.apps = [];
-      IgorService.listJobsForMaster(this.stage.master).then(jobs => {
+      IgorService.listJobsForMaster(this.stage.master).then((jobs) => {
         this.viewState.appsLoaded = true;
         this.viewState.appsRefreshing = false;
         const apps = Object.create({});
-        jobs.forEach(function(app) {
+        jobs.forEach(function (app) {
           const orgApp = app.substring(app.indexOf('/') + 1, app.lastIndexOf('/'));
           apps[orgApp] = orgApp;
         });
@@ -134,7 +134,7 @@ export class WerckerStage implements IController {
       if (this.jobs) {
         const pipelines = Object.create({});
         const appSelected = this.stage.app;
-        this.jobs.forEach(function(app) {
+        this.jobs.forEach(function (app) {
           if (
             !app.startsWith('pipeline') &&
             appSelected === app.substring(app.indexOf('/') + 1, app.lastIndexOf('/'))

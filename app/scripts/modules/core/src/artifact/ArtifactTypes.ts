@@ -25,5 +25,5 @@ export const ArtifactTypePatterns: IArtifactTypePatterns = {
 
 export const excludeAllTypesExcept = (...types: RegExp[]) =>
   Object.keys(ArtifactTypePatterns)
-    .map(k => ArtifactTypePatterns[k])
-    .filter(type => !types.includes(type));
+    .map((k) => ArtifactTypePatterns[k])
+    .filter((type) => !types.includes(type));

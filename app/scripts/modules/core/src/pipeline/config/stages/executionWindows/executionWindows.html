@@ -49,9 +49,7 @@
         <div class="dividers">
           <div ng-repeat="divider in dividers" class="divider" style="left: {{divider.left}}">
             <div class="divider-filler"></div>
-            <div class="divider-label">
-              {{divider.label}}
-            </div>
+            <div class="divider-label">{{divider.label}}</div>
           </div>
         </div>
       </div>
@@ -65,39 +63,31 @@
   <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="window-entry">
     <div class="form-group">
       <div class="col-md-6 col-md-offset-1">
-        <span class="start-end-divider">
-          From
-        </span>
+        <span class="start-end-divider"> From </span>
         <select
           class="input input-sm"
           ng-model="window.startHour"
           ng-options="option.value as option.label for option in hours"
-        >
-        </select>
+        ></select>
         :
         <select
           class="input input-sm"
           ng-model="window.startMin"
           ng-options="option.value as option.label for option in minutes"
-        >
-        </select>
-        <span class="start-end-divider">
-          to
-        </span>
+        ></select>
+        <span class="start-end-divider"> to </span>
 
         <select
           class="input input-sm"
           ng-model="window.endHour"
           ng-options="option.value as option.label for option in hours"
-        >
-        </select>
+        ></select>
         :
         <select
           class="input input-sm"
           ng-model="window.endMin"
           ng-options="option.value as option.label for option in minutes"
-        >
-        </select>
+        ></select>
 
         <button class="btn-link btn-remove" ng-click="executionWindowsCtrl.removeWindow($index)">
           <span class="glyphicon glyphicon-trash" uib-tooltip="Remove window"></span

@@ -23,7 +23,7 @@ export function RouteDomainSelectField(props: IRouteDomainSelectFieldProps) {
           <select
             className="form-control input-sm"
             value={props.component[props.field]}
-            onChange={event => {
+            onChange={(event) => {
               props.component[props.field] = event.target.value;
               props.onChange(event.target.value);
             }}
@@ -32,7 +32,7 @@ export function RouteDomainSelectField(props: IRouteDomainSelectFieldProps) {
             <option value="" disabled={true}>
               Select...
             </option>
-            {props.domains.map(domain => {
+            {props.domains.map((domain) => {
               return (
                 <option key={domain.name} value={domain.name}>
                   {domain.name}

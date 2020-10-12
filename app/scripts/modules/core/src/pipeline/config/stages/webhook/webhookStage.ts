@@ -148,15 +148,15 @@ export class WebhookStage implements IController {
   }
 
   public failFastCodesChanged(): void {
-    const failFastCodes = this.viewState.failFastStatusCodes.split(',').map(x => x.trim());
+    const failFastCodes = this.viewState.failFastStatusCodes.split(',').map((x) => x.trim());
 
-    this.stage.failFastStatusCodes = failFastCodes.map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+    this.stage.failFastStatusCodes = failFastCodes.map((x) => parseInt(x, 10)).filter((x) => !isNaN(x));
   }
 
   public retryCodesChanged(): void {
-    const retryCodes = this.viewState.retryStatusCodes.split(',').map(x => x.trim());
+    const retryCodes = this.viewState.retryStatusCodes.split(',').map((x) => x.trim());
 
-    this.stage.retryStatusCodes = retryCodes.map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+    this.stage.retryStatusCodes = retryCodes.map((x) => parseInt(x, 10)).filter((x) => !isNaN(x));
   }
 
   public customHeaderCount(): number {
@@ -184,7 +184,7 @@ export class WebhookStage implements IController {
   }
 
   public displayField(field: string): boolean {
-    return !this.preconfiguredProperties || !this.preconfiguredProperties.some(property => property === field);
+    return !this.preconfiguredProperties || !this.preconfiguredProperties.some((property) => property === field);
   }
 }
 

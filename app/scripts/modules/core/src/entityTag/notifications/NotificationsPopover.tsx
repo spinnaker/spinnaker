@@ -95,13 +95,13 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const { tags, type } = newProps;
 
     const buildNotifications = (list: INotification[], entityTags: IEntityTags) =>
-      list.concat(entityTags[type].map(entityTag => ({ entityTags, entityTag })));
-    const notifications: INotification[] = tags.filter(x => !!x).reduce(buildNotifications, []);
+      list.concat(entityTags[type].map((entityTag) => ({ entityTags, entityTag })));
+    const notifications: INotification[] = tags.filter((x) => !!x).reduce(buildNotifications, []);
 
     const count = notifications.length;
 
-    const severity = uniq(notifications.map(notification => notification.entityTag.category))
-      .map(category => NotificationCategories.getCategory(category))
+    const severity = uniq(notifications.map((notification) => notification.entityTag.category))
+      .map((category) => NotificationCategories.getCategory(category))
       .reduce((max: number, category: INotificationCategory) => Math.max(max, category.severity), 0);
 
     return { notifications, count, severity };

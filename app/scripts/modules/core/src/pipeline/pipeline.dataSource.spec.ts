@@ -6,7 +6,7 @@ import { ApplicationDataSourceRegistry } from '../application/service/Applicatio
 import { EXECUTION_SERVICE } from './service/execution.service';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
-describe('Pipeline Data Source', function() {
+describe('Pipeline Data Source', function () {
   let application: Application, executionService: any, $scope: ng.IScope, $q: ng.IQService;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
@@ -21,7 +21,7 @@ describe('Pipeline Data Source', function() {
   );
 
   beforeEach(
-    mock.inject(function(_executionService_: any, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) {
+    mock.inject(function (_executionService_: any, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;
@@ -38,14 +38,14 @@ describe('Pipeline Data Source', function() {
     $scope.$digest();
   }
 
-  describe('loading executions', function() {
-    beforeEach(function() {
+  describe('loading executions', function () {
+    beforeEach(function () {
       spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
     });
 
-    it('loads executions and sets appropriate flags', function() {
+    it('loads executions and sets appropriate flags', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.when([{ status: 'SUCCEEDED', stages: [] }]));
       configureApplication();
       application.getDataSource('executions').activate();
@@ -55,7 +55,7 @@ describe('Pipeline Data Source', function() {
       expect(application.getDataSource('executions').loadFailure).toBe(false);
     });
 
-    it('sets appropriate flags when execution load fails', function() {
+    it('sets appropriate flags when execution load fails', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.reject(null));
       configureApplication();
       application.getDataSource('executions').activate();
@@ -66,14 +66,14 @@ describe('Pipeline Data Source', function() {
     });
   });
 
-  describe('reload executions', function() {
-    beforeEach(function() {
+  describe('reload executions', function () {
+    beforeEach(function () {
       spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
     });
 
-    it('reloads executions and sets appropriate flags', function() {
+    it('reloads executions and sets appropriate flags', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.when([]));
       configureApplication();
       application.getDataSource('executions').activate();
@@ -91,7 +91,7 @@ describe('Pipeline Data Source', function() {
       expect(application.getDataSource('executions').loadFailure).toBe(false);
     });
 
-    it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function() {
+    it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.reject(null));
       let errorsHandled = 0,
         successesHandled = 0;
@@ -118,13 +118,13 @@ describe('Pipeline Data Source', function() {
     });
   });
 
-  describe('loading pipeline configs', function() {
-    beforeEach(function() {
+  describe('loading pipeline configs', function () {
+    beforeEach(function () {
       spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
       spyOn(executionService, 'getExecutions').and.returnValue($q.when([]));
     });
 
-    it('loads configs and sets appropriate flags', function() {
+    it('loads configs and sets appropriate flags', function () {
       spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
       configureApplication();
@@ -138,7 +138,7 @@ describe('Pipeline Data Source', function() {
       expect(application.getDataSource('pipelineConfigs').loadFailure).toBe(false);
     });
 
-    it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function() {
+    it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function () {
       spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
       let errorsHandled = 0,

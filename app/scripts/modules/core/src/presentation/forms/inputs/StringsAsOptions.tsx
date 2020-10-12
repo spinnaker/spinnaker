@@ -15,7 +15,7 @@ interface IStringOptionsState {
 
 const makeOptions = (options: string[]): Array<Option<string>> => {
   options = options || [];
-  return options.map(str => ({ label: str, value: str }));
+  return options.map((str) => ({ label: str, value: str }));
 };
 
 /**

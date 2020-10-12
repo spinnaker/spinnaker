@@ -7,14 +7,14 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE = 'spinnaker.gce.pipeline.stage..resizeAsgStage';
 export const name = GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./resizeAsgStage.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       supportsCustomTimeout: true,
       validators: [
         {
@@ -32,7 +32,7 @@ module(GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE, [])
   })
   .controller('gceResizeAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -42,7 +42,7 @@ module(GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -105,7 +105,7 @@ module(GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE, [])
         stage.regions.push($scope.application.defaultRegions.gce);
       }
 
-      ctrl.updateResizeType = function() {
+      ctrl.updateResizeType = function () {
         if (stage.action === 'scale_exact') {
           stage.resizeType = 'exact';
           delete stage.scalePct;

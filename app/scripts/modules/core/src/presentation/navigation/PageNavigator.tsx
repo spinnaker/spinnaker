@@ -91,7 +91,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
     const navigatorRect = this.element.get(0).getBoundingClientRect();
     const scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
 
-    const currentPage = this.state.pages.find(p => {
+    const currentPage = this.state.pages.find((p) => {
       const content = this.container.find(`[data-page-content=${p.key}]`);
       if (content.length) {
         return content.get(0).getBoundingClientRect().bottom > scrollableContainerTop;
@@ -135,7 +135,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
 
   private updatePagesConfig(page: INavigationPage): void {
     const pages = [...this.state.pages];
-    const pageConfig = pages.find(p => p.key === page.key);
+    const pageConfig = pages.find((p) => p.key === page.key);
     if (pageConfig) {
       pageConfig.badge = page.badge;
       pageConfig.label = page.label;

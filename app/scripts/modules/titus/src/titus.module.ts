@@ -34,7 +34,7 @@ import { TITUS_INSTANCE_INFORMATION_COMPONENT } from './instance/details/titusIn
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

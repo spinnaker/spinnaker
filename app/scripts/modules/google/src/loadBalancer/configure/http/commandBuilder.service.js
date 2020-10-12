@@ -38,7 +38,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
   'loadBalancerReader',
   'gceAddressReader',
   'gceXpnNamingService',
-  function(
+  function (
     $q,
     gceHttpLoadBalancerUtils,
     gceBackendServiceReader,
@@ -81,7 +81,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       if (isInternal) {
         region = originalLoadBalancer ? originalLoadBalancer.region : GCEProviderSettings.defaults.region;
       }
-      return buildBackingData(region).then(backingData => {
+      return buildBackingData(region).then((backingData) => {
         const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, isInternal);
 
         unifyDataSources(backingData, loadBalancer);
@@ -114,7 +114,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
             loadBalancer.project,
             loadBalancer.network,
           );
-          loadBalancer.listeners.forEach(listener => {
+          loadBalancer.listeners.forEach((listener) => {
             listener.subnet = gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, listener.subnet);
           });
         }
@@ -163,23 +163,23 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       backingData.backendServices = _.map(backingDataBackendServiceMap, _.identity);
 
       backingData.regions = backingData.accounts
-        .find(account => account.name === loadBalancer.credentials)
-        .regions.map(region => region.name);
+        .find((account) => account.name === loadBalancer.credentials)
+        .regions.map((region) => region.name);
 
       backingData.subnetMap = _.groupBy(backingData.subnets, 'network');
-      backingData.internalHttpLbNetworks = backingData.networks.filter(network =>
-        backingData.subnetMap[network].find(subnet => subnet.purpose === 'INTERNAL_HTTPS_LOAD_BALANCER'),
+      backingData.internalHttpLbNetworks = backingData.networks.filter((network) =>
+        backingData.subnetMap[network].find((subnet) => subnet.purpose === 'INTERNAL_HTTPS_LOAD_BALANCER'),
       );
     }
 
     function removeExistingListenersFromBackingData(backingData, existingListeners) {
-      const accountNames = backingData.accounts.map(account => account.name);
+      const accountNames = backingData.accounts.map((account) => account.name);
 
-      accountNames.forEach(accountName => {
+      accountNames.forEach((accountName) => {
         if (_.has(backingData, ['loadBalancerMap', accountName, 'listeners'])) {
           backingData.loadBalancerMap[accountName].listeners = _.without(
             backingData.loadBalancerMap[accountName].listeners,
-            ...existingListeners.map(listener => listener.name),
+            ...existingListeners.map((listener) => listener.name),
           );
         }
       });
@@ -195,26 +195,22 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function getHealthChecks(region) {
-      return gceHealthCheckReader.listHealthChecks().then(healthChecks => {
-        return healthChecks.filter(healthCheck => !region || healthCheck.region === region);
+      return gceHealthCheckReader.listHealthChecks().then((healthChecks) => {
+        return healthChecks.filter((healthCheck) => !region || healthCheck.region === region);
       });
     }
 
     function getNetworks() {
-      return NetworkReader.listNetworksByProvider('gce').then(networks => {
-        return _.chain(networks)
-          .map('name')
-          .compact()
-          .uniq()
-          .value();
+      return NetworkReader.listNetworksByProvider('gce').then((networks) => {
+        return _.chain(networks).map('name').compact().uniq().value();
       });
     }
 
     function getBackendServices(region) {
       const kind = region ? 'regionBackendService' : 'globalBackendService';
-      return gceBackendServiceReader.listBackendServices(kind).then(backendServices => {
-        backendServices = backendServices.filter(backendService => !region || backendService.region === region);
-        backendServices.forEach(service => {
+      return gceBackendServiceReader.listBackendServices(kind).then((backendServices) => {
+        backendServices = backendServices.filter((backendService) => !region || backendService.region === region);
+        backendServices.forEach((service) => {
           service.healthCheck = service.healthCheckLink.split('/').pop();
 
           const ttlIsDefined = typeof service.affinityCookieTtlSec === 'string';
@@ -236,28 +232,22 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function getLoadBalancerMap(region) {
-      return loadBalancerReader.listLoadBalancers('gce').then(lbs => {
+      return loadBalancerReader.listLoadBalancers('gce').then((lbs) => {
         return _.chain(lbs)
-          .map(lb => lb.accounts)
+          .map((lb) => lb.accounts)
           .flatten()
           .groupBy('name')
-          .mapValues(accounts => {
+          .mapValues((accounts) => {
             const loadBalancers = _.chain(accounts)
-              .map(a => a.regions)
+              .map((a) => a.regions)
               .flatten()
-              .filter(region => region.name === (region || gceHttpLoadBalancerUtils.REGION))
-              .map(region => region.loadBalancers)
+              .filter((region) => region.name === (region || gceHttpLoadBalancerUtils.REGION))
+              .map((region) => region.loadBalancers)
               .flatten()
               .value();
 
-            const urlMapNames = _.chain(loadBalancers)
-              .map('urlMapName')
-              .uniq()
-              .value();
-            const listeners = _.chain(loadBalancers)
-              .map('name')
-              .uniq()
-              .value();
+            const urlMapNames = _.chain(loadBalancers).map('urlMapName').uniq().value();
+            const listeners = _.chain(loadBalancers).map('name').uniq().value();
 
             return { urlMapNames, listeners };
           })
@@ -266,12 +256,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onHealthCheckRefresh(command) {
-      getHealthChecks(command.loadBalancer.region).then(healthChecks => {
+      getHealthChecks(command.loadBalancer.region).then((healthChecks) => {
         command.backingData.healthChecks = healthChecks;
         command.backingData.healthChecksKeyedByName = _.keyBy(healthChecks, 'name');
         command.backingData.healthChecksKeyedByNameCopy = _.cloneDeep(command.backingData.healthChecksKeyedByName);
 
-        command.loadBalancer.healthChecks = command.loadBalancer.healthChecks.map(hc => {
+        command.loadBalancer.healthChecks = command.loadBalancer.healthChecks.map((hc) => {
           const updated = command.backingData.healthChecksKeyedByName[_.get(hc, 'name')];
           if (updated) {
             return _.cloneDeep(updated);
@@ -283,20 +273,20 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onCertificateRefresh(command) {
-      getCertificates().then(certificates => {
+      getCertificates().then((certificates) => {
         command.backingData.certificates = certificates;
       });
     }
 
     function onBackendServiceRefresh(command) {
-      getBackendServices(command.loadBalancer.region).then(backendServices => {
+      getBackendServices(command.loadBalancer.region).then((backendServices) => {
         command.backingData.backendServices = backendServices;
         command.backingData.backendServicesKeyedByName = _.keyBy(backendServices, 'name');
         command.backingData.backendServicesKeyedByNameCopy = _.cloneDeep(
           command.backingData.backendServicesKeyedByName,
         );
 
-        command.loadBalancer.backendServices = command.loadBalancer.backendServices.map(service => {
+        command.loadBalancer.backendServices = command.loadBalancer.backendServices.map((service) => {
           const updated = command.backingData.backendServicesKeyedByName[_.get(service, 'name')];
           if (updated) {
             return _.cloneDeep(updated);
@@ -308,14 +298,14 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onRegionSelected(command) {
-      buildBackingData(command.loadBalancer.region).then(backingData => {
+      buildBackingData(command.loadBalancer.region).then((backingData) => {
         Object.assign(command.backingData, backingData);
         unifyDataSources(command.backingData, command.loadBalancer);
       });
     }
 
     function onHealthCheckSelected(selectedName, command) {
-      if (!command.loadBalancer.healthChecks.find(hc => _.get(hc, 'name') === selectedName)) {
+      if (!command.loadBalancer.healthChecks.find((hc) => _.get(hc, 'name') === selectedName)) {
         const selectedObject = command.backingData.healthChecksKeyedByName[selectedName];
         if (selectedObject) {
           command.loadBalancer.healthChecks.push(selectedObject);
@@ -324,7 +314,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onBackendServiceSelected(selectedName, command) {
-      if (!command.loadBalancer.backendServices.find(service => service.name === selectedName)) {
+      if (!command.loadBalancer.backendServices.find((service) => service.name === selectedName)) {
         const selectedObject = command.backingData.backendServicesKeyedByName[selectedName];
         command.loadBalancer.backendServices.push(selectedObject);
         if (selectedObject.healthCheck) {
@@ -336,7 +326,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     function getAllBackendServices(command) {
       const allBackendServices = command.loadBalancer.backendServices.concat(command.backingData.backendServices);
       return _.chain(allBackendServices)
-        .filter(service => {
+        .filter((service) => {
           return (
             service.account === command.loadBalancer.credentials || service.account === command.loadBalancer.account
           );
@@ -381,14 +371,14 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     function removeUnusedBackendServices(command) {
       const unusedBackendServices = getUnusedBackendServices(command);
       command.loadBalancer.backendServices = command.loadBalancer.backendServices.filter(
-        service => !unusedBackendServices.includes(service.name),
+        (service) => !unusedBackendServices.includes(service.name),
       );
     }
 
     function removeUnusedHealthChecks(command) {
       const unusedHealthChecks = getUnusedHealthChecks(command);
       command.loadBalancer.healthChecks = command.loadBalancer.healthChecks.filter(
-        healthCheck => !unusedHealthChecks.includes(healthCheck.name),
+        (healthCheck) => !unusedHealthChecks.includes(healthCheck.name),
       );
     }
 
@@ -399,12 +389,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       command.loadBalancer.listeners = [new ListenerTemplate()];
       command.loadBalancer.defaultService = null;
       command.backingData.regions = command.backingData.accounts
-        .find(account => account.name === command.loadBalancer.credentials)
-        .regions.map(region => region.name);
+        .find((account) => account.name === command.loadBalancer.credentials)
+        .regions.map((region) => region.name);
     }
 
     function onAddressRefresh(command) {
-      gceAddressReader.listAddresses('global').then(addresses => {
+      gceAddressReader.listAddresses('global').then((addresses) => {
         command.backingData.addresses = addresses;
       });
     }

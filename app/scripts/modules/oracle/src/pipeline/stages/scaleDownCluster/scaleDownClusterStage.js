@@ -8,7 +8,7 @@ export const ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE =
   'spinnaker.oracle.pipeline.stage.scaleDownClusterStage';
 export const name = ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE; // for backwards compatibility
 module(ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',
       cloudProvider: 'oracle',
@@ -28,7 +28,7 @@ module(ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE, [])
   })
   .controller('oracleScaleDownClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       const provider = 'oracle';
@@ -38,7 +38,7 @@ module(ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts(provider).then(function(accounts) {
+      AccountService.listAccounts(provider).then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -66,7 +66,7 @@ module(ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE, [])
         stage.preferLargerOverNewer = 'false';
       }
 
-      this.pluralize = function(str, val) {
+      this.pluralize = function (str, val) {
         return val === 1 ? str : str + 's';
       };
 

@@ -57,7 +57,7 @@ export class AutoScrollController implements IController {
 
 export const AUTO_SCROLL_DIRECTIVE = 'spinnaker.core.autoScroll';
 
-module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', function() {
+module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', function () {
   return {
     restrict: 'A',
     controller: AutoScrollController,

@@ -10,7 +10,7 @@ class AccountTagController implements IController {
   public accountType: string;
 
   public $onInit(): void {
-    AccountService.challengeDestructiveActions(this.account).then(isProdAccount => {
+    AccountService.challengeDestructiveActions(this.account).then((isProdAccount) => {
       this.accountType = isProdAccount ? 'prod' : this.account;
     });
   }

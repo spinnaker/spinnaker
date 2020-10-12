@@ -37,7 +37,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
       instanceGroups,
       'deregisterInstancesFromLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
-    jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
+    jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -73,7 +73,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
       instanceGroups,
       'registerInstancesWithLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
-    jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
+    jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,

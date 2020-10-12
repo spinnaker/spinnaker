@@ -396,7 +396,7 @@ class AppengineServerGroupDetailsController implements IController {
       const precision = loadBalancer.split.shardBy === 'COOKIE' ? 1000 : 100;
       allocations = mapValues(
         allocations,
-        allocation => Math.round((allocation / denominator) * precision) / precision,
+        (allocation) => Math.round((allocation / denominator) * precision) / precision,
       );
       return allocations;
     } else {

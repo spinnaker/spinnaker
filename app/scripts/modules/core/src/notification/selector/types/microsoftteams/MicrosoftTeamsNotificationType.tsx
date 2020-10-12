@@ -9,7 +9,7 @@ export class MicrosoftTeamsNotificationType extends React.Component<INotificatio
       <FormikFormField
         label="Teams Webhook URL"
         name={fieldName ? `${fieldName}.address` : 'address'}
-        input={props => (
+        input={(props) => (
           <TextInput
             inputClassName={'form-control input-sm'}
             {...props}

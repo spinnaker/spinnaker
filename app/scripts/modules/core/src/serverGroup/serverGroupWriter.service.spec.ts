@@ -19,13 +19,13 @@ class TestApplication extends Application {
   public tasks: IApplicationTask;
 }
 
-describe('serverGroupWriter', function() {
+describe('serverGroupWriter', function () {
   let $httpBackend: ng.IHttpBackendService, serverGroupTransformer: any, serverGroupWriter: ServerGroupWriter;
 
   beforeEach(mock.module(SERVER_GROUP_WRITER));
 
-  beforeEach(function() {
-    mock.inject(function(
+  beforeEach(function () {
+    mock.inject(function (
       _serverGroupWriter_: ServerGroupWriter,
       _$httpBackend_: ng.IHttpBackendService,
       _serverGroupTransformer_: any,
@@ -36,20 +36,20 @@ describe('serverGroupWriter', function() {
     });
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     spyOn(serverGroupTransformer, 'convertServerGroupCommandToDeployConfiguration').and.callFake((command: any) => {
       return command;
     });
   });
 
-  it('should inject defined objects', function() {
+  it('should inject defined objects', function () {
     expect(API).toBeDefined();
     expect($httpBackend).toBeDefined();
     expect(serverGroupTransformer).toBeDefined();
     expect(serverGroupWriter).toBeDefined();
   });
 
-  describe('clone server group submit', function() {
+  describe('clone server group submit', function () {
     function postTask(serverGroupCommand: IServerGroupCommand): ITaskCommand {
       let submitted: ITaskCommand = {};
       $httpBackend
@@ -88,32 +88,32 @@ describe('serverGroupWriter', function() {
       } as IServerGroupCommand;
     });
 
-    it('sets action type and description appropriately when creating new', function() {
+    it('sets action type and description appropriately when creating new', function () {
       const submitted: ITaskCommand = postTask(command);
       expect(submitted.job[0].type).toBe('createServerGroup');
       expect(submitted.description).toBe('Create New Server Group in cluster app');
     });
 
-    it('sets action type and description appropriately when creating new', function() {
+    it('sets action type and description appropriately when creating new', function () {
       command.stack = 'main';
       const submitted: ITaskCommand = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster app-main');
     });
 
-    it('sets action type and description appropriately when creating new', function() {
+    it('sets action type and description appropriately when creating new', function () {
       command.stack = 'main';
       command.freeFormDetails = 'details';
       const submitted: ITaskCommand = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster app-main-details');
     });
 
-    it('sets action type and description appropriately when creating new', function() {
+    it('sets action type and description appropriately when creating new', function () {
       command.freeFormDetails = 'details';
       const submitted: ITaskCommand = postTask(command);
       expect(submitted.description).toBe('Create New Server Group in cluster app--details');
     });
 
-    it('sets action type and description appropriately when cloning, preserving source', function() {
+    it('sets action type and description appropriately when cloning, preserving source', function () {
       command.source = {
         asgName: 'app-v002',
       };

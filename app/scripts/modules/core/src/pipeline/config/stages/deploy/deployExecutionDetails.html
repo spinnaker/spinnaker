@@ -27,9 +27,7 @@
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt ng-if="stage.context.capacity || stage.context.useSourceCapacity">Capacity</dt>
-          <dd ng-if="!stage.context.capacity">
-            {{stage.context.targetSize}}
-          </dd>
+          <dd ng-if="!stage.context.capacity">{{stage.context.targetSize}}</dd>
           <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
           <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">
             {{stage.context.capacity.max}}
@@ -52,9 +50,7 @@
           to appear healthy.
         </strong>
         <br />
-        <span ng-if="stage.context.lastCapacityCheck.total === 0">
-          (no instances found yet)
-        </span>
+        <span ng-if="stage.context.lastCapacityCheck.total === 0"> (no instances found yet) </span>
         <span ng-if="stage.context.lastCapacityCheck.total !== 0">
           ( current status:
           <health-counts container="stage.context.lastCapacityCheck"></health-counts>)
@@ -62,9 +58,7 @@
       </p>
       <div ng-if="waitingForUpInstances && customStuckDeployGuide" ng-bind-html="customStuckDeployGuide"></div>
       <div ng-if="showScalingActivitiesLink">
-        <p>
-          If your instances are not launching, there might be a problem with your configuration.
-        </p>
+        <p>If your instances are not launching, there might be a problem with your configuration.</p>
         <p>
           <strong>
             <view-scaling-activities-link server-group="scalingActivitiesTarget"></view-scaling-activities-link>

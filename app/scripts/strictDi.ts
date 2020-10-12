@@ -46,7 +46,7 @@ function assertAnnotatedFunction(injectedFn: any, message: string) {
 }
 
 function invokeAnnotatedFunction(name: string, angularModuleFn: Function, argumentIdx: number) {
-  return function() {
+  return function () {
     assertAnnotatedFunction(arguments[argumentIdx], `angular.module().${name}()`);
     return angularModuleFn.apply(this, arguments);
   };
@@ -68,7 +68,7 @@ function validateDirectiveDefinitionObject(ddo: any) {
 }
 
 const angularJSModuleStrictDiHandler: ProxyHandler<any> = {
-  get: function(angularModule, fnName, _receiver) {
+  get: function (angularModule, fnName, _receiver) {
     const angularModuleFn = angularModule[fnName];
 
     switch (fnName) {
@@ -83,7 +83,7 @@ const angularJSModuleStrictDiHandler: ProxyHandler<any> = {
       case 'service':
         return invokeAnnotatedFunction(fnName, angularModuleFn, 1);
       case 'component':
-        return function() {
+        return function () {
           const [name, componentObject] = arguments;
 
           if (componentObject.controller && typeof componentObject.controller !== 'string') {
@@ -96,7 +96,7 @@ const angularJSModuleStrictDiHandler: ProxyHandler<any> = {
           return angularModuleFn.apply(this, arguments);
         };
       case 'directive':
-        return function() {
+        return function () {
           const [name, ddoFactory, ...rest] = arguments;
 
           assertAnnotatedFunction(ddoFactory, `angular.module().directive('${name}', ddoFactory)`);

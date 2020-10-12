@@ -62,7 +62,7 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
       <div style={{ minWidth: width - 30 + 'px' }}>
         <div className="group-name">{stage.name.toUpperCase()}</div>
         <ul className="group-execution-label-list">
-          {stage.groupStages.map(s => (
+          {stage.groupStages.map((s) => (
             <GroupedStageListItem key={s.name} stage={s} stageClicked={this.subStageClicked} />
           ))}
         </ul>

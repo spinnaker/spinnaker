@@ -80,7 +80,7 @@ export function useSaveRestoreMutuallyExclusiveFields(
       }, {} as FieldsetData);
       setSavedTouched({ ...savedTouched, [previousFieldSetKey]: touchedToSave });
 
-      fieldsToSave.forEach(field => {
+      fieldsToSave.forEach((field) => {
         formik.setFieldValue(field, undefined);
         formik.setFieldTouched(field, null);
       });
@@ -88,7 +88,7 @@ export function useSaveRestoreMutuallyExclusiveFields(
       // Restore the saved touched/values
       const valuesToRestore = savedValues[currentFieldSetKey] || {};
       const touchedToRestore = savedTouched[currentFieldSetKey] || {};
-      fieldsToRestore.forEach(field => {
+      fieldsToRestore.forEach((field) => {
         if (valuesToRestore.hasOwnProperty(field)) {
           formik.setFieldValue(field, savedValues[currentFieldSetKey][field]);
         }

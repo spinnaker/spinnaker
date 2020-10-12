@@ -128,7 +128,7 @@ export const PinArtifactModal = memo(
                     <FormikFormField
                       name="environment"
                       label="Environment"
-                      input={props => (
+                      input={(props) => (
                         <ReactSelectInput
                           {...props}
                           options={version.environments.map(({ name, pinned, state }) => ({
@@ -148,7 +148,7 @@ export const PinArtifactModal = memo(
                       label="Reason"
                       name="comment"
                       required={true}
-                      input={props => <TextAreaInput {...props} rows={5} required={true} />}
+                      input={(props) => <TextAreaInput {...props} rows={5} required={true} />}
                     />
                     <div className="small text-right">
                       Markdown is okay <HelpField id="markdown.examples" />

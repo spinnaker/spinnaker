@@ -48,7 +48,7 @@ export function ScaleDownClusterStageForm({ application, formik, pipeline }: IFo
     }
   }, []);
 
-  const pluralize = function(str: string, val: string | number) {
+  const pluralize = function (str: string, val: string | number) {
     if (val === 1) {
       return str;
     }
@@ -71,12 +71,12 @@ export function ScaleDownClusterStageForm({ application, formik, pipeline }: IFo
           <FormikFormField
             name="remainingEnabledServerGroups"
             required
-            input={props => <NumberInput {...props} min={0} />}
+            input={(props) => <NumberInput {...props} min={0} />}
           />
           <FormikFormField
             name="preferLargerOverNewer"
             required
-            input={props => (
+            input={(props) => (
               <SelectInput
                 options={[
                   { label: 'largest', value: 'true' },
@@ -93,7 +93,7 @@ export function ScaleDownClusterStageForm({ application, formik, pipeline }: IFo
       <div className="form-group">
         <FormikFormField
           name="allowScaleDownActive"
-          input={props => <CheckboxInput {...props} text="Allow scale down of active server groups" />}
+          input={(props) => <CheckboxInput {...props} text="Allow scale down of active server groups" />}
         />
       </div>
     </div>

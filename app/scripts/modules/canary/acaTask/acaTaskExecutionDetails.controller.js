@@ -16,7 +16,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
   '$stateParams',
   'executionDetailsSectionService',
   'canaryDeploymentHistoryService',
-  function($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
+  function ($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
     $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
 
     $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
@@ -44,7 +44,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
       $scope.loadHistory();
     };
 
-    $scope.loadHistory = function() {
+    $scope.loadHistory = function () {
       if (
         $scope.deployment.canary &&
         $scope.deployment.canary.canaryDeployments &&
@@ -55,11 +55,11 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
 
         const canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
         canaryDeploymentHistoryService.getAnalysisHistory(canaryDeploymentId).then(
-          function(results) {
+          function (results) {
             $scope.analysisHistory = results;
             $scope.viewState.loadingHistory = false;
           },
-          function() {
+          function () {
             $scope.viewState.loadingHistory = false;
             $scope.viewState.loadingHistoryError = true;
           },
@@ -70,7 +70,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
       }
     };
 
-    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
     const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

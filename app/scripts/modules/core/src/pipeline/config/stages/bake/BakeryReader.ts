@@ -30,15 +30,13 @@ export class BakeryReader {
   }
 
   public static getBaseOsOptions(provider: string): ng.IPromise<IBaseOsOptions> {
-    return this.getAllBaseOsOptions().then(options => {
-      return options.find(o => o.cloudProvider === provider);
+    return this.getAllBaseOsOptions().then((options) => {
+      return options.find((o) => o.cloudProvider === provider);
     });
   }
 
   private static getAllBaseOsOptions(): ng.IPromise<IBaseOsOptions[]> {
-    return API.one('bakery', 'options')
-      .useCache()
-      .getList();
+    return API.one('bakery', 'options').useCache().getList();
   }
 
   public static getBaseLabelOptions(): ng.IPromise<string[]> {

@@ -32,7 +32,7 @@
         <span ng-if="$ctrl.sections.length > 1" class="clickable glyphicon glyphicon-resize-vertical"></span>
       </div>
       <div class="col-md-2 sm-label-right heading-label">Section Heading</div>
-      <div class="col-md-8" style="padding-right:55px;">
+      <div class="col-md-8" style="padding-right: 55px">
         <input type="text" class="form-control input" ng-model="section.title" ng-change="$ctrl.configChanged()" />
       </div>
       <div class="col-md-1" style="padding: 5px 10px">
@@ -44,7 +44,7 @@
 
     <div class="row" ng-if="$ctrl.cloudProviders.length > 1">
       <div class="col-md-2 col-md-offset-1 sm-label-right">Cloud Provider(s)</div>
-      <div class="col-md-8" style="padding-right:55px;">
+      <div class="col-md-8" style="padding-right: 55px">
         <ui-select
           class="form-control input"
           search-enabled="false"
@@ -52,7 +52,7 @@
           ng-model="section.cloudProviders"
           on-select="$ctrl.configChanged()"
           on-remove="$ctrl.configChanged()"
-          style="height: 30px; width: 100%;"
+          style="height: 30px; width: 100%"
           multiple
         >
           <ui-select-match placeholder="(All Cloud Providers)">{{ $item }}</ui-select-match>
@@ -64,8 +64,8 @@
     <div class="row" style="margin-top: 10px">
       <div class="row">
         <div class="col-md-3"></div>
-        <div class="col-md-9" style="margin-left: -22px;">
-          <div class="col-md-4 link-header"><span style="margin-left: 14px;">Name</span></div>
+        <div class="col-md-9" style="margin-left: -22px">
+          <div class="col-md-4 link-header"><span style="margin-left: 14px">Name</span></div>
           <div class="col-md-6 link-header">URL</div>
         </div>
       </div>
@@ -101,7 +101,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-10" style="padding-right: 20px;">
+          <div class="col-md-10" style="padding-right: 20px">
             <button class="btn btn-block add-new small" ng-click="$ctrl.addLink(section)">
               <span class="glyphicon glyphicon-plus-sign"></span> Add Link
             </button>

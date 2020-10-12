@@ -115,11 +115,13 @@ export class NameUtils {
     return app.ready().then(() => {
       const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
       const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];
-      const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
+      const loadBalancerServerGroups = loadBalancers
+        .map((lb) => lb.serverGroups)
+        .reduce((acc, sg) => acc.concat(sg), []);
 
       const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
         return (
-          obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId)
+          obj.cloudProvider === cloudProvider && (obj.instances || []).some((instance) => instance.id === instanceId)
         );
       };
 

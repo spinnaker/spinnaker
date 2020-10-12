@@ -30,7 +30,7 @@ export class InfrastructureSearcher {
         if (!query || query.trim() === '') {
           const fallbackResults = searchResultTypeRegistry
             .getAll()
-            .map(type => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
+            .map((type) => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
           return Observable.of(fallbackResults);
         }
         return InfrastructureSearchServiceV2.search({ key: query }).toArray();

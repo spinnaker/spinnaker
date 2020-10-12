@@ -7,7 +7,7 @@ export const AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTA
   'spinnaker.amazon.pipeline.stage.modifyScalingProcessStage';
 export const name = AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       label: 'Modify Scaling Process',
       description: 'Suspend/Resume Scaling Processes',
@@ -32,7 +32,7 @@ module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, []
   .controller('ModifyScalingProcessStageCtrl', [
     '$scope',
     'stage',
-    function($scope, stage) {
+    function ($scope, stage) {
       $scope.stage = stage;
 
       $scope.state = {
@@ -40,7 +40,7 @@ module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, []
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -81,7 +81,7 @@ module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, []
         stage.regions.push($scope.application.defaultRegions.aws);
       }
 
-      $scope.toggleProcess = function(process) {
+      $scope.toggleProcess = function (process) {
         if (!stage.processes) {
           stage.processes = [];
         }

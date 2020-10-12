@@ -27,7 +27,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => {
+      .subscribe((accounts) => {
         this.setState({ accounts });
         if (this.props.stage.credentials) {
           this.clearAndReloadRegions();
@@ -45,7 +45,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     if (credentials) {
       Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
         .takeUntil(this.destroy$)
-        .subscribe(regions => this.setState({ regions }));
+        .subscribe((regions) => this.setState({ regions }));
     }
   };
 

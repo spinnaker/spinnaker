@@ -24,7 +24,7 @@ export class KubernetesManifestService {
   }
 
   private static updateManifest(params: IManifestParams, fn: IManifestCallback) {
-    ManifestReader.getManifest(params.account, params.location, params.name).then(manifest => fn(manifest));
+    ManifestReader.getManifest(params.account, params.location, params.name).then((manifest) => fn(manifest));
   }
 
   public static manifestIdentifier(manifest: IStageManifest) {

@@ -17,7 +17,7 @@ export interface IFunctionTransformer {
 
 module(CORE_FUNCTION_FUNCTION_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory('functionTransformer', [
   'providerServiceDelegate',
-  function(providerServiceDelegate: any): IFunctionTransformer {
+  function (providerServiceDelegate: any): IFunctionTransformer {
     function normalizeFunction(functionDef: IFunctionSourceData): IFunctionSourceData {
       return providerServiceDelegate
         .getDelegate(functionDef.provider ? functionDef.provider : 'aws', 'function.transformer')
@@ -26,9 +26,11 @@ module(CORE_FUNCTION_FUNCTION_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory(
 
     function normalizeFunctionSet(functions: IFunctionSourceData[]): IFunctionSourceData[] {
       const setNormalizers: any = chain(functions)
-        .filter(fn => providerServiceDelegate.hasDelegate(fn.provider ? fn.provider : 'aws', 'function.setTransformer'))
+        .filter((fn) =>
+          providerServiceDelegate.hasDelegate(fn.provider ? fn.provider : 'aws', 'function.setTransformer'),
+        )
         .compact()
-        .map(fn => providerServiceDelegate.getDelegate(fn.provider, 'function.setTransformer').normalizeFunctionSet)
+        .map((fn) => providerServiceDelegate.getDelegate(fn.provider, 'function.setTransformer').normalizeFunctionSet)
         .uniq()
         .value();
 

@@ -33,7 +33,7 @@ describe('<ChecklistInput />', () => {
 
     expect(component.find('input[type="checkbox"]').length).toBe(4);
     expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ stringOptions: options.filter(item => item !== 'c') });
+    component.setProps({ stringOptions: options.filter((item) => item !== 'c') });
     expect(component.find('input[type="checkbox"]').length).toBe(3);
     expect(component.find('input[type="checkbox"][checked=true]').length).toBe(2);
   });
@@ -57,7 +57,7 @@ describe('<ChecklistInput />', () => {
 
     expect(component.find('input[type="checkbox"]').length).toBe(4);
     expect(component.find('input[type="checkbox"][checked=true]').length).toBe(3);
-    component.setProps({ value: checkedOptions.filter(item => item !== 'c') });
+    component.setProps({ value: checkedOptions.filter((item) => item !== 'c') });
     expect(component.find('input[type="checkbox"]').length).toBe(4);
     expect(component.find('input[type="checkbox"][checked=true]').length).toBe(2);
   });

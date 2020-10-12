@@ -13,7 +13,7 @@ import { SETTINGS } from 'core/config/settings';
 
 const ClusterState = State.ClusterState;
 
-describe('Service: Cluster', function() {
+describe('Service: Cluster', function () {
   beforeEach(mock.module(CLUSTER_SERVICE, REACT_MODULE));
 
   let clusterService: ClusterService;
@@ -157,8 +157,8 @@ describe('Service: Cluster', function() {
   });
 
   describe('addTasksToServerGroups', () => {
-    describe('rollback tasks', function() {
-      it('attaches to source and target', function() {
+    describe('rollback tasks', function () {
+      it('attaches to source and target', function () {
         application.runningTasks.data = [
           buildTask({
             status: 'RUNNING',
@@ -282,7 +282,7 @@ describe('Service: Cluster', function() {
         'deregisterinstancesfromloadbalancer',
         'enableinstancesindiscovery',
         'disableinstancesindiscovery',
-      ].forEach(name => {
+      ].forEach((name) => {
         describe(name, () => {
           it('finds instance within server group (' + name + ')', () => {
             const serverGroups: IServerGroup[] = application.serverGroups.data;
@@ -375,8 +375,8 @@ describe('Service: Cluster', function() {
       });
     });
 
-    describe('extraction region from stage context', function() {
-      it('should return the region from the deploy.server.groups node', function() {
+    describe('extraction region from stage context', function () {
+      it('should return the region from the deploy.server.groups node', function () {
         const context = {
           'deploy.server.groups': {
             'us-west-1': ['mahe-prestaging-v001'],
@@ -387,7 +387,7 @@ describe('Service: Cluster', function() {
         expect(result).toBe('us-west-1');
       });
 
-      it('should return empty string if nothing is extracted', function() {
+      it('should return empty string if nothing is extracted', function () {
         const context = {};
 
         const result = clusterService.extractRegionFromContext(context);
@@ -396,7 +396,7 @@ describe('Service: Cluster', function() {
       });
     });
 
-    describe('add executions to server group for deploy stage', function() {
+    describe('add executions to server group for deploy stage', function () {
       beforeEach(() => {
         application.serverGroups.data = [
           {
@@ -407,7 +407,7 @@ describe('Service: Cluster', function() {
         ];
       });
 
-      it('should successfully add a matched execution to a server group', function() {
+      it('should successfully add a matched execution to a server group', function () {
         const executions = [
           {
             stages: [
@@ -430,7 +430,7 @@ describe('Service: Cluster', function() {
         expect(application.serverGroups.data[0].runningExecutions.length).toBe(1);
       });
 
-      it('should NOT add a execution to a server group if the region does not match', function() {
+      it('should NOT add a execution to a server group if the region does not match', function () {
         const executions = [
           {
             stages: [
@@ -453,7 +453,7 @@ describe('Service: Cluster', function() {
         expect(application.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
 
-      it('should NOT add a execution to a server group if the account does not match', function() {
+      it('should NOT add a execution to a server group if the account does not match', function () {
         const executions = [
           {
             stages: [
@@ -477,7 +477,7 @@ describe('Service: Cluster', function() {
       });
     });
 
-    describe('add executions to server group for disableAsg stage', function() {
+    describe('add executions to server group for disableAsg stage', function () {
       beforeEach(() => {
         application.serverGroups.data = [
           {
@@ -488,7 +488,7 @@ describe('Service: Cluster', function() {
         ];
       });
 
-      it('should successfully add a matched execution to a server group', function() {
+      it('should successfully add a matched execution to a server group', function () {
         const executions = [
           {
             stages: [
@@ -510,7 +510,7 @@ describe('Service: Cluster', function() {
         expect(application.serverGroups.data[0].runningExecutions.length).toBe(1);
       });
 
-      it('should NOT add a execution to a server group if the region does not match', function() {
+      it('should NOT add a execution to a server group if the region does not match', function () {
         const executions = [
           {
             stages: [
@@ -532,7 +532,7 @@ describe('Service: Cluster', function() {
         expect(application.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
 
-      it('should NOT add a execution to a server group if the account does not match', function() {
+      it('should NOT add a execution to a server group if the account does not match', function () {
         const executions = [
           {
             stages: [

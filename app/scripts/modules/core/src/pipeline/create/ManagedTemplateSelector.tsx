@@ -28,19 +28,19 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
   }
 
   private createOptionsFromTemplates(): Option[] {
-    return this.props.templates.map(t => ({ label: t.metadata.name, value: t.id }));
+    return this.props.templates.map((t) => ({ label: t.metadata.name, value: t.id }));
   }
 
   private handleTemplateSelect = (option: Option): void => {
     let selectedTemplate: IPipelineTemplate;
     if (option) {
-      selectedTemplate = this.props.templates.find(t => t.id === option.value);
+      selectedTemplate = this.props.templates.find((t) => t.id === option.value);
     }
     this.props.onChange(selectedTemplate);
   };
 
   private templateOptionRenderer = (option: Option) => {
-    const template = this.props.templates.find(t => t.id === option.value);
+    const template = this.props.templates.find((t) => t.id === option.value);
     return (
       <div>
         <h5 style={{ marginBottom: '0' }}>{template.metadata.name}</h5>

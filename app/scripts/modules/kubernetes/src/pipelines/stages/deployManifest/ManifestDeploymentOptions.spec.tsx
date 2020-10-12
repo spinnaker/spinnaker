@@ -50,12 +50,7 @@ describe('<ManifestDeploymentOptions />', () => {
     it('disables the traffic checkbox when a non-None rollout strategy is selected', () => {
       props.config.options.strategy = 'redblack';
       wrapper = shallow(<ManifestDeploymentOptions {...props} />);
-      expect(
-        wrapper
-          .find('input[type="checkbox"]')
-          .at(1)
-          .props().disabled,
-      ).toEqual(true);
+      expect(wrapper.find('input[type="checkbox"]').at(1).props().disabled).toEqual(true);
     });
   });
 });

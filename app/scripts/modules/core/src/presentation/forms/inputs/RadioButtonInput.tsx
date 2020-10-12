@@ -32,12 +32,12 @@ interface IRadioButtonOptions extends Option {
 export const RadioButtonInput = (props: IRadioButtonInputProps) => {
   const { inline, validation, value, defaultValue, inputClassName, options, stringOptions, ...otherProps } = props;
   const radioOptions: IRadioButtonOptions[] = useMemo(
-    () => (isStringArray(stringOptions) ? stringOptions.map(opt => ({ value: opt, label: opt })) : options),
+    () => (isStringArray(stringOptions) ? stringOptions.map((opt) => ({ value: opt, label: opt })) : options),
     [options],
   );
 
   useEffect(() => {
-    if (!isNil(defaultValue) && !radioOptions.map(opt => opt.value).includes(value)) {
+    if (!isNil(defaultValue) && !radioOptions.map((opt) => opt.value).includes(value)) {
       props.onChange(createFakeReactSyntheticEvent({ name: props.name, value: defaultValue }));
     }
   }, [value, defaultValue, radioOptions]);
@@ -49,7 +49,7 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
 
   return (
     <div className={elementClassName}>
-      {radioOptions.map(option => (
+      {radioOptions.map((option) => (
         <RadioButton key={option.label} value={value} option={option} {...otherProps} />
       ))}
     </div>

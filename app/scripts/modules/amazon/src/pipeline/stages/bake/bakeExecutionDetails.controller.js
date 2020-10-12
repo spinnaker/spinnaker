@@ -16,7 +16,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_AN
     '$stateParams',
     'executionDetailsSectionService',
     '$interpolate',
-    function($scope, $stateParams, executionDetailsSectionService, $interpolate) {
+    function ($scope, $stateParams, executionDetailsSectionService, $interpolate) {
       $scope.configSections = ['bakeConfig', 'taskStatus'];
 
       const initialized = () => {

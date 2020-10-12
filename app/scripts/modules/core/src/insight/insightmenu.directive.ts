@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 export const INSIGHT_MENU_DIRECTIVE = 'spinnaker.core.insightMenu.directive';
-module(INSIGHT_MENU_DIRECTIVE, []).directive('insightMenu', function() {
+module(INSIGHT_MENU_DIRECTIVE, []).directive('insightMenu', function () {
   return {
     templateUrl: require('./insightmenu.directive.html'),
     restrict: 'E',
@@ -12,7 +12,7 @@ module(INSIGHT_MENU_DIRECTIVE, []).directive('insightMenu', function() {
       icon: '@',
       rightAlign: '&',
     },
-    link: function(scope) {
+    link: function (scope) {
       scope.status = { isOpen: false };
     },
   };

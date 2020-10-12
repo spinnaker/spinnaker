@@ -8,8 +8,7 @@
           ng-model="state.target"
           ng-change="ctrl.onTargetChange()"
           ng-options="option as ctrl.getTargetLabel(option) for option in state.targetOptions"
-        >
-        </select>
+        ></select>
       </div>
     </div>
   </div>
@@ -19,7 +18,7 @@
       <table class="table table-condensed packed tags">
         <tbody>
           <tr ng-repeat="tag in securityGroup.targetTags track by $index">
-            <td style="width: 80%;">
+            <td style="width: 80%">
               <input
                 class="form-control input-sm fixed-width"
                 type="text"

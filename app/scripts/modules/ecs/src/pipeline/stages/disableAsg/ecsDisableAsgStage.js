@@ -7,7 +7,7 @@ import { AccountService, PipelineTemplates, Registry, StageConstants } from '@sp
 export const ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE = 'spinnaker.ecs.pipeline.stage.disableAsgStage';
 export const name = ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE; // for backwards compatibility
 module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       alias: 'disableAsg',
@@ -30,7 +30,7 @@ module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
   })
   .controller('ecsDisableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -38,7 +38,7 @@ module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('ecs').then(function(accounts) {
+      AccountService.listAccounts('ecs').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

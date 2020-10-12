@@ -44,7 +44,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     });
 
     this.$uiRouter.globals.params$
-      .map(params => [params.instanceId, params.multiselect, params.instanceSort])
+      .map((params) => [params.instanceId, params.multiselect, params.instanceSort])
       .distinctUntilChanged(isEqual)
       .takeUntil(this.destroy$)
       .subscribe(() => {
@@ -60,7 +60,9 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
   private getSelectedInstanceIds(): string[] {
     const { instances, serverGroup } = this.props;
     if (this.$state.params.multiselect) {
-      return instances.filter(i => ClusterState.multiselectModel.instanceIsSelected(serverGroup, i.id)).map(i => i.id);
+      return instances
+        .filter((i) => ClusterState.multiselectModel.instanceIsSelected(serverGroup, i.id))
+        .map((i) => i.id);
     }
     return [];
   }
@@ -75,11 +77,11 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     }
     if (
       this.props.instances
-        .map(i => i.id)
+        .map((i) => i.id)
         .sort()
         .join(',') !==
       nextProps.instances
-        .map(i => i.id)
+        .map((i) => i.id)
         .sort()
         .join(',')
     ) {
@@ -114,8 +116,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             : a.launchTime - b.launchTime
           : a.availabilityZone.localeCompare(b.availabilityZone);
       case 'discoveryState': {
-        const aHealth = (a.health || []).filter(health => health.type === 'Discovery');
-        const bHealth = (b.health || []).filter(health => health.type === 'Discovery');
+        const aHealth = (a.health || []).filter((health) => health.type === 'Discovery');
+        const bHealth = (b.health || []).filter((health) => health.type === 'Discovery');
         if (aHealth.length && !bHealth.length) {
           return -1;
         }
@@ -129,8 +131,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
           : aHealth[0].state.localeCompare(bHealth[0].state);
       }
       case 'loadBalancerSort': {
-        const aHealth2 = (a.health || []).filter(health => health.type === 'LoadBalancer');
-        const bHealth2 = (b.health || []).filter(health => health.type === 'LoadBalancer');
+        const aHealth2 = (a.health || []).filter((health) => health.type === 'LoadBalancer');
+        const bHealth2 = (b.health || []).filter((health) => health.type === 'LoadBalancer');
 
         if (aHealth2.length && !bHealth2.length) {
           return -1;
@@ -138,8 +140,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         if (!aHealth2.length && bHealth2.length) {
           return 1;
         }
-        const aHealthStr = aHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
-        const bHealthStr = bHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
+        const aHealthStr = aHealth2.map((h) => h.loadBalancers.map((l) => l.name + ':' + l.state)).join(',');
+        const bHealthStr = bHealth2.map((h) => h.loadBalancers.map((l) => l.name + ':' + l.state)).join(',');
         return aHealthStr === bHealthStr
           ? a.launchTime === b.launchTime
             ? a.id.localeCompare(b.id)
@@ -160,7 +162,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     let providerStatus = '';
     let loadBalancers: ILoadBalancerHealth[] = [];
 
-    healthMetrics.forEach(health => {
+    healthMetrics.forEach((health) => {
       if (hasLoadBalancers && health.type === 'LoadBalancer') {
         loadBalancers = health.loadBalancers;
       }
@@ -202,7 +204,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     return (
       <td>
         {loadBalancerHealths.length === 0 && <span>-</span>}
-        {loadBalancerHealths.map(h => {
+        {loadBalancerHealths.map((h) => {
           const tooltip = h.state === 'OutOfService' ? h.description.replace(/"/g, '&quot;') : null;
           const icon = h.healthState === 'Up' || h.state === 'InService' ? 'Up' : 'Down';
           return (
@@ -236,7 +238,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
   public render() {
     return (
       <tbody onClick={this.instanceBodyClicked}>
-        {this.props.instances.sort(this.instanceSorter).map(i => this.renderRow(i))}
+        {this.props.instances.sort(this.instanceSorter).map((i) => this.renderRow(i))}
       </tbody>
     );
   }

@@ -19,7 +19,7 @@ export class SubnetReader {
             subnet.label += ' (deprecated)';
           }
         });
-        return subnets.filter(s => s.label);
+        return subnets.filter((s) => s.label);
       });
     return this.cache;
   }
@@ -30,13 +30,13 @@ export class SubnetReader {
 
   public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): ng.IPromise<ISubnet> {
     return this.listSubnetsByProvider(cloudProvider).then((subnets: ISubnet[]) => {
-      return subnets.find(subnet => subnet.id === subnetId);
+      return subnets.find((subnet) => subnet.id === subnetId);
     });
   }
 
   public static getSubnetPurpose(subnetId: string): ng.IPromise<string> {
     return this.listSubnets().then((subnets: ISubnet[]) => {
-      const match: ISubnet = subnets.find(test => test.id === subnetId);
+      const match: ISubnet = subnets.find((test) => test.id === subnetId);
       return match ? match.purpose : null;
     });
   }

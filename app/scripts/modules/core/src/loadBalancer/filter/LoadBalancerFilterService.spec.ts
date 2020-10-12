@@ -4,7 +4,7 @@ import { ILoadBalancer, IServerGroup, ILoadBalancerGroup, IManagedResourceSummar
 import { LoadBalancerState } from 'core/state';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
-describe('Service: loadBalancerFilterService', function() {
+describe('Service: loadBalancerFilterService', function () {
   const debounceTimeout = 30;
 
   let app: Application, resultJson: any;
@@ -13,7 +13,7 @@ describe('Service: loadBalancerFilterService', function() {
     LoadBalancerState.filterModel.asFilterModel.groups = [];
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     app = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'loadBalancers',
       lazy: true,
@@ -75,8 +75,8 @@ describe('Service: loadBalancerFilterService', function() {
     LoadBalancerState.filterModel.asFilterModel.clearFilters();
   });
 
-  describe('Updating the load balancer group', function() {
-    it('no filter: should be transformed', function(done) {
+  describe('Updating the load balancer group', function () {
+    it('no filter: should be transformed', function (done) {
       const expected = [
         {
           heading: 'prod',
@@ -109,8 +109,8 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    describe('filter by search', function() {
-      it('should add searchField when filter is not prefixed with vpc:', function(done) {
+    describe('filter by search', function () {
+      it('should add searchField when filter is not prefixed with vpc:', function (done) {
         expect(app.loadBalancers.data.length).toBe(3);
         app.loadBalancers.data.forEach((group: ILoadBalancerGroup) => {
           expect(group.searchField).toBeUndefined();
@@ -127,8 +127,8 @@ describe('Service: loadBalancerFilterService', function() {
       });
     });
 
-    describe('filter by vpc', function() {
-      it('should filter by vpc name as an exact match', function(done) {
+    describe('filter by vpc', function () {
+      it('should filter by vpc name as an exact match', function (done) {
         LoadBalancerState.filterModel.asFilterModel.sortFilter.filter = 'vpc:main';
         LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -145,7 +145,7 @@ describe('Service: loadBalancerFilterService', function() {
         }, debounceTimeout);
       });
 
-      it('should not match on partial vpc name', function(done) {
+      it('should not match on partial vpc name', function (done) {
         LoadBalancerState.filterModel.asFilterModel.sortFilter.filter = 'vpc:main-old';
         LoadBalancerState.filterService.updateLoadBalancerGroups(app);
         setTimeout(() => {
@@ -155,8 +155,8 @@ describe('Service: loadBalancerFilterService', function() {
       });
     });
 
-    describe('filtering by account type', function() {
-      it('1 account filter: should be transformed showing only prod accounts', function(done) {
+    describe('filtering by account type', function () {
+      it('1 account filter: should be transformed showing only prod accounts', function (done) {
         LoadBalancerState.filterModel.asFilterModel.sortFilter.account = { prod: true };
         LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -173,7 +173,7 @@ describe('Service: loadBalancerFilterService', function() {
         }, debounceTimeout);
       });
 
-      it('All account filters: should show all accounts', function(done) {
+      it('All account filters: should show all accounts', function (done) {
         LoadBalancerState.filterModel.asFilterModel.sortFilter.account = { prod: true, test: true };
         LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -203,8 +203,8 @@ describe('Service: loadBalancerFilterService', function() {
     });
   });
 
-  describe('filter by region', function() {
-    it('1 region: should filter by that region', function(done) {
+  describe('filter by region', function () {
+    it('1 region: should filter by that region', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.region = { 'us-east-1': true };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -227,7 +227,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('All regions: should show all load balancers', function(done) {
+    it('All regions: should show all load balancers', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.region = { 'us-east-1': true, 'us-west-1': true };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -255,8 +255,8 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
   });
-  describe('filter by healthy state', function() {
-    it('should filter any load balancers with down instances (based on down) if "Up" checked', function(done) {
+  describe('filter by healthy state', function () {
+    it('should filter any load balancers with down instances (based on down) if "Up" checked', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.status = { Up: true };
       app.loadBalancers.data[0].instanceCounts.down = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
@@ -285,7 +285,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('should filter any load balancers without down instances (based on down) if "Down" checked', function(done) {
+    it('should filter any load balancers without down instances (based on down) if "Down" checked', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.status = { Down: true };
       app.loadBalancers.data[0].instanceCounts.down = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
@@ -308,7 +308,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('should filter any load balancers with starting instances (based on starting) if "Starting" checked', function(done) {
+    it('should filter any load balancers with starting instances (based on starting) if "Starting" checked', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.status = { Starting: true };
       app.loadBalancers.data[0].instanceCounts.starting = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
@@ -332,13 +332,13 @@ describe('Service: loadBalancerFilterService', function() {
     });
   });
 
-  describe('filtered by provider type', function() {
-    beforeEach(function() {
+  describe('filtered by provider type', function () {
+    beforeEach(function () {
       app.loadBalancers.data[0].type = 'aws';
       app.loadBalancers.data[1].type = 'gce';
       app.loadBalancers.data[2].type = 'aws';
     });
-    it('should filter by aws if checked', function(done) {
+    it('should filter by aws if checked', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.providerType = { aws: true };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -361,7 +361,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('should not filter if no provider type is selected', function(done) {
+    it('should not filter if no provider type is selected', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.providerType = undefined;
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -389,7 +389,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('should not filter if all provider are selected', function(done) {
+    it('should not filter if all provider are selected', function (done) {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.providerType = { aws: true, gce: true };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -418,8 +418,8 @@ describe('Service: loadBalancerFilterService', function() {
     });
   });
 
-  describe('group diffing', function() {
-    beforeEach(function() {
+  describe('group diffing', function () {
+    beforeEach(function () {
       app.loadBalancers.data[0].stringVal = 'original';
       app.loadBalancers.data[1].stringVal = 'should be deleted';
       LoadBalancerState.filterModel.asFilterModel.groups = [
@@ -443,7 +443,7 @@ describe('Service: loadBalancerFilterService', function() {
       ];
     });
 
-    it('adds a group when new one provided', function(done) {
+    it('adds a group when new one provided', function (done) {
       app.loadBalancers.data.push({
         name: 'elb-1',
         account: 'management',
@@ -497,7 +497,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('adds a subgroup when new one provided', function(done) {
+    it('adds a subgroup when new one provided', function (done) {
       app.loadBalancers.data.push({
         name: 'elb-3',
         account: 'prod',
@@ -546,7 +546,7 @@ describe('Service: loadBalancerFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('adds a sub-subgroup when new one provided', function(done) {
+    it('adds a sub-subgroup when new one provided', function (done) {
       app.loadBalancers.data.push({
         name: 'elb-2',
         account: 'test',

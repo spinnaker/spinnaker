@@ -19,7 +19,7 @@ export const PipelineRoles = (props: IPipelineRolesConfigProps) => {
   }, []);
 
   const onAllowedRolesChanged = (options: Array<Option<string>>) => {
-    const roles = options.map(o => o.value);
+    const roles = options.map((o) => o.value);
     props.updateRoles(roles);
   };
 
@@ -35,7 +35,7 @@ export const PipelineRoles = (props: IPipelineRolesConfigProps) => {
             <Select
               multi={true}
               onChange={onAllowedRolesChanged}
-              options={allowedRoles.map(a => ({ label: a, value: a }))}
+              options={allowedRoles.map((a) => ({ label: a, value: a }))}
               value={props.roles || []}
             />
           </div>

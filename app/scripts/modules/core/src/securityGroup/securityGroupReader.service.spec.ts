@@ -11,12 +11,12 @@ import {
   SecurityGroupTransformerService,
 } from './securityGroupTransformer.service';
 
-describe('Service: securityGroupReader', function() {
+describe('Service: securityGroupReader', function () {
   let $q: ng.IQService, $http: ng.IHttpBackendService, $scope: ng.IRootScopeService, reader: SecurityGroupReader;
 
   beforeEach(mock.module(SECURITY_GROUP_TRANSFORMER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
-    mock.inject(function(
+    mock.inject(function (
       _$q_: ng.IQService,
       $httpBackend: ng.IHttpBackendService,
       $rootScope: ng.IRootScopeService,
@@ -46,7 +46,7 @@ describe('Service: securityGroupReader', function() {
     }),
   );
 
-  it('attaches load balancer to firewall usages', function() {
+  it('attaches load balancer to firewall usages', function () {
     let data: any[] = null;
 
     const application: Application = ApplicationModelBuilder.createApplicationForTests(
@@ -98,7 +98,7 @@ describe('Service: securityGroupReader', function() {
     expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
   });
 
-  it('adds firewall names across accounts, falling back to the ID if none found', function() {
+  it('adds firewall names across accounts, falling back to the ID if none found', function () {
     let details: ISecurityGroupDetail = null;
     const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
     application['securityGroupsIndex'] = {
@@ -117,7 +117,7 @@ describe('Service: securityGroupReader', function() {
 
     reader
       .getSecurityGroupDetails(application, 'test', 'aws', 'us-east-1', 'vpc-1', 'sg-123')
-      .then(result => (details = result));
+      .then((result) => (details = result));
     $http.flush();
 
     expect(details.securityGroupRules.length).toBe(3);
@@ -129,7 +129,7 @@ describe('Service: securityGroupReader', function() {
     expect(details.securityGroupRules[2].securityGroup.inferredName).toBeFalsy();
   });
 
-  it('should clear cache, then reload firewalls and try again if a firewall is not found', function() {
+  it('should clear cache, then reload firewalls and try again if a firewall is not found', function () {
     let data: ISecurityGroup[] = null;
     const application: Application = ApplicationModelBuilder.createApplicationForTests(
       'app',
@@ -172,7 +172,7 @@ describe('Service: securityGroupReader', function() {
       },
     });
 
-    reader.getApplicationSecurityGroups(application, []).then(results => (data = results));
+    reader.getApplicationSecurityGroups(application, []).then((results) => (data = results));
     $http.flush();
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');

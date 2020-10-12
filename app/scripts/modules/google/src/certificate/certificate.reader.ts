@@ -17,7 +17,7 @@ export class GceCertificateReader {
     )
       .then((searchResults: ISearchResults<IGceCertificate>) => {
         if (searchResults && searchResults.results) {
-          return searchResults.results.filter(certificate => certificate.provider === 'gce');
+          return searchResults.results.filter((certificate) => certificate.provider === 'gce');
         } else {
           return [];
         }

@@ -24,7 +24,7 @@ export class ServerGroupInsightActions extends React.Component<{ serverGroup: IS
         <Dropdown className="dropdown" id="server-group-insight-dropdown" pullRight={true}>
           <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">Insight</Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
-            {serverGroup.insightActions.map(action => (
+            {serverGroup.insightActions.map((action) => (
               <li key={action.label}>
                 <a target="_blank" onClick={() => this.onClick(action.label)} href={action.url}>
                   {action.label}

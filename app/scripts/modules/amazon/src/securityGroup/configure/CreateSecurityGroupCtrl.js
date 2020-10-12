@@ -18,7 +18,7 @@ angular
     'cacheInitializer',
     'application',
     'securityGroup',
-    function($scope, $uibModalInstance, $state, $controller, cacheInitializer, application, securityGroup) {
+    function ($scope, $uibModalInstance, $state, $controller, cacheInitializer, application, securityGroup) {
       $scope.pages = {
         location: require('./createSecurityGroupProperties.html'),
         ingress: require('./createSecurityGroupIngress.html'),
@@ -26,7 +26,7 @@ angular
 
       const ctrl = this;
 
-      ctrl.translate = label => FirewallLabels.get(label);
+      ctrl.translate = (label) => FirewallLabels.get(label);
 
       angular.extend(
         this,

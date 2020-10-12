@@ -34,7 +34,7 @@ export class ManifestEntry extends React.Component<IManifestBasicSettingsProps, 
   private handleChange = (rawManifest: string, manifest: any) => {
     this.props.formik.setFieldValue(
       'command.manifests',
-      [].concat(manifest).filter(x => !!x),
+      [].concat(manifest).filter((x) => !!x),
     );
     this.setState({ rawManifest });
   };

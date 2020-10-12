@@ -27,7 +27,7 @@ import { AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applica
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 
@@ -53,7 +53,7 @@ module(AZURE_MODULE, [
   AZURE_SECURITYGROUP_SECURITYGROUP_READER,
   AZURE_IMAGE_IMAGE_READER,
   AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR,
-]).config(function() {
+]).config(function () {
   CloudProviderRegistry.registerProvider('azure', {
     name: 'Azure',
     logo: {

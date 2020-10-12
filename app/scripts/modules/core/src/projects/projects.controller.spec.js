@@ -2,10 +2,10 @@
 
 import { ProjectReader } from './service/ProjectReader';
 
-describe('Controller: Projects', function() {
+describe('Controller: Projects', function () {
   beforeEach(window.module(require('./projects.controller').name, require('angular-ui-bootstrap')));
 
-  describe('filtering', function() {
+  describe('filtering', function () {
     var deck = { name: 'deck', email: 'a@netflix.com', createTs: new Date(2) },
       oort = { name: 'oort', email: 'b@netflix.com', createTs: new Date(3) },
       mort = { name: 'mort', email: 'c@netflix.com', createTs: new Date(1) },
@@ -13,11 +13,11 @@ describe('Controller: Projects', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(
-      window.inject(function($controller, $rootScope, $window, $q, $uibModal, $log, $filter, $state, $timeout) {
+      window.inject(function ($controller, $rootScope, $window, $q, $uibModal, $log, $filter, $state, $timeout) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
 
-        spyOn(ProjectReader, 'listProjects').and.callFake(function() {
+        spyOn(ProjectReader, 'listProjects').and.callFake(function () {
           return $q.when(projectList);
         });
 
@@ -35,7 +35,7 @@ describe('Controller: Projects', function() {
       }),
     );
 
-    it('sets projectsLoaded flag when projects retrieved and added to scope', function() {
+    it('sets projectsLoaded flag when projects retrieved and added to scope', function () {
       var $scope = this.$scope;
 
       expect($scope.projectsLoaded).toBe(false);
@@ -48,7 +48,7 @@ describe('Controller: Projects', function() {
       expect($scope.filteredProjects).toEqual([deck, mort, oort]);
     });
 
-    it('filters projects by name or email', function() {
+    it('filters projects by name or email', function () {
       var $scope = this.$scope,
         ctrl = this.ctrl;
 
@@ -62,7 +62,7 @@ describe('Controller: Projects', function() {
       expect($scope.filteredProjects).toEqual([mort, oort]);
     });
 
-    it('sorts and filters projects', function() {
+    it('sorts and filters projects', function () {
       var $scope = this.$scope,
         ctrl = this.ctrl;
 

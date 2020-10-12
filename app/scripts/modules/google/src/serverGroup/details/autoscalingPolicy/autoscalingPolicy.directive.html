@@ -6,12 +6,8 @@
   <dd ng-repeat-end>
     <div ng-repeat="target in basis.targets">{{target}}</div>
   </dd>
-  <dt ng-if="$ctrl.predictiveAutoscalingEnabled">
-    Predictive Autoscaling
-  </dt>
-  <dd ng-if="$ctrl.predictiveAutoscalingEnabled">
-    {{$ctrl.policy.cpuUtilization.predictiveMethod}}
-  </dd>
+  <dt ng-if="$ctrl.predictiveAutoscalingEnabled">Predictive Autoscaling</dt>
+  <dd ng-if="$ctrl.predictiveAutoscalingEnabled">{{$ctrl.policy.cpuUtilization.predictiveMethod}}</dd>
   <dt>
     Min # VMs
     <help-field key="gce.serverGroup.autoscaling.minVMs"></help-field>
@@ -32,17 +28,11 @@
     <help-field key="gce.serverGroup.autoscaling.mode"></help-field>
   </dt>
   <dd>{{$ctrl.policy.mode}}</dd>
-  <dt ng-if="$ctrl.scaleInControlsEnabled">
-    Scale-in Controls
-  </dt>
+  <dt ng-if="$ctrl.scaleInControlsEnabled">Scale-in Controls</dt>
   <dd ng-if="$ctrl.scaleInControlsEnabled">{{$ctrl.scaleInControlsConfigured ? 'Enabled' : 'Disabled'}}</dd>
-  <dt ng-if="$ctrl.scaleInControlsConfigured">
-    Max Scaled-in Replicas
-  </dt>
+  <dt ng-if="$ctrl.scaleInControlsConfigured">Max Scaled-in Replicas</dt>
   <dd ng-if="$ctrl.scaleInControlsConfigured">{{$ctrl.maxScaledInReplicasMessage}}</dd>
-  <dt ng-if="$ctrl.scaleInControlsConfigured">
-    Scale-in Time Window
-  </dt>
+  <dt ng-if="$ctrl.scaleInControlsConfigured">Scale-in Time Window</dt>
   <dd ng-if="$ctrl.scaleInControlsConfigured">{{$ctrl.timeWindowSecMessage}}</dd>
   <dt ng-if="$ctrl.serverGroup.autoscalingMessages">Messages</dt>
   <dd ng-if="$ctrl.serverGroup.autoscalingMessages" ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">

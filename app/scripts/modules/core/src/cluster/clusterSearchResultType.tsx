@@ -58,7 +58,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
 
     return (
       <SearchTableBody>
-        {results.map(item => (
+        {results.map((item) => (
           <SearchTableRow key={itemKeyFn(item)}>
             <HrefCell item={item} col={this.cols.CLUSTER} />
             <AccountCell item={item} col={this.cols.ACCOUNT} />
@@ -84,7 +84,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
     otherResults: Observable<ISearchResultSet>,
   ): Observable<ISearchResults<IClusterSearchResult>> {
     return otherResults
-      .filter(resultSet => resultSet.type.id === 'serverGroups')
+      .filter((resultSet) => resultSet.type.id === 'serverGroups')
       .first()
       .map((resultSet: ISearchResultSet) => {
         const { status, results, error } = resultSet;
@@ -93,8 +93,8 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
         }
 
         const serverGroups = results as IServerGroupSearchResult[];
-        const searchResults = serverGroups.map(sg => this.makeSearchResult(sg));
-        const clusters: IClusterSearchResult[] = uniqBy(searchResults, sg => `${sg.account}-${sg.cluster}`);
+        const searchResults = serverGroups.map((sg) => this.makeSearchResult(sg));
+        const clusters: IClusterSearchResult[] = uniqBy(searchResults, (sg) => `${sg.account}-${sg.cluster}`);
         return { results: clusters };
       });
   }

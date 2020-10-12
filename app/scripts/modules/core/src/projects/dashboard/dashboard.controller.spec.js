@@ -3,7 +3,7 @@
 import { RecentHistoryService } from 'core/history';
 import { ProjectReader } from '../service/ProjectReader';
 
-describe('Controller: Project Dashboard', function() {
+describe('Controller: Project Dashboard', function () {
   var executionService,
     projectConfig,
     vm,
@@ -15,7 +15,7 @@ describe('Controller: Project Dashboard', function() {
   beforeEach(window.module(require('./dashboard.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _executionService_, _$q_) {
+    window.inject(function ($controller, $rootScope, _executionService_, _$q_) {
       executionService = _executionService_;
       $q = _$q_;
       $scope = $rootScope.$new();
@@ -31,8 +31,8 @@ describe('Controller: Project Dashboard', function() {
     }),
   );
 
-  describe('recent history application', function() {
-    it('adds project applications via recent history', function() {
+  describe('recent history application', function () {
+    it('adds project applications via recent history', function () {
       var historyType = null,
         appList = null;
       spyOn(RecentHistoryService, 'addExtraDataToLatest').and.callFake((type, project) => {
@@ -44,22 +44,22 @@ describe('Controller: Project Dashboard', function() {
       expect(appList).toBe(projectConfig.config.applications);
     });
 
-    it('removes project from recent history if not found', function() {
+    it('removes project from recent history if not found', function () {
       var historyType = null;
       projectConfig.notFound = true;
-      spyOn(RecentHistoryService, 'removeLastItem').and.callFake(type => (historyType = type));
+      spyOn(RecentHistoryService, 'removeLastItem').and.callFake((type) => (historyType = type));
       this.initialize();
       expect(historyType).toBe('projects');
     });
   });
 
-  describe('initialization, no errors', function() {
-    beforeEach(function() {
+  describe('initialization, no errors', function () {
+    beforeEach(function () {
       spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
     });
 
-    it('loads clusters on initialization, sets state, then sets state when clusters finish loading', function() {
+    it('loads clusters on initialization, sets state, then sets state when clusters finish loading', function () {
       this.initialize();
 
       let state = vm.state.clusters;
@@ -77,7 +77,7 @@ describe('Controller: Project Dashboard', function() {
       expect(state.lastRefresh).not.toBeUndefined();
     });
 
-    it('loads executions on initialization, sets state, then sets state when executions finish loading', function() {
+    it('loads executions on initialization, sets state, then sets state when executions finish loading', function () {
       this.initialize();
 
       let state = vm.state.executions;
@@ -96,8 +96,8 @@ describe('Controller: Project Dashboard', function() {
     });
   });
 
-  describe('initialization with errors', function() {
-    it('loads clusters as expected, but sets error flag when executions fail to load', function() {
+  describe('initialization with errors', function () {
+    it('loads clusters as expected, but sets error flag when executions fail to load', function () {
       spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.reject(null));
 
@@ -120,7 +120,7 @@ describe('Controller: Project Dashboard', function() {
       expect(state.executions.lastRefresh).toBeUndefined();
     });
 
-    it('loads executions as expected, but sets error flag when clusters fail to load', function() {
+    it('loads executions as expected, but sets error flag when clusters fail to load', function () {
       spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.reject(null));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
 

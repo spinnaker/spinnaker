@@ -40,7 +40,7 @@ export class AvailabilityZoneSelector extends React.Component<
     const { credentials, onChange, region } = props;
     const { usePreferredZones } = this.state;
 
-    AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(preferredZones => {
+    AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then((preferredZones) => {
       this.setState({ defaultZones: preferredZones });
       if (usePreferredZones && preferredZones) {
         onChange(preferredZones.slice());
@@ -84,7 +84,7 @@ export class AvailabilityZoneSelector extends React.Component<
               <div>
                 <p className="form-control-static">Server group will be available in:</p>
                 <ul>
-                  {defaultZones.map(zone => (
+                  {defaultZones.map((zone) => (
                     <li key={zone}>{zone}</li>
                   ))}
                 </ul>

@@ -123,7 +123,7 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
           ($stateParams: StateParams, securityGroupReader: SecurityGroupReader): ng.IPromise<Application> => {
             // we need the application to have a firewall index (so rules get attached and linked properly)
             // and its name should just be the name of the firewall (so cloning works as expected)
-            return securityGroupReader.loadSecurityGroups().then(securityGroupsIndex => {
+            return securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
               const application: Application = ApplicationModelBuilder.createStandaloneApplication($stateParams.name);
               application['securityGroupsIndex'] = securityGroupsIndex; // TODO: refactor the securityGroupsIndex out
               return application;

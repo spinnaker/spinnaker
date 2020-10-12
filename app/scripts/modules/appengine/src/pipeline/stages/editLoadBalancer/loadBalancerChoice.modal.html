@@ -25,11 +25,11 @@
           <ui-select class="form-control input-sm" ng-model="ctrl.selectedLoadBalancer">
             <ui-select-match>
               <account-tag account="$select.selected.account"></account-tag>
-              <span style="margin-left: 5px;">{{$select.selected.name}}</span>
+              <span style="margin-left: 5px">{{$select.selected.name}}</span>
             </ui-select-match>
             <ui-select-choices repeat="loadBalancer in ctrl.loadBalancers | filter: $select.search">
               <account-tag account="loadBalancer.account"></account-tag>
-              <span style="margin-left: 5px;" ng-bind-html="loadBalancer.name"></span>
+              <span style="margin-left: 5px" ng-bind-html="loadBalancer.name"></span>
             </ui-select-choices>
           </ui-select>
         </div>

@@ -14,7 +14,7 @@ export const CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE =
   'spinnaker.core.pipeline.stage.manualJudgmentStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       label: 'Manual Judgment',
       description: 'Waits for user approval before continuing',
@@ -34,16 +34,16 @@ module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
   })
   .controller('ManualJudgmentStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.authEnabled = SETTINGS.authEnabled;
       $scope.stage.notifications = $scope.stage.notifications || [];
       $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
       $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
 
-      this.transformToNewStyleIfNecessary = function(notifications) {
+      this.transformToNewStyleIfNecessary = function (notifications) {
         // If there is at least one notification, and sendNotifications is not enabled, this must be the old style; transform it.
         if (notifications.length && !$scope.stage.sendNotifications) {
-          _.each(notifications, function(notification) {
+          _.each(notifications, function (notification) {
             notification.level = 'stage';
             notification.when = ['manualJudgment'];
           });
@@ -53,13 +53,13 @@ module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
 
       this.transformToNewStyleIfNecessary($scope.stage.notifications);
 
-      this.manageStateOnToggle = function() {
+      this.manageStateOnToggle = function () {
         if (!$scope.stage.sendNotifications) {
           $scope.stage.notifications.length = 0;
         }
       };
 
-      this.addJudgmentInput = function() {
+      this.addJudgmentInput = function () {
         if (!$scope.stage.judgmentInputs) {
           $scope.stage.judgmentInputs = [];
         }
@@ -67,11 +67,11 @@ module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
         $scope.stage.judgmentInputs.push(judgmentInput);
       };
 
-      this.removeJudgmentInput = function(idx) {
+      this.removeJudgmentInput = function (idx) {
         $scope.stage.judgmentInputs.splice(idx, 1);
       };
 
-      this.updateNotifications = function(notifications) {
+      this.updateNotifications = function (notifications) {
         if ($scope.parent && !$scope.parent.notifications) {
           $scope.parent.notifications = [];
         }

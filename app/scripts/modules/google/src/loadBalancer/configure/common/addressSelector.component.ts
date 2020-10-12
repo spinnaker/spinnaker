@@ -10,7 +10,7 @@ class GceAddressSelectorCtrl implements IController {
   private initialIpAddress: string;
 
   public $onInit(): void {
-    this.selectedAddress = this.addressList.find(address => address.address === this.initialIpAddress);
+    this.selectedAddress = this.addressList.find((address) => address.address === this.initialIpAddress);
     if (!this.selectedAddress) {
       this.selectedAddress = { address: this.initialIpAddress, account: this.account };
     }

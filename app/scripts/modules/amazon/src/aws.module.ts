@@ -74,7 +74,7 @@ import { AMAZON_INSTANCE_INFORMATION_COMPONENT } from './instance/details/amazon
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

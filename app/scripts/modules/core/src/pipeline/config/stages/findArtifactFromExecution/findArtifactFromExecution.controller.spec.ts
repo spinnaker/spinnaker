@@ -3,7 +3,7 @@
 import { IScope, mock } from 'angular';
 import { FindArtifactFromExecutionCtrl } from 'core/pipeline/config/stages/findArtifactFromExecution/findArtifactFromExecution.controller';
 
-describe('Find Artifact From Execution Controller:', function() {
+describe('Find Artifact From Execution Controller:', function () {
   let ctrl: FindArtifactFromExecutionCtrl, $scope: IScope, initializeController: (stage: any) => void;
 
   beforeEach(

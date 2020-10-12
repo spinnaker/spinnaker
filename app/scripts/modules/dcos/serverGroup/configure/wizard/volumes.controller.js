@@ -6,7 +6,7 @@ export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER = 'spinnaker.d
 export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER; // for backwards compatibility
 module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, []).controller('dcosServerGroupVolumesController', [
   '$scope',
-  function($scope) {
+  function ($scope) {
     this.volumeModes = [
       {
         mode: 'RW',
@@ -18,11 +18,11 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, []).controller('dco
       },
     ];
 
-    this.isVolumesValid = function(volumes) {
+    this.isVolumesValid = function (volumes) {
       return !(volumes === undefined || volumes == null || typeof volumes === 'string' || volumes instanceof String);
     };
 
-    this.addPersistentVolume = function() {
+    this.addPersistentVolume = function () {
       if (!this.isVolumesValid($scope.command.persistentVolumes)) {
         $scope.command.persistentVolumes = [];
       }
@@ -36,11 +36,11 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, []).controller('dco
       });
     };
 
-    this.removePersistentVolume = function(index) {
+    this.removePersistentVolume = function (index) {
       $scope.command.persistentVolumes.splice(index, 1);
     };
 
-    this.addDockerVolume = function() {
+    this.addDockerVolume = function () {
       if (!this.isVolumesValid($scope.command.dockerVolumes)) {
         $scope.command.dockerVolumes = [];
       }
@@ -52,11 +52,11 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, []).controller('dco
       });
     };
 
-    this.removeDockerVolume = function(index) {
+    this.removeDockerVolume = function (index) {
       $scope.command.dockerVolumes.splice(index, 1);
     };
 
-    this.addExternalVolume = function() {
+    this.addExternalVolume = function () {
       if (!this.isVolumesValid($scope.command.externalVolumes)) {
         $scope.command.externalVolumes = [];
       }
@@ -74,7 +74,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, []).controller('dco
       });
     };
 
-    this.removeExternalVolume = function(index) {
+    this.removeExternalVolume = function (index) {
       $scope.command.externalVolumes.splice(index, 1);
     };
   },

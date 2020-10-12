@@ -39,7 +39,7 @@ export class EcsListener extends React.Component<IEcsListenerProps> {
                     <i className="fa fa-fw fa-crosshairs icon" aria-hidden="true"></i>
                     <span>
                       {action.targetGroupArn ||
-                        action.forwardConfig.targetGroups.map(tg => {
+                        action.forwardConfig.targetGroups.map((tg) => {
                           return this.getTargetGroupNameFromArn(tg.targetGroupArn);
                         })}
                     </span>

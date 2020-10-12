@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 export const AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.azure.serverGroup.transformer';
 export const name = AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
-module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupTransformer', function() {
+module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupTransformer', function () {
   function normalizeServerGroup(serverGroup) {
     return serverGroup;
   }
@@ -28,7 +28,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
         configuration.customScriptsSettings.fileUris = [fileUrisTemp];
       }
 
-      configuration.customScriptsSettings.fileUris.forEach(function(v, index) {
+      configuration.customScriptsSettings.fileUris.forEach(function (v, index) {
         configuration.customScriptsSettings.fileUris[index] = v.trim();
       });
     }

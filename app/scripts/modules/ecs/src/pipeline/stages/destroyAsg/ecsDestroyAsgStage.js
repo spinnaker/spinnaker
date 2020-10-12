@@ -7,15 +7,15 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const ECS_PIPELINE_STAGES_DESTROYASG_ECSDESTROYASGSTAGE = 'spinnaker.ecs.pipeline.stage.ecs.destroyAsgStage';
 export const name = ECS_PIPELINE_STAGES_DESTROYASG_ECSDESTROYASGSTAGE; // for backwards compatibility
 module(ECS_PIPELINE_STAGES_DESTROYASG_ECSDESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       alias: 'destroyAsg',
       cloudProvider: 'ecs',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -31,7 +31,7 @@ module(ECS_PIPELINE_STAGES_DESTROYASG_ECSDESTROYASGSTAGE, [])
   })
   .controller('ecsDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -39,7 +39,7 @@ module(ECS_PIPELINE_STAGES_DESTROYASG_ECSDESTROYASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('ecs').then(function(accounts) {
+      AccountService.listAccounts('ecs').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

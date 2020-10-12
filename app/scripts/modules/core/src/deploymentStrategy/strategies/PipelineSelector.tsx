@@ -70,7 +70,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
     const pipelineId = type === 'pipelines' ? command.pipelineId : command.strategyPipeline;
 
     if (command && pipelineId) {
-      const config = pipelines.find(p => p.id === pipelineId);
+      const config = pipelines.find((p) => p.id === pipelineId);
       if (config && config.parameterConfig) {
         if (!command.pipelineParameters) {
           command.pipelineParameters = {};
@@ -92,10 +92,10 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
   protected validateCurrentPipeline(pipelines: IPipeline[]) {
     const { command, type } = this.props;
 
-    if (type === 'pipelines' && pipelines.every(p => p.id !== command.pipelineId)) {
+    if (type === 'pipelines' && pipelines.every((p) => p.id !== command.pipelineId)) {
       command.pipelineId = '';
     }
-    if (type === 'strategies' && pipelines.every(p => p.id !== command.strategyPipeline)) {
+    if (type === 'strategies' && pipelines.every((p) => p.id !== command.strategyPipeline)) {
       command.pipelineId = '';
     }
   }
@@ -103,7 +103,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
   private updatePipelines(pipelines: IPipeline[]) {
     const pipelinesLoaded = true;
     this.updatePipelineConfig(pipelines);
-    const pipelineOptions = pipelines.map(p => ({ label: p.name, value: p.id }));
+    const pipelineOptions = pipelines.map((p) => ({ label: p.name, value: p.id }));
     this.setState({ pipelines, pipelinesLoaded, pipelineOptions });
   }
 
@@ -111,12 +111,12 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
     this.setState({ pipelinesLoaded: false });
     const { command, type } = this.props;
     if (type === 'pipelines' && command.application) {
-      PipelineConfigService.getPipelinesForApplication(command.application).then(pipelines => {
+      PipelineConfigService.getPipelinesForApplication(command.application).then((pipelines) => {
         this.validateCurrentPipeline(pipelines);
         this.updatePipelines(pipelines);
       });
     } else if (type === 'strategies' && command.strategyApplication) {
-      PipelineConfigService.getStrategiesForApplication(command.strategyApplication).then(pipelines => {
+      PipelineConfigService.getStrategiesForApplication(command.strategyApplication).then((pipelines) => {
         this.validateCurrentPipeline(pipelines);
         this.updatePipelines(pipelines);
       });
@@ -130,11 +130,11 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
       this.props.command.strategyApplication = this.props.command.application;
     }
 
-    ApplicationReader.listApplications().then(applications => {
+    ApplicationReader.listApplications().then((applications) => {
       const applicationOptions = applications
-        .map(a => a.name)
+        .map((a) => a.name)
         .sort()
-        .map(a => ({ label: a, value: a }));
+        .map((a) => ({ label: a, value: a }));
       this.setState({ applicationOptions, applicationsLoaded: true });
       this.initializePipelines();
     });
@@ -227,7 +227,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
           {pipelineParameters.length > 0 && (
             <div className="well well-sm clearfix ng-scope col-md-12">
               <strong className="text-left">Parameters</strong>
-              {pipelineParameters.map(parameter => (
+              {pipelineParameters.map((parameter) => (
                 <div key={parameter.name} className="form-group">
                   <div className="col-md-3 sm-label-right">
                     {!parameter.description && <span>{parameter.name}</span>}
@@ -242,7 +242,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
                         type="text"
                         className="form-control input-sm"
                         value={userSuppliedParameters[parameter.name]}
-                        onChange={e => this.updateParam(parameter.name, e.target.value)}
+                        onChange={(e) => this.updateParam(parameter.name, e.target.value)}
                       />
                     )}
                     {!useDefaultParameters[parameter.name] && parameter.hasOptions && (
@@ -250,7 +250,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
                         style={{ width: '100%' }}
                         value={userSuppliedParameters[parameter.name]}
                         onChange={(o: Option<string>) => this.updateParam(parameter.name, o ? o.value : '')}
-                        options={parameter.options.map(o => ({ label: o.value, value: o.value }))}
+                        options={parameter.options.map((o) => ({ label: o.value, value: o.value }))}
                       />
                     )}
                   </div>
@@ -260,7 +260,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
                         <input
                           type="checkbox"
                           checked={useDefaultParameters[parameter.name]}
-                          onChange={e => this.updateParam(parameter.name, e.target.checked)}
+                          onChange={(e) => this.updateParam(parameter.name, e.target.checked)}
                         />
                         Use default
                       </label>

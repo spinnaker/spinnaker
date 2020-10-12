@@ -32,9 +32,7 @@
                   />
                   <!-- TODO: Add cron-validator when endpoint is fixed -->
                   <div class="form-group row slide-in" ng-if="form['recurrence-' + $index].$error.cronExpression">
-                    <div class="error-message">
-                      {{cronErrors['action.recurrence.cronExpression']}}
-                    </div>
+                    <div class="error-message">{{cronErrors['action.recurrence.cronExpression']}}</div>
                   </div>
                 </td>
                 <td>
@@ -85,9 +83,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit" class="btn btn-primary" ng-disabled="form.$invalid" ng-click="ctrl.submit()">
-        Submit
-      </button>
+      <button type="submit" class="btn btn-primary" ng-disabled="form.$invalid" ng-click="ctrl.submit()">Submit</button>
     </div>
   </form>
 </div>

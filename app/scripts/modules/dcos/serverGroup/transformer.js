@@ -8,7 +8,7 @@ export const DCOS_SERVERGROUP_TRANSFORMER = 'spinnaker.dcos.serverGroup.transfor
 export const name = DCOS_SERVERGROUP_TRANSFORMER; // for backwards compatibility
 module(DCOS_SERVERGROUP_TRANSFORMER, []).factory('dcosServerGroupTransformer', [
   '$q',
-  function($q) {
+  function ($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }

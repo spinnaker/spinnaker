@@ -39,7 +39,7 @@ export class ServerGroupInformationSection extends React.Component<ICloudFoundry
               <dd>{serverGroup.droplet.stack}</dd>
               <dt>Buildpack</dt>
               {serverGroup.droplet.buildpacks ? (
-                serverGroup.droplet.buildpacks.map(function(buildpack: ICloudFoundryBuildpack, index: number) {
+                serverGroup.droplet.buildpacks.map(function (buildpack: ICloudFoundryBuildpack, index: number) {
                   return (
                     <dd key={index}>
                       {buildpack.name} {buildpack.version}

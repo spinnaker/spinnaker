@@ -12,9 +12,9 @@
       ng-change="onChange()"
       ng-required="autoCreateSubnets === false"
     >
-      <option ng-repeat="subnet in subnets" value="{{subnet}}" ng-selected="component[field] === subnet"
-        >{{subnet}}</option
-      >
+      <option ng-repeat="subnet in subnets" value="{{subnet}}" ng-selected="component[field] === subnet">
+        {{subnet}}
+      </option>
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

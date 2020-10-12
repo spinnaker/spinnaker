@@ -1,6 +1,6 @@
 import { ApplicationModelBuilder } from '@spinnaker/core';
 
-describe('Controller: azureLoadBalancerDetailsCtrl', function() {
+describe('Controller: azureLoadBalancerDetailsCtrl', function () {
   var controller;
   var $scope;
   var $state;
@@ -15,7 +15,7 @@ describe('Controller: azureLoadBalancerDetailsCtrl', function() {
   beforeEach(window.module(require('./loadBalancerDetail.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$state_) {
+    window.inject(function ($controller, $rootScope, _$state_) {
       $scope = $rootScope.$new();
       $state = _$state_;
       let app = ApplicationModelBuilder.createApplicationForTests('app', {
@@ -33,7 +33,7 @@ describe('Controller: azureLoadBalancerDetailsCtrl', function() {
     }),
   );
 
-  it('should have an instantiated controller', function() {
+  it('should have an instantiated controller', function () {
     expect(controller).toBeDefined();
   });
 });

@@ -19,7 +19,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
   '$uibModalInstance',
   'application',
   'serverGroup',
-  function($scope, $uibModalInstance, application, serverGroup) {
+  function ($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};
@@ -34,7 +34,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function() {
+    this.isValid = function () {
       if (!$scope.verification.verified) {
         return false;
       }
@@ -47,7 +47,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function() {
+    this.resize = function () {
       this.submitting = true;
       if (!this.isValid()) {
         return;
@@ -56,7 +56,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
       $scope.taskMonitor.submit($scope.formMethods.submitMethod);
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
   },

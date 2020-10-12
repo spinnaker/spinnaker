@@ -26,12 +26,12 @@ export const HelmTriggerTemplate = (props: IHelmTriggerTemplateProps) => {
 
   useEffect(() => {
     // Fetch Helm-compatible accounts
-    AccountService.getArtifactAccounts().then(allAccounts => {
+    AccountService.getArtifactAccounts().then((allAccounts) => {
       const accounts = allAccounts
-        .filter(a => {
+        .filter((a) => {
           return a.types.includes('helm/chart');
         })
-        .map(it => it.name);
+        .map((it) => it.name);
 
       setAccounts(accounts);
     });
@@ -67,7 +67,7 @@ export const HelmTriggerTemplate = (props: IHelmTriggerTemplateProps) => {
         label="Account"
         value={account}
         onChange={(e: any) => stateChanged(setAccount, 'account', e.target.value || '')}
-        input={props => <ReactSelectInput {...props} stringOptions={accounts} clearable={false} />}
+        input={(props) => <ReactSelectInput {...props} stringOptions={accounts} clearable={false} />}
       />
 
       <FormField
@@ -75,7 +75,7 @@ export const HelmTriggerTemplate = (props: IHelmTriggerTemplateProps) => {
         help={<HelpField id="pipeline.config.trigger.helm.chart" />}
         value={chart || ''}
         onChange={(e: any) => stateChanged(setChart, 'chart', e.target.value || '')}
-        input={props => <TextInput {...props} />}
+        input={(props) => <TextInput {...props} />}
       />
 
       <FormField
@@ -83,7 +83,7 @@ export const HelmTriggerTemplate = (props: IHelmTriggerTemplateProps) => {
         help={<HelpField id={helpId} />}
         value={version || ''}
         onChange={(e: any) => stateChanged(setVersion, 'version', e.target.value || '')}
-        input={props => <TextInput {...props} />}
+        input={(props) => <TextInput {...props} />}
       />
     </>
   );

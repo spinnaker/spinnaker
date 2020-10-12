@@ -20,15 +20,9 @@
             <td>
               <account-tag account="loadBalancer.credentials"></account-tag>
             </td>
-            <td>
-              {{ loadBalancer.name }}
-            </td>
-            <td>
-              {{ loadBalancer.region }}
-            </td>
-            <td>
-              {{ loadBalancer.subnetType || '[none]' }}
-            </td>
+            <td>{{ loadBalancer.name }}</td>
+            <td>{{ loadBalancer.region }}</td>
+            <td>{{ loadBalancer.subnetType || '[none]' }}</td>
 
             <td>
               <a class="btn btn-xs btn-link" href ng-click="ctrl.editLoadBalancer(loadBalancer, $index)">Edit</a>

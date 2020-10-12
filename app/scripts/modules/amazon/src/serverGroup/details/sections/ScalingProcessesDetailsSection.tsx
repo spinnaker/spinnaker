@@ -23,7 +23,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
   private toggleScalingProcesses = (): void => {
     const { app, serverGroup } = this.props;
     confirmNotManaged(serverGroup, app).then(
-      isNotManaged =>
+      (isNotManaged) =>
         isNotManaged &&
         ModalInjector.modalService.open({
           templateUrl: require('../scalingProcesses/modifyScalingProcesses.html'),
@@ -45,13 +45,13 @@ export class ScalingProcessesDetailsSection extends React.Component<
     const scalingPoliciesDisabled =
       serverGroup.scalingPolicies.length > 0 &&
       autoScalingProcesses
-        .filter(p => !p.enabled)
-        .some(p => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name));
+        .filter((p) => !p.enabled)
+        .some((p) => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name));
     const scheduledActionsDisabled =
       serverGroup.scheduledActions.length > 0 &&
       autoScalingProcesses
-        .filter(p => !p.enabled)
-        .some(p => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
+        .filter((p) => !p.enabled)
+        .some((p) => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
 
     return { autoScalingProcesses, scalingPoliciesDisabled, scheduledActionsDisabled };
   }
@@ -86,7 +86,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
         )}
       >
         <ul className="scaling-processes">
-          {autoScalingProcesses.map(process => (
+          {autoScalingProcesses.map((process) => (
             <li key={process.name}>
               <span style={{ visibility: process.enabled ? 'visible' : 'hidden' }} className="fa fa-check small" />
               <span className={!process.enabled ? 'text-disabled' : ''}>{process.name} </span>

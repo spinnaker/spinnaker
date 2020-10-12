@@ -11,8 +11,8 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).contr
   [
     '$scope',
     'dcosServerGroupConfigurationService',
-    function($scope, dcosServerGroupConfigurationService) {
-      this.groupByRegistry = function(image) {
+    function ($scope, dcosServerGroupConfigurationService) {
+      this.groupByRegistry = function (image) {
         if (image) {
           if (image.fromContext) {
             return 'Find Image Result(s)';
@@ -32,20 +32,17 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).contr
 
       const imageSearchResultsStream = new Subject();
 
-      imageSearchResultsStream
-        .debounceTime(250)
-        .switchMap(searchImages)
-        .subscribe();
+      imageSearchResultsStream.debounceTime(250).switchMap(searchImages).subscribe();
 
-      this.searchImages = function(q) {
+      this.searchImages = function (q) {
         imageSearchResultsStream.next(q);
       };
 
-      this.isParametersValid = function(parameters) {
+      this.isParametersValid = function (parameters) {
         return !(typeof parameters === 'string' || parameters instanceof String);
       };
 
-      this.addParameter = function() {
+      this.addParameter = function () {
         if (!this.isParametersValid($scope.command.docker.parameters)) {
           $scope.command.docker.parameters = [];
         }
@@ -56,7 +53,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).contr
         });
       };
 
-      this.removeParameter = function(index) {
+      this.removeParameter = function (index) {
         $scope.command.docker.parameters.splice(index, 1);
       };
     },

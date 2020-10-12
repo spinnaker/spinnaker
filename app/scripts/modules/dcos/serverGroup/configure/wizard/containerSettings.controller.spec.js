@@ -1,13 +1,13 @@
 'use strict';
 
-describe('dcosServerGroupContainerSettingsController', function() {
+describe('dcosServerGroupContainerSettingsController', function () {
   var controller;
   var scope;
 
   beforeEach(window.module(require('./containerSettings.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
 
       scope.command = {};
@@ -19,12 +19,12 @@ describe('dcosServerGroupContainerSettingsController', function() {
     }),
   );
 
-  describe('Group By Registry', function() {
-    beforeEach(function() {
+  describe('Group By Registry', function () {
+    beforeEach(function () {
       scope.command.env = [];
     });
 
-    it('Group By Registry spec 1', function() {
+    it('Group By Registry spec 1', function () {
       var image = {
         fromContext: true,
       };
@@ -35,7 +35,7 @@ describe('dcosServerGroupContainerSettingsController', function() {
       expect(result).toEqual(expected);
     });
 
-    it('Group By Registry spec 2', function() {
+    it('Group By Registry spec 2', function () {
       var image = {
         fromTrigger: true,
       };
@@ -46,7 +46,7 @@ describe('dcosServerGroupContainerSettingsController', function() {
       expect(result).toEqual(expected);
     });
 
-    it('Group By Registry spec 3', function() {
+    it('Group By Registry spec 3', function () {
       var image = {
         registry: 'registry',
       };

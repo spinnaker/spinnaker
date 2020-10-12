@@ -166,9 +166,7 @@
     </collapsible-section>
     <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType !== 'classic'" heading="Listeners">
       <div ng-repeat="listener in ctrl.listeners">
-        <div class="listener-targets">
-          {{listener.in}} &rarr;
-        </div>
+        <div class="listener-targets">{{listener.in}} &rarr;</div>
         <div class="listener-targets">
           <div ng-repeat="action in listener.actions">
             <!-- redirect -->
@@ -176,18 +174,10 @@
               <span ng-if="action.redirectConfig.protocol !== listener.protocol">
                 {{action.redirectConfig.protocol}}:
               </span>
-              <span ng-if="action.redirectConfig.host !== '#{host}'">
-                {{action.redirectConfig.host}}
-              </span>
-              <span ng-if="action.redirectConfig.port !== '#{port}'">
-                {{action.redirectConfig.port}}
-              </span>
-              <span ng-if="action.redirectConfig.path !== '/#{path}'">
-                {{action.redirectConfig.path}}
-              </span>
-              <span ng-if="action.redirectConfig.query !== '#{query}'">
-                ?{{action.redirectConfig.query}}
-              </span>
+              <span ng-if="action.redirectConfig.host !== '#{host}'"> {{action.redirectConfig.host}} </span>
+              <span ng-if="action.redirectConfig.port !== '#{port}'"> {{action.redirectConfig.port}} </span>
+              <span ng-if="action.redirectConfig.path !== '/#{path}'"> {{action.redirectConfig.path}} </span>
+              <span ng-if="action.redirectConfig.query !== '#{query}'"> ?{{action.redirectConfig.query}} </span>
               ({{action.redirectConfig.statusCode}})
             </span>
             <!-- authenticate-oidc -->
@@ -200,9 +190,7 @@
               >
                 {{action.authenticateOidcConfig.clientId}}
               </a>
-              <span ng-if="!ctrl.oidcConfigPath">
-                {{action.authenticateOidcConfig.clientId}}
-              </span>
+              <span ng-if="!ctrl.oidcConfigPath"> {{action.authenticateOidcConfig.clientId}} </span>
             </span>
             <!-- forward -->
             <span ng-if="action.targetGroupName && action.targetGroup">

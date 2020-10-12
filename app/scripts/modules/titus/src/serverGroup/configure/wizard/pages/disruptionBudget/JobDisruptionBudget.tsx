@@ -100,12 +100,12 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     if (!disruptionBudget) {
       return options[0];
     }
-    return options.find(o => !!disruptionBudget[o.field]);
+    return options.find((o) => !!disruptionBudget[o.field]);
   }
 
   private optionTypeChanged = (e: IFieldOption, options: IFieldOption[]) => {
-    const deselected = options.filter(o => o !== e);
-    deselected.forEach(o => this.props.formik.setFieldValue('disruptionBudget.' + o.field, undefined));
+    const deselected = options.filter((o) => o !== e);
+    deselected.forEach((o) => this.props.formik.setFieldValue('disruptionBudget.' + o.field, undefined));
     this.props.formik.setFieldValue('disruptionBudget.' + e.field, e.defaultValues);
   };
 
@@ -120,19 +120,19 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
   private getTimeWindowSelection(): IFieldOption {
     const windows = get(this.props.formik.values, 'disruptionBudget.timeWindows');
     if (windows) {
-      return this.timeWindowOptions.find(o => o.defaultValues);
+      return this.timeWindowOptions.find((o) => o.defaultValues);
     }
-    return this.timeWindowOptions.find(o => !o.defaultValues);
+    return this.timeWindowOptions.find((o) => !o.defaultValues);
   }
 
   private toggleHealthProvider(provider: string) {
     const { values, setFieldValue } = this.props.formik;
     const providers = values.disruptionBudget.containerHealthProviders;
-    const existing = providers.find(p => p.name === provider);
+    const existing = providers.find((p) => p.name === provider);
     if (existing) {
       setFieldValue(
         'disruptionBudget.containerHealthProviders',
-        providers.filter(p => p !== existing),
+        providers.filter((p) => p !== existing),
       );
     } else {
       setFieldValue('disruptionBudget.containerHealthProviders', providers.concat({ name: provider }));
@@ -151,7 +151,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
 
     const windowType = this.getTimeWindowSelection();
 
-    const selectedProviders = budget.containerHealthProviders.map(p => p.name);
+    const selectedProviders = budget.containerHealthProviders.map((p) => p.name);
 
     const isSelfManaged = !!budget.selfManaged;
 
@@ -177,7 +177,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
                 <FormikFormField
                   name="policyType"
                   label="Policy"
-                  input={props => (
+                  input={(props) => (
                     <div>
                       <TetheredSelect
                         {...props}
@@ -210,7 +210,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
                     <FormikFormField
                       name="rates"
                       label="Rates"
-                      input={props => (
+                      input={(props) => (
                         <TetheredSelect
                           {...props}
                           style={{ width: '300px' }}
@@ -234,7 +234,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
                     <FormikFormField
                       name="timeWindows"
                       label="When Can Disruption Occur?"
-                      input={props => (
+                      input={(props) => (
                         <TetheredSelect
                           {...props}
                           style={{ width: '300px' }}

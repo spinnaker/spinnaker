@@ -28,7 +28,7 @@ const duplicateKeyPattern = /^__MapEditorDuplicateKey__\d+__/;
 function objectToTuples(model: IMapEditorModel, errors: IMapEditorModel): IMapPair[] {
   model = model || {};
   errors = errors || {};
-  return Object.keys(model).map(key => {
+  return Object.keys(model).map((key) => {
     const keyWithoutMagicString = key.split(duplicateKeyPattern).pop();
     return { key: keyWithoutMagicString, value: model[key], error: errors[key] };
   });
@@ -46,7 +46,7 @@ function tuplesToObject(pairs: IMapPair[]): IMapEditorModel {
 
 function mapEditorValidator(options?: { allowEmptyValues: boolean }): IValidator {
   const opts = defaults({}, options, { allowEmptyValues: false });
-  return function(values: IMapEditorModel): IValidatorResult {
+  return function (values: IMapEditorModel): IValidatorResult {
     const errors = Object.keys(values || {}).reduce((acc, key) => {
       if (!key) {
         return { ...acc, [key]: 'Empty key' };
@@ -139,12 +139,12 @@ export function MapEditorInput({
           </thead>
           <tbody>
             {backingModel
-              .filter(p => !hiddenKeys.includes(p.key))
+              .filter((p) => !hiddenKeys.includes(p.key))
               .map((pair, index) => (
                 <MapPair
                   key={index}
                   {...rowProps}
-                  onChange={x => handlePairChanged(x, index)}
+                  onChange={(x) => handlePairChanged(x, index)}
                   onDelete={() => handleDeletePair(index)}
                   pair={pair}
                   valueCanContainSpel={valueCanContainSpel}

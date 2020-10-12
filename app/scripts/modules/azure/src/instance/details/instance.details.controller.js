@@ -28,7 +28,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   'instance',
   'app',
   '$q',
-  function($scope, $state, $uibModal, instanceWriter, instance, app, $q) {
+  function ($scope, $state, $uibModal, instanceWriter, instance, app, $q) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl');
 
@@ -44,13 +44,13 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      const displayableMetrics = instance.health.filter(function(metric) {
+      const displayableMetrics = instance.health.filter(function (metric) {
         return metric.type !== 'Azure' || metric.state !== 'Unknown';
       });
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function(metric) {
-          const detailsMatch = latest.health.filter(function(latestHealth) {
+        displayableMetrics.forEach(function (metric) {
+          const detailsMatch = latest.health.filter(function (latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -71,8 +71,8 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function(serverGroup) {
-          return serverGroup.instances.some(function(possibleInstance) {
+        app.serverGroups.data.some(function (serverGroup) {
+          return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -87,8 +87,8 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another app
-          app.loadBalancers.data.some(function(loadBalancer) {
-            return loadBalancer.instances.some(function(possibleInstance) {
+          app.loadBalancers.data.some(function (loadBalancer) {
+            return loadBalancer.instances.some(function (possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -101,12 +101,12 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function(loadBalancer) {
-              return loadBalancer.serverGroups.some(function(serverGroup) {
+            app.loadBalancers.data.some(function (loadBalancer) {
+              return loadBalancer.serverGroups.some(function (serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
                 }
-                return serverGroup.instances.some(function(possibleInstance) {
+                return serverGroup.instances.some(function (possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     loadBalancers = [loadBalancer.name];
@@ -127,7 +127,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
         return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(
-          function(details) {
+          function (details) {
             $scope.state.loading = false;
             extractHealthMetrics(instanceSummary, details);
             $scope.instance = _.defaults(details, instanceSummary);
@@ -135,7 +135,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
             $scope.instance.region = region;
             $scope.instance.vpcId = vpcId;
             $scope.instance.loadBalancers = loadBalancers;
-            const discoveryMetric = _.find($scope.healthMetrics, function(metric) {
+            const discoveryMetric = _.find($scope.healthMetrics, function (metric) {
               return metric.type === 'Discovery';
             });
             if (discoveryMetric && discoveryMetric.vipAddress) {
@@ -144,7 +144,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
             }
             $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
           },
-          function() {
+          function () {
             // When an instance is first starting up, we may not have the details cached in oort yet, but we still
             // want to let the user see what details we have
             $scope.state.loading = false;
@@ -161,29 +161,29 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       return $q.when(null);
     }
 
-    this.canDeregisterFromLoadBalancer = function() {
-      return $scope.instance.health.some(function(health) {
+    this.canDeregisterFromLoadBalancer = function () {
+      return $scope.instance.health.some(function (health) {
         return health.type === 'LoadBalancer';
       });
     };
 
-    this.canRegisterWithLoadBalancer = function() {
+    this.canRegisterWithLoadBalancer = function () {
       const instance = $scope.instance;
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
-      const outOfService = instance.health.some(function(health) {
+      const outOfService = instance.health.some(function (health) {
         return health.type === 'LoadBalancer' && health.state === 'OutOfService';
       });
-      const hasLoadBalancerHealth = instance.health.some(function(health) {
+      const hasLoadBalancerHealth = instance.health.some(function (health) {
         return health.type === 'LoadBalancer';
       });
       return outOfService || !hasLoadBalancerHealth;
     };
 
-    this.canRegisterWithDiscovery = function() {
+    this.canRegisterWithDiscovery = function () {
       const instance = $scope.instance;
-      const discoveryHealth = instance.health.filter(function(health) {
+      const discoveryHealth = instance.health.filter(function (health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -195,14 +195,14 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.terminateInstance(instance, app);
       };
 
@@ -221,14 +221,14 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
-        onTaskComplete: function() {
+        onTaskComplete: function () {
           if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
         },
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
@@ -249,7 +249,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Rebooting ' + instance.instanceId,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.rebootInstance(instance, app);
       };
 
@@ -271,7 +271,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -293,7 +293,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -314,7 +314,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -335,7 +335,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      const submitMethod = function() {
+      const submitMethod = function () {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -348,13 +348,13 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       });
     };
 
-    this.showConsoleOutput = function() {
+    this.showConsoleOutput = function () {
       $uibModal.open({
         templateUrl: InstanceTemplates.consoleOutputModal,
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
         resolve: {
-          instance: function() {
+          instance: function () {
             return $scope.instance;
           },
         },
@@ -363,7 +363,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       const instance = $scope.instance;
-      return instance.health.some(function(health) {
+      return instance.health.some(function (health) {
         return health.type === healthProviderType && health.state === state;
       });
     };

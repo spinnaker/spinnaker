@@ -75,10 +75,10 @@ export const InstanceStatus = ({
                 )}
                 {hasLoadBalancer &&
                   metric.type === 'LoadBalancer' &&
-                  (metric.loadBalancers || []).map(lb => <InstanceLoadBalancerHealth loadBalancer={lb} />)}
+                  (metric.loadBalancers || []).map((lb) => <InstanceLoadBalancerHealth loadBalancer={lb} />)}
                 {hasTargetGroup &&
                   metric.type === 'TargetGroup' &&
-                  (metric.targetGroups || []).map(tg => (
+                  (metric.targetGroups || []).map((tg) => (
                     <InstanceLoadBalancerHealth loadBalancer={tg} ipAddress={privateIpAddress} />
                   ))}
               </dd>

@@ -51,7 +51,7 @@ export class ExecutionWindowActions extends React.Component<
     const { application, execution, stage } = this.props;
 
     const matcher = (updated: IExecution) => {
-      const match = updated.stages.find(test => test.id === stage.id);
+      const match = updated.stages.find((test) => test.id === stage.id);
       return match.status !== 'RUNNING';
     };
 
@@ -64,14 +64,14 @@ export class ExecutionWindowActions extends React.Component<
         return executionService
           .patchExecution(execution.id, stage.id, data)
           .then(() => executionService.waitUntilExecutionMatches(execution.id, matcher))
-          .then(updated => executionService.updateExecution(application, updated));
+          .then((updated) => executionService.updateExecution(application, updated));
       },
     });
   };
 
   private replaceDays(days: number[]): string[] {
     const daySet = new Set(days);
-    return DAYS_OF_WEEK.filter(day => daySet.has(day.ordinal)).map(day => day.label);
+    return DAYS_OF_WEEK.filter((day) => daySet.has(day.ordinal)).map((day) => day.label);
   }
 
   public render() {

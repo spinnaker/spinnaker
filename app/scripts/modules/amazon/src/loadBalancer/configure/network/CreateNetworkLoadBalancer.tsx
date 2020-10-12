@@ -90,13 +90,13 @@ export class CreateNetworkLoadBalancer extends React.Component<
   }
 
   private formatListeners(command: IAmazonNetworkLoadBalancerUpsertCommand): IPromise<void> {
-    return AccountService.getAccountDetails(command.credentials).then(account => {
-      command.listeners.forEach(listener => {
+    return AccountService.getAccountDetails(command.credentials).then((account) => {
+      command.listeners.forEach((listener) => {
         if (listener.protocol === 'TCP') {
           delete listener.sslPolicy;
           listener.certificates = [];
         }
-        listener.certificates.forEach(certificate => {
+        listener.certificates.forEach((certificate) => {
           certificate.certificateArn = this.certificateIdAsARN(
             account.accountId,
             certificate.name,
@@ -119,17 +119,17 @@ export class CreateNetworkLoadBalancer extends React.Component<
   }
 
   private manageTargetGroupNames(command: IAmazonNetworkLoadBalancerUpsertCommand): void {
-    (command.targetGroups || []).forEach(targetGroupDescription => {
+    (command.targetGroups || []).forEach((targetGroupDescription) => {
       targetGroupDescription.name = this.addAppName(targetGroupDescription.name);
     });
-    (command.listeners || []).forEach(listenerDescription => {
-      listenerDescription.defaultActions.forEach(actionDescription => {
+    (command.listeners || []).forEach((listenerDescription) => {
+      listenerDescription.defaultActions.forEach((actionDescription) => {
         if (actionDescription.targetGroupName) {
           actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
         }
       });
-      (listenerDescription.rules || []).forEach(ruleDescription => {
-        ruleDescription.actions.forEach(actionDescription => {
+      (listenerDescription.rules || []).forEach((ruleDescription) => {
+        ruleDescription.actions.forEach((actionDescription) => {
           if (actionDescription.targetGroupName) {
             actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
           }
@@ -139,12 +139,12 @@ export class CreateNetworkLoadBalancer extends React.Component<
   }
 
   private manageRules(command: IAmazonNetworkLoadBalancerUpsertCommand): void {
-    command.listeners.forEach(listener => {
+    command.listeners.forEach((listener) => {
       listener.rules.forEach((rule, index) => {
         // Set the priority in array order, starting with 1
         rule.priority = index + 1;
         // Remove conditions that have no value
-        rule.conditions = rule.conditions.filter(condition => condition.values[0].length > 0);
+        rule.conditions = rule.conditions.filter((condition) => condition.values[0].length > 0);
       });
     });
   }

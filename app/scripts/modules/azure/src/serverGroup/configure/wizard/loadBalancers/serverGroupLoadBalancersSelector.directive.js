@@ -9,7 +9,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
   'azureServerGroupLoadBalancersSelector',
   [
     'azureServerGroupConfigurationService',
-    function() {
+    function () {
       return {
         restrict: 'E',
         scope: {

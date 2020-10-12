@@ -209,7 +209,7 @@ export class CloudFoundryServerGroupConfigurationSettings
                 key: `This field must be alphanumeric`,
               };
             } else {
-              if (existingKeys.filter(key => key === e.key).length > 0) {
+              if (existingKeys.filter((key) => key === e.key).length > 0) {
                 myErrors = {
                   key: `Duplicate variable name`,
                 };

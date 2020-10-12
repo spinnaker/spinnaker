@@ -1,19 +1,19 @@
 'use strict';
 
-describe('Controller: projectCluster directive', function() {
+describe('Controller: projectCluster directive', function () {
   var $controller, $scope, project, cluster;
 
   beforeEach(window.module(require('./projectCluster.directive').name));
 
   beforeEach(
-    window.inject(function($rootScope, _$controller_) {
+    window.inject(function ($rootScope, _$controller_) {
       $scope = $rootScope.$new();
       $controller = _$controller_;
     }),
   );
 
-  describe('model construction', function() {
-    beforeEach(function() {
+  describe('model construction', function () {
+    beforeEach(function () {
       cluster = {
         account: 'prod',
       };
@@ -39,7 +39,7 @@ describe('Controller: projectCluster directive', function() {
       };
     });
 
-    it('derives regions for cluster from application clusters', function() {
+    it('derives regions for cluster from application clusters', function () {
       cluster = {
         applications: [
           {
@@ -59,7 +59,7 @@ describe('Controller: projectCluster directive', function() {
       expect(cluster.regions).toEqual(['eu-west-1', 'us-east-1', 'us-west-1']);
     });
 
-    it('puts application clusters into regions map', function() {
+    it('puts application clusters into regions map', function () {
       let cluster1 = { region: 'us-east-1' },
         cluster2 = { region: 'us-west-1' },
         cluster3 = { region: 'us-east-1' };
@@ -75,7 +75,7 @@ describe('Controller: projectCluster directive', function() {
       expect(cluster.applications[1].regions['us-east-1']).toBe(cluster3);
     });
 
-    it('adds application build if any present', function() {
+    it('adds application build if any present', function () {
       let cluster1 = { region: 'us-east-1', builds: [] },
         cluster2 = { region: 'us-west-1', builds: [{ buildNumber: 1 }] },
         cluster3 = { region: 'us-east-1', builds: [{ buildNumber: 1 }] };
@@ -90,7 +90,7 @@ describe('Controller: projectCluster directive', function() {
       expect(cluster.applications[1].build.buildNumber).toBe(1);
     });
 
-    it('adds inconsistentBuilds flag to cluster and application clusters', function() {
+    it('adds inconsistentBuilds flag to cluster and application clusters', function () {
       let cluster1 = { region: 'us-east-1', builds: [] },
         cluster2 = { region: 'us-west-1', builds: [{ buildNumber: 1 }] },
         cluster3 = { region: 'us-east-1', builds: [{ buildNumber: 1 }, { buildNumber: 3 }] },

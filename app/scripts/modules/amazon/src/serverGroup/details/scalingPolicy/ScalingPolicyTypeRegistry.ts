@@ -11,7 +11,7 @@ export class ScalingPolicyTypeRegistrar {
   }
 
   public getPolicyConfig(policyType: string): IScalingPolicyTypeConfig {
-    return this.policyTypes.find(p => p.type === policyType);
+    return this.policyTypes.find((p) => p.type === policyType);
   }
 }
 

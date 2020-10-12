@@ -29,8 +29,8 @@ export interface IGceAddress {
 class GceAddressReader {
   public listAddresses(region?: string): IPromise<IGceAddress[]> {
     if (region) {
-      return this.listAddresses(null /* region */).then(addresses =>
-        addresses.filter(address => address.region === region),
+      return this.listAddresses(null /* region */).then((addresses) =>
+        addresses.filter((address) => address.region === region),
       );
     } else {
       return SearchService.search<IAddressSearchResults>(
@@ -40,8 +40,8 @@ class GceAddressReader {
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
             return searchResults.results
-              .filter(result => result.provider === 'gce')
-              .map(result => {
+              .filter((result) => result.provider === 'gce')
+              .map((result) => {
                 const address = JSON.parse(result.address) as IGceAddress;
                 address.account = result.account;
                 address.region = result.region;

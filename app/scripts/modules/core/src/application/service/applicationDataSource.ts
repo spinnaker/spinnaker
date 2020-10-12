@@ -392,9 +392,9 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
       .do(() => this.debug('fetch requested...'))
       .switchMap(() => {
         return Observable.fromPromise(this.loader(this.application))
-          .mergeMap(data => this.onLoad(this.application, data))
-          .map(data => ({ status: 'FETCHED', lastRefresh: Date.now(), data }))
-          .catch(error => Observable.of({ status: 'ERROR', lastRefresh: this.lastRefresh, data: this.data, error }))
+          .mergeMap((data) => this.onLoad(this.application, data))
+          .map((data) => ({ status: 'FETCHED', lastRefresh: Date.now(), data }))
+          .catch((error) => Observable.of({ status: 'ERROR', lastRefresh: this.lastRefresh, data: this.data, error }))
           .startWith({ status: 'FETCHING', lastRefresh: this.lastRefresh, data: this.data });
       })
       .startWith(this.status$.value)
@@ -434,8 +434,8 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    */
   public onNextRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
     const subscription = this.nextRefresh$.subscribe(
-      data => callback(data),
-      error => onError && onError(error),
+      (data) => callback(data),
+      (error) => onError && onError(error),
     );
 
     $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
@@ -458,7 +458,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
       return Observable.empty();
     });
 
-    const subscription = Observable.merge(this.data$.skip(1), failures$).subscribe(data => callback(data));
+    const subscription = Observable.merge(this.data$.skip(1), failures$).subscribe((data) => callback(data));
 
     $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();

@@ -31,7 +31,7 @@ angular
     'dcosServerGroupCommandBuilder',
     'dcosServerGroupParamsMixin',
     'dcosProxyUiService',
-    function(
+    function (
       $scope,
       $state,
       app,
@@ -49,7 +49,7 @@ angular
       };
 
       function extractServerGroupSummary() {
-        let summary = _.find(application.serverGroups.data, function(toCheck) {
+        let summary = _.find(application.serverGroups.data, function (toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -57,9 +57,9 @@ angular
           );
         });
         if (!summary) {
-          application.loadBalancers.data.some(function(loadBalancer) {
+          application.loadBalancers.data.some(function (loadBalancer) {
             if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-              return loadBalancer.serverGroups.some(function(possibleServerGroup) {
+              return loadBalancer.serverGroups.some(function (possibleServerGroup) {
                 if (possibleServerGroup.name === serverGroup.name) {
                   summary = possibleServerGroup;
                   return true;
@@ -106,7 +106,7 @@ angular
           serverGroup.accountId,
           serverGroup.region,
           serverGroup.name,
-        ).then(function(details) {
+        ).then(function (details) {
           cancelLoader();
 
           angular.extend(details, summary);
@@ -135,7 +135,7 @@ angular
         }
       });
 
-      this.isLastServerGroupInRegion = function(serverGroup, application) {
+      this.isLastServerGroupInRegion = function (serverGroup, application) {
         try {
           const cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
           return _.filter(cluster.serverGroups, { region: serverGroup.region }).length === 1;
@@ -163,7 +163,7 @@ angular
           },
         };
 
-        const submitMethod = params =>
+        const submitMethod = (params) =>
           serverGroupWriter.destroyServerGroup(
             serverGroup,
             application,
@@ -192,7 +192,7 @@ angular
           title: 'Disabling ' + serverGroup.name,
         };
 
-        const submitMethod = params =>
+        const submitMethod = (params) =>
           serverGroupWriter.disableServerGroup(
             serverGroup,
             application,
@@ -216,10 +216,10 @@ angular
           templateUrl: require('./resize/resize.html'),
           controller: 'dcosResizeServerGroupController as ctrl',
           resolve: {
-            serverGroup: function() {
+            serverGroup: function () {
               return $scope.serverGroup;
             },
-            application: function() {
+            application: function () {
               return application;
             },
           },
@@ -232,16 +232,16 @@ angular
           controller: 'dcosCloneServerGroupController as ctrl',
           size: 'lg',
           resolve: {
-            title: function() {
+            title: function () {
               return 'Clone ' + serverGroup.name;
             },
-            application: function() {
+            application: function () {
               return application;
             },
-            serverGroup: function() {
+            serverGroup: function () {
               return serverGroup;
             },
-            serverGroupCommand: function() {
+            serverGroupCommand: function () {
               return dcosServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup);
             },
           },

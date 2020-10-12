@@ -7,14 +7,14 @@ import { AccountService, InfrastructureCaches, ModalWizard } from '@spinnaker/co
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { VpcReader } from 'amazon/vpc';
 
-describe('Controller: CreateSecurityGroup', function() {
+describe('Controller: CreateSecurityGroup', function () {
   beforeEach(
     window.module(require('./CreateSecurityGroupCtrl').name, require('./configSecurityGroup.mixin.controller').name),
   );
 
   afterEach(AWSProviderSettings.resetToOriginal);
 
-  describe('filtering', function() {
+  describe('filtering', function () {
     this.oldGet = InfrastructureCaches.get;
 
     beforeEach(() => {
@@ -32,7 +32,7 @@ describe('Controller: CreateSecurityGroup', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(
-      window.inject(function($controller, $rootScope, $q, securityGroupReader) {
+      window.inject(function ($controller, $rootScope, $q, securityGroupReader) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
         this.securityGroupReader = securityGroupReader;
@@ -85,7 +85,7 @@ describe('Controller: CreateSecurityGroup', function() {
           }),
         );
 
-        this.initializeCtrl = function() {
+        this.initializeCtrl = function () {
           this.ctrl = $controller('awsCreateSecurityGroupCtrl', {
             $scope: this.$scope,
             $uibModalInstance: { result: this.$q.when(null) },
@@ -98,12 +98,12 @@ describe('Controller: CreateSecurityGroup', function() {
       }),
     );
 
-    it('initializes with no firewalls available for ingress permissions', function() {
+    it('initializes with no firewalls available for ingress permissions', function () {
       this.initializeCtrl();
       expect(this.$scope.availableSecurityGroups.length).toBe(0);
     });
 
-    it('sets up available firewalls once an account and region are selected', function() {
+    it('sets up available firewalls once an account and region are selected', function () {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'prod';
       this.ctrl.accountUpdated();
@@ -117,7 +117,7 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(this.$scope.existingSecurityGroupNames).toEqual(['group3']);
     });
 
-    it('filters existing names based on join of groups from all regions', function() {
+    it('filters existing names based on join of groups from all regions', function () {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'test';
       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
@@ -129,7 +129,7 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(this.$scope.existingSecurityGroupNames.sort()).toEqual(['group3', 'group4', 'group5']);
     });
 
-    it('filters available names based on intersection of groups from all regions', function() {
+    it('filters available names based on intersection of groups from all regions', function () {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'test';
       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
@@ -139,7 +139,7 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(this.$scope.availableSecurityGroups.length).toBe(0);
     });
 
-    it('filters VPCs based on account + region', function() {
+    it('filters VPCs based on account + region', function () {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'test';
       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
@@ -153,7 +153,7 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(map(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
     });
 
-    it('loves a default VPC!', function() {
+    it('loves a default VPC!', function () {
       AWSProviderSettings.defaults.vpc = 'vpc 2';
       AWSProviderSettings.classicLaunchLockout = -1;
       this.initializeCtrl();
@@ -165,8 +165,8 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(this.$scope.securityGroup.vpcId).toBe('vpc2-te');
     });
 
-    describe('firewall removal', function() {
-      beforeEach(function() {
+    describe('firewall removal', function () {
+      beforeEach(function () {
         spyOn(ModalWizard, 'markDirty').and.returnValue(null);
         this.initializeCtrl();
         let securityGroup = this.$scope.securityGroup;
@@ -176,12 +176,14 @@ describe('Controller: CreateSecurityGroup', function() {
         this.$scope.$digest();
       });
 
-      it('removes rules that are not available when account changes', function() {
+      it('removes rules that are not available when account changes', function () {
         let securityGroup = this.$scope.securityGroup;
         securityGroup.credentials = 'test';
         this.ctrl.accountUpdated();
         this.$scope.$digest();
-        this.$scope.availableSecurityGroups.forEach(group => securityGroup.securityGroupIngress.push({ name: group }));
+        this.$scope.availableSecurityGroups.forEach((group) =>
+          securityGroup.securityGroupIngress.push({ name: group }),
+        );
         expect(securityGroup.securityGroupIngress.length).toBe(2);
 
         securityGroup.credentials = 'prod';
@@ -191,12 +193,12 @@ describe('Controller: CreateSecurityGroup', function() {
         expect(ModalWizard.markDirty).toHaveBeenCalledWith('Ingress');
       });
 
-      it('does not repeatedly add removed rule warnings when multiple rules for the same group are removed', function() {
+      it('does not repeatedly add removed rule warnings when multiple rules for the same group are removed', function () {
         let securityGroup = this.$scope.securityGroup;
         securityGroup.credentials = 'test';
         this.ctrl.accountUpdated();
         this.$scope.$digest();
-        this.$scope.availableSecurityGroups.forEach(group => {
+        this.$scope.availableSecurityGroups.forEach((group) => {
           securityGroup.securityGroupIngress.push({ name: group, startPort: 7001, endPort: 7001, protocol: 'HTTPS' });
           securityGroup.securityGroupIngress.push({ name: group, startPort: 7000, endPort: 7000, protocol: 'HTTP' });
         });
@@ -210,25 +212,25 @@ describe('Controller: CreateSecurityGroup', function() {
       });
     });
 
-    describe('classic locking', function() {
+    describe('classic locking', function () {
       function init(self) {
         self.initializeCtrl();
         self.ctrl.regionUpdated();
         self.$scope.$digest();
       }
 
-      it('does not hide classic when aws provider not configured', function() {
+      it('does not hide classic when aws provider not configured', function () {
         init(this);
         expect(this.$scope.hideClassic).toBe(false);
       });
 
-      it('does not hide classic when classicLaunchLockout not configured', function() {
+      it('does not hide classic when classicLaunchLockout not configured', function () {
         AWSProviderSettings.classicLaunchLockout = undefined;
         init(this);
         expect(this.$scope.hideClassic).toBe(false);
       });
 
-      it('does not hide classic when application has no attributes', function() {
+      it('does not hide classic when application has no attributes', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         init(this);
         expect(this.$scope.hideClassic).toBe(false);
@@ -238,41 +240,41 @@ describe('Controller: CreateSecurityGroup', function() {
         expect(this.$scope.hideClassic).toBe(false);
       });
 
-      it('does not hide classic when application is older than lockout date', function() {
+      it('does not hide classic when application is older than lockout date', function () {
         this.application = { attributes: { createTs: 9 } };
         init(this);
         expect(this.$scope.hideClassic).toBe(false);
       });
 
-      it('hides classic when application createTs is numeric and the same as lockout', function() {
+      it('hides classic when application createTs is numeric and the same as lockout', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         this.application = { attributes: { createTs: 10 } };
         init(this);
         expect(this.$scope.hideClassic).toBe(true);
       });
 
-      it('hides classic when application createTs is numeric and after lockout', function() {
+      it('hides classic when application createTs is numeric and after lockout', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         this.application = { attributes: { createTs: 11 } };
         init(this);
         expect(this.$scope.hideClassic).toBe(true);
       });
 
-      it('hides classic when application createTs is a string and the same as lockout', function() {
+      it('hides classic when application createTs is a string and the same as lockout', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         this.application = { attributes: { createTs: '10' } };
         init(this);
         expect(this.$scope.hideClassic).toBe(true);
       });
 
-      it('hides classic when application createTs is a string and after lockout', function() {
+      it('hides classic when application createTs is a string and after lockout', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         this.application = { attributes: { createTs: '11' } };
         init(this);
         expect(this.$scope.hideClassic).toBe(true);
       });
 
-      it('sets vpcId to first active if classic is locked', function() {
+      it('sets vpcId to first active if classic is locked', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
         this.application = { attributes: { createTs: 10 } };
         this.initializeCtrl();
@@ -287,7 +289,7 @@ describe('Controller: CreateSecurityGroup', function() {
         expect(this.$scope.securityGroup.vpcId).toBe('vpc1-pe');
       });
 
-      it('leaves vpcId alone if already selected and classic locked', function() {
+      it('leaves vpcId alone if already selected and classic locked', function () {
         AWSProviderSettings.classicLaunchLockout = 10;
 
         this.application = { attributes: { createTs: 10 } };

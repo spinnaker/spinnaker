@@ -9,7 +9,7 @@ export class GooglechatNotificationType extends React.Component<INotificationTyp
       <FormikFormField
         label="Chat Webhook URL"
         name={fieldName ? `${fieldName}.address` : 'address'}
-        input={props => (
+        input={(props) => (
           <TextInput
             inputClassName={'form-control input-sm'}
             {...props}

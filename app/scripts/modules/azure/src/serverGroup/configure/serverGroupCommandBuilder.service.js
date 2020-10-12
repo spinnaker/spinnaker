@@ -19,7 +19,7 @@ angular
     '$q',
     'azureImageReader',
     'azureServerGroupTransformer',
-    function($q, azureImageReader, azureServerGroupTransformer) {
+    function ($q, azureImageReader, azureServerGroupTransformer) {
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
 
@@ -32,7 +32,7 @@ angular
           .all({
             images: imageLoader,
           })
-          .then(function(backingData) {
+          .then(function (backingData) {
             return {
               application: application.name,
               credentials: defaultCredentials,
@@ -147,7 +147,7 @@ angular
           command: buildNewServerGroupCommand(application, commandOptions),
         });
 
-        return asyncLoader.then(function(asyncData) {
+        return asyncLoader.then(function (asyncData) {
           const command = asyncData.command;
 
           const viewState = {

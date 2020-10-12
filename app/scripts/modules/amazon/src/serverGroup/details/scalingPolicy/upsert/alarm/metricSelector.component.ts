@@ -74,16 +74,18 @@ export class MetricSelectorController implements IController {
     }
 
     CloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, dimensions)
-      .then(results => {
+      .then((results) => {
         results = results || [];
         this.state.metricsLoaded = true;
-        this.state.metrics = results.map(r => this.buildMetricOption(r)).sort((a, b) => a.label.localeCompare(b.label));
+        this.state.metrics = results
+          .map((r) => this.buildMetricOption(r))
+          .sort((a, b) => a.label.localeCompare(b.label));
         const currentDimensions = alarm.dimensions
           .sort(dimensionSorter)
           .map((d: IMetricAlarmDimension) => d.value)
           .join(', ');
         const selected = this.state.metrics.find(
-          metric =>
+          (metric) =>
             metric.name === alarm.metricName &&
             metric.namespace === alarm.namespace &&
             metric.dimensionValues === currentDimensions,
@@ -99,7 +101,7 @@ export class MetricSelectorController implements IController {
           // If metricName is blank (new policy), try to find a CPU metric or select the first option instead of sitting on the invalid blank option
           if (!alarm.metricName && this.state.metrics.length) {
             this.state.selectedMetric =
-              this.state.metrics.find(metric => metric.name.match('CPUUtilization')) || this.state.metrics[0];
+              this.state.metrics.find((metric) => metric.name.match('CPUUtilization')) || this.state.metrics[0];
           }
         }
         this.metricChanged();
@@ -116,7 +118,7 @@ export class MetricSelectorController implements IController {
       dimensions: [],
       dimensionValues: metric.dimensions
         .sort(dimensionSorter)
-        .map(d => d.value)
+        .map((d) => d.value)
         .join(', '),
       ...metric,
     };
@@ -132,7 +134,7 @@ export class MetricSelectorController implements IController {
 
   // used to determine if dimensions have changed when selecting a metric
   private dimensionsToString(dimensions: IMetricAlarmDimension[] = []) {
-    return dimensions.map(d => [d.name, d.value].join(':')).join(',');
+    return dimensions.map((d) => [d.name, d.value].join(':')).join(',');
   }
 
   public metricChanged(forceUpdateStatistics = false): void {

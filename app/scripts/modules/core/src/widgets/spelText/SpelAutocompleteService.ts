@@ -71,7 +71,7 @@ export class SpelAutocompleteService {
     {
       id: 'SpEL wrapper',
       match: /\$(\w*)$/,
-      search: function(_: any, callback: (value: string[]) => void) {
+      search: function (_: any, callback: (value: string[]) => void) {
         callback(['${...}']);
       },
       index: 1,
@@ -86,7 +86,7 @@ export class SpelAutocompleteService {
       search: (term: string, callback: (value: IBracket[]) => void) => {
         callback(this.quotes.filter((bracket: IBracket) => bracket.open.indexOf(term) === 0));
       },
-      template: function() {
+      template: function () {
         return `'...'`;
       },
       replace: function replace() {
@@ -124,7 +124,7 @@ export class SpelAutocompleteService {
     const textcompleteConfigCopy = textcompleteConfig.slice(0);
 
     for (const newConfig of configList) {
-      if (textcompleteConfig.filter(config => config.id === newConfig.id).length === 0) {
+      if (textcompleteConfig.filter((config) => config.id === newConfig.id).length === 0) {
         textcompleteConfigCopy.push(newConfig);
       }
     }
@@ -199,7 +199,7 @@ export class SpelAutocompleteService {
     textcompleteConfig: ITextcompleteConfigElement[],
   ): ITextcompleteConfigElement[] {
     if (pipeline && pipeline.stages) {
-      const configList = (pipeline.stages as IStage[]).map(stage => {
+      const configList = (pipeline.stages as IStage[]).map((stage) => {
         const stageList = JsonListBuilder.convertJsonKeysToBracketedList(stage, ['task']);
 
         return {
@@ -224,9 +224,9 @@ export class SpelAutocompleteService {
     textcompleteConfig: ITextcompleteConfigElement[],
   ): ITextcompleteConfigElement[] {
     if (pipeline && pipeline.stages) {
-      const manualJudgementStageList = pipeline.stages.filter(stage => stage.type === 'manualJudgment');
+      const manualJudgementStageList = pipeline.stages.filter((stage) => stage.type === 'manualJudgment');
 
-      const configList = manualJudgementStageList.map(stage => {
+      const configList = manualJudgementStageList.map((stage) => {
         const stageList = JsonListBuilder.convertJsonKeysToBracketedList(stage);
 
         return {
@@ -253,7 +253,7 @@ export class SpelAutocompleteService {
   ): ITextcompleteConfigElement[] {
     if (pipeline && pipeline.trigger) {
       const triggerAsList = [pipeline.trigger];
-      const configList = triggerAsList.map(trigger => {
+      const configList = triggerAsList.map((trigger) => {
         const triggerInfoList = JsonListBuilder.convertJsonKeysToBracketedList(trigger);
         return {
           id: `trigger config: ${trigger.type}`,
@@ -279,7 +279,7 @@ export class SpelAutocompleteService {
   ): ITextcompleteConfigElement[] {
     if (pipeline && pipeline.parameterConfig) {
       const paramsAsList = [pipeline.parameterConfig];
-      const configList = paramsAsList.map(params => {
+      const configList = paramsAsList.map((params) => {
         const paramsInfoList = JsonListBuilder.convertJsonKeysToBracketedList(params);
         return {
           id: `parameter config: ${Object.keys(params).join(',')}`,
@@ -301,9 +301,9 @@ export class SpelAutocompleteService {
 
   private hasBuildTriggerOrStage(pipeline: IExecution & IPipeline, ...systems: string[]): boolean {
     return systems.some(
-      system =>
-        (pipeline.triggers && pipeline.triggers.some(trigger => trigger.type === system)) ||
-        pipeline.stages.some(stage => stage.type === system),
+      (system) =>
+        (pipeline.triggers && pipeline.triggers.some((trigger) => trigger.type === system)) ||
+        pipeline.stages.some((stage) => stage.type === system),
     );
   }
 
@@ -317,13 +317,13 @@ export class SpelAutocompleteService {
       const pipelineHasParameters = pipeline.parameterConfig && pipeline.parameterConfig.length;
       codedHelperParamsCopy = pipelineHasParameters
         ? codedHelperParamsCopy
-        : codedHelperParamsCopy.filter(param => param.name !== 'parameters');
+        : codedHelperParamsCopy.filter((param) => param.name !== 'parameters');
 
       codedHelperParamsCopy = this.hasBuildTriggerOrStage(pipeline, 'jenkins', 'concourse')
         ? codedHelperParamsCopy
-        : codedHelperParamsCopy.filter(param => !param.name.includes('scmInfo'));
+        : codedHelperParamsCopy.filter((param) => !param.name.includes('scmInfo'));
 
-      pipeline.stages.forEach(stage => {
+      pipeline.stages.forEach((stage) => {
         const newParam = { name: stage.name, type: stage.type };
         if (codedHelperParamsCopy.filter(this.paramInList(newParam)).length === 0) {
           codedHelperParamsCopy.push({ name: stage.name, type: 'stage' });
@@ -356,13 +356,13 @@ export class SpelAutocompleteService {
   ): ITextcompleteConfigElement[] {
     if (pipeline && pipeline.stages) {
       let helperFunctionsCopy = this.helperFunctions.slice(0);
-      const hasManualJudmentStage = pipeline.stages.some(stage => stage.type === 'manualJudgment');
+      const hasManualJudmentStage = pipeline.stages.some((stage) => stage.type === 'manualJudgment');
       if (!hasManualJudmentStage) {
-        helperFunctionsCopy = this.helperFunctions.filter(fnName => fnName !== 'judgment');
+        helperFunctionsCopy = this.helperFunctions.filter((fnName) => fnName !== 'judgment');
       }
-      const hasCreateServiceKeyStage = pipeline.stages.some(stage => stage.type === 'createServiceKey');
+      const hasCreateServiceKeyStage = pipeline.stages.some((stage) => stage.type === 'createServiceKey');
       if (!hasCreateServiceKeyStage) {
-        helperFunctionsCopy = this.helperFunctions.filter(fnName => fnName !== 'cfServiceKey');
+        helperFunctionsCopy = this.helperFunctions.filter((fnName) => fnName !== 'cfServiceKey');
       }
 
       const configList = [
@@ -389,7 +389,7 @@ export class SpelAutocompleteService {
     } else {
       return this.executionService
         .getLastExecutionForApplicationByConfigId(pipelineConfig.application, pipelineConfig.id)
-        .then(execution => {
+        .then((execution) => {
           if (execution) {
             this.executionCache[pipelineConfig.id] = execution;
             return execution;
@@ -430,7 +430,7 @@ export class SpelAutocompleteService {
   public addPipelineInfo(pipelineConfig: IPipeline) {
     if (pipelineConfig && pipelineConfig.id) {
       return this.getLastExecutionByPipelineConfig(pipelineConfig)
-        .then(lastExecution => lastExecution || pipelineConfig)
+        .then((lastExecution) => lastExecution || pipelineConfig)
         .then((pipeline: IPipeline & IExecution) => this.buildTextCompleteConfig(pipeline));
     } else {
       return this.$q.when(this.textcompleteConfig);

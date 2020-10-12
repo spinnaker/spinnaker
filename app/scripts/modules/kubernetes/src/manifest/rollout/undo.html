@@ -10,17 +10,16 @@
     <div class="modal-body confirmation-modal">
       <div class="form-horizontal">
         <div class="form-group form-inline">
-          <div class="col-md-3 sm-label-right">
-            Revision
-          </div>
+          <div class="col-md-3 sm-label-right">Revision</div>
           <div class="col-md-7">
-            <select style="width: 100%;" class="form-control input-sm" ng-model="ctrl.command.revision">
+            <select style="width: 100%" class="form-control input-sm" ng-model="ctrl.command.revision">
               <option
                 ng-repeat="revision in ctrl.revisions"
                 value="{{revision.revision}}"
                 ng-selected="ctrl.command.revisions === revision.revision"
-                >{{revision.label}}</option
               >
+                {{revision.label}}
+              </option>
             </select>
           </div>
         </div>
@@ -29,7 +28,7 @@
     </div>
     <div class="modal-footer">
       <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
-      <button type="submit" ng-click="ctrl.undoRollout()" style="display:none"></button>
+      <button type="submit" ng-click="ctrl.undoRollout()" style="display: none"></button>
       <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
       <button

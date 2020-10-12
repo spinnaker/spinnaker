@@ -15,7 +15,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
   '$scope',
   '$stateParams',
   'executionDetailsSectionService',
-  function($scope, $stateParams, executionDetailsSectionService) {
+  function ($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
     const initialized = () => {
@@ -28,7 +28,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
       function addDeployedArtifacts(key) {
         const deployedArtifacts = _.find(resultObjects, key);
         if (deployedArtifacts) {
-          _.forEach(deployedArtifacts[key], serverGroupNameAndRegion => {
+          _.forEach(deployedArtifacts[key], (serverGroupNameAndRegion) => {
             if (serverGroupNameAndRegion.includes(':')) {
               const [region, serverGroupName] = serverGroupNameAndRegion.split(':');
               const result = {
@@ -55,7 +55,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
       $scope.deployed = results;
     };
 
-    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
     const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

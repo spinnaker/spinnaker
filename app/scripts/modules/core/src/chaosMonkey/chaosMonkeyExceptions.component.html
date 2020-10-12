@@ -4,7 +4,7 @@
     <table class="table table-condensed">
       <thead>
         <tr>
-          <th style="min-width: 100px;">Account</th>
+          <th style="min-width: 100px">Account</th>
           <th>Region</th>
           <th>Stack</th>
           <th>Detail</th>
@@ -31,9 +31,9 @@
               ng-change="$ctrl.updateConfig()"
               ng-if="exception.account"
             >
-              <option ng-repeat="region in $ctrl.regionsByAccount[exception.account]" value="{{ region }}">{{
-                region
-              }}</option>
+              <option ng-repeat="region in $ctrl.regionsByAccount[exception.account]" value="{{ region }}">
+                {{ region }}
+              </option>
             </select>
           </td>
           <td>

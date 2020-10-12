@@ -19,11 +19,11 @@ export class Notifier extends React.Component<{}, INotifierState> {
   }
 
   public componentDidMount() {
-    this.subscription = NotifierService.messageStream.subscribe(message => {
+    this.subscription = NotifierService.messageStream.subscribe((message) => {
       if (message.action === 'remove') {
         this.dismiss(message.key);
       } else {
-        const existing = this.state.messages.find(m => m.key === message.key);
+        const existing = this.state.messages.find((m) => m.key === message.key);
         if (existing) {
           existing.body = message.body;
           this.setState({ messages: this.state.messages });
@@ -39,7 +39,7 @@ export class Notifier extends React.Component<{}, INotifierState> {
   }
 
   private dismiss(key: string): void {
-    this.setState({ messages: this.state.messages.filter(m => m.key !== key) });
+    this.setState({ messages: this.state.messages.filter((m) => m.key !== key) });
   }
 
   private makeNotification = (message: INotifier) => (

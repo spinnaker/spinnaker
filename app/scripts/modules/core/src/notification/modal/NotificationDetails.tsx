@@ -58,7 +58,7 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
       return (
         <FormikFormField
           name={`message["${whenOption}"].text`}
-          input={props => <TextAreaInput {...props} placeholder="enter a custom notification message (optional)" />}
+          input={(props) => <TextAreaInput {...props} placeholder="enter a custom notification message (optional)" />}
         />
       );
     } else {
@@ -90,10 +90,10 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
                 <div className="col-md-6">
                   <FormikFormField
                     name="when"
-                    input={props => (
+                    input={(props) => (
                       <WhenChecklistInput
                         {...props}
-                        options={whenOptions.map(o => ({
+                        options={whenOptions.map((o) => ({
                           value: o,
                           label: NotificationTransformer.getNotificationWhenDisplayName(o, level, stageType),
                           additionalFields: renderCustomMessage(values.type, o),

@@ -17,12 +17,12 @@ if (!fs.existsSync(filename)) {
 }
 
 const exec = child.exec(`git log -p -L '/"version":/':${filename}`);
-exec.stderr.on('data', line => console.error(line));
+exec.stderr.on('data', (line) => console.error(line));
 
 const reader = readline.createInterface({ input: exec.stdout, console: false });
 
 let lastSha;
-reader.on('line', line => {
+reader.on('line', (line) => {
   const [_1, newSha] = /^commit (.*)$/.exec(line) || [];
   const [_2, version] = /^\+\s+"version"\s*:\s*"([^"]+)"/.exec(line) || [];
   lastSha = newSha || lastSha;

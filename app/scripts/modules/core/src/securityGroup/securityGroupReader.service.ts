@@ -148,7 +148,7 @@ export class SecurityGroupReader {
               securityGroupId,
             );
             SecurityGroupReader.attachUsageFields(securityGroup);
-            if (!securityGroup.usages.loadBalancers.some(lb => lb.name === loadBalancer.name)) {
+            if (!securityGroup.usages.loadBalancers.some((lb) => lb.name === loadBalancer.name)) {
               securityGroup.usages.loadBalancers.push({ name: loadBalancer.name });
             }
             securityGroups.push(securityGroup);
@@ -312,19 +312,19 @@ export class SecurityGroupReader {
 
   private compress(data: ISecurityGroupsByAccountSourceData): any {
     const compressed: any = {};
-    Object.keys(data).forEach(account => {
+    Object.keys(data).forEach((account) => {
       compressed[account] = {};
-      Object.keys(data[account]).forEach(provider => {
+      Object.keys(data[account]).forEach((provider) => {
         compressed[account][provider] = {};
-        Object.keys(data[account][provider]).forEach(region => {
+        Object.keys(data[account][provider]).forEach((region) => {
           // Because these are cached in local storage, we unfortunately need to remove the moniker, as it triples the size
           // of the object being stored, which blows out our LS quota for a sufficiently large footprint
-          data[account][provider][region].forEach(group => delete group.moniker);
+          data[account][provider][region].forEach((group) => delete group.moniker);
         });
         if (this.providerServiceDelegate.hasDelegate(provider, 'securityGroup.transformer')) {
           const service: any = this.providerServiceDelegate.getDelegate(provider, 'securityGroup.transformer');
           if (service.supportsCompression) {
-            Object.keys(data[account][provider]).forEach(region => {
+            Object.keys(data[account][provider]).forEach((region) => {
               compressed[account][provider][region] = service.compress(data[account][provider][region]);
             });
           } else {
@@ -339,12 +339,12 @@ export class SecurityGroupReader {
   }
 
   private decompress(data: any): ISecurityGroupsByAccountSourceData {
-    Object.keys(data).forEach(account => {
-      Object.keys(data[account]).forEach(provider => {
+    Object.keys(data).forEach((account) => {
+      Object.keys(data[account]).forEach((provider) => {
         if (this.providerServiceDelegate.hasDelegate(provider, 'securityGroup.transformer')) {
           const service: any = this.providerServiceDelegate.getDelegate(provider, 'securityGroup.transformer');
           if (service && service.supportsCompression) {
-            Object.keys(data[account][provider]).forEach(region => {
+            Object.keys(data[account][provider]).forEach((region) => {
               data[account][provider][region] = service.decompress(data[account][provider][region]);
             });
           }
@@ -420,9 +420,9 @@ export class SecurityGroupReader {
           });
         }
         if (SETTINGS.feature.entityTags && application.isStandalone) {
-          return EntityTagsReader.getEntityTagsForId('securitygroup', details.name).then(tags => {
+          return EntityTagsReader.getEntityTagsForId('securitygroup', details.name).then((tags) => {
             details.entityTags = tags.find(
-              t =>
+              (t) =>
                 t.entityRef.entityId === details.name &&
                 t.entityRef['account'] === account &&
                 t.entityRef['region'] === region,
@@ -440,7 +440,7 @@ export class SecurityGroupReader {
       forOwn(groupsByAccount, (groupsByProvider, account) => {
         return forOwn(groupsByProvider, (groupsByRegion, provider) => {
           forOwn(groupsByRegion, (groups: ISecurityGroup[]) => {
-            groups.forEach(group => {
+            groups.forEach((group) => {
               group.provider = provider;
               group.account = account;
             });

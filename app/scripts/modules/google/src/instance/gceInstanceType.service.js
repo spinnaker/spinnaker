@@ -13,7 +13,7 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
   '$http',
   '$q',
   '$log',
-  function($http, $q, $log) {
+  function ($http, $q, $log) {
     const cachedResult = null;
 
     const n1standard = {
@@ -313,22 +313,22 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
 
     const getCategories = _.memoize(() => {
       const initializedCategories = _.cloneDeep(categories);
-      return AccountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
+      return AccountService.getAllAccountDetailsForProvider('gce').then((accountDetails) => {
         // All GCE accounts have the same instance type disk defaults, so we can pick the first one.
         let instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
         if (_.isEmpty(instanceTypeDisks)) {
           instanceTypeDisks = GCE_INSTANCE_TYPE_DISK_DEFAULTS;
         }
         if (instanceTypeDisks) {
-          const families = _.flatten(initializedCategories.map(category => category.families));
-          families.forEach(family => {
-            family.instanceTypes.forEach(instanceType => {
+          const families = _.flatten(initializedCategories.map((category) => category.families));
+          families.forEach((family) => {
+            family.instanceTypes.forEach((instanceType) => {
               const diskDefaults = instanceTypeDisks.find(
-                instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name,
+                (instanceTypeDisk) => instanceTypeDisk.instanceType === instanceType.name,
               );
               if (diskDefaults) {
                 const disks = diskDefaults.disks
-                  .map(disk => {
+                  .map((disk) => {
                     switch (disk.type) {
                       case 'PD_SSD':
                         return {
@@ -350,22 +350,22 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
                         return null;
                     }
                   })
-                  .filter(disk => !!disk);
+                  .filter((disk) => !!disk);
 
                 let size = 0;
                 let count = 0;
                 if (diskDefaults.supportsLocalSSD) {
-                  count = disks.filter(disk => disk.type === 'local-ssd').length;
+                  count = disks.filter((disk) => disk.type === 'local-ssd').length;
                   size = 375;
                 } else {
                   // TODO(dpeach): This will render the disk defaults incorrectly for f1-micro and g1-small instance types
                   // if the disk defaults set in Clouddriver have different sizes. Fixing it will require updating
                   // the core instance type selector.
                   // This logic will render the count of the largest disk.
-                  const persistentDisks = disks.filter(disk => disk.type.startsWith('pd-'));
+                  const persistentDisks = disks.filter((disk) => disk.type.startsWith('pd-'));
                   if (persistentDisks.length) {
                     size = persistentDisks.reduce((maxSizeGb, disk) => Math.max(maxSizeGb, disk.sizeGb), 0);
-                    count = persistentDisks.filter(disk => disk.sizeGb === size).length;
+                    count = persistentDisks.filter((disk) => disk.sizeGb === size).length;
                   }
                 }
 
@@ -388,14 +388,14 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
         return $q.when(cachedResult);
       }
 
-      return getCategories().then(categories => {
+      return getCategories().then((categories) => {
         return _.chain(categories)
           .map('families')
           .flatten()
           .map('instanceTypes')
           .flatten()
           .map('name')
-          .filter(name => name !== 'n1buildCustom' && name !== 'e2buildCustom' && name !== 'otherbuildCustom')
+          .filter((name) => name !== 'n1buildCustom' && name !== 'e2buildCustom' && name !== 'otherbuildCustom')
           .value();
       });
     }
@@ -408,7 +408,7 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
 
     const getAvailableTypesForRegions = getAvailableTypesForLocations;
 
-    const resolveInstanceTypeDetails = instanceType => {
+    const resolveInstanceTypeDetails = (instanceType) => {
       return {
         name: instanceType,
         storage: Object.assign({ isDefault: true }, SETTINGS.providers.gce.defaults.instanceTypeStorage),

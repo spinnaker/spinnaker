@@ -29,7 +29,7 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
         (t: ICronTrigger) => t.type === 'cron' && t.enabled && t.cronExpression,
       ) as ICronTrigger[];
       const nextTimes: number[] = [];
-      crons.forEach(cron => {
+      crons.forEach((cron) => {
         const timezoneOffsetInMs = DateTime.local().setZone(SETTINGS.defaultTimeZone).offset * 60 * 1000;
         const nextRun = later
           .schedule(later.parse.cron(cron.cronExpression, true))

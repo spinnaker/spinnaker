@@ -17,14 +17,14 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_BACKENDS
     templateUrl: require('./backendServiceSelector.component.html'),
     controller: [
       '$scope',
-      function($scope) {
+      function ($scope) {
         $scope.$on('$destroy', () => {
           if (this.command.backendServices) {
             delete this.command.backendServices[this.loadBalancerName];
           }
         });
 
-        $scope.$on('uis:select', function(event) {
+        $scope.$on('uis:select', function (event) {
           event.preventDefault();
         });
       },

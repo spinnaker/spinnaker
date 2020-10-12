@@ -1,18 +1,18 @@
 'use strict';
 
-describe('azureServerGroupTransformer', function() {
+describe('azureServerGroupTransformer', function () {
   var transformer;
 
   beforeEach(window.module(require('./serverGroup.transformer').name));
 
-  beforeEach(function() {
-    window.inject(function(_azureServerGroupTransformer_) {
+  beforeEach(function () {
+    window.inject(function (_azureServerGroupTransformer_) {
       transformer = _azureServerGroupTransformer_;
     });
   });
 
-  describe('command transforms', function() {
-    it('sets name correctly with no stack or detail', function() {
+  describe('command transforms', function () {
+    it('sets name correctly with no stack or detail', function () {
       var base = {
         application: 'myApp',
         sku: {
@@ -35,7 +35,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.name).toBe('myApp');
     });
 
-    it('it sets name correctly with only stack', function() {
+    it('it sets name correctly with only stack', function () {
       var command = {
         stack: 's1',
         application: 'theApp',
@@ -59,7 +59,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.name).toBe('theApp-s1');
     });
 
-    it('it sets name correctly with only detail', function() {
+    it('it sets name correctly with only detail', function () {
       var command = {
         freeFormDetails: 'd1',
         application: 'theApp',
@@ -83,7 +83,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.name).toBe('theApp-d1');
     });
 
-    it('it sets name correctly with both stack and detail', function() {
+    it('it sets name correctly with both stack and detail', function () {
       var command = {
         stack: 's1',
         freeFormDetails: 'd1',
@@ -108,7 +108,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.name).toBe('theApp-s1-d1');
     });
 
-    it('it sets the Advanced Settings correctly when provided', function() {
+    it('it sets the Advanced Settings correctly when provided', function () {
       var command = {
         stack: 's1',
         freeFormDetails: 'd1',
@@ -145,7 +145,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.customScriptsSettings).toEqual(customScript);
     });
 
-    it('it sets the Advanced Settings correctly when not provided', function() {
+    it('it sets the Advanced Settings correctly when not provided', function () {
       var command = {
         stack: 's1',
         freeFormDetails: 'd1',
@@ -172,7 +172,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.customScriptsSettings.commandToExecute).toBe('');
     });
 
-    it('it sets the zones information', function() {
+    it('it sets the zones information', function () {
       var command = {
         zonesEnabled: true,
         zones: ['1', '3'],
@@ -200,7 +200,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.zones).toEqual(command.zones);
     });
 
-    it('it should not set the zones information if zonesEnabled is false', function() {
+    it('it should not set the zones information if zonesEnabled is false', function () {
       var command = {
         zonesEnabled: false,
         zones: ['1', '3'],
@@ -228,7 +228,7 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.zones).toEqual([]);
     });
 
-    it('sets instance tags correctly when provided', function() {
+    it('sets instance tags correctly when provided', function () {
       let imap = new Map();
       var base = {
         application: 'myApp',

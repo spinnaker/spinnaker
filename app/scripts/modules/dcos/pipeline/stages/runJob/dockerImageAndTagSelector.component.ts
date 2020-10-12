@@ -208,7 +208,7 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 
   private uniqMapEntries(map: { [key: string]: string[] }): void {
-    Object.keys(map).forEach(k => {
+    Object.keys(map).forEach((k) => {
       map[k] = uniq(map[k]);
     });
   }

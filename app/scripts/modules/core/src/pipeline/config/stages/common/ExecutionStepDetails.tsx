@@ -24,7 +24,7 @@ export class ExecutionStepDetails extends React.Component<IExecutionStepDetailsP
 
   public componentDidMount(): void {
     const { item } = this.props;
-    const runningTask = (item.tasks || []).find(t => t.status === 'RUNNING');
+    const runningTask = (item.tasks || []).find((t) => t.status === 'RUNNING');
     if (runningTask) {
       this.runningTime = new OrchestratedItemRunningTime(runningTask, (time: number) =>
         this.setState({ runningTimeInMs: time }),

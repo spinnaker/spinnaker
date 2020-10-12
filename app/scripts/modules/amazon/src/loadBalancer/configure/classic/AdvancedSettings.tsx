@@ -22,7 +22,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           label="Timeout"
           required={true}
           help={<HelpField id="loadBalancer.advancedSettings.healthTimeout" />}
-          input={props => <NumberInput {...props} min={0} max={values.healthInterval} />}
+          input={(props) => <NumberInput {...props} min={0} max={values.healthInterval} />}
           validate={maxValue(values.healthInterval, 'Timeout must be less than the health interval.')}
         />
 
@@ -31,7 +31,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           label="Interval"
           required={true}
           help={<HelpField id="loadBalancer.advancedSettings.healthInterval" />}
-          input={props => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
@@ -39,7 +39,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           label="Healthy Threshold"
           required={true}
           help={<HelpField id="loadBalancer.advancedSettings.healthyThreshold" />}
-          input={props => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
@@ -47,7 +47,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           label="Unhealthy Threshold"
           required={true}
           help={<HelpField id="loadBalancer.advancedSettings.unhealthyThreshold" />}
-          input={props => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
@@ -55,7 +55,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           label="Idle Timeout"
           required={true}
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
-          input={props => <NumberInput {...props} min={0} />}
+          input={(props) => <NumberInput {...props} min={0} />}
         />
 
         <div className="col-md-12">

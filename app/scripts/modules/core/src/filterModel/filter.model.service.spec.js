@@ -3,7 +3,7 @@ import { FilterModelService } from './FilterModelService';
 import { REACT_MODULE, ReactInjector } from 'core/reactShims';
 import { StateConfigProvider } from 'core/navigation';
 
-describe('Service: FilterModelService', function() {
+describe('Service: FilterModelService', function () {
   var filterModel;
   var filterModelConfig;
   var $uiRouter;
@@ -17,7 +17,7 @@ describe('Service: FilterModelService', function() {
   beforeEach(window.module('ui.router', REACT_MODULE));
 
   beforeEach(
-    window.inject(function(_$uiRouter_, _$rootScope_) {
+    window.inject(function (_$uiRouter_, _$rootScope_) {
       filterModel = {};
       filterModelConfig = [];
       $uiRouter = _$uiRouter_;
@@ -25,8 +25,8 @@ describe('Service: FilterModelService', function() {
     }),
   );
 
-  describe('isFilterable', function() {
-    it('returns true if there are any properties with a value of true', function() {
+  describe('isFilterable', function () {
+    it('returns true if there are any properties with a value of true', function () {
       expect(FilterModelService.isFilterable(null)).toBe(false);
       expect(FilterModelService.isFilterable({})).toBe(false);
       expect(FilterModelService.isFilterable({ a: false })).toBe(false);
@@ -34,8 +34,8 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('getCheckValues', function() {
-    it('returns an array of keys with truthy value', function() {
+  describe('getCheckValues', function () {
+    it('returns an array of keys with truthy value', function () {
       expect(FilterModelService.getCheckValues(null)).toEqual([]);
       expect(FilterModelService.getCheckValues({})).toEqual([]);
       expect(FilterModelService.getCheckValues({ a: false })).toEqual([]);
@@ -47,46 +47,46 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('checkAccountFilters', function() {
+  describe('checkAccountFilters', function () {
     beforeEach(configure);
-    it('returns true for all items if no accounts selected', function() {
+    it('returns true for all items if no accounts selected', function () {
       var items = [{ account: 'test' }, { account: 'prod' }, {}];
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns true for items that have a selected account', function() {
+    it('returns true for items that have a selected account', function () {
       var items = [{ account: 'test' }, { account: 'test' }];
       filterModel.sortFilter.account = {
         test: true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns false for items that do not have a selected account', function() {
+    it('returns false for items that do not have a selected account', function () {
       var items = [{ account: 'test' }, { account: 'test' }, {}];
       filterModel.sortFilter.account = {
         prod: true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(false);
       });
     });
   });
 
-  describe('checkStackFilters', function() {
+  describe('checkStackFilters', function () {
     beforeEach(configure);
-    it('returns true for all items if no stacks selected', function() {
+    it('returns true for all items if no stacks selected', function () {
       var items = [{ stack: 'a' }, { stack: 'b' }, {}];
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkStackFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns true for items that have a selected stack', function() {
+    it('returns true for items that have a selected stack', function () {
       var items = [{ stack: 'a' }, { stack: 'b' }, {}];
       filterModel.sortFilter.stack = {
         a: true,
@@ -96,7 +96,7 @@ describe('Service: FilterModelService', function() {
       expect(FilterModelService.checkStackFilters(filterModel)(items[2])).toBe(false);
     });
 
-    it('includes items without a stack if (none) is selected', function() {
+    it('includes items without a stack if (none) is selected', function () {
       var items = [{ stack: 'a' }, { stack: 'b' }, { stack: '' }];
       filterModel.sortFilter.stack = {
         a: true,
@@ -108,127 +108,127 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('checkRegionFilters', function() {
+  describe('checkRegionFilters', function () {
     beforeEach(configure);
-    it('returns true for all items if no regions selected', function() {
+    it('returns true for all items if no regions selected', function () {
       var items = [{ region: 'us-east-1' }, { region: 'us-west-1' }, {}];
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns true for items that have a selected region', function() {
+    it('returns true for items that have a selected region', function () {
       var items = [{ region: 'us-east-1' }, { region: 'us-east-1' }];
       filterModel.sortFilter.region = {
         'us-east-1': true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns false for items that do not have a selected region', function() {
+    it('returns false for items that do not have a selected region', function () {
       var items = [{ region: 'us-east-1' }, { region: 'us-east-1' }, {}];
       filterModel.sortFilter.region = {
         'us-west-1': true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(false);
       });
     });
   });
 
-  describe('checkProviderFilters', function() {
+  describe('checkProviderFilters', function () {
     beforeEach(configure);
-    it('returns true for all items if no providerTypes selected', function() {
+    it('returns true for all items if no providerTypes selected', function () {
       var items = [{ type: 'aws' }, { type: 'gce' }, {}];
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns true for items that have a selected providerType', function() {
+    it('returns true for items that have a selected providerType', function () {
       var items = [{ type: 'aws' }, { type: 'aws' }];
       filterModel.sortFilter.providerType = {
         aws: true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(true);
       });
     });
 
-    it('returns false for items that do not have a selected providerType', function() {
+    it('returns false for items that do not have a selected providerType', function () {
       var items = [{ type: 'aws' }, { type: 'aws' }, {}];
       filterModel.sortFilter.providerType = {
         gce: true,
       };
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(false);
       });
     });
   });
 
-  describe('checkStatusFilters', function() {
+  describe('checkStatusFilters', function () {
     beforeEach(configure);
-    it('returns true if Up is selected and down count is zero', function() {
+    it('returns true if Up is selected and down count is zero', function () {
       var target = { instanceCounts: { down: 0 } };
       filterModel.sortFilter.status = { Up: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
-    it('returns false if Up is selected and down count is greater than zero', function() {
+    it('returns false if Up is selected and down count is greater than zero', function () {
       var target = { instanceCounts: { down: 1 } };
       filterModel.sortFilter.status = { Up: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
-    it('returns true if Down is selected and down count is greater than zero', function() {
+    it('returns true if Down is selected and down count is greater than zero', function () {
       var target = { instanceCounts: { down: 1 } };
       filterModel.sortFilter.status = { Down: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
-    it('returns false if Down is selected and down count is zero', function() {
+    it('returns false if Down is selected and down count is zero', function () {
       var target = { instanceCounts: { down: 0 } };
       filterModel.sortFilter.status = { Down: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
-    it('returns true if OutOfService is selected and out of service count is greater than zero', function() {
+    it('returns true if OutOfService is selected and out of service count is greater than zero', function () {
       var target = { instanceCounts: { outOfService: 1 } };
       filterModel.sortFilter.status = { OutOfService: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
-    it('returns true if Starting is selected and starting count is greater than zero', function() {
+    it('returns true if Starting is selected and starting count is greater than zero', function () {
       var target = { instanceCounts: { starting: 1 } };
       filterModel.sortFilter.status = { Starting: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
-    it('returns true if Disabled is selected and target is disabled', function() {
+    it('returns true if Disabled is selected and target is disabled', function () {
       var target = { instanceCounts: { down: 1 }, isDisabled: true };
       filterModel.sortFilter.status = { Disabled: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
-    it('returns true if any of the above conditions is true', function() {
+    it('returns true if any of the above conditions is true', function () {
       var target = { instanceCounts: { down: 1 }, isDisabled: true };
       filterModel.sortFilter.status = { Down: false, Disabled: true };
       expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
   });
 
-  describe('tagging', function() {
-    describe('object tags', function() {
-      beforeEach(function() {
+  describe('tagging', function () {
+    describe('object tags', function () {
+      beforeEach(function () {
         filterModelConfig = [
           { model: 'account', type: 'trueKeyObject' },
           { model: 'region', type: 'trueKeyObject' },
         ];
       });
 
-      it('should only add tags for true values from sortFilter', function() {
+      it('should only add tags for true values from sortFilter', function () {
         configure();
         filterModel.sortFilter.account.prod = true;
         filterModel.sortFilter.account.test = false;
@@ -242,7 +242,7 @@ describe('Service: FilterModelService', function() {
         expect(tags[0].value).toBe('prod');
       });
 
-      it('should not add tags when no true values are set on object', function() {
+      it('should not add tags when no true values are set on object', function () {
         configure();
         filterModel.sortFilter.account.test = false;
         filterModel.addTags();
@@ -250,7 +250,7 @@ describe('Service: FilterModelService', function() {
         expect(filterModel.tags.length).toBe(0);
       });
 
-      it('should delete property from sortFilter object when clear called', function() {
+      it('should delete property from sortFilter object when clear called', function () {
         configure();
         filterModel.sortFilter.account.test = true;
         filterModel.addTags();
@@ -263,8 +263,8 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('non-object tags', function() {
-      beforeEach(function() {
+    describe('non-object tags', function () {
+      beforeEach(function () {
         filterModelConfig = [
           { model: 'search', type: 'string', clearValue: '' },
           { model: 'minCount', type: 'int', clearValue: 0 },
@@ -272,7 +272,7 @@ describe('Service: FilterModelService', function() {
         ];
       });
 
-      it('should use clearValue field if provided when removing tag', function() {
+      it('should use clearValue field if provided when removing tag', function () {
         configure();
         filterModel.sortFilter.search = 'v000';
         filterModel.sortFilter.minCount = 2;
@@ -291,7 +291,7 @@ describe('Service: FilterModelService', function() {
         expect(filterModel.sortFilter.maxCount).toBeUndefined();
       });
 
-      it('should create tags for falsy values', function() {
+      it('should create tags for falsy values', function () {
         configure();
         filterModel.sortFilter.minCount = 0;
         filterModel.sortFilter.search = '';
@@ -301,13 +301,13 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('translators', function() {
-      beforeEach(function() {
+    describe('translators', function () {
+      beforeEach(function () {
         filterModelConfig = [
           { model: 'status', type: 'trueKeyObject', filterTranslator: { up: 'healthy', down: 'unhealthy' } },
         ];
       });
-      it('should translate value based on supplied translator', function() {
+      it('should translate value based on supplied translator', function () {
         configure();
         filterModel.sortFilter.status.up = true;
         filterModel.addTags();
@@ -316,7 +316,7 @@ describe('Service: FilterModelService', function() {
         expect(tags.length).toBe(1);
         expect(tags[0].value).toBe('healthy');
       });
-      it('should default to actual value if translator does not supply a value', function() {
+      it('should default to actual value if translator does not supply a value', function () {
         configure();
         filterModel.sortFilter.status.unknown = true;
         filterModel.addTags();
@@ -327,8 +327,8 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('custom labels', function() {
-      it('should use filterLabel property for label if provided; otherwise, use model', function() {
+    describe('custom labels', function () {
+      it('should use filterLabel property for label if provided; otherwise, use model', function () {
         filterModelConfig = [
           { model: 'availabilityZone', filterLabel: 'availability zone', type: 'trueKeyObject' },
           { model: 'region', type: 'trueKeyObject' },
@@ -345,8 +345,8 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('tag order', function() {
-      it('should create tags in the order they are defined in config', function() {
+    describe('tag order', function () {
+      it('should create tags in the order they are defined in config', function () {
         filterModelConfig = [
           { model: 'availabilityZone', filterLabel: 'availability zone', type: 'trueKeyObject' },
           { model: 'region', type: 'trueKeyObject' },
@@ -367,13 +367,13 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('parameter router hooks', function() {
+  describe('parameter router hooks', function () {
     function go(state, params) {
       $uiRouter.stateService.go(state, params);
       $rootScope.$digest();
     }
 
-    beforeEach(function() {
+    beforeEach(function () {
       filterModelConfig = [
         { model: 'region', type: 'string' },
         { model: 'account', type: 'string' },
@@ -392,7 +392,7 @@ describe('Service: FilterModelService', function() {
       FilterModelService.registerRouterHooks(filterModel, 'application.filtered');
     });
 
-    it('should restore the latest filters when reactivating a filter state in the same application', function() {
+    it('should restore the latest filters when reactivating a filter state in the same application', function () {
       go('application.filtered', { application: 'myapp', region: 'west', account: 'prod' });
       expect($uiRouter.globals.params.region).toBe('west');
       expect($uiRouter.globals.params.account).toBe('prod');
@@ -406,7 +406,7 @@ describe('Service: FilterModelService', function() {
       expect($uiRouter.globals.params.account).toBe('prod');
     });
 
-    it('should not restore the latest filters when switching apps', function() {
+    it('should not restore the latest filters when switching apps', function () {
       go('application.filtered', { application: 'foo', region: 'west', account: 'prod' });
       expect($uiRouter.globals.params.region).toBe('west');
       expect($uiRouter.globals.params.account).toBe('prod');
@@ -421,13 +421,13 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('restore state', function() {
-    beforeEach(function() {
+  describe('restore state', function () {
+    beforeEach(function () {
       filterModelConfig = [{ model: 'account', type: 'trueKeyObject' }];
     });
 
-    describe('default param naming', function() {
-      it('should default param value to model if not supplied', function() {
+    describe('default param naming', function () {
+      it('should default param value to model if not supplied', function () {
         filterModelConfig = [
           { model: 'search', type: 'string' },
           { model: 'aliased', param: 'alias', type: 'string' },
@@ -438,8 +438,8 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('clear filters', function() {
-      it('should remove any values that are not displayOptions', function() {
+    describe('clear filters', function () {
+      it('should remove any values that are not displayOptions', function () {
         filterModelConfig = [
           { model: 'account', type: 'trueKeyObject' },
           { model: 'showInstances', type: 'string', displayOption: true },
@@ -454,7 +454,7 @@ describe('Service: FilterModelService', function() {
         expect(filterModel.displayOptions.showInstances).toBe(true);
       });
 
-      it('should use a clearValue if supplied', function() {
+      it('should use a clearValue if supplied', function () {
         filterModelConfig = [
           { model: 'account', type: 'trueKeyObject' },
           { model: 'search', type: 'string', clearValue: '' },
@@ -471,8 +471,8 @@ describe('Service: FilterModelService', function() {
       });
     });
 
-    describe('applyParamsToUrl', function() {
-      it('should start a transition with params for all configured fields', function() {
+    describe('applyParamsToUrl', function () {
+      it('should start a transition with params for all configured fields', function () {
         const spy = spyOn(ReactInjector.$state, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },

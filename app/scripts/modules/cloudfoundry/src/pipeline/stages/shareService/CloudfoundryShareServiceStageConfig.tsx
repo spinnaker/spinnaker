@@ -39,7 +39,7 @@ export class CloudfoundryShareServiceStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
@@ -55,7 +55,7 @@ export class CloudfoundryShareServiceStageConfig extends React.Component<
       .takeUntil(this.destroy$)
       .subscribe((regionList: IRegion[]) => {
         const { region } = this.props.stage;
-        const regions = regionList.map(r => r.name);
+        const regions = regionList.map((r) => r.name);
         regions.sort((a, b) => a.localeCompare(b));
         this.setState({ regions });
         if (region) {
@@ -69,7 +69,7 @@ export class CloudfoundryShareServiceStageConfig extends React.Component<
   };
 
   private clearAndResetShareToRegionList = (region: string, regions: string[]) => {
-    this.setState({ shareToRegionsList: regions.filter(r => r !== region) });
+    this.setState({ shareToRegionsList: regions.filter((r) => r !== region) });
   };
 
   private accountUpdated = (option: Option<string>) => {
@@ -113,7 +113,7 @@ export class CloudfoundryShareServiceStageConfig extends React.Component<
             clearable={false}
             onChange={this.accountUpdated}
             value={credentials}
-            stringOptions={accounts.map(it => it.name)}
+            stringOptions={accounts.map((it) => it.name)}
           />
         </StageConfigField>
         <StageConfigField label="Region">

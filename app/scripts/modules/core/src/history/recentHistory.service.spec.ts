@@ -19,7 +19,7 @@ describe('recent history service', () => {
     it('returns whatever is in cache if something is found, ordered by accessTime', () => {
       backingCache.put('whatever', [{ accessTime: 1 }, { accessTime: 3 }, { accessTime: 2 }]);
       expect(
-        RecentHistoryService.getItems('whatever').map(item => {
+        RecentHistoryService.getItems('whatever').map((item) => {
           return item.accessTime;
         }),
       ).toEqual([3, 2, 1]);
@@ -38,7 +38,7 @@ describe('recent history service', () => {
     it('puts items in cache most recent first', () => {
       initializeCache(2);
       RecentHistoryService.addItem('whatever', 'state', { id: 'new item' });
-      const ids = RecentHistoryService.getItems('whatever').map(item => {
+      const ids = RecentHistoryService.getItems('whatever').map((item) => {
         return item.params.id;
       });
       expect(ids).toEqual(['new item', 0, 1]);
@@ -47,7 +47,7 @@ describe('recent history service', () => {
     it('replaces oldest item if cache is full', () => {
       initializeCache(15);
       RecentHistoryService.addItem('whatever', 'state', { id: 'new item' });
-      const ids = RecentHistoryService.getItems('whatever').map(item => {
+      const ids = RecentHistoryService.getItems('whatever').map((item) => {
         return item.params.id;
       });
       expect(ids).toEqual(['new item', 0, 1, 2, 3]);
@@ -56,7 +56,7 @@ describe('recent history service', () => {
     it('removes previous entry and adds replacement if params match, ignoring undefined values', () => {
       initializeCache(3);
       RecentHistoryService.addItem('whatever', 'state', { id: 1, someUndefinedValue: undefined });
-      const ids = RecentHistoryService.getItems('whatever').map(item => {
+      const ids = RecentHistoryService.getItems('whatever').map((item) => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 0, 2]);
@@ -72,14 +72,14 @@ describe('recent history service', () => {
         'importantParam',
         'id',
       ]);
-      let ids = RecentHistoryService.getItems('whatever').map(item => {
+      let ids = RecentHistoryService.getItems('whatever').map((item) => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 0, 2]);
       RecentHistoryService.addItem('whatever', 'state', { id: 1, importantParam: 1, ignoredParam: 1001 }, [
         'ignoredParam',
       ]);
-      ids = RecentHistoryService.getItems('whatever').map(item => {
+      ids = RecentHistoryService.getItems('whatever').map((item) => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 1, 0, 2]);

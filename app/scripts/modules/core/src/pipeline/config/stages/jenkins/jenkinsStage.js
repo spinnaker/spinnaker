@@ -11,7 +11,7 @@ import { module } from 'angular';
 export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE = 'spinnaker.core.pipeline.stage.jenkinsStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       label: 'Jenkins',
       description: 'Runs a Jenkins job',
@@ -24,7 +24,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
       executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
       executionLabelComponent: JenkinsExecutionLabel,
       providesVersionForBake: true,
-      extraLabelLines: stage => {
+      extraLabelLines: (stage) => {
         if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
           return 0;
         }
@@ -39,7 +39,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
   .controller('JenkinsStageCtrl', [
     '$scope',
     'stage',
-    function($scope, stage) {
+    function ($scope, stage) {
       $scope.stage = stage;
       $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
       $scope.stage.continuePipeline =
@@ -61,19 +61,19 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
       this.waitForCompletionChanged = () => (stage.waitForCompletion = $scope.viewState.waitForCompletion);
 
       function initializeMasters() {
-        IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
+        IgorService.listMasters(BuildServiceType.Jenkins).then(function (masters) {
           $scope.masters = masters;
           $scope.viewState.mastersLoaded = true;
           $scope.viewState.mastersRefreshing = false;
         });
       }
 
-      this.refreshMasters = function() {
+      this.refreshMasters = function () {
         $scope.viewState.mastersRefreshing = true;
         initializeMasters();
       };
 
-      this.refreshJobs = function() {
+      this.refreshJobs = function () {
         $scope.viewState.jobsRefreshing = true;
         updateJobsList();
       };
@@ -90,7 +90,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
           }
           $scope.viewState.jobsLoaded = false;
           $scope.jobs = [];
-          IgorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
+          IgorService.listJobsForMaster($scope.stage.master).then(function (jobs) {
             $scope.viewState.jobsLoaded = true;
             $scope.viewState.jobsRefreshing = false;
             $scope.jobs = jobs;
@@ -109,7 +109,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
         const view = $scope.viewState;
 
         if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
-          IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
+          IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then((config) => {
             config = config || {};
             if (!$scope.stage.parameters) {
               $scope.stage.parameters = {};
@@ -119,7 +119,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
             $scope.useDefaultParameters = {};
 
             if ($scope.jobParams) {
-              const acceptedJobParameters = $scope.jobParams.map(param => param.name);
+              const acceptedJobParameters = $scope.jobParams.map((param) => param.name);
               $scope.invalidParameters = pickBy(
                 $scope.userSuppliedParameters,
                 (value, name) => !acceptedJobParameters.includes(name),
@@ -127,7 +127,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
             }
 
             const params = $scope.jobParams || [];
-            params.forEach(property => {
+            params.forEach((property) => {
               if (!(property.name in $scope.stage.parameters) && property.defaultValue !== null) {
                 $scope.useDefaultParameters[property.name] = true;
               }
@@ -140,7 +140,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
       $scope.useDefaultParameters = {};
       $scope.userSuppliedParameters = {};
 
-      this.updateParam = function(parameter) {
+      this.updateParam = function (parameter) {
         if ($scope.useDefaultParameters[parameter] === true) {
           delete $scope.userSuppliedParameters[parameter];
           delete $scope.stage.parameters[parameter];
@@ -149,8 +149,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
         }
       };
 
-      this.removeInvalidParameters = function() {
-        Object.keys($scope.invalidParameters).forEach(param => {
+      this.removeInvalidParameters = function () {
+        Object.keys($scope.invalidParameters).forEach((param) => {
           if ($scope.stage.parameters[param] !== 'undefined') {
             delete $scope.stage.parameters[param];
           }

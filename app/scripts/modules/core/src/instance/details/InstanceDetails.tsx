@@ -48,7 +48,7 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
         const { provider, instanceId } = $stateParams;
         const accountId = Observable.fromPromise(AccountService.getAccountForInstance(provider, instanceId, app));
         const moniker = Observable.fromPromise(NameUtils.getMonikerForInstance(provider, instanceId, app));
-        const accountDetails = accountId.mergeMap(id => AccountService.getAccountDetails(id));
+        const accountDetails = accountId.mergeMap((id) => AccountService.getAccountDetails(id));
         return Observable.forkJoin(accountId, moniker, accountDetails);
       })
       .takeUntil(this.destroy$)

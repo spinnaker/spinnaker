@@ -4,6 +4,6 @@ export const useForceUpdate = () => {
   const [, setToggle] = useState(true);
 
   return useCallback(() => {
-    setToggle(toggle => !toggle);
+    setToggle((toggle) => !toggle);
   }, []);
 };

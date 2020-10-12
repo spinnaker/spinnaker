@@ -6,9 +6,9 @@ const poolValueCoordinates = [
   { filterField: 'instanceType', on: 'serverGroup', localField: 'instanceType' },
 ];
 
-export const poolBuilder = serverGroups => {
+export const poolBuilder = (serverGroups) => {
   const pool = _.chain(serverGroups)
-    .map(sg => {
+    .map((sg) => {
       const poolUnitTemplate = _.chain(poolValueCoordinates)
         .filter({ on: 'serverGroup' })
         .reduce((poolUnitTemplate, coordinate) => {
@@ -17,7 +17,7 @@ export const poolBuilder = serverGroups => {
         }, {})
         .value();
 
-      const poolUnits = sg.instances.map(instance => {
+      const poolUnits = sg.instances.map((instance) => {
         const poolUnit = _.cloneDeep(poolUnitTemplate);
         return _.chain(poolValueCoordinates)
           .filter({ on: 'instance' })

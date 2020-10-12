@@ -13,7 +13,7 @@ import { AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './b
 export const AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE = 'spinnaker.amazon.pipeline.stage.bakeStage';
 export const name = AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'aws',
@@ -22,7 +22,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
-      extraLabelLines: stage => {
+      extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       supportsCustomTimeout: true,
@@ -32,10 +32,10 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
         {
           type: 'upstreamVersionProvided',
           checkParentTriggers: true,
-          getMessage: labels =>
+          getMessage: (labels) =>
             'Bake stages should always have a stage or trigger preceding them that provides version information: ' +
             '<ul>' +
-            labels.map(label => `<li>${label}</li>`).join('') +
+            labels.map((label) => `<li>${label}</li>`).join('') +
             '</ul>' +
             'Otherwise, Spinnaker will bake and deploy the most-recently built package.',
         },
@@ -47,7 +47,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
     '$scope',
     '$q',
     '$uibModal',
-    function($scope, $q, $uibModal) {
+    function ($scope, $q, $uibModal) {
       $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
       $scope.stage.regions = ($scope.stage.regions && $scope.stage.regions.sort()) || [];
 
@@ -70,7 +70,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
           baseOsOptions: BakeryReader.getBaseOsOptions('aws'),
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
           storeTypes: ['ebs', 'docker'],
-        }).then(function(results) {
+        }).then(function (results) {
           $scope.regions = [...results.regions].sort();
           $scope.storeTypes = results.storeTypes;
           if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
@@ -91,7 +91,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
             $scope.stage.baseOs = $scope.baseOsOptions[0].id;
           } else if (
             $scope.stage.baseOs &&
-            !($scope.baseOsOptions || []).find(baseOs => baseOs.id === $scope.stage.baseOs)
+            !($scope.baseOsOptions || []).find((baseOs) => baseOs.id === $scope.stage.baseOs)
           ) {
             $scope.baseOsOptions.push({
               id: $scope.stage.baseOs,
@@ -120,7 +120,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
       }
 
       function deleteEmptyProperties() {
-        _.forOwn($scope.stage, function(val, key) {
+        _.forOwn($scope.stage, function (val, key) {
           if (val === '') {
             delete $scope.stage[key];
           }
@@ -156,7 +156,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
         }
       }
 
-      this.addExtendedAttribute = function() {
+      this.addExtendedAttribute = function () {
         if (!$scope.stage.extendedAttributes) {
           $scope.stage.extendedAttributes = {};
         }
@@ -166,7 +166,7 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
             controller: 'bakeStageAddExtendedAttributeController',
             controllerAs: 'addExtendedAttribute',
             resolve: {
-              extendedAttribute: function() {
+              extendedAttribute: function () {
                 return {
                   key: '',
                   value: '',
@@ -174,31 +174,31 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
               },
             },
           })
-          .result.then(function(extendedAttribute) {
+          .result.then(function (extendedAttribute) {
             $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
           })
           .catch(() => {});
       };
 
-      this.removeExtendedAttribute = function(key) {
+      this.removeExtendedAttribute = function (key) {
         delete $scope.stage.extendedAttributes[key];
       };
 
-      this.showTemplateFileName = function() {
+      this.showTemplateFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.templateFileName;
       };
 
-      this.showExtendedAttributes = function() {
+      this.showExtendedAttributes = function () {
         return (
           $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0)
         );
       };
 
-      this.showVarFileName = function() {
+      this.showVarFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.varFileName;
       };
 
-      this.handleBaseOsChange = function() {
+      this.handleBaseOsChange = function () {
         setVmTypes();
         if ($scope.vmTypes && $scope.vmTypes.length && !$scope.vmTypes.includes($scope.stage.vmType)) {
           $scope.stage.vmType = $scope.vmTypes[0];

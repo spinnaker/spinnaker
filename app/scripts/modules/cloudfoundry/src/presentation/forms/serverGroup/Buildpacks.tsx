@@ -20,7 +20,7 @@ export class Buildpacks extends React.Component<IBuildpacksProps> {
             <b>Buildpacks</b>
             <FieldArray
               name={fieldName}
-              render={arrayHelpers => {
+              render={(arrayHelpers) => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
                 const buildpacks: string[] = getIn(serverGroupCommand, fieldName) || [];
 
@@ -36,7 +36,7 @@ export class Buildpacks extends React.Component<IBuildpacksProps> {
                                 onChange={() => {
                                   onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
                                 }}
-                                input={props => <TextInput {...props} />}
+                                input={(props) => <TextInput {...props} />}
                                 required={true}
                               />
                             </div>

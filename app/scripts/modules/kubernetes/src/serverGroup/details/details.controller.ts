@@ -112,7 +112,7 @@ class KubernetesServerGroupDetailsController implements IController {
       this.manifest.manifest,
       this.serverGroup.moniker,
       this.serverGroup.account,
-    ).then(builtCommand => {
+    ).then((builtCommand) => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }

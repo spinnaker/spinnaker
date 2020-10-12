@@ -31,9 +31,7 @@
           <tr ng-repeat="environmentVariable in command.viewModel.env">
             <td>
               <div class="form-group">
-                <div class="col-md-1 sm-label-right">
-                  Name
-                </div>
+                <div class="col-md-1 sm-label-right">Name</div>
                 <div class="col-md-9">
                   <input
                     type="text"
@@ -50,9 +48,7 @@
                 </div>
               </div>
               <div class="form-group">
-                <div class="col-md-1 sm-label-right">
-                  Value
-                </div>
+                <div class="col-md-1 sm-label-right">Value</div>
                 <div class="col-md-9" ng-show="!environmentVariable.isSecret">
                   <input
                     type="text"
@@ -77,9 +73,7 @@
                     </ui-select-choices>
                   </ui-select>
                 </div>
-                <div class="col-md-1 sm-label-right">
-                  Secret
-                </div>
+                <div class="col-md-1 sm-label-right">Secret</div>
                 <div class="col-md-1 checkbox-inline">
                   <input
                     type="checkbox"

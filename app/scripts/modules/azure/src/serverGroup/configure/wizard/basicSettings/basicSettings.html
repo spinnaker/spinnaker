@@ -2,9 +2,7 @@
   <div class="modal-body">
     <ng-form name="basicSettings">
       <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Account
-        </div>
+        <div class="col-md-3 sm-label-right">Account</div>
         <div class="col-md-7">
           <account-select-field
             required
@@ -109,9 +107,7 @@
                 class="text-left"
                 ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
               >
-                <p>
-                  There is already a server group in this cluster. Do you want to clone it?
-                </p>
+                <p>There is already a server group in this cluster. Do you want to clone it?</p>
                 <p>
                   Cloning copies the entire configuration from the selected server group, allowing you to modify
                   whichever fields (e.g. image) you need to change in the new server group.

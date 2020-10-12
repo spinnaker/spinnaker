@@ -20,7 +20,7 @@ export function DeployAppengineConfigurationConfig({ application, pipeline, stag
       pipeline={pipeline}
       stage={stageWithDefaults}
       validate={validateDeployAppengineConfigurationStage}
-      render={props => <DeployAppengineConfigForm {...props} />}
+      render={(props) => <DeployAppengineConfigForm {...props} />}
     />
   );
 }

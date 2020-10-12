@@ -66,9 +66,7 @@
               <em>Additional port ranges are specified, but redundant:</em>
             </div>
           </span>
-          <span ng-if="rule.protocol !== '-1'">
-            {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}}
-          </span>
+          <span ng-if="rule.protocol !== '-1'"> {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}} </span>
         </dd>
       </dl>
     </collapsible-section>

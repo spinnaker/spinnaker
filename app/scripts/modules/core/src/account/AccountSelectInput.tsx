@@ -55,11 +55,11 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     if (!provider && accountsAreObjects) {
       const providers = uniq(map(accounts as IAccount[], 'type'));
       getAccountDetails = $q
-        .all(providers.map(p => AccountService.getAllAccountDetailsForProvider(p)))
-        .then(details => flatten(details));
+        .all(providers.map((p) => AccountService.getAllAccountDetailsForProvider(p)))
+        .then((details) => flatten(details));
     }
 
-    getAccountDetails.then(details => {
+    getAccountDetails.then((details) => {
       const accountNames: string[] = accountsAreObjects ? map(accounts as IAccount[], 'name') : (accounts as any);
       let mergedAccounts = accountNames;
       let primaryAccounts: string[] = [];
@@ -70,8 +70,8 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
       }
       if (accountNames && accountNames.length && details.length) {
         primaryAccounts = accountNames
-          .filter(account => {
-            return details.some(detail => detail.name === account && detail.primaryAccount);
+          .filter((account) => {
+            return details.some((detail) => detail.name === account && detail.primaryAccount);
           })
           .sort();
         secondaryAccounts = xor(accountNames, primaryAccounts).sort();
@@ -103,11 +103,11 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     const { primaryAccounts, secondaryAccounts } = this.state;
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
     const options: Array<Option<string>> = [{ label: 'Select...', value: '', disabled: true }];
-    options.push(...primaryAccounts.map(a => ({ label: a, value: a })));
+    options.push(...primaryAccounts.map((a) => ({ label: a, value: a })));
     if (showSeparator) {
       options.push({ label: '---------------', value: '-', disabled: true });
     }
-    options.push(...secondaryAccounts.map(a => ({ label: a, value: a })));
+    options.push(...secondaryAccounts.map((a) => ({ label: a, value: a })));
 
     if (isExpression(value)) {
       return (

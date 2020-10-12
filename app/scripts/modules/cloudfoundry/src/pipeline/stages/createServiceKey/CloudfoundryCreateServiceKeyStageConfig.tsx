@@ -37,7 +37,7 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts.map(it => it.name) }));
+      .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts.map((it) => it.name) }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
@@ -52,7 +52,7 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
     Observable.fromPromise(AccountService.getRegionsForAccount(this.props.stage.credentials))
       .takeUntil(this.destroy$)
       .subscribe((regionList: IRegion[]) => {
-        const regions = regionList.map(r => r.name);
+        const regions = regionList.map((r) => r.name);
         regions.sort((a, b) => a.localeCompare(b));
         this.setState({ regions });
       });

@@ -51,7 +51,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
       .all(configType)
       .getList()
       .then((configs: Array<IPipeline | IStrategy>) => {
-        const nestedStageWrappers = configs.map(config => {
+        const nestedStageWrappers = configs.map((config) => {
           return (config.stages || [])
             .filter((stage: IStage) => !uncopiableStageTypes.has(stage.type))
             .map((stage: IStage) => {
@@ -91,7 +91,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
       <SpinFormik<ICopyStageCommand>
         initialValues={initialValues}
         onSubmit={copyStage}
-        render={formik => (
+        render={(formik) => (
           <Modal key="modal" show={true} onHide={() => {}}>
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>
@@ -108,14 +108,14 @@ export function CopyStageModal(props: ICopyStageModalProps) {
                   <FormikFormField
                     name="application"
                     label="From Application"
-                    input={inputProps => (
+                    input={(inputProps) => (
                       <ReactSelectInput
                         {...inputProps}
                         isLoading={fetchApplications.status === 'PENDING'}
                         clearable={false}
                         mode="VIRTUALIZED"
-                        stringOptions={(fetchApplications.result || []).map(a => a.name)}
-                        onChange={e => setApplication(e.target.value)}
+                        stringOptions={(fetchApplications.result || []).map((a) => a.name)}
+                        onChange={(e) => setApplication(e.target.value)}
                         value={application}
                       />
                     )}
@@ -124,13 +124,13 @@ export function CopyStageModal(props: ICopyStageModalProps) {
                     name="selectedStage"
                     label="Copy Stage"
                     required={true}
-                    input={inputProps => (
+                    input={(inputProps) => (
                       <ReactSelectInput
                         {...inputProps}
                         isLoading={fetchStages.status === 'PENDING'}
                         clearable={false}
                         disabled={isEmpty(fetchStages.result)}
-                        options={(fetchStages.result || []).map(s => ({
+                        options={(fetchStages.result || []).map((s) => ({
                           label: s.stage.name,
                           value: JSON.stringify(s),
                         }))}

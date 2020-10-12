@@ -24,7 +24,7 @@ export const PatchManifestOptionsForm: React.FunctionComponent<IPatchManifestOpt
         <Select
           clearable={false}
           value={props.strategy}
-          options={['strategic', 'json', 'merge'].map(k => ({ value: k, label: k }))}
+          options={['strategic', 'json', 'merge'].map((k) => ({ value: k, label: k }))}
           onChange={(e: Option<string>) => props.onStrategyChange(e.value)}
         />
       </StageConfigField>

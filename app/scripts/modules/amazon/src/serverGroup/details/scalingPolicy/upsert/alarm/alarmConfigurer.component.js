@@ -21,7 +21,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COM
     boundsChanged: '&',
   },
   templateUrl: require('./alarmConfigurer.component.html'),
-  controller: function() {
+  controller: function () {
     this.statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
     this.state = {
       units: null,

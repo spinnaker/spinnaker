@@ -9,7 +9,7 @@ export const GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE =
   'spinnaker.gce.pipeline.stage..cloneServerGroupStage';
 export const name = GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'gce',
@@ -25,14 +25,14 @@ module(GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE, [])
   })
   .controller('gceCloneServerGroupStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(accounts => {
+      AccountService.listAccounts('gce').then((accounts) => {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });

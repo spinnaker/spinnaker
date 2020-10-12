@@ -16,7 +16,8 @@ export interface IServerGroupResourcesProps {
   formik: FormikProps<ITitusServerGroupCommand>;
 }
 
-export class ServerGroupResources extends React.Component<IServerGroupResourcesProps>
+export class ServerGroupResources
+  extends React.Component<IServerGroupResourcesProps>
   implements IWizardPageComponent<ITitusServerGroupCommand> {
   public validate(values: ITitusServerGroupCommand) {
     const errors = {} as any;
@@ -50,7 +51,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="number"
               className="form-control input-sm"
               value={values.resources.cpu}
-              onChange={e =>
+              onChange={(e) =>
                 setFieldValue('resources', {
                   ...values.resources,
                   ...{ cpu: Number.parseInt(e.target.value, 10) || e.target.value },
@@ -69,7 +70,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="number"
               className="form-control input-sm"
               value={values.resources.memory}
-              onChange={e =>
+              onChange={(e) =>
                 setFieldValue('resources', {
                   ...values.resources,
                   ...{ memory: Number.parseInt(e.target.value, 10) || e.target.value },
@@ -88,7 +89,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="number"
               className="form-control input-sm"
               value={values.resources.disk}
-              onChange={e =>
+              onChange={(e) =>
                 setFieldValue('resources', {
                   ...values.resources,
                   ...{ disk: Number.parseInt(e.target.value, 10) || e.target.value },
@@ -108,7 +109,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="number"
               className="form-control input-sm"
               value={values.resources.networkMbps}
-              onChange={e =>
+              onChange={(e) =>
                 setFieldValue('resources', {
                   ...values.resources,
                   ...{ networkMbps: Number.parseInt(e.target.value, 10) || e.target.value },
@@ -128,7 +129,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="number"
               className="form-control input-sm"
               value={values.resources.gpu}
-              onChange={e =>
+              onChange={(e) =>
                 setFieldValue('resources', {
                   ...values.resources,
                   ...{ gpu: Number.parseInt(e.target.value, 10) || e.target.value },
@@ -168,7 +169,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="text"
               className="form-control input-sm no-spel"
               value={values.efs.mountPoint}
-              onChange={e => setFieldValue('efs', { ...values.efs, ...{ mountPoint: e.target.value } })}
+              onChange={(e) => setFieldValue('efs', { ...values.efs, ...{ mountPoint: e.target.value } })}
             />
           </div>
         </div>
@@ -182,7 +183,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="text"
               className="form-control input-sm no-spel"
               value={values.efs.efsId}
-              onChange={e => setFieldValue('efs', { ...values.efs, ...{ efsId: e.target.value } })}
+              onChange={(e) => setFieldValue('efs', { ...values.efs, ...{ efsId: e.target.value } })}
             />
           </div>
           <div className="col-md-offset-3 col-md-8" />
@@ -197,7 +198,7 @@ export class ServerGroupResources extends React.Component<IServerGroupResourcesP
               type="text"
               className="form-control input-sm no-spel"
               value={values.efs.efsRelativeMountPoint}
-              onChange={e => setFieldValue('efs', { ...values.efs, ...{ efsRelativeMountPoint: e.target.value } })}
+              onChange={(e) => setFieldValue('efs', { ...values.efs, ...{ efsRelativeMountPoint: e.target.value } })}
             />
           </div>
         </div>

@@ -4,23 +4,23 @@ import { API } from '@spinnaker/core';
 
 import { AwsImageReader } from './image.reader';
 
-describe('Service: aws Image Reader', function() {
+describe('Service: aws Image Reader', function () {
   var service, $http, scope;
 
   beforeEach(
-    window.inject(function($httpBackend, $rootScope) {
+    window.inject(function ($httpBackend, $rootScope) {
       service = new AwsImageReader();
       $http = $httpBackend;
       scope = $rootScope.$new();
     }),
   );
 
-  afterEach(function() {
+  afterEach(function () {
     $http.verifyNoOutstandingRequest();
     $http.verifyNoOutstandingExpectation();
   });
 
-  describe('findImages', function() {
+  describe('findImages', function () {
     var query = 'abc',
       region = 'us-west-1';
 
@@ -28,12 +28,12 @@ describe('Service: aws Image Reader', function() {
       return API.baseUrl + '/images/find?provider=aws&q=' + query + '&region=' + region;
     }
 
-    it('queries gate when 3 characters are supplied', function() {
+    it('queries gate when 3 characters are supplied', function () {
       var result = null;
 
       $http.when('GET', buildQueryString()).respond(200, [{ success: true }]);
 
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function(results) {
+      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
         result = results;
       });
 
@@ -43,7 +43,7 @@ describe('Service: aws Image Reader', function() {
       expect(result[0].success).toBe(true);
     });
 
-    it('queries gate when more than 3 characters are supplied', function() {
+    it('queries gate when more than 3 characters are supplied', function () {
       var result = null;
 
       query = 'abcd';
@@ -52,7 +52,7 @@ describe('Service: aws Image Reader', function() {
 
       var promise = service.findImages({ provider: 'aws', q: query, region: region });
 
-      promise.then(function(results) {
+      promise.then(function (results) {
         result = results;
       });
 
@@ -62,12 +62,12 @@ describe('Service: aws Image Reader', function() {
       expect(result[0].success).toBe(true);
     });
 
-    it('returns a message prompting user to enter more characters when less than 3 are supplied', function() {
+    it('returns a message prompting user to enter more characters when less than 3 are supplied', function () {
       query = 'ab';
 
       var result = null;
 
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function(results) {
+      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
         result = results;
       });
 
@@ -77,13 +77,13 @@ describe('Service: aws Image Reader', function() {
       expect(result[0].message).toBe('Please enter at least 3 characters...');
     });
 
-    it('returns an empty array when server errors', function() {
+    it('returns an empty array when server errors', function () {
       query = 'abc';
       var result = null;
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.findImages({ provider: 'aws', q: query, region: region }).then(function(results) {
+      service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
         result = results;
       });
 
@@ -93,7 +93,7 @@ describe('Service: aws Image Reader', function() {
     });
   });
 
-  describe('getImage', function() {
+  describe('getImage', function () {
     var imageName = 'abc',
       region = 'us-west-1',
       credentials = 'test';
@@ -102,12 +102,12 @@ describe('Service: aws Image Reader', function() {
       return [API.baseUrl, 'images', credentials, region, imageName].join('/') + '?provider=aws';
     }
 
-    it('returns null if server returns 404 or an empty list', function() {
+    it('returns null if server returns 404 or an empty list', function () {
       var result = 'not null';
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.getImage(imageName, region, credentials).then(function(results) {
+      service.getImage(imageName, region, credentials).then(function (results) {
         result = results;
       });
 
@@ -119,7 +119,7 @@ describe('Service: aws Image Reader', function() {
 
       $http.when('GET', buildQueryString()).respond(200, []);
 
-      service.getImage(imageName, region, credentials).then(function(results) {
+      service.getImage(imageName, region, credentials).then(function (results) {
         result = results;
       });
 

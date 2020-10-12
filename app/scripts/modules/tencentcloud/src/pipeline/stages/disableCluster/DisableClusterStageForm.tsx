@@ -47,7 +47,7 @@ export function DisableClusterStageForm({ application, formik, pipeline }: IForm
     }
   }, []);
 
-  const pluralize = function(str: string, val: string | number) {
+  const pluralize = function (str: string, val: string | number) {
     if (val === 1) {
       return str;
     }
@@ -70,12 +70,12 @@ export function DisableClusterStageForm({ application, formik, pipeline }: IForm
           <FormikFormField
             name="remainingEnabledServerGroups"
             required
-            input={props => <NumberInput {...props} min={0} />}
+            input={(props) => <NumberInput {...props} min={0} />}
           />
           <FormikFormField
             name="preferLargerOverNewer"
             required
-            input={props => (
+            input={(props) => (
               <SelectInput
                 options={[
                   { label: 'largest', value: 'true' },

@@ -39,7 +39,9 @@
           </div>
           <div
             class="col-md-4 error-message"
-            ng-if="loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max"
+            ng-if="
+              loadBalancingPolicySubForm.listeningPort.$error.min || loadBalancingPolicySubForm.listeningPort.$error.max
+            "
           >
             Must be between 1 and {{ $ctrl.maxPort }}.
           </div>
@@ -96,7 +98,9 @@
         </div>
         <div
           class="col-md-4 error-message"
-          ng-if="loadBalancingPolicySubForm.maxUtilization.$error.min || loadBalancingPolicySubForm.maxUtilization.$error.max"
+          ng-if="
+            loadBalancingPolicySubForm.maxUtilization.$error.min || loadBalancingPolicySubForm.maxUtilization.$error.max
+          "
         >
           Must be between 0 and 100%.
         </div>
@@ -167,7 +171,9 @@
       </div>
       <div
         class="col-md-4 error-message"
-        ng-if="loadBalancingPolicySubForm.capacityScaler.$error.min || loadBalancingPolicySubForm.capacityScaler.$error.max"
+        ng-if="
+          loadBalancingPolicySubForm.capacityScaler.$error.min || loadBalancingPolicySubForm.capacityScaler.$error.max
+        "
       >
         Must be between 0 and 100%.
       </div>

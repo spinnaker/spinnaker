@@ -17,7 +17,7 @@ module(ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [
   '$stateParams',
   'executionDetailsSectionService',
   '$interpolate',
-  function($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
+  function ($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     const initialized = () => {

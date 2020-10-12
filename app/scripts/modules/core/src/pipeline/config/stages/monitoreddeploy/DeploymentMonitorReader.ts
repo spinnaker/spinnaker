@@ -10,9 +10,6 @@ export interface IDeploymentMonitorDefinition {
 
 export class DeploymentMonitorReader {
   public static getDeploymentMonitors(): IPromise<IDeploymentMonitorDefinition[]> {
-    return API.all('capabilities')
-      .all('deploymentMonitors')
-      .useCache(true)
-      .get();
+    return API.all('capabilities').all('deploymentMonitors').useCache(true).get();
   }
 }

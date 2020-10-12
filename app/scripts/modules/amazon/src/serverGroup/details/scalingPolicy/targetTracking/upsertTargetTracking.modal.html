@@ -12,7 +12,7 @@
           With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
           metric as close as possible to the selected value.
         </p>
-        <div class="row" style="margin-bottom: 10px;">
+        <div class="row" style="margin-bottom: 10px">
           <div class="col-md-2 sm-label-right">Metric</div>
           <div class="col-md-10 content-fields">
             <div ng-if="$ctrl.state.metricType === 'predefined'">
@@ -21,8 +21,7 @@
                 ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
                 ng-change="$ctrl.alarmUpdated.next()"
                 ng-options="option for option in $ctrl.predefinedMetrics"
-              >
-              </select>
+              ></select>
               <div>
                 <a href ng-click="$ctrl.toggleMetricType()">Select a custom metric</a>
               </div>
@@ -41,7 +40,7 @@
           </div>
         </div>
 
-        <div class="row" style="margin-bottom: 10px;">
+        <div class="row" style="margin-bottom: 10px">
           <div class="col-md-2 sm-label-right">Target</div>
           <div class="col-md-10 content-fields">
             <div ng-if="$ctrl.state.metricType === 'custom'" style="display: inline-block">
@@ -51,8 +50,7 @@
                 ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
                 ng-change="$ctrl.alarmUpdated.next()"
                 ng-options="stat for stat in $ctrl.statistics"
-              >
-              </select>
+              ></select>
               <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
             </div>
             <div style="display: inline-block">
@@ -105,9 +103,7 @@
               required
               ng-model="$ctrl.command.estimatedInstanceWarmup"
             />
-            <span class="input-label">
-              seconds to warm up
-            </span>
+            <span class="input-label"> seconds to warm up </span>
           </div>
         </div>
 
@@ -129,9 +125,7 @@
                   means that ASG will not scale down unless you explicitly set up a separate step policy to scale it
                   down.
                 </p>
-                <p>
-                  This is useful when you have special requirements, such as gradual or delayed scale-down.
-                </p>
+                <p>This is useful when you have special requirements, such as gradual or delayed scale-down.</p>
               </div>
             </div>
           </div>

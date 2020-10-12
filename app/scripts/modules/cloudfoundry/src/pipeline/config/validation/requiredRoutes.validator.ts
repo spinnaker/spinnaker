@@ -14,7 +14,7 @@ export class CfRequiredRoutesFieldValidator implements IStageOrTriggerValidator 
         }
         return null;
       })
-      .filter(err => err != null);
+      .filter((err) => err != null);
     return (routeErrors && routeErrors.length && routeErrors[0]) || null;
   }
 }

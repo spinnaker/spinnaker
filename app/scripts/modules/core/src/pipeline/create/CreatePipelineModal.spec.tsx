@@ -111,7 +111,7 @@ xdescribe('CreatePipelineModal', () => {
       component.loadPipelineTemplates();
       $scope.$digest();
 
-      expect(component.state.templates.map(t => t.id)).toEqual(['templateA', 'templateB']);
+      expect(component.state.templates.map((t) => t.id)).toEqual(['templateA', 'templateB']);
     });
 
     it('sets error flag, message when load is rejected', () => {

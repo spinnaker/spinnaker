@@ -48,7 +48,7 @@ export function ShrinkClusterStageForm({ application, formik, pipeline }: IFormi
     }
   }, []);
 
-  const pluralize = function(str: string, val: string | number) {
+  const pluralize = function (str: string, val: string | number) {
     if (val === 1) {
       return str;
     }
@@ -71,13 +71,13 @@ export function ShrinkClusterStageForm({ application, formik, pipeline }: IFormi
           <FormikFormField
             name="remainingEnabledServerGroups"
             required
-            input={props => <NumberInput {...props} min={0} />}
+            input={(props) => <NumberInput {...props} min={0} />}
           />
           {pluralize('server group', stage.shrinkToSize)}, keeping the
           <FormikFormField
             name="retainLargerOverNewer"
             required
-            input={props => (
+            input={(props) => (
               <SelectInput
                 options={[
                   { label: 'largest', value: 'true' },
@@ -94,7 +94,7 @@ export function ShrinkClusterStageForm({ application, formik, pipeline }: IFormi
         <div className="col-md-offset-3 col-md-6 checkbox">
           <FormikFormField
             name="allowDeleteActive"
-            input={props => <CheckboxInput {...props} text="Allow deletion of active server groups" />}
+            input={(props) => <CheckboxInput {...props} text="Allow deletion of active server groups" />}
           />
         </div>
       </div>

@@ -26,7 +26,7 @@ import { ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER } from './securityGroup/
 import { ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER } from './securityGroup/configure/createSecurityGroup.controller';
 
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 
@@ -61,7 +61,7 @@ module(ORACLE_MODULE, [
   ORACLE_SECURITYGROUP_SECURITYGROUP_READER,
   ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER,
   ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER,
-]).config(function() {
+]).config(function () {
   CloudProviderRegistry.registerProvider('oracle', {
     name: 'Oracle',
     image: {

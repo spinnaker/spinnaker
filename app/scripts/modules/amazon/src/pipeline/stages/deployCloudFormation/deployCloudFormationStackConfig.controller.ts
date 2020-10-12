@@ -30,7 +30,7 @@ export class DeployCloudFormationStackConfigController implements IController {
       accounts: AccountService.getAllAccountDetailsForProvider('aws'),
       artifactAccounts: AccountService.getArtifactAccounts(),
     };
-    $q.all(dataToFetch).then(backingData => {
+    $q.all(dataToFetch).then((backingData) => {
       const { accounts, artifactAccounts } = backingData;
       this.accounts = accounts;
       this.state.loaded = true;

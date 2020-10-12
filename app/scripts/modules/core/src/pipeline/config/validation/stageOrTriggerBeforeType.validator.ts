@@ -32,7 +32,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
     return $q.all(parentTriggersToCheck).then(() => {
-      if (stagesToTest.every(test => !stageTypes.includes(test.type))) {
+      if (stagesToTest.every((test) => !stageTypes.includes(test.type))) {
         return validator.getMessage ? validator.getMessage() : validator.message;
       }
       return null;
@@ -40,7 +40,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   }
 
   private addTriggers(pipelines: IPipeline[], pipelineIdToFind: string, stagesToTest: Array<IStage | ITrigger>): void {
-    const match = pipelines.find(p => p.id === pipelineIdToFind);
+    const match = pipelines.find((p) => p.id === pipelineIdToFind);
     if (match) {
       stagesToTest.push(...match.triggers);
     }
@@ -51,7 +51,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     stagesToTest: Array<IStage | ITrigger>,
     deferred: IDeferred<any>,
   ): void {
-    PipelineConfigService.getPipelinesForApplication(trigger.application).then(pipelines => {
+    PipelineConfigService.getPipelinesForApplication(trigger.application).then((pipelines) => {
       this.pipelineCache.set(trigger.application, pipelines);
       this.addTriggers(pipelines, trigger.pipeline, stagesToTest);
       deferred.resolve();
@@ -60,10 +60,10 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
 
   private addPipelineTriggers(pipeline: IPipeline, stagesToTest: Array<IStage | ITrigger>) {
     const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(
-      t => t.type === 'pipeline',
+      (t) => t.type === 'pipeline',
     ) as IPipelineTrigger[];
     const parentTriggersToCheck: Array<IPromise<any>> = [];
-    pipelineTriggers.forEach(trigger => {
+    pipelineTriggers.forEach((trigger) => {
       const deferred: IDeferred<any> = $q.defer();
       if (this.pipelineCache.has(trigger.application)) {
         this.addTriggers(this.pipelineCache.get(trigger.application), trigger.pipeline, stagesToTest);

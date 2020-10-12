@@ -2,13 +2,13 @@
 
 import { API } from '@spinnaker/core';
 
-describe('Service: InstanceType', function() {
-  beforeEach(function() {
+describe('Service: InstanceType', function () {
+  beforeEach(function () {
     window.module(require('./awsInstanceType.service').name);
   });
 
   beforeEach(
-    window.inject(function(_awsInstanceTypeService_, _$httpBackend_) {
+    window.inject(function (_awsInstanceTypeService_, _$httpBackend_) {
       this.awsInstanceTypeService = _awsInstanceTypeService_;
       this.$httpBackend = _$httpBackend_;
 
@@ -31,16 +31,16 @@ describe('Service: InstanceType', function() {
     }),
   );
 
-  afterEach(function() {
+  afterEach(function () {
     this.$httpBackend.verifyNoOutstandingRequest();
   });
 
-  describe('getAllTypesByRegion', function() {
-    it('returns types, indexed by region', function() {
+  describe('getAllTypesByRegion', function () {
+    it('returns types, indexed by region', function () {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null;
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = result;
       });
 
@@ -50,14 +50,14 @@ describe('Service: InstanceType', function() {
     });
   });
 
-  describe('getAvailableTypesForRegions', function() {
-    it('returns results for a single region', function() {
+  describe('getAvailableTypesForRegions', function () {
+    it('returns results for a single region', function () {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
         service = this.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-2']);
       });
 
@@ -65,13 +65,13 @@ describe('Service: InstanceType', function() {
       expect(results).toEqual(['m1.small', 'm2.xlarge']);
     });
 
-    it('returns empty list for region with no instance types', function() {
+    it('returns empty list for region with no instance types', function () {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
         service = this.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-3']);
       });
 
@@ -79,13 +79,13 @@ describe('Service: InstanceType', function() {
       expect(results).toEqual([]);
     });
 
-    it('returns an intersection when multiple regions are provided', function() {
+    it('returns an intersection when multiple regions are provided', function () {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
         service = this.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-west-2', 'eu-west-1']);
       });
 
@@ -93,7 +93,7 @@ describe('Service: InstanceType', function() {
       expect(results).toEqual(['m2.xlarge']);
     });
 
-    it('filters instance types by VPC and virtualization type', function() {
+    it('filters instance types by VPC and virtualization type', function () {
       let types = ['c4.a', 'c3.a', 'c4.a', 'c1.a'];
       let service = this.awsInstanceTypeService;
       expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c4.a', 'c3.a', 'c4.a']);
@@ -102,19 +102,19 @@ describe('Service: InstanceType', function() {
       expect(service.filterInstanceTypes(types, 'paravirtual', false)).toEqual(['c3.a', 'c1.a']);
     });
 
-    it('assumes HVM is supported for unknown families', function() {
+    it('assumes HVM is supported for unknown families', function () {
       let types = ['c400.a', 'c300.a', 'c3.a', 'c1.a'];
       let service = this.awsInstanceTypeService;
       expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c400.a', 'c300.a', 'c3.a']);
     });
 
-    it('sorts instance types by family then class size', function() {
+    it('sorts instance types by family then class size', function () {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       var results = null,
         service = this.awsInstanceTypeService;
 
-      this.awsInstanceTypeService.getAllTypesByRegion().then(function(result) {
+      this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = service.getAvailableTypesForRegions(result, ['us-east-1']);
       });
 

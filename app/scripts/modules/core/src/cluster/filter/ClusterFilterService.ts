@@ -86,7 +86,7 @@ export class ClusterFilterService {
               category,
               serverGroups: regionGroup,
               key: `${region}:${category}`,
-              entityTags: (regionGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === region),
+              entityTags: (regionGroup[0].clusterEntityTags || []).find((t) => t.entityRef['region'] === region),
               isManaged: !!regionGroup[0].isManaged,
               managedResourceSummary: regionGroup[0].managedResourceSummary,
             });
@@ -105,7 +105,7 @@ export class ClusterFilterService {
               cluster: appCluster,
               subgroups: sortBy(regionGroups, 'heading'),
               entityTags: (clusterGroup[0].clusterEntityTags || []).find(
-                t => t.entityRef['region'] === '*' || t.entityRef['region'] === undefined,
+                (t) => t.entityRef['region'] === '*' || t.entityRef['region'] === undefined,
               ),
               isManaged: isEntireClusterManaged,
               managedResourceSummary: isEntireClusterManaged ? regionGroups[0].managedResourceSummary : undefined,
@@ -143,7 +143,7 @@ export class ClusterFilterService {
     }
     if (this.isFilterable(sortFilter.status)) {
       const allCheckedValues: string[] = FilterModelService.getCheckValues(sortFilter.status);
-      const checkedStatus = allCheckedValues.filter(s => s !== 'Disabled');
+      const checkedStatus = allCheckedValues.filter((s) => s !== 'Disabled');
       if (!checkedStatus.length) {
         return true;
       }
@@ -194,17 +194,17 @@ export class ClusterFilterService {
 
   private filterServerGroupsForDisplay(serverGroups: IServerGroup[]): IServerGroup[] {
     const filtered: IServerGroup[] = serverGroups
-      .filter(g => this.textFilter(g))
-      .filter(g => this.instanceCountFilter(g))
-      .filter(g => FilterModelService.checkAccountFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => FilterModelService.checkRegionFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => FilterModelService.checkStackFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => FilterModelService.checkDetailFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => FilterModelService.checkStatusFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => FilterModelService.checkProviderFilters(ClusterState.filterModel.asFilterModel)(g))
-      .filter(g => this.instanceTypeFilters(g))
-      .filter(g => this.instanceFilters(g))
-      .filter(g => this.labelFilters(g));
+      .filter((g) => this.textFilter(g))
+      .filter((g) => this.instanceCountFilter(g))
+      .filter((g) => FilterModelService.checkAccountFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => FilterModelService.checkRegionFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => FilterModelService.checkStackFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => FilterModelService.checkDetailFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => FilterModelService.checkStatusFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => FilterModelService.checkProviderFilters(ClusterState.filterModel.asFilterModel)(g))
+      .filter((g) => this.instanceTypeFilters(g))
+      .filter((g) => this.instanceFilters(g))
+      .filter((g) => this.labelFilters(g));
 
     this.updateMultiselectInstanceGroups(filtered);
     this.updateMultiselectServerGroups(filtered);
@@ -218,7 +218,7 @@ export class ClusterFilterService {
     const sortFilter: ISortFilter = ClusterState.filterModel.asFilterModel.sortFilter;
     if (sortFilter.listInstances && sortFilter.multiselect) {
       ClusterState.multiselectModel.instanceGroups.forEach((instanceGroup: any) => {
-        const match = serverGroups.find(serverGroup => {
+        const match = serverGroups.find((serverGroup) => {
           return (
             serverGroup.name === instanceGroup.serverGroup &&
             serverGroup.region === instanceGroup.region &&
@@ -231,13 +231,13 @@ export class ClusterFilterService {
           // back in subsequent filter operations
           instanceGroup.instanceIds.length = 0;
         } else {
-          const filteredInstances = match.instances.filter(i => this.shouldShowInstance(i));
+          const filteredInstances = match.instances.filter((i) => this.shouldShowInstance(i));
           if (instanceGroup.selectAll) {
-            instanceGroup.instanceIds = filteredInstances.map(i => i.id);
+            instanceGroup.instanceIds = filteredInstances.map((i) => i.id);
           } else {
             instanceGroup.instanceIds = filteredInstances
-              .filter(instance => instanceGroup.instanceIds.includes(instance.id))
-              .map(instance => instance.id);
+              .filter((instance) => instanceGroup.instanceIds.includes(instance.id))
+              .map((instance) => instance.id);
           }
         }
       });
@@ -251,14 +251,14 @@ export class ClusterFilterService {
   private updateMultiselectServerGroups(serverGroups: IServerGroup[]): void {
     if (ClusterState.filterModel.asFilterModel.sortFilter.multiselect) {
       if (ClusterState.multiselectModel.serverGroups.length) {
-        const remainingKeys = serverGroups.map(s => ClusterState.multiselectModel.makeServerGroupKey(s));
+        const remainingKeys = serverGroups.map((s) => ClusterState.multiselectModel.makeServerGroupKey(s));
         const toRemove: number[] = [];
         ClusterState.multiselectModel.serverGroups.forEach((group: any, index: number) => {
           if (!remainingKeys.includes(group.key)) {
             toRemove.push(index);
           }
         });
-        toRemove.reverse().forEach(index => ClusterState.multiselectModel.serverGroups.splice(index, 1));
+        toRemove.reverse().forEach((index) => ClusterState.multiselectModel.serverGroups.splice(index, 1));
       }
       ClusterState.multiselectModel.serverGroupsStream.next();
       ClusterState.multiselectModel.syncNavigation();
@@ -276,7 +276,7 @@ export class ClusterFilterService {
   }
 
   private instanceFilters(serverGroup: IServerGroup): boolean {
-    return !this.shouldFilterInstances() || serverGroup.instances.some(i => this.shouldShowInstance(i));
+    return !this.shouldFilterInstances() || serverGroup.instances.some((i) => this.shouldShowInstance(i));
   }
 
   private shouldFilterInstances(): boolean {
@@ -323,10 +323,7 @@ export class ClusterFilterService {
       return true;
     }
     if (filter.includes('clusters:')) {
-      const clusterNames: string[] = filter
-        .split('clusters:')[1]
-        .replace(/\s/g, '')
-        .split(',');
+      const clusterNames: string[] = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
       return clusterNames.includes(serverGroup.cluster);
     }
 
@@ -368,9 +365,9 @@ export class ClusterFilterService {
     if (filter.includes('labels:')) {
       const caseSensitiveFilter: string = ClusterState.filterModel.asFilterModel.sortFilter.filter;
       const labelsStr = caseSensitiveFilter.split('labels:')[1];
-      const labels = labelsStr.split(',').map(l => l.trim());
+      const labels = labelsStr.split(',').map((l) => l.trim());
 
-      return every(labels, label => {
+      return every(labels, (label) => {
         let labelKey: string;
         let labelValue: string;
         if (label.includes('=')) {
@@ -428,24 +425,24 @@ export class ClusterFilterService {
   private addHealthFlags(): void {
     ClusterState.filterModel.asFilterModel.groups.forEach((group: IClusterGroup) => {
       group.subgroups.forEach((subgroup: IClusterSubgroup) => {
-        subgroup.hasDiscovery = subgroup.subgroups.some(g => this.hasDiscovery(g));
-        subgroup.hasLoadBalancers = subgroup.subgroups.some(g => this.hasLoadBalancers(g));
+        subgroup.hasDiscovery = subgroup.subgroups.some((g) => this.hasDiscovery(g));
+        subgroup.hasLoadBalancers = subgroup.subgroups.some((g) => this.hasLoadBalancers(g));
       });
     });
   }
 
   private hasDiscovery(group: IServerGroupSubgroup) {
-    return group.serverGroups.some(serverGroup =>
-      (serverGroup.instances || []).some(instance =>
-        (instance.health || []).some(health => health.type === 'Discovery'),
+    return group.serverGroups.some((serverGroup) =>
+      (serverGroup.instances || []).some((instance) =>
+        (instance.health || []).some((health) => health.type === 'Discovery'),
       ),
     );
   }
 
   private hasLoadBalancers(group: IServerGroupSubgroup) {
-    return group.serverGroups.some(serverGroup =>
-      (serverGroup.instances || []).some(instance =>
-        (instance.health || []).some(health => health.type === 'LoadBalancer'),
+    return group.serverGroups.some((serverGroup) =>
+      (serverGroup.instances || []).some((instance) =>
+        (instance.health || []).some((health) => health.type === 'LoadBalancer'),
       ),
     );
   }
@@ -453,7 +450,7 @@ export class ClusterFilterService {
   private diffSubgroups(oldGroups: Grouping[], newGroups: Grouping[]): void {
     const groupsToRemove: number[] = [];
     oldGroups.forEach((oldGroup: Grouping, idx: number) => {
-      const newGroup = (newGroups || []).find(group => group.key === oldGroup.key);
+      const newGroup = (newGroups || []).find((group) => group.key === oldGroup.key);
       if (!newGroup) {
         groupsToRemove.push(idx);
       } else {
@@ -484,7 +481,7 @@ export class ClusterFilterService {
       oldGroups.splice(idx, 1);
     });
     newGroups.forEach((newGroup: Grouping) => {
-      const match: Grouping = oldGroups.find(g => g.key === newGroup.key);
+      const match: Grouping = oldGroups.find((g) => g.key === newGroup.key);
       if (!match) {
         oldGroups.push(newGroup);
       }
@@ -499,7 +496,7 @@ export class ClusterFilterService {
     const toRemove: number[] = [];
     oldGroup.serverGroups.forEach((serverGroup: IServerGroup, idx: number) => {
       const newServerGroup: IServerGroup = newGroup.serverGroups.find(
-        g => g.name === serverGroup.name && g.account === serverGroup.account && g.region === serverGroup.region,
+        (g) => g.name === serverGroup.name && g.account === serverGroup.account && g.region === serverGroup.region,
       );
 
       if (!newServerGroup) {
@@ -530,13 +527,13 @@ export class ClusterFilterService {
         }
       }
     });
-    toRemove.reverse().forEach(idx => {
+    toRemove.reverse().forEach((idx) => {
       oldGroup.serverGroups.splice(idx, 1);
     });
 
-    newGroup.serverGroups.forEach(serverGroup => {
+    newGroup.serverGroups.forEach((serverGroup) => {
       const oldServerGroup: IServerGroup = oldGroup.serverGroups.find(
-        g => g.name === serverGroup.name && g.account === serverGroup.account && g.region === serverGroup.region,
+        (g) => g.name === serverGroup.name && g.account === serverGroup.account && g.region === serverGroup.region,
       );
 
       if (!oldServerGroup) {

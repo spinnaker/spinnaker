@@ -22,7 +22,7 @@ angular
     '$state',
     '$uibModalInstance',
     'application',
-    function($scope, $window, $state, $uibModalInstance, application) {
+    function ($scope, $window, $state, $uibModalInstance, application) {
       const vm = this;
       this.data = {
         gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
@@ -35,17 +35,14 @@ angular
       vm.application = application;
       vm.applicationAttributes = _.cloneDeep(application.attributes);
 
-      AccountService.listProviders().then(providers => (vm.data.cloudProviders = providers));
+      AccountService.listProviders().then((providers) => (vm.data.cloudProviders = providers));
 
       function closeModal() {
         $uibModalInstance.close(vm.applicationAttributes);
       }
 
       function extractErrorMsg(error) {
-        const exceptions = _.chain(error.variables)
-          .filter({ key: 'exception' })
-          .head()
-          .value().value.details.errors;
+        const exceptions = _.chain(error.variables).filter({ key: 'exception' }).head().value().value.details.errors;
 
         angular.copy(exceptions, vm.errorMsgs);
         assignErrorMsgs();
@@ -53,7 +50,7 @@ angular
       }
 
       function assignErrorMsgs() {
-        vm.emailErrorMsg = vm.errorMsgs.filter(function(msg) {
+        vm.emailErrorMsg = vm.errorMsgs.filter(function (msg) {
           return msg.toLowerCase().includes('email');
         });
       }
@@ -66,7 +63,7 @@ angular
         vm.state.submitting = true;
       }
 
-      vm.updateCloudProviderHealthWarning = platformHealthOnlyShowOverrideClicked => {
+      vm.updateCloudProviderHealthWarning = (platformHealthOnlyShowOverrideClicked) => {
         if (
           vm.applicationAttributes.platformHealthOnlyShowOverride &&
           (platformHealthOnlyShowOverrideClicked || vm.applicationAttributes.platformHealthOnly)
@@ -84,16 +81,16 @@ angular
         }
       };
 
-      vm.clearEmailMsg = function() {
+      vm.clearEmailMsg = function () {
         vm.state.emailErrorMsg = '';
       };
 
       // Allow for setting the attributes through this as a callback in react components
-      vm.setAttribute = function(name, value) {
+      vm.setAttribute = function (name, value) {
         vm.applicationAttributes[name] = value;
       };
 
-      vm.submit = function() {
+      vm.submit = function () {
         submitting();
 
         if (vm.applicationAttributes.aliases === '') {
@@ -102,12 +99,12 @@ angular
         if (vm.applicationAttributes.aliases) {
           vm.applicationAttributes.aliases = vm.applicationAttributes.aliases
             .split(/\s*,\s*/)
-            .filter(s => s !== '')
+            .filter((s) => s !== '')
             .join(',');
         }
 
         ApplicationWriter.updateApplication(vm.applicationAttributes).then(
-          task => TaskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
+          (task) => TaskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
           () => vm.errorMsgs.push('Could not update application'),
         );
       };
@@ -122,7 +119,7 @@ angular
         return true;
       }
 
-      vm.handlePermissionsChange = permissions => {
+      vm.handlePermissionsChange = (permissions) => {
         vm.state.permissionsInvalid = !permissionsAreValid(permissions);
         vm.applicationAttributes.permissions = permissions;
         delete vm.applicationAttributes.requiredGroupMembership;

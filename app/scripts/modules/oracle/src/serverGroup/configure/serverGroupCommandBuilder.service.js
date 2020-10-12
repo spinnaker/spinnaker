@@ -14,7 +14,7 @@ angular
   .module(ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [])
   .factory('oracleServerGroupCommandBuilder', [
     '$q',
-    function($q) {
+    function ($q) {
       const oracle = 'oracle';
 
       function buildNewServerGroupCommand(application, defaults) {
@@ -70,7 +70,7 @@ angular
       function buildServerGroupCommandFromPipeline(application, originalCluster) {
         const pipelineCluster = _.cloneDeep(originalCluster);
         const commandDefaults = { account: pipelineCluster.account, region: pipelineCluster.region };
-        return buildNewServerGroupCommand(application, commandDefaults).then(command => {
+        return buildNewServerGroupCommand(application, commandDefaults).then((command) => {
           const viewState = {
             disableImageSelection: true,
             mode: 'editPipeline',

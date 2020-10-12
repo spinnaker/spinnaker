@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE = 'spinnaker.oracle.pipeline.stage.destroyAsgStage';
 export const name = ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE; // for backwards compatibility
 module(ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'oracle',
@@ -28,7 +28,7 @@ module(ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE, [])
   })
   .controller('oracleDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
       const provider = 'oracle';
 
@@ -43,7 +43,7 @@ module(ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE, [])
       init();
 
       function init() {
-        AccountService.listAccounts(provider).then(accounts => {
+        AccountService.listAccounts(provider).then((accounts) => {
           $scope.accounts = accounts;
           $scope.state.accounts = true;
         });

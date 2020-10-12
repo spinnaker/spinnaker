@@ -21,7 +21,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE, [
   STAGE_COMMON_MODULE,
 ]).run([
   'deployStageTransformer',
-  function(deployStageTransformer) {
+  function (deployStageTransformer) {
     Registry.pipeline.registerTransformer(deployStageTransformer);
   },
 ]);

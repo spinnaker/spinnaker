@@ -55,7 +55,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
               <input
                 type="checkbox"
                 checked={command.rollback.onFailure}
-                onChange={e => this.handleChange('rollback.onFailure', e.target.checked)}
+                onChange={(e) => this.handleChange('rollback.onFailure', e.target.checked)}
               />
               Rollback to previous server group if deployment fails <HelpField id="strategy.rollingRedBlack.rollback" />
             </label>
@@ -72,7 +72,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
                 min="0"
                 type="number"
                 value={command.delayBeforeDisableSec}
-                onChange={e => this.handleChange('delayBeforeDisableSec', e.target.value)}
+                onChange={(e) => this.handleChange('delayBeforeDisableSec', e.target.value)}
                 placeholder="0"
               />
               &nbsp; seconds
@@ -90,7 +90,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
                 min="2"
                 type="number"
                 value={command.maxRemainingAsgs}
-                onChange={e => this.handleChange('maxRemainingAsgs', e.target.value)}
+                onChange={(e) => this.handleChange('maxRemainingAsgs', e.target.value)}
               />
               &nbsp; server groups
             </div>
@@ -107,7 +107,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
                 min="0"
                 type="number"
                 value={command.delayBeforeScaleDownSec}
-                onChange={e => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
+                onChange={(e) => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
                 placeholder="0"
               />
               &nbsp; seconds
@@ -129,7 +129,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
                           min="0"
                           type="number"
                           value={percentage}
-                          onChange={e => this.handlePercentChange('targetPercentages', e.target.value, index)}
+                          onChange={(e) => this.handlePercentChange('targetPercentages', e.target.value, index)}
                           placeholder="100"
                         />
                       </div>

@@ -52,7 +52,7 @@ export function useLatestPromise<T>(callback: () => PromiseLike<T>, deps: Depend
   const { result, error, status, requestId } = promiseState;
 
   // Starts a new request (runs the callback again)
-  const refresh = () => setRequestIdTrigger(id => id + 1);
+  const refresh = () => setRequestIdTrigger((id) => id + 1);
 
   // refresh whenever any dependency in the dependency list changes
   useEffect(() => {

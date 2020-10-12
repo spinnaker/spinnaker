@@ -97,15 +97,17 @@
             ng-repeat="vpc in activeVpcs | orderBy: 'label'"
             value="{{vpc.ids[0]}}"
             ng-selected="securityGroup.vpcId === vpc.ids[0]"
-            >{{vpc.label}}</option
           >
+            {{vpc.label}}
+          </option>
           <option ng-if="activeVpcs.length && deprecatedVpcs.length" disabled>---------------</option>
           <option
             ng-repeat="vpc in deprecatedVpcs | orderBy: 'label'"
             value="{{vpc.ids[0]}}"
             ng-selected="securityGroup.vpcId === vpc.ids[0]"
-            >{{vpc.label}}</option
           >
+            {{vpc.label}}
+          </option>
         </select>
         <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
         <p class="form-control-static" ng-if="securityGroup.credentials && !securityGroup.regions.length">

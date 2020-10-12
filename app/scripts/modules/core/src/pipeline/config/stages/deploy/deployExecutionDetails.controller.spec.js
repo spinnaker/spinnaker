@@ -2,28 +2,28 @@
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
-describe('DeployExecutionDetailsCtrl', function() {
+describe('DeployExecutionDetailsCtrl', function () {
   beforeEach(window.module(require('./deployExecutionDetails.controller').name));
 
   let originalGetValue;
   beforeAll(() => {
     originalGetValue = CloudProviderRegistry.getValue;
-    CloudProviderRegistry.getValue = cp => cp === 'withScalingActivities';
+    CloudProviderRegistry.getValue = (cp) => cp === 'withScalingActivities';
   });
   afterAll(() => (CloudProviderRegistry.getValue = originalGetValue));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, $timeout) {
+    window.inject(function ($controller, $rootScope, $timeout) {
       this.$controller = $controller;
       this.$timeout = $timeout;
       this.$scope = $rootScope.$new();
     }),
   );
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$scope.stage = {};
     this.$scope.application = {};
-    this.initializeController = function() {
+    this.initializeController = function () {
       this.controller = this.$controller('DeployExecutionDetailsCtrl', {
         $scope: this.$scope,
         $stateParams: { details: 'deploymentConfig' },
@@ -32,8 +32,8 @@ describe('DeployExecutionDetailsCtrl', function() {
     };
   });
 
-  describe('deployment results', function() {
-    it('sets empty list when no context or empty context (except for changes config)', function() {
+  describe('deployment results', function () {
+    it('sets empty list when no context or empty context (except for changes config)', function () {
       var stage = this.$scope.stage;
       stage.context = {
         commits: [],
@@ -48,7 +48,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.deployed.length).toBe(0);
     });
 
-    it('sets empty list when no kato.tasks or empty kato.tasks', function() {
+    it('sets empty list when no kato.tasks or empty kato.tasks', function () {
       var stage = this.$scope.stage;
 
       stage.context = {};
@@ -82,7 +82,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.deployed[0].serverGroup).toBe('deployedAsg');
     });
 
-    it('sets empty list when no resultObjects or empty resultObjects', function() {
+    it('sets empty list when no resultObjects or empty resultObjects', function () {
       var stage = this.$scope.stage;
 
       stage.context = { 'kato.tasks': [{}] };
@@ -95,7 +95,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.deployed.length).toBe(0);
     });
 
-    it('sets empty list when no serverGroupNameByRegion', function() {
+    it('sets empty list when no serverGroupNameByRegion', function () {
       var stage = this.$scope.stage;
 
       stage.context = {
@@ -117,7 +117,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.deployed[0].serverGroup).toBe('deployedAsg');
     });
 
-    it('sets deployed when serverGroupNameByRegion supplies values', function() {
+    it('sets deployed when serverGroupNameByRegion supplies values', function () {
       var stage = this.$scope.stage;
 
       stage.context = {
@@ -137,8 +137,8 @@ describe('DeployExecutionDetailsCtrl', function() {
     });
   });
 
-  describe('running warnings', function() {
-    beforeEach(function() {
+  describe('running warnings', function () {
+    beforeEach(function () {
       this.$scope.stage = {
         isRunning: true,
         context: {
@@ -152,7 +152,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       };
     });
 
-    it('sets waitingForUpInstances flag when waitForUpInstances is running and lastCapacityCheck reported', function() {
+    it('sets waitingForUpInstances flag when waitForUpInstances is running and lastCapacityCheck reported', function () {
       this.initializeController();
       expect(this.$scope.waitingForUpInstances).toBe(false);
 
@@ -168,7 +168,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.waitingForUpInstances).toBe(true);
     });
 
-    it('sets showScalingActivitiesLink if configured for cloud provider and three minutes have passed', function() {
+    it('sets showScalingActivitiesLink if configured for cloud provider and three minutes have passed', function () {
       this.$scope.stage.context.lastCapacityCheck = {
         up: 1,
         down: 0,
@@ -192,7 +192,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       expect(this.$scope.showScalingActivitiesLink).toBe(true);
     });
 
-    it('sets showPlatformHealthOverrideMessage after three minutes if unknown status detected and platformHealthOverride not configured', function() {
+    it('sets showPlatformHealthOverrideMessage after three minutes if unknown status detected and platformHealthOverride not configured', function () {
       this.$scope.stage.context.lastCapacityCheck = {
         up: 0,
         down: 0,

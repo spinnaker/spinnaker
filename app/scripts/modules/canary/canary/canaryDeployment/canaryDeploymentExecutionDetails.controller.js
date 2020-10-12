@@ -17,7 +17,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
   '$stateParams',
   'executionDetailsSectionService',
   'canaryDeploymentHistoryService',
-  function($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
+  function ($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
     $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
 
     const initialized = () => {
@@ -62,17 +62,17 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
       }
     };
 
-    $scope.loadHistory = function() {
+    $scope.loadHistory = function () {
       if ($scope.deployment.canaryDeploymentId) {
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
         canaryDeploymentHistoryService.getAnalysisHistory($scope.deployment.canaryDeploymentId).then(
-          function(results) {
+          function (results) {
             $scope.analysisHistory = results;
             $scope.viewState.loadingHistory = false;
           },
-          function() {
+          function () {
             $scope.viewState.loadingHistory = false;
             $scope.viewState.loadingHistoryError = true;
           },
@@ -83,7 +83,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
       }
     };
 
-    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
     const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

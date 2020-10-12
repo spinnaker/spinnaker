@@ -5,7 +5,7 @@ import { IPluginMetaData, PluginRegistry } from './plugin.registry';
 import { Registry } from 'core/registry';
 import { mock } from 'angular';
 
-const fakePromise = (result: any = undefined) => () => new Promise(resolve => resolve(result));
+const fakePromise = (result: any = undefined) => () => new Promise((resolve) => resolve(result));
 
 describe('PluginRegistry', () => {
   let pluginRegistry: PluginRegistry;

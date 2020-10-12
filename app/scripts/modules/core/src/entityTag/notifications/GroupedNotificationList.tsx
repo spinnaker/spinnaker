@@ -48,7 +48,7 @@ export class GroupedNotificationList extends React.Component<
   private getAlertsByMessage(notifications: INotification[]): IMessageNotifications[] {
     const grouped = groupBy(notifications, 'entityTag.value.message');
 
-    return Object.keys(grouped).map(message => ({
+    return Object.keys(grouped).map((message) => ({
       message,
       // assume all the taglines and titles are the same for identical messages
       tagline: grouped[message][0].entityTag.value.tagline,
@@ -60,7 +60,7 @@ export class GroupedNotificationList extends React.Component<
   public render() {
     return (
       <div className="notification-list">
-        {this.state.alertsByMessage.map(alertsForMessage => (
+        {this.state.alertsByMessage.map((alertsForMessage) => (
           <AlertsForMessage key={alertsForMessage.message} alertsForMessage={alertsForMessage} />
         ))}
       </div>

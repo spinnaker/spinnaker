@@ -9,7 +9,7 @@ export const CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DI
   'spinnaker.core.pipeline.config.preconditions.selector';
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE, [])
-  .directive('preconditionSelector', function() {
+  .directive('preconditionSelector', function () {
     return {
       restrict: 'E',
       scope: {
@@ -27,8 +27,8 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIV
   .controller('PreconditionSelectorCtrl', [
     '$scope',
     'preconditionTypeService',
-    function($scope, preconditionTypeService) {
-      AccountService.listAccounts().then(accounts => {
+    function ($scope, preconditionTypeService) {
+      AccountService.listAccounts().then((accounts) => {
         $scope.accounts = accounts;
         setClusterList();
       });
@@ -41,23 +41,23 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIV
         $scope.precondition.type = $scope.preconditionTypes[0].key;
       }
 
-      this.clearContext = function() {
+      this.clearContext = function () {
         $scope.precondition.context = null;
       };
 
-      this.setContext = function(context) {
+      this.setContext = function (context) {
         // Called from React component
         $scope.$applyAsync(() => {
           $scope.precondition.context = context;
         });
       };
 
-      this.getPreconditionContextTemplateUrl = function() {
+      this.getPreconditionContextTemplateUrl = function () {
         const preconditionConfig = preconditionTypeService.getPreconditionType($scope.precondition.type);
         return preconditionConfig ? preconditionConfig.contextTemplateUrl : '';
       };
 
-      this.clusterChanged = function(clusterName) {
+      this.clusterChanged = function (clusterName) {
         const clusterFilter = AppListExtractor.monikerClusterNameFilter(clusterName);
         const moniker = first(AppListExtractor.getMonikers([$scope.application], clusterFilter));
         if (!isNil(moniker)) {
@@ -81,16 +81,17 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIV
         setClusterList();
       };
 
-      this.accountUpdated = function() {
+      this.accountUpdated = function () {
         if (!$scope.precondition.context.credentials) {
           return;
         }
 
-        const accountFilter = cluster => (cluster ? cluster.account === $scope.precondition.context.credentials : true);
+        const accountFilter = (cluster) =>
+          cluster ? cluster.account === $scope.precondition.context.credentials : true;
         $scope.regions = AppListExtractor.getRegions([$scope.application], accountFilter);
 
         //Setting cloudProvider when account is updated
-        const providerFilter = account => account.name === $scope.precondition.context.credentials;
+        const providerFilter = (account) => account.name === $scope.precondition.context.credentials;
         const accountsArray = $scope.accounts;
         if (accountsArray !== null && accountsArray !== undefined) {
           const account = accountsArray.find(providerFilter);

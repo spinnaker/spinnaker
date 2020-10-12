@@ -55,4 +55,4 @@ const helpContents: { [key: string]: string } = {
     'Session persistence specifies that traffic from a client should be handled by the same virtual machine in the backend pool for the duration of a session. "None" specifies that successive requests from the same client may be handled by any virtual machine. "Client IP" specifies that successive requests from the same client IP address will be handled by the same virtual machine. "Client IP and protocol" specifies that successive requests from the same client IP address and protocol combination will be handled by the same virtual machine.',
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

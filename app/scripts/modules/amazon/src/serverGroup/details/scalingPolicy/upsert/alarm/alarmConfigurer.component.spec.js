@@ -1,20 +1,20 @@
 'use strict';
 
-describe('Component: alarmConfigurer', function() {
+describe('Component: alarmConfigurer', function () {
   let $ctrl;
 
   beforeEach(window.module(require('./alarmConfigurer.component').name));
 
   beforeEach(
-    window.inject(function($componentController) {
-      this.initialize = bindings => {
+    window.inject(function ($componentController) {
+      this.initialize = (bindings) => {
         $ctrl = $componentController('awsAlarmConfigurer', {}, bindings);
       };
     }),
   );
 
-  describe('thresholdChanged', function() {
-    it('updates first step when comparatorBound is max to new threshold, calls boundsChanged', function() {
+  describe('thresholdChanged', function () {
+    it('updates first step when comparatorBound is max to new threshold, calls boundsChanged', function () {
       let bcCalled = false;
       const command = {
         alarm: {

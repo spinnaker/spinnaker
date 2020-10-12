@@ -21,7 +21,7 @@ export function UnlockPipelineModal(props: IUnlockPipelineModalProps) {
     unset(newPipeline, 'locked');
     PipelineConfigService.savePipeline(newPipeline).then(
       () => closeModal(),
-      response => {
+      (response) => {
         setSaveError(true);
         setErrorMessage(response.message || 'No message provided');
       },
@@ -46,7 +46,7 @@ export function UnlockPipelineModal(props: IUnlockPipelineModalProps) {
               <p>
                 <a
                   className="btn btn-link"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     setSaveError(false);
                   }}

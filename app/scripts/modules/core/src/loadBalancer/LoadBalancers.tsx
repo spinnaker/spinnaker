@@ -118,10 +118,10 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     const { HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
-        {this.state.groups.map(group => (
+        {this.state.groups.map((group) => (
           <div key={group.heading} className="rollup">
             {group.subgroups &&
-              group.subgroups.map(subgroup => (
+              group.subgroups.map((subgroup) => (
                 <LoadBalancerPod
                   key={subgroup.heading}
                   grouping={subgroup}

@@ -7,9 +7,7 @@
     </div>
     <div class="modal-body confirmation-modal">
       <div class="row">
-        <div class="col-sm-3 sm-label-right">
-          Restore to
-        </div>
+        <div class="col-sm-3 sm-label-right">Restore to</div>
         <div class="col-sm-6">
           <ui-select ng-model="command.rollbackContext.restoreServerGroupName" class="form-control input-sm">
             <ui-select-match placeholder="Select...">{{ctrl.label($select.selected)}}</ui-select-match>
@@ -35,9 +33,7 @@
       <task-reason command="command"></task-reason>
 
       <div class="row">
-        <div class="col-sm-4 sm-label-right">
-          Rollback Operations
-        </div>
+        <div class="col-sm-4 sm-label-right">Rollback Operations</div>
       </div>
       <div class="row">
         <div class="col-sm-11 col-sm-offset-1">
@@ -56,9 +52,7 @@
               <strong>min</strong>: {{ serverGroup.capacity.min }} ]
             </li>
           </ol>
-          <p>
-            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
-          </p>
+          <p>This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).</p>
         </div>
       </div>
     </div>

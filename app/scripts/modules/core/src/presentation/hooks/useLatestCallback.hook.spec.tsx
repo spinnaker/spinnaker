@@ -56,7 +56,7 @@ describe('useLatestCallback', () => {
     let callbackFromHook: any;
     const onCallbackChange = (callback: any) => (callbackFromHook = callback);
 
-    mount(<TestComponent callback={value => `Hello ${value}`} onCallbackChange={onCallbackChange} />);
+    mount(<TestComponent callback={(value) => `Hello ${value}`} onCallbackChange={onCallbackChange} />);
 
     const returnValue = callbackFromHook('World');
     expect(returnValue).toBe('Hello World');

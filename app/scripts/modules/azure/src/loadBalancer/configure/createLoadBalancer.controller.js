@@ -22,7 +22,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
   'loadBalancer',
   'isNew',
   'loadBalancerType',
-  function(
+  function (
     $scope,
     $uibModalInstance,
     $state,
@@ -85,7 +85,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     });
 
     function initializeCreateMode() {
-      AccountService.listAccounts('azure').then(function(accounts) {
+      AccountService.listAccounts('azure').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
         ctrl.accountUpdated();
@@ -119,7 +119,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
         .getDataSource('loadBalancers')
         .refresh(true)
         .then(() => {
-          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+          application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
             if (loadBalancer.account === account) {
               accountLoadBalancersByRegion[loadBalancer.region] =
                 accountLoadBalancersByRegion[loadBalancer.region] || [];
@@ -133,36 +133,36 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
 
     initializeController();
 
-    this.requiresHealthCheckPath = function() {
+    this.requiresHealthCheckPath = function () {
       return (
         $scope.loadBalancer.probes[0].probeProtocol && $scope.loadBalancer.probes[0].probeProtocol.indexOf('HTTP') === 0
       );
     };
 
-    this.updateName = function() {
+    this.updateName = function () {
       $scope.loadBalancer.name = this.getName();
     };
 
-    this.getName = function() {
+    this.getName = function () {
       const elb = $scope.loadBalancer;
       const elbName = [application.name, elb.stack || '', elb.detail || ''].join('-');
       return _.trimEnd(elbName, '-');
     };
 
-    this.accountUpdated = function() {
-      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+    this.accountUpdated = function () {
+      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function (regions) {
         $scope.regions = regions;
         ctrl.regionUpdated();
       });
     };
 
-    this.regionUpdated = function() {
+    this.regionUpdated = function () {
       updateLoadBalancerNames();
       ctrl.updateName();
       ctrl.vnetUpdated();
     };
 
-    this.vnetUpdated = function() {
+    this.vnetUpdated = function () {
       const account = $scope.loadBalancer.credentials;
       const region = $scope.loadBalancer.region;
       $scope.loadBalancer.selectedVnet = null;
@@ -170,9 +170,9 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       $scope.loadBalancer.vnetResourceGroup = null;
       ctrl.selectedVnets = [];
 
-      NetworkReader.listNetworks().then(function(vnets) {
+      NetworkReader.listNetworks().then(function (vnets) {
         if (vnets.azure) {
-          vnets.azure.forEach(vnet => {
+          vnets.azure.forEach((vnet) => {
             if (vnet.account === account && vnet.region === region) {
               ctrl.selectedVnets.push(vnet);
             }
@@ -183,23 +183,23 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       ctrl.subnetUpdated();
     };
 
-    this.subnetUpdated = function() {
+    this.subnetUpdated = function () {
       $scope.loadBalancer.selectedSubnet = null;
       $scope.loadBalancer.subnet = null;
       ctrl.selectedSubnets = [];
     };
 
-    this.selectedVnetChanged = function(item) {
+    this.selectedVnetChanged = function (item) {
       $scope.loadBalancer.vnet = item.name;
       $scope.loadBalancer.vnetResourceGroup = item.resourceGroup;
       $scope.loadBalancer.selectedSubnet = null;
       $scope.loadBalancer.subnet = null;
       ctrl.selectedSubnets = [];
       if (item.subnets) {
-        item.subnets.map(function(subnet) {
+        item.subnets.map(function (subnet) {
           let addSubnet = true;
           if (subnet.devices) {
-            subnet.devices.map(function(device) {
+            subnet.devices.map(function (device) {
               if (device && device.type !== 'applicationGateways') {
                 addSubnet = false;
               }
@@ -212,18 +212,18 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       }
     };
 
-    this.removeListener = function(index) {
+    this.removeListener = function (index) {
       $scope.loadBalancer.loadBalancingRules.splice(index, 1);
     };
 
-    this.addListener = function() {
+    this.addListener = function () {
       $scope.loadBalancer.loadBalancingRules.push({ protocol: 'HTTP' });
     };
 
-    this.submit = function() {
+    this.submit = function () {
       const descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(function() {
+      $scope.taskMonitor.submit(function () {
         const params = {
           cloudProvider: 'azure',
           appName: application.name,
@@ -265,7 +265,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       });
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
   },

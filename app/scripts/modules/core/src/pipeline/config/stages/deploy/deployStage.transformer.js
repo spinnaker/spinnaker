@@ -7,14 +7,14 @@ import { module } from 'angular';
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER =
   'spinnaker.core.pipeline.stage.deploy.transformer';
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER; // for backwards compatibility
-module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, []).service('deployStageTransformer', function() {
+module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, []).service('deployStageTransformer', function () {
   /**
    * Removes rollingPush, modifyAsgLaunchConfiguration stages, adding them as tasks to the parent deploy stage,
    * then overriding the status and endTime fields for the deploy stage
    */
   function transformRollingPushes(execution) {
     const stagesToRemove = [];
-    execution.stages.forEach(function(stage) {
+    execution.stages.forEach(function (stage) {
       if (
         stage.type === 'deploy' &&
         stage.context &&
@@ -53,12 +53,12 @@ module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, []).service('
         }
       }
     });
-    execution.stages = execution.stages.filter(function(stage) {
+    execution.stages = execution.stages.filter(function (stage) {
       return !stagesToRemove.includes(stage);
     });
   }
 
-  this.transform = function(application, execution) {
+  this.transform = function (application, execution) {
     transformRollingPushes(execution);
   };
 });

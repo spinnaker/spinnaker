@@ -20,7 +20,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
   'azureSecurityGroupWriter',
   'securityGroup',
   'application',
-  function($scope, $uibModalInstance, $controller, $state, azureSecurityGroupWriter, securityGroup, application) {
+  function ($scope, $uibModalInstance, $controller, $state, azureSecurityGroupWriter, securityGroup, application) {
     const ctrl = this;
 
     $scope.firewallLabel = FirewallLabels.get('Firewall');
@@ -30,26 +30,26 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
-    securityGroup.securityRules = _.map(securityGroup.securityRules, function(rule) {
+    securityGroup.securityRules = _.map(securityGroup.securityRules, function (rule) {
       const temp = rule.destinationPortRange.split('-');
       rule.startPort = Number(temp[0]);
       rule.endPort = Number(temp[1]);
       return rule;
     });
 
-    ctrl.accountUpdated = function() {
-      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
+    ctrl.accountUpdated = function () {
+      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function (regions) {
         $scope.regions = regions;
         $scope.securityGroup.regions = regions;
         ctrl.updateName();
       });
     };
 
-    ctrl.cancel = function() {
+    ctrl.cancel = function () {
       $uibModalInstance.dismiss();
     };
 
-    ctrl.updateName = function() {
+    ctrl.updateName = function () {
       const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
@@ -72,12 +72,12 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       onTaskComplete: onTaskComplete,
     });
 
-    AccountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function (accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });
 
-    ctrl.addRule = function(ruleset) {
+    ctrl.addRule = function (ruleset) {
       ruleset.push({
         name: $scope.securityGroup.name + '-Rule' + ruleset.length,
         priority: ruleset.length === 0 ? 100 : 100 * (ruleset.length + 1),
@@ -117,17 +117,17 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    ctrl.portUpdated = function(ruleset, index) {
+    ctrl.portUpdated = function (ruleset, index) {
       ruleset[index].destinationPortRange = ruleset[index].startPort + '-' + ruleset[index].endPort;
     };
-    ctrl.removeRule = function(ruleset, index) {
+    ctrl.removeRule = function (ruleset, index) {
       ruleset.splice(index, 1);
     };
-    ctrl.moveUp = function(ruleset, index) {
+    ctrl.moveUp = function (ruleset, index) {
       if (index === 0) return;
       swapRules(ruleset, index, index - 1);
     };
-    ctrl.moveDown = function(ruleset, index) {
+    ctrl.moveDown = function (ruleset, index) {
       if (index === ruleset.length - 1) return;
       swapRules(ruleset, index, index + 1);
     };
@@ -143,8 +143,8 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       ruleset[b].priority = priorityB;
     }
 
-    ctrl.upsert = function() {
-      $scope.taskMonitor.submit(function() {
+    ctrl.upsert = function () {
+      $scope.taskMonitor.submit(function () {
         const params = {
           cloudProvider: 'azure',
           appName: application.name,

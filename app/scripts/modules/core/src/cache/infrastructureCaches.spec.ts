@@ -74,14 +74,14 @@ class TestCacheFactory implements ITestCacheFactory {
   }
 }
 
-describe('spinnaker.core.cache.infrastructure', function() {
-  describe('cache initialization', function() {
+describe('spinnaker.core.cache.infrastructure', function () {
+  describe('cache initialization', function () {
     let cacheFactory: TestCacheFactory;
     beforeEach(() => {
       cacheFactory = new TestCacheFactory();
     });
 
-    it('should remove all keys from previous versions', function() {
+    it('should remove all keys from previous versions', function () {
       const config: ICacheConfig = {
         version: 2,
         cacheFactory,
@@ -99,7 +99,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
       expect(cacheFactory.getRemoveAllCalls()).toEqual(['infrastructure:myCache', 'infrastructure:myCache']);
     });
 
-    it('should remove non-versioned, even if version not explicitly specified, and use version 1', function() {
+    it('should remove non-versioned, even if version not explicitly specified, and use version 1', function () {
       const config: ICacheConfig = {
         cacheFactory,
       } as any;
@@ -116,7 +116,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
       expect(cacheFactory.getRemoveAllCalls()).toEqual(['infrastructure:myCache']);
     });
 
-    it('should remove each key when clearCache called', function() {
+    it('should remove each key when clearCache called', function () {
       const config: ICacheConfig = {
         cacheFactory,
         onReset: [],

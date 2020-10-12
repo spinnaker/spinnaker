@@ -43,7 +43,7 @@ export function ChecklistInput(props: IChecklistInputProps) {
   const isChecked = (checkboxValue: any) => selectedValues.includes(checkboxValue);
 
   const checkListOptions = isStringArray(stringOptions)
-    ? stringOptions.map(s => ({ label: s, value: s }))
+    ? stringOptions.map((s) => ({ label: s, value: s }))
     : options || [];
 
   const labelClassName = !!inline ? 'clickable checkbox-inline' : 'clickable';
@@ -74,7 +74,7 @@ export function ChecklistInput(props: IChecklistInputProps) {
   }
 
   function SelectAllButton() {
-    const allSelected = checkListOptions.every(option => isChecked(option.value));
+    const allSelected = checkListOptions.every((option) => isChecked(option.value));
     const anchorClassName = `btn btn-default btn-xs ${inline ? '' : 'push-left'}`;
     const style = inline ? { margin: '8px 0 0 10px' } : {};
 
@@ -82,7 +82,7 @@ export function ChecklistInput(props: IChecklistInputProps) {
       return onChange(createFakeReactSyntheticEvent({ name: props.name, value: selected }));
     };
     const selectNone = () => selectValue([]);
-    const selectAll = () => selectValue(checkListOptions.map(o => o.value));
+    const selectAll = () => selectValue(checkListOptions.map((o) => o.value));
 
     return (
       <a className={anchorClassName} style={style} type="button" onClick={allSelected ? selectNone : selectAll}>
@@ -94,7 +94,7 @@ export function ChecklistInput(props: IChecklistInputProps) {
   function InlineOptions() {
     return (
       <>
-        {checkListOptions.map(option => (
+        {checkListOptions.map((option) => (
           <CheckBox key={option.label} option={option} />
         ))}
 
@@ -106,7 +106,7 @@ export function ChecklistInput(props: IChecklistInputProps) {
   function VerticalOptions() {
     return (
       <ul className="checklist">
-        {checkListOptions.map(option => (
+        {checkListOptions.map((option) => (
           <li key={option.label}>
             <CheckBox option={option} />
           </li>

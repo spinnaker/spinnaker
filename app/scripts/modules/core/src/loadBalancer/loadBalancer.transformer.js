@@ -10,7 +10,7 @@ export const CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.core.loadBa
 export const name = CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
 module(CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory('loadBalancerTransformer', [
   'providerServiceDelegate',
-  function(providerServiceDelegate) {
+  function (providerServiceDelegate) {
     function normalizeLoadBalancer(loadBalancer) {
       return providerServiceDelegate
         .getDelegate(loadBalancer.provider || loadBalancer.type, 'loadBalancer.transformer')
@@ -19,10 +19,10 @@ module(CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).
 
     function normalizeLoadBalancerSet(loadBalancers) {
       const setNormalizers = chain(loadBalancers)
-        .filter(lb => providerServiceDelegate.hasDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer'))
+        .filter((lb) => providerServiceDelegate.hasDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer'))
         .compact()
         .map(
-          lb =>
+          (lb) =>
             providerServiceDelegate.getDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer')
               .normalizeLoadBalancerSet,
         )

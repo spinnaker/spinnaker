@@ -15,7 +15,7 @@ module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS,
     'instanceWriter',
     'app',
     'instance',
-    function($scope, $q, instanceWriter, app, instance) {
+    function ($scope, $q, instanceWriter, app, instance) {
       $scope.application = app;
 
       const initialize = app.isStandalone
@@ -35,8 +35,8 @@ module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS,
           account = instance.account;
           region = instance.region;
         } else {
-          $scope.application.serverGroups.data.some(serverGroup => {
-            return serverGroup.instances.some(possibleInstance => {
+          $scope.application.serverGroups.data.some((serverGroup) => {
+            return serverGroup.instances.some((possibleInstance) => {
               if (possibleInstance.id === instance.instanceId || possibleInstance.name === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 account = serverGroup.account;
@@ -48,7 +48,7 @@ module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS,
         }
 
         $scope.instance = instanceSummary;
-        InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(instanceDetails => {
+        InstanceReader.getInstanceDetails(account, region, instance.instanceId).then((instanceDetails) => {
           Object.assign($scope.instance, instanceDetails);
         });
       }

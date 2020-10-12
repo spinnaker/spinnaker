@@ -9,7 +9,7 @@ import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 describe('<ConfigFileArtifactList/>', () => {
   let $http: ng.IHttpBackendService;
   beforeEach(
-    mock.inject(function($httpBackend: ng.IHttpBackendService) {
+    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
       $http = $httpBackend;
     }),
   );

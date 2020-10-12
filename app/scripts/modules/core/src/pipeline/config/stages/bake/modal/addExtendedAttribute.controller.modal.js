@@ -11,11 +11,11 @@ angular
     '$scope',
     '$uibModalInstance',
     'extendedAttribute',
-    function($scope, $uibModalInstance, extendedAttribute) {
+    function ($scope, $uibModalInstance, extendedAttribute) {
       const vm = this;
       $scope.extendedAttribute = angular.copy(extendedAttribute);
 
-      vm.submit = function() {
+      vm.submit = function () {
         $uibModalInstance.close($scope.extendedAttribute);
       };
 

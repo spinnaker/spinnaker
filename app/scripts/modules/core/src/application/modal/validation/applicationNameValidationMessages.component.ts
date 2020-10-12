@@ -11,7 +11,7 @@ class ApplicationNameValidationMessagesController implements IController {
   public messages: IApplicationNameValidationResult;
 
   public $onChanges(): void {
-    ApplicationNameValidator.validate(this.name, this.cloudProviders).then(r => (this.messages = r));
+    ApplicationNameValidator.validate(this.name, this.cloudProviders).then((r) => (this.messages = r));
   }
 }
 

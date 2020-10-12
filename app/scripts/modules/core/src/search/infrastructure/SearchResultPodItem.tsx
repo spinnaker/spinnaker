@@ -42,7 +42,7 @@ export class SearchResultPodItem extends React.Component<ISearchResultPodItemPro
             {showRemoveButton && (
               <span
                 className="small clickable remove-result-link"
-                onClick={evt => this.handleRemoveClicked(evt, categoryName, result.id)}
+                onClick={(evt) => this.handleRemoveClicked(evt, categoryName, result.id)}
               >
                 <Tooltip value="remove from history" placement="left" delayShow={300}>
                   <span className="glyphicon glyphicon-remove" />

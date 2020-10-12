@@ -12,7 +12,7 @@ module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER, []).control
   '$uibModalInstance',
   'instance',
   'usesMultiOutput',
-  function($scope, $uibModalInstance, instance, usesMultiOutput) {
+  function ($scope, $uibModalInstance, instance, usesMultiOutput) {
     const instanceId = instance.instanceId || instance.id;
     $scope.vm = {
       loading: true,
@@ -20,16 +20,16 @@ module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER, []).control
       usesMultiOutput,
     };
 
-    $scope.fetchLogs = isInitialFetch => {
+    $scope.fetchLogs = (isInitialFetch) => {
       $scope.vm.loading = true;
       $scope.vm.exception = null;
       InstanceReader.getConsoleOutput(instance.account, instance.region, instanceId, instance.provider).then(
-        function(response) {
+        function (response) {
           $scope.vm.consoleOutput = response.output;
           $scope.vm.loading = false;
 
           if ($scope.vm.usesMultiOutput) {
-            $scope.selectLog = function(log) {
+            $scope.selectLog = function (log) {
               $scope.vm.selectedLog = log;
             };
             if (isInitialFetch) {
@@ -37,7 +37,7 @@ module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER, []).control
             }
           }
         },
-        function(exception) {
+        function (exception) {
           $scope.vm.exception = exception;
           $scope.vm.loading = false;
         },

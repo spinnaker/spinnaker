@@ -36,8 +36,8 @@ export class RunJobExecutionDetails extends React.Component<
 
   private setEndpoint(): void {
     const { context } = this.props.stage;
-    AccountService.getAccountDetails(context.credentials).then(details => {
-      const titusUiEndpoint = details.regions.find(r => r.name === context.cluster.region).endpoint;
+    AccountService.getAccountDetails(context.credentials).then((details) => {
+      const titusUiEndpoint = details.regions.find((r) => r.name === context.cluster.region).endpoint;
       this.mounted && this.setState({ titusUiEndpoint });
     });
   }
@@ -88,7 +88,7 @@ export class RunJobExecutionDetails extends React.Component<
                   label="Resources"
                   value={
                     <ul className="nostyle">
-                      {Object.keys(resources).map(key => (
+                      {Object.keys(resources).map((key) => (
                         <li key={key}>
                           {key}: {resources[key]}
                         </li>
@@ -105,7 +105,7 @@ export class RunJobExecutionDetails extends React.Component<
             <div className="col-md-12">
               <h5 style={{ marginBottom: 0, paddingBottom: '5px' }}>Environment Variables</h5>
               <LabeledValueList>
-                {Object.keys(env).map(key => (
+                {Object.keys(env).map((key) => (
                   <LabeledValue key={key} label={key} value={env[key]} />
                 ))}
               </LabeledValueList>

@@ -65,7 +65,7 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
         {tags && tags.length > 0 && (
           <span>
             <span>Filtered by: </span>
-            {tags.map(tag => this.generateTag(tag))}
+            {tags.map((tag) => this.generateTag(tag))}
             {tags.length > 1 && (
               <a className="clickable clear-filters" onClick={this.clearAllFilters}>
                 Clear All

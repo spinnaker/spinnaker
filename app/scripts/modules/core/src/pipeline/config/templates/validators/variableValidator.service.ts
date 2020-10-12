@@ -14,7 +14,7 @@ export class VariableValidatorService {
 
   public static validate(variable: IVariable): IVariableError[] {
     const errors: IVariableError[] = [];
-    this.validators.forEach(v => {
+    this.validators.forEach((v) => {
       if (v.handles(variable.type)) {
         v.validate(variable, errors);
       }

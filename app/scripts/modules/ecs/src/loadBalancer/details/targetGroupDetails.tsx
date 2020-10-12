@@ -66,7 +66,9 @@ export class EcsTargetGroupDetails extends React.Component<IEcsTargetGroupProps,
         targetGroup: null,
       });
     } else {
-      const targetGroup: IEcsTargetGroup = loadBalancer.targetGroups.find(tg => tg.targetGroupName === targetGroupName);
+      const targetGroup: IEcsTargetGroup = loadBalancer.targetGroups.find(
+        (tg) => tg.targetGroupName === targetGroupName,
+      );
       if (!targetGroup) {
         this.setState({
           loading: false,

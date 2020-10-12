@@ -20,7 +20,7 @@ export class Applications extends React.Component<IApplicationsProps> implements
       this.props.allApplications.includes(app) ? undefined : `Application '${app}' does not exist.`;
 
     const applicationErrors = configuredApps.map(getApplicationError);
-    if (!applicationErrors.some(err => !!err)) {
+    if (!applicationErrors.some((err) => !!err)) {
       return {};
     }
 
@@ -47,7 +47,7 @@ export class Applications extends React.Component<IApplicationsProps> implements
     return (
       <FormikFormField
         name="config.applications"
-        input={props => <ApplicationsPickerInput multi={true} {...props} />}
+        input={(props) => <ApplicationsPickerInput multi={true} {...props} />}
       />
     );
   }

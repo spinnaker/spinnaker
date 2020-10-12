@@ -15,7 +15,7 @@ angular
   .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE, [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
   .config([
     'clusterServiceProvider',
-    function(clusterServiceProvider) {
+    function (clusterServiceProvider) {
       Registry.pipeline.registerStage({
         label: 'Deploy',
         description: 'Deploys the previously baked or found image',
@@ -34,15 +34,15 @@ angular
             message: 'You must have a Bake or Find Image stage before any deploy stage.',
             skipValidation: (pipeline, stage) =>
               (stage.clusters || []).every(
-                cluster =>
+                (cluster) =>
                   CloudProviderRegistry.getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck') ||
                   clusterServiceProvider.$get().isDeployingArtifact(cluster),
               ),
           },
         ],
-        accountExtractor: stage => (stage.context.clusters || []).map(c => c.account),
-        configAccountExtractor: stage => (stage.clusters || []).map(c => c.account),
-        artifactExtractor: stageContext => {
+        accountExtractor: (stage) => (stage.context.clusters || []).map((c) => c.account),
+        configAccountExtractor: (stage) => (stage.clusters || []).map((c) => c.account),
+        artifactExtractor: (stageContext) => {
           const clusterService = clusterServiceProvider.$get();
           // We'll either be in the context of the entire stage, and have an array of clusters,
           // or will be in the context of a single cluster, in which case relevant fields will be
@@ -54,7 +54,7 @@ angular
         },
         artifactRemover: (stage, artifactId) => {
           const clusterService = clusterServiceProvider.$get();
-          (stage.clusters || []).forEach(cluster =>
+          (stage.clusters || []).forEach((cluster) =>
             clusterService.getArtifactExtractor(cluster.cloudProvider).removeArtifact(cluster, artifactId),
           );
         },
@@ -69,14 +69,14 @@ angular
     'stage',
     'serverGroupCommandBuilder',
     'serverGroupTransformer',
-    function($injector, $scope, $uibModal, stage, serverGroupCommandBuilder, serverGroupTransformer) {
+    function ($injector, $scope, $uibModal, stage, serverGroupCommandBuilder, serverGroupTransformer) {
       $scope.stage = stage;
 
       function initializeCommand() {
         $scope.stage.clusters = $scope.stage.clusters || [];
       }
 
-      this.getRegion = function(cluster) {
+      this.getRegion = function (cluster) {
         if (cluster.region) {
           return cluster.region;
         }
@@ -91,19 +91,19 @@ angular
       };
 
       this.hasSubnetDeployments = () => {
-        return stage.clusters.some(cluster => {
+        return stage.clusters.some((cluster) => {
           const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
           return CloudProviderRegistry.hasValue(cloudProvider, 'subnet');
         });
       };
 
       this.hasInstanceTypeDeployments = () => {
-        return stage.clusters.some(cluster => {
+        return stage.clusters.some((cluster) => {
           return cluster.instanceType !== undefined;
         });
       };
 
-      this.getSubnet = cluster => {
+      this.getSubnet = (cluster) => {
         const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
         if (CloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
           const subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
@@ -117,17 +117,17 @@ angular
         }
       };
 
-      this.getClusterName = function(cluster) {
+      this.getClusterName = function (cluster) {
         return NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
       };
 
-      this.addCluster = function() {
-        ProviderSelectionService.selectProvider($scope.application, 'serverGroup', providerFilterFn).then(function(
+      this.addCluster = function () {
+        ProviderSelectionService.selectProvider($scope.application, 'serverGroup', providerFilterFn).then(function (
           selectedProvider,
         ) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
 
-          const handleResult = function(command) {
+          const handleResult = function (command) {
             // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
             command.provider = selectedProvider;
             const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -139,7 +139,7 @@ angular
           const application = $scope.application;
           serverGroupCommandBuilder
             .buildNewServerGroupCommandForPipeline(selectedProvider, $scope.stage, $scope.$parent.pipeline)
-            .then(command => {
+            .then((command) => {
               if (config.CloneServerGroupModal) {
                 // react
                 return config.CloneServerGroupModal.show({ title, application, command });
@@ -163,11 +163,11 @@ angular
         });
       };
 
-      this.editCluster = function(cluster, index) {
+      this.editCluster = function (cluster, index) {
         cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
         const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
-        const handleResult = function(command) {
+        const handleResult = function (command) {
           const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
           delete stageCluster.credentials;
           $scope.stage.clusters[index] = stageCluster;
@@ -177,7 +177,7 @@ angular
         const application = $scope.application;
         serverGroupCommandBuilder
           .buildServerGroupCommandFromPipeline(application, cluster, $scope.stage, $scope.$parent.pipeline)
-          .then(command => {
+          .then((command) => {
             if (providerConfig.serverGroup.CloneServerGroupModal) {
               // react
               return providerConfig.serverGroup.CloneServerGroupModal.show({ title, application, command });
@@ -200,11 +200,11 @@ angular
           .catch(() => {});
       };
 
-      this.copyCluster = function(index) {
+      this.copyCluster = function (index) {
         $scope.stage.clusters.push(angular.copy($scope.stage.clusters[index]));
       };
 
-      this.removeCluster = function(index) {
+      this.removeCluster = function (index) {
         $scope.stage.clusters.splice(index, 1);
       };
 
@@ -220,7 +220,7 @@ angular
           const $originalChildren = element.children();
           const $helper = element.clone();
           const $helperChildren = $helper.children();
-          $helperChildren.each(index => {
+          $helperChildren.each((index) => {
             $helperChildren.eq(index).width($originalChildren[index].clientWidth);
           });
           return $helper;

@@ -98,8 +98,9 @@ export class CategorizedNotifications extends React.Component<
       return null;
     }
 
-    const selectedNotifications: INotification[] = categorizedAlerts.find(tuple => tuple.category === selectedCategory)
-      .notifications;
+    const selectedNotifications: INotification[] = categorizedAlerts.find(
+      (tuple) => tuple.category === selectedCategory,
+    ).notifications;
 
     return (
       <div className="flex-container-h">

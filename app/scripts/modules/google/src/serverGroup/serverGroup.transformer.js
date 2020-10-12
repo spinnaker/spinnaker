@@ -11,7 +11,7 @@ module(GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [GCE_HTTP_LOAD_BALANCER_UTILS
   'gceServerGroupTransformer',
   [
     'gceHttpLoadBalancerUtils',
-    function(gceHttpLoadBalancerUtils) {
+    function (gceHttpLoadBalancerUtils) {
       function normalizeServerGroup(serverGroup, application) {
         return application
           .getDataSource('loadBalancers')

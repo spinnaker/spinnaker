@@ -68,7 +68,7 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
         <p>The following errors may affect the ability to run this pipeline:</p>
         <ul>
           {node.hasWarnings &&
-            node.warnings.messages.map(message => (
+            node.warnings.messages.map((message) => (
               <li key={message}>
                 <Markdown message={message} trim={true} />
               </li>

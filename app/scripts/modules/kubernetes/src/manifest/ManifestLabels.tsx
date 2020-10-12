@@ -20,7 +20,7 @@ export class ManifestLabels extends React.Component<IManifestLabelsProps> {
     const labels: IManifestLabelsMap = get(this.props, ['manifest', 'metadata', 'labels'], {});
     return (
       <div className="horizontal wrap">
-        {keys(labels).map(key => (
+        {keys(labels).map((key) => (
           <div key={key} className="manifest-label sp-badge info">
             {key}: {labels[key]}
           </div>

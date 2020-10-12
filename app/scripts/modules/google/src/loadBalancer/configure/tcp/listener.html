@@ -1,17 +1,14 @@
 <div class="container-fluid form-horizontal">
   <ng-form name="listenerForm">
     <div class="form-group">
-      <div class="col-md-4 sm-label-right">
-        Port
-      </div>
+      <div class="col-md-4 sm-label-right">Port</div>
       <div class="col-md-4">
         <select
           class="form-control input-sm"
           ng-options="port for port in ctrl.portOptions"
           ng-disabled="!ctrl.isNew"
           ng-model="ctrl.loadBalancer.portRange"
-        >
-        </select>
+        ></select>
       </div>
     </div>
   </ng-form>

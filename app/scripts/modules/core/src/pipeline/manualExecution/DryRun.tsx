@@ -7,6 +7,6 @@ export const DryRun = () => (
     name="dryRun"
     label="Dry run"
     help={<HelpField id="execution.dryRun" />}
-    input={props => <CheckboxInput {...props} text="Run a test execution" />}
+    input={(props) => <CheckboxInput {...props} text="Run a test execution" />}
   />
 );

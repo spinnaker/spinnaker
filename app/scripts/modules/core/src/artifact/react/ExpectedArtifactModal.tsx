@@ -44,19 +44,19 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
 
   public componentDidMount(): void {
     const { excludedArtifactTypePatterns, excludedDefaultArtifactTypePatterns } = this.props;
-    AccountService.getArtifactAccounts().then(artifactAccounts => {
+    AccountService.getArtifactAccounts().then((artifactAccounts) => {
       this.setState({
         matchArtifactAccounts: excludedArtifactTypePatterns
           ? artifactAccounts.filter(
-              account =>
-                !account.types.some(typ => excludedArtifactTypePatterns.some(typPattern => typPattern.test(typ))),
+              (account) =>
+                !account.types.some((typ) => excludedArtifactTypePatterns.some((typPattern) => typPattern.test(typ))),
             )
           : artifactAccounts,
         defaultArtifactAccounts: excludedDefaultArtifactTypePatterns
           ? artifactAccounts.filter(
-              account =>
-                !account.types.some(typ =>
-                  excludedDefaultArtifactTypePatterns.some(typPattern => typPattern.test(typ)),
+              (account) =>
+                !account.types.some((typ) =>
+                  excludedDefaultArtifactTypePatterns.some((typPattern) => typPattern.test(typ)),
                 ),
             )
           : artifactAccounts,
@@ -94,7 +94,7 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
                 <FormikFormField
                   name="displayName"
                   label="Display Name"
-                  input={props => <TextInput {...props} />}
+                  input={(props) => <TextInput {...props} />}
                   required={true}
                 />
               )}
@@ -123,13 +123,13 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
                   <FormikFormField
                     name="usePriorArtifact"
                     label="Use prior execution"
-                    input={props => <CheckboxInput {...props} />}
+                    input={(props) => <CheckboxInput {...props} />}
                     help={<HelpField id="pipeline.config.expectedArtifact.usePriorExecution" />}
                   />
                   <FormikFormField
                     name="useDefaultArtifact"
                     label="Use default artifact"
-                    input={props => <CheckboxInput {...props} />}
+                    input={(props) => <CheckboxInput {...props} />}
                     help={<HelpField id="pipeline.config.expectedArtifact.defaultArtifact" />}
                   />
                   {formik.values.useDefaultArtifact && (

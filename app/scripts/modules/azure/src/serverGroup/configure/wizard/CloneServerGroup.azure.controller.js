@@ -27,7 +27,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
   'serverGroupCommand',
   'application',
   'title',
-  function(
+  function (
     $scope,
     $uibModalInstance,
     $q,
@@ -93,7 +93,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
       if ($scope.$$destroyed) {
         return;
       }
-      const cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
+      const cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         const newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -134,7 +134,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
     });
 
     function configureCommand() {
-      azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
+      azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
         const mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'create') {
           serverGroupCommand.viewState.useAllImageSelection = true;
@@ -169,7 +169,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
     }
 
     function createResultProcessor(method) {
-      return function(newValue, oldValue) {
+      return function (newValue, oldValue) {
         if (newValue !== oldValue) {
           processCommandUpdateResult(method($scope.command));
         }
@@ -192,20 +192,20 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
       }
     }
 
-    this.submit = function() {
+    this.submit = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(function() {
+      $scope.taskMonitor.submit(function () {
         return serverGroupWriter.cloneServerGroup($scope.command, application);
       });
     };
 
-    this.cancel = function() {
+    this.cancel = function () {
       $uibModalInstance.dismiss();
     };
 
-    this.toggleSuspendedProcess = function(process) {
+    this.toggleSuspendedProcess = function (process) {
       $scope.command.suspendedProcesses = $scope.command.suspendedProcesses || [];
       const processIndex = $scope.command.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
@@ -215,7 +215,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
       }
     };
 
-    this.processIsSuspended = function(process) {
+    this.processIsSuspended = function (process) {
       return $scope.command.suspendedProcesses.includes(process);
     };
 
@@ -230,7 +230,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
       configureCommand();
     };
 
-    this.isValid = function() {
+    this.isValid = function () {
       return (
         $scope.command &&
         $scope.command.application &&

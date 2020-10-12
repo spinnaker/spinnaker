@@ -49,7 +49,7 @@ require('./ecs.settings');
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 
@@ -86,7 +86,7 @@ module(ECS_MODULE, [
   ECS_SECURITY_GROUP_MODULE,
   ECS_SERVERGROUP_MODULE,
   ECS_TARGET_GROUP_STATES,
-]).config(function() {
+]).config(function () {
   CloudProviderRegistry.registerProvider('ecs', {
     name: 'EC2 Container Service',
     logo: { path: ecsLogo },

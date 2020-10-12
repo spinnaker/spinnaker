@@ -14,13 +14,13 @@ describe('FunctionReadService', () => {
   };
 
   beforeEach(
-    mock.inject(function($httpBackend: ng.IHttpBackendService) {
+    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
       $http = $httpBackend;
     }),
   );
 
   describe('loadFunctions', () => {
-    it(`should set cloudprovider if not set`, done => {
+    it(`should set cloudprovider if not set`, (done) => {
       const functionReader = new FunctionReader(functionTransformerMock);
 
       $http.expectGET(`${API.baseUrl}/applications/app1/functions`).respond(200, [
@@ -36,7 +36,7 @@ describe('FunctionReadService', () => {
         },
       ]);
 
-      functionReader.loadFunctions('app1').then(data => {
+      functionReader.loadFunctions('app1').then((data) => {
         expect(data).toEqual([
           {
             name: 'account1',
@@ -58,7 +58,7 @@ describe('FunctionReadService', () => {
       $http.flush();
     });
 
-    it(`should not set cloudprovider if provided`, done => {
+    it(`should not set cloudprovider if provided`, (done) => {
       const functionReader = new FunctionReader(functionTransformerMock);
 
       $http.expectGET(`${API.baseUrl}/applications/app1/functions`).respond(200, [
@@ -76,7 +76,7 @@ describe('FunctionReadService', () => {
         },
       ]);
 
-      functionReader.loadFunctions('app1').then(data => {
+      functionReader.loadFunctions('app1').then((data) => {
         expect(data).toEqual([
           {
             name: 'account1',
@@ -100,7 +100,7 @@ describe('FunctionReadService', () => {
   });
 
   describe('getFunctionDetails', () => {
-    it(`should set cloudprovider if not set`, done => {
+    it(`should set cloudprovider if not set`, (done) => {
       const functionReader = new FunctionReader(functionTransformerMock);
 
       $http.whenGET(/.*\/functions\?.*/).respond((_method, _url, _data, _headers, params) => {
@@ -128,7 +128,7 @@ describe('FunctionReadService', () => {
         ];
       });
 
-      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then(data => {
+      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then((data) => {
         expect(data).toEqual([
           {
             name: 'account1',
@@ -150,7 +150,7 @@ describe('FunctionReadService', () => {
       $http.flush();
     });
 
-    it(`should not set cloudprovider if provided`, done => {
+    it(`should not set cloudprovider if provided`, (done) => {
       const functionReader = new FunctionReader(functionTransformerMock);
 
       $http.whenGET(/.*\/functions\?.*/).respond((_method, _url, _data, _headers, params) => {
@@ -180,7 +180,7 @@ describe('FunctionReadService', () => {
         ];
       });
 
-      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then(data => {
+      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then((data) => {
         expect(data).toEqual([
           {
             name: 'account1',

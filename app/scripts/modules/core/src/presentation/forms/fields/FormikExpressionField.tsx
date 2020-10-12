@@ -42,8 +42,8 @@ export function FormikExpressionField(props: IFormikExpressionFieldProps) {
   return (
     <FormikFormField
       name={name}
-      input={inputProps => (
-        <ExpressionInput onExpressionChange={changes => setSpelData(changes)} context={context} {...inputProps} />
+      input={(inputProps) => (
+        <ExpressionInput onExpressionChange={(changes) => setSpelData(changes)} context={context} {...inputProps} />
       )}
       label={label}
       help={help}

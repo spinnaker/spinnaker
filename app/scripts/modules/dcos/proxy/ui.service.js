@@ -4,7 +4,7 @@ import { module } from 'angular';
 
 export const DCOS_PROXY_UI_SERVICE = 'spinnaker.proxy.dcos.ui.service';
 export const name = DCOS_PROXY_UI_SERVICE; // for backwards compatibility
-module(DCOS_PROXY_UI_SERVICE, []).factory('dcosProxyUiService', function() {
+module(DCOS_PROXY_UI_SERVICE, []).factory('dcosProxyUiService', function () {
   const apiPrefix = '#';
 
   function buildLink(host, accountName, region, name, taskName = null) {

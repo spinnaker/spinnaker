@@ -19,7 +19,7 @@ module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPO
   template: '<a href ng-click="$ctrl.viewHostAndPathRules()">View Host and Path Rules</a>',
   controller: [
     '$uibModal',
-    function($uibModal) {
+    function ($uibModal) {
       this.viewHostAndPathRules = () => {
         $uibModal.open({
           templateUrl: require('./hostAndPathRules.modal.html'),

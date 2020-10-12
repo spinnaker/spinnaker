@@ -119,7 +119,7 @@ export class BakeCloudFoundryManifestConfigForm extends React.Component<IFormikS
           excludedArtifactTypePatterns={BakeCloudFoundryManifestConfigForm.excludedArtifactTypes}
           expectedArtifactId={this.getInputArtifact(stage, 0).id}
           label="Template Artifact"
-          onArtifactEdited={artifact => {
+          onArtifactEdited={(artifact) => {
             this.onTemplateArtifactEdited(artifact, 0);
           }}
           helpKey={'pipeline.config.bake.cf.manifest.templateArtifact'}
@@ -139,7 +139,7 @@ export class BakeCloudFoundryManifestConfigForm extends React.Component<IFormikS
                       excludedArtifactTypePatterns={[]}
                       expectedArtifactId={a.id}
                       label="Variables Artifact"
-                      onArtifactEdited={artifact => {
+                      onArtifactEdited={(artifact) => {
                         this.onTemplateArtifactEdited(artifact, index + 1);
                       }}
                       onExpectedArtifactSelected={(artifact: IExpectedArtifact) =>

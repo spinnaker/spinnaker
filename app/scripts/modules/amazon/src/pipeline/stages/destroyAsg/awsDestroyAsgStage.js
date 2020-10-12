@@ -8,15 +8,15 @@ export const AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE =
   'spinnaker.amazon.pipeline.stage.aws.destroyAsgStage';
 export const name = AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       alias: 'destroyAsg',
       cloudProvider: 'aws',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -32,7 +32,7 @@ module(AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE, [])
   })
   .controller('awsDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -40,7 +40,7 @@ module(AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

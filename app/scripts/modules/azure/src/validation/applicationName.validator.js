@@ -7,7 +7,7 @@ import { ApplicationNameValidator } from '@spinnaker/core';
 export const AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR = 'spinnaker.azure.validation.applicationName';
 export const name = AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR; // for backwards compatibility
 module(AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
-  .factory('azureApplicationNameValidator', function() {
+  .factory('azureApplicationNameValidator', function () {
     function validateSpecialCharacters(name, errors) {
       const pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
       if (!pattern.test(name)) {
@@ -38,7 +38,7 @@ module(AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
   })
   .run([
     'azureApplicationNameValidator',
-    function(azureApplicationNameValidator) {
+    function (azureApplicationNameValidator) {
       ApplicationNameValidator.registerValidator('azure', azureApplicationNameValidator);
     },
   ]);

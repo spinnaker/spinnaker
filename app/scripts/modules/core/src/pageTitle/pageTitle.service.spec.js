@@ -1,19 +1,19 @@
 'use strict';
 var pageTitleServiceModule = require('./pageTitle.service').PAGE_TITLE_SERVICE;
 
-describe('Service: pageTitleService', function() {
+describe('Service: pageTitleService', function () {
   beforeEach(window.module(pageTitleServiceModule));
 
   beforeEach(
-    window.inject(function(pageTitleService, $stateParams, $rootScope) {
+    window.inject(function (pageTitleService, $stateParams, $rootScope) {
       this.pageTitleService = pageTitleService;
       this.$stateParams = $stateParams;
       this.$rootScope = $rootScope;
     }),
   );
 
-  describe('handleRoutingStart', function() {
-    it('sets page title, routing flag on root scope', function() {
+  describe('handleRoutingStart', function () {
+    it('sets page title, routing flag on root scope', function () {
       var scope = this.$rootScope;
 
       expect(scope.routing).toBeFalsy();
@@ -25,8 +25,8 @@ describe('Service: pageTitleService', function() {
     });
   });
 
-  describe('handleRoutingError', function() {
-    it('sets page title, clears routing flag on root scope', function() {
+  describe('handleRoutingError', function () {
+    it('sets page title, clears routing flag on root scope', function () {
       var scope = this.$rootScope;
 
       this.pageTitleService.handleRoutingStart();
@@ -39,39 +39,39 @@ describe('Service: pageTitleService', function() {
     });
   });
 
-  describe('handleRoutingSuccess', function() {
-    afterEach(function() {
+  describe('handleRoutingSuccess', function () {
+    afterEach(function () {
       expect(this.$rootScope.routing).toBeFalsy();
     });
 
-    it('falls back to "Spinnaker" when nothing configured', function() {
+    it('falls back to "Spinnaker" when nothing configured', function () {
       this.pageTitleService.handleRoutingSuccess();
       expect(document.title).toBe('Spinnaker');
     });
 
-    it('sets page title when only main is configured with a label', function() {
+    it('sets page title when only main is configured with a label', function () {
       this.pageTitleService.handleRoutingSuccess({ pageTitleMain: { label: 'expected result' } });
       expect(document.title).toBe('expected result');
     });
 
-    it('sets page title from state params when main is configured with a field', function() {
+    it('sets page title from state params when main is configured with a field', function () {
       this.$stateParams.someParam = 'expected result from field';
       this.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: 'someParam' } });
       expect(document.title).toBe('expected result from field');
     });
 
-    it('ignores field value when label provided in main configuration', function() {
+    it('ignores field value when label provided in main configuration', function () {
       this.$stateParams.someParam = 'expected result from field';
       this.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: 'someParam', label: 'Overruled!' } });
       expect(document.title).toBe('Overruled!');
     });
 
-    it('handles section config - title only', function() {
+    it('handles section config - title only', function () {
       this.pageTitleService.handleRoutingSuccess({ pageTitleSection: { title: 'The Section' } });
       expect(document.title).toBe('Spinnaker · The Section');
     });
 
-    it('appends name if provided in section config', function() {
+    it('appends name if provided in section config', function () {
       this.$stateParams.sectionNameParam = 'Some thing';
       this.pageTitleService.handleRoutingSuccess({
         pageTitleSection: { title: 'The Section', nameParam: 'sectionNameParam' },
@@ -79,7 +79,7 @@ describe('Service: pageTitleService', function() {
       expect(document.title).toBe('Spinnaker · The Section: Some thing');
     });
 
-    it('appends account and region in section config, separated by colon if both provided', function() {
+    it('appends account and region in section config, separated by colon if both provided', function () {
       this.$stateParams.sectionNameParam = 'Some thing';
       this.$stateParams.sectionAccountParam = 'test';
       this.$stateParams.sectionRegionParam = 'us-east-1';
@@ -113,7 +113,7 @@ describe('Service: pageTitleService', function() {
       expect(document.title).toBe('Spinnaker · The Section: Some thing (test:us-east-1)');
     });
 
-    it('handles details config the same way it handles section config', function() {
+    it('handles details config the same way it handles section config', function () {
       this.$stateParams.sectionNameParam = 'Some thing';
       this.$stateParams.sectionAccountParam = 'test';
       this.$stateParams.sectionRegionParam = 'us-east-1';

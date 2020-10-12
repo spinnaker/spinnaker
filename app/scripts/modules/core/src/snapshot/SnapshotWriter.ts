@@ -14,7 +14,7 @@ import { ITask } from 'core/domain';
 export class SnapshotWriter {
   private static buildSaveSnapshotJobs(app: Application, accountDetails: IAccountDetails[]): IJob[] {
     const jobs: IJob[] = [];
-    accountDetails.forEach(accountDetail => {
+    accountDetails.forEach((accountDetail) => {
       if (CloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
         jobs.push({
           type: 'saveSnapshot',
@@ -43,12 +43,12 @@ export class SnapshotWriter {
 
   private static loadAccountDetails(app: Application): IPromise<IAccountDetails[]> {
     const accounts = isString(app.accounts) ? app.accounts.split(',') : [];
-    const accountDetailPromises = accounts.map(account => AccountService.getAccountDetails(account));
+    const accountDetailPromises = accounts.map((account) => AccountService.getAccountDetails(account));
     return $q.all(accountDetailPromises);
   }
 
   public static takeSnapshot(app: Application): IPromise<ITask> {
-    return this.loadAccountDetails(app).then(accountDetails => {
+    return this.loadAccountDetails(app).then((accountDetails) => {
       const jobs = this.buildSaveSnapshotJobs(app, accountDetails);
       return TaskExecutor.executeTask({
         job: jobs,
@@ -59,7 +59,7 @@ export class SnapshotWriter {
   }
 
   public static restoreSnapshot(app: Application, account: string, timestamp: number): IPromise<ITask> {
-    return AccountService.getAccountDetails(account).then(accountDetail => {
+    return AccountService.getAccountDetails(account).then((accountDetail) => {
       const jobs = this.buildRestoreSnapshotJob(app, accountDetail, timestamp);
       return TaskExecutor.executeTask({
         job: jobs,

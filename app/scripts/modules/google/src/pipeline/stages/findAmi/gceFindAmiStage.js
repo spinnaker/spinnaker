@@ -8,7 +8,7 @@ export const GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE = 'spinnaker.gce.pip
 export const name = GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE; // for backwards compatibility
 angular
   .module(GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'gce',
@@ -23,7 +23,7 @@ angular
   })
   .controller('gceFindAmiStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -31,7 +31,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

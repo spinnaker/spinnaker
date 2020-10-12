@@ -36,7 +36,7 @@ export class JsonEditor extends React.Component<IJsonEditorProps> {
     if (!annotations || !annotations.length) {
       onValidation(null);
     }
-    const errors = annotations.map(a => {
+    const errors = annotations.map((a) => {
       return `Line ${a.row + 1}, column ${a.column + 1}: ${a.text}`;
     });
     onValidation(errors.join('; '));

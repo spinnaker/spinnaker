@@ -22,7 +22,7 @@ export class ExpressionError extends React.Component<IExpressionErrorProps, IExp
       return null;
     }
 
-    const toggleModal = () => this.setState(state => ({ showContextModal: !state.showContextModal }));
+    const toggleModal = () => this.setState((state) => ({ showContextModal: !state.showContextModal }));
 
     return (
       <div>

@@ -45,8 +45,8 @@ export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
     onChange({ executionLabel: executionLabel(execution), executionId: execution && execution.id, stageId });
   }, [execution, stageId]);
 
-  const stageOptions: Option[] = stages ? stages.map(x => ({ label: x.name, value: x.id })) : [];
-  const executionOptions: Array<Option<IExecution>> = executions ? executions.map(value => ({ value })) : [];
+  const stageOptions: Option[] = stages ? stages.map((x) => ({ label: x.name, value: x.id })) : [];
+  const executionOptions: Array<Option<IExecution>> = executions ? executions.map((value) => ({ value })) : [];
 
   if (fetchExecutions.status === 'RESOLVED' && !executions.length) {
     return (
@@ -67,21 +67,21 @@ export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
       <FormField
         label="Execution"
         value={execution}
-        onChange={e => setExecution(e.target.value)}
-        input={inputProps => (
+        onChange={(e) => setExecution(e.target.value)}
+        input={(inputProps) => (
           <ReactSelectInput<IExecution>
             {...inputProps}
             options={executionOptions as any}
             clearable={false}
             isLoading={fetchExecutions.status === 'PENDING'}
-            optionRenderer={option => (
+            optionRenderer={(option) => (
               <ExecutionStatus
                 execution={(option.value as any) as IExecution}
                 showingDetails={true}
                 standalone={true}
               />
             )}
-            valueRenderer={value => <span>{executionLabel(value as any)}</span>}
+            valueRenderer={(value) => <span>{executionLabel(value as any)}</span>}
           />
         )}
       />
@@ -95,8 +95,8 @@ export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
           <FormField
             label="Stage"
             value={stageId}
-            onChange={e => setStageId(e.target.value)}
-            input={inputProps => (
+            onChange={(e) => setStageId(e.target.value)}
+            input={(inputProps) => (
               <ReactSelectInput {...inputProps} options={stageOptions} clearable={false} isLoading={!stages} />
             )}
           />
@@ -122,7 +122,7 @@ function findExactStageFromExecution(pipeline: IPipeline, execution: IExecution,
   const pipelineStagesById = keyBy(pipeline.stages, 'refId');
   const executionStagesById = keyBy(execution.stages, 'refId');
 
-  const exactMatch = execution.stages.find(s => s.refId === editStage.refId && s.type === editStage.type);
+  const exactMatch = execution.stages.find((s) => s.refId === editStage.refId && s.type === editStage.type);
 
   const pipelineRequisiteGraph = stageRequisiteStageGraph(editStage, pipelineStagesById);
   const executionRequisiteGraph = stageRequisiteStageGraph(editStage, executionStagesById);
@@ -138,13 +138,13 @@ function findCloseStageFromExecution(pipeline: IPipeline, execution: IExecution,
   const pipelineStagesById = keyBy(pipeline.stages, 'refId');
   const pipelineRequisiteGraph = stageRequisiteStageGraph(editStage, pipelineStagesById);
 
-  const upstreamStages = Object.keys(pipelineRequisiteGraph).map(id => pipelineStagesById[id]);
-  return upstreamStages.map(stage => findExactStageFromExecution(pipeline, execution, stage)).find(x => !!x);
+  const upstreamStages = Object.keys(pipelineRequisiteGraph).map((id) => pipelineStagesById[id]);
+  return upstreamStages.map((stage) => findExactStageFromExecution(pipeline, execution, stage)).find((x) => !!x);
 }
 
 function stageRequisiteStageGraph(stage: IStage, allStages: { [key: string]: IStage }): { [key: string]: any } {
   return stage.requisiteStageRefIds
-    .filter(ref => /^[0-9]+$/.exec(ref.toString()))
+    .filter((ref) => /^[0-9]+$/.exec(ref.toString()))
     .reduce((acc, requisiteStageId) => {
       const requisiteStage = allStages[requisiteStageId];
       if (!requisiteStage) {

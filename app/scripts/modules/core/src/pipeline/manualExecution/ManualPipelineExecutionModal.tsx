@@ -137,12 +137,12 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
 
     Observable.fromPromise(AppNotificationsService.getNotificationsForApplication(application.name))
       .takeUntil(this.destroy$)
-      .subscribe(notifications => {
+      .subscribe((notifications) => {
         const applicationNotifications: INotification[] = [];
         Object.keys(notifications)
           .sort()
-          .filter(k => Array.isArray(notifications[k]))
-          .forEach(type => {
+          .filter((k) => Array.isArray(notifications[k]))
+          .forEach((type) => {
             if (isArray(notifications[type])) {
               (notifications[type] as INotification[]).forEach((notification: INotification) => {
                 applicationNotifications.push(notification);
@@ -200,7 +200,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     if (pipeline) {
       const executions: IExecution[] = this.props.application.executions.data || [];
       const currentPipelineExecutions = executions.filter(
-        execution => execution.pipelineConfigId === pipeline.id && execution.isActive,
+        (execution) => execution.pipelineConfigId === pipeline.id && execution.isActive,
       );
       this.setState({
         currentPipelineExecutions,
@@ -223,7 +223,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
   private parseManualExecution = (pipeline: IPipeline): void => {
     if (pipeline.type === 'templatedPipeline' && (pipeline.stages === undefined || pipeline.stages.length === 0)) {
       PipelineTemplateReader.getPipelinePlan(pipeline as IPipelineTemplateConfig)
-        .then(plan => this.setStageComponentsForManualExecution(plan.stages))
+        .then((plan) => this.setStageComponentsForManualExecution(plan.stages))
         .catch(() => this.setStageComponentsForManualExecution(pipeline.stages));
     } else {
       this.setStageComponentsForManualExecution(pipeline.stages);
@@ -231,12 +231,12 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
   };
 
   private setStageComponentsForManualExecution = (stages: IStage[]): void => {
-    const additionalComponents = stages.map(stage => Registry.pipeline.getManualExecutionComponentForStage(stage));
+    const additionalComponents = stages.map((stage) => Registry.pipeline.getManualExecutionComponentForStage(stage));
     this.setState({ stageComponents: uniq(compact(additionalComponents)) });
   };
 
   private formatTriggers = (triggers: ITrigger[]): ITrigger[] => {
-    return triggers.filter(t => Registry.pipeline.hasManualExecutionComponentForTriggerType(t.type));
+    return triggers.filter((t) => Registry.pipeline.hasManualExecutionComponentForTriggerType(t.type));
   };
 
   private formatPipeline = (pipeline: IPipeline) => {
@@ -244,11 +244,11 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     // Inject the default value into the options list if it is absent
     newPipeline &&
       newPipeline.parameterConfig &&
-      newPipeline.parameterConfig.forEach(parameterConfig => {
+      newPipeline.parameterConfig.forEach((parameterConfig) => {
         if (
           parameterConfig.default &&
           parameterConfig.options &&
-          !parameterConfig.options.some(option => option.value === parameterConfig.default)
+          !parameterConfig.options.some((option) => option.value === parameterConfig.default)
         ) {
           parameterConfig.options.unshift({ value: parameterConfig.default });
         }
@@ -260,7 +260,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     const [, queryString] = window.location.href.split('?');
     const queryParams = UrlParser.parseQueryString(queryString);
     const result: { [key: string]: any } = {};
-    parameters.forEach(parameter => {
+    parameters.forEach((parameter) => {
       const { name } = parameter;
       const { trigger } = this.props;
       const triggerParameters = trigger ? trigger.parameters : {};
@@ -306,10 +306,10 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
         trigger.type = head(triggers).type;
       }
       // Find the pipeline.trigger that matches trigger (the trigger from the execution being re-run)
-      const matchingTrigger = (pipeline.triggers || []).find(t =>
+      const matchingTrigger = (pipeline.triggers || []).find((t) =>
         Object.keys(t)
-          .filter(k => k !== 'description')
-          .every(k => isEqual(get(t, k), get(trigger, k))),
+          .filter((k) => k !== 'description')
+          .every((k) => isEqual(get(t, k), get(trigger, k))),
       );
       // If we found a match, rehydrate it with everything from trigger, otherwise just default back to setting it to trigger
       trigger = matchingTrigger ? assign(matchingTrigger, trigger) : trigger;
@@ -373,7 +373,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
         initialValues={pipelineCommand}
         onSubmit={this.submit}
         validate={this.validate}
-        render={formik => (
+        render={(formik) => (
           <Form className={`form-horizontal`}>
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>

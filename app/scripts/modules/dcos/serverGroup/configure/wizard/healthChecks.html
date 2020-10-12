@@ -3,9 +3,7 @@
     class="container-fluid form-horizontal"
     ng-controller="dcosServerGroupHealthChecksController as healthCheckController"
   >
-    <h5 class="col-sm-12">
-      Perform health checks on running tasks to determine if they are operating as expected.
-    </h5>
+    <h5 class="col-sm-12">Perform health checks on running tasks to determine if they are operating as expected.</h5>
     <table class="table table-condensed packed">
       <tbody>
         <tr
@@ -14,9 +12,7 @@
         >
           <td>
             <div class="form-group">
-              <div class="col-md-3 sm-label-right">
-                Protocol
-              </div>
+              <div class="col-md-3 sm-label-right">Protocol</div>
               <div class="col-md-3">
                 <ui-select name="protocolSelect" ng-model="healthCheck.protocol" class="form-control input-sm">
                   <ui-select-match>{{$select.selected}}</ui-select-match>
@@ -31,9 +27,7 @@
 
             <div ng-show="healthCheckController.isHttpProtocol(healthCheck)">
               <div class="form-group">
-                <div class="col-md-3 sm-label-right">
-                  Path
-                </div>
+                <div class="col-md-3 sm-label-right">Path</div>
                 <div class="col-md-9">
                   <input
                     type="text"
@@ -53,9 +47,7 @@
 
             <div ng-show="healthCheckController.isCommandProtocol(healthCheck)">
               <div class="form-group">
-                <div class="col-md-3 sm-label-right">
-                  Command
-                </div>
+                <div class="col-md-3 sm-label-right">Command</div>
                 <div class="col-md-9">
                   <input
                     type="text"
@@ -116,9 +108,7 @@
                   min="0"
                 />
               </div>
-              <div class="col-md-3 sm-label-right">
-                Maximum Consecutive Failures
-              </div>
+              <div class="col-md-3 sm-label-right">Maximum Consecutive Failures</div>
               <div class="col-md-3">
                 <input
                   type="number"
@@ -131,9 +121,7 @@
             </div>
 
             <div class="form-group">
-              <div class="col-md-3 sm-label-right">
-                Port Type
-              </div>
+              <div class="col-md-3 sm-label-right">Port Type</div>
               <div class="col-md-3">
                 <ui-select name="portTypeSelect" ng-model="healthCheck.portType" class="form-control input-sm">
                   <ui-select-match>{{$select.selected}}</ui-select-match>
@@ -145,9 +133,7 @@
                 </ui-select>
               </div>
               <div ng-show="healthCheckController.isHttpProtocol(healthCheck)">
-                <div class="col-md-3 sm-label-right">
-                  Port Index
-                </div>
+                <div class="col-md-3 sm-label-right">Port Index</div>
                 <div class="col-md-3">
                   <input
                     type="number"
@@ -159,9 +145,7 @@
                 </div>
               </div>
               <div ng-show="healthCheckController.isTcpProtocol(healthCheck)">
-                <div class="col-md-3 sm-label-right">
-                  Port Number
-                </div>
+                <div class="col-md-3 sm-label-right">Port Number</div>
                 <div class="col-md-3">
                   <input type="number" class="form-control input-sm" name="port" ng-model="healthCheck.port" min="0" />
                 </div>

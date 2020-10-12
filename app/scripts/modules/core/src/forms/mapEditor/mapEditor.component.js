@@ -24,7 +24,7 @@ angular
     },
     controller: [
       '$scope',
-      function($scope) {
+      function ($scope) {
         this.backingModel = [];
 
         // Set default values for optional fields
@@ -47,7 +47,7 @@ angular
           // do not fire the onChange event, since no values have been committed to the object
         };
 
-        this.removeField = index => {
+        this.removeField = (index) => {
           this.backingModel.splice(index, 1);
           this.synchronize();
           this.onChange();
@@ -59,14 +59,14 @@ angular
             return;
           }
           const modelStart = JSON.stringify(this.model);
-          const allKeys = this.backingModel.map(pair => pair.key);
-          modelKeys().forEach(key => delete this.model[key]);
-          this.backingModel.forEach(pair => {
+          const allKeys = this.backingModel.map((pair) => pair.key);
+          modelKeys().forEach((key) => delete this.model[key]);
+          this.backingModel.forEach((pair) => {
             if (pair.key && (this.allowEmpty || pair.value)) {
               this.model[pair.key] = pair.value;
             }
             // include other keys to verify no duplicates
-            pair.checkUnique = allKeys.filter(key => pair.key !== key);
+            pair.checkUnique = allKeys.filter((key) => pair.key !== key);
           });
           if (modelStart !== JSON.stringify(this.model)) {
             this.onChange();
@@ -75,7 +75,7 @@ angular
 
         this.$onInit = () => {
           if (this.model && !this.isParameterized) {
-            modelKeys().forEach(key => {
+            modelKeys().forEach((key) => {
               this.backingModel.push({ key: key, value: this.model[key] });
             });
           }

@@ -31,7 +31,7 @@ export class GceSecurityGroupHelpTextService {
         break;
       default:
         text = `This ${tagType} tag associates this ${FirewallLabels.get('firewall')} with the server groups
-                ${serverGroups.map(serverGroup => `<em>${serverGroup}</em>`).join(', ')}.`;
+                ${serverGroups.map((serverGroup) => `<em>${serverGroup}</em>`).join(', ')}.`;
         break;
     }
     return text;

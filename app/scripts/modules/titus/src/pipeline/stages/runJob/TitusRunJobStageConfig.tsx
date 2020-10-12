@@ -111,7 +111,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     let regions: IRegion[];
     if (account) {
       regions = this.credentialsKeyedByAccount[account].regions;
-      if (regions.map(r => r.name).every(r => r !== this.props.stage.cluster.region)) {
+      if (regions.map((r) => r.name).every((r) => r !== this.props.stage.cluster.region)) {
         delete this.props.stage.cluster.region;
         this.props.stageFieldUpdated();
       }
@@ -149,7 +149,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
 
   public componentDidMount() {
     const { stage } = this.props;
-    AccountService.getCredentialsKeyedByAccount('titus').then(credentialsKeyedByAccount => {
+    AccountService.getCredentialsKeyedByAccount('titus').then((credentialsKeyedByAccount) => {
       this.credentialsKeyedByAccount = credentialsKeyedByAccount;
       const credentials = Object.keys(credentialsKeyedByAccount);
       stage.credentials = stage.credentials || credentials[0];
@@ -202,7 +202,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           field="region"
           account={stage.credentials}
           regions={regions}
-          onChange={region => this.stageFieldChanged('region', region)}
+          onChange={(region) => this.stageFieldChanged('region', region)}
         />
 
         <DockerImageAndTagSelector
@@ -224,7 +224,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             type="number"
             className="form-control input-sm"
             value={stage.cluster.resources.cpu}
-            onChange={e => this.stageFieldChanged('cluster.resources.cpu', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.resources.cpu', e.target.value)}
             required={true}
           />
         </StageConfigField>
@@ -233,7 +233,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="number"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('cluster.resources.memory', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.resources.memory', e.target.value)}
             value={stage.cluster.resources.memory}
             required={true}
           />
@@ -243,7 +243,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="number"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('cluster.resources.disk', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.resources.disk', e.target.value)}
             value={stage.cluster.resources.disk}
             required={true}
           />
@@ -253,7 +253,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="number"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('cluster.resources.networkMbps', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.resources.networkMbps', e.target.value)}
             value={stage.cluster.resources.networkMbps}
             required={true}
           />
@@ -263,7 +263,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="number"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('cluster.resources.gpu', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.resources.gpu', e.target.value)}
             value={stage.cluster.resources.gpu}
             required={true}
           />
@@ -274,7 +274,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             type="text"
             className="form-control input-sm"
             value={stage.cluster.entryPoint}
-            onChange={e => this.stageFieldChanged('cluster.entryPoint', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.entryPoint', e.target.value)}
           />
         </StageConfigField>
 
@@ -283,7 +283,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             type="number"
             className="form-control input-sm"
             value={stage.cluster.runtimeLimitSecs}
-            onChange={e => this.stageFieldChanged('cluster.runtimeLimitSecs', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.runtimeLimitSecs', e.target.value)}
             min="1"
             required={true}
           />
@@ -293,7 +293,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="number"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('cluster.retries', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('cluster.retries', e.target.value)}
             value={stage.cluster.retries}
             min="0"
             required={true}
@@ -304,7 +304,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           <input
             type="text"
             className="form-control input-sm"
-            onChange={e => this.stageFieldChanged('propertyFile', e.target.value)}
+            onChange={(e) => this.stageFieldChanged('propertyFile', e.target.value)}
             value={stage.propertyFile}
           />
         </StageConfigField>
@@ -316,7 +316,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 <input
                   type="checkbox"
                   checked={stage.showAdvancedOptions}
-                  onChange={e => this.stageFieldChanged('showAdvancedOptions', e.target.checked)}
+                  onChange={(e) => this.stageFieldChanged('showAdvancedOptions', e.target.checked)}
                 />
                 <strong>Show Advanced Options</strong>
               </label>
@@ -336,7 +336,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 value={stage.cluster.iamProfile}
                 placeholder={this.defaultIamProfile}
                 required={true}
-                onChange={e => this.stageFieldChanged('cluster.iamProfile', e.target.value)}
+                onChange={(e) => this.stageFieldChanged('cluster.iamProfile', e.target.value)}
               />
               {!stage.isNew && !stage.cluster.iamProfile && (
                 <a
@@ -357,7 +357,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
               type="text"
               className="form-control input-sm"
               value={stage.cluster.capacityGroup || ''}
-              onChange={e => this.stageFieldChanged('cluster.capacityGroup', e.target.value)}
+              onChange={(e) => this.stageFieldChanged('cluster.capacityGroup', e.target.value)}
             />
           </StageConfigField>
 
@@ -407,7 +407,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             className="input-sm"
             name="waitForCompletion"
             checked={stage.waitForCompletion}
-            onChange={e => this.stageFieldChanged('waitForCompletion', e.target.checked)}
+            onChange={(e) => this.stageFieldChanged('waitForCompletion', e.target.checked)}
           />
         </StageConfigField>
       </div>

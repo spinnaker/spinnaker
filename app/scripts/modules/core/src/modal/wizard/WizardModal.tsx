@@ -49,7 +49,8 @@ export interface IWizardModalApi {
   onWizardPageStateChanged: (_page: WizardPage<any>) => void;
 }
 
-export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, IWizardModalState<T>>
+export class WizardModal<T = {}>
+  extends React.Component<IWizardModalProps<T>, IWizardModalState<T>>
   implements IWizardModalApi {
   private stepsElement = React.createRef<HTMLDivElement>();
   private formikRef = React.createRef<Formik<any>>();
@@ -69,7 +70,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   }
 
   public onWizardPageAdded = (wizardPage: WizardPage<T>): void => {
-    this.setState(prevState => {
+    this.setState((prevState) => {
       const pages = prevState.pages.concat(wizardPage);
       const currentPage = prevState.currentPage || pages[0];
       return { pages, currentPage };
@@ -77,7 +78,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   };
 
   public onWizardPageRemoved = (wizardPage: WizardPage<T>): void => {
-    this.setState(prevState => {
+    this.setState((prevState) => {
       const pages = without(prevState.pages, wizardPage);
       const currentPage = prevState.currentPage || pages[0];
       return { pages, currentPage };
@@ -92,10 +93,10 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   };
 
   private handleStepsScroll = (event: React.UIEvent<HTMLDivElement>): void => {
-    const pageTops = this.state.pages.map(page => page.ref.current.offsetTop);
+    const pageTops = this.state.pages.map((page) => page.ref.current.offsetTop);
     const scrollTop = event.currentTarget.scrollTop;
 
-    let reversedCurrentPage = pageTops.reverse().findIndex(pageTop => scrollTop >= pageTop);
+    let reversedCurrentPage = pageTops.reverse().findIndex((pageTop) => scrollTop >= pageTop);
     if (reversedCurrentPage === undefined) {
       reversedCurrentPage = pageTops.length - 1;
     }
@@ -109,7 +110,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
 
   private validate = (values: T): any => {
     const validateProp = this.props.validate || (() => ({}));
-    const errorsForPages: object[] = this.state.pages.map(page => page.validate(values)).concat(validateProp(values));
+    const errorsForPages: object[] = this.state.pages.map((page) => page.validate(values)).concat(validateProp(values));
     return errorsForPages.reduce((mergedErrors, errorsForPage) => merge(mergedErrors, errorsForPage), {});
   };
 
@@ -158,7 +159,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
     };
 
     const isSubmitting = taskMonitor && taskMonitor.submitting;
-    const anyLoading = pages.some(page => page.state.status === 'loading');
+    const anyLoading = pages.some((page) => page.state.status === 'loading');
 
     return (
       <>
@@ -169,7 +170,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
           initialValues={initialValues}
           onSubmit={closeModal}
           validate={this.validate}
-          render={formik => (
+          render={(formik) => (
             <Form className={`form-horizontal ${formClassName}`}>
               <ModalClose dismiss={dismissModal} />
               <Modal.Header>{heading && <Modal.Title>{heading}</Modal.Title>}</Modal.Header>

@@ -11,7 +11,7 @@ export interface INavigationSectionProps {
 
 export const NavSection = ({ app, dataSources }: INavigationSectionProps) => (
   <div className="nav-section sp-padding-s-yaxis text-semibold">
-    {dataSources.map(dataSource => (
+    {dataSources.map((dataSource) => (
       <NavRoute key={dataSource.label} dataSource={dataSource} app={app} />
     ))}
   </div>

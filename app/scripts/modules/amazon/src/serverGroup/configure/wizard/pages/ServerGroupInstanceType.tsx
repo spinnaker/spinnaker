@@ -9,7 +9,8 @@ export interface IServerGroupInstanceTypeProps {
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
-export class ServerGroupInstanceType extends React.Component<IServerGroupInstanceTypeProps>
+export class ServerGroupInstanceType
+  extends React.Component<IServerGroupInstanceTypeProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors: FormikErrors<IAmazonServerGroupCommand> = {};

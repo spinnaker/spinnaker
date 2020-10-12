@@ -16,7 +16,8 @@ interface IProjectAttributesState {
   projectNameForDeletion: string;
 }
 
-export class ProjectAttributes extends React.Component<IProjectAttributesProps, IProjectAttributesState>
+export class ProjectAttributes
+  extends React.Component<IProjectAttributesProps, IProjectAttributesState>
   implements IWizardPageComponent<IProject> {
   public state = {
     showProjectDeleteForm: false,
@@ -37,7 +38,7 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
     };
 
     const { allProjects } = this.props;
-    const allProjectNames = allProjects.map(project => project.name.toLowerCase());
+    const allProjectNames = allProjects.map((project) => project.name.toLowerCase());
 
     if (!values.name) {
       errors.name = 'Please enter a project name';
@@ -68,7 +69,7 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
         <p>{`Type the name of the project (${projectName}) below to continue.`}</p>
 
         <FormField
-          input={props => <TextInput {...props} id="projectNameForDeletion" placeholder="Project Name" />}
+          input={(props) => <TextInput {...props} id="projectNameForDeletion" placeholder="Project Name" />}
           value={projectNameForDeletion || ''}
           onChange={(evt: any) => this.setState({ projectNameForDeletion: evt.target.value })}
           validate={() => matchError && 'Project name does not match'}
@@ -108,7 +109,7 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
       <>
         <div className="sp-margin-m-bottom">
           <FormikFormField
-            input={props => <TextInput {...props} placeholder="Project Name" />}
+            input={(props) => <TextInput {...props} placeholder="Project Name" />}
             name="name"
             label="Project Name"
             required={true}
@@ -117,7 +118,7 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
 
         <div className="sp-margin-m-bottom">
           <FormikFormField
-            input={props => <TextInput {...props} placeholder="Enter an email address" />}
+            input={(props) => <TextInput {...props} placeholder="Enter an email address" />}
             name="email"
             label="Owner Email"
             required={true}

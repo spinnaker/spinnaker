@@ -13,10 +13,7 @@ import { Registry } from 'core/registry';
 const boundaries = [
   {
     name: 'Today',
-    after: () =>
-      DateTime.local()
-        .startOf('day')
-        .toMillis(),
+    after: () => DateTime.local().startOf('day').toMillis(),
   },
   {
     name: 'Yesterday',
@@ -28,10 +25,7 @@ const boundaries = [
   },
   {
     name: 'This Week',
-    after: () =>
-      DateTime.local()
-        .startOf('week')
-        .toMillis(),
+    after: () => DateTime.local().startOf('week').toMillis(),
   },
   {
     name: 'Last Week',
@@ -43,17 +37,11 @@ const boundaries = [
   },
   {
     name: 'Last Month',
-    after: () =>
-      DateTime.local()
-        .startOf('month')
-        .toMillis(),
+    after: () => DateTime.local().startOf('month').toMillis(),
   },
   {
     name: 'This Year',
-    after: () =>
-      DateTime.local()
-        .startOf('year')
-        .toMillis(),
+    after: () => DateTime.local().startOf('year').toMillis(),
   },
   { name: 'Prior Years', after: () => 0 },
 ];
@@ -68,9 +56,9 @@ export class ExecutionFilterService {
   private static groupByTimeBoundary(executions: IExecution[]): { [boundaryName: string]: IExecution[] } {
     return groupBy(
       executions,
-      execution =>
+      (execution) =>
         boundaries.find(
-          boundary =>
+          (boundary) =>
             // executions that were cancelled before ever starting will not have a startTime, just a buildTime
             (execution.startTime || execution.buildTime) > boundary.after(),
         ).name,
@@ -112,11 +100,11 @@ export class ExecutionFilterService {
       return '' + object;
     }
     if (object instanceof Array) {
-      return object.map(val => this.getValuesAsString(val, denylist)).join(' ');
+      return object.map((val) => this.getValuesAsString(val, denylist)).join(' ');
     }
     if (object instanceof Object) {
       return Object.keys(object)
-        .map(key => {
+        .map((key) => {
           if (denylist.includes(key)) {
             return '';
           }
@@ -169,7 +157,7 @@ export class ExecutionFilterService {
     const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     const groupNames: { [key: string]: any } = {};
-    groups.forEach(g => (groupNames[g.heading] = true));
+    groups.forEach((g) => (groupNames[g.heading] = true));
     let toAdd = [];
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
       toAdd = configs.filter((config: any) => !groupNames[config.name]);
@@ -196,13 +184,13 @@ export class ExecutionFilterService {
       return [];
     }
     const configAccounts: string[] = [];
-    (config.stages || []).forEach(stage => {
+    (config.stages || []).forEach((stage) => {
       const stageConfig = Registry.pipeline.getStageConfig(stage);
       if (stageConfig && stageConfig.configAccountExtractor) {
         configAccounts.push(...stageConfig.configAccountExtractor(stage));
       }
     });
-    return uniq(compact(configAccounts)).filter(a => !a.includes('${')); // exclude parameterized accounts
+    return uniq(compact(configAccounts)).filter((a) => !a.includes('${')); // exclude parameterized accounts
   }
 
   private static fixName(execution: IExecution, application: Application): void {
@@ -217,7 +205,7 @@ export class ExecutionFilterService {
   private static groupExecutions(filteredExecutions: IExecution[], application: Application): IExecutionGroup[] {
     const groups: IExecutionGroup[] = [];
     let executions: IExecution[] = [];
-    forOwn(groupBy(filteredExecutions, 'name'), groupedExecutions => {
+    forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
       executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
     });
 
@@ -277,8 +265,8 @@ export class ExecutionFilterService {
 
   private static diffExecutionGroups(oldGroups: IExecutionGroup[], newGroups: IExecutionGroup[]): IExecutionGroup[] {
     const diffedGroups: IExecutionGroup[] = [];
-    newGroups.forEach(newGroup => {
-      const oldGroup = oldGroups.find(g => g.heading === newGroup.heading);
+    newGroups.forEach((newGroup) => {
+      const oldGroup = oldGroups.find((g) => g.heading === newGroup.heading);
       if (!oldGroup) {
         diffedGroups.push(newGroup);
       } else {
@@ -289,14 +277,14 @@ export class ExecutionFilterService {
         }
       }
     });
-    oldGroups.forEach(group => group.executions.sort((a, b) => this.executionSorter(a, b)));
+    oldGroups.forEach((group) => group.executions.sort((a, b) => this.executionSorter(a, b)));
     return diffedGroups;
   }
 
   private static executionsAreDifferent(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): boolean {
     let changeDetected = false;
-    oldGroup.executions.forEach(execution => {
-      const newExecution = newGroup.executions.find(g => g.id === execution.id);
+    oldGroup.executions.forEach((execution) => {
+      const newExecution = newGroup.executions.find((g) => g.id === execution.id);
       if (!newExecution) {
         changeDetected = true;
         $log.debug('execution no longer found, removing:', execution.id);
@@ -307,8 +295,8 @@ export class ExecutionFilterService {
         }
       }
     });
-    newGroup.executions.forEach(execution => {
-      const oldExecution = oldGroup.executions.find(g => g.id === execution.id);
+    newGroup.executions.forEach((execution) => {
+      const oldExecution = oldGroup.executions.find((g) => g.id === execution.id);
       if (!oldExecution) {
         changeDetected = true;
         $log.debug('new execution found, adding', execution.id);

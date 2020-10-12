@@ -56,10 +56,7 @@ describe('<CustomBannerConfig />', () => {
     });
     it('remove banner config', () => {
       expect(wrapper.state('bannerConfigsEditing').length).toEqual(2);
-      wrapper
-        .find('.custom-banner-config-remove')
-        .at(1)
-        .simulate('click');
+      wrapper.find('.custom-banner-config-remove').at(1).simulate('click');
       expect(wrapper.state('bannerConfigsEditing').length).toEqual(1);
     });
   });

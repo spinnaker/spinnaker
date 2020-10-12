@@ -10,10 +10,10 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_SERVERGROUPADVANCEDSE
   [
     '$scope',
     'modalWizardService',
-    function($scope, modalWizardService) {
+    function ($scope, modalWizardService) {
       modalWizardService.getWizard().markComplete('advanced');
 
-      $scope.$watch('form.$valid', function(newVal) {
+      $scope.$watch('form.$valid', function (newVal) {
         if (newVal) {
           modalWizardService.getWizard().markClean('advanced');
         } else {

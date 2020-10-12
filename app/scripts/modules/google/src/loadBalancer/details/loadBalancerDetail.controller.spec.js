@@ -1,6 +1,6 @@
 import { ApplicationModelBuilder } from '@spinnaker/core';
 
-describe('Controller: LoadBalancerDetailsCtrl', function() {
+describe('Controller: LoadBalancerDetailsCtrl', function () {
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;
 
   let controller;
@@ -17,7 +17,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
   beforeEach(window.module(require('./loadBalancerDetail.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$state_) {
+    window.inject(function ($controller, $rootScope, _$state_) {
       $scope = $rootScope.$new();
       $state = _$state_;
       const app = ApplicationModelBuilder.createApplicationForTests('app', {
@@ -35,7 +35,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
     }),
   );
 
-  it('should have an instantiated controller', function() {
+  it('should have an instantiated controller', function () {
     expect(controller).toBeDefined();
   });
 });

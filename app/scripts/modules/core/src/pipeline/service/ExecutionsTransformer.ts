@@ -18,14 +18,14 @@ export class ExecutionsTransformer {
 
   private static addDeploymentTargets(execution: IExecution): void {
     const targets: string[] = [];
-    execution.stages.forEach(stage => {
+    execution.stages.forEach((stage) => {
       const stageConfig = Registry.pipeline.getStageConfig(stage);
       if (stageConfig && stageConfig.accountExtractor) {
         targets.push(...stageConfig.accountExtractor(stage));
       }
     });
     execution.deploymentTargets = uniq(targets)
-      .filter(a => !!a)
+      .filter((a) => !!a)
       .sort();
   }
 
@@ -48,12 +48,12 @@ export class ExecutionsTransformer {
   ): IExecutionStage[] {
     const stageSummary = stage as IExecutionStageSummary;
     if (stageSummary.groupStages) {
-      stageSummary.groupStages.forEach(s => this.flattenStages(stages, s));
+      stageSummary.groupStages.forEach((s) => this.flattenStages(stages, s));
       return stages;
     }
     if (stage.before && stage.before.length) {
       stage.before.sort((a, b) => this.siblingStageSorter(a, b));
-      stage.before.forEach(beforeStage => this.flattenStages(stages, beforeStage));
+      stage.before.forEach((beforeStage) => this.flattenStages(stages, beforeStage));
     }
     if ((stage as IExecutionStageSummary).masterStage) {
       stages.push((stage as IExecutionStageSummary).masterStage);
@@ -62,22 +62,22 @@ export class ExecutionsTransformer {
     }
     if (stage.after && stage.after.length) {
       stage.after.sort((a, b) => this.siblingStageSorter(a, b));
-      stage.after.forEach(afterStage => this.flattenStages(stages, afterStage));
+      stage.after.forEach((afterStage) => this.flattenStages(stages, afterStage));
     }
     return stages;
   }
 
   private static flattenAndFilter(stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
     return this.flattenStages([], stage).filter(
-      s => s.isFailed || (!this.hiddenStageTypes.includes(s.type) && s.initializationStage !== true),
+      (s) => s.isFailed || (!this.hiddenStageTypes.includes(s.type) && s.initializationStage !== true),
     );
   }
 
   private static getCurrentStages(execution: IExecution) {
-    const currentStages = execution.stageSummaries.filter(stage => stage.isRunning);
+    const currentStages = execution.stageSummaries.filter((stage) => stage.isRunning);
     // if there are no running stages, find the first enqueued stage
     if (!currentStages.length) {
-      const enqueued = execution.stageSummaries.find(stage => stage.hasNotStarted);
+      const enqueued = execution.stageSummaries.find((stage) => stage.hasNotStarted);
       if (enqueued) {
         currentStages.push(enqueued);
       }
@@ -87,7 +87,7 @@ export class ExecutionsTransformer {
 
   // TODO: remove if we ever figure out why quickPatchAsgStage never has a startTime
   private static setMasterStageStartTime(stages: IExecutionStage[], stage: IExecutionStageSummary): void {
-    const allStartTimes = stages.filter(child => child.startTime).map(child => child.startTime);
+    const allStartTimes = stages.filter((child) => child.startTime).map((child) => child.startTime);
     if (allStartTimes.length) {
       stage.startTime = Math.min(...allStartTimes);
     }
@@ -95,11 +95,11 @@ export class ExecutionsTransformer {
 
   private static getCurrentStage<T extends IOrchestratedItem>(stages: T[]) {
     const lastStage = stages[stages.length - 1];
-    const lastNotStartedStage = findLast<T>(stages, childStage => childStage.hasNotStarted);
-    const lastFailedStage = findLast<T>(stages, childStage => childStage.isFailed);
-    const lastRunningStage = findLast<T>(stages, childStage => childStage.isRunning);
-    const lastCanceledStage = findLast<T>(stages, childStage => childStage.isCanceled);
-    const lastStoppedStage = findLast<T>(stages, childStage => childStage.isStopped);
+    const lastNotStartedStage = findLast<T>(stages, (childStage) => childStage.hasNotStarted);
+    const lastFailedStage = findLast<T>(stages, (childStage) => childStage.isFailed);
+    const lastRunningStage = findLast<T>(stages, (childStage) => childStage.isRunning);
+    const lastCanceledStage = findLast<T>(stages, (childStage) => childStage.isCanceled);
+    const lastStoppedStage = findLast<T>(stages, (childStage) => childStage.isStopped);
     return (
       lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage
     );
@@ -108,7 +108,7 @@ export class ExecutionsTransformer {
   private static cleanupLockStages(stages: IExecutionStage[]): IExecutionStage[] {
     const retainFirstOfType = (type: string, toRetain: IExecutionStage[]) => {
       let foundType = false;
-      return toRetain.filter(s => {
+      return toRetain.filter((s) => {
         if (s.type === type) {
           if (foundType) {
             return false;
@@ -154,18 +154,18 @@ export class ExecutionsTransformer {
   private static cleanRequisiteStageRefIds(execution: IExecution, stageMap: Dictionary<IStage>): void {
     const { stages } = execution;
     // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
-    stages.forEach(stage => {
+    stages.forEach((stage) => {
       if (stage.context && stage.context.requisiteIds) {
         stage.context.requisiteIds = uniq(stage.context.requisiteIds);
       }
       stage.requisiteStageRefIds = uniq(stage.requisiteStageRefIds || []);
-      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(parentId => !!stageMap[parentId]);
+      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter((parentId) => !!stageMap[parentId]);
     });
   }
 
   private static getStagesMappedByRefId(execution: IExecution): Dictionary<IStage> {
     const map: Dictionary<IStage> = {};
-    execution.stages.forEach(s => (map[s.refId] = s));
+    execution.stages.forEach((s) => (map[s.refId] = s));
     return map;
   }
 
@@ -173,14 +173,14 @@ export class ExecutionsTransformer {
     const stages = execution.stages;
     let allPhasesResolved = true;
 
-    stages.forEach(stage => {
+    stages.forEach((stage) => {
       let phaseResolvable = true;
       let phase = 0;
       // if there are no dependencies or it's a synthetic stage, set it to 0
       if (stage.phase === undefined && !stage.requisiteStageRefIds.length) {
         stage.phase = phase;
       } else {
-        stage.requisiteStageRefIds.forEach(parentId => {
+        stage.requisiteStageRefIds.forEach((parentId) => {
           const parent = stageMap[parentId];
           if (!parent || parent.phase === undefined) {
             phaseResolvable = false;
@@ -232,7 +232,7 @@ export class ExecutionsTransformer {
     if (has(execution, 'trigger.buildInfo.lastBuild.number')) {
       execution.buildInfo = execution.trigger.buildInfo.lastBuild;
     }
-    const deployStage = execution.stages.find(stage => stage.type === 'deploy');
+    const deployStage = execution.stages.find((stage) => stage.type === 'deploy');
     // TODO - remove 'deploymentDetails || ...' once we've finalized the migration away from per-stage deploymentDetails
     const deploymentDetails =
       get<any>(deployStage, 'context.deploymentDetails') || get<any>(execution, 'context.deploymentDetails');
@@ -248,7 +248,7 @@ export class ExecutionsTransformer {
   private static transformStageSummary(summary: IExecutionStageSummary, index: number): void {
     summary.index = index;
     summary.stages = this.flattenAndFilter(summary);
-    summary.stages.forEach(stage => delete stage.stages);
+    summary.stages.forEach((stage) => delete stage.stages);
     summary.masterStageIndex = summary.stages.includes(summary.masterStage)
       ? summary.stages.indexOf(summary.masterStage)
       : 0;
@@ -267,7 +267,7 @@ export class ExecutionsTransformer {
   private static filterStages(summary: IExecutionStageSummary): void {
     const stageConfig = Registry.pipeline.getStageConfig(summary.masterStage);
     if (stageConfig && stageConfig.stageFilter) {
-      summary.stages = summary.stages.filter(s => stageConfig.stageFilter(s));
+      summary.stages = summary.stages.filter((s) => stageConfig.stageFilter(s));
     }
   }
 
@@ -280,14 +280,14 @@ export class ExecutionsTransformer {
   private static setFirstActiveStage(summary: IExecutionStageSummary): void {
     summary.firstActiveStage = 0;
     const steps = summary.stages || [];
-    if (steps.find(s => s.isRunning)) {
-      summary.firstActiveStage = steps.findIndex(s => s.isRunning);
+    if (steps.find((s) => s.isRunning)) {
+      summary.firstActiveStage = steps.findIndex((s) => s.isRunning);
     }
-    if (steps.find(s => s.isFailed)) {
-      summary.firstActiveStage = steps.findIndex(s => s.isFailed);
+    if (steps.find((s) => s.isFailed)) {
+      summary.firstActiveStage = steps.findIndex((s) => s.isFailed);
     }
-    if (steps.find(s => s.isFailed && !!s.failureMessage)) {
-      summary.firstActiveStage = steps.findIndex(s => s.isFailed && !!s.failureMessage);
+    if (steps.find((s) => s.isFailed && !!s.failureMessage)) {
+      summary.firstActiveStage = steps.findIndex((s) => s.isFailed && !!s.failureMessage);
     }
   }
 
@@ -298,7 +298,7 @@ export class ExecutionsTransformer {
     const stageRefIdsMap = this.getStagesMappedByRefId(execution);
     this.cleanRequisiteStageRefIds(execution, stageRefIdsMap);
     this.applyPhasesAndLink(execution, stageRefIdsMap);
-    Registry.pipeline.getExecutionTransformers().forEach(transformer => {
+    Registry.pipeline.getExecutionTransformers().forEach((transformer) => {
       transformer.transform(application, execution);
     });
 
@@ -309,12 +309,12 @@ export class ExecutionsTransformer {
       stage.index = index;
       OrchestratedItemTransformer.defineProperties(stage);
       if (stage.tasks && stage.tasks.length) {
-        stage.tasks.forEach(t => OrchestratedItemTransformer.addRunningTime(t));
+        stage.tasks.forEach((t) => OrchestratedItemTransformer.addRunningTime(t));
       }
     });
 
     // Handle synthetic stages
-    execution.stages.forEach(stage => {
+    execution.stages.forEach((stage) => {
       const parent = find(execution.stages, { id: stage.parentStageId });
       if (parent) {
         if (stage.syntheticStageOwner === 'STAGE_BEFORE') {
@@ -339,7 +339,7 @@ export class ExecutionsTransformer {
 
   private static calculateGraphStatusHash(execution: IExecution): string {
     return (execution.stageSummaries || [])
-      .map(stage => {
+      .map((stage) => {
         const stageConfig = Registry.pipeline.getStageConfig(stage);
         if (stageConfig && stageConfig.extraLabelLines) {
           return [stageConfig.extraLabelLines(stage), stage.status].join('-');
@@ -352,7 +352,7 @@ export class ExecutionsTransformer {
   private static calculateRunningTime(stage: IExecutionStageSummary): () => number {
     return () => {
       // Find the earliest startTime and latest endTime
-      stage.groupStages.forEach(subStage => {
+      stage.groupStages.forEach((subStage) => {
         if (subStage.startTime && subStage.startTime < stage.startTime) {
           stage.startTime = subStage.startTime;
         }
@@ -371,10 +371,10 @@ export class ExecutionsTransformer {
 
   public static processStageSummaries(execution: IExecution): void {
     let stageSummaries: IExecutionStageSummary[] = [];
-    execution.stages.forEach(stage => {
+    execution.stages.forEach((stage) => {
       if (!stage.syntheticStageOwner && !this.hiddenStageTypes.includes(stage.type)) {
         // HACK: Orca sometimes (always?) incorrectly reports a parent stage as running when a child stage has stopped
-        if (stage.status === 'RUNNING' && stage.after.some(s => s.status === 'STOPPED')) {
+        if (stage.status === 'RUNNING' && stage.after.some((s) => s.status === 'STOPPED')) {
           stage.status = 'STOPPED';
         }
         const context = stage.context || {};
@@ -411,7 +411,7 @@ export class ExecutionsTransformer {
       }
 
       // The stage is in a group
-      let groupedStage = groupedStages.find(s => s.type === 'group' && s.name === stage.group);
+      let groupedStage = groupedStages.find((s) => s.type === 'group' && s.name === stage.group);
       if (!groupedStage) {
         // Create a new grouped stage
         groupedStage = {
@@ -470,7 +470,7 @@ export class ExecutionsTransformer {
         } else if (summary.groupStages.length > 1) {
           const subComments: string[] = [];
           // Find the earliest startTime and latest endTime
-          summary.groupStages.forEach(subStage => {
+          summary.groupStages.forEach((subStage) => {
             if (subStage.comments) {
               subComments.push(subStage.comments);
             }
@@ -490,7 +490,7 @@ export class ExecutionsTransformer {
       }
 
       // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
-      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map(id => idToGroupIdMap[id] || id));
+      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
     });
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));

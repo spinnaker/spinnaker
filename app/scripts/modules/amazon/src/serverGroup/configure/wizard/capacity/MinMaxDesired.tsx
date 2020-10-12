@@ -25,7 +25,7 @@ export class MinMaxDesired extends React.Component<IMinMaxDesiredProps, IMinMaxD
               value={min}
               min={0}
               max={typeof max === 'number' ? max : undefined}
-              onChange={v => fieldChanged('min', v)}
+              onChange={(v) => fieldChanged('min', v)}
               required={true}
             />
           </div>
@@ -36,7 +36,7 @@ export class MinMaxDesired extends React.Component<IMinMaxDesiredProps, IMinMaxD
             <SpelNumberInput
               value={max}
               min={typeof min === 'number' ? min : undefined}
-              onChange={v => fieldChanged('max', v)}
+              onChange={(v) => fieldChanged('max', v)}
               required={true}
             />
           </div>
@@ -48,7 +48,7 @@ export class MinMaxDesired extends React.Component<IMinMaxDesiredProps, IMinMaxD
               value={desired}
               min={typeof min === 'number' ? min : undefined}
               max={typeof max === 'number' ? max : undefined}
-              onChange={v => fieldChanged('desired', v)}
+              onChange={(v) => fieldChanged('desired', v)}
               required={true}
             />
           </div>

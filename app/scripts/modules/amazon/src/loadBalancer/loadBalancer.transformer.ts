@@ -35,9 +35,9 @@ export class AwsLoadBalancerTransformer {
     const instances = container.instances;
 
     container.instanceCounts = {
-      up: instances.filter(instance => instance.health[0].state === 'InService').length,
-      down: instances.filter(instance => instance.healthState === 'Down').length,
-      outOfService: instances.filter(instance => instance.healthState === 'OutOfService').length,
+      up: instances.filter((instance) => instance.health[0].state === 'InService').length,
+      down: instances.filter((instance) => instance.healthState === 'Down').length,
+      outOfService: instances.filter((instance) => instance.healthState === 'OutOfService').length,
       starting: undefined,
       succeeded: undefined,
       failed: undefined,
@@ -45,13 +45,13 @@ export class AwsLoadBalancerTransformer {
     };
 
     if ((container as ITargetGroup | IAmazonLoadBalancer).serverGroups) {
-      const serverGroupInstances = flatten((container as ITargetGroup).serverGroups.map(sg => sg.instances));
+      const serverGroupInstances = flatten((container as ITargetGroup).serverGroups.map((sg) => sg.instances));
       container.instanceCounts.up = serverGroupInstances.filter(
-        instance => instance.health[0].state === 'InService',
+        (instance) => instance.health[0].state === 'InService',
       ).length;
-      container.instanceCounts.down = serverGroupInstances.filter(instance => instance.healthState === 'Down').length;
+      container.instanceCounts.down = serverGroupInstances.filter((instance) => instance.healthState === 'Down').length;
       container.instanceCounts.outOfService = serverGroupInstances.filter(
-        instance => instance.healthState === 'OutOfService',
+        (instance) => instance.healthState === 'OutOfService',
       ).length;
     }
   }
@@ -77,7 +77,7 @@ export class AwsLoadBalancerTransformer {
     container: IAmazonLoadBalancer | ITargetGroup,
   ): (vpcs: IVpc[]) => IAmazonLoadBalancer | ITargetGroup {
     return (vpcs: IVpc[]) => {
-      const match = vpcs.find(test => test.id === container.vpcId);
+      const match = vpcs.find((test) => test.id === container.vpcId);
       container.vpcName = match ? match.name : '';
       return container;
     };
@@ -89,7 +89,7 @@ export class AwsLoadBalancerTransformer {
     containerType: string,
     healthType: string,
   ): void {
-    serverGroups.forEach(serverGroup => {
+    serverGroups.forEach((serverGroup) => {
       serverGroup.account = serverGroup.account || container.account;
       serverGroup.region = serverGroup.region || container.region;
       serverGroup.cloudProvider = serverGroup.cloudProvider || container.cloudProvider;
@@ -103,7 +103,7 @@ export class AwsLoadBalancerTransformer {
         serverGroup.detachedInstances = [];
       }
 
-      serverGroup.instances.forEach(instance => {
+      serverGroup.instances.forEach((instance) => {
         this.transformInstance(instance, container.type, container.account, container.region);
         (instance as any)[containerType] = [container.name];
         (instance.health as any).type = healthType;
@@ -117,25 +117,19 @@ export class AwsLoadBalancerTransformer {
 
     const activeServerGroups = filter(targetGroup.serverGroups, { isDisabled: false });
     targetGroup.provider = targetGroup.type;
-    targetGroup.instances = chain(activeServerGroups)
-      .map('instances')
-      .flatten<IInstance>()
-      .value();
-    targetGroup.detachedInstances = chain(activeServerGroups)
-      .map('detachedInstances')
-      .flatten<IInstance>()
-      .value();
+    targetGroup.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
+    targetGroup.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
     this.updateHealthCounts(targetGroup);
 
     return $q.all([VpcReader.listVpcs(), AccountService.listAllAccounts()]).then(([vpcs, accounts]) => {
       const tg = this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup;
 
-      tg.serverGroups = tg.serverGroups.map(serverGroup => {
-        const account = accounts.find(x => x.name === serverGroup.account);
+      tg.serverGroups = tg.serverGroups.map((serverGroup) => {
+        const account = accounts.find((x) => x.name === serverGroup.account);
         const cloudProvider = (account && account.cloudProvider) || serverGroup.cloudProvider;
 
         serverGroup.cloudProvider = cloudProvider;
-        serverGroup.instances.forEach(instance => {
+        serverGroup.instances.forEach((instance) => {
           instance.cloudProvider = cloudProvider;
           instance.provider = cloudProvider;
         });
@@ -152,9 +146,9 @@ export class AwsLoadBalancerTransformer {
       const alb = loadBalancer as IAmazonApplicationLoadBalancer;
 
       // Sort the actions by the order specified since amazon does not return them in order of order
-      alb.listeners.forEach(l => {
+      alb.listeners.forEach((l) => {
         l.defaultActions.sort((a, b) => a.order - b.order);
-        l.rules.forEach(r => r.actions.sort((a, b) => a.order - b.order));
+        l.rules.forEach((r) => r.actions.sort((a, b) => a.order - b.order));
       });
     }
   }
@@ -165,7 +159,7 @@ export class AwsLoadBalancerTransformer {
     let serverGroups = loadBalancer.serverGroups;
     if ((loadBalancer as IAmazonApplicationLoadBalancer).targetGroups) {
       const appLoadBalancer = loadBalancer as IAmazonApplicationLoadBalancer;
-      appLoadBalancer.targetGroups.forEach(targetGroup => this.normalizeTargetGroup(targetGroup));
+      appLoadBalancer.targetGroups.forEach((targetGroup) => this.normalizeTargetGroup(targetGroup));
       serverGroups = flatten<IAmazonServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
     }
 
@@ -175,14 +169,8 @@ export class AwsLoadBalancerTransformer {
     this.normalizeActions(loadBalancer as IAmazonApplicationLoadBalancer);
 
     const activeServerGroups = filter(serverGroups, { isDisabled: false });
-    loadBalancer.instances = chain(activeServerGroups)
-      .map('instances')
-      .flatten<IInstance>()
-      .value();
-    loadBalancer.detachedInstances = chain(activeServerGroups)
-      .map('detachedInstances')
-      .flatten<IInstance>()
-      .value();
+    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
+    loadBalancer.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
     this.updateHealthCounts(loadBalancer);
     return VpcReader.listVpcs().then(
       (vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer,
@@ -302,10 +290,10 @@ export class AwsLoadBalancerTransformer {
 
       // Convert listeners
       if (elb.listeners) {
-        toEdit.listeners = elb.listeners.map(listener => {
+        toEdit.listeners = elb.listeners.map((listener) => {
           const certificates: IALBListenerCertificate[] = [];
           if (listener.certificates) {
-            listener.certificates.forEach(cert => {
+            listener.certificates.forEach((cert) => {
               const certArnParts = cert.certificateArn.split(':');
               const certParts = certArnParts[5].split('/');
               certificates.push({
@@ -316,7 +304,7 @@ export class AwsLoadBalancerTransformer {
             });
           }
 
-          (listener.defaultActions || []).forEach(action => {
+          (listener.defaultActions || []).forEach((action) => {
             if (action.targetGroupName) {
               action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
             }
@@ -324,15 +312,15 @@ export class AwsLoadBalancerTransformer {
           });
 
           // Remove the default rule because it already exists in defaultActions
-          listener.rules = (listener.rules || []).filter(l => !l.default);
-          listener.rules.forEach(rule => {
-            (rule.actions || []).forEach(action => {
+          listener.rules = (listener.rules || []).filter((l) => !l.default);
+          listener.rules.forEach((rule) => {
+            (rule.actions || []).forEach((action) => {
               if (action.targetGroupName) {
                 action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
               }
               action.redirectActionConfig = action.redirectConfig;
             });
-            (rule.conditions || []).forEach(condition => {
+            (rule.conditions || []).forEach((condition) => {
               if (condition.field === 'http-request-method') {
                 condition.values = condition.httpRequestMethodConfig.values;
               }
@@ -413,10 +401,10 @@ export class AwsLoadBalancerTransformer {
 
       // Convert listeners
       if (elb.listeners) {
-        toEdit.listeners = elb.listeners.map(listener => {
+        toEdit.listeners = elb.listeners.map((listener) => {
           const certificates: IALBListenerCertificate[] = [];
           if (listener.certificates) {
-            listener.certificates.forEach(cert => {
+            listener.certificates.forEach((cert) => {
               const certArnParts = cert.certificateArn.split(':');
               const certParts = certArnParts[5].split('/');
               certificates.push({
@@ -427,16 +415,16 @@ export class AwsLoadBalancerTransformer {
             });
           }
 
-          (listener.defaultActions || []).forEach(action => {
+          (listener.defaultActions || []).forEach((action) => {
             if (action.targetGroupName) {
               action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
             }
           });
 
           // Remove the default rule because it already exists in defaultActions
-          listener.rules = (listener.rules || []).filter(l => !l.default);
-          listener.rules.forEach(rule => {
-            (rule.actions || []).forEach(action => {
+          listener.rules = (listener.rules || []).filter((l) => !l.default);
+          listener.rules.forEach((rule) => {
+            (rule.actions || []).forEach((action) => {
               if (action.targetGroupName) {
                 action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
               }

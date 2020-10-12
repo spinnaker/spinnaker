@@ -19,7 +19,7 @@ angular
     '$controller',
     '$uibModalStack',
     '$state',
-    function($scope, $controller, $uibModalStack, $state) {
+    function ($scope, $controller, $uibModalStack, $state) {
       angular.extend(
         this,
         $controller('BasicSettingsMixin', {
@@ -29,7 +29,7 @@ angular
         }),
       );
 
-      $scope.$watch('form.$valid', function(newVal) {
+      $scope.$watch('form.$valid', function (newVal) {
         if (newVal) {
           ModalWizard.markClean('location');
           ModalWizard.markComplete('location');

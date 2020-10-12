@@ -103,7 +103,7 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
               {containerLogs.length && (
                 <>
                   <ul className="tabs-basic console-output-tabs">
-                    {containerLogs.map(log => (
+                    {containerLogs.map((log) => (
                       <li
                         key={log.name}
                         className={classNames('console-output-tab', {

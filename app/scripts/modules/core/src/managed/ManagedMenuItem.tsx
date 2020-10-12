@@ -24,7 +24,7 @@ export const ManagedMenuItem = ({ resource, application, onClick, children }: IM
   const interstitial: () => IPromise<boolean> = () =>
     showInterstitial ? confirmNotManaged(resource, application) : $q.when(true);
   const handleClick: () => void = () =>
-    interstitial().then(isNotManaged => {
+    interstitial().then((isNotManaged) => {
       isNotManaged && onClick();
     });
 

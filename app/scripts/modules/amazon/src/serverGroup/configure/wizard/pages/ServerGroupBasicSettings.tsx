@@ -62,11 +62,11 @@ export class ServerGroupBasicSettings
     const { mode } = values.viewState;
 
     const namePreview = NameUtils.getClusterName(app.name, values.stack, values.freeFormDetails);
-    const createsNewCluster = !app.clusters.find(c => c.name === namePreview);
+    const createsNewCluster = !app.clusters.find((c) => c.name === namePreview);
     const showPreviewAsWarning = (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
 
     const inCluster = (app.serverGroups.data as IServerGroup[])
-      .filter(serverGroup => {
+      .filter((serverGroup) => {
         return (
           serverGroup.cluster === namePreview &&
           serverGroup.account === values.credentials &&
@@ -249,7 +249,7 @@ export class ServerGroupBasicSettings
               type="text"
               className="form-control input-sm no-spel"
               value={values.stack}
-              onChange={e => this.stackChanged(e.target.value)}
+              onChange={(e) => this.stackChanged(e.target.value)}
             />
           </div>
         </div>
@@ -278,7 +278,7 @@ export class ServerGroupBasicSettings
               <Field name="amiName" />
             ) : (
               <AmazonImageSelectInput
-                onChange={image => this.imageChanged(image)}
+                onChange={(image) => this.imageChanged(image)}
                 value={this.state.selectedImage}
                 application={app}
                 credentials={values.credentials}

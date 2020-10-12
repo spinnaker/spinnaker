@@ -10,18 +10,13 @@ export interface IAppNotifications {
 
 export class AppNotificationsService {
   public static getNotificationsForApplication(applicationName: string): IPromise<IAppNotifications> {
-    return API.one('notifications')
-      .one('application', applicationName)
-      .get();
+    return API.one('notifications').one('application', applicationName).get();
   }
 
   public static saveNotificationsForApplication(
     applicationName: string,
     notifications: IAppNotifications,
   ): IPromise<void> {
-    return API.one('notifications')
-      .one('application', applicationName)
-      .data(notifications)
-      .post();
+    return API.one('notifications').one('application', applicationName).data(notifications).post();
   }
 }

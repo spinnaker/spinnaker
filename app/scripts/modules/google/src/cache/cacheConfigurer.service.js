@@ -17,7 +17,7 @@ module(GOOGLE_CACHE_CACHECONFIGURER_SERVICE, [
   'gceBackendServiceReader',
   'gceCertificateReader',
   'gceHealthCheckReader',
-  function(gceAddressReader, gceBackendServiceReader, gceCertificateReader, gceHealthCheckReader) {
+  function (gceAddressReader, gceBackendServiceReader, gceCertificateReader, gceHealthCheckReader) {
     const config = Object.create(null);
 
     config.addresses = {

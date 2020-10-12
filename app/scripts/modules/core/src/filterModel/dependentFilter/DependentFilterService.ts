@@ -5,11 +5,7 @@ import { ISortFilter } from '../IFilterModel';
 function generateIterator(sortFilter: ISortFilter & { [key: string]: any }) {
   return function iterator(acc: { headings: any; pool: any }, headingType: string) {
     const { headings, pool } = acc;
-    headings[headingType] = chain(pool)
-      .map(headingType)
-      .uniq()
-      .compact()
-      .value();
+    headings[headingType] = chain(pool).map(headingType).uniq().compact().value();
     unselectUnavailableHeadings(headings[headingType], sortFilter[headingType]);
     acc.pool = filterPoolBySelectedHeadings(pool, headingType, sortFilter);
     return acc;
@@ -35,7 +31,7 @@ function unselectUnavailableHeadings(headings: string[], selectedHeadings: { [ke
   }
 
   const headingSet = new Set(headings);
-  Object.keys(selectedHeadings).forEach(key => {
+  Object.keys(selectedHeadings).forEach((key) => {
     if (!headingSet.has(key)) {
       delete selectedHeadings[key];
     }

@@ -52,19 +52,19 @@ export class ChaosMonkeyExceptionsController {
       const rule: IClusterMatchRule = { ...clusterMatchRule, location };
       this.clusterMatches.push(
         this.application.clusters
-          .filter(c =>
-            c.serverGroups.some(s => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [rule]) !== null),
+          .filter((c) =>
+            c.serverGroups.some((s) => ClusterMatcher.getMatchingRule(c.account, s.region, c.name, [rule]) !== null),
           )
-          .map(c => {
+          .map((c) => {
             return {
               name: c.name,
               account: exception.account,
-              regions: exception.region === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [exception.region],
+              regions: exception.region === '*' ? uniq(c.serverGroups.map((g) => g.region)).sort() : [exception.region],
             };
           }),
       );
     });
-    this.clusterMatches.forEach(m => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
+    this.clusterMatches.forEach((m) => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
   }
 
   public updateConfig(): void {

@@ -184,7 +184,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
   const tableLayout = useMemo(() => standardGridTableLayout([4, 2, 2.6]), []);
 
   const { status: historyEventStatus, result: historyEvents, refresh } = usePollingData(
-    () => ManagedReader.getResourceHistory(id).then(events => mergeNewEvents(events, previousHistoryEvents)),
+    () => ManagedReader.getResourceHistory(id).then((events) => mergeNewEvents(events, previousHistoryEvents)),
     null,
     EVENT_POLLING_INTERVAL,
     [],

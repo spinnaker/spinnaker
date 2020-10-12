@@ -11,7 +11,7 @@ describe('Service: AccountService', () => {
   let $http: ng.IHttpBackendService;
 
   beforeEach(
-    mock.inject(function($httpBackend: ng.IHttpBackendService) {
+    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
       $http = $httpBackend;
     }),
   );
@@ -19,7 +19,7 @@ describe('Service: AccountService', () => {
 
   afterEach(SETTINGS.resetToOriginal);
 
-  it('should filter the list of accounts by provider when supplied', done => {
+  it('should filter the list of accounts by provider when supplied', (done) => {
     $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
       { name: 'test', type: 'aws' },
       { name: 'prod', type: 'aws' },
@@ -37,7 +37,7 @@ describe('Service: AccountService', () => {
   });
 
   describe('getAllAccountDetailsForProvider', () => {
-    it('should return details for each account', done => {
+    it('should return details for each account', (done) => {
       $http.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
         { name: 'test', type: 'aws' },
         { name: 'prod', type: 'aws' },
@@ -53,7 +53,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should fall back to an empty array if an exception occurs when listing accounts', done => {
+    it('should fall back to an empty array if an exception occurs when listing accounts', (done) => {
       $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(429, null);
 
       AccountService.getAllAccountDetailsForProvider('aws').then((details: any[]) => {
@@ -75,7 +75,7 @@ describe('Service: AccountService', () => {
       spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
     });
 
-    it('should list all providers when no application provided', done => {
+    it('should list all providers when no application provided', (done) => {
       AccountService.listProviders().then((result: string[]) => {
         expect(result).toEqual(['aws', 'cf', 'gce']);
         done();
@@ -84,7 +84,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should filter out providers not registered', done => {
+    it('should filter out providers not registered', (done) => {
       registeredProviders.pop();
       AccountService.listProviders().then((result: string[]) => {
         expect(result).toEqual(['aws', 'gce']);
@@ -94,7 +94,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should fall back to the defaultProviders if none configured for the application', done => {
+    it('should fall back to the defaultProviders if none configured for the application', (done) => {
       const application: any = { attributes: { cloudProviders: [] } };
       SETTINGS.defaultProviders = ['gce', 'cf'];
       AccountService.listProviders(application).then((result: string[]) => {
@@ -105,7 +105,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should return the intersection of those configured for the application and those available from the server', done => {
+    it('should return the intersection of those configured for the application and those available from the server', (done) => {
       const application: any = { attributes: { cloudProviders: ['gce', 'cf', 'unicron'] } };
       SETTINGS.defaultProviders = ['aws'];
       AccountService.listProviders(application).then((result: string[]) => {
@@ -116,7 +116,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should return an empty array if none of the app providers are available from the server', done => {
+    it('should return an empty array if none of the app providers are available from the server', (done) => {
       const application: any = { attributes: { cloudProviders: ['lamp', 'ceiling', 'fan'] } };
       SETTINGS.defaultProviders = ['foo'];
       AccountService.listProviders(application).then((result: string[]) => {
@@ -127,7 +127,7 @@ describe('Service: AccountService', () => {
       setTimeout(() => $rootScope.$digest());
     });
 
-    it('should fall back to all registered available providers if no defaults configured and none configured on app', done => {
+    it('should fall back to all registered available providers if no defaults configured and none configured on app', (done) => {
       const application: any = { attributes: { cloudProviders: [] } };
       delete SETTINGS.defaultProviders;
       AccountService.listProviders(application).then((result: string[]) => {

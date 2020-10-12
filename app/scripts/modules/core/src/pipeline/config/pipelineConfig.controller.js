@@ -16,13 +16,13 @@ module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [UIROUTER_ANGULARJS]).con
   '$state',
   '$stateParams',
   'app',
-  function($scope, $state, $stateParams, app) {
+  function ($scope, $state, $stateParams, app) {
     this.application = app;
     this.state = {
       pipelinesLoaded: false,
     };
 
-    this.containsJinja = source => source && (source.includes('{{') || source.includes('{%'));
+    this.containsJinja = (source) => source && (source.includes('{{') || source.includes('{%'));
 
     this.initialize = () => {
       this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
@@ -54,8 +54,8 @@ module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [UIROUTER_ANGULARJS]).con
 
         if (!this.pipelineConfig.isNew || isV2PipelineConfig) {
           return PipelineTemplateReader.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
-            .then(plan => (this.pipelinePlan = plan))
-            .catch(error => {
+            .then((plan) => (this.pipelinePlan = plan))
+            .catch((error) => {
               this.templateError = error;
               this.pipelineConfig.isNew = true;
             });

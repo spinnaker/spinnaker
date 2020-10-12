@@ -66,7 +66,7 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
         <FormikFormField
           name="notificationEnabled"
           label="Notifications"
-          input={props => <CheckboxInput {...props} text={'Notify me when the pipeline completes'} />}
+          input={(props) => <CheckboxInput {...props} text={'Notify me when the pipeline completes'} />}
         />
         <div className="form-group">
           {notifications.length === 1 && (

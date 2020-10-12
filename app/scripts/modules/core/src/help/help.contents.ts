@@ -519,4 +519,4 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.codebuild.envVar': `(Optional) Environment variables that will be propagated into the build.`,
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

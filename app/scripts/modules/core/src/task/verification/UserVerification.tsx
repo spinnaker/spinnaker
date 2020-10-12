@@ -48,7 +48,7 @@ export function UserVerification(props: IUserVerificationProps) {
           <div className="form-group">
             <div className="form-control-static">{label ? <Markdown tag="span" message={label} /> : defaultLabel}</div>{' '}
             <HelpField id="user.verification" />
-            <input type="text" className={className} value={value} onChange={evt => setValue(evt.target.value)} />
+            <input type="text" className={className} value={value} onChange={(evt) => setValue(evt.target.value)} />
           </div>
         </div>
       </div>

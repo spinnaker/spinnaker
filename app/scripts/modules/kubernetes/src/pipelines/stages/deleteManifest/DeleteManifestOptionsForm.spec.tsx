@@ -25,18 +25,8 @@ describe('<DeleteManifestOptionsForm />', () => {
   describe('view', () => {
     it('renders a StageConfigField for Cascading and Grace Period options', () => {
       expect(component.find(StageConfigField).length).toEqual(2);
-      expect(
-        component
-          .find(StageConfigField)
-          .at(0)
-          .prop('label'),
-      ).toEqual('Cascading');
-      expect(
-        component
-          .find(StageConfigField)
-          .at(1)
-          .prop('label'),
-      ).toEqual('Grace Period');
+      expect(component.find(StageConfigField).at(0).prop('label')).toEqual('Cascading');
+      expect(component.find(StageConfigField).at(1).prop('label')).toEqual('Grace Period');
     });
   });
   describe('functionality', () => {

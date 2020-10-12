@@ -8,7 +8,7 @@ export const TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE =
   'spinnaker.titus.pipeline.stage.disableClusterStage';
 export const name = TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE; // for backwards compatibility
 module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',
       cloudProvider: 'titus',
@@ -28,7 +28,7 @@ module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
   })
   .controller('titusDisableClusterStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -38,7 +38,7 @@ module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('titus').then(function(accounts) {
+      AccountService.listAccounts('titus').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
@@ -70,7 +70,7 @@ module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
         stage.remainingEnabledServerGroups = 1;
       }
 
-      ctrl.pluralize = function(str, val) {
+      ctrl.pluralize = function (str, val) {
         if (val === 1) {
           return str;
         }

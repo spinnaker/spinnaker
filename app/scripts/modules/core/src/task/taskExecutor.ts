@@ -36,7 +36,7 @@ export class TaskExecutor {
     if (taskCommand.job[0].providerType === 'aws') {
       delete taskCommand.job[0].providerType;
     }
-    taskCommand.job.forEach(j => (j.user = AuthenticationService.getAuthenticatedUser().name));
+    taskCommand.job.forEach((j) => (j.user = AuthenticationService.getAuthenticatedUser().name));
 
     return TaskWriter.postTaskCommand(taskCommand).then(
       (task: any) => {

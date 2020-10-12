@@ -8,14 +8,15 @@ import { ServerGroupAdvancedSettingsCommon } from './ServerGroupAdvancedSettings
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 
 @Overridable('aws.serverGroup.advancedSettings')
-export class ServerGroupAdvancedSettingsInner extends React.Component<IServerGroupAdvancedSettingsProps>
+export class ServerGroupAdvancedSettingsInner
+  extends React.Component<IServerGroupAdvancedSettingsProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   private validators = new Map();
 
   public validate = (values: IAmazonServerGroupCommand) => {
     const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
-    this.validators.forEach(validator => {
+    this.validators.forEach((validator) => {
       const subErrors = validator(values);
       Object.assign(errors, { ...subErrors });
     });

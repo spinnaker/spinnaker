@@ -1,10 +1,10 @@
 import { AuthenticationService, IUser } from './AuthenticationService';
 
-describe('AuthenticationService', function() {
+describe('AuthenticationService', function () {
   beforeEach(() => AuthenticationService.reset());
 
-  describe('setAuthenticatedUser', function() {
-    it('sets name, authenticated flag', function() {
+  describe('setAuthenticatedUser', function () {
+    it('sets name, authenticated flag', function () {
       let user: IUser = AuthenticationService.getAuthenticatedUser();
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
@@ -15,7 +15,7 @@ describe('AuthenticationService', function() {
       expect(user.authenticated).toBe(true);
     });
 
-    it('disregards falsy values', function() {
+    it('disregards falsy values', function () {
       const user: IUser = AuthenticationService.getAuthenticatedUser();
 
       expect(user.name).toBe('[anonymous]');
@@ -31,8 +31,8 @@ describe('AuthenticationService', function() {
     });
   });
 
-  describe('authentication', function() {
-    it('fires events and sets user', function() {
+  describe('authentication', function () {
+    it('fires events and sets user', function () {
       let firedEvents = 0;
       AuthenticationService.onAuthentication(() => firedEvents++);
       AuthenticationService.onAuthentication(() => firedEvents++);

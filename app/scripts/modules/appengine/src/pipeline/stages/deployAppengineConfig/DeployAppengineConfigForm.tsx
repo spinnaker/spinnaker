@@ -40,7 +40,7 @@ export class DeployAppengineConfigForm extends React.Component<
   public componentDidMount() {
     Observable.fromPromise(AccountService.listAccounts('appengine'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
   }
 
   private onTemplateArtifactEdited = (artifact: IArtifact, name: string) => {
@@ -97,7 +97,7 @@ export class DeployAppengineConfigForm extends React.Component<
               excludedArtifactTypePatterns={DeployAppengineConfigForm.excludedArtifactTypes}
               expectedArtifactId={this.getInputArtifact(stage, 'cronArtifact').id}
               label="Cron Artifact"
-              onArtifactEdited={artifact => {
+              onArtifactEdited={(artifact) => {
                 this.onTemplateArtifactEdited(artifact, 'cronArtifact');
               }}
               helpKey={''}
@@ -124,7 +124,7 @@ export class DeployAppengineConfigForm extends React.Component<
               excludedArtifactTypePatterns={DeployAppengineConfigForm.excludedArtifactTypes}
               expectedArtifactId={this.getInputArtifact(stage, 'dispatchArtifact').id}
               label="Dispatch Artifact"
-              onArtifactEdited={artifact => {
+              onArtifactEdited={(artifact) => {
                 this.onTemplateArtifactEdited(artifact, 'dispatchArtifact');
               }}
               helpKey={''}
@@ -151,7 +151,7 @@ export class DeployAppengineConfigForm extends React.Component<
               excludedArtifactTypePatterns={DeployAppengineConfigForm.excludedArtifactTypes}
               expectedArtifactId={this.getInputArtifact(stage, 'indexArtifact').id}
               label="Index Artifact"
-              onArtifactEdited={artifact => {
+              onArtifactEdited={(artifact) => {
                 this.onTemplateArtifactEdited(artifact, 'indexArtifact');
               }}
               helpKey={''}
@@ -178,7 +178,7 @@ export class DeployAppengineConfigForm extends React.Component<
               excludedArtifactTypePatterns={DeployAppengineConfigForm.excludedArtifactTypes}
               expectedArtifactId={this.getInputArtifact(stage, 'queueArtifact').id}
               label="Queue Artifact"
-              onArtifactEdited={artifact => {
+              onArtifactEdited={(artifact) => {
                 this.onTemplateArtifactEdited(artifact, 'queueArtifact');
               }}
               helpKey={''}

@@ -247,9 +247,9 @@ export function parseSpelExpressions(template: string): SpelExpression[] {
   const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
 
   // A Monkey patch which adds the current context when an exception occurs
-  spelExpressions.forEach(expr => {
+  spelExpressions.forEach((expr) => {
     const getValue = expr._compiledExpression.getValue;
-    expr._compiledExpression.getValue = function() {
+    expr._compiledExpression.getValue = function () {
       const state = arguments[0];
       try {
         return getValue.apply(expr._compiledExpression, arguments);

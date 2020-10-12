@@ -38,7 +38,7 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
         excludedArtifactTypePatterns: this.excludedArtifactTypes(),
         excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
       }).then(
-        artifact => {
+        (artifact) => {
           this.props.addExpectedArtifact(artifact);
           this.props.onChange(
             createFakeReactSyntheticEvent({
@@ -63,7 +63,7 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
     this.props.onChange(
       createFakeReactSyntheticEvent({
         name: this.props.name,
-        value: selected.filter(id => id !== artifact.id),
+        value: selected.filter((id) => id !== artifact.id),
       }),
     );
   };
@@ -75,7 +75,7 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
       excludedArtifactTypePatterns: this.excludedArtifactTypes(),
       excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
     }).then(
-      artifact => this.props.updateExpectedArtifact(artifact),
+      (artifact) => this.props.updateExpectedArtifact(artifact),
       () => null,
     );
   };

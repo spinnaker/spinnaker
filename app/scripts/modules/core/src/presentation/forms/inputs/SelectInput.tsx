@@ -26,7 +26,7 @@ export function SelectInput(props: ISelectInputProps) {
 
   useEffect(() => {
     if (!isNil(defaultValue)) {
-      const values = isStringArray(options) ? options : (options as Array<Option<string>>).map(o => o.value);
+      const values = isStringArray(options) ? options : (options as Array<Option<string>>).map((o) => o.value);
       if (!values.includes(value)) {
         props.onChange(createFakeReactSyntheticEvent({ name: props.name, value: defaultValue }));
       }
@@ -35,7 +35,7 @@ export function SelectInput(props: ISelectInputProps) {
 
   const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
     <select className={className} value={orEmptyString(value)} {...otherProps}>
-      {opts.map(option => (
+      {opts.map((option) => (
         <option key={option.value} value={option.value} disabled={option.disabled}>
           {option.label}
         </option>
@@ -44,7 +44,7 @@ export function SelectInput(props: ISelectInputProps) {
   );
 
   if (isStringArray(options)) {
-    return <StringsAsOptions strings={options}>{opts => <SelectElement opts={opts} />}</StringsAsOptions>;
+    return <StringsAsOptions strings={options}>{(opts) => <SelectElement opts={opts} />}</StringsAsOptions>;
   } else {
     return <SelectElement opts={options as Array<Option<string>>} />;
   }

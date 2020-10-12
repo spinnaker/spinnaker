@@ -1,9 +1,7 @@
 <div class="container-fluid form-horizontal" ng-controller="appengineServerGroupBasicSettingsCtrl as basicSettingsCtrl">
   <ng-form name="basicSettings">
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Account
-      </div>
+      <div class="col-md-3 sm-label-right">Account</div>
       <div class="col-md-7">
         <account-select-field
           read-only="command.viewState.readOnlyFields.credentials"
@@ -17,9 +15,7 @@
     </div>
 
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Region
-      </div>
+      <div class="col-md-3 sm-label-right">Region</div>
       <div class="col-md-7">
         <input type="text" readonly class="form-control input-sm" name="region" ng-model="command.region" />
       </div>
@@ -141,8 +137,7 @@
             class="form-control input-sm"
             ng-options="basicSettingsCtrl.humanReadableGitCredentialType(type) for type in basicSettingsCtrl.getSupportedGitCredentialTypes()"
             ng-model="command.gitCredentialType"
-          >
-          </select>
+          ></select>
         </div>
       </div>
 
@@ -239,7 +234,7 @@
           <help-field key="appengine.serverGroup.matchBranchOnRegex"></help-field>
           <input
             type="text"
-            style="width: 140px;"
+            style="width: 140px"
             class="form-control input-sm pull-right"
             name="matchOnRegex"
             ng-model="command.trigger.matchBranchOnRegex"
@@ -269,9 +264,7 @@
               class="text-left"
               ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
             >
-              <p>
-                There is already a server group in this cluster. Do you want to clone it?
-              </p>
+              <p>There is already a server group in this cluster. Do you want to clone it?</p>
               <p>
                 Cloning copies the entire configuration from the selected server group, allowing you to modify whichever
                 fields (e.g. image) you need to change in the new server group.

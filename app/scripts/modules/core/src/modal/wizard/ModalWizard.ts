@@ -28,7 +28,7 @@ export class ModalWizard {
   }
 
   public static getPage(key: string): IModalWizardPage {
-    return this.pageRegistry.find(p => p.key === key);
+    return this.pageRegistry.find((p) => p.key === key);
   }
 
   public static markDirty(key: string): void {
@@ -48,7 +48,7 @@ export class ModalWizard {
   }
 
   public static setCurrentPage(page: IModalWizardPage, skipScroll?: boolean): void {
-    this.pageRegistry.forEach(test => (test.state.current = test === page));
+    this.pageRegistry.forEach((test) => (test.state.current = test === page));
     this.currentPage = page;
 
     if (page.state.markCleanOnView) {
@@ -80,7 +80,7 @@ export class ModalWizard {
   }
 
   public static renderPages(): void {
-    const renderedPages: IModalWizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
+    const renderedPages: IModalWizardPage[] = this.pageRegistry.filter((page) => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
       this.setCurrentPage(renderedPages[0]);
@@ -89,20 +89,20 @@ export class ModalWizard {
 
   public static isComplete(): boolean {
     return this.renderedPages
-      .map(p => p.state)
-      .filter(s => s.rendered && s.required)
-      .every(s => s.done && !s.dirty);
+      .map((p) => p.state)
+      .filter((s) => s.rendered && s.required)
+      .every((s) => s.done && !s.dirty);
   }
 
   public static allPagesVisited(): boolean {
     return this.renderedPages
-      .map(p => p.state)
-      .filter(s => s.rendered && s.required)
-      .every(s => s.done);
+      .map((p) => p.state)
+      .filter((s) => s.rendered && s.required)
+      .every((s) => s.done);
   }
 
   public static setRendered(key: string, rendered: boolean): void {
-    this.pageRegistry.filter(page => page.key === key).forEach(page => (page.state.rendered = rendered));
+    this.pageRegistry.filter((page) => page.key === key).forEach((page) => (page.state.rendered = rendered));
     this.renderPages();
   }
 

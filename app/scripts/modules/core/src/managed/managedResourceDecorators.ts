@@ -20,7 +20,7 @@ export const addManagedResourceMetadataToServerGroups = (application: Applicatio
   const clusterResources = getResourcesOfKind(application, ['cluster']);
   const serverGroups: IServerGroup[] = application.serverGroups.data;
 
-  serverGroups.forEach(serverGroup => {
+  serverGroups.forEach((serverGroup) => {
     const matchingResource = clusterResources.find(
       ({ moniker, locations: { account, regions } }) =>
         isMonikerEqual(moniker, serverGroup.moniker) &&
@@ -42,7 +42,7 @@ export const addManagedResourceMetadataToLoadBalancers = (application: Applicati
   const loadBalancerResources = getResourcesOfKind(application, ['classic-load-balancer', 'application-load-balancer']);
   const loadBalancers: ILoadBalancer[] = application.loadBalancers.data;
 
-  loadBalancers.forEach(loadBalancer => {
+  loadBalancers.forEach((loadBalancer) => {
     const matchingResource = loadBalancerResources.find(
       ({ kind, moniker, locations: { account, regions } }) =>
         getKindName(kind) === getResourceKindForLoadBalancerType(loadBalancer.loadBalancerType) &&
@@ -65,7 +65,7 @@ export const addManagedResourceMetadataToSecurityGroups = (application: Applicat
   const securityGroupResources = getResourcesOfKind(application, ['security-group']);
   const securityGroups: ISecurityGroup[] = application.securityGroups.data;
 
-  securityGroups.forEach(securityGroup => {
+  securityGroups.forEach((securityGroup) => {
     const matchingResource = securityGroupResources.find(
       ({ moniker, locations: { account, regions } }) =>
         isMonikerEqual(moniker, securityGroup.moniker) &&

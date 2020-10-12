@@ -22,7 +22,7 @@ if (SETTINGS.feature.managedDelivery) {
         type: 'repositoryInformationProvided',
         getMessage: (labels: any[]) => `
           This stage requires one of the following triggers to locate your Delivery Config manifest:
-          <ul>${labels.map(label => `<li>${label}</li>`)}</ul>
+          <ul>${labels.map((label) => `<li>${label}</li>`)}</ul>
           `,
       } as IUpstreamFlagProvidedValidationConfig,
     ],

@@ -17,7 +17,7 @@ export function ArtifactoryTrigger() {
       label="Artifactory Name"
       touched={true}
       validationMessage={validationMessage}
-      input={props => (
+      input={(props) => (
         <ReactSelectInput
           {...props}
           isLoading={status === 'PENDING'}

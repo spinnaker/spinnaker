@@ -14,17 +14,17 @@ module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).
   '$q',
   'executionService',
   'clusterService',
-  function($q, executionService, clusterService) {
+  function ($q, executionService, clusterService) {
     const addExecutions = (application, executions) => {
       executionService.transformExecutions(application, executions, application.executions.data);
       return $q.when(executionService.addExecutionsToApplication(application, executions));
     };
 
-    const loadExecutions = application => {
+    const loadExecutions = (application) => {
       return executionService.getExecutions(application.name, application);
     };
 
-    const loadPipelineConfigs = application => {
+    const loadPipelineConfigs = (application) => {
       const pipelineLoader = PipelineConfigService.getPipelinesForApplication(application.name);
       const strategyLoader = PipelineConfigService.getStrategiesForApplication(application.name);
       return $q.all({ pipelineConfigs: pipelineLoader, strategyConfigs: strategyLoader });
@@ -35,7 +35,7 @@ module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).
       return $q.when(data.pipelineConfigs);
     };
 
-    const loadRunningExecutions = application => {
+    const loadRunningExecutions = (application) => {
       return executionService.getRunningExecutions(application.name);
     };
 
@@ -44,22 +44,22 @@ module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).
       return $q.when(data);
     };
 
-    const runningExecutionsLoaded = application => {
+    const runningExecutionsLoaded = (application) => {
       clusterService.addExecutionsToServerGroups(application);
       executionService.mergeRunningExecutionsIntoExecutions(application);
       application.getDataSource('serverGroups').dataUpdated();
     };
 
-    const executionsLoaded = application => {
+    const executionsLoaded = (application) => {
       addExecutionTags(application);
       executionService.removeCompletedExecutionsFromRunningData(application);
     };
 
-    const addExecutionTags = application => {
+    const addExecutionTags = (application) => {
       EntityTagsReader.addTagsToExecutions(application);
     };
 
-    const addPipelineTags = application => {
+    const addPipelineTags = (application) => {
       EntityTagsReader.addTagsToPipelines(application);
     };
 

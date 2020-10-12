@@ -39,14 +39,14 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
       fixedWidth: true,
       minHeight: 100,
       defaultHeight: 177,
-      keyMapper: rowIndex => {
+      keyMapper: (rowIndex) => {
         // instances have a fixed width (unless the details are shown), so use that to optimize row height measurement
         const group = this.state.groups[rowIndex];
         const instanceCountKeys: string[] = [];
         const countInstances = this.clusterFilterModel.asFilterModel.sortFilter.showAllInstances;
-        group.subgroups.forEach(subGroup => {
+        group.subgroups.forEach((subGroup) => {
           const subKeys: number[] = [];
-          subGroup.serverGroups.forEach(serverGroup => {
+          subGroup.serverGroups.forEach((serverGroup) => {
             subKeys.push(countInstances ? serverGroup.instances.length : 0);
           });
           instanceCountKeys.push(subKeys.sort().join(','));
@@ -104,10 +104,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     const { $stateParams } = ReactInjector;
     // Automatically scroll server group into view if deep linkedif ($stateParams.serverGroup) {
     this.clusterFilterService.groupsUpdatedStream.take(1).subscribe(() => {
-      const scrollToRow = this.state.groups.findIndex(group =>
-        group.subgroups.some(subgroup =>
+      const scrollToRow = this.state.groups.findIndex((group) =>
+        group.subgroups.some((subgroup) =>
           subgroup.serverGroups.some(
-            sg =>
+            (sg) =>
               sg.account === $stateParams.accountId &&
               sg.name === $stateParams.serverGroup &&
               sg.region === $stateParams.region,

@@ -77,7 +77,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
       this.manifest.manifest,
       this.securityGroup.moniker,
       this.securityGroup.account,
-    ).then(builtCommand => {
+    ).then((builtCommand) => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }

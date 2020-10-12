@@ -5,14 +5,14 @@ import { mock } from 'angular';
 import { AuthenticationService } from 'core/authentication';
 import { SETTINGS } from 'core/config/settings';
 
-describe('Directives: userMenu', function() {
+describe('Directives: userMenu', function () {
   var $scope, $compile;
 
   require('./userMenu.directive.html');
   beforeEach(mock.module(require('./userMenu.directive').AUTHENTICATION_USER_MENU));
 
   beforeEach(
-    mock.inject(function($rootScope, _$compile_) {
+    mock.inject(function ($rootScope, _$compile_) {
       $scope = $rootScope.$new();
       $compile = _$compile_;
     }),
@@ -31,8 +31,8 @@ describe('Directives: userMenu', function() {
     return domNode.next();
   }
 
-  describe('user menu rendering', function() {
-    it('displays nothing when auth is not enabled', function() {
+  describe('user menu rendering', function () {
+    it('displays nothing when auth is not enabled', function () {
       var domNode;
 
       SETTINGS.authEnabled = false;
@@ -41,7 +41,7 @@ describe('Directives: userMenu', function() {
       expect(domNode.length).toBe(0);
     });
 
-    it('displays the user menu when auth is enabled', function() {
+    it('displays the user menu when auth is enabled', function () {
       var domNode;
 
       SETTINGS.authEnabled = true;
@@ -51,7 +51,7 @@ describe('Directives: userMenu', function() {
       expect(domNode.length).toBe(1);
     });
 
-    it('displays the user name for both large and small screens', function() {
+    it('displays the user name for both large and small screens', function () {
       var domNode;
 
       SETTINGS.authEnabled = true;
@@ -59,12 +59,7 @@ describe('Directives: userMenu', function() {
       domNode = createUserMenu($scope);
 
       expect(domNode.find('.user-name-small').text()).toBe('sam mulligan');
-      expect(
-        domNode
-          .find('.user-name-large')
-          .text()
-          .trim(),
-      ).toBe('sam mulligan');
+      expect(domNode.find('.user-name-large').text().trim()).toBe('sam mulligan');
     });
   });
 });

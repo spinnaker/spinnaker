@@ -30,19 +30,19 @@ export class DeploymentStrategyRegistrar {
 
   public listStrategies(cloudProvider: string): IDeploymentStrategy[] {
     return this.strategies
-      .filter(s => !s.providerRestricted || this.providerRegistry[s.key].includes(cloudProvider))
+      .filter((s) => !s.providerRestricted || this.providerRegistry[s.key].includes(cloudProvider))
       .map(cloneDeep);
   }
 
   public registerProvider(provider: string, strategies: string[]) {
-    strategies.forEach(strategy => {
+    strategies.forEach((strategy) => {
       this.configureProviderRegistryEntry(strategy);
       this.providerRegistry[strategy].push(provider);
     });
   }
 
   public getStrategy(key: string): IDeploymentStrategy {
-    return this.strategies.find(s => s.key === key);
+    return this.strategies.find((s) => s.key === key);
   }
 
   private configureProviderRegistryEntry(key: string): void {

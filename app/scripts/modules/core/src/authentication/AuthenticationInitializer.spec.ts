@@ -7,7 +7,7 @@ import { AUTHENTICATION_MODULE } from './authentication.module';
 import { SETTINGS } from 'core/config/settings';
 
 declare const window: any;
-describe('authenticationProvider: application startup', function() {
+describe('authenticationProvider: application startup', function () {
   beforeEach(() => (SETTINGS.authEnabled = true));
   beforeEach(() => (window.spinnakerSettings.authEnabled = true));
   beforeEach(() => AuthenticationService.reset());
@@ -35,7 +35,7 @@ describe('authenticationProvider: application startup', function() {
   afterEach(SETTINGS.resetToOriginal);
 
   describe('authenticateUser', () => {
-    it('requests authentication from gate, then sets authentication name field', function() {
+    it('requests authentication from gate, then sets authentication name field', function () {
       $http.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
       $timeout.flush();
       $http.flush();
@@ -45,7 +45,7 @@ describe('authenticationProvider: application startup', function() {
       expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(true);
     });
 
-    it('requests authentication from gate, then opens modal and redirects on 401', function() {
+    it('requests authentication from gate, then opens modal and redirects on 401', function () {
       $http.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
       $rootScope.$digest();
       $http.flush();

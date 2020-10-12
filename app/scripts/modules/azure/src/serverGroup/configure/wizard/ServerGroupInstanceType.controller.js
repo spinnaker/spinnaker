@@ -8,7 +8,7 @@ export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_SERVERGROUPINSTANCETYPE_C
 module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SERVERGROUPINSTANCETYPE_CONTROLLER, []).controller('azureInstanceTypeCtrl', [
   '$scope',
   'modalWizardService',
-  function($scope, modalWizardService) {
+  function ($scope, modalWizardService) {
     modalWizardService.getWizard().markComplete('instance-type');
     modalWizardService.getWizard().markClean('instance-type');
   },

@@ -13,13 +13,13 @@ export function PreconfiguredJobStageConfig(props: IStageConfigProps) {
       {...props}
       onChange={props.updateStage}
       render={() =>
-        parameters.map(param => (
+        parameters.map((param) => (
           <FormikFormField
             key={param.name}
             name={`parameters.${param.name}`}
             label={param.label}
             help={param.description ? <HelpField content={param.description} /> : null}
-            input={props => <TextInput {...props} />}
+            input={(props) => <TextInput {...props} />}
             {...props}
           />
         ))

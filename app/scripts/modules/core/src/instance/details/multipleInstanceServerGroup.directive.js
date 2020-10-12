@@ -9,7 +9,7 @@ export const CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE =
 export const name = CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE; // for backwards compatibility
 angular
   .module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE, [])
-  .directive('multipleInstanceServerGroup', function() {
+  .directive('multipleInstanceServerGroup', function () {
     return {
       restrict: 'E',
       scope: {},

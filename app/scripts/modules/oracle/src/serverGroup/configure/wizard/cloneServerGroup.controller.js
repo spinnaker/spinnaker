@@ -18,7 +18,7 @@ module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER, [UIROUTE
     'serverGroupCommand',
     'oracleServerGroupConfigurationService',
     'title',
-    function(
+    function (
       $scope,
       $uibModalInstance,
       $q,
@@ -71,28 +71,28 @@ module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER, [UIROUTE
       });
 
       function configureCommand() {
-        oracleServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
+        oracleServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
           $scope.state.loaded = true;
         });
       }
 
-      this.isValid = function() {
+      this.isValid = function () {
         return $scope.command && $scope.form.$valid && ModalWizard.isComplete();
       };
 
-      this.showSubmitButton = function() {
+      this.showSubmitButton = function () {
         return ModalWizard.allPagesVisited();
       };
 
-      this.cancel = function() {
+      this.cancel = function () {
         $uibModalInstance.dismiss();
       };
 
-      this.submit = function() {
+      this.submit = function () {
         if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
           return $uibModalInstance.close($scope.command);
         }
-        $scope.taskMonitor.submit(function() {
+        $scope.taskMonitor.submit(function () {
           return serverGroupWriter.cloneServerGroup($scope.command, application);
         });
       };

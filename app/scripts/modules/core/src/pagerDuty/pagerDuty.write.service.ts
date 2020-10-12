@@ -31,7 +31,7 @@ export class PagerDutyWriter {
     } as IJob;
 
     if (applications && applications.length > 0) {
-      job.applications = applications.map(app => app.name);
+      job.applications = applications.map((app) => app.name);
     }
 
     if (keys && keys.length > 0) {

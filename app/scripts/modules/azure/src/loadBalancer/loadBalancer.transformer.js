@@ -10,14 +10,14 @@ export const AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.azure.load
 export const name = AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
 module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalancerTransformer', [
   '$q',
-  function($q) {
+  function ($q) {
     function normalizeLoadBalancer(loadBalancer) {
-      loadBalancer.serverGroups.forEach(function(serverGroup) {
+      loadBalancer.serverGroups.forEach(function (serverGroup) {
         serverGroup.account = loadBalancer.account;
         serverGroup.region = loadBalancer.region;
 
         if (serverGroup.detachedInstances) {
-          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function (instanceId) {
             return { id: instanceId };
           });
           serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
@@ -27,14 +27,8 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
       });
       const activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _.chain(activeServerGroups)
-        .map('instances')
-        .flatten()
-        .value();
-      loadBalancer.detachedInstances = _.chain(activeServerGroups)
-        .map('detachedInstances')
-        .flatten()
-        .value();
+      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       return $q.resolve(loadBalancer);
     }
 

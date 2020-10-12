@@ -47,7 +47,7 @@ export class ExecutionDetailsSectionNav extends React.Component<
   public render() {
     return (
       <ul className="nav nav-pills">
-        {this.props.sections.map(section => (
+        {this.props.sections.map((section) => (
           <Section key={section} section={section} active={this.state.activeSection === section} />
         ))}
       </ul>

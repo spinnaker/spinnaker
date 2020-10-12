@@ -11,10 +11,10 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SERVERGROUPINSTANCEARCHETYPE_CONTROLLE
     '$scope',
     'instanceTypeService',
     'modalWizardService',
-    function($scope, instanceTypeService, modalWizardService) {
+    function ($scope, instanceTypeService, modalWizardService) {
       const wizard = modalWizardService.getWizard();
 
-      $scope.$watch('command.viewState.instanceProfile', function() {
+      $scope.$watch('command.viewState.instanceProfile', function () {
         if (!$scope.command.viewState.instanceProfile || $scope.command.viewState.instanceProfile === 'custom') {
           wizard.excludePage('instance-type');
         } else {
@@ -24,7 +24,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SERVERGROUPINSTANCEARCHETYPE_CONTROLLE
         }
       });
 
-      $scope.$watch('command.viewState.instanceType', function(newVal) {
+      $scope.$watch('command.viewState.instanceType', function (newVal) {
         if (newVal) {
           wizard.markClean('instance-profile');
           wizard.markComplete('instance-profile');

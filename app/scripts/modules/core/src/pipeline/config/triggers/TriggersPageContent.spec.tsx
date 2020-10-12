@@ -102,10 +102,7 @@ describe('<TriggersPageContent />', () => {
         <TriggersPageContent {...props} pipeline={{ ...props.pipeline, triggers: [triggerA, triggerB] }} />,
       );
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component
-        .find('.glyphicon-trash')
-        .at(0)
-        .simulate('click');
+      component.find('.glyphicon-trash').at(0).simulate('click');
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [triggerB] });
     });
@@ -122,10 +119,7 @@ describe('<TriggersPageContent />', () => {
       );
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(0);
-      component
-        .find('.glyphicon-trash')
-        .at(0)
-        .simulate('click');
+      component.find('.glyphicon-trash').at(0).simulate('click');
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(1);
       expect(updatePipelineSpy).toHaveBeenCalledWith({ triggers: [triggerB], expectedArtifacts: [expectedArtifactB] });
@@ -146,10 +140,7 @@ describe('<TriggersPageContent />', () => {
         />,
       );
       expect(updatePipelineSpy).toHaveBeenCalledTimes(0);
-      component
-        .find('.glyphicon-trash')
-        .at(0)
-        .simulate('click');
+      component.find('.glyphicon-trash').at(0).simulate('click');
       expect(updatePipelineSpy).toHaveBeenCalledTimes(1);
       expect(removeReferencesFromStagesSpy).toHaveBeenCalledTimes(0);
       expect(updatePipelineSpy).toHaveBeenCalledWith({

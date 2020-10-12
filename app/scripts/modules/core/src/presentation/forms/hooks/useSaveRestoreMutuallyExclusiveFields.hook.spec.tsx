@@ -9,10 +9,16 @@ import { SpinFormik } from '../SpinFormik';
 function PizzaComponent() {
   return (
     <>
-      <FormikFormField name="topping" input={props => <SelectInput {...props} options={['peppers', 'mushrooms']} />} />
-      <FormikFormField name="crust" input={props => <SelectInput {...props} options={['thin', 'deepdish']} />} />
-      <FormikFormField name="sauce" input={props => <SelectInput {...props} options={['red', 'white']} />} />
-      <FormikFormField name="cheese" input={props => <SelectInput {...props} options={['mozzarella', 'cheddar']} />} />
+      <FormikFormField
+        name="topping"
+        input={(props) => <SelectInput {...props} options={['peppers', 'mushrooms']} />}
+      />
+      <FormikFormField name="crust" input={(props) => <SelectInput {...props} options={['thin', 'deepdish']} />} />
+      <FormikFormField name="sauce" input={(props) => <SelectInput {...props} options={['red', 'white']} />} />
+      <FormikFormField
+        name="cheese"
+        input={(props) => <SelectInput {...props} options={['mozzarella', 'cheddar']} />}
+      />
     </>
   );
 }
@@ -20,9 +26,9 @@ function PizzaComponent() {
 function SandwichComponent() {
   return (
     <>
-      <FormikFormField name="bread" input={props => <SelectInput {...props} options={['white', 'wheat']} />} />
-      <FormikFormField name="meat" input={props => <SelectInput {...props} options={['ham', 'turkey']} />} />
-      <FormikFormField name="cheese" input={props => <SelectInput {...props} options={['cheddar', 'swiss']} />} />
+      <FormikFormField name="bread" input={(props) => <SelectInput {...props} options={['white', 'wheat']} />} />
+      <FormikFormField name="meat" input={(props) => <SelectInput {...props} options={['ham', 'turkey']} />} />
+      <FormikFormField name="cheese" input={(props) => <SelectInput {...props} options={['cheddar', 'swiss']} />} />
     </>
   );
 }
@@ -39,7 +45,7 @@ function OrderComponent({ formik }: { formik: FormikProps<any> }) {
     <>
       <FormikFormField
         name="pizzaOrSandwich"
-        input={props => <SelectInput {...props} options={['pizza', 'sandwich']} />}
+        input={(props) => <SelectInput {...props} options={['pizza', 'sandwich']} />}
       />
 
       {formik.values.pizzaOrSandwich === 'pizza' && <PizzaComponent />}
@@ -62,7 +68,7 @@ const setupTest = (formikRef: React.MutableRefObject<any>) => {
       ref={formikRef}
       onSubmit={null}
       initialValues={initialValues}
-      render={formik => <OrderComponent formik={formik} />}
+      render={(formik) => <OrderComponent formik={formik} />}
     />,
   );
 };

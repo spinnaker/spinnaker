@@ -19,8 +19,7 @@
     ng-disabled="vm.disableRegionSelect"
     ng-options="region for region in vm.regions"
     required
-  >
-  </select>
+  ></select>
   <checklist
     ng-if="vm.component.credentials && !vm.singleRegion"
     items="vm.regions"

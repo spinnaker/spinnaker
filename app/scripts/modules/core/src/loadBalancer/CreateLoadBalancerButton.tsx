@@ -44,7 +44,7 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
   private createLoadBalancer = (): void => {
     const { app } = this.props;
     ProviderSelectionService.selectProvider(app, 'loadBalancer', this.createLoadBalancerProviderFilterFn).then(
-      selectedProvider => {
+      (selectedProvider) => {
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
 
         if (provider.CreateLoadBalancerModal) {

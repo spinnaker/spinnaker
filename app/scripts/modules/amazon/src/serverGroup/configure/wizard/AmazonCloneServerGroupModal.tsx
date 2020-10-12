@@ -145,7 +145,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
     if (!tags) {
       return;
     }
-    Object.keys(tags).forEach(key => {
+    Object.keys(tags).forEach((key) => {
       if (!key.length && !tags[key].length) {
         delete tags[key];
       }

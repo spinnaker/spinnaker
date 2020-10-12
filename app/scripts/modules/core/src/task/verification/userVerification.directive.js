@@ -10,7 +10,7 @@ export const CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE =
   'spinnaker.core.task.verification.userVerification.directive';
 export const name = CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE; // for backwards compatibility
 module(CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE, [])
-  .directive('userVerification', function() {
+  .directive('userVerification', function () {
     /**
      * The user verification directive takes at least two arguments
      */
@@ -30,7 +30,7 @@ module(CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE, [])
   })
   .controller('UserVerificationCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       this.$onInit = () => {
         this.label =
           this.label ||
@@ -48,7 +48,7 @@ module(CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE, [])
         }
         if (this.account) {
           this.verification.toVerify = this.account;
-          AccountService.challengeDestructiveActions(this.account).then(challenge => {
+          AccountService.challengeDestructiveActions(this.account).then((challenge) => {
             this.required = challenge;
             this.verification.verified = !challenge;
           });

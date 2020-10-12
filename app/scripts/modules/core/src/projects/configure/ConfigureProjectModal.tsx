@@ -88,7 +88,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     const currentProject = this.props.projectConfiguration.name;
     return Promise.all([fetchAccounts, fetchApps, fetchProjects]).then(
       ([allAccounts, allApplications, allProjects]) => {
-        allProjects = allProjects.filter(project => project.name !== currentProject);
+        allProjects = allProjects.filter((project) => project.name !== currentProject);
         this.setState({ allAccounts, allApplications, allProjects });
       },
     );
@@ -112,7 +112,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
   public render() {
     const { dismissModal, projectConfiguration } = this.props;
     const { allAccounts, allApplications, allProjects, loading, taskMonitor } = this.state;
-    const appNames = allApplications.map(app => app.name);
+    const appNames = allApplications.map((app) => app.name);
 
     return (
       <WizardModal<IProject>

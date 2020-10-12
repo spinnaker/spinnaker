@@ -57,11 +57,11 @@ export class BaseBuildTriggerTemplate extends React.Component<
 
     const trigger = this.props.command.trigger as IBuildTrigger;
     newState.builds = (allBuilds || [])
-      .filter(build => !build.building && build.result === 'SUCCESS')
+      .filter((build) => !build.building && build.result === 'SUCCESS')
       .sort((a, b) => b.number - a.number);
     if (newState.builds.length) {
       // default to what is supplied by the trigger if possible; otherwise, use the latest
-      const defaultSelection = newState.builds.find(b => b.number === trigger.buildNumber) || newState.builds[0];
+      const defaultSelection = newState.builds.find((b) => b.number === trigger.buildNumber) || newState.builds[0];
       newState.selectedBuild = defaultSelection.number;
       this.updateSelectedBuild(defaultSelection);
     }

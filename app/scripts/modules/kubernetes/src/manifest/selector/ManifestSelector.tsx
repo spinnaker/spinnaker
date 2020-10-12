@@ -153,7 +153,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .do(() => this.setStateAndUpdateStage({ loading: true }))
       .switchMap(({ kind, namespace, account }) => Observable.fromPromise(this.search(kind, namespace, account)))
       .takeUntil(this.destroy$)
-      .subscribe(resources => {
+      .subscribe((resources) => {
         if (this.state.selector.manifestName == null && this.getSelectedMode() === SelectorMode.Static) {
           this.handleNameChange('');
         }
@@ -164,14 +164,14 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   public componentWillUnmount = () => this.destroy$.next();
 
   public loadAccounts = (): IPromise<void> => {
-    return AccountService.getAllAccountDetailsForProvider('kubernetes').then(accounts => {
+    return AccountService.getAllAccountDetailsForProvider('kubernetes').then((accounts) => {
       const selector = this.state.selector;
       const kind = parseSpinnakerName(selector.manifestName).kind;
 
       this.setStateAndUpdateStage({ accounts });
 
       if (!selector.account && accounts.length > 0) {
-        selector.account = accounts.some(e => e.name === SETTINGS.providers.kubernetes.defaults.account)
+        selector.account = accounts.some((e) => e.name === SETTINGS.providers.kubernetes.defaults.account)
           ? SETTINGS.providers.kubernetes.defaults.account
           : accounts[0].name;
       }
@@ -185,7 +185,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   };
 
   private handleAccountChange = (selectedAccount: string): void => {
-    const details = (this.state.accounts || []).find(account => account.name === selectedAccount);
+    const details = (this.state.accounts || []).find((account) => account.name === selectedAccount);
     if (!details) {
       return;
     }
@@ -201,7 +201,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
     if (
       !this.isExpression(this.state.selector.location) &&
-      namespaces.every(ns => ns !== this.state.selector.location)
+      namespaces.every((ns) => ns !== this.state.selector.location)
     ) {
       this.state.selector.location = null;
     }
@@ -247,8 +247,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     if (this.isExpression(account)) {
       return $q.resolve([]);
     }
-    return ManifestKindSearchService.search(kind, namespace, account).then(results =>
-      results.map(result => result.name).sort(),
+    return ManifestKindSearchService.search(kind, namespace, account).then((results) =>
+      results.map((result) => result.name).sort(),
     );
   };
 
@@ -279,7 +279,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     this.setStateAndUpdateStage({ selector: this.state.selector });
   };
 
-  private modeDelegate = (): ISelectorHandler => this.handlers.find(handler => handler.handles(this.getSelectedMode()));
+  private modeDelegate = (): ISelectorHandler =>
+    this.handlers.find((handler) => handler.handles(this.getSelectedMode()));
 
   private promptTextCreator = (text: string) => `Use custom expression: ${text}`;
 
@@ -314,14 +315,14 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     const { selector, accounts, kinds, namespaces, resources, loading } = this.state;
     const kind = this.modeDelegate().getKind();
     const name = parseSpinnakerName(selector.manifestName).name;
-    const resourceNames = resources.map(resource => parseSpinnakerName(resource).name);
+    const resourceNames = resources.map((resource) => parseSpinnakerName(resource).name);
     const selectedKinds = selector.kinds || [];
     const KindField = (
       <StageConfigField label="Kind">
         <Creatable
           clearable={false}
           value={{ value: kind, label: kind }}
-          options={kinds.map(k => ({ value: k, label: k }))}
+          options={kinds.map((k) => ({ value: k, label: k }))}
           onChange={(option: Option<string>) => this.handleKindChange(option && option.value)}
           promptTextCreator={this.promptTextCreator}
         />
@@ -342,7 +343,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
           <Creatable
             clearable={false}
             value={{ value: selector.location, label: selector.location }}
-            options={namespaces.map(ns => ({ value: ns, label: ns }))}
+            options={namespaces.map((ns) => ({ value: ns, label: ns }))}
             onChange={this.handleNamespaceChange}
             promptTextCreator={this.promptTextCreator}
           />
@@ -350,7 +351,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
         {!modes.includes(SelectorMode.Label) && KindField}
         {modes.length > 1 && (
           <StageConfigField label="Selector">
-            {modes.map(mode => (
+            {modes.map((mode) => (
               <div className="radio" key={mode}>
                 <label htmlFor={mode}>
                   <input
@@ -372,7 +373,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
               isLoading={loading}
               clearable={false}
               value={{ value: name, label: name }}
-              options={resourceNames.map(r => ({ value: r, label: r }))}
+              options={resourceNames.map((r) => ({ value: r, label: r }))}
               onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : '')}
               promptTextCreator={this.promptTextCreator}
             />
@@ -403,8 +404,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
                 clearable={false}
                 multi={true}
                 value={selectedKinds}
-                options={kinds.map(k => ({ value: k, label: k }))}
-                onChange={(options: Array<Option<string>>) => this.handleKindsChange(options.map(o => o.value))}
+                options={kinds.map((k) => ({ value: k, label: k }))}
+                onChange={(options: Array<Option<string>>) => this.handleKindsChange(options.map((o) => o.value))}
               />
             </StageConfigField>
             <StageConfigField label="Labels">

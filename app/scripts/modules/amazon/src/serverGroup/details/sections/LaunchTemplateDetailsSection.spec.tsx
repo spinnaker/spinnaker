@@ -72,8 +72,8 @@ describe('Launch template details', () => {
       serverGroup: newServerGroup,
     });
 
-    const imageName = wrapper.findWhere(lv => lv.prop('label') === 'Image Name');
-    const baseImage = wrapper.findWhere(lv => lv.prop('label') === 'Base Image Name');
+    const imageName = wrapper.findWhere((lv) => lv.prop('label') === 'Image Name');
+    const baseImage = wrapper.findWhere((lv) => lv.prop('label') === 'Base Image Name');
 
     expect(imageName.length).toEqual(0);
     expect(baseImage.length).toEqual(0);
@@ -100,11 +100,11 @@ describe('Launch template details', () => {
       serverGroup: newServerGroup,
     });
 
-    const spotPrice = wrapper.findWhere(lv => lv.prop('label') === 'Max Spot Price');
-    const keyName = wrapper.findWhere(lv => lv.prop('label') === 'Key Name');
-    const kernelId = wrapper.findWhere(lv => lv.prop('label') === 'Kernel ID');
-    const ramdiskId = wrapper.findWhere(lv => lv.prop('label') === 'Ramdisk ID');
-    const userData = wrapper.findWhere(lv => lv.prop('label') === 'User Data');
+    const spotPrice = wrapper.findWhere((lv) => lv.prop('label') === 'Max Spot Price');
+    const keyName = wrapper.findWhere((lv) => lv.prop('label') === 'Key Name');
+    const kernelId = wrapper.findWhere((lv) => lv.prop('label') === 'Kernel ID');
+    const ramdiskId = wrapper.findWhere((lv) => lv.prop('label') === 'Ramdisk ID');
+    const userData = wrapper.findWhere((lv) => lv.prop('label') === 'User Data');
 
     expect(spotPrice.length).toEqual(0);
     expect(keyName.length).toEqual(0);

@@ -21,7 +21,7 @@ export default class LabelFilter extends React.Component<ILabelFilterProps> {
   };
 
   private onAdd = (): void => {
-    if (this.props.labelFilters.some(l => l.key === null)) {
+    if (this.props.labelFilters.some((l) => l.key === null)) {
       return;
     }
     const newFilter: ILabelFilter = {
@@ -64,13 +64,13 @@ export default class LabelFilter extends React.Component<ILabelFilterProps> {
   private getKeyOptions = (idx: number): Array<Option<string>> => {
     const allLabelKeys = Object.keys(this.props.labelsMap);
     const otherFilters = this.props.labelFilters.filter((_e, i) => i !== idx);
-    const availableKeys = without(allLabelKeys, ...otherFilters.map(e => e.key));
+    const availableKeys = without(allLabelKeys, ...otherFilters.map((e) => e.key));
     return availableKeys.map((key: string) => ({ label: key, value: key }));
   };
 
   private getValueOptions = (key: string): Array<Option<string>> => {
     const values = get(this.props.labelsMap, key, []);
-    return values.map(val => ({ label: val, value: val }));
+    return values.map((val) => ({ label: val, value: val }));
   };
 
   public render() {

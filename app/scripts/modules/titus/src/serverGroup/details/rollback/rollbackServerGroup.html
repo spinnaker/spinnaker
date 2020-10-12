@@ -7,9 +7,7 @@
     </div>
     <div class="modal-body confirmation-modal">
       <div class="row">
-        <div class="col-sm-3 sm-label-right">
-          Restore to
-        </div>
+        <div class="col-sm-3 sm-label-right">Restore to</div>
         <div class="col-sm-7">
           <ui-select
             ng-model="command.rollbackContext.restoreServerGroupName"
@@ -74,9 +72,7 @@
       </div>
 
       <div class="row">
-        <div class="col-sm-4 sm-label-right">
-          Rollback Operations
-        </div>
+        <div class="col-sm-4 sm-label-right">Rollback Operations</div>
       </div>
       <div class="row" ng-if="command.rollbackType === 'EXPLICIT'">
         <div class="col-sm-11 col-sm-offset-1">
@@ -100,9 +96,7 @@
               <strong>min</strong>: {{ serverGroup.capacity.min }} ]
             </li>
           </ol>
-          <p>
-            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
-          </p>
+          <p>This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).</p>
         </div>
       </div>
       <div class="row" ng-if="command.rollbackType === 'PREVIOUS_IMAGE'">
@@ -124,9 +118,7 @@
               }} ]
             </li>
           </ol>
-          <p>
-            This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
-          </p>
+          <p>This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).</p>
         </div>
       </div>
     </div>

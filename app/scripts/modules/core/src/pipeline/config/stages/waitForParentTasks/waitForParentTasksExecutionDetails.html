@@ -6,9 +6,7 @@
       </div>
     </div>
     <div class="row" ng-repeat="task in stage.parentTasks" style="margin-bottom: 10px">
-      <div class="col-md-6">
-        {{task.name}}
-      </div>
+      <div class="col-md-6">{{task.name}}</div>
       <div class="col-md-6">
         <span class="label label-default label-{{task.status.toLowerCase()}}">{{task.status}}</span>
       </div>

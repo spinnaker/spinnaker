@@ -43,7 +43,7 @@ class HealthCheckCreateCtrl implements IController {
         this.healthCheck.healthCheckType,
       ]) || [];
 
-    if (!this.existingHealthChecksForProtocol.find(healthCheck => healthCheck.name === this.healthCheck.name)) {
+    if (!this.existingHealthChecksForProtocol.find((healthCheck) => healthCheck.name === this.healthCheck.name)) {
       delete this.healthCheck.name;
       delete this.healthCheckPlaceholder;
     }

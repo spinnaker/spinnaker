@@ -54,7 +54,7 @@ export class ExecutionService {
     pipelineConfigIds: string[] = null,
     expand = false,
   ): IPromise<IExecution[]> {
-    const statusString = statuses.map(status => status.toUpperCase()).join(',') || null;
+    const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
       ? API.all('executions').getList({ limit, pipelineConfigIds, statuses })
       : API.one('applications', applicationName)
@@ -92,7 +92,7 @@ export class ExecutionService {
     const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
     const limit = sortFilter.count;
     if (application && pipelines.length) {
-      return this.getConfigIdsFromFilterModel(application).then(pipelineConfigIds => {
+      return this.getConfigIdsFromFilterModel(application).then((pipelineConfigIds) => {
         return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds, expand);
       });
     }
@@ -123,7 +123,7 @@ export class ExecutionService {
     if (!executions || !executions.length) {
       return;
     }
-    executions.forEach(execution => {
+    executions.forEach((execution) => {
       const stringVal = this.stringifyExecution(execution);
       // do not transform if it hasn't changed
       const match = currentData.find((test: IExecution) => test.id === execution.id);
@@ -140,11 +140,11 @@ export class ExecutionService {
     return application.pipelineConfigs.ready().then(() => {
       const data = application.pipelineConfigs.data.concat(application.strategyConfigs.data);
       return pipelines
-        .map(p => {
+        .map((p) => {
           const match = data.find((c: IPipeline) => c.name === p);
           return match ? match.id : null;
         })
-        .filter(id => !!id);
+        .filter((id) => !!id);
     });
   }
 
@@ -219,7 +219,7 @@ export class ExecutionService {
 
   public startAndMonitorPipeline(app: Application, pipeline: string, trigger: any): IPromise<IRetryablePromise<void>> {
     const { executionService } = ReactInjector;
-    return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then(triggerResult =>
+    return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then((triggerResult) =>
       executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
     );
   }
@@ -265,7 +265,7 @@ export class ExecutionService {
       },
     }).then(
       () => this.waitUntilPipelineIsCancelled(application, executionId).then(deferred.resolve),
-      exception => deferred.reject(exception && exception.data ? exception.message : null),
+      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
     );
     return deferred.promise;
   }
@@ -284,7 +284,7 @@ export class ExecutionService {
         this.waitUntilExecutionMatches(executionId, matcher)
           .then(() => application.executions.refresh())
           .then(deferred.resolve),
-      exception => deferred.reject(exception && exception.data ? exception.message : null),
+      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
     );
     return deferred.promise;
   }
@@ -303,7 +303,7 @@ export class ExecutionService {
         this.waitUntilExecutionMatches(executionId, matcher)
           .then(() => application.executions.refresh())
           .then(deferred.resolve),
-      exception => deferred.reject(exception && exception.data ? exception.message : null),
+      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
     );
     return deferred.promise;
   }
@@ -315,7 +315,7 @@ export class ExecutionService {
       url: [SETTINGS.gateUrl, 'pipelines', executionId].join('/'),
     }).then(
       () => this.waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve),
-      exception => deferred.reject(exception && exception.data ? exception.data.message : null),
+      (exception) => deferred.reject(exception && exception.data ? exception.data.message : null),
     );
     return deferred.promise;
   }
@@ -324,7 +324,7 @@ export class ExecutionService {
     executionId: string,
     closure: (execution: IExecution) => boolean,
   ): IPromise<IExecution> {
-    return this.getExecution(executionId).then(execution => {
+    return this.getExecution(executionId).then((execution) => {
       if (closure(execution)) {
         return execution;
       }
@@ -344,7 +344,7 @@ export class ExecutionService {
         if (!executions || !executions.length) {
           return [];
         }
-        executions.forEach(execution => ExecutionsTransformer.transformExecution({} as Application, execution));
+        executions.forEach((execution) => ExecutionsTransformer.transformExecution({} as Application, execution));
         return executions.sort((a, b) => b.startTime - (a.startTime || Date.now()));
       });
   }
@@ -360,7 +360,7 @@ export class ExecutionService {
       // remove any that have dropped off, update any that have changed
       const toRemove: number[] = [];
       existingData.forEach((execution: IExecution, idx: number) => {
-        const match = executions.find(test => test.id === execution.id);
+        const match = executions.find((test) => test.id === execution.id);
         const runningMatch = runningData.find((t: IExecution) => t.id === execution.id);
         if (match) {
           if (execution.stringVal && match.stringVal && execution.stringVal !== match.stringVal) {
@@ -380,10 +380,10 @@ export class ExecutionService {
         }
       });
 
-      toRemove.reverse().forEach(idx => existingData.splice(idx, 1));
+      toRemove.reverse().forEach((idx) => existingData.splice(idx, 1));
 
       // add any new ones
-      executions.forEach(execution => {
+      executions.forEach((execution) => {
         if (!existingData.filter((test: IExecution) => test.id === execution.id).length) {
           existingData.push(execution);
         }
@@ -412,7 +412,7 @@ export class ExecutionService {
     });
     application.executions.data.forEach((execution: IExecution) => {
       if (execution.isActive && application.runningExecutions.data.every((e: IExecution) => e.id !== execution.id)) {
-        this.getExecution(execution.id).then(updatedExecution => {
+        this.getExecution(execution.id).then((updatedExecution) => {
           this.updateExecution(application, updatedExecution);
         });
       }
@@ -477,7 +477,7 @@ export class ExecutionService {
     if (unhydrated.hydrated) {
       return Promise.resolve(unhydrated);
     }
-    const executionHydrator = this.getExecution(unhydrated.id).then(hydrated => {
+    const executionHydrator = this.getExecution(unhydrated.id).then((hydrated) => {
       ExecutionsTransformer.transformExecution(application, hydrated);
       unhydrated.stages.forEach((s, i) => {
         // stages *should* be in the same order, so getting the hydrated one by index should be fine.
@@ -485,7 +485,7 @@ export class ExecutionService {
         const hydratedStage =
           hydrated.stages.length === unhydrated.stages.length && hydrated.stages[i].id === s.id
             ? hydrated.stages[i]
-            : hydrated.stages.find(s2 => s.id === s2.id);
+            : hydrated.stages.find((s2) => s.id === s2.id);
         if (hydratedStage) {
           s.context = hydratedStage.context;
           s.outputs = hydratedStage.outputs;
@@ -504,11 +504,11 @@ export class ExecutionService {
   public getLastExecutionForApplicationByConfigId(appName: string, configId: string): IPromise<IExecution> {
     return this.getFilteredExecutions(appName, [], 1)
       .then((executions: IExecution[]) => {
-        return executions.filter(execution => {
+        return executions.filter((execution) => {
           return execution.pipelineConfigId === configId;
         });
       })
-      .then(executionsByConfigId => {
+      .then((executionsByConfigId) => {
         return executionsByConfigId[0];
       });
   }
@@ -550,12 +550,12 @@ export class ExecutionService {
       data,
       timeout: (SETTINGS.pollSchedule || 30000) * 2 + 5000,
     };
-    return this.$http(request).then(resp => resp.data);
+    return this.$http(request).then((resp) => resp.data);
   }
 
   private stringifyExecution(execution: IExecution): string {
     const transient = { ...execution };
-    transient.stages = transient.stages.filter(s => s.status !== 'SUCCEEDED' && s.status !== 'NOT_STARTED');
+    transient.stages = transient.stages.filter((s) => s.status !== 'SUCCEEDED' && s.status !== 'NOT_STARTED');
     return this.stringify(transient);
   }
 

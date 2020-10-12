@@ -48,7 +48,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   private getStageParamsFromStageId(stageId: string, summaries: IExecutionStageSummary[]): IExecutionStateParams {
     let stage, subStage, step;
     summaries.some((summary, index) => {
-      let stepIndex = (summary.stages || []).findIndex(s2 => s2.id === stageId);
+      let stepIndex = (summary.stages || []).findIndex((s2) => s2.id === stageId);
       if (stepIndex !== -1) {
         step = stepIndex;
         stage = index;
@@ -56,7 +56,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
       }
       if (summary.type === 'group' && summary.groupStages) {
         summary.groupStages.some((groupStage, subIndex) => {
-          stepIndex = (groupStage.stages || []).findIndex(gs => gs.id === stageId);
+          stepIndex = (groupStage.stages || []).findIndex((gs) => gs.id === stageId);
           if (stepIndex !== -1) {
             step = stepIndex;
             stage = index;
@@ -78,14 +78,14 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   private getStageParamsFromRefId(refId: string, summaries: IExecutionStageSummary[]): IExecutionStateParams {
     let stage, subStage;
 
-    const stageIndex = summaries.findIndex(summary => summary.refId === refId);
+    const stageIndex = summaries.findIndex((summary) => summary.refId === refId);
     if (stageIndex !== -1) {
       return { stage: stageIndex, refId: null };
     }
 
     summaries.some((summary, index) => {
       if (summary.type === 'group' && summary.groupStages) {
-        const subStageIndex = summary.groupStages.findIndex(s2 => s2.refId === refId);
+        const subStageIndex = summary.groupStages.findIndex((s2) => s2.refId === refId);
         if (subStageIndex !== -1) {
           stage = index;
           subStage = subStageIndex;

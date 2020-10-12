@@ -8,7 +8,7 @@ export const ECS_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ECSFINDIMAGEFROMTAGSTAGE =
   'spinnaker.ecs.pipeline.stage.findImageFromTagsStage';
 export const name = ECS_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ECSFINDIMAGEFROMTAGSTAGE; // for backwards compatibility
 module(ECS_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ECSFINDIMAGEFROMTAGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'ecs',
@@ -20,7 +20,7 @@ module(ECS_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ECSFINDIMAGEFROMTAGSTAGE, [])
   })
   .controller('ecsFindImageFromTagsStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'ecs';
     },
   ]);

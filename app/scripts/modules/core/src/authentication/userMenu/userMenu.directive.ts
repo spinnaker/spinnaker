@@ -8,7 +8,7 @@ export const AUTHENTICATION_USER_MENU = 'spinnaker.core.authentication.userMenu.
 
 const ngmodule = module(AUTHENTICATION_USER_MENU, []);
 
-ngmodule.directive('userMenu', function() {
+ngmodule.directive('userMenu', function () {
   return {
     restrict: 'E',
     replace: true,

@@ -8,7 +8,7 @@ export const ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTA
   'spinnaker.oracle.pipeline.stage.findImageFromTagsStage';
 export const name = ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE; // for backwards compatibility
 module(ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'oracle',
@@ -23,13 +23,13 @@ module(ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE, []
   })
   .controller('oracleFindImageFromTagsStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       $scope.stage.packageName = $scope.stage.packageName || '*';
       $scope.stage.tags = $scope.stage.tags || {};
       $scope.stage.regions = $scope.stage.regions || [];
       $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'oracle';
 
-      BakeryReader.getRegions('oracle').then(function(regions) {
+      BakeryReader.getRegions('oracle').then(function (regions) {
         $scope.regions = regions;
       });
     },

@@ -37,7 +37,7 @@ export class StateHelper implements ng.IServiceProvider {
   private fixStateViews(state: INestedState) {
     const views = state.views || {};
     const replaced: string[] = [];
-    Object.keys(views).forEach(key => {
+    Object.keys(views).forEach((key) => {
       const relative: RegExpMatchArray = key.match('../');
       if (relative && relative.length && typeof state.parent === 'string') {
         const relativePath: string =
@@ -49,7 +49,7 @@ export class StateHelper implements ng.IServiceProvider {
         replaced.push(key);
       }
     });
-    replaced.forEach(key => delete views[key]);
+    replaced.forEach((key) => delete views[key]);
   }
 
   public $get(): StateHelper {

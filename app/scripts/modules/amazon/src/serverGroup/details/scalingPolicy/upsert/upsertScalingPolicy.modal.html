@@ -67,17 +67,13 @@
               required
               ng-model="ctrl.command.minAdjustmentMagnitude"
             />
-            <span class="input-label">
-              instance(s)
-            </span>
+            <span class="input-label"> instance(s) </span>
           </div>
         </div>
         <div class="row" ng-if="ctrl.command.simple">
           <div class="col-md-2 sm-label-right">Cooldown</div>
           <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder">
-              Wait at least
-            </span>
+            <span class="form-control-static select-placeholder"> Wait at least </span>
             <input
               type="number"
               style="width: 60px"
@@ -85,9 +81,7 @@
               required
               ng-model="ctrl.command.simple.cooldown"
             />
-            <span class="input-label">
-              seconds before another scaling event
-            </span>
+            <span class="input-label"> seconds before another scaling event </span>
           </div>
         </div>
         <div class="row" ng-if="ctrl.command.step && ctrl.viewState.operator !== 'Remove'">
@@ -101,9 +95,7 @@
               required
               ng-model="ctrl.command.step.estimatedInstanceWarmup"
             />
-            <span class="input-label">
-              seconds to warm up after each step
-            </span>
+            <span class="input-label"> seconds to warm up after each step </span>
           </div>
         </div>
       </div>

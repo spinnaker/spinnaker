@@ -20,7 +20,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
   '$state',
   'instanceWriter',
   'app',
-  function($scope, $state, instanceWriter, app) {
+  function ($scope, $state, instanceWriter, app) {
     this.selectedGroups = [];
 
     /**
@@ -67,7 +67,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.canTerminateInstancesAndShrinkServerGroups = () => {
-      return !this.selectedGroups.some(group => {
+      return !this.selectedGroups.some((group) => {
         // terminateInstancesAndShrinkServerGroups is aws-only
         return group.cloudProvider !== 'aws';
       });
@@ -91,10 +91,10 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       });
     };
 
-    const allDiscoveryHealthsMatch = state => {
-      return this.selectedGroups.every(group => {
-        return group.instances.every(instance => {
-          const discoveryHealth = instance.health.filter(function(health) {
+    const allDiscoveryHealthsMatch = (state) => {
+      return this.selectedGroups.every((group) => {
+        return group.instances.every((instance) => {
+          const discoveryHealth = instance.health.filter(function (health) {
             return health.type === 'Discovery';
           });
           return discoveryHealth.length ? discoveryHealth[0].state === state : false;
@@ -129,7 +129,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
         return [];
       }
       const base = this.selectedGroups[0].loadBalancers.sort().join(' ');
-      if (this.selectedGroups.every(group => group.loadBalancers.sort().join(' ') === base)) {
+      if (this.selectedGroups.every((group) => group.loadBalancers.sort().join(' ') === base)) {
         return this.selectedGroups[0].loadBalancers;
       }
       return [];
@@ -138,24 +138,22 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     this.canRegisterWithLoadBalancers = () => {
       return (
         getAllLoadBalancers().length !== 0 && // !== 0 so we always return a boolean
-        this.selectedGroups.every(group =>
-          group.instances.every(instance => instance.health.every(health => health.type !== 'LoadBalancer')),
+        this.selectedGroups.every((group) =>
+          group.instances.every((instance) => instance.health.every((health) => health.type !== 'LoadBalancer')),
         )
       );
     };
 
     this.canDeregisterFromLoadBalancers = () => {
-      const allLoadBalancers = getAllLoadBalancers()
-        .sort()
-        .join(' ');
-      return this.selectedGroups.every(group => {
-        return group.instances.every(instance => {
-          return instance.health.some(health => {
+      const allLoadBalancers = getAllLoadBalancers().sort().join(' ');
+      return this.selectedGroups.every((group) => {
+        return group.instances.every((instance) => {
+          return instance.health.some((health) => {
             return (
               health.type === 'LoadBalancer' &&
               allLoadBalancers ===
                 health.loadBalancers
-                  .map(lb => lb.name)
+                  .map((lb) => lb.name)
                   .sort()
                   .join(' ')
             );
@@ -202,7 +200,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
 
     function getServerGroup(group) {
       return app.serverGroups.data.find(
-        serverGroup =>
+        (serverGroup) =>
           serverGroup.name === group.serverGroup &&
           serverGroup.account === group.account &&
           serverGroup.region === group.region,
@@ -216,7 +214,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
         return null;
       }
 
-      return serverGroup.instances.find(instance => instance.id === instanceId) || {};
+      return serverGroup.instances.find((instance) => instance.id === instanceId) || {};
     }
 
     const makeInstanceModel = (group, instanceId) => {
@@ -230,7 +228,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       };
     };
 
-    const makeServerGroupModel = group => {
+    const makeServerGroupModel = (group) => {
       const parentServerGroup = getServerGroup(group);
       const loadBalancers = parentServerGroup ? parentServerGroup.loadBalancers : [];
 
@@ -241,7 +239,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
         account: group.account,
         region: group.region,
         instanceIds: group.instanceIds,
-        instances: group.instanceIds.map(instanceId => makeInstanceModel(group, instanceId)),
+        instances: group.instanceIds.map((instanceId) => makeInstanceModel(group, instanceId)),
       };
     };
 
@@ -252,7 +250,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     const retrieveInstances = () => {
       this.instancesCount = countInstances();
       this.selectedGroups = ClusterState.multiselectModel.instanceGroups
-        .filter(group => group.instanceIds.length)
+        .filter((group) => group.instanceIds.length)
         .map(makeServerGroupModel);
     };
 

@@ -52,7 +52,7 @@ export const showModal = <P, C = any, D = any>(
   componentProps?: P,
   modalProps?: Omit<IModalProps, 'isOpen' | 'onRequestClose' | 'onAfterClose' | 'children'>,
 ): Promise<IModalResult<C, D>> =>
-  new Promise<IModalResult<C, D>>(resolve => {
+  new Promise<IModalResult<C, D>>((resolve) => {
     let mountNode = document.createElement('div');
     let show = false;
 

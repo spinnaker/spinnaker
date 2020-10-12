@@ -25,8 +25,8 @@ export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
   const subscriptionsLoaded = fetchSubscriptions.status === 'RESOLVED';
 
   const filteredPubsubSubscriptions = pubsubSubscriptions
-    .filter(subscription => subscription.pubsubSystem === trigger.pubsubSystem)
-    .map(subscription => subscription.subscriptionName);
+    .filter((subscription) => subscription.pubsubSystem === trigger.pubsubSystem)
+    .map((subscription) => subscription.subscriptionName);
 
   if (subscriptionsLoaded) {
     return (
@@ -34,7 +34,7 @@ export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
         <FormikFormField
           name="pubsubSystem"
           label="Pub/Sub System Type"
-          input={props => (
+          input={(props) => (
             <ReactSelectInput {...props} placeholder="Select Pub/Sub System" stringOptions={pubsubSystems} />
           )}
         />
@@ -42,7 +42,7 @@ export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
         <FormikFormField
           name="subscriptionName"
           label="Subscription Name"
-          input={props => (
+          input={(props) => (
             <ReactSelectInput
               {...props}
               placeholder="Select Pub/Sub Subscription"
@@ -57,14 +57,14 @@ export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
           name="payloadConstraints"
           label="Payload Constraints"
           help={<HelpField id="pipeline.config.trigger.pubsub.payloadConstraints" />}
-          input={props => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
+          input={(props) => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
         />
 
         <FormikFormField
           name="attributeConstraints"
           label="Attribute Constraints "
           help={<HelpField id="pipeline.config.trigger.pubsub.attributeConstraints" />}
-          input={props => <MapEditorInput {...props} addButtonLabel="Add attribute constraint" />}
+          input={(props) => <MapEditorInput {...props} addButtonLabel="Add attribute constraint" />}
         />
       </>
     );

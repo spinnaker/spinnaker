@@ -1,8 +1,8 @@
 import { NameUtils } from './nameUtils';
 
-describe('nameUtils', function() {
-  describe('parseServerGroupName', function() {
-    it('parses server group name with no stack or details', function() {
+describe('nameUtils', function () {
+  describe('parseServerGroupName', function () {
+    it('parses server group name with no stack or details', function () {
       expect(NameUtils.parseServerGroupName('app-v001')).toEqual({
         application: 'app',
         stack: '',
@@ -29,7 +29,7 @@ describe('nameUtils', function() {
       });
     });
 
-    it('parses server group name with no version', function() {
+    it('parses server group name with no version', function () {
       expect(NameUtils.parseServerGroupName('app')).toEqual({
         application: 'app',
         stack: '',
@@ -57,8 +57,8 @@ describe('nameUtils', function() {
     });
   });
 
-  describe('parseLoadBalancerName', function() {
-    it('parses name with no stack or details', function() {
+  describe('parseLoadBalancerName', function () {
+    it('parses name with no stack or details', function () {
       expect(NameUtils.parseLoadBalancerName('app')).toEqual({
         application: 'app',
         stack: '',
@@ -86,7 +86,7 @@ describe('nameUtils', function() {
     });
   });
 
-  it('returns cluster name', function() {
+  it('returns cluster name', function () {
     expect(NameUtils.getClusterName('app', null, null)).toBe('app');
     expect(NameUtils.getClusterName('app', 'cluster', null)).toBe('app-cluster');
     expect(NameUtils.getClusterName('app', null, 'details')).toBe('app--details');
@@ -95,7 +95,7 @@ describe('nameUtils', function() {
     expect(NameUtils.getClusterName('app', 'cluster', 'details-withdash')).toBe('app-cluster-details-withdash');
   });
 
-  it('returns sequence if found, else null', function() {
+  it('returns sequence if found, else null', function () {
     expect(NameUtils.getSequence(0)).toBe('v000');
     expect(NameUtils.getSequence(10)).toBe('v010');
     expect(NameUtils.getSequence(100)).toBe('v100');

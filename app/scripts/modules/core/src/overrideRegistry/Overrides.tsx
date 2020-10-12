@@ -56,7 +56,7 @@ export const overrideRegistrationQueue = new RegistrationQueue();
  * }
  */
 export function Overrides(key: string, cloudProvider?: string) {
-  return function<P, T extends React.ComponentClass<P>>(targetComponent: T): void {
+  return function <P, T extends React.ComponentClass<P>>(targetComponent: T): void {
     overrideRegistrationQueue.register(targetComponent, key, cloudProvider);
   };
 }

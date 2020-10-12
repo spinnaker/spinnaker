@@ -82,7 +82,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
               min="0"
               type="number"
               value={command.delayBeforeScaleDownSec}
-              onChange={e => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
+              onChange={(e) => this.handleChange('delayBeforeScaleDownSec', e.target.value)}
               placeholder="0"
             />
             seconds

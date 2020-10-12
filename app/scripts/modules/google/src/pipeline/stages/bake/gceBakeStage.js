@@ -18,7 +18,7 @@ import { GOOGLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './b
 export const GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE = 'spinnaker.gce.pipeline.stage..bakeStage';
 export const name = GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE; // for backwards compatibility
 module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'gce',
@@ -27,7 +27,7 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
-      extraLabelLines: stage => {
+      extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       producesArtifacts: true,
@@ -50,7 +50,7 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
     '$scope',
     '$q',
     '$uibModal',
-    function($scope, $q, $uibModal) {
+    function ($scope, $q, $uibModal) {
       $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
       $scope.stage.region = 'global';
 
@@ -75,7 +75,7 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
             $scope.stage,
             $scope.pipeline,
           ),
-        }).then(function(results) {
+        }).then(function (results) {
           $scope.baseOsOptions = results.baseOsOptions.baseImages;
           $scope.baseLabelOptions = results.baseLabelOptions;
           $scope.viewState.expectedArtifacts = results.expectedArtifacts;
@@ -114,14 +114,14 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
       }
 
       function deleteEmptyProperties() {
-        _.forOwn($scope.stage, function(val, key) {
+        _.forOwn($scope.stage, function (val, key) {
           if (val === '') {
             delete $scope.stage[key];
           }
         });
       }
 
-      this.addExtendedAttribute = function() {
+      this.addExtendedAttribute = function () {
         if (!$scope.stage.extendedAttributes) {
           $scope.stage.extendedAttributes = {};
         }
@@ -131,7 +131,7 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
             controller: 'bakeStageAddExtendedAttributeController',
             controllerAs: 'addExtendedAttribute',
             resolve: {
-              extendedAttribute: function() {
+              extendedAttribute: function () {
                 return {
                   key: '',
                   value: '',
@@ -139,31 +139,31 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
               },
             },
           })
-          .result.then(function(extendedAttribute) {
+          .result.then(function (extendedAttribute) {
             $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
           })
           .catch(() => {});
       };
 
-      this.removeExtendedAttribute = function(key) {
+      this.removeExtendedAttribute = function (key) {
         delete $scope.stage.extendedAttributes[key];
       };
 
-      this.showTemplateFileName = function() {
+      this.showTemplateFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.templateFileName;
       };
 
-      this.showAccountName = function() {
+      this.showAccountName = function () {
         return $scope.viewState.roscoMode || $scope.stage.accountName;
       };
 
-      this.showExtendedAttributes = function() {
+      this.showExtendedAttributes = function () {
         return (
           $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0)
         );
       };
 
-      this.showVarFileName = function() {
+      this.showVarFileName = function () {
         return $scope.viewState.roscoMode || $scope.stage.varFileName;
       };
 

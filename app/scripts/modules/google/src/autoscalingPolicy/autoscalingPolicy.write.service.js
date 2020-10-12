@@ -9,7 +9,7 @@ export const GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE =
 export const name = GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE; // for backwards compatibility
 angular
   .module(GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE, [])
-  .factory('gceAutoscalingPolicyWriter', function() {
+  .factory('gceAutoscalingPolicyWriter', function () {
     function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
       const job = {
         type: 'upsertScalingPolicy',

@@ -21,7 +21,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_CO
       namespaceUpdated: '=',
     },
     templateUrl: require('./dimensionsEditor.component.html'),
-    controller: function() {
+    controller: function () {
       this.viewState = {
         loadingDimensions: false,
       };
@@ -36,18 +36,18 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_CO
 
       const dimensionSubject = new Subject();
 
-      dimensionSubject.switchMap(this.fetchDimensionOptions).subscribe(results => {
+      dimensionSubject.switchMap(this.fetchDimensionOptions).subscribe((results) => {
         this.viewState.loadingDimensions = false;
         results = results || [];
-        results.forEach(r => (r.dimensions = r.dimensions || []));
-        this.dimensionOptions = _.uniq(_.flatten(results.map(r => r.dimensions.map(d => d.name)))).sort();
+        results.forEach((r) => (r.dimensions = r.dimensions || []));
+        this.dimensionOptions = _.uniq(_.flatten(results.map((r) => r.dimensions.map((d) => d.name)))).sort();
       });
 
       this.updateDimensionOptions = () => {
         dimensionSubject.next();
       };
 
-      this.removeDimension = index => {
+      this.removeDimension = (index) => {
         this.alarm.dimensions.splice(index, 1);
         this.updateAvailableMetrics();
       };

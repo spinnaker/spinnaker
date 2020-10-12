@@ -10,12 +10,7 @@ export class CloudMetricsReader {
     region: string,
     filters: any,
   ): IPromise<ICloudMetricDescriptor[]> {
-    return API.all('cloudMetrics')
-      .all(provider)
-      .all(account)
-      .all(region)
-      .withParams(filters)
-      .getList();
+    return API.all('cloudMetrics').all(provider).all(account).all(region).withParams(filters).getList();
   }
 
   public static getMetricStatistics(

@@ -20,7 +20,7 @@ module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run([
 
     const addServerGroups = (application: Application, serverGroups: IServerGroup[]) => {
       serverGroups.forEach(
-        serverGroup =>
+        (serverGroup) =>
           (serverGroup.stringVal = JsonUtils.makeSortedStringFromAngularObject(serverGroup, [
             'executions',
             'runningTasks',

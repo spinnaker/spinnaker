@@ -6,11 +6,11 @@ import { AccountService } from './AccountService';
 export const CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE = 'spinnaker.core.account.providerToggle.directive';
 export const name = CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE; // for backwards compatibility
 module(CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE, [])
-  .directive('ifMultipleProviders', function() {
+  .directive('ifMultipleProviders', function () {
     return {
       restrict: 'A',
-      link: function(scope, elem) {
-        AccountService.listProviders().then(function(providers) {
+      link: function (scope, elem) {
+        AccountService.listProviders().then(function (providers) {
           if (providers && providers.length && providers.length > 1) {
             elem.show();
           } else {
@@ -20,11 +20,11 @@ module(CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE, [])
       },
     };
   })
-  .directive('ifSingleProvider', function() {
+  .directive('ifSingleProvider', function () {
     return {
       restrict: 'A',
-      link: function(scope, elem) {
-        AccountService.listProviders().then(function(providers) {
+      link: function (scope, elem) {
+        AccountService.listProviders().then(function (providers) {
           if (!providers || !providers.length || providers.length === 1) {
             elem.show();
           } else {

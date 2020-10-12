@@ -59,7 +59,7 @@ export class OracleLoadBalancerDetailController implements IController {
           loadBalancer.name,
         );
 
-        return detailsLoader.then(details => {
+        return detailsLoader.then((details) => {
           // ILoadBalancerSourceData
           $scope.state.loading = false;
           const securityGroups: ISecurityGroup[] = [];

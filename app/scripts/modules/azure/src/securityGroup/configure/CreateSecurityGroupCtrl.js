@@ -20,7 +20,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
   'application',
   'securityGroup',
   'azureSecurityGroupWriter',
-  function($scope, $uibModalInstance, $state, $controller, application, securityGroup, azureSecurityGroupWriter) {
+  function ($scope, $uibModalInstance, $state, $controller, application, securityGroup, azureSecurityGroupWriter) {
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
       ingress: require('./createSecurityGroupIngress.html'),
@@ -40,12 +40,12 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       },
     };
 
-    AccountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function (accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });
 
-    ctrl.addMoreItems = function() {
+    ctrl.addMoreItems = function () {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
@@ -82,8 +82,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
     $scope.securityGroup = securityGroup;
 
-    ctrl.accountUpdated = function() {
-      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
+    ctrl.accountUpdated = function () {
+      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function (regions) {
         $scope.regions = regions;
         $scope.securityGroup.regions = regions;
         ctrl.updateName();
@@ -91,11 +91,11 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       });
     };
 
-    this.regionUpdated = function() {
+    this.regionUpdated = function () {
       ctrl.vnetUpdated();
     };
 
-    this.vnetUpdated = function() {
+    this.vnetUpdated = function () {
       const account = $scope.securityGroup.credentials;
       const region = $scope.securityGroup.region;
       $scope.securityGroup.selectedVnet = null;
@@ -104,9 +104,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
       ctrl.selectedVnets = [];
 
-      NetworkReader.listNetworks().then(function(vnets) {
+      NetworkReader.listNetworks().then(function (vnets) {
         if (vnets.azure) {
-          vnets.azure.forEach(vnet => {
+          vnets.azure.forEach((vnet) => {
             if (vnet.account === account && vnet.region === region) {
               ctrl.selectedVnets.push(vnet);
             }
@@ -117,30 +117,30 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       ctrl.subnetUpdated();
     };
 
-    this.subnetUpdated = function() {
+    this.subnetUpdated = function () {
       $scope.securityGroup.selectedSubnet = null;
       $scope.securityGroup.subnet = null;
       ctrl.selectedSubnets = [];
     };
 
-    this.selectedVnetChanged = function(item) {
+    this.selectedVnetChanged = function (item) {
       $scope.securityGroup.vnet = item.name;
       $scope.securityGroup.vnetResourceGroup = item.resourceGroup;
       $scope.securityGroup.selectedSubnet = null;
       $scope.securityGroup.subnet = null;
       ctrl.selectedSubnets = [];
       if (item.subnets) {
-        item.subnets.map(function(subnet) {
+        item.subnets.map(function (subnet) {
           ctrl.selectedSubnets.push(subnet);
         });
       }
     };
 
-    ctrl.cancel = function() {
+    ctrl.cancel = function () {
       $uibModalInstance.dismiss();
     };
 
-    ctrl.updateName = function() {
+    ctrl.updateName = function () {
       const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
@@ -150,8 +150,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       $scope.namePreview = name;
     };
 
-    ctrl.upsert = function() {
-      $scope.taskMonitor.submit(function() {
+    ctrl.upsert = function () {
+      $scope.taskMonitor.submit(function () {
         const params = {
           cloudProvider: 'azure',
           appName: application.name,
@@ -174,7 +174,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       });
     };
 
-    ctrl.addRule = function(ruleset) {
+    ctrl.addRule = function (ruleset) {
       ruleset.push({
         name: $scope.securityGroup.name + '-Rule' + ruleset.length,
         priority: ruleset.length == 0 ? 100 : 100 * (ruleset.length + 1),
@@ -193,13 +193,13 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       });
     };
 
-    ctrl.portUpdated = function(ruleset, index) {
+    ctrl.portUpdated = function (ruleset, index) {
       if (!_.isEmpty(ruleset[index].destPortRanges)) {
         const ruleRanges = ruleset[index].destPortRanges.split(',');
 
         if (ruleRanges.length > 1) {
           ruleset[index].destinationPortRanges = [];
-          ruleRanges.forEach(v => ruleset[index].destinationPortRanges.push(v));
+          ruleRanges.forEach((v) => ruleset[index].destinationPortRanges.push(v));
 
           // If there are multiple port ranges then set null to the single port parameter otherwise ARM template will fail in validation.
           ruleset[index].destinationPortRange = null;
@@ -212,12 +212,12 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       }
     };
 
-    ctrl.sourceIPCIDRUpdated = function(ruleset, index) {
+    ctrl.sourceIPCIDRUpdated = function (ruleset, index) {
       if (!_.isEmpty(ruleset[index].destPortRanges)) {
         const ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].sourceAddressPrefixes = [];
-          ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
+          ruleRanges.forEach((v) => ruleset[index].sourceAddressPrefixes.push(v));
 
           // If there are multiple IP/CIDR ranges then set null to the single sourceAddressPrefix parameter otherwise ARM template will fail in validation
           ruleset[index].sourceAddressPrefix = null;
@@ -230,19 +230,19 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
       }
     };
 
-    ctrl.protocolUpdated = function(ruleset, index) {
+    ctrl.protocolUpdated = function (ruleset, index) {
       ruleset[index].protocol = ruleset[index].protocolUI;
     };
 
-    ctrl.removeRule = function(ruleset, index) {
+    ctrl.removeRule = function (ruleset, index) {
       ruleset.splice(index, 1);
     };
 
-    ctrl.moveUp = function(ruleset, index) {
+    ctrl.moveUp = function (ruleset, index) {
       if (index === 0) return;
       swapRules(ruleset, index, index - 1);
     };
-    ctrl.moveDown = function(ruleset, index) {
+    ctrl.moveDown = function (ruleset, index) {
       if (index === ruleset.length - 1) return;
       swapRules(ruleset, index, index + 1);
     };

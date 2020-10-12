@@ -40,7 +40,7 @@ describe('<AccountSelectInput/>', () => {
     }),
   );
 
-  it('groups accounts by primary field when provider not specified', done => {
+  it('groups accounts by primary field when provider not specified', (done) => {
     const accounts = allAccounts.aws.concat(allAccounts.titus);
     component = shallow(<AccountSelectInput accounts={accounts} provider={null} value="prod" />);
     setImmediate(() => {
@@ -52,7 +52,7 @@ describe('<AccountSelectInput/>', () => {
     });
   });
 
-  it('groups accounts by primary field when only one provider available', done => {
+  it('groups accounts by primary field when only one provider available', (done) => {
     component = shallow(<AccountSelectInput accounts={allAccounts.aws} provider={null} value="prod" />);
     setImmediate(() => {
       $scope.$digest();
@@ -64,8 +64,8 @@ describe('<AccountSelectInput/>', () => {
     });
   });
 
-  it('groups accounts by primary field when only names and provider supplied', done => {
-    const accounts = allAccounts.aws.map(acct => acct.name);
+  it('groups accounts by primary field when only names and provider supplied', (done) => {
+    const accounts = allAccounts.aws.map((acct) => acct.name);
     component = shallow(<AccountSelectInput accounts={accounts} provider={'aws'} value="prod" />);
     setImmediate(() => {
       $scope.$digest();
@@ -119,7 +119,7 @@ describe('<AccountSelectInput/>', () => {
     expect(AccountServiceSpy.calls.count()).toBe(0);
   });
 
-  it('unselects nonexistent account', function() {
+  it('unselects nonexistent account', function () {
     let updatedVal: string = null;
     const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
     component = shallow(

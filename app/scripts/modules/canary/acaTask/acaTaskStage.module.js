@@ -20,7 +20,7 @@ module(CANARY_ACATASK_ACATASKSTAGE_MODULE, [
   CANARY_CANARY_CANARYSTATUS_DIRECTIVE,
 ]).run([
   'acaTaskTransformer',
-  function(acaTaskTransformer) {
+  function (acaTaskTransformer) {
     Registry.pipeline.registerTransformer(acaTaskTransformer);
   },
 ]);

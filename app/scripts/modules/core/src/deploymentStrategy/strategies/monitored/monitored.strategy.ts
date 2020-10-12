@@ -10,7 +10,7 @@ DeploymentStrategyRegistry.registerStrategy({
   providerRestricted: true,
   additionalFields: ['deploySteps', 'scaleDown'],
   AdditionalFieldsComponent: AdditionalFields,
-  initializationMethod: command => {
+  initializationMethod: (command) => {
     defaultsDeep(command, {
       failureActions: {
         destroyInstances: false,

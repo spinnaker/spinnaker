@@ -88,7 +88,7 @@ describe('awsServerGroupTransformer', () => {
       } as IAmazonServerGroup;
       transformer.normalizeServerGroupDetails(serverGroup);
       const alarms = serverGroup.scalingPolicies[0].alarms as IScalingPolicyAlarmView[];
-      expect(alarms.map(a => a.comparator)).toEqual(['&lt;', '&gt;', '&le;', '&ge;', undefined]);
+      expect(alarms.map((a) => a.comparator)).toEqual(['&lt;', '&gt;', '&le;', '&ge;', undefined]);
     });
 
     it('adds operator, absAdjustment to simple policies', () => {
@@ -97,8 +97,8 @@ describe('awsServerGroupTransformer', () => {
       } as IAmazonServerGroup;
       const transformed = transformer.normalizeServerGroupDetails(serverGroup);
       const policies = transformed.scalingPolicies;
-      expect(policies.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
-      expect(policies.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
+      expect(policies.map((a) => a.absAdjustment)).toEqual([10, 0, 5]);
+      expect(policies.map((a) => a.operator)).toEqual(['increase', 'increase', 'decrease']);
     });
 
     it('adds operator, absAdjustment to step policies', () => {
@@ -115,12 +115,12 @@ describe('awsServerGroupTransformer', () => {
       } as IAmazonServerGroup;
       const transformed = transformer.normalizeServerGroupDetails(serverGroup);
       const steps = transformed.scalingPolicies[0].stepAdjustments;
-      expect(steps.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
-      expect(steps.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
+      expect(steps.map((a) => a.absAdjustment)).toEqual([10, 0, 5]);
+      expect(steps.map((a) => a.operator)).toEqual(['increase', 'increase', 'decrease']);
     });
 
     describe('sorting step adjustments', () => {
-      beforeEach(function() {
+      beforeEach(function () {
         this.test = (steps: IStepAdjustment[], expected: any[]) => {
           const serverGroup = {
             scalingPolicies: [
@@ -131,11 +131,11 @@ describe('awsServerGroupTransformer', () => {
           } as IAmazonServerGroup;
           transformer.normalizeServerGroupDetails(serverGroup);
           const check = serverGroup.scalingPolicies[0].stepAdjustments;
-          expect(check.map(s => s.scalingAdjustment)).toEqual(expected);
+          expect(check.map((s) => s.scalingAdjustment)).toEqual(expected);
         };
       });
 
-      it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function() {
+      it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function () {
         this.test(
           [
             { scalingAdjustment: 10, metricIntervalLowerBound: 3 },
@@ -146,7 +146,7 @@ describe('awsServerGroupTransformer', () => {
         );
       });
 
-      it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function() {
+      it('reverse sorts step adjustments by lower bound when some do not have an upper bound defined', function () {
         this.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },
@@ -157,7 +157,7 @@ describe('awsServerGroupTransformer', () => {
         );
       });
 
-      it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function() {
+      it('reverse sorts step adjustments by upper bound when all have an upper bound defined', function () {
         this.test(
           [
             { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3, metricIntervalUpperBound: 5 },

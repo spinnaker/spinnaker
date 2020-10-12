@@ -10,7 +10,7 @@ import { AppListExtractor } from 'core/application/listExtractor/AppListExtracto
 export const CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT =
   'spinnaker.core.accountRegionClusterSelector.directive';
 export const name = CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT; // for backwards compatibility
-module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accountRegionClusterSelector', function() {
+module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accountRegionClusterSelector', function () {
   return {
     restrict: 'E',
     scope: {},
@@ -43,7 +43,7 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
       let regions;
 
       const setRegionList = () => {
-        const accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
+        const accountFilter = (cluster) => (cluster ? cluster.account === vm.component.credentials : true);
         const regionList = AppListExtractor.getRegions([vm.application], accountFilter);
         vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
         (vm.regions || []).sort();
@@ -76,11 +76,11 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
         setRegionList();
       };
 
-      vm.clusterSelectInputToggled = isToggled => {
+      vm.clusterSelectInputToggled = (isToggled) => {
         isToggled ? setToggledState() : setUnToggledState();
       };
 
-      vm.clusterChanged = clusterName => {
+      vm.clusterChanged = (clusterName) => {
         const filterByCluster = AppListExtractor.monikerClusterNameFilter(clusterName);
         const clusterMoniker = _.first(_.uniq(AppListExtractor.getMonikers([vm.application], filterByCluster)));
         if (_.isNil(clusterMoniker)) {
@@ -104,24 +104,21 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
 
       const init = () => {
         AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions')
-          .then(allRegions => {
+          .then((allRegions) => {
             regions = allRegions;
 
             // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
-            const regionObjs = _.filter(regions, region => _.isObject(region));
+            const regionObjs = _.filter(regions, (region) => _.isObject(region));
             if (regionObjs.length) {
               const oldStyleRegions = _.chain(regionObjs)
-                .map(regionObj => _.keys(regionObj))
+                .map((regionObj) => _.keys(regionObj))
                 .flatten()
                 .value();
-              regions = _.chain(regions)
-                .difference(regionObjs)
-                .union(oldStyleRegions)
-                .value();
+              regions = _.chain(regions).difference(regionObjs).union(oldStyleRegions).value();
             }
             return regions.sort();
           })
-          .then(allRegions => {
+          .then((allRegions) => {
             setRegionList();
             setClusterList();
             vm.regions = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.regions : allRegions;

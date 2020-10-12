@@ -12,7 +12,7 @@ export interface ILabelEditorProps {
   onLabelSelectorsChange: (labelSelectors: IManifestLabelSelector[]) => void;
 }
 
-const LabelKeyOptions: Array<Option<string>> = LABEL_KINDS.map(kind => ({ label: kind, value: kind }));
+const LabelKeyOptions: Array<Option<string>> = LABEL_KINDS.map((kind) => ({ label: kind, value: kind }));
 
 export default class LabelEditor extends React.Component<ILabelEditorProps> {
   public static defaultProps: Partial<ILabelEditorProps> = {

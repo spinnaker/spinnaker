@@ -89,10 +89,7 @@ export default class Utility {
   }
 
   public static getLoadBalancerType(typeString: string): IAzureLoadBalancer | null {
-    typeString = typeString
-      .toLowerCase()
-      .split('_')
-      .join(' ');
+    typeString = typeString.toLowerCase().split('_').join(' ');
     return AzureLoadBalancerTypes.find((lb: IAzureLoadBalancer) => lb.type.toLowerCase() === typeString) || null;
   }
 }

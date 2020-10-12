@@ -14,7 +14,7 @@ angular
     'serverGroupWriter',
     'application',
     'serverGroup',
-    function($scope, $uibModalInstance, serverGroupWriter, application, serverGroup) {
+    function ($scope, $uibModalInstance, serverGroupWriter, application, serverGroup) {
       $scope.serverGroup = serverGroup;
       $scope.currentSize = {
         oldSize: serverGroup.instances.length,
@@ -29,7 +29,7 @@ angular
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 
-      this.isValid = function() {
+      this.isValid = function () {
         const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
@@ -43,14 +43,14 @@ angular
         modalInstance: $uibModalInstance,
       });
 
-      this.resize = function() {
+      this.resize = function () {
         if (!this.isValid()) {
           return;
         }
 
         const capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return serverGroupWriter.resizeServerGroup(serverGroup, application, {
             serverGroupName: serverGroup.name,
             credentials: serverGroup.account,
@@ -67,7 +67,7 @@ angular
         $scope.taskMonitor.submit(submitMethod);
       };
 
-      this.cancel = function() {
+      this.cancel = function () {
         $uibModalInstance.dismiss();
       };
     },

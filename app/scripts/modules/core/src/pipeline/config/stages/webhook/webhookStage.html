@@ -50,9 +50,7 @@
     ></textarea>
 
     <div class="form-group row slide-in" ng-if="$ctrl.command.invalid">
-      <div class="col-sm-9 col-sm-offset-3 error-message">
-        Error: {{$ctrl.command.errorMessage}}
-      </div>
+      <div class="col-sm-9 col-sm-offset-3 error-message">Error: {{$ctrl.command.errorMessage}}</div>
     </div>
   </stage-config-field>
   <stage-config-field
@@ -63,8 +61,8 @@
     <table class="table table-condensed packed" ng-if="$ctrl.customHeaderCount() > 0">
       <thead>
         <tr>
-          <th style="width:40%">Key</th>
-          <th style="width:60%">Value</th>
+          <th style="width: 40%">Key</th>
+          <th style="width: 60%">Value</th>
           <th class="text-right">Actions</th>
         </tr>
       </thead>
@@ -259,9 +257,7 @@
         ></textarea>
 
         <div class="form-group row slide-in" ng-if="$ctrl.cancelCommand.invalid">
-          <div class="col-sm-9 col-sm-offset-3 error-message">
-            Error: {{$ctrl.cancelCommand.errorMessage}}
-          </div>
+          <div class="col-sm-9 col-sm-offset-3 error-message">Error: {{$ctrl.cancelCommand.errorMessage}}</div>
         </div>
       </stage-config-field>
     </div>

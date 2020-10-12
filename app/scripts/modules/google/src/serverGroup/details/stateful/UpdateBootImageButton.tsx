@@ -65,7 +65,7 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
       account: this.props.serverGroup.account,
       provider: 'gce',
       q: '*',
-    }).then(images => {
+    }).then((images) => {
       this.setState({ availableImages: images });
     });
   }
@@ -92,7 +92,7 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
             order={nextIdx()}
             render={() => (
               <FormikFormField
-                input={props => (
+                input={(props) => (
                   <div className="full-width" style={{ height: '225px' }}>
                     <ImageSelect
                       availableImages={this.state.availableImages}

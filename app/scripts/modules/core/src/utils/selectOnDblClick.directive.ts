@@ -22,7 +22,7 @@ class DoubleClickController implements IController {
 }
 
 export const SELECT_ON_DOUBLE_CLICK_DIRECTIVE = 'spinnaker.core.utils.selectOnDblClick';
-module(SELECT_ON_DOUBLE_CLICK_DIRECTIVE, []).directive('selectOnDblClick', function() {
+module(SELECT_ON_DOUBLE_CLICK_DIRECTIVE, []).directive('selectOnDblClick', function () {
   return {
     restrict: 'A',
     controller: DoubleClickController,

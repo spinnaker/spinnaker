@@ -34,7 +34,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
   }
 
   private spinnakerKindFromKubernetesKind(kind: string, kindMap: { [k: string]: string }) {
-    const foundKind = Object.keys(kindMap).find(k => k.toLowerCase() === kind.toLowerCase());
+    const foundKind = Object.keys(kindMap).find((k) => k.toLowerCase() === kind.toLowerCase());
     return kindMap[foundKind];
   }
 
@@ -64,7 +64,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
   private loadUrl() {
     const kind: string = get(this.props, ['manifest', 'manifest', 'kind'], '');
     const { accountId } = this.props;
-    AccountService.getAccountDetails(accountId).then(account => {
+    AccountService.getAccountDetails(accountId).then((account) => {
       const spinnakerKind = this.spinnakerKindFromKubernetesKind(kind, account.spinnakerKindMap);
       const stateKey = this.spinnakerKindStateMap[spinnakerKind] || UNMAPPED_K8S_RESOURCE_STATE_KEY;
       const params = this.getStateParams(stateKey);

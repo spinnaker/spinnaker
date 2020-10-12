@@ -9,13 +9,13 @@ export const extensionNotificationConfig = (parameters: INotificationParameter[]
     render() {
       return (
         <>
-          {parameters.map(param => (
+          {parameters.map((param) => (
             <FormikFormField
               key={param.name}
               name={param.name}
               label={param.label}
               help={param.description ? <HelpField content={param.description} /> : null}
-              input={props => <TextInput {...props} />}
+              input={(props) => <TextInput {...props} />}
               {...this.props}
             />
           ))}

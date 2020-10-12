@@ -20,7 +20,7 @@
         <label>
           <input
             type="checkbox"
-            style="margin-top: 8px;"
+            style="margin-top: 8px"
             ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled"
             ng-model-options="{ getterSetter: true }"
             ng-change="canaryStageCtrl.toggleTerminateUnhealthyCanary()"
@@ -81,7 +81,7 @@
   </h5>
   <div class="horizontal-rule"></div>
   <div class="row">
-    <div style="margin: 10px 10px 0 50px;">
+    <div style="margin: 10px 10px 0 50px">
       <div class="well well-sm">
         <table class="table">
           <thead>
@@ -189,9 +189,7 @@
       class="form-control input-sm"
       style="display: inline-block; width: 10%"
     />
-    <span class="form-control-static">
-      minutes before starting analysis
-    </span>
+    <span class="form-control-static"> minutes before starting analysis </span>
   </stage-config-field>
   <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
     <input
@@ -261,7 +259,7 @@
       </div>
       <div class="checkbox" ng-if="!isExpression(stage.scaleUp.delay) && !isExpression(stage.scaleUp.capacity)">
         <label>
-          <input type="checkbox" style="margin-top: 8px;" ng-model="stage.scaleUp.enabled" />
+          <input type="checkbox" style="margin-top: 8px" ng-model="stage.scaleUp.enabled" />
           After a
           <help-field key="pipeline.config.canary.scaleUpDelay" label="delay"></help-field>
           of

@@ -34,7 +34,7 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
   'cacheInitializer',
   'gceSecurityGroupHelpTextService',
   'mode',
-  function(
+  function (
     $scope,
     $state,
     $uibModalInstance,
@@ -64,15 +64,15 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
 
     $scope.wizard = ModalWizard;
 
-    ctrl.getTagHelpText = function(tag, tagType) {
+    ctrl.getTagHelpText = function (tag, tagType) {
       return gceSecurityGroupHelpTextService.getHelpTextForTag(tag, tagType);
     };
 
-    ctrl.addMoreItems = function() {
+    ctrl.addMoreItems = function () {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
-    ctrl.registerHelpTextService = function() {
+    ctrl.registerHelpTextService = function () {
       gceSecurityGroupHelpTextService.register(
         application,
         $scope.securityGroup.credentials || $scope.securityGroup.accountName,
@@ -80,7 +80,7 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       );
     };
 
-    ctrl.initializeTargetOptions = function() {
+    ctrl.initializeTargetOptions = function () {
       const options = ['allowAllTraffic', 'specifyTags'];
       if ($scope.state.mode === 'edit') {
         $scope.state.targetOptions = options;
@@ -89,7 +89,7 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       }
     };
 
-    ctrl.initializeTarget = function() {
+    ctrl.initializeTarget = function () {
       if ($scope.state.mode === 'create') {
         $scope.state.target = 'autoGenerate';
       } else {
@@ -101,7 +101,7 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       }
     };
 
-    ctrl.getTargetLabel = function(target) {
+    ctrl.getTargetLabel = function (target) {
       switch (target) {
         case 'autoGenerate':
           return 'Auto-generate target tag';
@@ -114,7 +114,7 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       }
     };
 
-    ctrl.onTargetChange = function() {
+    ctrl.onTargetChange = function () {
       switch ($scope.state.target) {
         case 'autoGenerate':
           $scope.securityGroup.targetTags = null;
@@ -168,15 +168,15 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
     ctrl.onTargetChange();
     ctrl.registerHelpTextService();
 
-    ctrl.upsert = function() {
-      $scope.taskMonitor.submit(function() {
+    ctrl.upsert = function () {
+      $scope.taskMonitor.submit(function () {
         return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
       });
     };
 
-    ctrl.mixinUpsert = function(descriptor) {
-      $scope.taskMonitor.submit(function() {
-        const allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+    ctrl.mixinUpsert = function (descriptor) {
+      $scope.taskMonitor.submit(function () {
+        const allowed = _.map($scope.securityGroup.ipIngress, function (ipIngressRule) {
           const rule = {
             ipProtocol: ipIngressRule.type,
           };
@@ -200,23 +200,23 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       });
     };
 
-    ctrl.accountUpdated = function() {
+    ctrl.accountUpdated = function () {
       ctrl.initializeSecurityGroups();
       ctrl.updateNetworks();
       ctrl.updateName();
     };
 
-    ctrl.refreshSecurityGroups = function() {
+    ctrl.refreshSecurityGroups = function () {
       $scope.state.refreshingSecurityGroups = true;
-      return cacheInitializer.refreshCache('securityGroups').then(function() {
-        return ctrl.initializeSecurityGroups().then(function() {
+      return cacheInitializer.refreshCache('securityGroups').then(function () {
+        return ctrl.initializeSecurityGroups().then(function () {
           $scope.state.refreshingSecurityGroups = false;
         });
       });
     };
 
-    ctrl.initializeSecurityGroups = function() {
-      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
+    ctrl.initializeSecurityGroups = function () {
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
         let existingGroups;
@@ -230,25 +230,25 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       });
     };
 
-    ctrl.cancel = function() {
+    ctrl.cancel = function () {
       $uibModalInstance.dismiss();
     };
 
-    ctrl.updateNetworks = function() {
-      NetworkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
+    ctrl.updateNetworks = function () {
+      NetworkReader.listNetworksByProvider('gce').then(function (gceNetworks) {
         const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         $scope.securityGroup.backingData.networks = _(gceNetworks)
-          .filter(n => n.account === account && !n.id.includes('/'))
-          .map(n => n.id)
+          .filter((n) => n.account === account && !n.id.includes('/'))
+          .map((n) => n.id)
           .value();
       });
     };
 
-    ctrl.getCurrentNamePattern = function() {
+    ctrl.getCurrentNamePattern = function () {
       return /^[a-zA-Z0-9-]*$/;
     };
 
-    ctrl.updateName = function() {
+    ctrl.updateName = function () {
       const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
@@ -260,20 +260,20 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
     };
 
     ctrl.namePattern = {
-      test: function(name) {
+      test: function (name) {
         return ctrl.getCurrentNamePattern().test(name);
       },
     };
 
-    ctrl.addSourceCIDR = function(sourceRanges) {
+    ctrl.addSourceCIDR = function (sourceRanges) {
       sourceRanges.push({ value: '0.0.0.0/0' });
     };
 
-    ctrl.removeSourceCIDR = function(sourceRanges, index) {
+    ctrl.removeSourceCIDR = function (sourceRanges, index) {
       sourceRanges.splice(index, 1);
     };
 
-    ctrl.addRule = function(ruleset) {
+    ctrl.addRule = function (ruleset) {
       ruleset.push({
         type: 'tcp',
         startPort: 7001,
@@ -281,17 +281,17 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       });
     };
 
-    ctrl.removeRule = function(ruleset, index) {
+    ctrl.removeRule = function (ruleset, index) {
       ruleset.splice(index, 1);
     };
 
-    ctrl.dismissRemovedRules = function() {
+    ctrl.dismissRemovedRules = function () {
       $scope.state.removedRules = [];
       ModalWizard.markClean('Ingress');
       ModalWizard.markComplete('Ingress');
     };
 
-    ctrl.isValid = function() {
+    ctrl.isValid = function () {
       return (
         ($scope.state.target === 'specifyTags' ? $scope.securityGroup.targetTags.length > 0 : true) &&
         $scope.securityGroup.ipIngress.length > 0 &&
@@ -299,19 +299,19 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
       );
     };
 
-    ctrl.addTargetTag = function() {
+    ctrl.addTargetTag = function () {
       $scope.securityGroup.targetTags.push('');
     };
 
-    ctrl.removeTargetTag = function(index) {
+    ctrl.removeTargetTag = function (index) {
       $scope.securityGroup.targetTags.splice(index, 1);
     };
 
-    ctrl.addSourceTag = function() {
+    ctrl.addSourceTag = function () {
       $scope.securityGroup.sourceTags.push('');
     };
 
-    ctrl.removeSourceTag = function(index) {
+    ctrl.removeSourceTag = function (index) {
       $scope.securityGroup.sourceTags.splice(index, 1);
     };
   },

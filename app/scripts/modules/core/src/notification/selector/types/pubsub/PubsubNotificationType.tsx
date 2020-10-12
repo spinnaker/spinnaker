@@ -9,7 +9,7 @@ export class PubsubNotificationType extends React.Component<INotificationTypeCus
       <FormikFormField
         label="Publisher Name"
         name={fieldName ? `${fieldName}.publisherName` : 'publisherName'}
-        input={props => (
+        input={(props) => (
           <TextInput inputClassName={'form-control input-sm'} {...props} placeholder="enter a pubsub publisher name" />
         )}
         required={true}

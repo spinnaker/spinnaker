@@ -37,13 +37,13 @@ export class JsonListBuilder {
     array: IJsonListEntry[],
     ignoreList: string[],
   ): void {
-    keys.forEach(key => {
+    keys.forEach((key) => {
       const entry = isFinite(parseInt(key, 10)) ? `${parent}[${parseInt(key, 10)}]` : `${parent}['${key}']`;
 
       const value = node[key];
       if (!(isObject(value) || Array.isArray(value))) {
         if (
-          !ignoreList.some(ignoreItem => {
+          !ignoreList.some((ignoreItem) => {
             const testerString = `['${ignoreItem}`;
             return entry.substr(0, testerString.length) === testerString;
           })

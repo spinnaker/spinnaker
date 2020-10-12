@@ -40,7 +40,7 @@ export class WorkerPool<T = any> {
     []
       .concat(this.runningTasks)
       .concat(this.queuedTasks)
-      .forEach(task => task.cancel(reason));
+      .forEach((task) => task.cancel(reason));
     this.runningTasks = [];
     this.queuedTasks = [];
   }

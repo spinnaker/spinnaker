@@ -8,7 +8,7 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
   private editAdvancedSettings = (): void => {
     const { app, serverGroup } = this.props;
     confirmNotManaged(serverGroup, app).then(
-      notManaged =>
+      (notManaged) =>
         notManaged &&
         ModalInjector.modalService.open({
           templateUrl: require('../advancedSettings/editAsgAdvancedSettings.modal.html'),
@@ -33,7 +33,7 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
           <dd>{asg.defaultCooldown} seconds</dd>
           {asg.enabledMetrics.length > 0 && [
             <dt key={'t-metrics'}>Enabled Metrics</dt>,
-            <dd key={'d-metrics'}>{asg.enabledMetrics.map(m => m.metric).join(', ')}</dd>,
+            <dd key={'d-metrics'}>{asg.enabledMetrics.map((m) => m.metric).join(', ')}</dd>,
           ]}
           <dt>Health Check Type</dt>
           <dd>{asg.healthCheckType}</dd>

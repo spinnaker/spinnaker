@@ -65,17 +65,14 @@ export class AccountService {
 
   public static initialize(): void {
     this.accounts$ = Observable.defer(() => {
-      const promise = API.one('credentials')
-        .useCache()
-        .withParams({ expand: true })
-        .get();
+      const promise = API.one('credentials').useCache().withParams({ expand: true }).get();
       return Observable.fromPromise<IAccountDetails[]>(promise);
     })
       .publishReplay(1)
       .refCount();
 
     this.providers$ = AccountService.accounts$.map((accounts: IAccountDetails[]) => {
-      const providersFromAccounts: string[] = uniq(accounts.map(account => account.type));
+      const providersFromAccounts: string[] = uniq(accounts.map((account) => account.type));
       return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
     });
   }
@@ -99,14 +96,11 @@ export class AccountService {
   }
 
   public static getArtifactAccounts(): IPromise<IArtifactAccount[]> {
-    return API.one('artifacts')
-      .one('credentials')
-      .useCache()
-      .get();
+    return API.one('artifacts').one('credentials').useCache().get();
   }
 
   public static getAccountDetails(account: string): IPromise<IAccountDetails> {
-    return this.listAllAccounts().then(accounts => accounts.find(a => a.name === account));
+    return this.listAllAccounts().then((accounts) => accounts.find((a) => a.name === account));
   }
 
   public static getAllAccountDetailsForProvider(provider: string): IPromise<IAccountDetails[]> {
@@ -171,17 +165,19 @@ export class AccountService {
   public static listAllAccounts(provider: string = null): IPromise<IAccountDetails[]> {
     return $q
       .when(this.accounts$.toPromise())
-      .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider));
+      .then((accounts: IAccountDetails[]) => accounts.filter((account) => !provider || account.type === provider));
   }
 
   public static listAccounts(provider: string = null): IPromise<IAccountDetails[]> {
-    return this.listAllAccounts(provider).then(accounts => accounts.filter(account => account.authorized !== false));
+    return this.listAllAccounts(provider).then((accounts) =>
+      accounts.filter((account) => account.authorized !== false),
+    );
   }
 
   public static applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
     return $q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
       return providers.reduce((memo, p) => {
-        return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
+        return memo.concat(accounts.filter((acc) => acc.cloudProvider === p));
       }, [] as IAccountDetails[]);
     });
   }
@@ -199,7 +195,7 @@ export class AccountService {
           return available;
         }
       })
-      .map(results => results.sort());
+      .map((results) => results.sort());
   }
 
   public static listProviders(application: Application = null): IPromise<string[]> {
@@ -210,11 +206,13 @@ export class AccountService {
     return app.ready().then(() => {
       const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
       const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];
-      const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
+      const loadBalancerServerGroups = loadBalancers
+        .map((lb) => lb.serverGroups)
+        .reduce((acc, sg) => acc.concat(sg), []);
 
       const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
         return (
-          obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId)
+          obj.cloudProvider === cloudProvider && (obj.instances || []).some((instance) => instance.id === instanceId)
         );
       };
 

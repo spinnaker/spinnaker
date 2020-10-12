@@ -4,21 +4,21 @@ import { API } from '@spinnaker/core';
 
 import { VpcReader } from '../vpc/VpcReader';
 
-describe('VpcReader', function() {
+describe('VpcReader', function () {
   var $http, $scope;
 
   beforeEach(
-    window.inject(function($httpBackend, $rootScope) {
+    window.inject(function ($httpBackend, $rootScope) {
       $http = $httpBackend;
       $scope = $rootScope.$new();
     }),
   );
 
-  afterEach(function() {
+  afterEach(function () {
     VpcReader.resetCache();
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     $http.whenGET(API.baseUrl + '/networks/aws').respond(200, [
       { name: 'vpc1', id: 'vpc-1', deprecated: true },
       { name: 'vpc2', id: 'vpc-2', deprecated: false },
@@ -26,10 +26,10 @@ describe('VpcReader', function() {
     ]);
   });
 
-  it('adds label to vpc, including (deprecated) if deprecated field is true', function() {
+  it('adds label to vpc, including (deprecated) if deprecated field is true', function () {
     var result = null;
 
-    VpcReader.listVpcs().then(function(vpcs) {
+    VpcReader.listVpcs().then(function (vpcs) {
       result = vpcs;
     });
 
@@ -44,10 +44,10 @@ describe('VpcReader', function() {
     expect(result[2].deprecated).toBe(false);
   });
 
-  it('retrieves vpc name - not label - from id', function() {
+  it('retrieves vpc name - not label - from id', function () {
     var result = null;
 
-    VpcReader.getVpcName('vpc-1').then(function(name) {
+    VpcReader.getVpcName('vpc-1').then(function (name) {
       result = name;
     });
 
@@ -56,7 +56,7 @@ describe('VpcReader', function() {
 
     expect(result).toBe('vpc1');
 
-    VpcReader.getVpcName('vpc-2').then(function(name) {
+    VpcReader.getVpcName('vpc-2').then(function (name) {
       result = name;
     });
 
@@ -64,7 +64,7 @@ describe('VpcReader', function() {
 
     expect(result).toBe('vpc2');
 
-    VpcReader.getVpcName('vpc-4').then(function(name) {
+    VpcReader.getVpcName('vpc-4').then(function (name) {
       result = name;
     });
 

@@ -17,8 +17,8 @@ export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSecti
         <div className="col-md-12">
           <dl className="dl-horizontal">
             {Object.keys(context)
-              .filter(key => !['failureMessage'].includes(key) && context[key] !== null)
-              .map(key => (
+              .filter((key) => !['failureMessage'].includes(key) && context[key] !== null)
+              .map((key) => (
                 <div key={key}>
                   <dt>{robotToHuman(key)}</dt>
                   <dd>

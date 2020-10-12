@@ -43,7 +43,7 @@ class AppengineInstanceDetailsController implements IController {
     this.app
       .ready()
       .then(() => this.retrieveInstance(instance))
-      .then(instanceDetails => {
+      .then((instanceDetails) => {
         this.instance = instanceDetails;
         this.state.loading = false;
       })
@@ -84,7 +84,7 @@ class AppengineInstanceDetailsController implements IController {
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
-      return dataSource.instances.some(possibleMatch => possibleMatch.id === instance.instanceId);
+      return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
     };
 
     const dataSources: InstanceManager[] = flattenDeep([

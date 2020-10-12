@@ -13,7 +13,7 @@ export class ArtifactReferenceService {
    */
 
   public static removeReferenceFromStages(reference: string, stages: IStage[]): void {
-    (stages || []).forEach(stage => {
+    (stages || []).forEach((stage) => {
       const stageConfig = Registry.pipeline.getStageConfig(stage);
       const artifactRemover = get(stageConfig, ['artifactRemover'], noop);
       artifactRemover(stage, reference);
@@ -28,7 +28,7 @@ export class ArtifactReferenceService {
    * @param stages The stages from which to remove artifact references.
    */
   public static removeReferencesFromStages(references: string[], stages: IStage[]): void {
-    references.forEach(reference => ArtifactReferenceService.removeReferenceFromStages(reference, stages));
+    references.forEach((reference) => ArtifactReferenceService.removeReferenceFromStages(reference, stages));
   }
 
   /**
@@ -70,6 +70,6 @@ export class ArtifactReferenceService {
    */
   public static removeArtifactFromFields(paths: string[]): (stage: IStage, artifactId: string) => void {
     return (stage: IStage, artifactId: string) =>
-      paths.forEach(path => this.removeArtifactFromField(path, stage, artifactId));
+      paths.forEach((path) => this.removeArtifactFromField(path, stage, artifactId));
   }
 }

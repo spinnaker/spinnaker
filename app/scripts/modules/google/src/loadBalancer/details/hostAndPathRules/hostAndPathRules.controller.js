@@ -14,7 +14,7 @@ module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER,
   'loadBalancerName',
   '$uibModalInstance',
   'hostAndPathRulesService',
-  function(hostRules, defaultService, loadBalancerName, $uibModalInstance, hostAndPathRulesService) {
+  function (hostRules, defaultService, loadBalancerName, $uibModalInstance, hostAndPathRulesService) {
     this.table = hostAndPathRulesService.buildTable(hostRules, defaultService);
     this.loadBalancerName = loadBalancerName;
     this.close = $uibModalInstance.dismiss;

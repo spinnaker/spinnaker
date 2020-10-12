@@ -48,7 +48,7 @@ export class CreatePipelineFromTemplate extends React.Component<
     Observable.fromPromise(ApplicationReader.listApplications())
       .takeUntil(this.destroy$)
       .subscribe(
-        applications => this.setState({ applications, loading: false }),
+        (applications) => this.setState({ applications, loading: false }),
         () => {
           this.setState({ applicationError: `Could not load application list. Please try again.`, loading: false });
         },
@@ -84,7 +84,7 @@ export class CreatePipelineFromTemplate extends React.Component<
     Observable.fromPromise(ApplicationReader.getApplication(name))
       .takeUntil(this.destroy$)
       .subscribe(
-        loadedApplication => {
+        (loadedApplication) => {
           loadedApplication.getDataSource('pipelineConfigs').activate();
           this.setState({ applicationSelectionComplete: true, loadedApplication, submitting: false });
         },
@@ -121,7 +121,7 @@ export class CreatePipelineFromTemplate extends React.Component<
           application={loadedApplication}
           show={true}
           showCallback={closeModalCallback}
-          pipelineSavedCallback={id => {
+          pipelineSavedCallback={(id) => {
             this.goToPipelineConfig(loadedApplication.name, id);
           }}
           preselectedTemplate={template}

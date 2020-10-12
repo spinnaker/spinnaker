@@ -9,7 +9,7 @@ export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE =
 export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE; // for backwards compatibility
 module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
   'gceCustomInstanceBuilderService',
-  function() {
+  function () {
     function vCpuCountForLocationIsValid(instanceFamily, vCpuCount, location, locationToInstanceTypesMap) {
       let max = 0;
       switch (instanceFamily) {
@@ -51,7 +51,7 @@ module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
     }
 
     function generateValidInstanceFamilyList() {
-      return ['n1', 'e2', 'n2', 'n2d'].map(x => x.toUpperCase());
+      return ['n1', 'e2', 'n2', 'n2d'].map((x) => x.toUpperCase());
     }
 
     /*
@@ -111,7 +111,7 @@ module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, []).factory(
     function parseInstanceTypeString(instanceTypeString) {
       const [vCpuCount, memoryInMbs] = _.chain(instanceTypeString.split('-'))
         .takeRight(2)
-        .map(value => Number(value))
+        .map((value) => Number(value))
         .value();
 
       let instanceFamily = instanceTypeString.split('-')[0].toUpperCase();

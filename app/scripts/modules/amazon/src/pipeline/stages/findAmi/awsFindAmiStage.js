@@ -8,7 +8,7 @@ export const AMAZON_PIPELINE_STAGES_FINDAMI_AWSFINDAMISTAGE = 'spinnaker.amazon.
 export const name = AMAZON_PIPELINE_STAGES_FINDAMI_AWSFINDAMISTAGE; // for backwards compatibility
 angular
   .module(AMAZON_PIPELINE_STAGES_FINDAMI_AWSFINDAMISTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'findImage',
       alias: 'findAmi',
@@ -24,7 +24,7 @@ angular
   })
   .controller('awsFindAmiStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.state = {
@@ -32,7 +32,7 @@ angular
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

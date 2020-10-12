@@ -37,7 +37,7 @@ class TargetTrackingSummaryController implements IComponentController {
 
   public $onInit() {
     this.config = this.policy.targetTrackingConfiguration;
-    AccountService.getAccountDetails(this.serverGroup.account).then(details => {
+    AccountService.getAccountDetails(this.serverGroup.account).then((details) => {
       // alarmServerGroup is used to trick the chart rendering into using AWS metrics
       this.alarmServerGroup = {
         type: 'aws',

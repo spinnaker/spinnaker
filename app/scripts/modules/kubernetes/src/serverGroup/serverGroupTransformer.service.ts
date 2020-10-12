@@ -11,7 +11,7 @@ export class KubernetesV2ServerGroupTransformer {
       .getDataSource('serverGroupManagers')
       .ready()
       .then((sgManagers: IKubernetesServerGroupManager[]) => {
-        (serverGroup.serverGroupManagers || []).forEach(managerRef => {
+        (serverGroup.serverGroupManagers || []).forEach((managerRef) => {
           const sgManager = sgManagers.find(
             (manager: IKubernetesServerGroupManager) =>
               managerRef.account == manager.account &&

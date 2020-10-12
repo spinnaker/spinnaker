@@ -9,7 +9,7 @@ import { module } from 'angular';
 export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE = 'spinnaker.core.pipeline.stage.bakeStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE, [CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       useBaseProvider: true,
       label: 'Bake',
@@ -21,7 +21,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE, [CORE_PIPELINE_CONFIG_STAGES_
   })
   .run([
     'bakeStageTransformer',
-    function(bakeStageTransformer) {
+    function (bakeStageTransformer) {
       Registry.pipeline.registerTransformer(bakeStageTransformer);
     },
   ]);

@@ -11,7 +11,8 @@ export interface IServerGroupAdvancedSettingsProps {
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
-export class ServerGroupAdvancedSettings extends React.Component<IServerGroupAdvancedSettingsProps>
+export class ServerGroupAdvancedSettings
+  extends React.Component<IServerGroupAdvancedSettingsProps>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
   private ref: any = React.createRef();
 

@@ -39,11 +39,11 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   }
 
   public componentDidUpdate(_prevProps: IExecutionDetailsSectionProps, prevState: IDeployStatusState) {
-    const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], []).filter(m => !!m);
-    const manifestIds = manifests.map(m => KubernetesManifestService.manifestIdentifier(m)).sort();
+    const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], []).filter((m) => !!m);
+    const manifestIds = manifests.map((m) => KubernetesManifestService.manifestIdentifier(m)).sort();
     if (prevState.manifestIds.join('') !== manifestIds.join('')) {
       this.unsubscribeAll();
-      const subscriptions = manifests.map(manifest => {
+      const subscriptions = manifests.map((manifest) => {
         const id = KubernetesManifestService.manifestIdentifier(manifest);
         return {
           id,
@@ -58,7 +58,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   private subscribeToManifestUpdates(id: string, manifest: IStageManifest): () => void {
     const params = KubernetesManifestService.stageManifestToManifestParams(manifest, this.props.stage.context.account);
     return KubernetesManifestService.subscribe(this.props.application, params, (updated: IManifest) => {
-      const idx = this.state.subscriptions.findIndex(sub => sub.id === id);
+      const idx = this.state.subscriptions.findIndex((sub) => sub.id === id);
       if (idx !== -1) {
         const subscription = { ...this.state.subscriptions[idx], manifest: updated };
         const subscriptions = [...this.state.subscriptions];
@@ -88,7 +88,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
 
   public render() {
     const { name: sectionName, current: currentSection, stage } = this.props;
-    const manifests: IManifest[] = this.state.subscriptions.filter(sub => !!sub.manifest).map(sub => sub.manifest);
+    const manifests: IManifest[] = this.state.subscriptions.filter((sub) => !!sub.manifest).map((sub) => sub.manifest);
     return (
       <ExecutionDetailsSection name={sectionName} current={currentSection}>
         <StageFailureMessage stage={stage} message={stage.failureMessage} />
@@ -96,7 +96,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
           <div className="row">
             <div className="col-md-12">
               <div className="well alert alert-info">
-                {manifests.map(manifest => {
+                {manifests.map((manifest) => {
                   const uid =
                     manifest.manifest.metadata.uid || KubernetesManifestService.manifestIdentifier(manifest.manifest);
                   return <ManifestStatus key={uid} manifest={manifest} account={stage.context.account} />;

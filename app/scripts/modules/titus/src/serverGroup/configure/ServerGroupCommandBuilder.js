@@ -11,7 +11,7 @@ export const TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER =
 export const name = TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER; // for backwards compatibility
 angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factory('titusServerGroupCommandBuilder', [
   '$q',
-  function($q) {
+  function ($q) {
     function getDefaultIamProfile(application) {
       const defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
       return defaultIamProfile.replace('{{application}}', application.name);
@@ -180,7 +180,7 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
       };
       const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-      return asyncLoader.then(function(asyncData) {
+      return asyncLoader.then(function (asyncData) {
         const command = asyncData.command;
 
         command.constraints = {

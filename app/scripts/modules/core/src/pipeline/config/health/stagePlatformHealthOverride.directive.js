@@ -7,7 +7,7 @@ export const CORE_PIPELINE_CONFIG_HEALTH_STAGEPLATFORMHEALTHOVERRIDE_DIRECTIVE =
 export const name = CORE_PIPELINE_CONFIG_HEALTH_STAGEPLATFORMHEALTHOVERRIDE_DIRECTIVE; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_HEALTH_STAGEPLATFORMHEALTHOVERRIDE_DIRECTIVE, [])
-  .directive('stagePlatformHealthOverride', function() {
+  .directive('stagePlatformHealthOverride', function () {
     return {
       restrict: 'E',
       templateUrl: require('./stagePlatformHealthOverrideCheckbox.directive.html'),

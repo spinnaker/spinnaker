@@ -49,11 +49,11 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
       .getDataSource('serverGroups')
       .data.filter((s: IServerGroup) => s.cloudProvider === props.cloudProvider && s.category === 'serverGroup');
 
-    const grouped = groupBy(serverGroups, serverGroup =>
+    const grouped = groupBy(serverGroups, (serverGroup) =>
       [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':'),
     );
 
-    Object.keys(grouped).forEach(key => {
+    Object.keys(grouped).forEach((key) => {
       const latest = sortBy(grouped[key], 'name').pop();
       templates.push({
         cluster: latest.cluster,
@@ -106,7 +106,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
       serverGroup.account,
       serverGroup.region,
       serverGroup.name,
-    ).then(details => {
+    ).then((details) => {
       details.account = serverGroup.account;
       return commandBuilder.buildServerGroupCommandFromExisting(application, details, 'editPipeline');
     });

@@ -5,7 +5,7 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_TARGETSHAPESELECTOR_DIREC
 
 module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_TARGETSHAPESELECTOR_DIRECTIVE, []).directive(
   'gceTargetShapeSelector',
-  function() {
+  function () {
     return {
       restrict: 'E',
       templateUrl: require('./targetShapeSelector.directive.html'),

@@ -8,7 +8,7 @@ export class PipelineJSONService {
 
   private static removeImmutableFields(pipeline: IPipeline): void {
     // no index signature on pipeline
-    PipelineJSONService.immutableFields.forEach(k => delete (pipeline as any)[k]);
+    PipelineJSONService.immutableFields.forEach((k) => delete (pipeline as any)[k]);
   }
 
   public static clone(pipeline: IPipeline): IPipeline {

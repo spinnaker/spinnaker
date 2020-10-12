@@ -60,7 +60,7 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
       level: level,
       stageType,
     })
-      .then(newNotification => {
+      .then((newNotification) => {
         const notificationsCopy = notifications || [];
         if (!notification) {
           updateNotifications(notificationsCopy.concat(newNotification));
@@ -100,14 +100,14 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
     const { supportedNotificationTypes } = this.state;
     Observable.fromPromise(AppNotificationsService.getNotificationsForApplication(application.name))
       .takeUntil(this.destroy$)
-      .subscribe(notifications => {
+      .subscribe((notifications) => {
         const results = filter(
           flatten(
-            supportedNotificationTypes.map(type => {
+            supportedNotificationTypes.map((type) => {
               return get(notifications, type) || [];
             }),
           ),
-          allow => allow !== undefined && allow.level === 'application',
+          (allow) => allow !== undefined && allow.level === 'application',
         );
         updateNotifications(results);
       });
@@ -120,7 +120,7 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
       application: application.name,
     };
 
-    notifications.forEach(n => {
+    notifications.forEach((n) => {
       if (isEmpty(get(toSaveNotifications, n.type))) {
         toSaveNotifications[n.type] = [];
       }

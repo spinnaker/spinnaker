@@ -21,12 +21,12 @@ export interface ICustomInstanceConfigurerProps {
 
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
-    const instanceFamilyOptions: Option[] = (this.props.instanceFamilyList || []).map(instanceFamily => ({
+    const instanceFamilyOptions: Option[] = (this.props.instanceFamilyList || []).map((instanceFamily) => ({
       label: instanceFamily,
       value: instanceFamily,
     }));
-    const vCpuOptions: Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
-    const memoryOptions: Option[] = (this.props.memoryList || []).map(memory => ({
+    const vCpuOptions: Option[] = (this.props.vCpuList || []).map((vCpu) => ({ label: vCpu + '', value: vCpu }));
+    const memoryOptions: Option[] = (this.props.memoryList || []).map((memory) => ({
       label: memory + '',
       value: memory,
     }));

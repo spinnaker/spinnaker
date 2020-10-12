@@ -24,8 +24,7 @@
           ng-change="$ctrl.onProtocolChange()"
           ng-model="$ctrl.healthCheckType"
           ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL']"
-        >
-        </select>
+        ></select>
       </div>
       <div class="col-md-2">
         <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteHealthCheck()">

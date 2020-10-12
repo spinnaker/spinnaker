@@ -12,11 +12,11 @@ export function MinMaxDesiredChanges(props: IMinMaxDesiredChangesProps) {
   const fields: Array<keyof ICapacity> = ['min', 'max', 'desired'];
 
   const changedCapacityFields = fields
-    .map(field => {
+    .map((field) => {
       const hasChanged = current[field] !== next[field];
       return hasChanged ? { field, currentValue: current[field], nextValue: next[field] } : null;
     })
-    .filter(x => !!x);
+    .filter((x) => !!x);
 
   if (!changedCapacityFields.length) {
     return <span>No changes</span>;
@@ -24,7 +24,7 @@ export function MinMaxDesiredChanges(props: IMinMaxDesiredChangesProps) {
 
   return (
     <>
-      {changedCapacityFields.map(field => (
+      {changedCapacityFields.map((field) => (
         <div key={field.field}>
           {startCase(field.field)}: <b>{field.currentValue}</b> <i className="fa fa-long-arrow-alt-right" />{' '}
           <b>{field.nextValue}</b>

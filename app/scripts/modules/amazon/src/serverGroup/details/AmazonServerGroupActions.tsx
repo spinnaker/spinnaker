@@ -44,8 +44,8 @@ export class AmazonServerGroupActionsResize extends React.Component<IAmazonResiz
 export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
-      const resizeTasks = (this.props.serverGroup.runningTasks || []).filter(task =>
-        get(task, 'execution.stages', []).some(stage => stage.type === 'resizeServerGroup'),
+      const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
+        get(task, 'execution.stages', []).some((stage) => stage.type === 'resizeServerGroup'),
       );
       if (resizeTasks.length) {
         return true;
@@ -172,9 +172,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     ConfirmationModalService.confirm(confirmationModalParams)
       // Wait for the confirmation modal to go away first to avoid react/angular bootstrap fighting
       // over the body.modal-open class
-      .then(() => new Promise(resolve => setTimeout(resolve, 500)))
+      .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
       .then(() => this.rollbackServerGroup())
-      .catch(error => {
+      .catch((error) => {
         // don't show the enable modal if the user cancels with the header button
         if (error?.source === 'footer') {
           this.showEnableServerGroupModal();

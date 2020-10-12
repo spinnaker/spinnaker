@@ -21,7 +21,7 @@ angular
     '$uibModalStack',
     '$controller',
     'imageReader',
-    function($scope, $state, $uibModalStack, $controller, imageReader) {
+    function ($scope, $state, $uibModalStack, $controller, imageReader) {
       angular.extend(
         this,
         $controller('BasicSettingsMixin', {

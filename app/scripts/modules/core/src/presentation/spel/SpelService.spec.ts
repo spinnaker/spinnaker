@@ -2,8 +2,8 @@ import { API } from 'core/api';
 import { SpelService } from './SpelService';
 
 describe('SpelService', () => {
-  it('extracts "result" from the payload', async done => {
-    const spy = jasmine.createSpy('get', () => new Promise(resolve => resolve({ result: 'data' }))).and.callThrough();
+  it('extracts "result" from the payload', async (done) => {
+    const spy = jasmine.createSpy('get', () => new Promise((resolve) => resolve({ result: 'data' }))).and.callThrough();
     spyOn(API as any, 'getFn').and.callFake(() => spy);
 
     const result = await SpelService.evaluateExpression('expression', null, null);
@@ -13,7 +13,7 @@ describe('SpelService', () => {
     done();
   });
 
-  it('throws when the payload has "details"', async done => {
+  it('throws when the payload has "details"', async (done) => {
     const serverExpressionEvaluationFailure = {
       detail: {
         'bad expression': [
@@ -33,7 +33,7 @@ describe('SpelService', () => {
 
     // If expressions fail to evaluate, the server still returns 200 OK
     const spy = jasmine
-      .createSpy('get', () => new Promise(resolve => resolve(serverExpressionEvaluationFailure)))
+      .createSpy('get', () => new Promise((resolve) => resolve(serverExpressionEvaluationFailure)))
       .and.callThrough();
 
     spyOn(API as any, 'getFn').and.callFake(() => spy);

@@ -146,10 +146,10 @@ export interface IServerGroupCommand {
 
 export const setMatchingResourceSummary = (command: IServerGroupCommand) => {
   command.resourceSummary = (command.backingData.managedResources ?? []).find(
-    resource =>
+    (resource) =>
       !resource.isPaused &&
       getKindName(resource.kind) === 'cluster' &&
-      resource.locations.regions.some(r => r.name === command.region) &&
+      resource.locations.regions.some((r) => r.name === command.region) &&
       (resource.moniker.stack ?? '') === command.stack &&
       (resource.moniker.detail ?? '') === command.freeFormDetails &&
       resource.locations.account === command.credentials,

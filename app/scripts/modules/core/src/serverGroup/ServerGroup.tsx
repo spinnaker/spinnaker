@@ -60,7 +60,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
   private getState(props: IServerGroupProps): IServerGroupState {
     const { serverGroup } = props;
-    const instances = serverGroup.instances.filter(i => ClusterState.filterService.shouldShowInstance(i));
+    const instances = serverGroup.instances.filter((i) => ClusterState.filterService.shouldShowInstance(i));
     const isSelected = this.isSelected(serverGroup);
     const isMultiSelected = this.isMultiSelected(props.sortFilter.multiselect, serverGroup);
     const jenkinsConfig = serverGroup.buildInfo && serverGroup.buildInfo.jenkins;

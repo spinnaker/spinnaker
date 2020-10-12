@@ -47,7 +47,7 @@ export class CronMinutes extends React.Component<ICronTriggerConfigProps, ICronM
             <Select
               className="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block vertical-align-select"
               value={minutes}
-              options={this.minuteOptions.map(j => ({ label: j, value: j }))}
+              options={this.minuteOptions.map((j) => ({ label: j, value: j }))}
               onChange={this.onUpdateTrigger}
               clearable={false}
             />

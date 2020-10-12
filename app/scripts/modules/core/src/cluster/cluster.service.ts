@@ -35,9 +35,7 @@ export class ClusterService {
   public loadServerGroups(application: Application): IPromise<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
-      const serverGroupLoader = API.one('applications')
-        .one(application.name)
-        .all('serverGroups');
+      const serverGroupLoader = API.one('applications').one(application.name).all('serverGroups');
       dataSource.fetchOnDemand = clusters.length > SETTINGS.onDemandClusterThreshold;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
@@ -50,11 +48,11 @@ export class ClusterService {
         this.reconcileClusterDeepLink();
       }
       return serverGroupLoader.getList().then((serverGroups: IServerGroup[]) => {
-        serverGroups.forEach(sg => this.addHealthStatusCheck(sg));
-        serverGroups.forEach(sg => this.addNameParts(sg));
+        serverGroups.forEach((sg) => this.addHealthStatusCheck(sg));
+        serverGroups.forEach((sg) => this.addNameParts(sg));
         return this.$q
-          .all(serverGroups.map(sg => this.serverGroupTransformer.normalizeServerGroup(sg, application)))
-          .then(normalized => normalized.filter(Boolean));
+          .all(serverGroups.map((sg) => this.serverGroupTransformer.normalizeServerGroup(sg, application)))
+          .then((normalized) => normalized.filter(Boolean));
       });
     });
   }
@@ -68,7 +66,7 @@ export class ClusterService {
     if (selectedClusters && selectedClusters.length) {
       const clusterNames: string[] = [];
       const accountNames: string[] = [];
-      selectedClusters.forEach(clusterKey => {
+      selectedClusters.forEach((clusterKey) => {
         const [account, cluster] = clusterKey.split(':');
         accountNames.push(account);
         if (cluster) {
@@ -76,7 +74,7 @@ export class ClusterService {
         }
       });
       if (clusterNames.length) {
-        accountNames.forEach(account => (ClusterState.filterModel.asFilterModel.sortFilter.account[account] = true));
+        accountNames.forEach((account) => (ClusterState.filterModel.asFilterModel.sortFilter.account[account] = true));
         ClusterState.filterModel.asFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
         ClusterState.filterModel.asFilterModel.sortFilter.clusters = {};
         ClusterState.filterModel.asFilterModel.applyParamsToUrl();
@@ -113,10 +111,10 @@ export class ClusterService {
       });
 
       // splice is necessary to preserve referential equality
-      toRemove.forEach(idx => data.splice(idx, 1));
+      toRemove.forEach((idx) => data.splice(idx, 1));
 
       // add any new ones
-      serverGroups.forEach(serverGroup => {
+      serverGroups.forEach((serverGroup) => {
         const match = localMap[this.generateServerGroupLookupKey(serverGroup)];
         if (!match) {
           data.push(serverGroup);
@@ -189,7 +187,7 @@ export class ClusterService {
       } else {
         serverGroup.runningTasks.length = 0;
       }
-      runningTasks.forEach(task => {
+      runningTasks.forEach((task) => {
         if (taskMatcher.taskMatches(task, serverGroup)) {
           serverGroup.runningTasks.push(task);
         }
@@ -231,8 +229,8 @@ export class ClusterService {
       .get()
       .then((clustersMap: { [account: string]: string[] }) => {
         const clusters: IClusterSummary[] = [];
-        Object.keys(clustersMap).forEach(account => {
-          clustersMap[account].forEach(name => {
+        Object.keys(clustersMap).forEach((account) => {
+          clustersMap[account].forEach((name) => {
             clusters.push({ account, name });
           });
         });
@@ -260,7 +258,7 @@ export class ClusterService {
 
   private findStagesWithServerGroupInfo(stages: IExecutionStage[]): IExecutionStage[] {
     return (stages || []).filter(
-      stage =>
+      (stage) =>
         (['createServerGroup', 'deploy', 'destroyAsg', 'resizeAsg'].includes(stage.type) &&
           has(stage.context, 'deploy.server.groups')) ||
         (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name')) ||
@@ -269,8 +267,8 @@ export class ClusterService {
   }
 
   private addProvidersAndServerGroupsToInstances(serverGroups: IServerGroup[]) {
-    serverGroups.forEach(serverGroup => {
-      serverGroup.instances.forEach(instance => {
+    serverGroups.forEach((serverGroup) => {
+      serverGroup.instances.forEach((instance) => {
         instance.provider = serverGroup.type || serverGroup.provider;
         instance.serverGroup = instance.serverGroup || serverGroup.name;
         instance.vpcId = serverGroup.vpcId;
@@ -292,8 +290,8 @@ export class ClusterService {
   }
 
   private addHealthStatusCheck(serverGroup: IServerGroup): void {
-    serverGroup.instances.forEach(instance => {
-      instance.hasHealthStatus = (instance.health || []).some(h => h.state !== 'Unknown');
+    serverGroup.instances.forEach((instance) => {
+      instance.hasHealthStatus = (instance.health || []).some((h) => h.state !== 'Unknown');
     });
   }
 
@@ -309,7 +307,7 @@ export class ClusterService {
       total: 0,
     };
     const operand = cluster.serverGroups || [];
-    operand.forEach(serverGroup => {
+    operand.forEach((serverGroup) => {
       if (!serverGroup.instanceCounts) {
         return;
       }

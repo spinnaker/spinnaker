@@ -14,7 +14,7 @@ import { DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './b
 export const DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE = 'spinnaker.docker.pipeline.stage.bakeStage';
 export const name = DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE; // for backwards compatibility
 module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'docker',
@@ -23,7 +23,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
-      extraLabelLines: stage => {
+      extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       supportsCustomTimeout: true,
@@ -34,7 +34,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
   .controller('dockerBakeStageCtrl', [
     '$scope',
     '$q',
-    function($scope, $q) {
+    function ($scope, $q) {
       const stage = $scope.stage;
 
       stage.region = 'global';
@@ -52,7 +52,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
         $q.all({
           baseOsOptions: BakeryReader.getBaseOsOptions('docker'),
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        }).then(function(results) {
+        }).then(function (results) {
           $scope.baseOsOptions = results.baseOsOptions.baseImages;
           $scope.baseLabelOptions = results.baseLabelOptions;
 
@@ -67,7 +67,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
       }
 
       function deleteEmptyProperties() {
-        _.forOwn($scope.stage, function(val, key) {
+        _.forOwn($scope.stage, function (val, key) {
           if (val === '') {
             delete $scope.stage[key];
           }

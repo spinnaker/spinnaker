@@ -39,7 +39,7 @@ export class AdditionalFields extends React.Component<IRollingPushStrategyAdditi
               <input
                 type="checkbox"
                 checked={command.termination.relaunchAllInstances}
-                onChange={e => this.handleChange('relaunchAllInstances', e.target.checked)}
+                onChange={(e) => this.handleChange('relaunchAllInstances', e.target.checked)}
               />
               <b>Relaunch all instances</b>
               <HelpField id="strategy.rollingPush.relaunchAll" />
@@ -58,7 +58,7 @@ export class AdditionalFields extends React.Component<IRollingPushStrategyAdditi
                 className="form-control input-sm"
                 type="number"
                 value={command.termination.totalRelaunches}
-                onChange={e => this.handleChange('totalRelaunches', e.target.value)}
+                onChange={(e) => this.handleChange('totalRelaunches', e.target.value)}
                 min="0"
               />
             </div>
@@ -76,7 +76,7 @@ export class AdditionalFields extends React.Component<IRollingPushStrategyAdditi
                 className="form-control input-sm"
                 type="number"
                 value={command.termination.concurrentRelaunches}
-                onChange={e => this.handleChange('concurrentRelaunches', e.target.value)}
+                onChange={(e) => this.handleChange('concurrentRelaunches', e.target.value)}
                 min="1"
               />
             </div>
@@ -94,7 +94,7 @@ export class AdditionalFields extends React.Component<IRollingPushStrategyAdditi
                 className="input input-sm"
                 style={{ width: '100px' }}
                 value={command.termination.order}
-                onChange={e => this.handleChange('order', e.target.value)}
+                onChange={(e) => this.handleChange('order', e.target.value)}
               >
                 <option value="oldest">oldest first</option>
                 <option value="newest">newest first</option>

@@ -7,7 +7,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE = 'spinnaker.titus.pipeline.stage.enableAsgStage';
 export const name = TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE; // for backwards compatibility
 module(TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'enableServerGroup',
       alias: 'enableAsg',
@@ -24,7 +24,7 @@ module(TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE, [])
   })
   .controller('titusEnableAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -34,7 +34,7 @@ module(TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('titus').then(function(accounts) {
+      AccountService.listAccounts('titus').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

@@ -110,8 +110,8 @@ export class Application {
     private scheduler: any,
     dataSourceConfigs: Array<IDataSourceConfig<any>>,
   ) {
-    dataSourceConfigs.forEach(config => this.addDataSource(config));
-    this.status$ = Observable.combineLatest(this.dataSources.map(ds => ds.status$)).map(statuses =>
+    dataSourceConfigs.forEach((config) => this.addDataSource(config));
+    this.status$ = Observable.combineLatest(this.dataSources.map((ds) => ds.status$)).map((statuses) =>
       this.getDerivedApplicationStatus(statuses),
     );
   }
@@ -148,7 +148,7 @@ export class Application {
    * @param key
    */
   public getDataSource(key: string): ApplicationDataSource {
-    return this.dataSources.find(ds => ds.key === key);
+    return this.dataSources.find((ds) => ds.key === key);
   }
 
   /**
@@ -160,10 +160,10 @@ export class Application {
    */
   public refresh(forceRefresh?: boolean): IPromise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
-    this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
-    return $q.all(this.dataSources.filter(ds => ds.visible).map(source => source.refresh(forceRefresh))).then(
+    this.dataSources.filter((ds) => !ds.visible).forEach((ds) => ds.refresh(forceRefresh));
+    return $q.all(this.dataSources.filter((ds) => ds.visible).map((source) => source.refresh(forceRefresh))).then(
       () => this.applicationLoadSuccess(),
-      error => this.applicationLoadError(error),
+      (error) => this.applicationLoadError(error),
     );
   }
 
@@ -175,7 +175,7 @@ export class Application {
    */
   public ready(): IPromise<any> {
     return $q.all(
-      this.dataSources.filter(ds => ds.onLoad !== undefined && ds.visible).map(dataSource => dataSource.ready()),
+      this.dataSources.filter((ds) => ds.onLoad !== undefined && ds.visible).map((dataSource) => dataSource.ready()),
     );
   }
 
@@ -241,9 +241,9 @@ export class Application {
   private setApplicationAccounts(): void {
     let accounts = this.accounts.concat(this.attributes.accounts || []);
     this.dataSources
-      .filter(ds => Array.isArray(ds.data) && ds.credentialsField !== undefined)
+      .filter((ds) => Array.isArray(ds.data) && ds.credentialsField !== undefined)
       .forEach(
-        (ds: ApplicationDataSource<any[]>) => (accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField]))),
+        (ds: ApplicationDataSource<any[]>) => (accounts = accounts.concat(ds.data.map((d) => d[ds.credentialsField]))),
       );
 
     this.accounts = uniq(accounts);
@@ -252,19 +252,21 @@ export class Application {
   private extractProviderDefault(field: string): Map<string, string> {
     const results = new Map<string, string>();
     const sources: Array<ApplicationDataSource<any[]>> = this.dataSources.filter(
-      ds => ds[field] !== undefined && Array.isArray(ds.data) && ds.providerField !== undefined,
+      (ds) => ds[field] !== undefined && Array.isArray(ds.data) && ds.providerField !== undefined,
     );
-    const providers: string[][] = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
+    const providers: string[][] = sources
+      .map((ds) => ds.data.map((d) => d[ds.providerField]))
+      .filter((p) => p.length > 0);
     const allProviders = union(...providers);
     allProviders.forEach((provider: string) => {
       const vals = sources
-        .map(ds =>
+        .map((ds) =>
           map(
             ds.data.filter((d: any) => typeof d === 'object' && d[ds.providerField] === provider),
             ds[field],
           ),
         )
-        .filter(v => v.length > 0);
+        .filter((v) => v.length > 0);
       const allValues = union(...vals);
       if (allValues.length === 1) {
         (results as any)[provider] = allValues[0];

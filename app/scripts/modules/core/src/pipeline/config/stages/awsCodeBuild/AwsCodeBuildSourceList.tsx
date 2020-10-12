@@ -36,7 +36,7 @@ export class AwsCodeBuildSourceList extends React.Component<IAwsCodeBuildSourceL
       stage,
       pipeline,
     })
-      .then(newSource => {
+      .then((newSource) => {
         const sourceCopy = sources || [];
         if (!source) {
           updateSources(sourceCopy.concat(newSource));

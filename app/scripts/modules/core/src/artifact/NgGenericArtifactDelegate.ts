@@ -26,7 +26,7 @@ export class NgGenericArtifactDelegate
     );
     this.kinds = Registry.pipeline
       .getMatchArtifactKinds()
-      .filter((a: IArtifactKindConfig) => !this.getExcludedArtifactTypes().find(t => t.test(a.type)));
+      .filter((a: IArtifactKindConfig) => !this.getExcludedArtifactTypes().find((t) => t.test(a.type)));
     this.refreshExpectedArtifacts();
   }
 
@@ -46,7 +46,7 @@ export class NgGenericArtifactDelegate
     if (id == null) {
       return null;
     }
-    return this.getExpectedArtifacts().find(ea => ea.id === id);
+    return this.getExpectedArtifacts().find((ea) => ea.id === id);
   };
 
   public getSelectedAccount = (): IArtifactAccount => {
@@ -54,7 +54,7 @@ export class NgGenericArtifactDelegate
     if (accountName == null) {
       return null;
     }
-    return this.getExpectedArtifactAccounts().find(a => a.name === accountName);
+    return this.getExpectedArtifactAccounts().find((a) => a.name === accountName);
   };
 
   public setSelectedExpectedArtifact = (expectedArtifact: IExpectedArtifact) => {

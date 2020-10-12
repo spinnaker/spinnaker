@@ -13,8 +13,6 @@ export class ProjectReader {
   }
 
   public static getProjectClusters(projectName: string): IPromise<IProjectCluster[]> {
-    return API.one('projects', projectName)
-      .all('clusters')
-      .getList();
+    return API.one('projects', projectName).all('clusters').getList();
   }
 }

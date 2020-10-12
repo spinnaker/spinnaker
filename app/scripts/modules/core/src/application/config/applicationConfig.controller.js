@@ -30,9 +30,9 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
   '$state',
   'app',
   '$scope',
-  function($state, app, $scope) {
+  function ($state, app, $scope) {
     this.application = app;
-    this.isDataSourceEnabled = key => app.dataSources.some(ds => ds.key === key && ds.disabled === false);
+    this.isDataSourceEnabled = (key) => app.dataSources.some((ds) => ds.key === key && ds.disabled === false);
     this.feature = SETTINGS.feature;
     if (app.notFound || app.hasError) {
       $state.go('home.infrastructure', null, { location: 'replace' });
@@ -44,7 +44,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
       isSaving: false,
       saveError: false,
     };
-    this.updateBannerConfigs = bannerConfigs => {
+    this.updateBannerConfigs = (bannerConfigs) => {
       const applicationAttributes = cloneDeep(this.application.attributes);
       applicationAttributes.customBanners = bannerConfigs;
       $scope.$applyAsync(() => {
@@ -65,7 +65,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
     };
 
     this.notifications = [];
-    this.updateNotifications = notifications => {
+    this.updateNotifications = (notifications) => {
       $scope.$applyAsync(() => {
         this.notifications = notifications;
       });

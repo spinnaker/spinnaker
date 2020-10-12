@@ -14,10 +14,10 @@ interface IMultiTaskMonitorProps {
 }
 
 export const MultiTaskMonitor = ({ monitors = [], title, closeModal }: IMultiTaskMonitorProps) => {
-  const [hasErrors, setHasErrors] = React.useState(monitors.some(monitor => monitor.error));
-  const isVisible = monitors.some(monitor => monitor.submitting || monitor.error);
+  const [hasErrors, setHasErrors] = React.useState(monitors.some((monitor) => monitor.error));
+  const isVisible = monitors.some((monitor) => monitor.submitting || monitor.error);
   const clearErrors = (): void => {
-    monitors.forEach(monitor => (monitor.error = null));
+    monitors.forEach((monitor) => (monitor.error = null));
     setHasErrors(false);
   };
 
@@ -32,7 +32,7 @@ export const MultiTaskMonitor = ({ monitors = [], title, closeModal }: IMultiTas
       </Modal.Header>
       <Modal.Body>
         <div className="clearfix">
-          {monitors.map(monitor => (
+          {monitors.map((monitor) => (
             <div className="col-md-6 overlay-modal-status" key={monitor.task.id}>
               <h4>{monitor.title}</h4>
               <TaskMonitorStatus monitor={monitor} />

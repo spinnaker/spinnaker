@@ -40,7 +40,7 @@ export class FormikStageConfig extends React.Component<IFormikStageConfigProps> 
         validate={validate && decorate(validate, this.props)}
         initialValues={stage}
         onSubmit={() => {}}
-        render={formik => (
+        render={(formik) => (
           <LayoutProvider value={ResponsiveFieldLayout}>
             <WatchValue onChange={onChange} value={formik.values} />
             {render({ application, pipeline, formik })}

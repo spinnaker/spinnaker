@@ -19,7 +19,8 @@ export interface IPipelinesState {
   initialized: boolean;
 }
 
-export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
+export class Pipelines
+  extends React.Component<IPipelinesProps, IPipelinesState>
   implements IWizardPageComponent<IProject> {
   private static readonly pipelineConfigsPath = 'config.pipelineConfigs';
 
@@ -33,8 +34,8 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
     const { appsPipelines, initialized } = this.state;
 
     if (initialized && value.config && value.config.pipelineConfigs && value.config.pipelineConfigs.length) {
-      const pipelineConfigErrors = value.config.pipelineConfigs.map(config => {
-        const pipelineIdsForApp = appsPipelines[config.application].map(p => p.id);
+      const pipelineConfigErrors = value.config.pipelineConfigs.map((config) => {
+        const pipelineIdsForApp = appsPipelines[config.application].map((p) => p.id);
 
         if (!config.application) {
           return { application: 'Application must be specified' };
@@ -49,7 +50,7 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
         return null;
       });
 
-      if (pipelineConfigErrors.some(val => !!val)) {
+      if (pipelineConfigErrors.some((val) => !!val)) {
         return {
           config: {
             pipelineConfigs: pipelineConfigErrors as any,
@@ -70,15 +71,15 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
       .map('application')
       .uniq()
       // Only fetch for apps we don't already have results for
-      .filter(appName => appName && !this.state.appsPipelines[appName])
+      .filter((appName) => appName && !this.state.appsPipelines[appName])
       .value();
 
     const appsPipelines: { [appName: string]: IPipeline[] } = { ...this.state.appsPipelines };
 
     Promise.all(
-      appsToFetch.map(appName => {
+      appsToFetch.map((appName) => {
         return PipelineConfigService.getPipelinesForApplication(appName)
-          .then(pipelines => {
+          .then((pipelines) => {
             appsPipelines[appName] = pipelines;
           })
           .catch(() => {
@@ -122,7 +123,7 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
     return (
       <FieldArray
         name={Pipelines.pipelineConfigsPath}
-        render={pipelinesArrayHelper => {
+        render={(pipelinesArrayHelper) => {
           const project: IProject = pipelinesArrayHelper.form.values;
           const configs: IProjectPipeline[] = getIn(project, Pipelines.pipelineConfigsPath);
           const apps: string[] = getIn(project, 'config.applications');
@@ -137,7 +138,7 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
                       const pipelinePath = `${Pipelines.pipelineConfigsPath}[${idx}]`;
                       const application = config && config.application;
                       const appPipelines = application && appsPipelines[application];
-                      const pipelineOptions = appPipelines && appPipelines.map(p => ({ label: p.name, value: p.id }));
+                      const pipelineOptions = appPipelines && appPipelines.map((p) => ({ label: p.name, value: p.id }));
 
                       const key = `${application}-${config && config.pipelineConfigId}-${idx}`;
 
@@ -147,9 +148,9 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
                             <FormikFormField
                               name={`${pipelinePath}.application`}
                               layout={({ input }) => <div>{input}</div>}
-                              input={props => (
+                              input={(props) => (
                                 <StringsAsOptions strings={apps}>
-                                  {options => <ReactSelectInput {...props} clearable={false} options={options} />}
+                                  {(options) => <ReactSelectInput {...props} clearable={false} options={options} />}
                                 </StringsAsOptions>
                               )}
                             />
@@ -162,7 +163,7 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
                               <FormikFormField
                                 name={`${pipelinePath}.pipelineConfigId`}
                                 layout={({ input }) => <div>{input}</div>}
-                                input={props => (
+                                input={(props) => (
                                   <ReactSelectInput {...props} clearable={false} options={pipelineOptions} />
                                 )}
                               />

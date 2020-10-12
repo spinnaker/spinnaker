@@ -37,10 +37,10 @@ export function makePreconfiguredJobStage(preconfiguredJobType: string): IStageT
 export const PRECONFIGUREDJOB_STAGE = 'spinnaker.core.pipeline.stage.preconfiguredJobStage';
 
 module(PRECONFIGUREDJOB_STAGE, []).run(() => {
-  PreconfiguredJobReader.list().then(preconfiguredJobs => {
-    const basicPreconfiguredJobs = preconfiguredJobs.filter(job => job.uiType !== 'CUSTOM');
+  PreconfiguredJobReader.list().then((preconfiguredJobs) => {
+    const basicPreconfiguredJobs = preconfiguredJobs.filter((job) => job.uiType !== 'CUSTOM');
     return Promise.all(
-      basicPreconfiguredJobs.map(job => {
+      basicPreconfiguredJobs.map((job) => {
         const stageConfig = makePreconfiguredJobStage(job.type);
         return Registry.pipeline.registerPreconfiguredJobStage(stageConfig);
       }),

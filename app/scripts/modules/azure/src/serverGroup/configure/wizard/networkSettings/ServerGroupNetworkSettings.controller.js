@@ -11,7 +11,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETT
   'azureServerGroupNetworkSettingsCtrl',
   [
     '$scope',
-    function($scope) {
+    function ($scope) {
       ModalWizard.markClean('network-settings');
 
       $scope.command.selectedVnet = {
@@ -20,19 +20,19 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETT
 
       $scope.command.selectedSubnet = $scope.command.subnet;
 
-      this.vnetChanged = function(item) {
+      this.vnetChanged = function (item) {
         $scope.command.vnet = item;
         $scope.command.subnet = $scope.command.selectedSubnet = null;
-        $scope.command.selectedVnetSubnets = item.subnets.map(s => s.name);
+        $scope.command.selectedVnetSubnets = item.subnets.map((s) => s.name);
       };
 
-      this.networkSettingsChanged = function(item) {
+      this.networkSettingsChanged = function (item) {
         $scope.command.vnet = $scope.command.selectedVnet.name;
         $scope.command.subnet = item;
         ModalWizard.markComplete('network-settings');
       };
 
-      this.getVnetName = function() {
+      this.getVnetName = function () {
         if ($scope.command.selectedVnet) {
           return $scope.command.selectedVnet.name;
         } else {

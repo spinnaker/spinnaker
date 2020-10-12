@@ -36,7 +36,7 @@ export class PagerDutySelectFieldController implements IComponentController {
 
   private loadPagerDutyServices(): void {
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
-      this.pagerDutyServices = pagerDutyServices.filter(service => service.integration_key);
+      this.pagerDutyServices = pagerDutyServices.filter((service) => service.integration_key);
       this.servicesLoaded = true;
     });
   }

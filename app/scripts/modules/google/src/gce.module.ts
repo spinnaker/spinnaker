@@ -53,7 +53,7 @@ import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from './common/xpnNaming.gce.serv
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function(key) {
+templates.keys().forEach(function (key) {
   templates(key);
 });
 

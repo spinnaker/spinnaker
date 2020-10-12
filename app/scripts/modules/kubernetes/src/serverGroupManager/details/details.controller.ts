@@ -126,7 +126,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       this.manifest.manifest,
       this.serverGroupManager.moniker,
       this.serverGroupManager.account,
-    ).then(builtCommand => {
+    ).then((builtCommand) => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }

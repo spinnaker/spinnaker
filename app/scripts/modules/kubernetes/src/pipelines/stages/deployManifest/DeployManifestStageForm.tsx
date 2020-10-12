@@ -57,7 +57,7 @@ export class DeployManifestStageForm extends React.Component<
   }
 
   private getSourceOptions = (): Array<Option<string>> => {
-    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], option => ({
+    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], (option) => ({
       label: capitalize(option),
       value: option,
     }));
@@ -97,11 +97,11 @@ export class DeployManifestStageForm extends React.Component<
   private onRequiredArtifactsChanged = (bindings: IManifestBindArtifact[]): void => {
     this.props.formik.setFieldValue(
       'requiredArtifactIds',
-      bindings.filter(b => b.expectedArtifactId).map(b => b.expectedArtifactId),
+      bindings.filter((b) => b.expectedArtifactId).map((b) => b.expectedArtifactId),
     );
     this.props.formik.setFieldValue(
       'requiredArtifacts',
-      bindings.filter(b => b.artifact),
+      bindings.filter((b) => b.artifact),
     );
   };
 
@@ -119,7 +119,7 @@ export class DeployManifestStageForm extends React.Component<
         <h4>Basic Settings</h4>
         <ManifestBasicSettings
           accounts={this.props.accounts}
-          onAccountSelect={accountName => this.props.formik.setFieldValue('account', accountName)}
+          onAccountSelect={(accountName) => this.props.formik.setFieldValue('account', accountName)}
           selectedAccount={stage.account}
         />
         <StageConfigField label="Override Namespace">
@@ -135,7 +135,7 @@ export class DeployManifestStageForm extends React.Component<
               accounts={this.props.accounts}
               selectedAccount={stage.account}
               selectedNamespace={stage.namespaceOverride || ''}
-              onChange={namespace => this.props.formik.setFieldValue('namespaceOverride', namespace)}
+              onChange={(namespace) => this.props.formik.setFieldValue('namespaceOverride', namespace)}
             />
           </StageConfigField>
         )}
@@ -188,7 +188,7 @@ export class DeployManifestStageForm extends React.Component<
         <ManifestDeploymentOptions
           accounts={this.props.accounts}
           config={stage.trafficManagement}
-          onConfigChange={config => this.props.formik.setFieldValue('trafficManagement', config)}
+          onConfigChange={(config) => this.props.formik.setFieldValue('trafficManagement', config)}
           selectedAccount={stage.account}
         />
       </div>

@@ -56,7 +56,7 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     if (credentials && region) {
       Observable.fromPromise(ServicesReader.getServices(credentials, region))
         .takeUntil(this.destroy$)
-        .subscribe(serviceNamesAndPlans => this.setState({ serviceNamesAndPlans }));
+        .subscribe((serviceNamesAndPlans) => this.setState({ serviceNamesAndPlans }));
     }
   }
 
@@ -105,8 +105,8 @@ export class CreateServiceInstanceDirectInput extends React.Component<
 
   public render() {
     const { service } = this.props;
-    const services = this.state.serviceNamesAndPlans.map(item => item.name);
-    const serviceWithPlans = this.state.serviceNamesAndPlans.find(it => it.name === service.service);
+    const services = this.state.serviceNamesAndPlans.map((item) => item.name);
+    const serviceWithPlans = this.state.serviceNamesAndPlans.find((it) => it.name === service.service);
     const servicePlans = serviceWithPlans ? serviceWithPlans.servicePlans.map((it: IServicePlan) => it.name) : [];
     return (
       <div>

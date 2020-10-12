@@ -17,7 +17,7 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
     'serverGroup',
     'disabledServerGroups',
     'allServerGroups',
-    function(
+    function (
       $scope,
       $uibModalInstance,
       serverGroupWriter,
@@ -46,7 +46,7 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
       }
 
-      this.isValid = function() {
+      this.isValid = function () {
         const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
@@ -61,23 +61,23 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
         modalInstance: $uibModalInstance,
       });
 
-      this.rollback = function() {
+      this.rollback = function () {
         if (!this.isValid()) {
           return;
         }
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 
         $scope.taskMonitor.submit(submitMethod);
       };
 
-      this.cancel = function() {
+      this.cancel = function () {
         $uibModalInstance.dismiss();
       };
 
-      this.label = function(serverGroup) {
+      this.label = function (serverGroup) {
         if (!serverGroup) {
           return '';
         }
@@ -89,7 +89,7 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
         return serverGroup.name + ' (build #' + serverGroup.buildInfo.jenkins.number + ')';
       };
 
-      this.group = function(serverGroup) {
+      this.group = function (serverGroup) {
         return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
       };
     },

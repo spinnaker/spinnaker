@@ -16,8 +16,6 @@ export class CertificateReader {
   }
 
   public static listCertificatesByProvider(cloudProvider: string): IPromise<ICertificate[]> {
-    return API.one('certificates')
-      .one(cloudProvider)
-      .getList();
+    return API.one('certificates').one(cloudProvider).getList();
   }
 }

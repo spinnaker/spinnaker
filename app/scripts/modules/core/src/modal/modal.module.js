@@ -23,8 +23,8 @@ module(CORE_MODAL_MODAL_MODULE, [
 ]).run([
   '$rootScope',
   '$uibModalStack',
-  function($rootScope, $uibModalStack) {
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
+  function ($rootScope, $uibModalStack) {
+    $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
       if (!toParams.allowModalToStayOpen) {
         $uibModalStack.dismissAll();
       }

@@ -24,7 +24,7 @@ module(ACCOUNT_SELECT_COMPONENT, []).component('accountSelectField', {
   },
   controller: [
     '$timeout',
-    function($timeout: ITimeoutService) {
+    function ($timeout: ITimeoutService) {
       this.handleSelectChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         // It seems event.persist() doesn't help here because the rerender updated target's value
         // so we need to capture it before that happens.

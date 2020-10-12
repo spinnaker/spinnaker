@@ -11,7 +11,7 @@ describe('SpinFormik', () => {
       <SpinFormik
         initialValues={{ foo: '123', bar: '456' }}
         onSubmit={() => null}
-        render={_formik => {
+        render={(_formik) => {
           formik = _formik;
           return null;
         }}

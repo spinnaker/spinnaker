@@ -61,7 +61,7 @@ export class CloudfoundryLoadBalancersStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
   }
 
   public componentWillUnmount(): void {

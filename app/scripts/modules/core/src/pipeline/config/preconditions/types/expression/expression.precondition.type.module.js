@@ -7,7 +7,7 @@ export const CORE_PIPELINE_CONFIG_PRECONDITIONS_TYPES_EXPRESSION_EXPRESSION_PREC
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_TYPES_EXPRESSION_EXPRESSION_PRECONDITION_TYPE_MODULE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_PRECONDITIONS_TYPES_EXPRESSION_EXPRESSION_PRECONDITION_TYPE_MODULE, []).config([
   'preconditionTypeConfigProvider',
-  function(preconditionTypeConfigProvider) {
+  function (preconditionTypeConfigProvider) {
     preconditionTypeConfigProvider.registerPreconditionType({
       label: 'Expression',
       key: 'expression',

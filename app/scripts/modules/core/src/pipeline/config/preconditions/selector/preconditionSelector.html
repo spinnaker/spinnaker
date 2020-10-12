@@ -6,8 +6,7 @@
       ng-options="t.key as t.label for t in preconditionTypes"
       ng-model="precondition.type"
       ng-change="preconditionCtrl.clearContext()"
-    >
-    </select>
+    ></select>
   </div>
 </div>
 <div ng-include="preconditionCtrl.getPreconditionContextTemplateUrl()"></div>

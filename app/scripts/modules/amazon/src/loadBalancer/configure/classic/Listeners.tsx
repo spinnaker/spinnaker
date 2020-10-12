@@ -39,7 +39,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
   }
 
   private loadCertificates(): void {
-    AmazonCertificateReader.listCertificates().then(certificates => {
+    AmazonCertificateReader.listCertificates().then((certificates) => {
       this.setState({ certificates });
     });
   }
@@ -129,7 +129,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
           accountName={values.credentials}
           currentValue={listener.sslCertificateName}
           app={this.props.app}
-          onCertificateSelect={value => this.handleListenerCertificateChanged(listener, value)}
+          onCertificateSelect={(value) => this.handleListenerCertificateChanged(listener, value)}
         />
       );
     } else {
@@ -138,7 +138,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
           className="input-sm"
           style={{ width: '100%', marginLeft: '10px' }}
           required={true}
-          onChange={e => this.handleListenerCertificateChanged(listener, e.target.value)}
+          onChange={(e) => this.handleListenerCertificateChanged(listener, e.target.value)}
           value={listener.sslCertificateName}
         />
       );
@@ -172,14 +172,14 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
                         <select
                           className="form-control input-sm"
                           value={listener.externalProtocol}
-                          onChange={event =>
+                          onChange={(event) =>
                             this.listenerExternalProtocolChanged(
                               listener,
                               event.target.value as ClassicListenerProtocol,
                             )
                           }
                         >
-                          {this.protocols.map(p => (
+                          {this.protocols.map((p) => (
                             <option key={p}>{p}</option>
                           ))}
                         </select>
@@ -190,7 +190,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
                           type="number"
                           min="0"
                           value={listener.externalPort}
-                          onChange={event => this.listenerExternalPortChanged(listener, event.target.value)}
+                          onChange={(event) => this.listenerExternalPortChanged(listener, event.target.value)}
                           required={true}
                         />
                       </td>
@@ -201,14 +201,14 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
                         <select
                           className="form-control input-sm"
                           value={listener.internalProtocol}
-                          onChange={event =>
+                          onChange={(event) =>
                             this.listenerInternalProtocolChanged(
                               listener,
                               event.target.value as ClassicListenerProtocol,
                             )
                           }
                         >
-                          {this.protocols.map(p => (
+                          {this.protocols.map((p) => (
                             <option key={p}>{p}</option>
                           ))}
                         </select>
@@ -219,7 +219,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
                           type="number"
                           min="0"
                           value={listener.internalPort}
-                          onChange={event => this.listenerInternalPortChanged(listener, event.target.value)}
+                          onChange={(event) => this.listenerInternalPortChanged(listener, event.target.value)}
                           required={true}
                         />
                       </td>
@@ -239,9 +239,9 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
                                 style={{ width: '45px', marginLeft: '10px' }}
                                 className="form-control input-sm"
                                 value={listener.sslCertificateType}
-                                onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
+                                onChange={(event) => this.listenerCertificateTypeChanged(listener, event.target.value)}
                               >
-                                {this.certificateTypes.map(t => (
+                                {this.certificateTypes.map((t) => (
                                   <option key={t}>{t}</option>
                                 ))}
                               </select>

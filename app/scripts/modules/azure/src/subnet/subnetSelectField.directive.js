@@ -4,7 +4,7 @@ import { module } from 'angular';
 
 export const AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE = 'spinnaker.azure.subnet.subnetSelectField.directive';
 export const name = AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE; // for backwards compatibility
-module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelectField', function() {
+module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelectField', function () {
   return {
     restrict: 'E',
     templateUrl: require('./subnetSelectField.directive.html'),
@@ -18,13 +18,13 @@ module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelec
       helpKey: '@',
       readOnly: '=',
     },
-    link: function(scope) {
+    link: function (scope) {
       function setSubnets() {
         const subnets = scope.subnets || [];
-        scope.activeSubnets = subnets.filter(function(subnet) {
+        scope.activeSubnets = subnets.filter(function (subnet) {
           return !subnet.deprecated;
         });
-        scope.deprecatedSubnets = subnets.filter(function(subnet) {
+        scope.deprecatedSubnets = subnets.filter(function (subnet) {
           return subnet.deprecated;
         });
       }

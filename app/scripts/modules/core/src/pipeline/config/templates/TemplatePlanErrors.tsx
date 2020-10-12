@@ -15,7 +15,7 @@ export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps
             Error
             {this.props.errors.length > 1 ? 's' : ''}:
           </strong>
-          {this.props.errors.map(e => this.buildErrorMessage(e))}
+          {this.props.errors.map((e) => this.buildErrorMessage(e))}
         </div>
       );
     } else {
@@ -40,7 +40,7 @@ export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps
             {' '}
             Details:
             <ul>
-              {Object.keys(e.details).map(key => (
+              {Object.keys(e.details).map((key) => (
                 <li key={key}>
                   {key}: {e.details[key]}
                 </li>
@@ -52,7 +52,7 @@ export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps
           <div>
             {' '}
             Nested Errors:
-            {e.nestedErrors.map(nestedError => this.buildErrorMessage(nestedError, paddingLeft + 15))}
+            {e.nestedErrors.map((nestedError) => this.buildErrorMessage(nestedError, paddingLeft + 15))}
           </div>
         )}
       </div>

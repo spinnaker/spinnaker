@@ -16,7 +16,7 @@ export function DescriptionPageContent(props: IDescriptionPageContentProps) {
       <div className="col-md-12">
         <FormField
           name={'description'}
-          input={inputProps => (
+          input={(inputProps) => (
             <TextAreaInput
               {...inputProps}
               placeholder={
@@ -26,7 +26,7 @@ export function DescriptionPageContent(props: IDescriptionPageContentProps) {
             />
           )}
           value={pipeline.description}
-          onChange={event => {
+          onChange={(event) => {
             updatePipelineConfig({ description: event.target.value });
           }}
         />

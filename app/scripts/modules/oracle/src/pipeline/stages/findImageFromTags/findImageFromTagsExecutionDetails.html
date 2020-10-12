@@ -12,9 +12,7 @@
           <dd>{{stage.context.packageName}}</dd>
           <dt>Tags</dt>
           <dd>
-            <span ng-repeat="(key, val) in stage.context.tags">
-              {{key}}:{{val}}{{$last ? '' : ', '}}
-            </span>
+            <span ng-repeat="(key, val) in stage.context.tags"> {{key}}:{{val}}{{$last ? '' : ', '}} </span>
           </dd>
         </dl>
       </div>

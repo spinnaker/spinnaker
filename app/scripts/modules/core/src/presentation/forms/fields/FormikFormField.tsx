@@ -81,8 +81,11 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const { hidden, category, messageNode } = useValidationData(message, touched);
 
   const [internalValidators, setInternalValidators] = useState([]);
-  const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
-  const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
+  const addValidator = useCallback((v: IValidator) => setInternalValidators((list) => list.concat(v)), []);
+  const removeValidator = useCallback(
+    (v: IValidator) => setInternalValidators((list) => list.filter((x) => x !== v)),
+    [],
+  );
 
   const revalidate = () => coalescedRevalidate(formik);
   const mountStatus = useMountStatusRef();
@@ -175,5 +178,5 @@ export function createFieldValidator<T>(
 }
 
 export function FormikFormField<T = any>(props: IFormikFormFieldProps<T>) {
-  return <FormikConsumer>{formik => <FormikFormFieldImpl {...props} formik={formik} />}</FormikConsumer>;
+  return <FormikConsumer>{(formik) => <FormikFormFieldImpl {...props} formik={formik} />}</FormikConsumer>;
 }

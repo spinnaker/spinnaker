@@ -18,7 +18,7 @@ export class ApplySourceServerGroupCapacityDetails extends React.Component<
 
   constructor(props: IExecutionDetailsSectionProps) {
     super(props);
-    this.state = { parentDeployStage: find(props.execution.stages, stage => stage.id === props.stage.parentStageId) };
+    this.state = { parentDeployStage: find(props.execution.stages, (stage) => stage.id === props.stage.parentStageId) };
   }
 
   public render() {

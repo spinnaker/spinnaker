@@ -51,7 +51,7 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
 
   private removeImmutableFields(pipeline: IPipeline): void {
     // no index signature on pipeline
-    PipelineJSONService.immutableFields.forEach(k => delete (pipeline as any)[k]);
+    PipelineJSONService.immutableFields.forEach((k) => delete (pipeline as any)[k]);
   }
 
   private validatePipeline(pipeline: IPipeline): void {
@@ -84,8 +84,8 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
       this.validatePipeline(parsed);
 
       Object.keys(pipeline)
-        .filter(k => !PipelineJSONService.immutableFields.has(k) && !parsed.hasOwnProperty(k))
-        .forEach(k => delete (pipeline as any)[k]);
+        .filter((k) => !PipelineJSONService.immutableFields.has(k) && !parsed.hasOwnProperty(k))
+        .forEach((k) => delete (pipeline as any)[k]);
       this.removeImmutableFields(parsed);
       Object.assign(pipeline, parsed);
 

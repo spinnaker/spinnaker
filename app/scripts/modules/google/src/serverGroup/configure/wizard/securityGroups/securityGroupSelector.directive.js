@@ -15,7 +15,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_
   GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT,
   GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
 ])
-  .directive('gceServerGroupSecurityGroupSelector', function() {
+  .directive('gceServerGroupSecurityGroupSelector', function () {
     return {
       restrict: 'E',
       templateUrl: require('./securityGroupSelector.directive.html'),
@@ -30,7 +30,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_
   .controller('gceServerGroupSecurityGroupsSelectorCtrl', [
     'gceServerGroupConfigurationService',
     'gceTagManager',
-    function(gceServerGroupConfigurationService, gceTagManager) {
+    function (gceServerGroupConfigurationService, gceTagManager) {
       this.getSecurityGroupRefreshTime = () => {
         return InfrastructureCaches.get('securityGroups').getStats().ageMax;
       };

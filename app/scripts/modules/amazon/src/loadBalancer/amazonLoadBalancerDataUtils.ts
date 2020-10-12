@@ -22,11 +22,11 @@ export class AmazonLoadBalancerDataUtils {
     } as ITargetGroup;
     targetGroup.instanceCounts = { up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 };
 
-    serverGroup.instances.forEach(instance => {
-      const tgHealth: IAmazonHealth = instance.health.find(h => h.type === 'TargetGroup') as IAmazonHealth;
+    serverGroup.instances.forEach((instance) => {
+      const tgHealth: IAmazonHealth = instance.health.find((h) => h.type === 'TargetGroup') as IAmazonHealth;
       if (tgHealth) {
         const matchedHealth: ILoadBalancer = tgHealth.targetGroups.find(
-          tg => tg.name === match.name && tg.region === match.region && tg.account === match.account,
+          (tg) => tg.name === match.name && tg.region === match.region && tg.account === match.account,
         );
 
         if (matchedHealth !== undefined && matchedHealth.healthState !== undefined) {
@@ -46,21 +46,21 @@ export class AmazonLoadBalancerDataUtils {
   ): IPromise<ITargetGroup[]> {
     return $q
       .all([AccountService.getAccountDetails(serverGroup.account), application.getDataSource('loadBalancers').ready()])
-      .then(data => {
+      .then((data) => {
         const awsAccount = (data[0] && data[0].awsAccount) || serverGroup.account;
         const loadBalancers: IAmazonApplicationLoadBalancer[] = (application.loadBalancers
           .data as ILoadBalancer[]).filter(
-          lb => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network',
+          (lb) => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network',
         ) as IAmazonApplicationLoadBalancer[];
         const targetGroups = serverGroup.targetGroups
           .map((targetGroupName: string) => {
-            const allTargetGroups = flatten(loadBalancers.map(lb => lb.targetGroups || []));
+            const allTargetGroups = flatten(loadBalancers.map((lb) => lb.targetGroups || []));
             const targetGroup = allTargetGroups.find(
-              tg => tg.name === targetGroupName && tg.region === serverGroup.region && tg.account === awsAccount,
+              (tg) => tg.name === targetGroupName && tg.region === serverGroup.region && tg.account === awsAccount,
             );
             return this.buildTargetGroup(targetGroup, serverGroup);
           })
-          .filter(tg => tg);
+          .filter((tg) => tg);
         return targetGroups;
       });
   }

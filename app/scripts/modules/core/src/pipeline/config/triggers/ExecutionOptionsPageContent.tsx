@@ -15,7 +15,7 @@ export function ExecutionOptionsPageContent(props: IExecutionOptionsPageContentP
     <div className="row">
       <div className="col-md-11 col-md-offset-1">
         <FormField
-          input={inputProps => (
+          input={(inputProps) => (
             <CheckboxInput
               {...inputProps}
               text={<strong>Disable concurrent pipeline executions (only run one at a time). </strong>}
@@ -28,7 +28,7 @@ export function ExecutionOptionsPageContent(props: IExecutionOptionsPageContentP
         />
         {pipeline.limitConcurrent && (
           <FormField
-            input={inputProps => (
+            input={(inputProps) => (
               <CheckboxInput
                 {...inputProps}
                 text={

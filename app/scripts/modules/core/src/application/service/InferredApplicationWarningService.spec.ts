@@ -10,7 +10,7 @@ describe('Service: inferredApplicationWarning', () => {
   describe('checkIfInferredAndWarn', () => {
     let configuredApp: Application, inferredApp: Application;
 
-    beforeEach(function() {
+    beforeEach(function () {
       configuredApp = ApplicationModelBuilder.createApplicationForTests('myConfiguredApp');
       configuredApp.attributes.email = 'email@email.email';
 

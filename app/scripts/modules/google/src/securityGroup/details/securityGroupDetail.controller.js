@@ -34,7 +34,7 @@ angular
     'securityGroupReader',
     '$uibModal',
     'gceSecurityGroupHelpTextService',
-    function(
+    function (
       $scope,
       $state,
       resolvedSecurityGroup,
@@ -66,7 +66,7 @@ angular
             securityGroup.vpcId,
             securityGroup.name,
           )
-          .then(function(details) {
+          .then(function (details) {
             $scope.state.loading = false;
 
             if (!details || _.isEmpty(details)) {
@@ -106,14 +106,14 @@ angular
               }
 
               $scope.securityGroup.sourceRanges = _.chain($scope.securityGroup.ipRangeRules)
-                .map(rule => {
+                .map((rule) => {
                   return rule.range.ip && rule.range.cidr ? rule.range.ip + rule.range.cidr : null;
                 })
                 .compact()
                 .uniq()
                 .value();
 
-              const ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
+              const ipIngress = _.map($scope.securityGroup.ipRangeRules, function (ipRangeRule) {
                 return {
                   protocol: ipRangeRule.protocol,
                   portRanges: ipRangeRule.portRanges,
@@ -122,13 +122,13 @@ angular
 
               let ipIngressRules = {};
 
-              ipIngress.forEach(function(ipIngressRule) {
+              ipIngress.forEach(function (ipIngressRule) {
                 if (_.has(ipIngressRules, ipIngressRule.protocol)) {
                   ipIngressRules[ipIngressRule.protocol] = ipIngressRules[ipIngressRule.protocol].concat(
                     ipIngressRule.portRanges,
                   );
 
-                  ipIngressRules[ipIngressRule.protocol] = _.uniqBy(ipIngressRules[ipIngressRule.protocol], function(
+                  ipIngressRules[ipIngressRule.protocol] = _.uniqBy(ipIngressRules[ipIngressRule.protocol], function (
                     portRange,
                   ) {
                     return portRange.startPort + '->' + portRange.endPort;
@@ -138,7 +138,7 @@ angular
                 }
               });
 
-              ipIngressRules = _.map(ipIngressRules, function(portRanges, protocol) {
+              ipIngressRules = _.map(ipIngressRules, function (portRanges, protocol) {
                 return {
                   protocol: protocol,
                   portRanges: portRanges,
@@ -147,11 +147,11 @@ angular
 
               $scope.securityGroup.ipIngressRules = ipIngressRules;
 
-              $scope.securityGroup.protocolPortRangeCount = _.sumBy(ipIngressRules, function(ipIngressRule) {
+              $scope.securityGroup.protocolPortRangeCount = _.sumBy(ipIngressRules, function (ipIngressRule) {
                 return ipIngressRule.portRanges.length > 1 ? ipIngressRule.portRanges.length : 1;
               });
 
-              AccountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {
+              AccountService.getAccountDetails(securityGroup.accountId).then(function (accountDetails) {
                 $scope.securityGroup.logsLink =
                   'https://console.developers.google.com/project/' +
                   accountDetails.project +
@@ -186,7 +186,7 @@ angular
           }
         });
 
-      this.getTagHelpText = function(tag, tagType) {
+      this.getTagHelpText = function (tag, tagType) {
         return gceSecurityGroupHelpTextService.getHelpTextForTag(tag, tagType);
       };
 
@@ -196,10 +196,10 @@ angular
           controller: 'gceEditSecurityGroupCtrl as ctrl',
           size: 'lg',
           resolve: {
-            securityGroup: function() {
+            securityGroup: function () {
               return angular.copy($scope.securityGroup);
             },
-            application: function() {
+            application: function () {
               return application;
             },
           },
@@ -212,14 +212,14 @@ angular
           controller: 'gceCloneSecurityGroupController as ctrl',
           size: 'lg',
           resolve: {
-            securityGroup: function() {
+            securityGroup: function () {
               const securityGroup = angular.copy($scope.securityGroup);
               if (securityGroup.region) {
                 securityGroup.regions = [securityGroup.region];
               }
               return securityGroup;
             },
-            application: function() {
+            application: function () {
               return application;
             },
           },
@@ -232,7 +232,7 @@ angular
           title: 'Deleting ' + securityGroup.name,
         };
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
             cloudProvider: $scope.securityGroup.type,
             securityGroupName: securityGroup.name,

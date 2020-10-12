@@ -37,7 +37,7 @@ export class CloudfoundryRunJobStageConfig extends React.Component<
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
     this.props.stageFieldUpdated();
   }
 
@@ -73,14 +73,14 @@ export class CloudfoundryRunJobStageConfig extends React.Component<
           <TargetSelect
             model={{ target }}
             options={StageConstants.TARGET_LIST}
-            onChange={t => this.props.updateStageField({ target: t })}
+            onChange={(t) => this.props.updateStageField({ target: t })}
           />
         </StageConfigField>
         <StageConfigField label="Job Name" helpKey={'cf.runJob.jobName'}>
           <TextInput
             type="text"
             className="form-control"
-            onChange={e => this.props.updateStageField({ jobName: e.target.value })}
+            onChange={(e) => this.props.updateStageField({ jobName: e.target.value })}
             value={jobName}
             maxLength={238}
           />
@@ -89,14 +89,14 @@ export class CloudfoundryRunJobStageConfig extends React.Component<
           <TextInput
             type="text"
             className="form-control"
-            onChange={e => this.props.updateStageField({ command: e.target.value })}
+            onChange={(e) => this.props.updateStageField({ command: e.target.value })}
             value={command}
           />
         </StageConfigField>
         <StageConfigField label="Logs URL" helpKey={'cf.runJob.logsUrl'}>
           <SpelText
             placeholder=""
-            onChange={value => this.props.updateStageField({ logsUrl: value })}
+            onChange={(value) => this.props.updateStageField({ logsUrl: value })}
             value={logsUrl}
             pipeline={this.props.pipeline}
             docLink={false}

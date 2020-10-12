@@ -18,7 +18,7 @@ const poolValueCoordinates = [
 
 function poolBuilder(loadBalancers: any[]) {
   const pool = chain(loadBalancers)
-    .map(lb => {
+    .map((lb) => {
       const poolUnitTemplate = chain(poolValueCoordinates)
         .filter({ on: 'loadBalancer' })
         .reduce((acc, coordinate) => {
@@ -28,9 +28,9 @@ function poolBuilder(loadBalancers: any[]) {
         .value();
 
       const poolUnits = chain(['instances', 'detachedInstances'])
-        .map(instanceStatus => lb[instanceStatus])
+        .map((instanceStatus) => lb[instanceStatus])
         .flatten<any>()
-        .map(instance => {
+        .map((instance) => {
           const poolUnit = cloneDeep(poolUnitTemplate);
           if (!instance) {
             return poolUnit;
@@ -195,7 +195,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
           <div className="content">
             {providerTypeHeadings.length > 1 && (
               <FilterSection heading="Provider" expanded={true}>
-                {providerTypeHeadings.map(heading => (
+                {providerTypeHeadings.map((heading) => (
                   <FilterCheckbox
                     heading={heading}
                     isCloudProvider={true}
@@ -208,7 +208,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
             )}
 
             <FilterSection heading="Account" expanded={true}>
-              {accountHeadings.map(heading => (
+              {accountHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}
@@ -219,7 +219,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
             </FilterSection>
 
             <FilterSection heading="Region" expanded={true}>
-              {regionHeadings.map(heading => (
+              {regionHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}
@@ -230,7 +230,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
             </FilterSection>
 
             <FilterSection heading="Stack" expanded={true}>
-              {stackHeadings.map(heading => (
+              {stackHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}
@@ -241,7 +241,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
             </FilterSection>
 
             <FilterSection heading="Detail" expanded={true}>
-              {detailHeadings.map(heading => (
+              {detailHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}
@@ -290,7 +290,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
             </FilterSection>
 
             <FilterSection heading="Availability Zones" expanded={true}>
-              {availabilityZoneHeadings.map(heading => (
+              {availabilityZoneHeadings.map((heading) => (
                 <FilterCheckbox
                   heading={heading}
                   key={heading}

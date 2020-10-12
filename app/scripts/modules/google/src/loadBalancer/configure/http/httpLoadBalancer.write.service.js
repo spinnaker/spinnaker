@@ -9,9 +9,9 @@ export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE =
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE; // for backwards compatibility
 angular
   .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE, [])
-  .factory('gceHttpLoadBalancerWriter', function() {
+  .factory('gceHttpLoadBalancerWriter', function () {
     function upsertLoadBalancers(loadBalancers, application, descriptor) {
-      loadBalancers.forEach(lb => {
+      loadBalancers.forEach((lb) => {
         angular.extend(lb, {
           type: 'upsertLoadBalancer',
           cloudProvider: 'gce',

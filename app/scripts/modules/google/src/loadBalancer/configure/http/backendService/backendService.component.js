@@ -17,12 +17,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONEN
       index: '=',
     },
     templateUrl: require('./backendService.component.html'),
-    controller: function() {
+    controller: function () {
       this.backingData = this.command.backingData;
       this.loadBalancer = this.command.loadBalancer;
       const servicesByName = this.backingData.backendServicesKeyedByName;
 
-      this.onBackendServiceSelect = selectedBackendService => {
+      this.onBackendServiceSelect = (selectedBackendService) => {
         assign(selectedBackendService);
         this.command.onHealthCheckSelected(selectedBackendService.healthCheck, this.command);
       };
@@ -40,8 +40,8 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONEN
       this.getAllHealthChecks = () => {
         const allHealthChecks = this.loadBalancer.healthChecks.concat(this.backingData.healthChecks);
         return _.chain(allHealthChecks)
-          .filter(hc => hc.account === this.loadBalancer.credentials || !hc.account)
-          .map(hc => hc.name)
+          .filter((hc) => hc.account === this.loadBalancer.credentials || !hc.account)
+          .map((hc) => hc.name)
           .uniq()
           .value();
       };
@@ -56,8 +56,8 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONEN
 
       this.getAllServiceNames = () => {
         return this.command.backingData.backendServices
-          .filter(service => service.account === this.loadBalancer.credentials)
-          .map(service => service.name);
+          .filter((service) => service.account === this.loadBalancer.credentials)
+          .map((service) => service.name);
       };
 
       this.maxCookieTtl = 60 * 60 * 24; // One day.
@@ -70,7 +70,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONEN
         this.editExisting = true;
       }
 
-      const assign = toAssign => {
+      const assign = (toAssign) => {
         this.loadBalancer.backendServices[this.index] = this.backendService = toAssign;
       };
     },

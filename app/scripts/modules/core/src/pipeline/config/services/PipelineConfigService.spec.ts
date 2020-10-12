@@ -69,7 +69,7 @@ describe('PipelineConfigService', () => {
             request.stages[0].name === 'explicit name' &&
             !request.stages[1].name &&
             !request.stages[2].name &&
-            request.stages.every(s => !s.isNew)
+            request.stages.every((s) => !s.isNew)
           );
         })
         .respond(200, '');
@@ -111,7 +111,7 @@ describe('PipelineConfigService', () => {
       $scope.$digest();
       $http.flush();
 
-      expect(result.map(r => r.name)).toEqual(['first', 'second', 'third', 'last']);
+      expect(result.map((r) => r.name)).toEqual(['first', 'second', 'third', 'last']);
     });
 
     it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', () => {

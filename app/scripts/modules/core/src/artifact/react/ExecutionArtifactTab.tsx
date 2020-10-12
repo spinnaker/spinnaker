@@ -19,7 +19,7 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
       return out.concat(outputArtifacts);
     }, []);
     const allArtifacts = triggerArtifacts.concat(stageOutputArtifacts);
-    return allArtifacts.filter(a => has(a, 'boundArtifact'));
+    return allArtifacts.filter((a) => has(a, 'boundArtifact'));
   }
 
   private artifactLists() {
@@ -34,8 +34,8 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
     const boundArtifacts = this.extractBoundArtifactsFromExecution(execution);
 
     const consumedArtifacts = boundArtifacts
-      .filter(rea => consumedIds.has(rea.id))
-      .map(rea => rea.boundArtifact)
+      .filter((rea) => consumedIds.has(rea.id))
+      .map((rea) => rea.boundArtifact)
       .filter(({ name, type }) => name && type);
 
     const producedArtifacts = get(stage, ['outputs', 'artifacts'], []).slice();

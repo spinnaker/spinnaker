@@ -28,7 +28,7 @@ export function BakeCloudFoundryManifestConfig({ application, pipeline, stage, u
       pipeline={pipeline}
       stage={stageWithDefaults}
       validate={validateBakeCloudFoundryManifestStage}
-      render={props => <BakeCloudFoundryManifestConfigForm {...props} />}
+      render={(props) => <BakeCloudFoundryManifestConfigForm {...props} />}
     />
   );
 }

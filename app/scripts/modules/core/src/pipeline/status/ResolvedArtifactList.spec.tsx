@@ -17,15 +17,15 @@ describe('<ResolvedArtifactList/>', () => {
   beforeEach(mock.module(REACT_MODULE));
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
-  it('renders null when null artifacts are passed in', function() {
+  it('renders null when null artifacts are passed in', function () {
     const artifacts: IArtifact[] = null;
     component = shallow(<ResolvedArtifactList artifacts={artifacts} showingExpandedArtifacts={true} />);
     expect(component.get(0)).toEqual(null);
   });
 
-  it('renders null when 0 artifacts are passed in', function() {
+  it('renders null when 0 artifacts are passed in', function () {
     const artifacts: IArtifact[] = [];
-    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    const resolvedExpectedArtifacts = artifacts.map((a) => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(
       <ResolvedArtifactList
         artifacts={artifacts}
@@ -44,7 +44,7 @@ describe('<ResolvedArtifactList/>', () => {
         name: ARTIFACT_NAME,
       },
     ];
-    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    const resolvedExpectedArtifacts = artifacts.map((a) => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(
       <ResolvedArtifactList
         artifacts={artifacts}
@@ -55,7 +55,7 @@ describe('<ResolvedArtifactList/>', () => {
     expect(component.get(0)).toEqual(null);
   });
 
-  it('renders two columns when columnLayoutAfter is set to 2', function() {
+  it('renders two columns when columnLayoutAfter is set to 2', function () {
     const artifacts: IArtifact[] = [
       {
         id: 'abcd',
@@ -69,7 +69,7 @@ describe('<ResolvedArtifactList/>', () => {
       },
     ];
 
-    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    const resolvedExpectedArtifacts = artifacts.map((a) => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(
       <ResolvedArtifactList
         artifacts={artifacts}
@@ -82,13 +82,13 @@ describe('<ResolvedArtifactList/>', () => {
     expect(component.find(Artifact).length).toEqual(2);
   });
 
-  it('does not render an artifact without a type and name', function() {
+  it('does not render an artifact without a type and name', function () {
     const singleArtifact: IArtifact[] = [
       {
         id: 'abcd',
       },
     ];
-    const resolvedExpectedArtifacts = singleArtifact.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    const resolvedExpectedArtifacts = singleArtifact.map((a) => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(
       <ResolvedArtifactList
         artifacts={singleArtifact}
@@ -99,7 +99,7 @@ describe('<ResolvedArtifactList/>', () => {
     expect(component.get(0)).toEqual(null);
   });
 
-  it('only renders an artifacts that has a type and name', function() {
+  it('only renders an artifacts that has a type and name', function () {
     const artifacts: IArtifact[] = [
       {
         id: 'abcd',
@@ -110,7 +110,7 @@ describe('<ResolvedArtifactList/>', () => {
         name: ARTIFACT_NAME,
       },
     ];
-    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    const resolvedExpectedArtifacts = artifacts.map((a) => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(
       <ResolvedArtifactList
         artifacts={artifacts}
@@ -121,7 +121,7 @@ describe('<ResolvedArtifactList/>', () => {
     expect(component.find(Artifact).length).toEqual(1);
   });
 
-  it('does not render artifacts for which there is no expected artifact in the pipeline', function() {
+  it('does not render artifacts for which there is no expected artifact in the pipeline', function () {
     const artifacts: IArtifact[] = [
       {
         id: 'abcd',

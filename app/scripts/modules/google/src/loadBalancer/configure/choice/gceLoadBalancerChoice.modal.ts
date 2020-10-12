@@ -22,11 +22,11 @@ class GceLoadBalancerChoiceCtrl implements IController {
   ) {}
 
   public $onInit(): void {
-    this.choices = map(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label);
+    this.choices = map(this.loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label);
   }
 
   public choose(choice: string): void {
-    const wizard = find(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label === choice);
+    const wizard = find(this.loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label === choice);
     this.$uibModalInstance.dismiss();
     this.$uibModal.open({
       templateUrl: wizard.createTemplateUrl,

@@ -9,13 +9,13 @@ export const ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE =
   'spinnaker.ecs.pipeline.stage.cloneServerGroupStage';
 export const name = ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE; // for backwards compatibility
 module(ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'ecs',
       templateUrl: require('./cloneServerGroupStage.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
@@ -26,14 +26,14 @@ module(ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE, [])
   })
   .controller('ecsCloneServerGroupStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
       };
 
-      AccountService.listAccounts('ecs').then(accounts => {
+      AccountService.listAccounts('ecs').then((accounts) => {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -77,7 +77,7 @@ module(ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE, [])
         stage.useSourceCapacity = true;
       }
 
-      this.toggleSuspendedProcess = process => {
+      this.toggleSuspendedProcess = (process) => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
         const processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
@@ -87,7 +87,7 @@ module(ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE, [])
         }
       };
 
-      this.processIsSuspended = process => {
+      this.processIsSuspended = (process) => {
         return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
       };
     },

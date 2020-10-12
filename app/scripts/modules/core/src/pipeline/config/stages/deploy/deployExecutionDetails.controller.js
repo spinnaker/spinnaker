@@ -26,7 +26,7 @@ angular
     '$scope',
     '$stateParams',
     'executionDetailsSectionService',
-    function($scope, $stateParams, executionDetailsSectionService) {
+    function ($scope, $stateParams, executionDetailsSectionService) {
       $scope.configSections = ['deploymentConfig', 'taskStatus', 'artifactStatus'];
 
       function areJarDiffsEmpty() {
@@ -34,7 +34,7 @@ angular
 
         const jarDiffs = $scope.stage.context.jarDiffs;
         if (!_.isEmpty(jarDiffs)) {
-          result = !Object.keys(jarDiffs).some(key => Array.isArray(jarDiffs[key]) && jarDiffs[key].length);
+          result = !Object.keys(jarDiffs).some((key) => Array.isArray(jarDiffs[key]) && jarDiffs[key].length);
         }
 
         return result;
@@ -66,7 +66,7 @@ angular
         function addDeployedArtifacts(key) {
           const deployedArtifacts = _.find(resultObjects, key);
           if (deployedArtifacts) {
-            _.forEach(deployedArtifacts[key], function(serverGroupName, region) {
+            _.forEach(deployedArtifacts[key], function (serverGroupName, region) {
               const result = {
                 type: 'serverGroups',
                 application: context.application,
@@ -105,7 +105,7 @@ angular
         if (_.has(context, 'source.region') && context['deploy.server.groups']) {
           const serverGroupName = context['deploy.server.groups'][context.source.region][0];
           ServerGroupReader.getServerGroup(context.application, context.account, context.source.region, serverGroupName)
-            .then(serverGroup => {
+            .then((serverGroup) => {
               if (_.has(serverGroup, 'buildInfo.jenkins')) {
                 $scope.changeConfig.buildInfo.jenkins = serverGroup.buildInfo.jenkins;
               }
@@ -127,7 +127,7 @@ angular
         const stage = $scope.stage;
 
         const activeWaitTask = (stage.tasks || []).find(
-          t => ['RUNNING', 'TERMINAL'].includes(t.status) && t.name === 'waitForUpInstances',
+          (t) => ['RUNNING', 'TERMINAL'].includes(t.status) && t.name === 'waitForUpInstances',
         );
 
         if (activeWaitTask && stage.context.lastCapacityCheck) {
@@ -172,7 +172,7 @@ angular
         }
       }
 
-      this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
+      this.overrideFiltersForUrl = (r) => ClusterState.filterService.overrideFiltersForUrl(r);
 
       const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

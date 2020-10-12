@@ -18,7 +18,7 @@ export function RegionSelectInput(props: IRegionSelectInputProps) {
     return <p className="form-control-static">{props.value}</p>;
   }
 
-  const options: Array<Option<string>> = regions.map(region => ({
+  const options: Array<Option<string>> = regions.map((region) => ({
     value: region.name,
     label: `${region.name}${region.deprecated ? " (deprecated in the '" + account + "' account)" : ''}`,
   }));

@@ -52,14 +52,14 @@ interface IServerGroupTuple {
 const makeServerGroupTuples = (sgToFetch: IServerGroupSearchResult[], fetched: IServerGroup[]): IServerGroupTuple[] => {
   const findFetchedValue = (toFetch: IServerGroupSearchResult) =>
     fetched.find(
-      sg => sg.name === toFetch.serverGroup && sg.account === toFetch.account && sg.region === toFetch.region,
+      (sg) => sg.name === toFetch.serverGroup && sg.account === toFetch.account && sg.region === toFetch.region,
     );
-  return sgToFetch.map(toFetch => ({ toFetch, fetched: findFetchedValue(toFetch) }));
+  return sgToFetch.map((toFetch) => ({ toFetch, fetched: findFetchedValue(toFetch) }));
 };
 
 const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> => {
   const fetchPromise = API.one('serverGroups')
-    .withParams({ ids: toFetch.map(sg => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
+    .withParams({ ids: toFetch.map((sg) => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
     .get()
     .then((fetched: IServerGroup[]) => makeServerGroupTuples(toFetch, fetched));
 
@@ -87,7 +87,7 @@ const AddHealthCounts = (
 
       // results to use when a fetch has failed.
       const failedFetch = (failedFetches: IServerGroupSearchResult[]) =>
-        Observable.of(failedFetches.map(toFetch => ({ toFetch, fetched: { instanceCounts: null } as IServerGroup })));
+        Observable.of(failedFetches.map((toFetch) => ({ toFetch, fetched: { instanceCounts: null } as IServerGroup })));
 
       // fetch a batch of server groups.
       const processBatch = (batch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> =>
@@ -97,7 +97,7 @@ const AddHealthCounts = (
         .mergeMap((searchResults: IServerGroupSearchResult[]) => {
           return (
             Observable.from(searchResults)
-              .filter(result => result.instanceCounts === undefined)
+              .filter((result) => result.instanceCounts === undefined)
               // Serially fetch instance counts in batches of 25
               .bufferCount(25)
               .concatMap(processBatch)
@@ -105,7 +105,7 @@ const AddHealthCounts = (
         })
         .takeUntil(this.stop$)
         .subscribe((tuples: IServerGroupTuple[]) => {
-          tuples.forEach(result => (result.toFetch.instanceCounts = result.fetched.instanceCounts));
+          tuples.forEach((result) => (result.toFetch.instanceCounts = result.fetched.instanceCounts));
           const resultSet = { ...this.props.resultSet, results: this.results$.value.slice() };
           this.setState({ resultSet });
         });
@@ -174,7 +174,7 @@ class ServerGroupSearchResultType extends SearchResultType<IServerGroupSearchRes
 
     return (
       <SearchTableBody>
-        {results.map(item => (
+        {results.map((item) => (
           <SearchTableRow key={itemKeyFn(item)}>
             <HrefCell item={item} col={this.cols.SERVERGROUP} />
             <AccountCell item={item} col={this.cols.ACCOUNT} />

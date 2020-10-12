@@ -16,36 +16,24 @@ angular
     'application',
     'serverGroup',
     'processes',
-    function($scope, $uibModalInstance, application, serverGroup, processes) {
+    function ($scope, $uibModalInstance, application, serverGroup, processes) {
       $scope.command = angular.copy(processes);
       $scope.serverGroup = serverGroup;
       $scope.verification = {};
 
-      this.isValid = function() {
+      this.isValid = function () {
         if (!$scope.verification.verified) {
           return false;
         }
         return this.isDirty();
       };
 
-      const currentlyEnabled = _.chain($scope.command)
-        .filter({ enabled: true })
-        .map('name')
-        .value();
-      const currentlySuspended = _.chain($scope.command)
-        .filter({ enabled: false })
-        .map('name')
-        .value();
+      const currentlyEnabled = _.chain($scope.command).filter({ enabled: true }).map('name').value();
+      const currentlySuspended = _.chain($scope.command).filter({ enabled: false }).map('name').value();
 
-      this.isDirty = function() {
-        const enabledSelections = _.chain($scope.command)
-          .filter({ enabled: true })
-          .map('name')
-          .value();
-        const suspendedSelections = _.chain($scope.command)
-          .filter({ enabled: false })
-          .map('name')
-          .value();
+      this.isDirty = function () {
+        const enabledSelections = _.chain($scope.command).filter({ enabled: true }).map('name').value();
+        const suspendedSelections = _.chain($scope.command).filter({ enabled: false }).map('name').value();
         const toEnable = _.intersection(currentlySuspended, enabledSelections);
         const toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
@@ -59,15 +47,9 @@ angular
         onTaskComplete: () => application.serverGroups.refresh(),
       });
 
-      this.submit = function() {
-        const enabledSelections = _.chain($scope.command)
-          .filter({ enabled: true })
-          .map('name')
-          .value();
-        const suspendedSelections = _.chain($scope.command)
-          .filter({ enabled: false })
-          .map('name')
-          .value();
+      this.submit = function () {
+        const enabledSelections = _.chain($scope.command).filter({ enabled: true }).map('name').value();
+        const suspendedSelections = _.chain($scope.command).filter({ enabled: false }).map('name').value();
         const toEnable = _.intersection(currentlySuspended, enabledSelections);
         const toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
@@ -97,7 +79,7 @@ angular
           });
         }
 
-        const submitMethod = function() {
+        const submitMethod = function () {
           return TaskExecutor.executeTask({
             job: job,
             application: application,

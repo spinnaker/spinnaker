@@ -95,13 +95,13 @@ export class CreateApplicationLoadBalancer extends React.Component<
   }
 
   private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
-    return AccountService.getAccountDetails(command.credentials).then(account => {
-      command.listeners.forEach(listener => {
+    return AccountService.getAccountDetails(command.credentials).then((account) => {
+      command.listeners.forEach((listener) => {
         if (listener.protocol === 'HTTP') {
           delete listener.sslPolicy;
           listener.certificates = [];
         }
-        listener.certificates.forEach(certificate => {
+        listener.certificates.forEach((certificate) => {
           certificate.certificateArn = this.certificateIdAsARN(
             account.accountId,
             certificate.name,
@@ -124,17 +124,17 @@ export class CreateApplicationLoadBalancer extends React.Component<
   }
 
   private manageTargetGroupNames(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
-    (command.targetGroups || []).forEach(targetGroupDescription => {
+    (command.targetGroups || []).forEach((targetGroupDescription) => {
       targetGroupDescription.name = this.addAppName(targetGroupDescription.name);
     });
-    (command.listeners || []).forEach(listenerDescription => {
-      listenerDescription.defaultActions.forEach(actionDescription => {
+    (command.listeners || []).forEach((listenerDescription) => {
+      listenerDescription.defaultActions.forEach((actionDescription) => {
         if (actionDescription.targetGroupName) {
           actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
         }
       });
-      (listenerDescription.rules || []).forEach(ruleDescription => {
-        ruleDescription.actions.forEach(actionDescription => {
+      (listenerDescription.rules || []).forEach((ruleDescription) => {
+        ruleDescription.actions.forEach((actionDescription) => {
           if (actionDescription.targetGroupName) {
             actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
           }
@@ -144,12 +144,12 @@ export class CreateApplicationLoadBalancer extends React.Component<
   }
 
   private manageRules(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
-    command.listeners.forEach(listener => {
+    command.listeners.forEach((listener) => {
       listener.rules.forEach((rule, index) => {
         // Set the priority in array order, starting with 1
         rule.priority = index + 1;
         // Remove conditions that have no value
-        rule.conditions = rule.conditions.filter(condition => {
+        rule.conditions = rule.conditions.filter((condition) => {
           if (condition.field !== 'http-request-method') {
             return condition.values[0].length > 0;
           }
@@ -209,14 +209,14 @@ export class CreateApplicationLoadBalancer extends React.Component<
     const loadBalancerCommandFormatted = cloneDeep(values);
 
     // replace all authenticateOidcConfig with authenticateOidcActionConfig because aws
-    loadBalancerCommandFormatted.listeners.forEach(listener => {
+    loadBalancerCommandFormatted.listeners.forEach((listener) => {
       listener.defaultActions.forEach((a: any) => {
         if (a.authenticateOidcConfig) {
           a.authenticateOidcActionConfig = a.authenticateOidcConfig;
           delete a.authenticateOidcConfig;
         }
       });
-      listener.rules.forEach(r =>
+      listener.rules.forEach((r) =>
         r.actions.forEach((a: any) => {
           if (a.authenticateOidcConfig) {
             a.authenticateOidcActionConfig = a.authenticateOidcConfig;

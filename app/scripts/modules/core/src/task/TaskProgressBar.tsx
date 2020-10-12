@@ -15,7 +15,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
   let tooltip;
 
   if (task.isRunning) {
-    const currentStep = steps.find(step => step.hasNotStarted || step.isRunning);
+    const currentStep = steps.find((step) => step.hasNotStarted || step.isRunning);
     if (currentStep) {
       const currentStepIndex = steps.indexOf(currentStep) + 1;
       tooltip = (
@@ -25,7 +25,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
   }
 
   if (task.isFailed) {
-    const failedStep = steps.find(step => step.isFailed || step.isSuspended);
+    const failedStep = steps.find((step) => step.isFailed || step.isSuspended);
     if (failedStep && task.failureMessage) {
       const failedStepIndex = steps.indexOf(failedStep) + 1;
       const ellipses = String.fromCharCode(8230);
@@ -47,7 +47,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
     }
   }
 
-  const stepsComplete = steps.filter(step => step.isCompleted);
+  const stepsComplete = steps.filter((step) => step.isCompleted);
 
   const progressBarClassName = classNames({
     'progress-bar': true,

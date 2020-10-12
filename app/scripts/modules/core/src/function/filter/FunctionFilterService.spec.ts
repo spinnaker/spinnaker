@@ -4,7 +4,7 @@ import { FunctionState } from 'core/state';
 import { groupBy, Dictionary } from 'lodash';
 import { IFunction } from '@spinnaker/core';
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
-describe('Service: functionFilterService', function() {
+describe('Service: functionFilterService', function () {
   const debounceTimeout = 30;
 
   let app: Application, resultJson: any;
@@ -13,7 +13,7 @@ describe('Service: functionFilterService', function() {
     FunctionState.filterModel.asFilterModel.groups = [];
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'functions', lazy: true, defaultData: [] });
     app.getDataSource('functions').data = [
       {
@@ -41,8 +41,8 @@ describe('Service: functionFilterService', function() {
     FunctionState.filterModel.asFilterModel.clearFilters();
   });
 
-  describe('Updating the function group', function() {
-    it('no filter: should be transformed', function(done) {
+  describe('Updating the function group', function () {
+    it('no filter: should be transformed', function (done) {
       const expected = [
         {
           heading: 'prod',
@@ -63,8 +63,8 @@ describe('Service: functionFilterService', function() {
       }, debounceTimeout);
     });
 
-    describe('filtering by account type', function() {
-      it('1 account filter: should be transformed showing only prod accounts', function(done) {
+    describe('filtering by account type', function () {
+      it('1 account filter: should be transformed showing only prod accounts', function (done) {
         FunctionState.filterModel.asFilterModel.sortFilter.account = { prod: true };
         FunctionState.filterService.updateFunctionGroups(app);
 
@@ -79,7 +79,7 @@ describe('Service: functionFilterService', function() {
         }, debounceTimeout);
       });
 
-      it('All account filters: should show all accounts', function(done) {
+      it('All account filters: should show all accounts', function (done) {
         FunctionState.filterModel.asFilterModel.sortFilter.account = { prod: true, test: true };
         FunctionState.filterService.updateFunctionGroups(app);
 
@@ -103,8 +103,8 @@ describe('Service: functionFilterService', function() {
     });
   });
 
-  describe('filter by region', function() {
-    it('1 region: should filter by that region', function(done) {
+  describe('filter by region', function () {
+    it('1 region: should filter by that region', function (done) {
       FunctionState.filterModel.asFilterModel.sortFilter.region = { 'us-east-1': true };
       FunctionState.filterService.updateFunctionGroups(app);
 
@@ -122,7 +122,7 @@ describe('Service: functionFilterService', function() {
       }, debounceTimeout);
     });
 
-    it('All regions: should show all functions', function(done) {
+    it('All regions: should show all functions', function (done) {
       FunctionState.filterModel.asFilterModel.sortFilter.region = { 'us-east-1': true, 'us-west-1': true };
       FunctionState.filterService.updateFunctionGroups(app);
 
@@ -145,7 +145,7 @@ describe('Service: functionFilterService', function() {
     });
   });
 
-  it('Filter by region: filterFunctionsForDisplay', function(done) {
+  it('Filter by region: filterFunctionsForDisplay', function (done) {
     FunctionState.filterModel.asFilterModel.sortFilter.region = { 'us-west-1': true };
     const functionsToDisplay = FunctionState.filterService.filterFunctionsForDisplay(app.functions.data);
     setTimeout(() => {
@@ -154,8 +154,8 @@ describe('Service: functionFilterService', function() {
     }, debounceTimeout);
   });
 
-  describe('function with same name and different regions ', function() {
-    it('grouped with region in heading', function(done) {
+  describe('function with same name and different regions ', function () {
+    it('grouped with region in heading', function (done) {
       const newFunction = {
         functionName: 'function1',
         account: 'test',

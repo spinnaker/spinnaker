@@ -3,13 +3,13 @@
 import * as angular from 'angular';
 import { ModalWizard } from './ModalWizard';
 
-describe('Service: wizardSubFormValidation', function() {
+describe('Service: wizardSubFormValidation', function () {
   let wizardSubFormValidation, $rootScope, $compile;
 
   beforeEach(window.module(require('./wizardSubFormValidation.service').name));
 
   beforeEach(
-    window.inject(function(_wizardSubFormValidation_, _$rootScope_, _$compile_) {
+    window.inject(function (_wizardSubFormValidation_, _$rootScope_, _$compile_) {
       wizardSubFormValidation = _wizardSubFormValidation_;
       $rootScope = _$rootScope_;
       $compile = _$compile_;
@@ -18,22 +18,22 @@ describe('Service: wizardSubFormValidation', function() {
     }),
   );
 
-  describe('wizardSubFormValidation.config', function() {
+  describe('wizardSubFormValidation.config', function () {
     let scope, formString;
 
-    beforeEach(function() {
+    beforeEach(function () {
       scope = $rootScope.$new();
       formString = 'myTopLevelForm';
     });
 
-    it('should assign scope and form name string', function() {
+    it('should assign scope and form name string', function () {
       wizardSubFormValidation.config({ scope: scope, form: formString });
 
       expect(wizardSubFormValidation.scope).toEqual(scope);
       expect(wizardSubFormValidation.form).toEqual(formString);
     });
 
-    it('should hook into $scope destroy event and reset scope and form', function() {
+    it('should hook into $scope destroy event and reset scope and form', function () {
       wizardSubFormValidation.config({ scope: scope, form: formString });
 
       expect(wizardSubFormValidation.scope).toEqual(scope);
@@ -46,10 +46,10 @@ describe('Service: wizardSubFormValidation', function() {
     });
   });
 
-  describe('wizardSubFormValidation.register', function() {
+  describe('wizardSubFormValidation.register', function () {
     let form, scope;
 
-    beforeEach(function() {
+    beforeEach(function () {
       scope = $rootScope.$new();
       let formName = 'myTopLevelForm';
       let subFormName = 'mySubForm';
@@ -69,11 +69,11 @@ describe('Service: wizardSubFormValidation', function() {
       form = scope.myTopLevelForm;
     });
 
-    afterEach(function() {
+    afterEach(function () {
       scope.$emit('destroy');
     });
 
-    it('registers page and sub-form; calls v2ModalWizard.markIncomplete on page if sub-form is invalid', function() {
+    it('registers page and sub-form; calls v2ModalWizard.markIncomplete on page if sub-form is invalid', function () {
       spyOn(ModalWizard, 'markIncomplete');
 
       wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });
@@ -83,7 +83,7 @@ describe('Service: wizardSubFormValidation', function() {
       expect(ModalWizard.markIncomplete).toHaveBeenCalledWith('myPage');
     });
 
-    it('registers page and sub-form; calls v2ModalWizard.markComplete on page if sub-form is valid', function() {
+    it('registers page and sub-form; calls v2ModalWizard.markComplete on page if sub-form is valid', function () {
       spyOn(ModalWizard, 'markComplete');
 
       wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });

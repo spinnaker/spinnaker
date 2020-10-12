@@ -4,19 +4,19 @@ import * as angular from 'angular';
 
 export const CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE = 'spinnaker.core.forms.validateOnSubmit.directive';
 export const name = CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE, []).directive('validateOnSubmit', function() {
+angular.module(CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE, []).directive('validateOnSubmit', function () {
   return {
     restrict: 'A',
     require: 'form',
-    link: function(scope, element, attrs, formCtrl) {
-      element.on('submit', function() {
+    link: function (scope, element, attrs, formCtrl) {
+      element.on('submit', function () {
         // Set controls to dirty so that validation formatting is applied
         const queue = [];
         let invalidCtrl = formCtrl;
         while (invalidCtrl) {
           invalidCtrl.$setDirty();
 
-          angular.forEach(invalidCtrl.$error, function(invalidSubCtrls) {
+          angular.forEach(invalidCtrl.$error, function (invalidSubCtrls) {
             if (angular.isArray(invalidSubCtrls)) {
               // Add controls from sub-form
               queue.push.apply(queue, invalidSubCtrls);
@@ -36,7 +36,7 @@ angular.module(CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE, []).direc
           firstInvalid.focus();
 
           if (firstInvalid.hasChildNodes()) {
-            angular.forEach(firstInvalid.childNodes, function(child) {
+            angular.forEach(firstInvalid.childNodes, function (child) {
               if (child.classList && child.classList.contains('ui-select-focusser')) {
                 child.focus();
               }

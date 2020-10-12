@@ -25,13 +25,12 @@
   <div class="col-md-10 content-fields">
     <select
       class="form-control input-sm"
-      style="vertical-align: top;"
+      style="vertical-align: top"
       required
       ng-model="$ctrl.alarm.statistic"
       ng-change="$ctrl.updateChart()"
       ng-options="stat for stat in $ctrl.statistics"
-    >
-    </select>
+    ></select>
     <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
     <aws-metric-selector
       alarm-updated="$ctrl.alarmUpdated"
@@ -50,8 +49,7 @@
       ng-model="$ctrl.alarm.comparisonOperator"
       ng-change="$ctrl.alarmComparatorChanged()"
       ng-options="comparator.value as comparator.label for comparator in $ctrl.comparators"
-    >
-    </select>
+    ></select>
     <input
       type="number"
       class="form-control input-sm"
@@ -83,7 +81,7 @@
       <metric-alarm-chart
         alarm="$ctrl.alarm"
         ng-if="$ctrl.alarm"
-        style="height: 150px;"
+        style="height: 150px"
         alarm-updated="$ctrl.alarmUpdated"
         ticks="{x: 12, y: 5}"
         margins="{top: 10, left: 50}"

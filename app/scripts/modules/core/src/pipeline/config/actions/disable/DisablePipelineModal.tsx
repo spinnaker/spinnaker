@@ -18,7 +18,7 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
   function disablePipeline() {
     PipelineConfigService.savePipeline({ ...pipeline, disabled: true }).then(
       () => closeModal(),
-      response => {
+      (response) => {
         setSaveError(true);
         setErrorMessage(response.message || 'No message provided');
       },
@@ -43,7 +43,7 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
               <p>
                 <a
                   className="btn btn-link"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     setSaveError(false);
                   }}

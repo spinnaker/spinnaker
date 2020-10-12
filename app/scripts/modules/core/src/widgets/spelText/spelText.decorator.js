@@ -12,8 +12,8 @@ function decorateFn($delegate, spelAutocomplete) {
 
   const link = directive.link.pre;
 
-  directive.compile = function() {
-    return function(scope, el) {
+  directive.compile = function () {
+    return function (scope, el) {
       link.apply(this, arguments);
 
       const type = el.attr('type');
@@ -23,7 +23,7 @@ function decorateFn($delegate, spelAutocomplete) {
 
       // the textcomplete plugin needs input texts to marked as 'contenteditable'
       el.attr('contenteditable', true);
-      spelAutocomplete.addPipelineInfo(scope.pipeline).then(textcompleteConfig => {
+      spelAutocomplete.addPipelineInfo(scope.pipeline).then((textcompleteConfig) => {
         el.textcomplete &&
           el.textcomplete(textcompleteConfig, {
             maxCount: 1000,
@@ -52,7 +52,7 @@ function decorateFn($delegate, spelAutocomplete) {
           }
         } else {
           el.removeClass('monospace');
-          hasLink.fadeOut(500, function() {
+          hasLink.fadeOut(500, function () {
             this.remove();
           });
         }
@@ -69,7 +69,7 @@ export const CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR = 'spinnaker.core.widget.s
 export const name = CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR; // for backwards compatibility
 module(CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR, [CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE]).config([
   '$provide',
-  function($provide) {
+  function ($provide) {
     $provide.decorator('inputDirective', decorateFn);
     $provide.decorator('textareaDirective', decorateFn);
   },

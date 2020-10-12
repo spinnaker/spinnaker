@@ -4,11 +4,11 @@ import { NameUtils } from 'core/naming';
 
 import { TitusProviderSettings } from '../../titus.settings';
 
-describe('titusServerGroupCommandBuilder', function() {
+describe('titusServerGroupCommandBuilder', function () {
   beforeEach(window.module(require('./ServerGroupCommandBuilder').name));
 
   beforeEach(
-    window.inject(function(titusServerGroupCommandBuilder, $q, $rootScope) {
+    window.inject(function (titusServerGroupCommandBuilder, $q, $rootScope) {
       this.titusServerGroupCommandBuilder = titusServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.$q = $q;
@@ -17,11 +17,11 @@ describe('titusServerGroupCommandBuilder', function() {
 
   afterEach(TitusProviderSettings.resetToOriginal);
 
-  describe('buildNewServerGroupCommand', function() {
-    it('should initializes to default values', function() {
+  describe('buildNewServerGroupCommand', function () {
+    it('should initializes to default values', function () {
       var command = null;
       TitusProviderSettings.defaults.iamProfile = '{{application}}InstanceProfile';
-      this.titusServerGroupCommandBuilder.buildNewServerGroupCommand({ name: 'titusApp' }).then(function(result) {
+      this.titusServerGroupCommandBuilder.buildNewServerGroupCommand({ name: 'titusApp' }).then(function (result) {
         command = result;
       });
 
@@ -31,8 +31,8 @@ describe('titusServerGroupCommandBuilder', function() {
     });
   });
 
-  describe('buildServerGroupCommandFromExisting', function() {
-    it('should set iam profile if available otherwise use the default', function() {
+  describe('buildServerGroupCommandFromExisting', function () {
+    it('should set iam profile if available otherwise use the default', function () {
       spyOn(NameUtils, 'parseServerGroupName').and.returnValue(this.$q.when('titusApp-test-test'));
 
       var baseServerGroup = {
@@ -50,7 +50,7 @@ describe('titusServerGroupCommandBuilder', function() {
       var command = null;
       this.titusServerGroupCommandBuilder
         .buildServerGroupCommandFromExisting({ name: 'titusApp' }, baseServerGroup)
-        .then(function(result) {
+        .then(function (result) {
           command = result;
         });
 

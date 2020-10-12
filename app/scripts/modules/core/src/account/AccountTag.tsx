@@ -34,7 +34,9 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   private updateAccount(account: string) {
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
-      cache[account] = AccountService.challengeDestructiveActions(account).then(result => (cache[account] = !!result));
+      cache[account] = AccountService.challengeDestructiveActions(account).then(
+        (result) => (cache[account] = !!result),
+      );
     }
 
     const cachedVal: boolean | IPromise<boolean> = cache[account];
@@ -42,7 +44,7 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     if (typeof cachedVal === 'boolean') {
       this.setState({ isProdAccount: cachedVal });
     } else {
-      cachedVal.then(isProdAccount => this.mounted && this.setState({ isProdAccount }));
+      cachedVal.then((isProdAccount) => this.mounted && this.setState({ isProdAccount }));
     }
   }
 

@@ -15,16 +15,16 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
   public validate = (value: IProject): FormikErrors<IProject> => {
     const applications = value.config.applications || [];
     if (value.config.clusters && value.config.clusters.length) {
-      const clusterErrors = value.config.clusters.map(cluster => {
+      const clusterErrors = value.config.clusters.map((cluster) => {
         const errors: any = {};
         if (!cluster.account) {
           errors.account = 'Account must be specified';
         }
 
         const apps = cluster.applications || [];
-        const applicationErrors = apps.map(app => !applications.includes(app) && 'This app is not in the project');
+        const applicationErrors = apps.map((app) => !applications.includes(app) && 'This app is not in the project');
 
-        if (applicationErrors.some(val => !!val)) {
+        if (applicationErrors.some((val) => !!val)) {
           errors.applications = applicationErrors;
         }
 
@@ -44,7 +44,7 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
         return Object.keys(errors).length ? errors : null;
       });
 
-      if (clusterErrors.some(val => !!val)) {
+      if (clusterErrors.some((val) => !!val)) {
         return {
           config: {
             clusters: clusterErrors,
@@ -90,12 +90,12 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
     return (
       <FieldArray
         name="config.clusters"
-        render={clustersArrayHelpers => {
+        render={(clustersArrayHelpers) => {
           const formik = clustersArrayHelpers.form;
           const values: IProject = formik.values;
           const clusters: IProjectCluster[] = values.config.clusters || [];
           const applications: string[] = values.config.applications || [];
-          const accountNames = accounts.map(account => account.name);
+          const accountNames = accounts.map((account) => account.name);
 
           return (
             <section className="ConfigureProject-Clusters vertical center">
@@ -122,7 +122,9 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                           {!!cluster.applications && (
                             <FormikFormField
                               name={applicationsPath}
-                              input={props => <ReactSelectInput multi={true} stringOptions={applications} {...props} />}
+                              input={(props) => (
+                                <ReactSelectInput multi={true} stringOptions={applications} {...props} />
+                              )}
                             />
                           )}
                         </td>
@@ -131,7 +133,7 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                           <FormikFormField
                             name={`${clusterPath}.account`}
                             layout={({ input }) => <div>{input}</div>}
-                            input={props => (
+                            input={(props) => (
                               <ReactSelectInput {...props} clearable={false} stringOptions={accountNames} />
                             )}
                           />
@@ -140,14 +142,14 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                         <td>
                           <FormikFormField
                             name={`${clusterPath}.stack`}
-                            input={props => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
+                            input={(props) => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
                           />
                         </td>
 
                         <td>
                           <FormikFormField
                             name={`${clusterPath}.detail`}
-                            input={props => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
+                            input={(props) => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
                           />
                         </td>
 

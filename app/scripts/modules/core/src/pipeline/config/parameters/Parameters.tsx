@@ -32,15 +32,15 @@ export class Parameters extends React.Component<IParametersProps, IParametersSta
   }
 
   private setPinAllParametersState = (): void => {
-    this.setState({ allParametersPinned: (this.props.parameters || []).every(p => p.pinned) });
+    this.setState({ allParametersPinned: (this.props.parameters || []).every((p) => p.pinned) });
   };
 
   private togglePins = (): void => {
     const parameters = this.props.parameters.slice(0);
     const { allParametersPinned } = this.state;
     parameters
-      .filter(param => !param.inherited)
-      .forEach(param => {
+      .filter((param) => !param.inherited)
+      .forEach((param) => {
         param.pinned = !allParametersPinned;
       });
     this.props.updateAllParameters(parameters);

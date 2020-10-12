@@ -30,7 +30,7 @@ export class CreateScalingPolicyButton extends React.Component<
       typeSelection: null,
       awsAccount: null,
     };
-    AccountService.getAccountDetails(props.serverGroup.account).then(details => {
+    AccountService.getAccountDetails(props.serverGroup.account).then((details) => {
       this.setState({ awsAccount: details.awsAccount });
     });
   }

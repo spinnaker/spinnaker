@@ -4,19 +4,19 @@ import { AutoScalingProcessService } from './AutoScalingProcessService';
 
 describe('AutoScalingProcessService', () => {
   describe('normalizeScalingProcesses', () => {
-    it('returns an empty list if no asg or suspendedProcesses present on server group', function() {
+    it('returns an empty list if no asg or suspendedProcesses present on server group', function () {
       expect(AutoScalingProcessService.normalizeScalingProcesses({} as IAmazonServerGroup)).toEqual([]);
       expect(AutoScalingProcessService.normalizeScalingProcesses({ asg: {} } as IAmazonServerGroup)).toEqual([]);
     });
 
-    it('returns all processes normalized if suspendedProcesses is empty', function() {
+    it('returns all processes normalized if suspendedProcesses is empty', function () {
       const asg = {
         suspendedProcesses: [],
       } as IAmazonAsg;
       const normalized = AutoScalingProcessService.normalizeScalingProcesses({ asg: asg } as IAmazonServerGroup);
       expect(normalized.length).toBe(8);
-      expect(normalized.filter(process => process.enabled).length).toBe(8);
-      expect(normalized.map(process => process.name)).toEqual([
+      expect(normalized.filter((process) => process.enabled).length).toBe(8);
+      expect(normalized.map((process) => process.name)).toEqual([
         'Launch',
         'Terminate',
         'AddToLoadBalancer',
@@ -26,10 +26,10 @@ describe('AutoScalingProcessService', () => {
         'ReplaceUnhealthy',
         'ScheduledActions',
       ]);
-      expect(normalized.filter(process => process.suspensionDate)).toEqual([]);
+      expect(normalized.filter((process) => process.suspensionDate)).toEqual([]);
     });
 
-    it('builds suspension date for suspended processes', function() {
+    it('builds suspension date for suspended processes', function () {
       const asg = {
         suspendedProcesses: [
           {
@@ -40,8 +40,8 @@ describe('AutoScalingProcessService', () => {
       };
       const normalized = AutoScalingProcessService.normalizeScalingProcesses({ asg: asg } as IAmazonServerGroup);
       expect(normalized.length).toBe(8);
-      expect(normalized.filter(process => process.enabled).length).toBe(7);
-      expect(normalized.map(process => process.name)).toEqual([
+      expect(normalized.filter((process) => process.enabled).length).toBe(7);
+      expect(normalized.map((process) => process.name)).toEqual([
         'Launch',
         'Terminate',
         'AddToLoadBalancer',
@@ -51,13 +51,13 @@ describe('AutoScalingProcessService', () => {
         'ReplaceUnhealthy',
         'ScheduledActions',
       ]);
-      expect(normalized.filter(process => process.suspensionDate).length).toBe(1);
-      expect(normalized.filter(p => p.suspensionDate).map(p => p.suspensionDate)).toEqual([1452639586000]);
+      expect(normalized.filter((process) => process.suspensionDate).length).toBe(1);
+      expect(normalized.filter((p) => p.suspensionDate).map((p) => p.suspensionDate)).toEqual([1452639586000]);
     });
   });
 
-  describe('getDisabledDate', function() {
-    it('returns null when server group is not disabled, regardless of suspended processes', function() {
+  describe('getDisabledDate', function () {
+    it('returns null when server group is not disabled, regardless of suspended processes', function () {
       const asg = {
         suspendedProcesses: [
           {
@@ -69,7 +69,7 @@ describe('AutoScalingProcessService', () => {
       expect(AutoScalingProcessService.getDisabledDate({ asg: asg } as IAmazonServerGroup)).toBeNull();
     });
 
-    it('returns null when server group is disabled but suspended process for AddToLoadBalancer not present', function() {
+    it('returns null when server group is disabled but suspended process for AddToLoadBalancer not present', function () {
       const asg = {
         suspendedProcesses: [],
       } as IAmazonAsg;
@@ -78,7 +78,7 @@ describe('AutoScalingProcessService', () => {
       ).toBeNull();
     });
 
-    it('returns suspension date when server group is disabled and AddToLoadBalancer suspended', function() {
+    it('returns suspension date when server group is disabled and AddToLoadBalancer suspended', function () {
       const asg = {
         suspendedProcesses: [
           {

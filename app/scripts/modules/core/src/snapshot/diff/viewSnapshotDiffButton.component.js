@@ -22,19 +22,16 @@ module(CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT, [
   controller: [
     '$q',
     '$uibModal',
-    function($q, $uibModal) {
+    function ($q, $uibModal) {
       function getSnapshotEnabledAccounts(application) {
         return AccountService.listProviders(application)
-          .then(providers => providers.filter(provider => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')))
-          .then(snapshotEnabledProviders =>
-            $q.all(snapshotEnabledProviders.map(provider => AccountService.listAccounts(provider))),
+          .then((providers) =>
+            providers.filter((provider) => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')),
           )
-          .then(accounts =>
-            _.chain(accounts)
-              .flatten()
-              .map('name')
-              .value(),
-          );
+          .then((snapshotEnabledProviders) =>
+            $q.all(snapshotEnabledProviders.map((provider) => AccountService.listAccounts(provider))),
+          )
+          .then((accounts) => _.chain(accounts).flatten().map('name').value());
       }
 
       this.viewSnapshotDiffs = () => {

@@ -14,10 +14,10 @@ export const CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE = 'spinnaker.core.forms.au
 export const name = CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE; // for backwards compatibility
 module(CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE, []).directive('autoFocus', [
   '$timeout',
-  function($timeout) {
+  function ($timeout) {
     return {
       restrict: 'A',
-      link: function(scope, elem, attrs) {
+      link: function (scope, elem, attrs) {
         if (scope.$eval(attrs.autoFocus)) {
           $timeout(() => elem.focus());
         }

@@ -34,10 +34,7 @@ describe('<ManifestSelector />', () => {
         location: 'default',
       });
 
-      const namespace = wrapper
-        .find({ label: 'Namespace' })
-        .find(Creatable)
-        .first();
+      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
       expect((namespace.props().value as Option).value).toEqual('default');
     });
 
@@ -48,10 +45,7 @@ describe('<ManifestSelector />', () => {
         location: 'default',
       });
 
-      const kind = wrapper
-        .find({ label: 'Kind' })
-        .find(Creatable)
-        .first();
+      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
       expect((kind.props().value as Option).value).toEqual('configMap');
     });
 
@@ -62,10 +56,7 @@ describe('<ManifestSelector />', () => {
         location: 'default',
       });
 
-      const name = wrapper
-        .find({ label: 'Name' })
-        .find(Creatable)
-        .first();
+      const name = wrapper.find({ label: 'Name' }).find(Creatable).first();
       expect((name.props().value as Option).value).toEqual('my-config-map');
     });
 
@@ -77,10 +68,7 @@ describe('<ManifestSelector />', () => {
         mode: SelectorMode.Label,
       });
 
-      const kinds = wrapper
-        .find({ label: 'Kinds' })
-        .find(Select)
-        .first();
+      const kinds = wrapper.find({ label: 'Kinds' }).find(Select).first();
       expect(kinds.props().value).toEqual(['configMap', 'deployment']);
     });
 
@@ -130,10 +118,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual(['replicaSet my-replica-set']);
       });
 
@@ -155,10 +140,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual([]);
       });
 
@@ -186,10 +168,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual(['my-cluster']);
       });
 
@@ -212,10 +191,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual([]);
       });
 
@@ -237,10 +213,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual([]);
       });
 
@@ -262,10 +235,7 @@ describe('<ManifestSelector />', () => {
           ]),
         );
 
-        const cluster = wrapper
-          .find({ label: 'Cluster' })
-          .find(ScopeClusterSelector)
-          .first();
+        const cluster = wrapper.find({ label: 'Cluster' }).find(ScopeClusterSelector).first();
         expect(cluster.props().clusters).toEqual([]);
       });
     });
@@ -279,10 +249,7 @@ describe('<ManifestSelector />', () => {
         location: 'default',
       });
 
-      const kind = wrapper
-        .find({ label: 'Kind' })
-        .find(Creatable)
-        .first();
+      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
       kind.props().onChange({ value: 'deployment', label: 'deployment' });
       expect(searchService).toHaveBeenCalledWith('deployment', 'default', 'my-account');
     });
@@ -294,10 +261,7 @@ describe('<ManifestSelector />', () => {
         location: 'default',
       });
 
-      const namespace = wrapper
-        .find({ label: 'Namespace' })
-        .find(Creatable)
-        .first();
+      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
       namespace.props().onChange({ value: 'kube-system', label: 'kube-system' });
       expect(searchService).toHaveBeenCalledWith('configMap', 'kube-system', 'my-account');
     });
@@ -350,11 +314,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
       );
 
-      wrapper
-        .find({ id: 'dynamic' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'dynamic' }).first().props().onChange();
       expect(wrapper.state().selector.kind).toEqual('configMap');
     });
 
@@ -368,11 +328,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
       );
 
-      wrapper
-        .find({ id: 'label' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'label' }).first().props().onChange();
       expect(wrapper.state().selector.kind).toBeNull();
       expect(wrapper.state().selector.kinds).toEqual([]);
       expect(wrapper.state().selector.manifestName).toBeNull();
@@ -389,11 +345,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
       );
 
-      wrapper
-        .find({ id: 'static' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'static' }).first().props().onChange();
       // `manifestName` is composed of `${kind} ${resourceName}`
       expect(wrapper.state().selector.manifestName).toEqual('configMap');
     });
@@ -409,11 +361,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
       );
 
-      wrapper
-        .find({ id: 'label' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'label' }).first().props().onChange();
       expect(wrapper.state().selector.kind).toBeNull();
       expect(wrapper.state().selector.kinds).toEqual([]);
       expect(wrapper.state().selector.manifestName).toBeNull();
@@ -433,11 +381,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
       );
 
-      wrapper
-        .find({ id: 'static' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'static' }).first().props().onChange();
       expect(wrapper.state().selector.kind).toBeNull();
       expect(wrapper.state().selector.kinds).toBeNull();
     });
@@ -456,11 +400,7 @@ describe('<ManifestSelector />', () => {
         { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
       );
 
-      wrapper
-        .find({ id: 'dynamic' })
-        .first()
-        .props()
-        .onChange();
+      wrapper.find({ id: 'dynamic' }).first().props().onChange();
       expect(wrapper.state().selector.kind).toBeNull();
       expect(wrapper.state().selector.kinds).toBeNull();
     });

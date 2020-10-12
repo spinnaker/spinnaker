@@ -35,9 +35,9 @@ export class ServerGroupWarningMessageService {
 
     const otherServerGroupsInCluster: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
     const remainingActiveServerGroups: IServerGroup[] = otherServerGroupsInCluster.filter(
-      s => !s.isDisabled && s.instanceCounts.up > 0,
+      (s) => !s.isDisabled && s.instanceCounts.up > 0,
     );
-    const hasOtherInstances = otherServerGroupsInCluster.some(s => s.instances.length > 0);
+    const hasOtherInstances = otherServerGroupsInCluster.some((s) => s.instances.length > 0);
 
     if (hasOtherInstances || remainingActiveServerGroups.length === 0 || otherServerGroupsInCluster.length === 0) {
       const totalActiveInstances = remainingActiveServerGroups.reduce((acc: number, s: IServerGroup) => {
@@ -67,14 +67,14 @@ export class ServerGroupWarningMessageService {
       (c: ICluster) => c.account === serverGroup.account && c.name === serverGroup.cluster,
     );
     return cluster
-      ? cluster.serverGroups.filter(s => s.region === serverGroup.region && s.name !== serverGroup.name)
+      ? cluster.serverGroups.filter((s) => s.region === serverGroup.region && s.name !== serverGroup.name)
       : [];
   }
 
   private static getRemainingServerGroupsForDisplay(serverGroups: IServerGroup[]): string {
     return serverGroups
       .sort((a, b) => b.name.localeCompare(a.name))
-      .map(sg => {
+      .map((sg) => {
         let label = sg.name;
         if (has(sg, 'buildInfo.jenkins.number')) {
           label = `${sg.name} (build #${sg.buildInfo.jenkins.number})`;

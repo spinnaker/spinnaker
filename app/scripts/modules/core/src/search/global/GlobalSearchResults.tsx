@@ -48,7 +48,7 @@ export const GlobalSearchResults = ({
               <a
                 target="_self"
                 className="expand-results"
-                ref={ref => resultRef(categoryIndex, 0, ref)}
+                ref={(ref) => resultRef(categoryIndex, 0, ref)}
                 onClick={onSeeMoreClick}
                 onKeyDown={onItemKeyDown}
               >
@@ -62,7 +62,7 @@ export const GlobalSearchResults = ({
               <a
                 onKeyDown={onItemKeyDown}
                 onClick={() => onResultClick(result)}
-                ref={ref => resultRef(categoryIndex, index + 1, ref)}
+                ref={(ref) => resultRef(categoryIndex, index + 1, ref)}
                 href={result.href}
               >
                 <SearchResult displayName={result.displayName} account={(result as any).account} />

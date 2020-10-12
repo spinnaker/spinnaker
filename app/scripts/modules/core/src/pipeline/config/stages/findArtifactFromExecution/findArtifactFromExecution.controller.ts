@@ -54,8 +54,8 @@ export class FindArtifactFromExecutionCtrl implements IController {
   }
 
   private loadApplications() {
-    ApplicationReader.listApplications().then(apps => {
-      this.state.applications = apps.map(a => a.name);
+    ApplicationReader.listApplications().then((apps) => {
+      this.state.applications = apps.map((a) => a.name);
       this.state.applicationsLoaded = true;
     });
   }
@@ -63,7 +63,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
   private loadPipelines() {
     this.state.pipelinesLoaded = false;
     if (this.stage.application) {
-      PipelineConfigService.getPipelinesForApplication(this.stage.application).then(ps => {
+      PipelineConfigService.getPipelinesForApplication(this.stage.application).then((ps) => {
         this.state.pipelines = ps;
         this.state.pipelinesLoaded = true;
       });

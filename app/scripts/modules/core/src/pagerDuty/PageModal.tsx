@@ -95,7 +95,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
       return PagerDutyWriter.sendPage(
         applications,
-        services.map(s => s.integration_key),
+        services.map((s) => s.integration_key),
         subject,
         ownerApp,
         {
@@ -132,7 +132,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
               <div>
                 <label>Services to Page</label>
                 <div>
-                  {services.map(service => (
+                  {services.map((service) => (
                     <span className="service-to-page" key={service.integration_key}>
                       <a
                         title={service.name}

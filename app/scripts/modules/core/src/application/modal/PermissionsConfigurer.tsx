@@ -63,13 +63,13 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     }
 
     permissions.READ &&
-      permissions.READ.forEach(group => {
+      permissions.READ.forEach((group) => {
         permissionRows.push({ group, access: 'READ' });
       });
 
     permissions.EXECUTE &&
-      permissions.EXECUTE.forEach(group => {
-        const matchingRow = permissionRows.find(row => row.group === group);
+      permissions.EXECUTE.forEach((group) => {
+        const matchingRow = permissionRows.find((row) => row.group === group);
         if (matchingRow) {
           matchingRow.access += ',EXECUTE';
         } else {
@@ -78,8 +78,8 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       });
 
     permissions.WRITE &&
-      permissions.WRITE.forEach(group => {
-        const matchingRow = permissionRows.find(row => row.group === group);
+      permissions.WRITE.forEach((group) => {
+        const matchingRow = permissionRows.find((row) => row.group === group);
         if (matchingRow) {
           matchingRow.access += ',WRITE';
         } else {
@@ -98,7 +98,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       ...(permissions
         ? (permissions.READ || []).concat(permissions.WRITE || []).concat(permissions.EXECUTE || [])
         : []),
-    ).map(role => ({ value: role, label: role }));
+    ).map((role) => ({ value: role, label: role }));
   }
 
   private convertRequiredGroupMembershipToPermissions(): IPermissions {
@@ -111,7 +111,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       WRITE = this.props.permissions.WRITE.slice();
     }
 
-    this.props.requiredGroupMembership.forEach(group => {
+    this.props.requiredGroupMembership.forEach((group) => {
       READ.push(group);
       WRITE.push(group);
     });
@@ -123,9 +123,9 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
 
   private buildPermissions(permissionRows: IPermissionRow[]): IPermissions {
     const permissions: IPermissions = { READ: [], EXECUTE: [], WRITE: [] };
-    permissionRows.forEach(row => {
+    permissionRows.forEach((row) => {
       const accessTypes = row.access.split(',');
-      accessTypes.forEach(type => {
+      accessTypes.forEach((type) => {
         if (type === 'READ') {
           permissions.READ.push(row.group);
         } else if (type === 'EXECUTE') {
@@ -195,7 +195,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
           const permissionTypeLabel = [
             ...PermissionsConfigurer.accessTypes,
             ...PermissionsConfigurer.legacyAccessTypes,
-          ].find(type => type.value === row.access).label;
+          ].find((type) => type.value === row.access).label;
           return (
             <div key={row.group || i} className="permissions-row clearfix">
               <div className="col-md-5 permissions-group">

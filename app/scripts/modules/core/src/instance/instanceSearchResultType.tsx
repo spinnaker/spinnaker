@@ -64,7 +64,7 @@ class InstancesSearchResultType extends SearchResultType<IInstanceSearchResult> 
         {results
           .slice()
           .sort(itemSortFn)
-          .map(item => (
+          .map((item) => (
             <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.INSTANCE} />
               <AccountCell item={item} col={this.cols.ACCOUNT} />

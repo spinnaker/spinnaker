@@ -30,7 +30,7 @@ export class DefaultClusterMatcher implements IClusterMatcher {
     const nameParts = NameUtils.parseClusterName(clusterName);
 
     const matchedRules = rules
-      .filter(r => {
+      .filter((r) => {
         const ruleAccount = r.account || '';
         const ruleLocation = r.location || '';
         const ruleStack = r.stack || '';

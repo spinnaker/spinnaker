@@ -23,7 +23,7 @@ const makeSpy = () => {
   return { inputProps, renderSpy, InputSpy };
 };
 
-const asyncTick = () => new Promise(resolve => setTimeout(resolve));
+const asyncTick = () => new Promise((resolve) => setTimeout(resolve));
 
 describe('<FormikFormField/>', () => {
   it(`renders the input`, () => {
@@ -84,7 +84,7 @@ describe('<FormikFormField/>', () => {
       <FormikFormField
         name="account"
         label="Account"
-        input={props => <ReactSelectInput {...props} />}
+        input={(props) => <ReactSelectInput {...props} />}
         spelAware={props.propsSpelAware}
       />
     );
@@ -118,7 +118,7 @@ describe('<FormikFormField/>', () => {
           renderSpelToggle: 1,
         },
       ];
-      contextAndPropConfigs.forEach(config => {
+      contextAndPropConfigs.forEach((config) => {
         const component = mount(
           <Test
             contextSpelAware={config.contextSpelAware}

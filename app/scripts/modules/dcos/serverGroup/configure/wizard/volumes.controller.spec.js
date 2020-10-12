@@ -1,13 +1,13 @@
 'use strict';
 
-describe('dcosServerGroupVolumesController', function() {
+describe('dcosServerGroupVolumesController', function () {
   var controller;
   var scope;
 
   beforeEach(window.module(require('./volumes.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
 
       scope.command = {
@@ -22,18 +22,18 @@ describe('dcosServerGroupVolumesController', function() {
     }),
   );
 
-  describe('Persistent Volumes', function() {
-    beforeEach(function() {
+  describe('Persistent Volumes', function () {
+    beforeEach(function () {
       scope.command.persistentVolumes = [];
     });
 
-    it('Persistent Volumes spec 1', function() {
+    it('Persistent Volumes spec 1', function () {
       controller.addPersistentVolume();
 
       expect(scope.command.persistentVolumes.length).toEqual(1);
     });
 
-    it('Persistent Volumes spec 2', function() {
+    it('Persistent Volumes spec 2', function () {
       controller.addPersistentVolume();
       controller.removePersistentVolume(0);
 
@@ -41,18 +41,18 @@ describe('dcosServerGroupVolumesController', function() {
     });
   });
 
-  describe('Docker Volumes', function() {
-    beforeEach(function() {
+  describe('Docker Volumes', function () {
+    beforeEach(function () {
       scope.command.dockerVolumes = [];
     });
 
-    it('Docker Volumes spec 1', function() {
+    it('Docker Volumes spec 1', function () {
       controller.addDockerVolume();
 
       expect(scope.command.dockerVolumes.length).toEqual(1);
     });
 
-    it('Docker Volumes spec 2', function() {
+    it('Docker Volumes spec 2', function () {
       controller.addDockerVolume();
       controller.removeDockerVolume(0);
 
@@ -60,18 +60,18 @@ describe('dcosServerGroupVolumesController', function() {
     });
   });
 
-  describe('External Volumes', function() {
-    beforeEach(function() {
+  describe('External Volumes', function () {
+    beforeEach(function () {
       scope.command.externalVolumes = [];
     });
 
-    it('External Volumes spec 1', function() {
+    it('External Volumes spec 1', function () {
       controller.addExternalVolume();
 
       expect(scope.command.externalVolumes.length).toEqual(1);
     });
 
-    it('External Volumes spec 2', function() {
+    it('External Volumes spec 2', function () {
       controller.addExternalVolume();
       controller.removeExternalVolume(0);
 

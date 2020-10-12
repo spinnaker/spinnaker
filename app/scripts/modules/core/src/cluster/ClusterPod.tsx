@@ -70,7 +70,7 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
 
   private renderSubGroup = (subgroup: IServerGroupSubgroup) => {
     const { grouping, application, sortFilter } = this.props;
-    const hasMoniker = subgroup.serverGroups.every(sg => {
+    const hasMoniker = subgroup.serverGroups.every((sg) => {
       return !!sg.moniker;
     });
     let iteratee;
@@ -88,9 +88,9 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
     // this logic here seems fine while the server group manager grouping is still experimental.
     const [managedServerGroups, standaloneServerGroups] = partition(
       sortedServerGroups,
-      group => group.serverGroupManagers && group.serverGroupManagers.length,
+      (group) => group.serverGroupManagers && group.serverGroupManagers.length,
     );
-    const serverGroupManagers = groupBy(managedServerGroups, serverGroup => serverGroup.serverGroupManagers[0].name);
+    const serverGroupManagers = groupBy(managedServerGroups, (serverGroup) => serverGroup.serverGroupManagers[0].name);
     const showManagedIndicator = !grouping.isManaged && subgroup.isManaged;
     return (
       <div className="pod-subgroup" key={subgroup.key}>

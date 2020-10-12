@@ -62,7 +62,7 @@ describe('<SpelInput/>', () => {
     expect(evaluateExpressionSpy).toHaveBeenCalledWith('abc123', 'abc', '123');
   });
 
-  it('should debounce preview fetches when the input value changes', async done => {
+  it('should debounce preview fetches when the input value changes', async (done) => {
     const deferred1 = defer();
     evaluateExpressionSpy.and.callFake(() => deferred1.promise);
     const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
@@ -85,7 +85,7 @@ describe('<SpelInput/>', () => {
     done();
   });
 
-  it('should call revalidate whenever an async event occurs', async done => {
+  it('should call revalidate whenever an async event occurs', async (done) => {
     const deferred1 = defer();
     evaluateExpressionSpy.and.callFake(() => deferred1.promise);
     const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
@@ -153,7 +153,7 @@ describe('<SpelInput/>', () => {
     beforeEach(() => {
       validators = [];
       mockValidate = jasmine.createSpy('validate').and.callFake(() => {
-        return validators.map(v => v(null)).filter(x => !!x)[0];
+        return validators.map((v) => v(null)).filter((x) => !!x)[0];
       });
 
       const addValidator = inputProps.validation.addValidator as jasmine.Spy;
@@ -161,11 +161,11 @@ describe('<SpelInput/>', () => {
       const revalidate = inputProps.validation.revalidate as jasmine.Spy;
 
       addValidator.and.callFake((v: IValidator) => validators.push(v));
-      removeValidator.and.callFake((v: IValidator) => (validators = validators.filter(x => x !== v)));
+      removeValidator.and.callFake((v: IValidator) => (validators = validators.filter((x) => x !== v)));
       revalidate.and.callFake(() => mockValidate());
     });
 
-    it('should validate as "Async: *" when a SpelService fetch is pending', async done => {
+    it('should validate as "Async: *" when a SpelService fetch is pending', async (done) => {
       evaluateExpressionSpy.and.callFake(() => new Promise<any>(() => null));
       mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
@@ -173,8 +173,8 @@ describe('<SpelInput/>', () => {
       done();
     });
 
-    it('should continue to render the previous result when a SpelService fetch is pending', async done => {
-      const result1 = new Promise<any>(resolve => resolve('preview result'));
+    it('should continue to render the previous result when a SpelService fetch is pending', async (done) => {
+      const result1 = new Promise<any>((resolve) => resolve('preview result'));
       evaluateExpressionSpy.and.callFake(() => result1);
       const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
@@ -192,7 +192,7 @@ describe('<SpelInput/>', () => {
       done();
     });
 
-    it('should validate as "Message: *" when a SpelService fetch is resolved with a result', async done => {
+    it('should validate as "Message: *" when a SpelService fetch is resolved with a result', async (done) => {
       const deferred = defer();
       evaluateExpressionSpy.and.callFake(() => deferred.promise);
       const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
@@ -210,7 +210,7 @@ describe('<SpelInput/>', () => {
       done();
     });
 
-    it('should validate as "Warning: *" when a SpelService fetch is rejected', async done => {
+    it('should validate as "Warning: *" when a SpelService fetch is rejected', async (done) => {
       const deferred = defer();
       evaluateExpressionSpy.and.callFake(() => deferred.promise);
       const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);

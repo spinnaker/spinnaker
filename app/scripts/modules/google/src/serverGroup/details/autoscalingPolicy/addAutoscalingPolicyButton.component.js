@@ -18,7 +18,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_ADDAUTOSCALINGPOLICYBUTTON_C
   template: '<a href ng-click="$ctrl.addAutoscalingPolicy()">Create new scaling policy</a>',
   controller: [
     '$uibModal',
-    function($uibModal) {
+    function ($uibModal) {
       this.addAutoscalingPolicy = () => {
         $uibModal.open({
           templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),

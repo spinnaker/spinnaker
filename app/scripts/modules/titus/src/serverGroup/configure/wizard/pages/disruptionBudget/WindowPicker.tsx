@@ -40,11 +40,11 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
     if (toRemove.hourlyTimeWindows.length === 1) {
       setFieldValue(
         'disruptionBudget.timeWindows',
-        timeWindows.filter(w => w !== toRemove),
+        timeWindows.filter((w) => w !== toRemove),
       );
     } else {
       const subWindowToRemove = toRemove.hourlyTimeWindows[subIndex];
-      const newWindows = toRemove.hourlyTimeWindows.filter(w => w !== subWindowToRemove);
+      const newWindows = toRemove.hourlyTimeWindows.filter((w) => w !== subWindowToRemove);
       setFieldValue(`disruptionBudget.timeWindows[${index}].hourlyTimeWindows`, newWindows);
     }
   }
@@ -94,7 +94,7 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
                 >
                   <div className="sp-padding-m-right" style={{ color: 'var(--color-text-on-dark)', fontSize: '12px' }}>
                     <div>
-                      <b>{timeWindow.days.map(d => d.substr(0, 3)).join(', ')}</b>
+                      <b>{timeWindow.days.map((d) => d.substr(0, 3)).join(', ')}</b>
                     </div>
                     <div>
                       <em>
@@ -142,17 +142,17 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
           timeZone: get(this.props.formik.values.disruptionBudget, 'timeWindows[0].timeZone', 'PST'),
         }}
         onSubmit={this.addNewWindow}
-        render={formik => (
+        render={(formik) => (
           <>
             <FormikFormField
               name="days"
               label="Define a New Window"
-              input={props => <ChecklistInput {...props} stringOptions={DAYS} />}
+              input={(props) => <ChecklistInput {...props} stringOptions={DAYS} />}
             />
             <FormikFormField
               name="startHour"
               label="Start"
-              input={props => (
+              input={(props) => (
                 <div>
                   <NumberInput {...props} min={0} max={formik.values.endHour} />
                   <HelpField expand={true} content="hour (0-24)" />
@@ -162,7 +162,7 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
             <FormikFormField
               name="endHour"
               label="End"
-              input={props => (
+              input={(props) => (
                 <div>
                   <NumberInput {...props} min={formik.values.startHour} max={23} />
                   <HelpField expand={true} content="hour (0-24)" />
@@ -172,7 +172,7 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
             <FormikFormField
               name="timeZone"
               label="Timezone"
-              input={props => <ReactSelectInput {...props} clearable={false} stringOptions={['PST', 'UTC']} />}
+              input={(props) => <ReactSelectInput {...props} clearable={false} stringOptions={['PST', 'UTC']} />}
             />
             <div className="sp-formItem">
               <div className="sp-formItem__left" />

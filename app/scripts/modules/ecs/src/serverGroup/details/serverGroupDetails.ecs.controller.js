@@ -42,7 +42,7 @@ angular
     'serverGroupWriter',
     'ecsServerGroupTransformer',
     'overrideRegistry',
-    function(
+    function (
       $scope,
       $state,
       app,
@@ -63,7 +63,7 @@ angular
 
       const extractServerGroupSummary = () => {
         return app.ready().then(() => {
-          let summary = find(app.serverGroups.data, toCheck => {
+          let summary = find(app.serverGroups.data, (toCheck) => {
             return (
               toCheck.name === serverGroup.name &&
               toCheck.account === serverGroup.accountId &&
@@ -71,9 +71,9 @@ angular
             );
           });
           if (!summary) {
-            app.loadBalancers.data.some(loadBalancer => {
+            app.loadBalancers.data.some((loadBalancer) => {
               if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-                return loadBalancer.serverGroups.some(possibleServerGroup => {
+                return loadBalancer.serverGroups.some((possibleServerGroup) => {
                   if (possibleServerGroup.name === serverGroup.name) {
                     summary = possibleServerGroup;
                     return true;
@@ -99,13 +99,13 @@ angular
 
       const retrieveServerGroup = () => {
         return extractServerGroupSummary()
-          .then(summary => {
+          .then((summary) => {
             return ServerGroupReader.getServerGroup(
               app.name,
               serverGroup.accountId,
               serverGroup.region,
               serverGroup.name,
-            ).then(details => {
+            ).then((details) => {
               cancelLoader();
 
               // it's possible the summary was not found because the clusters are still loading
@@ -121,17 +121,15 @@ angular
 
                 if (vpc !== '') {
                   const subnetId = vpc.split(',')[0];
-                  SubnetReader.listSubnets().then(subnets => {
-                    const subnet = chain(subnets)
-                      .find({ id: subnetId })
-                      .value();
+                  SubnetReader.listSubnets().then((subnets) => {
+                    const subnet = chain(subnets).find({ id: subnetId }).value();
                     this.serverGroup.subnetType = subnet.purpose;
                   });
                 }
 
                 if (details.image && details.image.description) {
                   const tags = details.image.description.split(', ');
-                  tags.forEach(tag => {
+                  tags.forEach((tag) => {
                     const keyVal = tag.split('=');
                     if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                       details.image.baseImage = keyVal[1];
@@ -140,7 +138,7 @@ angular
                 }
 
                 if (details.image && details.image.tags) {
-                  const baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
+                  const baseAmiVersionTag = details.image.tags.find((tag) => tag.key === 'base_ami_version');
                   if (baseAmiVersionTag) {
                     details.baseAmiVersion = baseAmiVersionTag.value;
                   }
@@ -196,7 +194,7 @@ angular
           },
         };
 
-        const submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+        const submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
         const stateParams = {
           name: serverGroup.name,
@@ -232,7 +230,7 @@ angular
           title: 'Disabling ' + serverGroup.name,
         };
 
-        const submitMethod = params => {
+        const submitMethod = (params) => {
           return serverGroupWriter.disableServerGroup(serverGroup, app, params);
         };
 
@@ -264,7 +262,7 @@ angular
           title: 'Enabling ' + serverGroup.name,
         };
 
-        const submitMethod = params => {
+        const submitMethod = (params) => {
           return serverGroupWriter.enableServerGroup(serverGroup, app, params);
         };
 
@@ -304,7 +302,7 @@ angular
               app
                 .getDataSource('serverGroups')
                 .data.filter(
-                  g =>
+                  (g) =>
                     g.cluster === this.serverGroup.cluster &&
                     g.region === this.serverGroup.region &&
                     g.account === this.serverGroup.account &&
@@ -327,7 +325,7 @@ angular
         });
       };
 
-      this.cloneServerGroup = serverGroup => {
+      this.cloneServerGroup = (serverGroup) => {
         $uibModal.open({
           templateUrl: require('../configure/wizard/serverGroupWizard.html'),
           controller: 'ecsCloneServerGroupCtrl as ctrl',
@@ -359,8 +357,8 @@ angular
         return null;
       };
 
-      this.applyAccountDetails = serverGroup => {
-        return AccountService.getAccountDetails(serverGroup.account).then(details => {
+      this.applyAccountDetails = (serverGroup) => {
+        return AccountService.getAccountDetails(serverGroup.account).then((details) => {
           serverGroup.accountDetails = details;
         });
       };

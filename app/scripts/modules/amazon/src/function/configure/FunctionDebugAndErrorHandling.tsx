@@ -19,7 +19,8 @@ export interface IFunctionDebugAndErrorHandlingProps {
   functionDef: IAmazonFunction;
 }
 
-export class FunctionDebugAndErrorHandling extends React.Component<IFunctionDebugAndErrorHandlingProps>
+export class FunctionDebugAndErrorHandling
+  extends React.Component<IFunctionDebugAndErrorHandlingProps>
   implements IWizardPageComponent<IAmazonFunctionUpsertCommand> {
   constructor(props: IFunctionDebugAndErrorHandlingProps) {
     super(props);
@@ -27,10 +28,7 @@ export class FunctionDebugAndErrorHandling extends React.Component<IFunctionDebu
 
   public validate = (values: IAmazonFunctionUpsertCommand): FormikErrors<IAmazonFunctionUpsertCommand> => {
     const validator = new FormValidator(values);
-    validator
-      .field('deadLetterConfig.targetArn', 'Target ARN')
-      .optional()
-      .withValidators(awsArnValidator);
+    validator.field('deadLetterConfig.targetArn', 'Target ARN').optional().withValidators(awsArnValidator);
     return validator.validateForm();
   };
 
@@ -42,14 +40,14 @@ export class FunctionDebugAndErrorHandling extends React.Component<IFunctionDebu
           name="deadLetterConfig.targetArn"
           label="Target ARN"
           help={<HelpField id="aws.function.deadletterqueue" />}
-          input={props => <TextInput {...props} />}
+          input={(props) => <TextInput {...props} />}
         />
         X-Ray Tracing
         <FormikFormField
           name="tracingConfig.mode"
           label="Mode"
           help={<HelpField id="aws.function.tracingConfig.mode" />}
-          input={props => <ReactSelectInput {...props} stringOptions={['Active', 'PassThrough']} clearable={true} />}
+          input={(props) => <ReactSelectInput {...props} stringOptions={['Active', 'PassThrough']} clearable={true} />}
         />
       </div>
     );

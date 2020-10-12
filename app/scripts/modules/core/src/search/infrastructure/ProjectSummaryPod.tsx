@@ -54,7 +54,7 @@ export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> 
         </div>
 
         <ul className="application-list">
-          {applications.map(application => (
+          {applications.map((application) => (
             <li key={application}>
               <UISref to="home.project.application.insight.clusters" params={{ project: projectName, application }}>
                 <a>{application}</a>

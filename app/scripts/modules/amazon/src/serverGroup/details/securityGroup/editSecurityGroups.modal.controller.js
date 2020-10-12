@@ -19,7 +19,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROL
   'application',
   'serverGroup',
   'securityGroups',
-  function(
+  function (
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -48,17 +48,17 @@ module(AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROL
 
     this.isValid = () => this.state.verification.verified;
 
-    securityGroupReader.getAllSecurityGroups().then(allGroups => {
+    securityGroupReader.getAllSecurityGroups().then((allGroups) => {
       const account = serverGroup.account;
       const region = serverGroup.region;
       const vpcId = serverGroup.vpcId;
       this.availableSecurityGroups = _.get(allGroups, [account, 'aws', region].join('.'), [])
-        .filter(group => group.vpcId === vpcId)
+        .filter((group) => group.vpcId === vpcId)
         .sort((a, b) => {
-          if (this.command.securityGroups.some(g => g.id === a.id)) {
+          if (this.command.securityGroups.some((g) => g.id === a.id)) {
             return -1;
           }
-          if (this.command.securityGroups.some(g => g.id === b.id)) {
+          if (this.command.securityGroups.some((g) => g.id === b.id)) {
             return 1;
           }
           return a.name.localeCompare(b.name);

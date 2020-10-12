@@ -41,7 +41,7 @@ export class CloudFoundryServerGroupCloneSettings
   public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
-      .subscribe(accounts => this.setState({ accounts }));
+      .subscribe((accounts) => this.setState({ accounts }));
   }
 
   public componentWillUnmount(): void {
@@ -80,11 +80,11 @@ export class CloudFoundryServerGroupCloneSettings
             <FormikFormField
               name={'target'}
               label="Target"
-              input={props => (
+              input={(props) => (
                 <ReactSelectInput
                   inputClassName="cloudfoundry-react-select"
                   {...props}
-                  options={StageConstants.TARGET_LIST.map(t => {
+                  options={StageConstants.TARGET_LIST.map((t) => {
                     return {
                       label: t.label,
                       value: t.val,

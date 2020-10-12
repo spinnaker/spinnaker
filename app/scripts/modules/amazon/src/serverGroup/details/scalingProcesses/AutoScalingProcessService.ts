@@ -4,7 +4,7 @@ export class AutoScalingProcessService {
   public static getDisabledDate(serverGroup: IAmazonServerGroup): number {
     if (serverGroup.isDisabled) {
       const processes = this.normalizeScalingProcesses(serverGroup);
-      const disabledProcess = processes.find(process => process.name === 'AddToLoadBalancer' && !process.enabled);
+      const disabledProcess = processes.find((process) => process.name === 'AddToLoadBalancer' && !process.enabled);
       if (disabledProcess) {
         return disabledProcess.suspensionDate;
       }
@@ -18,8 +18,8 @@ export class AutoScalingProcessService {
     }
     const disabled = serverGroup.asg.suspendedProcesses;
     const allProcesses = this.listProcesses();
-    return allProcesses.map(process => {
-      const disabledProcess = disabled.find(p => p.processName === process.name);
+    return allProcesses.map((process) => {
+      const disabledProcess = disabled.find((p) => p.processName === process.name);
       const scalingProcess: IScalingProcess = {
         name: process.name,
         enabled: !disabledProcess,

@@ -80,7 +80,7 @@ export class AzureLoadBalancerChoiceModal extends React.Component<
         <Modal.Body>
           <div className="modal-body">
             <div className="card-choices">
-              {choices.map(choice => (
+              {choices.map((choice) => (
                 <div
                   key={choice.type}
                   className={`card ${selectedChoice === choice ? 'active' : ''}`}

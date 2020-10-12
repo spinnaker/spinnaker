@@ -6,7 +6,7 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSRE
   'spinnaker.google.serverGroup.configure.wizard.securityGroups.removed.directive';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE; // for backwards compatibility
 module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE, [])
-  .directive('gceServerGroupSecurityGroupsRemoved', function() {
+  .directive('gceServerGroupSecurityGroupsRemoved', function () {
     return {
       restrict: 'E',
       templateUrl: require('./securityGroupsRemoved.directive.html'),
@@ -18,7 +18,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_
       controller: 'gceServerGroupSecurityGroupsRemovedCtrl',
     };
   })
-  .controller('gceServerGroupSecurityGroupsRemovedCtrl', function() {
+  .controller('gceServerGroupSecurityGroupsRemovedCtrl', function () {
     this.acknowledgeSecurityGroupRemoval = () => {
       this.command.viewState.dirty.securityGroups = null;
     };

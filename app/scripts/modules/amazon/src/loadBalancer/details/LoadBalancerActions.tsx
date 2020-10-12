@@ -43,7 +43,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     } else {
       // Load balancer is a part of a different application
       ApplicationReader.getApplication(loadBalancerAppName)
-        .then(loadBalancerApp => {
+        .then((loadBalancerApp) => {
           this.setState({ application: loadBalancerApp });
         })
         .catch(() => {
@@ -62,7 +62,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
   public editLoadBalancer = (): void => {
     const { loadBalancer } = this.props;
     const { application } = this.state;
-    const LoadBalancerModal = LoadBalancerTypes.find(t => t.type === loadBalancer.loadBalancerType).component;
+    const LoadBalancerModal = LoadBalancerTypes.find((t) => t.type === loadBalancer.loadBalancerType).component;
     LoadBalancerModal.show({ app: application, loadBalancer });
   };
 

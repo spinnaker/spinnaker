@@ -45,7 +45,7 @@ export class OracleLoadBalancerTransformer {
 
   public convertLoadBalancerForEditing(loadBalancer: IOracleLoadBalancer): IOracleLoadBalancerUpsertCommand {
     if (loadBalancer.listeners) {
-      Object.keys(loadBalancer.listeners).forEach(key => {
+      Object.keys(loadBalancer.listeners).forEach((key) => {
         const lis = loadBalancer.listeners[key];
         lis.isSsl = !!lis.sslConfiguration; // use !! operator to get truthiness value
       });
@@ -57,7 +57,7 @@ export class OracleLoadBalancerTransformer {
       region: loadBalancer.region,
       shape: loadBalancer.shape,
       isPrivate: loadBalancer.isPrivate,
-      subnetIds: loadBalancer.subnets.map(subnet => subnet.id),
+      subnetIds: loadBalancer.subnets.map((subnet) => subnet.id),
       certificates: loadBalancer.certificates,
       listeners: loadBalancer.listeners,
       hostnames: loadBalancer.hostnames,

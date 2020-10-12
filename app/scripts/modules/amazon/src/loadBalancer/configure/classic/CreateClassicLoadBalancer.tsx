@@ -94,8 +94,8 @@ export class CreateClassicLoadBalancer extends React.Component<
   }
 
   protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): IPromise<void> {
-    return AccountService.getAccountDetails(command.credentials).then(account => {
-      command.listeners.forEach(listener => {
+    return AccountService.getAccountDetails(command.credentials).then((account) => {
+      command.listeners.forEach((listener) => {
         listener.sslCertificateId = this.certificateIdAsARN(
           account.accountId,
           listener.sslCertificateName,

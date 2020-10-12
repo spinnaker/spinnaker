@@ -26,9 +26,7 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
   public static listApplications(): IPromise<IApplicationSummary[]> {
-    return API.all('applications')
-      .useCache()
-      .getList();
+    return API.all('applications').useCache().getList();
   }
 
   public static getApplicationAttributes(name: string): IPromise<any> {
@@ -57,7 +55,7 @@ export class ApplicationReader {
   }
 
   private static splitAttributes(attributes: any, fields: string[]) {
-    fields.forEach(field => {
+    fields.forEach((field) => {
       if (attributes[field]) {
         if (!Array.isArray(attributes[field])) {
           attributes[field] = attributes[field].split(',');
@@ -73,14 +71,14 @@ export class ApplicationReader {
     const appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
 
     if (!appDataSources) {
-      allDataSources.filter(ds => ds.optIn).forEach(ds => this.setDataSourceDisabled(ds, application, true));
+      allDataSources.filter((ds) => ds.optIn).forEach((ds) => this.setDataSourceDisabled(ds, application, true));
       if (InferredApplicationWarningService.isInferredApplication(application)) {
         allDataSources
-          .filter(ds => ds.requireConfiguredApp)
-          .forEach(ds => this.setDataSourceDisabled(ds, application, true));
+          .filter((ds) => ds.requireConfiguredApp)
+          .forEach((ds) => this.setDataSourceDisabled(ds, application, true));
       }
     } else {
-      allDataSources.forEach(ds => {
+      allDataSources.forEach((ds) => {
         if (ds.optional) {
           if (ds.optIn) {
             this.setDataSourceDisabled(ds, application, !appDataSources.enabled.includes(ds.key));
@@ -91,9 +89,9 @@ export class ApplicationReader {
       });
     }
     allDataSources
-      .filter(ds => ds.requiresDataSource)
-      .forEach(ds => {
-        const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
+      .filter((ds) => ds.requiresDataSource)
+      .forEach((ds) => {
+        const parent = allDataSources.find((p) => p.key === ds.requiresDataSource);
         if (parent) {
           this.setDataSourceDisabled(ds, application, parent.disabled);
         }
@@ -103,7 +101,7 @@ export class ApplicationReader {
   private static setDataSourceDisabled(dataSource: ApplicationDataSource, application: Application, disabled: boolean) {
     dataSource.disabled = disabled;
     if (dataSource.badge) {
-      application.dataSources.find(ds => ds.key === dataSource.badge).disabled = disabled;
+      application.dataSources.find((ds) => ds.key === dataSource.badge).disabled = disabled;
     }
   }
 }

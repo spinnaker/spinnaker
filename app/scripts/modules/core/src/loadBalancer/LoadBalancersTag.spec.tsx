@@ -49,7 +49,7 @@ describe('<LoadBalancersTag />', () => {
     expect(component.render().find('span.btn-load-balancer').length).toBe(1);
   });
 
-  it('extracts two load balancers from data', done => {
+  it('extracts two load balancers from data', (done) => {
     const serverGroup = {
       account: 'prod',
       region: 'us-east-1',

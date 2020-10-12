@@ -114,7 +114,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     if (!node.children.length) {
       return node.phase;
     }
-    return max(node.children.map(n => this.getLastPhase(n)));
+    return max(node.children.map((n) => this.getLastPhase(n)));
   }
 
   private createNodes(props: IPipelineGraphProps): IPipelineGraphNode[] {
@@ -135,13 +135,13 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   ): IPipelineGraphNode[][] {
     nodes = nodes || this.createNodes(props);
     let allPhasesResolved = true;
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       let phaseResolvable = true;
       let phase = 0;
       if (!node.parentIds.length) {
         node.phase = phase;
       } else {
-        node.parentIds.forEach(parentId => {
+        node.parentIds.forEach((parentId) => {
           const parent = find(nodes, { id: parentId });
           if (parent && parent.phase !== undefined) {
             phase = Math.max(phase, parent.phase);
@@ -174,7 +174,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
         node.parents = uniq(node.parents);
         node.leaf = node.children.length === 0;
       });
-      nodes.forEach(node => (node.lastPhase = this.getLastPhase(node)));
+      nodes.forEach((node) => (node.lastPhase = this.getLastPhase(node)));
 
       // Collision minimization "Algorithm"
       const grouped = groupBy(nodes, 'phase');
@@ -198,7 +198,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
           // same highest parent, prefer farthest last node
           (node: IPipelineGraphNode) => 1 - node.lastPhase,
           // same highest parent, prefer fewer terminal children if any
-          (node: IPipelineGraphNode) => node.children.filter(child => !child.children.length).length || 100,
+          (node: IPipelineGraphNode) => node.children.filter((child) => !child.children.length).length || 100,
           // same highest parent, same number of terminal children, prefer fewer parents
           (node: IPipelineGraphNode) => node.parents.length,
           // same highest parent, same number of terminal children and parents
@@ -228,10 +228,10 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   // if any nodes in the same row as a parent node, but not in the immediately preceding phase, inject placeholder nodes
   // so there are no overlapping links
   private fixOverlaps(nodes: IPipelineGraphNode[][]): void {
-    nodes.forEach(column => {
-      column.forEach(node => {
-        const nonImmediateChildren = node.children.filter(c => c.phase - node.phase > 1 && c.row === node.row);
-        nonImmediateChildren.forEach(child => {
+    nodes.forEach((column) => {
+      column.forEach((node) => {
+        const nonImmediateChildren = node.children.filter((c) => c.phase - node.phase > 1 && c.row === node.row);
+        nonImmediateChildren.forEach((child) => {
           for (let phase = node.phase + 1; phase < child.phase; phase++) {
             if (nodes[phase].length >= node.row) {
               nodes[phase].splice(node.row, 0, this.createPlaceholderNode(node.row, phase));
@@ -292,7 +292,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     placeholderNode.width(newState.maxLabelWidth);
     let graphHeight = 0;
     groupedNodes.forEach((nodes: IPipelineGraphNode[]) => {
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         const extraLines = node.extraLabelLines ? '<div>x</div>'.repeat(node.extraLabelLines) : '';
         placeholderNode.html(`<a href>${DOMPurify.sanitize(node.name)}${extraLines}</a>`);
         node.height = placeholderNode.height() + this.rowPadding;
@@ -315,8 +315,8 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   }
 
   private createLinks(newState: IPipelineGraphState): void {
-    newState.allNodes.forEach(node => {
-      node.children.forEach(child => {
+    newState.allNodes.forEach((node) => {
+      node.children.forEach((child) => {
         this.linkNodes(child, node);
       });
     });
@@ -333,8 +333,8 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   }
 
   private applyAllNodes(newState: IPipelineGraphState): void {
-    const highlightedNodeIndex = newState.allNodes.findIndex(node => node.isHighlighted);
-    const activeNodeIndex = newState.allNodes.findIndex(node => node.isActive);
+    const highlightedNodeIndex = newState.allNodes.findIndex((node) => node.isHighlighted);
+    const activeNodeIndex = newState.allNodes.findIndex((node) => node.isActive);
     if (activeNodeIndex !== -1) {
       const node = newState.allNodes.splice(highlightedNodeIndex, 1)[0];
       newState.allNodes.push(node);
@@ -373,7 +373,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       this.createLinks(newState);
     } else {
       newState = { allNodes: this.state.allNodes } as IPipelineGraphState;
-      newState.allNodes.forEach(node => this.resetLinks(props, node));
+      newState.allNodes.forEach((node) => this.resetLinks(props, node));
     }
     this.applyAllNodes(newState);
   }
@@ -392,13 +392,13 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       }
     }
     node.isHighlighted = false;
-    node.parentLinks.forEach(link => (link.isHighlighted = false));
-    node.childLinks.forEach(link => (link.isHighlighted = false));
+    node.parentLinks.forEach((link) => (link.isHighlighted = false));
+    node.childLinks.forEach((link) => (link.isHighlighted = false));
   }
 
   public componentDidMount() {
     window.addEventListener('resize', this.windowResize);
-    this.validationSubscription = PipelineConfigValidator.subscribe(validations => {
+    this.validationSubscription = PipelineConfigValidator.subscribe((validations) => {
       this.pipelineValidations = validations;
       this.updateGraph(this.props);
     });
@@ -471,7 +471,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
             </foreignObject>
           </g>
           {allNodes.map(
-            node =>
+            (node) =>
               !node.placeholder && (
                 <g
                   key={node.id}
@@ -483,7 +483,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
                   })}
                   transform={`translate(${node.x},${node.y})`}
                 >
-                  {node.childLinks.map(link => (
+                  {node.childLinks.map((link) => (
                     <PipelineGraphLink key={link.child.name + link.parent.name} link={link} x={node.x} y={node.y} />
                   ))}
                   <PipelineGraphNode

@@ -102,7 +102,7 @@ const PopoverToggleBodyText = ({ resourceSummary }: { resourceSummary: IManagedR
 
 const MultiRegionWarning = ({ resourceSummary }: { resourceSummary: IManagedResourceSummary }) => {
   const { isPaused, locations } = resourceSummary;
-  const regions = locations.regions.map(r => r.name).sort();
+  const regions = locations.regions.map((r) => r.name).sort();
   if (regions.length < 2) {
     return null;
   }

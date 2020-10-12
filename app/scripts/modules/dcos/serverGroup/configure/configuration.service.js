@@ -15,7 +15,7 @@ angular
   .factory('dcosServerGroupConfigurationService', [
     '$q',
     'dcosImageReader',
-    function($q, dcosImageReader) {
+    function ($q, dcosImageReader) {
       function configureCommand(application, command, query = '') {
         const queries = command.docker.image ? [grabImageAndTag(command.docker.image.imageId)] : [];
 
@@ -27,7 +27,7 @@ angular
         if (queries.length) {
           imagesPromise = $q
             .all(
-              queries.map(q =>
+              queries.map((q) =>
                 dcosImageReader.findImages({
                   provider: 'dockerRegistry',
                   count: 50,
@@ -45,7 +45,7 @@ angular
             credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
             allImages: imagesPromise,
           })
-          .then(function(backingData) {
+          .then(function (backingData) {
             backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
             backingData.filtered = {};
             backingData.allSecrets = {};
@@ -60,7 +60,7 @@ angular
 
             command.backingData = backingData;
 
-            return $q.all().then(function() {
+            return $q.all().then(function () {
               configureAccount(command);
               attachEventHandlers(command);
             });
@@ -97,16 +97,16 @@ angular
       function configureImages(command) {
         const result = { dirty: {} };
 
-        const registryAccountNames = _.map(command.backingData.filtered.dockerRegistries, function(registry) {
+        const registryAccountNames = _.map(command.backingData.filtered.dockerRegistries, function (registry) {
           return registry.accountName;
         });
         command.backingData.filtered.images = _.map(
-          _.filter(command.backingData.allImages, function(image) {
+          _.filter(command.backingData.allImages, function (image) {
             return (
               image.fromContext || image.fromTrigger || _.includes(registryAccountNames, image.account) || image.message
             );
           }),
-          function(image) {
+          function (image) {
             return mapImage(image);
           },
         );
@@ -151,7 +151,7 @@ angular
 
           command.backingData.filtered.secrets = _.filter(
             command.backingData.allSecrets[command.dcosCluster].sort(),
-            function(secret) {
+            function (secret) {
               const secretPath = secret.substring(0, secret.lastIndexOf('/') + 1);
               return appPath.startsWith(secretPath);
             },
@@ -159,7 +159,7 @@ angular
         }
 
         if (command.viewModel.env) {
-          command.viewModel.env.forEach(function(envModel) {
+          command.viewModel.env.forEach(function (envModel) {
             if (
               envModel.isSecret &&
               envModel.rawValue != null &&
@@ -181,11 +181,7 @@ angular
 
         command.backingData.filtered.dcosClusters = command.backingData.account.dcosClusters;
 
-        if (
-          !_.chain(command.backingData.filtered.dcosClusters)
-            .some({ name: command.dcosCluster })
-            .value()
-        ) {
+        if (!_.chain(command.backingData.filtered.dcosClusters).some({ name: command.dcosCluster }).value()) {
           result.dirty.dcosCluster = command.dcosCluster;
           command.dcosCluster = null;
         }

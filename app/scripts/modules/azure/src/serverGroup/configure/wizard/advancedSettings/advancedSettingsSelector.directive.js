@@ -7,7 +7,7 @@ export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTING
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE; // for backwards compatibility
 angular
   .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE, [])
-  .directive('azureServerGroupAdvancedSettingsSelector', function() {
+  .directive('azureServerGroupAdvancedSettingsSelector', function () {
     return {
       restrict: 'E',
       templateUrl: require('./advancedSettingsSelector.directive.html'),
@@ -19,7 +19,7 @@ angular
       controller: 'azureServerGroupAdvancedSettingsSelectorCtrl',
     };
   })
-  .controller('azureServerGroupAdvancedSettingsSelectorCtrl', function() {
+  .controller('azureServerGroupAdvancedSettingsSelectorCtrl', function () {
     this.addDataDisk = () => {
       const newDataDisks = angular.copy(this.command.dataDisks);
       this.command.dataDisks = newDataDisks.concat([
@@ -35,7 +35,7 @@ angular
       ]);
     };
 
-    this.removeDataDisk = index => {
+    this.removeDataDisk = (index) => {
       const newDataDisks = angular.copy(this.command.dataDisks);
       newDataDisks.splice(index, 1);
       this.command.dataDisks = newDataDisks;

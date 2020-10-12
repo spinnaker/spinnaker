@@ -45,7 +45,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     const { stage } = this.props;
     const { suspendedStageTypes } = stage;
     const requireHydration = ['restrictExecutionDuringTimeWindow', 'waitForCondition'];
-    return stage.labelComponent !== ExecutionBarLabel || requireHydration.some(s => suspendedStageTypes.has(s));
+    return stage.labelComponent !== ExecutionBarLabel || requireHydration.some((s) => suspendedStageTypes.has(s));
   };
 
   public componentDidMount() {
@@ -73,7 +73,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
 
   private getExecutionWindowTemplate = () => {
     const { stage, application, execution } = this.props;
-    const executionWindowStage = stage.stages.find(s => s.type === 'restrictExecutionDuringTimeWindow');
+    const executionWindowStage = stage.stages.find((s) => s.type === 'restrictExecutionDuringTimeWindow');
     return (
       <div>
         <div>
@@ -86,7 +86,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
 
   private getWaitForConditionTemplate = () => {
     const { stage, application, execution } = this.props;
-    const waitForConditionStage = stage.stages.find(s => s.type === 'waitForCondition');
+    const waitForConditionStage = stage.stages.find((s) => s.type === 'waitForCondition');
     return (
       <div>
         <p>

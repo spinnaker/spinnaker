@@ -113,7 +113,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
   public $onInit(): void {
     this.gceCommonLoadBalancerCommandBuilder
       .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'healthChecks', 'certificates'])
-      .then(backingData => {
+      .then((backingData) => {
         if (!this.isNew) {
           this.initializeEditMode();
         } else {
@@ -162,7 +162,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['healthChecks']).then(data => {
+    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['healthChecks']).then((data) => {
       this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder.groupHealthChecksByAccountAndType(
         data.healthChecks as IGceHealthCheck[],
       );
@@ -176,7 +176,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
   }
 
   public onCertificateRefresh(): void {
-    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['certificates']).then(data => {
+    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['certificates']).then((data) => {
       this.certificateWrappers = data.certificates as any[];
     });
   }

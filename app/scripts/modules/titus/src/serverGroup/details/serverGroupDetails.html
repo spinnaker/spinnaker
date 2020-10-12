@@ -77,9 +77,7 @@
     </div>
   </div>
   <div class="content" ng-if="!state.loading">
-    <div class="band band-info" ng-if="serverGroup.isDisabled">
-      Job is Disabled
-    </div>
+    <div class="band band-info" ng-if="serverGroup.isDisabled">Job is Disabled</div>
     <managed-resource-details-indicator
       ng-if="!state.loading && serverGroup.isManaged"
       resource-summary="serverGroup.managedResourceSummary"

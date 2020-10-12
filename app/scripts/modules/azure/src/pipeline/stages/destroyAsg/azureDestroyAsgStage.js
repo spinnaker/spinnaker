@@ -7,14 +7,14 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE = 'spinnaker.azure.pipeline.stage.destroyAsgStage';
 export const name = AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE; // for backwards compatibility
 module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'azure',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -30,7 +30,7 @@ module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
   })
   .controller('azureDestroyAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -40,13 +40,13 @@ module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('azure').then(function(accounts) {
+      AccountService.listAccounts('azure').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });
 
-      ctrl.accountUpdated = function() {
-        AccountService.getAccountDetails(stage.credentials).then(function(details) {
+      ctrl.accountUpdated = function () {
+        AccountService.getAccountDetails(stage.credentials).then(function (details) {
           stage.regions = [details.org];
           //        stage.regions = ['eastus', 'westus'];
         });

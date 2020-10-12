@@ -19,7 +19,7 @@ export function DisableClusterConfig({ application, pipeline, stage, updateStage
       onChange={updateStage}
       pipeline={pipeline}
       stage={stageWithDefaults}
-      render={props => <DisableClusterStageForm {...props} />}
+      render={(props) => <DisableClusterStageForm {...props} />}
     />
   );
 }

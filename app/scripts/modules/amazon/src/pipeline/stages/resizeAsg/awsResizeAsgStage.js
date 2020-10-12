@@ -7,15 +7,15 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 export const AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE = 'spinnaker.amazon.pipeline.stage.aws.resizeAsgStage';
 export const name = AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE; // for backwards compatibility
 module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
-  .config(function() {
+  .config(function () {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       alias: 'resizeAsg',
       cloudProvider: 'aws',
       templateUrl: require('./resizeAsgStage.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
-      accountExtractor: stage => [stage.context.credentials],
-      configAccountExtractor: stage => [stage.credentials],
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
@@ -32,7 +32,7 @@ module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
   })
   .controller('awsResizeAsgStageCtrl', [
     '$scope',
-    function($scope) {
+    function ($scope) {
       const ctrl = this;
 
       const stage = $scope.stage;
@@ -42,7 +42,7 @@ module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
         regionsLoaded: false,
       };
 
-      AccountService.listAccounts('aws').then(function(accounts) {
+      AccountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.viewState.accountsLoaded = true;
       });
@@ -107,7 +107,7 @@ module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
         stage.regions.push($scope.application.defaultRegions.aws);
       }
 
-      ctrl.updateResizeType = function() {
+      ctrl.updateResizeType = function () {
         if (stage.action === 'scale_exact') {
           stage.resizeType = 'exact';
           delete stage.scalePct;

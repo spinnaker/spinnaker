@@ -18,8 +18,6 @@ export interface IAuthenticateOidcActionConfig {
 
 export class OidcConfigReader {
   public static getOidcConfigsByApp(app: string): IPromise<IAuthenticateOidcActionConfig[]> {
-    return API.one('oidcConfigs')
-      .withParams({ app })
-      .getList();
+    return API.one('oidcConfigs').withParams({ app }).getList();
   }
 }

@@ -19,7 +19,7 @@ angular
     '$controller',
     'securityGroup',
     'application',
-    function($scope, $uibModalInstance, $controller, securityGroup, application) {
+    function ($scope, $uibModalInstance, $controller, securityGroup, application) {
       const vm = this;
 
       $scope.pages = {
@@ -42,19 +42,19 @@ angular
         }),
       );
 
-      AccountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         vm.accountUpdated();
       });
 
-      securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {
+      securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function (sourceRange) {
         return { value: sourceRange };
       });
 
       securityGroup.ipIngress = _.chain(securityGroup.ipIngressRules)
-        .map(function(rule) {
+        .map(function (rule) {
           if (rule.portRanges && rule.portRanges.length > 0) {
-            return rule.portRanges.map(function(portRange) {
+            return rule.portRanges.map(function (portRange) {
               return {
                 type: rule.protocol,
                 startPort: portRange.startPort,
@@ -76,7 +76,7 @@ angular
 
       securityGroup.sourceTags = securityGroup.sourceTags || [];
 
-      vm.upsert = function() {
+      vm.upsert = function () {
         vm.mixinUpsert('Clone');
       };
 

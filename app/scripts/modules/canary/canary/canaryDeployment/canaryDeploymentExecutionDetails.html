@@ -29,12 +29,12 @@
           >
           <!--<span ng-if="!deployment.status.reportUrl">No report available</span>-->
           <br />
-          <span style="visibility: hidden;">Diff Report</span>
+          <span style="visibility: hidden">Diff Report</span>
         </div>
       </div>
     </div>
 
-    <div class="row divider" style="margin-top: 10px;"></div>
+    <div class="row divider" style="margin-top: 10px"></div>
     <div class="row">
       <div class="col-md-6">
         <strong>Baseline</strong>
@@ -67,9 +67,7 @@
         </div>
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
-          <div class="col-md-9">
-            {{deployment.baselineCluster.capacity}}
-          </div>
+          <div class="col-md-9">{{deployment.baselineCluster.capacity}}</div>
         </div>
       </div>
       <div class="col-md-6">
@@ -103,9 +101,7 @@
         </div>
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
-          <div class="col-md-9">
-            {{deployment.canaryCluster.capacity}}
-          </div>
+          <div class="col-md-9">{{deployment.canaryCluster.capacity}}</div>
         </div>
       </div>
     </div>

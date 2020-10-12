@@ -11,7 +11,7 @@ export const CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE =
   'spinnaker.core.pipeline.config.preconditions.preconditionList';
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE; // for backwards compatibility
 module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
-  .directive('preconditionList', function() {
+  .directive('preconditionList', function () {
     return {
       restrict: 'E',
       scope: {
@@ -29,32 +29,32 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
   .controller('PreconditionListCtrl', [
     '$scope',
     '$uibModal',
-    function($scope, $uibModal) {
+    function ($scope, $uibModal) {
       const vm = this;
 
-      vm.editPrecondition = function(precondition, strategy) {
+      vm.editPrecondition = function (precondition, strategy) {
         const modalInstance = $uibModal.open({
           templateUrl: require('./modal/editPrecondition.html'),
           controller: 'EditPreconditionController',
           controllerAs: 'editPrecondition',
           resolve: {
-            precondition: function() {
+            precondition: function () {
               return precondition;
             },
-            strategy: function() {
+            strategy: function () {
               return strategy;
             },
-            application: function() {
+            application: function () {
               return $scope.application;
             },
-            upstreamStages: function() {
+            upstreamStages: function () {
               return $scope.upstreamStages;
             },
           },
         });
 
         modalInstance.result
-          .then(function(newPrecondition) {
+          .then(function (newPrecondition) {
             if (!precondition) {
               $scope.preconditions.push(newPrecondition);
             } else {
@@ -65,23 +65,23 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
           .catch(() => {});
       };
 
-      vm.addPrecondition = function(strategy) {
+      vm.addPrecondition = function (strategy) {
         if ($scope.parent && !$scope.parent.preconditions) {
           $scope.parent.preconditions = [];
         }
         vm.editPrecondition(undefined, strategy);
       };
 
-      vm.removePrecondition = function(precondition) {
-        $scope.preconditions = $scope.preconditions.filter(function(el) {
+      vm.removePrecondition = function (precondition) {
+        $scope.preconditions = $scope.preconditions.filter(function (el) {
           return el !== precondition;
         });
         vm.isPreconditionsDirty = true;
       };
 
-      vm.renderContext = function(precondition) {
+      vm.renderContext = function (precondition) {
         let renderedContext = '';
-        _.forEach(precondition.context, function(value, key) {
+        _.forEach(precondition.context, function (value, key) {
           renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
         });
         return renderedContext;

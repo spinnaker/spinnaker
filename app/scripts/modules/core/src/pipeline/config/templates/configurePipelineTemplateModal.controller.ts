@@ -101,13 +101,13 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   public formIsValid(): boolean {
-    return this.variables.every(v => v.errors.length === 0);
+    return this.variables.every((v) => v.errors.length === 0);
   }
 
   public submit(): IPromise<void> {
     const config = this.buildConfig();
     return PipelineTemplateReader.getPipelinePlan(config)
-      .then(plan => {
+      .then((plan) => {
         const { parameterConfig, expectedArtifacts, triggers } = plan;
         const inherited = {
           ...config,
@@ -156,7 +156,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
 
   private loadTemplate(): IPromise<void> {
     return PipelineTemplateReader.getPipelineTemplateFromSourceUrl(this.source, this.executionId, this.pipelineId).then(
-      template => {
+      (template) => {
         this.template = template;
       },
     );
@@ -165,7 +165,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   private transformVariablesForPipelinePlan(): { [key: string]: any } {
     return chain(this.variables || [])
       .cloneDeep()
-      .map(v => {
+      .map((v) => {
         if (v.type === 'object') {
           v.value = load(v.value);
         } else if (v.type === 'int') {
@@ -189,12 +189,12 @@ export class ConfigurePipelineTemplateModalController implements IController {
   };
 
   private getVariable(name: string): IVariable {
-    return this.variables.find(v => v.name === name);
+    return this.variables.find((v) => v.name === name);
   }
 
   private groupVariableMetadata(): void {
     this.variableMetadataGroups = [];
-    (this.template.variables || []).forEach(v => {
+    (this.template.variables || []).forEach((v) => {
       if (v.group) {
         this.addToGroup(v.group, v);
       } else {
@@ -204,7 +204,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   private addToGroup(groupName: string, metadata: IVariableMetadata): void {
-    const group = this.variableMetadataGroups.find(g => g.name === groupName);
+    const group = this.variableMetadataGroups.find((g) => g.name === groupName);
     if (group) {
       group.variableMetadata.push(metadata);
     } else {
@@ -213,7 +213,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   private initializeVariables(): void {
-    this.variables = (this.template.variables || []).map(v => {
+    this.variables = (this.template.variables || []).map((v) => {
       return {
         name: v.name,
         type: v.type || 'string',
@@ -222,7 +222,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
         hideErrors: true,
       };
     });
-    this.variables.forEach(v => (v.errors = VariableValidatorService.validate(v)));
+    this.variables.forEach((v) => (v.errors = VariableValidatorService.validate(v)));
   }
 
   private getInitialVariableValue(variable: IVariableMetadata): any {

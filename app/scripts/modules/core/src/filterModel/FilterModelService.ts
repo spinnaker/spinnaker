@@ -5,7 +5,7 @@ import { ReactInjector } from 'core/reactShims';
 
 export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
-    filterModelConfig.forEach(property => (property.param = property.param || property.model));
+    filterModelConfig.forEach((property) => (property.param = property.param || property.model));
     filterModel.config = filterModelConfig;
     filterModel.groups = [];
     filterModel.tags = [];
@@ -15,12 +15,12 @@ export class FilterModelService {
     filterModel.addTags = () => {
       filterModel.tags = [];
       filterModelConfig
-        .filter(property => !property.displayOption)
-        .forEach(property => this.addTagsForSection(filterModel, property));
+        .filter((property) => !property.displayOption)
+        .forEach((property) => this.addTagsForSection(filterModel, property));
     };
 
     filterModel.clearFilters = () => {
-      filterModelConfig.forEach(function(property) {
+      filterModelConfig.forEach(function (property) {
         if (!property.displayOption) {
           (filterModel.sortFilter[property.model] as any) = property.clearValue;
         }
@@ -67,22 +67,22 @@ export class FilterModelService {
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {
     const { transitionService } = ReactInjector.$uiRouter;
-    const filterParams = filterModel.config.map(cfg => cfg.param);
+    const filterParams = filterModel.config.map((cfg) => cfg.param);
     let savedParamsForScreen: any = {};
 
     // When exiting the screen but staying in the app, save the filters for that screen
-    transitionService.onSuccess({ exiting: stateGlob, retained: '**.application' }, trans => {
+    transitionService.onSuccess({ exiting: stateGlob, retained: '**.application' }, (trans) => {
       const fromParams = trans.params('from');
       savedParamsForScreen = pick(fromParams, filterParams);
     });
 
     // When entering the screen and staying in the app, restore the filters for that screen
-    transitionService.onBefore({ entering: stateGlob, retained: '**.application' }, trans => {
+    transitionService.onBefore({ entering: stateGlob, retained: '**.application' }, (trans) => {
       const toParams = trans.params();
-      const hasFilters = filterParams.some(key => !isNil(toParams[key]));
+      const hasFilters = filterParams.some((key) => !isNil(toParams[key]));
 
       const savedParams = savedParamsForScreen;
-      const hasSavedFilters = filterParams.some(key => !isNil(savedParams[key]));
+      const hasSavedFilters = filterParams.some((key) => !isNil(savedParams[key]));
 
       // Don't restore the saved filters if there are already filters specified (via url, ui-sref, etc)
       const shouldRedirectWithSavedParams = !hasFilters && hasSavedFilters;
@@ -96,7 +96,7 @@ export class FilterModelService {
 
     // Map transition param values to sortFilter values and save on the filterModel before each transition
     // In the future, we should remove  the AngularJS code that watches for mutations on the sortFilter object
-    transitionService.onBefore({ to: stateGlob }, trans => {
+    transitionService.onBefore({ to: stateGlob }, (trans) => {
       const toParams = trans.params();
       Object.assign(filterModel.sortFilter, FilterModelService.mapRouterParamsToSortFilter(filterModel, toParams));
     });
@@ -109,7 +109,7 @@ export class FilterModelService {
   public static getCheckValues(sortFilterModel: { [key: string]: boolean }) {
     return reduce(
       sortFilterModel,
-      function(acc, val, key) {
+      function (acc, val, key) {
         if (val) {
           acc.push(key);
         }

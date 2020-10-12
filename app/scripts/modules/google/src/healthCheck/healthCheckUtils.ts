@@ -22,7 +22,7 @@ export function parseHealthCheckUrl(url: string): { healthCheckName: string; hea
 
 export function getHealthCheckOptions(healthChecks: IGceHealthCheck[]): IGceHealthCheckOption[] {
   const duplicateNames = getDuplicateHealthCheckNames(healthChecks);
-  return healthChecks.map(hc => {
+  return healthChecks.map((hc) => {
     const isNameDupe = duplicateNames.has(hc.name);
     return {
       displayName: isNameDupe ? `${hc.name} (${hc.kind})` : hc.name,
@@ -36,7 +36,7 @@ export function getHealthCheckOptions(healthChecks: IGceHealthCheck[]): IGceHeal
 export function getDuplicateHealthCheckNames(healthChecks: IGceHealthCheck[]): Set<string> {
   const allNames = new Set<string>();
   const duplicateNames = new Set<string>();
-  healthChecks.forEach(hc => {
+  healthChecks.forEach((hc) => {
     if (allNames.has(hc.name)) {
       duplicateNames.add(hc.name);
     } else {
