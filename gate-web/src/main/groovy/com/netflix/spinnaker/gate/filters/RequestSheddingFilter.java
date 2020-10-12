@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.gate.filters;
 
+import static com.netflix.spinnaker.gate.filters.RequestLoggingFilter.REQUEST_START_TIME;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -22,6 +23,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.io.IOException;
 import java.time.Duration;
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * A request interceptor for shedding low-priority requests from Deck.
@@ -82,6 +85,7 @@ public class RequestSheddingFilter extends HttpFilter {
   private final ScheduledExecutorService executorService;
 
   private final Id requestsId;
+  private final Id controllerInvocationsId;
 
   private final CopyOnWriteArrayList<Pattern> pathPatterns = new CopyOnWriteArrayList<>();
 
@@ -105,6 +109,16 @@ public class RequestSheddingFilter extends HttpFilter {
     } else {
       this.executorService = null;
     }
+
+    this.controllerInvocationsId =
+        registry
+            .createId("controller.invocations")
+            .withTag("controller", "unknown")
+            .withTag("method", "unknown")
+            .withTag("status", "5xx")
+            .withTag("statusCode", "503")
+            .withTag("success", "false")
+            .withTag("cause", "RequestSheddingFilter");
   }
 
   @PreDestroy
@@ -136,6 +150,16 @@ public class RequestSheddingFilter extends HttpFilter {
         response
             .getWriter()
             .write("{\"message\": \"Low priority requests are not currently being accepted\"}");
+
+        Optional.ofNullable(MDC.get(REQUEST_START_TIME))
+            .ifPresent(
+                startTime -> {
+                  PercentileTimer.get(registry, controllerInvocationsId)
+                      .record(
+                          System.currentTimeMillis() - Long.parseLong(startTime),
+                          TimeUnit.MILLISECONDS);
+                });
+
         return;
       }
       log.debug("Dice roll prevented low priority request shedding: {}", request.getRequestURI());

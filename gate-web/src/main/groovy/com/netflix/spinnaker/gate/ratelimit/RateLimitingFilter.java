@@ -15,13 +15,16 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import static com.netflix.spinnaker.gate.filters.RequestLoggingFilter.REQUEST_START_TIME;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
+import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService;
 import com.netflix.spinnaker.security.User;
 import java.io.IOException;
@@ -29,6 +32,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpFilter;
@@ -53,8 +57,9 @@ public class RateLimitingFilter extends HttpFilter {
   private RateLimitPrincipalProvider rateLimitPrincipalProvider;
   private Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService;
 
-  private Counter throttlingCounter;
-  private Counter learningThrottlingCounter;
+  private final Counter throttlingCounter;
+  private final Counter learningThrottlingCounter;
+  private final Id controllerInvocationsId;
 
   public RateLimitingFilter(
       RateLimiter rateLimiter,
@@ -68,6 +73,16 @@ public class RateLimitingFilter extends HttpFilter {
 
     throttlingCounter = registry.counter("rateLimit.throttling");
     learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
+
+    this.controllerInvocationsId =
+        registry
+            .createId("controller.invocations")
+            .withTag("controller", "unknown")
+            .withTag("method", "unknown")
+            .withTag("status", "4xx")
+            .withTag("statusCode", "429")
+            .withTag("success", "false")
+            .withTag("cause", "RateLimitingFilter");
   }
 
   @Override
@@ -75,9 +90,19 @@ public class RateLimitingFilter extends HttpFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     try {
-      if (preHandle(request, response)) {
-        chain.doFilter(request, response);
+      if (!preHandle(request, response)) {
+        Optional.ofNullable(MDC.get(REQUEST_START_TIME))
+            .ifPresent(
+                startTime -> {
+                  PercentileTimer.get(registry, controllerInvocationsId)
+                      .record(
+                          System.currentTimeMillis() - Long.parseLong(startTime),
+                          TimeUnit.MILLISECONDS);
+                });
+        return;
       }
+
+      chain.doFilter(request, response);
     } finally {
       postHandle(request, response);
     }
