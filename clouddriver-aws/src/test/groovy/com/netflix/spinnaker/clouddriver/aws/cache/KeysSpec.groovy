@@ -29,7 +29,28 @@ class KeysSpec extends Specification {
 
     where:
 
-    key                                                                                                         | namespace
-    "aws:securityGroups:appname:appname-stack-detail:test:us-west-1:appname-stack-detail-v000:stack:detail:000" | Keys.Namespace.SECURITY_GROUPS
+    key                                                                          | namespace
+    "aws:securityGroups:app-stack-detail:sg-12345:us-west-2:0123456789:vpc-1234" | Keys.Namespace.SECURITY_GROUPS
+  }
+
+  @Unroll
+  def 'parse security group keys with special characters'() {
+    given:
+    def parsedKey = Keys.parse(key)
+
+    expect:
+    with(parsedKey) {
+      name == expectedName
+      application == expectedApp
+    }
+
+    where:
+
+    key                                                                          || expectedName       | expectedApp
+    "aws:securityGroups:app-stack-detail:sg-12345:us-west-2:0123456789:vpc-1234" || 'app-stack-detail' | 'app'
+    "aws:securityGroups:app:stack%detail:sg-12345:us-west-2:0123456789:vpc-1234" || 'app:stack%detail' | null
+    "aws:securityGroups:app:stack:detail:sg-12345:us-west-2:0123456789:vpc-1234" || 'app:stack:detail' | null
+    "aws:securityGroups:app%stack%detail:sg-12345:us-west-2:0123456789:vpc-1234" || 'app%stack%detail' | null
+    "aws:securityGroups:app%stack:detail:sg-12345:us-west-2:0123456789:vpc-1234" || 'app%stack:detail' | null
   }
 }

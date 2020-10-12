@@ -88,8 +88,13 @@ class Keys implements KeyParser {
 
     switch (result.type) {
       case Namespace.SECURITY_GROUPS.ns:
-        def names = Names.parseName(parts[2])
-        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5], vpcId: parts[6] == "null" ? null : parts[6]]
+        // AWS Security Group names can contain `:` which breaks simple splitting
+        // However, security group IDs must always start with `sg-` so we can use
+        // that to find the end of the group name as the ID is always after the name
+        def idIndex = parts.findIndexOf {it.startsWith('sg-') }
+        def name = parts[2..<idIndex].join(':')
+        def frigga = Names.parseName(name)
+        result << [application: frigga.app, name: name, id: parts[idIndex], region: parts[idIndex + 1], account: parts[idIndex + 2], vpcId: parts[idIndex + 3] == "null" ? null : parts[idIndex + 3]]
         break
       case Namespace.VPCS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
