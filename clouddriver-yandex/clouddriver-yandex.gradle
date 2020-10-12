@@ -1,0 +1,60 @@
+/*
+ * Copyright 2020 YANDEX LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+dependencies {
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation 'com.yandex.cloud:java-sdk-services:2.1.1'
+  compile("io.opencensus:opencensus-api:0.21.0") {
+    force = true
+  }
+  compile("io.opencensus:opencensus-contrib-grpc-metrics:0.21.0") {
+    force = true
+  }
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-config"
+  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation project(":clouddriver-web")
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "commons-fileupload:commons-fileupload:1.4"
+  testImplementation "org.apache.httpcomponents:httpmime"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+}

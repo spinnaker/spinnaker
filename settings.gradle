@@ -36,7 +36,8 @@ def cloudProviderProjects = [
   'huaweicloud': [':clouddriver-huaweicloud'],
   'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],
-  'tencentcloud': [':clouddriver-tencentcloud']
+  'tencentcloud': [':clouddriver-tencentcloud'],
+  'yandex': [':clouddriver-yandex']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
 cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus' + ':clouddriver-docker')
