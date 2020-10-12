@@ -24,10 +24,9 @@ function checkPackageJson(report) {
 
   const checkPackageJsonField = assertJsonFile(report, 'package.json', pkgJson);
 
-  checkPackageJsonField('module', 'build/dist/index.js');
+  checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
   checkPackageJsonField('scripts.develop', 'npm run clean && run-p watch proxy');
-  checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
   checkPackageJsonField('scripts.proxy', 'dev-proxy');
   checkPackageJsonField('scripts.watch', 'rollup -c -w --no-watch.clearScreen');
