@@ -76,8 +76,9 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         flattenPermissions(securityGroupUpdater.securityGroup)
     } else {
       try {
+        task.updateStatus BASE_PHASE, "Creating Security Group ${description.name}"
         securityGroupUpdater = securityGroupLookup.createSecurityGroup(description)
-        task.updateStatus BASE_PHASE, "Security group created: ${securityGroupUpdater.securityGroup}."
+        task.updateStatus BASE_PHASE, "Created Security Group ${securityGroupUpdater.securityGroup}"
         existingIpPermissions = []
       } catch (AmazonServiceException e) {
         if (e.errorCode == "InvalidGroup.Duplicate") {
@@ -98,7 +99,9 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     // Second conversion of desired security group rules. If any upstream groups (including self-referential) are
     // missing, the operation will fail.
     if (!ipPermissionsFromDescription.missingSecurityGroups.selfReferencing.isEmpty()) {
+      task.updateStatus BASE_PHASE, "Extracting ip permissions"
       ipPermissionsFromDescription = convertDescriptionToIngress(securityGroupLookup, description, false)
+      task.updateStatus BASE_PHASE, "Extracted ip permissions (${ipPermissionsFromDescription})"
     }
 
     SecurityGroupIngressConverter.IpRuleDelta ipRuleDelta = SecurityGroupIngressConverter.computeIpRuleDelta(ipPermissionsFromDescription.converted, existingIpPermissions)
@@ -123,6 +126,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         status = "$status ($tobeUpdated)."
       }
       try {
+        task.updateStatus BASE_PHASE, "Updating Ingress (${tobeUpdated})"
         securityGroupUpdater.updateIngress(tobeUpdated)
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description)
@@ -143,6 +147,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       }
 
       try {
+        task.updateStatus BASE_PHASE, "Adding Ingress (${ipPermissionsToAdd})"
         securityGroupUpdater.addIngress(ipPermissionsToAdd)
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description)
@@ -162,6 +167,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       }
 
       try {
+        task.updateStatus BASE_PHASE, "Removing Ingress (${ipPermissionsToRemove})"
         securityGroupUpdater.removeIngress(ipPermissionsToRemove)
         //Update tags to ensure they are consistent with rule changes
         securityGroupUpdater.updateTags(description)
@@ -182,7 +188,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       def missingSecurityGroupDescriptions = ipPermissionsFromDescription.missingSecurityGroups.all.collect {
         "'${it.name ?: it.id}' in '${it.accountName ?: description.account}' ${it.vpcId ?: description.vpcId ?: 'EC2-classic'}"
       }
-      def securityGroupsDoNotExistErrorMessage = "The following security groups do not exist: ${missingSecurityGroupDescriptions.join(", ")}"
+      def securityGroupsDoNotExistErrorMessage = "The following security groups do not exist: ${missingSecurityGroupDescriptions.join(", ")} (ignoreSelfReferencingRules: ${ignoreSelfReferencingRules})"
       task.updateStatus BASE_PHASE, securityGroupsDoNotExistErrorMessage
       throw new IllegalStateException(securityGroupsDoNotExistErrorMessage)
     }
