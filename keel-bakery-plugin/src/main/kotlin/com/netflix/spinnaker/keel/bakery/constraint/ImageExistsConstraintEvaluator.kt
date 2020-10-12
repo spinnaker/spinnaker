@@ -10,11 +10,13 @@ import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
+import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -29,7 +31,8 @@ import org.springframework.stereotype.Component
 class ImageExistsConstraintEvaluator(
   private val imageService: ImageService,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: EventPublisher
+  override val eventPublisher: EventPublisher,
+  cacheFactory: CacheFactory
 ) : ConstraintEvaluator<ImageExistsConstraint> {
 
   override fun isImplicit(): Boolean = true
@@ -50,15 +53,27 @@ class ImageExistsConstraintEvaluator(
     return image != null
   }
 
-  private fun findMatchingImage(version: String, vmOptions: VirtualMachineOptions): NamedImage? =
-    runBlocking {
-      log.debug("Searching for baked image for {} in {}", version, vmOptions.regions.joinToString())
+  private data class Key(
+    val account: String,
+    val version: String,
+    val regions: Set<String>
+  )
+
+  private val cache = cacheFactory
+    .asyncLoadingCache<Key, NamedImage>(cacheName = "namedImages") { key ->
+      log.debug("Searching for baked image for {} in {}", key.version, key.regions.joinToString())
       imageService.getLatestNamedImageWithAllRegionsForAppVersion(
         // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        AppVersion.parseName(version) ?: throw SystemException("Invalid AMI app version: $version"),
-        defaultImageAccount,
-        vmOptions.regions
+        appVersion = AppVersion.parseName(key.version)
+          ?: throw SystemException("Invalid AMI app version: ${key.version}"),
+        account = key.account,
+        regions = key.regions
       )
+    }
+
+  private fun findMatchingImage(version: String, vmOptions: VirtualMachineOptions): NamedImage? =
+    runBlocking {
+      cache.get(Key(defaultImageAccount, version, vmOptions.regions)).await()
     }
 
   private val defaultImageAccount: String

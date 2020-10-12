@@ -14,7 +14,6 @@ dependencies {
   implementation(project(":keel-artifact"))
   implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")

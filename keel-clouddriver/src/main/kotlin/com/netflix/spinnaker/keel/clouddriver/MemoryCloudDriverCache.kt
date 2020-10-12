@@ -16,28 +16,17 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.github.benmanes.caffeine.cache.AsyncCache
-import com.github.benmanes.caffeine.cache.Caffeine
-import com.netflix.spinnaker.config.CacheProperties
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache
+import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.future.future
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executor
-import java.util.function.BiFunction
 
 /**
  * An in-memory cache for calls against cloud driver
@@ -50,158 +39,176 @@ import java.util.function.BiFunction
  */
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService,
-  private val meterRegistry: MeterRegistry,
-  private val cacheProperties: CacheProperties = CacheProperties()
+  cacheFactory: CacheFactory
 ) : CloudDriverCache {
 
-  private val securityGroupSummariesByIdOrName = buildAsyncCache<String, SecurityGroupSummary>(
-    cacheName = "securityGroups",
-    defaultExpireAfterWrite = Duration.ofMinutes(10)
-  )
-
-  private val networks = buildAsyncCache<String, Network>(
-    cacheName = "networks"
-  )
-
-  private val availabilityZones = buildAsyncCache<String, Set<String>>(
-    cacheName = "availabilityZones"
-  )
-
-  private val credentials = buildAsyncCache<String, Credential>(
-    cacheName = "credentials"
-  )
-
-  private val subnetsById = buildAsyncCache<String, Subnet>(
-    cacheName = "subnetsById"
-  )
-
-  private val subnetsByPurpose = buildAsyncCache<String, Subnet>(
-    cacheName = "subnetsByPurpose"
-  )
-
-  private val namedImagesByAccountAndImageName = buildAsyncCache<String, List<NamedImage>>(
-    cacheName = "namedImages",
-    defaultExpireAfterWrite = Duration.ofMinutes(5)
-  )
-
-  override fun credentialBy(name: String): Credential =
-    credentials.getOrNotFound(name, "Credentials with name $name not found") {
-      cloudDriver.getCredential(name, DEFAULT_SERVICE_ACCOUNT)
+  private val securityGroupsById: AsyncLoadingCache<Triple<String, String, String>, SecurityGroupSummary> = cacheFactory
+    .asyncLoadingCache(
+      cacheName = "securityGroupsById",
+      defaultExpireAfterWrite = Duration.ofMinutes(10)
+    ) { (account, region, id) ->
+      runCatching {
+        val credential = credentialBy(account)
+        cloudDriver.getSecurityGroupSummaryById(account, credential.type, region, id, DEFAULT_SERVICE_ACCOUNT)
+          .also {
+            securityGroupsByName.synchronous().put(Triple(account, region, it.name), it)
+          }
+      }
+        .handleNotFound()
+        ?: notFound("Security group with id $id not found in the $account account and $region region")
     }
 
-  /**
-   * Convert a suspending function to a [BiFunction] that [AsyncCache.get] expects as its second argument
-   *
-   * Uses a coroutine dispatcher based on the cache's [Executor].
-   */
-  private fun <K, V> asyncify(block: suspend CoroutineScope.(K) -> V?): BiFunction<K, Executor, CompletableFuture<V?>> =
-    BiFunction { key, executor ->
-      CoroutineScope(executor.asCoroutineDispatcher())
-        .future(block = { block(key) })
+  private val securityGroupsByName: AsyncLoadingCache<Triple<String, String, String>, SecurityGroupSummary> = cacheFactory
+    .asyncLoadingCache(
+      cacheName = "securityGroupsByName",
+      defaultExpireAfterWrite = Duration.ofMinutes(10)
+    ) { (account, region, name) ->
+      runCatching {
+        val credential = credentialBy(account)
+        cloudDriver.getSecurityGroupSummaryByName(account, credential.type, region, name, DEFAULT_SERVICE_ACCOUNT)
+          .also {
+            securityGroupsById.synchronous().put(Triple(account, region, it.id), it)
+          }
+      }
+        .handleNotFound()
+        ?: notFound("Security group with name $name not found in the $account account and $region region")
+    }
+
+  private val networksById: AsyncLoadingCache<String, Network> = cacheFactory
+    .asyncLoadingCache(cacheName = "networksById") { id ->
+      runCatching {
+        cloudDriver.listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
+          ?.firstOrNull { it.id == id }
+          ?.also {
+            networksByName.synchronous().put(Triple(it.account, it.region, it.name), it)
+          }
+      }
+        .handleNotFound()
+        ?: notFound("VPC network with id $id not found")
+    }
+
+  private val networksByName: AsyncLoadingCache<Triple<String, String, String?>, Network> = cacheFactory
+    .asyncLoadingCache(cacheName = "networksByName") { (account, region, name) ->
+      runCatching {
+        cloudDriver
+          .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
+          ?.firstOrNull { it.name == name && it.account == account && it.region == region }
+          ?.also {
+            networksById.synchronous().put(it.id, it)
+          }
+      }
+        .handleNotFound()
+        ?: notFound("VPC network named $name not found in $region")
+    }
+
+  private data class AvailabilityZoneKey(
+    val account: String,
+    val region: String,
+    val vpcId: String,
+    val purpose: String
+  )
+
+  private val availabilityZones: AsyncLoadingCache<AvailabilityZoneKey, Set<String>> = cacheFactory
+    .asyncLoadingCache(
+      cacheName = "availabilityZones"
+    ) { (account, region, vpcId, purpose) ->
+      runCatching {
+        cloudDriver
+          .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
+          .filter { it.account == account && it.vpcId == vpcId && it.purpose == purpose && it.region == region }
+          .map { it.availabilityZone }
+          .toSet()
+      }
+        .getOrElse { ex ->
+          throw CacheLoadingException("Error loading cache", ex)
+        }
+    }
+
+  private val credentials: AsyncLoadingCache<String, Credential> = cacheFactory
+    .asyncLoadingCache(
+      cacheName = "credentials"
+    ) { name ->
+      runCatching {
+        cloudDriver.getCredential(name, DEFAULT_SERVICE_ACCOUNT)
+      }
+        .handleNotFound()
+        ?: notFound("Credentials with name $name not found")
+    }
+
+  private val subnetsById: AsyncLoadingCache<String, Subnet> = cacheFactory
+    .asyncLoadingCache(cacheName = "subnetsById") { subnetId ->
+      runCatching {
+        cloudDriver
+          .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
+          .find { it.id == subnetId }
+      }
+        .handleNotFound()
+        ?: notFound("Subnet with id $subnetId not found")
+    }
+
+  private val subnetsByPurpose: AsyncLoadingCache<Triple<String, String, String>, Subnet> = cacheFactory
+    .asyncLoadingCache(cacheName = "subnetsByPurpose") { (account, region, purpose) ->
+      runCatching {
+        cloudDriver
+          .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
+          .find { it.account == account && it.region == region && it.purpose == purpose }
+      }
+        .handleNotFound()
+        ?: notFound("Subnet with purpose \"$purpose\" not found in $account:$region")
+    }
+
+  override fun credentialBy(name: String): Credential =
+    runBlocking {
+      credentials.get(name).await()
     }
 
   override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
-    securityGroupSummariesByIdOrName.getOrNotFound(
-      "$account:$region:$id",
-      "Security group with id $id not found in the $account account and $region region"
-    ) {
-      val credential = credentialBy(account)
-      cloudDriver.getSecurityGroupSummaryById(account, credential.type, region, id, DEFAULT_SERVICE_ACCOUNT)
-    }.also {
-      securityGroupSummariesByIdOrName.synchronous().put("$account:$region:${it.name}", it)
+    runBlocking {
+      securityGroupsById.get(Triple(account, region, id)).await()
     }
 
   override fun securityGroupByName(account: String, region: String, name: String): SecurityGroupSummary =
-    securityGroupSummariesByIdOrName.getOrNotFound(
-      "$account:$region:$name",
-      "Security group with name $name not found in the $account account and $region region"
-    ) {
-      val credential = credentialBy(account)
-      cloudDriver.getSecurityGroupSummaryByName(account, credential.type, region, name, DEFAULT_SERVICE_ACCOUNT)
-    }.also {
-      securityGroupSummariesByIdOrName.synchronous().put("$account:$region:${it.id}", it)
+    runBlocking {
+      securityGroupsByName.get(Triple(account, region, name)).await()
     }
 
   override fun networkBy(id: String): Network =
-    networks.getOrNotFound(id, "VPC network with id $id not found") {
-      cloudDriver
-        .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
-        ?.firstOrNull { it.id == id }
+    runBlocking {
+      networksById.get(id).await()
     }
 
-  // TODO rz - caches here aren't very efficient
   override fun networkBy(name: String?, account: String, region: String): Network =
-    networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
-      cloudDriver
-        .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
-        ?.firstOrNull { it.name == name && it.account == account && it.region == region }
+    runBlocking {
+      networksByName.get(Triple(account, region, name)).await()
     }
 
   override fun availabilityZonesBy(account: String, vpcId: String, purpose: String, region: String): Set<String> =
     runBlocking {
-      availabilityZones.get(
-        "$account:$vpcId:$purpose:$region",
-        asyncify {
-          cloudDriver
-            .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
-            .filter { it.account == account && it.vpcId == vpcId && it.purpose == purpose && it.region == region }
-            .map { it.availabilityZone }
-            .toSet()
-        }
-      ).await()
+      availabilityZones.get(AvailabilityZoneKey(account, region, vpcId, purpose)).await()
     }
 
   override fun subnetBy(subnetId: String): Subnet =
-    subnetsById.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
-      cloudDriver
-        .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
-        .find { it.id == subnetId }
+    runBlocking {
+      subnetsById.get(subnetId).await()
     }
 
   override fun subnetBy(account: String, region: String, purpose: String): Subnet =
-    subnetsByPurpose.getOrNotFound("$account:$region:$purpose", "Subnet with purpose \"$purpose\" not found in $account:$region") {
-      cloudDriver
-        .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
-        .find { it.account == account && it.region == region && it.purpose == purpose }
-    }
-
-  override fun namedImages(imageName: String, account: String): List<NamedImage> =
     runBlocking {
-      namedImagesByAccountAndImageName.get(
-        "$account:$imageName",
-        asyncify { cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, imageName, account) }
-      ).await() ?: emptyList()
+      subnetsByPurpose.get(Triple(account, region, purpose)).await()
     }
+}
 
-  private fun <K, V> AsyncCache<K, V>.getOrNotFound(
-    key: K,
-    notFoundMessage: String,
-    loader: suspend CoroutineScope.(K) -> V?
-  ): V = runCatching {
-    runBlocking {
-      get(key, asyncify(loader)).await()
-    }
-  }.getOrElse { ex ->
+/**
+ * Translates a 404 from a Retrofit [HttpException] into a `null`. Any other exception is wrapped in
+ * [CacheLoadingException].
+ */
+private fun <V> Result<V>.handleNotFound(): V? =
+  getOrElse { ex ->
     if (ex is HttpException && ex.code() == 404) {
       null
     } else {
-      throw CacheLoadingException("Error loading cache for $key", ex)
+      throw CacheLoadingException("Error loading cache", ex)
     }
-  } ?: throw ResourceNotFound(notFoundMessage)
+  }
 
-  private fun <K, V> buildAsyncCache(
-    cacheName: String,
-    defaultMaximumSize: Long = 1000,
-    defaultExpireAfterWrite: Duration = Duration.ofHours(1)
-  ): AsyncCache<K, V> =
-    Caffeine.newBuilder()
-      .executor(IO.asExecutor())
-      .maximumSize(cacheProperties.caches[cacheName]?.maximumSize ?: defaultMaximumSize)
-      .expireAfterWrite(cacheProperties.caches[cacheName]?.expireAfterWrite
-        ?: defaultExpireAfterWrite)
-      .recordStats()
-      .buildAsync<K, V>()
-      .apply {
-        CaffeineCacheMetrics.monitor(meterRegistry, this, cacheName)
-      }
-}
+private fun notFound(message: String): Nothing = throw ResourceNotFound(message)

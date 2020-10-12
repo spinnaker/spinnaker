@@ -20,7 +20,6 @@ dependencies {
   implementation(project(":keel-titus-plugin"))
   implementation(project(":keel-schema-generator"))
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("com.netflix.spinnaker.kork:kork-artifacts")
   implementation("org.springframework.boot:spring-boot-starter-actuator")

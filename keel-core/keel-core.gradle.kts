@@ -31,9 +31,10 @@ dependencies {
   api("com.netflix.frigga:frigga")
   api("com.netflix.spinnaker.kork:kork-core")
   api("net.swiftzer.semver:semver:1.1.0")
-  api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
   api("org.apache.commons:commons-lang3")
+  api("com.github.ben-manes.caffeine:caffeine")
 
   implementation("org.springframework:spring-tx")
 

@@ -29,7 +29,6 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-annotations")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 

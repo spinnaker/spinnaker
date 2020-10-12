@@ -51,7 +51,6 @@ dependencies {
     exclude(module = "keel-sql")
   }
   testImplementation("org.testcontainers:mysql")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
   jooqGenerator(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
   jooqGenerator("mysql:mysql-connector-java")

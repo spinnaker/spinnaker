@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
@@ -33,7 +34,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.apache.commons.lang3.RandomStringUtils
@@ -123,7 +123,7 @@ internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>
     val cloudDriverService = mockk<CloudDriverService>() {
       coEvery { listSubnets("aws") } returns subnets
     }
-    val cloudDriverCache = MemoryCloudDriverCache(cloudDriverService, SimpleMeterRegistry())
+    val cloudDriverCache = MemoryCloudDriverCache(cloudDriverService, TEST_CACHE_FACTORY)
     val subject = subjectFactory(cloudDriverCache)
     val resolved by lazy { subject(resource) }
 

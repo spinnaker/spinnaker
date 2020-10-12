@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.keel.caffeine
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.time.Duration
@@ -6,7 +6,7 @@ import java.time.Duration
 /**
  * Configuration for the caches in [com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache].
  */
-@ConfigurationProperties(prefix = "keel.clouddriver")
+@ConfigurationProperties(prefix = "keel")
 class CacheProperties {
   var caches: Map<String, CacheSettings> = emptyMap()
 

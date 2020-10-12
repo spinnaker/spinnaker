@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_SERVICE_UNAVAILABLE
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -16,12 +16,12 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
-object MemoryCloudDriverCacheTest {
+internal class MemoryCloudDriverCacheTest {
 
   val cloudDriver = mockk<CloudDriverService>()
-  val meterRegistry = SimpleMeterRegistry()
-  val subject = MemoryCloudDriverCache(cloudDriver, meterRegistry)
+  val subject = MemoryCloudDriverCache(cloudDriver, TEST_CACHE_FACTORY)
 
   val sg1 = SecurityGroupSummary("foo", "sg-1", "vpc-1")
   val sg2 = SecurityGroupSummary("bar", "sg-2", "vpc-1")
@@ -86,7 +86,30 @@ object MemoryCloudDriverCacheTest {
   }
 
   @Test
+  fun `subsequent requests for the same security groups are served from the cache`() {
+    every {
+      cloudDriver.getCredential("prod")
+    } returns Credential("prod", "aws")
+    every {
+      cloudDriver.getSecurityGroupSummaryByName("prod", "aws", "us-east-1", "foo")
+    } returns sg1
+
+    subject.securityGroupByName("prod", "us-east-1", "foo")
+    subject.securityGroupByName("prod", "us-east-1", "foo")
+
+    verify(exactly = 1) {
+      cloudDriver.getSecurityGroupSummaryByName(any(), any(), any(), any())
+    }
+    verify(exactly = 1) {
+      cloudDriver.getCredential(any())
+    }
+  }
+
+  @Test
   fun `a 404 from CloudDriver is translated into a ResourceNotFound exception`() {
+    every {
+      cloudDriver.getCredential("prod")
+    } returns Credential("prod", "aws")
     every {
       cloudDriver.getSecurityGroupSummaryById("prod", "aws", "us-east-1", "sg-4")
     } throws RETROFIT_NOT_FOUND
@@ -170,8 +193,8 @@ object MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid account, VPC id and region returns an empty set`() {
     every {
-      cloudDriver.listNetworks()
-    } returns mapOf("aws" to vpcs)
+      cloudDriver.listSubnets("aws")
+    } returns subnets
 
     expectThat(
       subject.availabilityZonesBy("test", "vpc-2", "external (vpc2)", "ew-west-1")

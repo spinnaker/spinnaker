@@ -41,8 +41,7 @@ import io.mockk.coVerify as verify
 class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
-    val cloudDriverCache = mockk<CloudDriverCache>()
-    val subject = ImageService(cloudDriver, cloudDriverCache)
+    val subject = ImageService(cloudDriver)
 
     val mapper = configuredObjectMapper()
 
@@ -406,7 +405,8 @@ class ImageServiceTests : JUnit5Minutests {
       val regions = listOf("us-west-2", "us-east-1")
       before {
         every {
-          cloudDriverCache.namedImages(
+          cloudDriver.namedImages(
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = appVersion,
             account = "test"
           )

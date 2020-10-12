@@ -10,7 +10,6 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-annotations")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 

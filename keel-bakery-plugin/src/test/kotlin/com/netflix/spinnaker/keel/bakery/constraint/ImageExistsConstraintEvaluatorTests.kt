@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
+import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -61,7 +62,8 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     val evaluator = ImageExistsConstraintEvaluator(
       imageService,
       NoopDynamicConfig(),
-      eventPublisher
+      eventPublisher,
+      TEST_CACHE_FACTORY
     )
     val appVersion = "fnord-1.0.0-123456"
     var promotionResult: Boolean? = null
