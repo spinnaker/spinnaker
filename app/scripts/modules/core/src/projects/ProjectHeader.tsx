@@ -30,7 +30,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
 
   public componentDidMount() {
     const { success$ } = this.props.transition.router.globals;
-    success$.takeUntil(this.destroy$).subscribe(success => {
+    success$.takeUntil(this.destroy$).subscribe((success) => {
       const state = success.to().name;
       const application = success.params().application;
       this.setState({ state, application });
@@ -48,7 +48,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
     const { $state } = ReactInjector;
     const title = 'Configure project';
 
-    ConfigureProjectModal.show({ title, projectConfiguration }).then(result => {
+    ConfigureProjectModal.show({ title, projectConfiguration }).then((result) => {
       if (result.action === 'delete') {
         $state.go('home.infrastructure');
       } else if (result.action === 'upsert') {
@@ -112,8 +112,8 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
                     </UISref>
                     <MenuItem divider={true} />
                     {config.applications &&
-                      config.applications.sort().map(app => (
-                        <UISref key={app} to=".application.insight.clusters" params={{ application: app }}>
+                      config.applications.sort().map((app) => (
+                        <UISref key={app} to=".application" params={{ application: app }}>
                           <MenuItem onClick={closeDropdown}> {app} </MenuItem>
                         </UISref>
                       ))}

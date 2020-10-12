@@ -30,15 +30,15 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
   '$state',
   '$uibModalInstance',
   '$timeout',
-  function($scope, $q, $log, $state, $uibModalInstance, $timeout) {
+  function ($scope, $q, $log, $state, $uibModalInstance, $timeout) {
     const applicationLoader = ApplicationReader.listApplications();
-    applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
+    applicationLoader.then((applications) => (this.data.appNameList = _.map(applications, 'name')));
 
     const providerLoader = AccountService.listProviders();
-    providerLoader.then(providers => (this.data.cloudProviders = providers));
+    providerLoader.then((providers) => (this.data.cloudProviders = providers));
 
     $q.all([applicationLoader, providerLoader])
-      .catch(error => {
+      .catch((error) => {
         this.state.initializeFailed = true;
         throw error;
       })
@@ -72,7 +72,7 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
 
     const routeToApplication = () => {
       navigateTimeout = $timeout(() => {
-        $state.go('home.applications.application.insight.clusters', {
+        $state.go('home.applications.application', {
           application: this.application.name,
         });
       }, 1000);
@@ -80,7 +80,7 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
 
     $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
 
-    const waitUntilApplicationIsCreated = task => {
+    const waitUntilApplicationIsCreated = (task) => {
       return TaskReader.waitUntilTaskCompletes(task).then(routeToApplication, () => {
         this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
         goIdle();
@@ -118,7 +118,7 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
       return true;
     }
 
-    this.handlePermissionsChange = permissions => {
+    this.handlePermissionsChange = (permissions) => {
       this.state.permissionsInvalid = !permissionsAreValid(permissions);
       this.application.permissions = permissions;
       $scope.$digest();

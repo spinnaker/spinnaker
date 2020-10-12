@@ -60,9 +60,9 @@ export class ApplicationStateProvider implements IServiceProvider {
    */
   public addInsightDetailState(state: INestedState): void {
     this.detailStates.push(state);
-    this.insightState.children.forEach(c => {
+    this.insightState.children.forEach((c) => {
       c.children = c.children || [];
-      if (!c.children.some(child => child.name === state.name)) {
+      if (!c.children.some((child) => child.name === state.name)) {
         c.children.push(state);
       }
     });
@@ -78,8 +78,21 @@ export class ApplicationStateProvider implements IServiceProvider {
   public addParentState(parentState: INestedState, mainView: string, relativeUrl = '') {
     const applicationConfig: INestedState = {
       name: 'application',
-      abstract: true,
       url: `${relativeUrl}/:application`,
+      redirectTo: (transition) => {
+        return transition
+          .injector()
+          .getAsync('app')
+          .then((app: Application) => {
+            const defaultDataSource = app.dataSources.find((ds) => ds.sref && !ds.disabled)?.sref;
+
+            const params = transition.params();
+            // If there's no data source to route to, we need to use the absolute href 'home.search'
+            const options = { relative: defaultDataSource ? transition.to().name : undefined };
+
+            return transition.router.stateService.target(defaultDataSource || 'home.search', params, options);
+          });
+      },
       resolve: {
         app: [
           '$stateParams',
@@ -91,7 +104,7 @@ export class ApplicationStateProvider implements IServiceProvider {
                   return app || ApplicationModelBuilder.createNotFoundApplication($stateParams.application);
                 },
               )
-              .catch(error => {
+              .catch((error) => {
                 if (error.status && error.status === 404) {
                   return ApplicationModelBuilder.createNotFoundApplication($stateParams.application);
                 } else {

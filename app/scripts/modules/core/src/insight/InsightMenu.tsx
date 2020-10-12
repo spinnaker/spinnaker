@@ -41,7 +41,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
 
   private createProject = () =>
     ConfigureProjectModal.show()
-      .then(result => {
+      .then((result) => {
         this.$state.go('home.project.dashboard', { project: result.name });
       })
       .catch(() => {});
@@ -62,7 +62,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
   };
 
   private routeToApplication = (app: Application) => {
-    this.$state.go('home.applications.application.insight.clusters', { application: app.name });
+    this.$state.go('home.applications.application', { application: app.name });
   };
 
   private refreshAllCaches = () => {

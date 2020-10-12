@@ -5,8 +5,8 @@ import { IDataSourceConfig } from './applicationDataSource';
 export class ApplicationDataSourceRegistry {
   private static defaultDataSourceOrder: string[] = [
     'environments',
-    'executions',
     'serverGroups',
+    'executions',
     'loadBalancers',
     'securityGroups',
     'tasks',

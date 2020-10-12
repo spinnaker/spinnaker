@@ -103,13 +103,13 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
     let result: string;
     if (input.project) {
       result = $state.href(
-        'home.project.application.insight.clusters',
+        'home.project.application',
         { application: input.application, project: input.project },
         { inherit: false },
       );
     } else {
       result = $state.href(
-        'home.applications.application.insight.clusters',
+        'home.applications.application',
         {
           application: input.application,
         },

@@ -3,7 +3,6 @@ import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
-import { Application } from 'core/application/application.model';
 import { filterModelConfig } from 'core/cluster/filter/ClusterFilterModel';
 import { ClusterFilters } from 'core/cluster/filter/ClusterFilters';
 
@@ -24,22 +23,6 @@ module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER])
           controller: 'AllClustersCtrl',
           controllerAs: 'ctrl',
         },
-      },
-      redirectTo: transition => {
-        return transition
-          .injector()
-          .getAsync('app')
-          .then((app: Application) => {
-            if (app.serverGroups.disabled) {
-              const relativeSref = app.dataSources.find(ds => ds.sref && !ds.disabled).sref;
-              const params = transition.params();
-              // Target the state relative to the `clusters` state
-              const options = { relative: transition.to().name };
-              // Up two state levels first
-              return transition.router.stateService.target('^.^' + relativeSref, params, options);
-            }
-            return null;
-          });
       },
       params: stateConfigProvider.buildDynamicParams(filterModelConfig),
       data: {
@@ -101,7 +84,5 @@ module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER])
     applicationStateProvider.addInsightState(clusters);
     applicationStateProvider.addInsightDetailState(serverGroupDetails);
     applicationStateProvider.addInsightDetailState(multipleServerGroups);
-
-    stateConfigProvider.addRewriteRule('/applications/{application}', '/applications/{application}/clusters');
   },
 ]);

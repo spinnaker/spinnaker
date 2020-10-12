@@ -147,7 +147,7 @@ angular
       };
 
       function routeToApplication(app) {
-        $state.go('home.applications.application.insight.clusters', {
+        $state.go('home.applications.application', {
           application: app.name,
         });
       }

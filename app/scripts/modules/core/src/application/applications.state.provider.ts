@@ -28,6 +28,5 @@ module(APPLICATIONS_STATE_PROVIDER, [STATE_CONFIG_PROVIDER, APPLICATION_STATE_PR
 
     applicationStateProvider.addParentState(applicationsState, 'main@');
     stateConfigProvider.addToRootState(applicationsState);
-    stateConfigProvider.addRewriteRule('/applications/{application}', '/applications/{application}/clusters');
   },
 ]);
