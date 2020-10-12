@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/tencentcloud",
   "license": "Apache-2.0",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
