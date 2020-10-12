@@ -151,7 +151,7 @@ class SecurityGroupLookupFactory {
           try {
             amazonEC2.createTags(createTagRequest)
           } catch (Exception e) {
-            log.info("Unable to tag newly created security group '${description.name}, reason: ${e}")
+            log.info("Unable to tag newly created security group '${description.name}, reason: ${e.getMessage()}")
           }
         }, 15, 3000, false);
       } catch (Exception e) {
