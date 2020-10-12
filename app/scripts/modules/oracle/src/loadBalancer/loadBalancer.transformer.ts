@@ -66,6 +66,7 @@ export class OracleLoadBalancerTransformer {
       loadBalancerType: loadBalancer.type,
       securityGroups: loadBalancer.securityGroups,
       vpcId: loadBalancer.vpcId,
+      subnetTypeMap: loadBalancer.subnetTypeMap,
     };
     return toEdit;
   }
@@ -88,6 +89,7 @@ export class OracleLoadBalancerTransformer {
       loadBalancerType: null,
       securityGroups: [],
       vpcId: null,
+      subnetTypeMap: {},
     };
   }
 

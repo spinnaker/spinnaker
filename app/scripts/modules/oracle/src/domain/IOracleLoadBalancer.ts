@@ -25,6 +25,7 @@ export interface IOracleLoadBalancer extends ILoadBalancer {
   backendSets?: { [name: string]: IOracleBackEndSet }; // not required to create LB, but useless without it
   freeformTags?: { [tagName: string]: string };
   id?: string; // not required to create LB
+  subnetTypeMap?: { [id: string]: 'AD' | 'Regional' };
   // TODO support path route sets
 }
 
@@ -101,6 +102,7 @@ export interface IOracleLoadBalancerUpsertCommand extends ILoadBalancerUpsertCom
   backendSets?: { [name: string]: IOracleBackEndSet }; // not required to create LB, but useless without it
   freeformTags?: { [tagName: string]: string };
   vpcId: string;
+  subnetTypeMap?: { [id: string]: 'AD' | 'Regional' };
 }
 
 export interface IOracleLoadBalancerDeleteCommand extends ILoadBalancerDeleteCommand {

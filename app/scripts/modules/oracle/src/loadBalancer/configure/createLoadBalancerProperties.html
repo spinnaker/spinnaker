@@ -106,21 +106,26 @@
           class="form-control input-sm"
           ng-model="ctrl.selectedSubnets"
           on-select="ctrl.selectedSubnetsChanged($item)"
-          on-remove="ctrl.selectedSubnetsChanged($item)"
+          on-remove="ctrl.selectedSubnetRemoved()"
         >
           <ui-select-match placeholder="Select from existing subnets">{{$item.name}}</ui-select-match>
-          <ui-select-choices repeat="subnet in ctrl.filteredSubnets | filter: $select.search">
+          <ui-select-choices repeat="subnet in ctrl.filteredSubnetsByType | filter: $select.search">
             <span ng-bind-html="subnet.name | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
       </div>
     </div>
-    <div ng-if="ctrl.filteredSubnets.length > 0">
+    <div ng-if="ctrl.filteredSubnetsByType.length > 0">
       <div class="col-md-7 col-md-offset-3" ng-if="loadBalancerCmd.isPrivate && ctrl.selectedSubnets.length != 1">
         <validation-error message="Exactly one subnet must be selected for a private load balancer."></validation-error>
       </div>
-      <div class="col-md-7 col-md-offset-3" ng-if="!loadBalancerCmd.isPrivate && ctrl.selectedSubnets.length != 2">
-        <validation-error message="Exactly 2 subnets must be selected for a public load balancer."></validation-error>
+      <div
+        class="col-md-7 col-md-offset-3"
+        ng-if="!loadBalancerCmd.isPrivate && ctrl.selectedSubnets.length === 1 && ctrl.selectedSubnets[0].availabilityDomain"
+      >
+        <validation-error
+          message="Exactly 2 Availability Domain-specific subnets must be selected for a public load balancer."
+        ></validation-error>
       </div>
     </div>
     <div class="form-group">

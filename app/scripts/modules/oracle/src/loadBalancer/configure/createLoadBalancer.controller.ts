@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP, { IModalServiceInstance } from 'angular-ui-bootstrap';
 import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 
-import { trimEnd } from 'lodash';
+import { trimEnd, cloneDeep } from 'lodash';
 
 import {
   AccountService,
@@ -50,6 +50,7 @@ export class OracleLoadBalancerController implements IController {
   public allSubnets: IOracleSubnet[];
   public filteredVnets: INetwork[];
   public filteredSubnets: ISubnet[];
+  public filteredSubnetsByType: ISubnet[];
   public selectedVnet: INetwork;
   public selectedSubnets: IOracleSubnet[];
   public numSubnetsAllowed = 1;
@@ -300,12 +301,34 @@ export class OracleLoadBalancerController implements IController {
     this.filteredSubnets = this.allSubnets.filter((subnet: IOracleSubnet) => {
       return subnet.vcnId === network.id;
     });
+    this.filteredSubnetsByType = cloneDeep(this.filteredSubnets);
   }
 
   public selectedVnetChanged(network: INetwork) {
     this.selectedVnet = network;
     this.$scope.loadBalancerCmd.vpcId = network.id;
     this.updateSubnets(network);
+  }
+
+  public selectedSubnetsChanged(selectedSubnet: IOracleSubnet) {
+    if (selectedSubnet.availabilityDomain) {
+      this.filteredSubnetsByType = this.filteredSubnets.filter((subnet: IOracleSubnet) => {
+        return !!subnet.availabilityDomain;
+      });
+    } else {
+      this.filteredSubnetsByType = [];
+    }
+  }
+
+  public selectedSubnetRemoved() {
+    if (this.selectedSubnets.length === 0) {
+      this.filteredSubnetsByType = cloneDeep(this.filteredSubnets);
+    }
+    if (this.selectedSubnets.length === 1 && this.selectedSubnets[0].availabilityDomain) {
+      this.filteredSubnetsByType = this.filteredSubnets.filter((subnet: IOracleSubnet) => {
+        return !!subnet.availabilityDomain;
+      });
+    }
   }
 
   public isPrivateChanged() {
@@ -321,8 +344,18 @@ export class OracleLoadBalancerController implements IController {
   }
 
   public calcNumSubnetsAllowed() {
-    return this.$scope.loadBalancerCmd.isPrivate ? 1 : 2;
+    if (this.$scope.loadBalancerCmd.isPrivate) {
+      return 1;
+    }
+
+    if (this.selectedSubnets && this.selectedSubnets.length === 1 && !this.selectedSubnets[0].availabilityDomain) {
+      return 1;
+    }
+
+    return 2;
   }
+
+  public getSubnetLimit() {}
 
   public removeListener(idx: number) {
     this.listeners.splice(idx, 1);
@@ -441,6 +474,16 @@ export class OracleLoadBalancerController implements IController {
         this.$scope.loadBalancerCmd.subnetIds = this.selectedSubnets.map((subnet: IOracleSubnet) => {
           return subnet.id;
         });
+
+        for (const subnet of this.selectedSubnets) {
+          if (!this.$scope.loadBalancerCmd.subnetTypeMap) {
+            this.$scope.loadBalancerCmd.subnetTypeMap = {
+              [subnet.id]: !subnet.availabilityDomain ? 'Regional' : 'AD',
+            };
+          } else {
+            this.$scope.loadBalancerCmd.subnetTypeMap[subnet.id] = !subnet.availabilityDomain ? 'Regional' : 'AD';
+          }
+        }
       }
 
       if (this.backendSets) {
