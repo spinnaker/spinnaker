@@ -37,6 +37,7 @@ import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,8 +51,11 @@ import org.springframework.test.context.TestPropertySource;
 public class EcsSpec {
   protected static final String TEST_OPERATIONS_LOCATION =
       "src/integration/resources/testoperations";
+  protected static final String TEST_ARTIFACTS_LOCATION = "src/integration/resources/testartifacts";
   protected final String ECS_ACCOUNT_NAME = "ecs-account";
   protected final String TEST_REGION = "us-west-2";
+  protected final int TASK_RETRY_SECONDS = 3;
+  protected static final String CREATE_SG_TEST_PATH = "/ecs/ops/createServerGroup";
 
   @Value("${ecs.enabled}")
   Boolean ecsEnabled;
@@ -60,6 +64,8 @@ public class EcsSpec {
   Boolean awsEnabled;
 
   @LocalServerPort private int port;
+
+  @Autowired AccountCredentialsRepository accountCredentialsRepository;
 
   @MockBean protected AmazonClientProvider mockAwsProvider;
 
@@ -88,6 +94,10 @@ public class EcsSpec {
     return new String(Files.readAllBytes(Paths.get(TEST_OPERATIONS_LOCATION, path)));
   }
 
+  protected String generateStringFromTestArtifactFile(String path) throws IOException {
+    return new String(Files.readAllBytes(Paths.get(TEST_ARTIFACTS_LOCATION, path)));
+  }
+
   protected String getTestUrl(String path) {
     return "http://localhost:" + port + path;
   }
@@ -113,5 +123,39 @@ public class EcsSpec {
       }
     }
     fail(failMsg);
+  }
+
+  protected void setEcsAccountCreds() {
+    AmazonCredentials.AWSRegion testRegion = new AmazonCredentials.AWSRegion(TEST_REGION, null);
+
+    NetflixAssumeRoleAmazonCredentials ecsCreds =
+        new NetflixAssumeRoleAmazonCredentials(
+            ECS_ACCOUNT_NAME,
+            "test",
+            "test",
+            "123456789012",
+            null,
+            true,
+            Collections.singletonList(testRegion),
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            false,
+            "SpinnakerManaged",
+            "SpinnakerSession",
+            false,
+            "");
+
+    accountCredentialsRepository.save(ECS_ACCOUNT_NAME, ecsCreds);
   }
 }
