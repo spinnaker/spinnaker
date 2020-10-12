@@ -2,25 +2,53 @@
 
 const { execSync } = require('child_process');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
-const { readJson, writeJson } = require('../util/readWriteJson');
-const path = require('path');
+const { readJson } = require('../util/readWriteJson');
 
-function getLatestSdkVersion() {
-  const versionsString = execSync('npm info @spinnaker/pluginsdk versions').toString();
+const PLUGIN_SDK = '@spinnaker/pluginsdk';
+const PEER_DEPS = '@spinnaker/pluginsdk-peerdeps';
+
+function getLatestPackageVersion(pkg) {
+  const versionsString = execSync(`npm info ${pkg} versions`).toString();
   return JSON.parse(versionsString.replace(/'/g, '"')).pop();
+}
+
+function getInstalledPackageVersion(pkgJson, pkg) {
+  return (
+    (pkgJson.dependencies && pkgJson.dependencies[pkg]) || (pkgJson.devDependencies && pkgJson.devDependencies[pkg])
+  );
 }
 
 function checkPackageJson(report) {
   const pkgJson = readJson('package.json');
-  const latest = getLatestSdkVersion();
-  const sdkPackagePath = path.resolve(__filename, '..', '..', '..', '..', 'package.json');
-  const sdkPackage = readJson(sdkPackagePath);
-  const sdk = sdkPackage.version;
 
-  report(`This plugin uses an out of date @spinnaker/pluginsdk@${sdk}`, sdk === latest, {
-    description: `Install @spinnaker/pluginsdk@${latest}`,
-    command: `yarn add @spinnaker/pluginsdk@${latest}`,
-  });
+  const latestSdkVersion = getLatestPackageVersion(PLUGIN_SDK);
+  const installedSdkVersion = getInstalledPackageVersion(pkgJson, PLUGIN_SDK);
+
+  report(
+    installedSdkVersion
+      ? `This plugin uses an out of date ${PLUGIN_SDK}@${installedSdkVersion}`
+      : `This plugin does not have ${PLUGIN_SDK} installed`,
+    installedSdkVersion === latestSdkVersion,
+    {
+      description: `Install ${PLUGIN_SDK}@${latestSdkVersion}`,
+      command: `yarn add ${PLUGIN_SDK}@${latestSdkVersion}`,
+    },
+  );
+
+  // const latestPeerDepsVersion = getLatestPackageVersion(PEER_DEPS);
+  const latestPeerDepsVersion = getLatestPackageVersion(PLUGIN_SDK);
+  const installedPeerDepsVersion = getInstalledPackageVersion(pkgJson, PEER_DEPS);
+
+  report(
+    installedPeerDepsVersion
+      ? `This plugin uses an out of date ${PEER_DEPS}@${installedPeerDepsVersion}`
+      : `This plugin does not have ${PEER_DEPS} installed`,
+    installedPeerDepsVersion === latestPeerDepsVersion,
+    {
+      description: `Install ${PEER_DEPS}@${latestPeerDepsVersion}`,
+      command: `yarn add ${PEER_DEPS}@${latestPeerDepsVersion}`,
+    },
+  );
 
   const checkPackageJsonField = assertJsonFile(report, 'package.json', pkgJson);
 
