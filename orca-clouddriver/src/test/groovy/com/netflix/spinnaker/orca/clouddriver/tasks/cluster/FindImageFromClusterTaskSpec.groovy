@@ -182,7 +182,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     ['foo-x86_64-201603232351']                                     | ['foo-x86_64-201603232351'] as Set
   }
 
-//  @Unroll
+  @Unroll
   def "should resolve images via find if not all regions exist in source server group"() {
     given:
     def pipe = pipeline {
