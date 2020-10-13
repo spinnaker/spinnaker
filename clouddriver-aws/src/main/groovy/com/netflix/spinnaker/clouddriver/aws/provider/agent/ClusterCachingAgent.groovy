@@ -459,7 +459,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   @Override
-  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.filterIdentifiers(ON_DEMAND.ns, Keys.getServerGroupKey("*", "*", account.name, region))
     return fetchPendingOnDemandRequests(providerCache, keys)
   }

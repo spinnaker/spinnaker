@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider
 
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
+
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.clouddriver.security.BaseProvider
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
-class AwsProvider extends AgentSchedulerAware implements SearchableProvider, EurekaAwareProvider {
+class AwsProvider extends BaseProvider implements SearchableProvider, EurekaAwareProvider {
 
   public static final String PROVIDER_NAME = AwsProvider.name
 
@@ -51,15 +51,13 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     (CLUSTERS.ns)      : '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
-  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+  final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = [
     (new AmazonSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator(),
   ]
 
-  final Collection<Agent> agents
   private Collection<HealthProvidingCachingAgent> healthAgents
 
-  AwsProvider(AccountCredentialsRepository accountCredentialsRepository, Collection<Agent> agents) {
-    this.agents = agents
+  AwsProvider(AccountCredentialsRepository accountCredentialsRepository) {
     this.accountCredentialsRepository = accountCredentialsRepository
     synchronizeHealthAgents()
   }
@@ -76,9 +74,7 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
   }
 
   Collection<HealthProvidingCachingAgent> getHealthAgents() {
-    def allHealthAgents = []
-    allHealthAgents.addAll(this.healthAgents)
-    Collections.unmodifiableCollection(allHealthAgents)
+    Collections.unmodifiableCollection(this.healthAgents)
   }
 
   @Override
@@ -91,7 +87,7 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     return Optional.of(keyParser)
   }
 
-  private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class InstanceSearchResultHydrator implements SearchResultHydrator {
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
       def item = cacheView.get(INSTANCES.ns, id)

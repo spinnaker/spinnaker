@@ -22,30 +22,16 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCloudFormationCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLaunchTemplateCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerCachingAgent
-
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory
+import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerInstanceStateCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ClusterCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.EddaLoadBalancerCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -54,7 +40,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -76,7 +61,7 @@ class AwsProviderConfig {
                           EddaTimeoutConfig eddaTimeoutConfig,
                           DynamicConfigService dynamicConfigService) {
     def awsProvider =
-      new AwsProvider(accountCredentialsRepository, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
+      new AwsProvider(accountCredentialsRepository)
 
     synchronizeAwsProvider(awsProvider,
                            amazonCloudProvider,
@@ -118,9 +103,7 @@ class AwsProviderConfig {
                                       Collection<AgentProvider> agentProviders,
                                       EddaTimeoutConfig eddaTimeoutConfig,
                                       DynamicConfigService dynamicConfigService) {
-    def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
-
     List<Agent> newlyAddedAgents = []
 
     //only index public images once per region
@@ -129,44 +112,17 @@ class AwsProviderConfig {
     //sort the accounts in case of a reconfigure, we are more likely to re-index the public images in the same caching agent
     //TODO(cfieber)-rework this is after rework of AWS Image/NamedImage keys
     allAccounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
-      for (AmazonCredentials.AWSRegion region : credentials.regions) {
-        if (!scheduledAccounts.contains(credentials.name)) {
-          newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry, eddaTimeoutConfig)
-          newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, false, dynamicConfigService)
-          if (!publicRegions.contains(region.name)) {
-            newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, true, dynamicConfigService)
-            publicRegions.add(region.name)
-          }
-          newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new AmazonLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, eddaApiFactory.createApi(credentials.edda, region.name), objectMapper, registry)
-          newlyAddedAgents << new AmazonApplicationLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, eddaApiFactory.createApi(credentials.edda, region.name), objectMapper, registry, eddaTimeoutConfig)
-          newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new AmazonCertificateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-
-          if (dynamicConfigService.isEnabled("aws.features.cloud-formation", false)) {
-            newlyAddedAgents << new AmazonCloudFormationCachingAgent(amazonClientProvider, credentials, region.name, registry)
-          }
-
-          if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {
-            newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
-          } else {
-            newlyAddedAgents << new AmazonLoadBalancerInstanceStateCachingAgent(
-              amazonClientProvider, credentials, region.name, objectMapper, ctx
-            )
-          }
-
-          if (dynamicConfigService.isEnabled("aws.features.launch-templates", false)) {
-            newlyAddedAgents << new AmazonLaunchTemplateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          }
-        }
-      }
+      def result = ProviderHelpers.buildAwsProviderAgents(credentials, amazonClientProvider, objectMapper,
+        registry, eddaTimeoutConfig, awsProvider, amazonCloudProvider, dynamicConfigService, eddaApiFactory, ctx, publicRegions
+      )
+      newlyAddedAgents.addAll(result.agents)
+      publicRegions.addAll(result.regionsToAdd)
     }
 
     // If there is an agent scheduler, then this provider has been through the AgentController in the past.
     if (reservationReportPool.isPresent()) {
       if (awsProvider.agentScheduler) {
-        synchronizeReservationReportCachingAgentAccounts(awsProvider, allAccounts)
+        ProviderHelpers.synchronizeReservationReportCachingAgentAccounts(awsProvider, allAccounts)
       } else {
         // This caching agent runs across all accounts in one iteration (to maintain consistency).
         newlyAddedAgents << new ReservationReportCachingAgent(
@@ -179,38 +135,7 @@ class AwsProviderConfig {
       newlyAddedAgents.addAll(it.agents())
     }
 
-    awsProvider.agents.addAll(newlyAddedAgents)
+    awsProvider.addAgents(newlyAddedAgents)
     awsProvider.synchronizeHealthAgents()
-  }
-
-  private static void synchronizeReservationReportCachingAgentAccounts(AwsProvider awsProvider,
-                                                                       Collection<NetflixAmazonCredentials> allAccounts) {
-    ReservationReportCachingAgent reservationReportCachingAgent = awsProvider.agents.find { agent ->
-      agent instanceof ReservationReportCachingAgent
-    }
-
-    if (reservationReportCachingAgent) {
-      def reservationReportAccounts = reservationReportCachingAgent.accounts
-      def oldAccountNames = reservationReportAccounts.collect { it.name }
-      def newAccountNames = allAccounts.collect { it.name }
-      def accountNamesToDelete = oldAccountNames - newAccountNames
-      def accountNamesToAdd = newAccountNames - oldAccountNames
-
-      accountNamesToDelete.each { accountNameToDelete ->
-        def accountToDelete = reservationReportAccounts.find { it.name == accountNameToDelete }
-
-        if (accountToDelete) {
-          reservationReportAccounts.remove(accountToDelete)
-        }
-      }
-
-      accountNamesToAdd.each { accountNameToAdd ->
-        def accountToAdd = allAccounts.find { it.name == accountNameToAdd }
-
-        if (accountToAdd) {
-          reservationReportAccounts.add(accountToAdd)
-        }
-      }
-    }
   }
 }

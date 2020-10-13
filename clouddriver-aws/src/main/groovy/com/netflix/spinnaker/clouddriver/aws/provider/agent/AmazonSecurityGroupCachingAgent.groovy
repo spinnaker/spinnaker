@@ -165,7 +165,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   @Override
-  Collection<Map<String, ?>> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 

@@ -16,26 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider
 
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
-import com.netflix.spinnaker.cats.provider.Provider
 
-class AwsCleanupProvider extends AgentSchedulerAware implements Provider {
+import com.netflix.spinnaker.clouddriver.security.BaseProvider
+
+class AwsCleanupProvider extends BaseProvider {
   public static final String PROVIDER_NAME = AwsCleanupProvider.name
-
-  private final Collection<Agent> agents
-
-  AwsCleanupProvider(Collection<Agent> agents) {
-    this.agents = agents
-  }
 
   @Override
   String getProviderName() {
     return PROVIDER_NAME
-  }
-
-  @Override
-  Collection<Agent> getAgents() {
-    return agents
   }
 }

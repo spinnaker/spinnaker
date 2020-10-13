@@ -81,7 +81,7 @@ class AwsProviderSpec extends Specification {
       getAll() >> eurekaAccounts
     }
 
-    eurekaAwsProvider = new AwsProvider(eurekaRepos, [])
+    eurekaAwsProvider = new AwsProvider(eurekaRepos)
 
     def account1 = new NetflixAmazonCredentials("my-ci-account",
             "ci",
@@ -134,7 +134,7 @@ class AwsProviderSpec extends Specification {
       getAll() >> accounts
     }
 
-    awsProvider = new AwsProvider(repos, [])
+    awsProvider = new AwsProvider(repos)
   }
 
   void "getInstanceKey returns CI account that matches both AWS account ID and eureka host"() {
