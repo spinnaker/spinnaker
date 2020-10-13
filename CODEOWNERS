@@ -4,5 +4,5 @@ clouddriver-google/        @maggieneterval @ezimanyi @plumpy
 clouddriver-saga/          @robzienert @cfieber
 clouddriver-core/          @robzienert @cfieber
 
-clouddriver-aws/           @jeyrschabu @aravindmd
-clouddriver-titus/         @jeyrschabu @aravindmd
+clouddriver-aws/           @jeyrschabu @aravindmd @ajordens
+clouddriver-titus/         @jeyrschabu @aravindmd @ajordens
