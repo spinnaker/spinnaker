@@ -16,7 +16,8 @@
 
 plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id 'nebula.kotlin' version '1.3.70' apply false
+  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+  id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
 }
 
 subprojects { project ->

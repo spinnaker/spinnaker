@@ -14,12 +14,29 @@
  * limitations under the License.
  */
 
-apply plugin: "nebula.kotlin"
+apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.3"
+    languageVersion = "1.4"
     jvmTarget = "11"
+  }
+}
+
+compileTestKotlin {
+  kotlinOptions {
+    languageVersion = "1.4"
+    jvmTarget = "11"
+  }
+}
+
+configurations.all {
+  resolutionStrategy {
+    eachDependency { details ->
+      if (details.requested.group == "org.jetbrains.kotlin") {
+        details.useVersion kotlinVersion
+      }
+    }
   }
 }

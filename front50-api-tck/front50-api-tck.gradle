@@ -20,10 +20,3 @@ test {
     includeEngines "junit-jupiter"
   }
 }
-
-compileTestKotlin {
-  kotlinOptions {
-    languageVersion = "1.4"
-    jvmTarget = "11"
-  }
-}
