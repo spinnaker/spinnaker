@@ -62,6 +62,10 @@ sql:
       jdbcUrl: jdbc:mysql://127.0.0.1:3306/keel?useSSL=false&serverTimezone=UTC
       user: root
       password:
+  migration:
+    jdbcUrl: jdbc:mysql://127.0.0.1:3306/keel?useSSL=false&serverTimezone=UTC
+    user: root
+    password:
 
 okHttpClient:
   # moved to spinnaker-common
