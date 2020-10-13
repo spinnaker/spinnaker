@@ -13,6 +13,7 @@ import com.netflix.spinnaker.clouddriver.oracle.OracleOperation;
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,8 +38,20 @@ class UpsertLoadBalancerDescriptionValidator
         errors.rejectValue("${context}.shape", "${context}.shape.invalidLoadBalancerShape");
       }
       if (!description.getIsPrivate() && description.getSubnetIds().size() <= 1) {
-        errors.rejectValue(
-            "${context}.subnetIds", "${context}.subnetIds.publicLoadBalancerRequiresTwoSubnets");
+        Map<String, String> type = description.getSubnetTypeMap();
+
+        if (description.getSubnetIds().size() == 1) {
+          if (type.containsKey(description.getSubnetIds().get(0))
+              && type.get(description.getSubnetIds().get(0)).compareTo("Regional") != 0) {
+            errors.rejectValue(
+                "${context}.CreateServerGroupAtomicOperation",
+                "${context}.subnetIds.publicLoadBalancerRequiresTwoSubnets");
+          }
+        } else {
+          errors.rejectValue(
+              "${context}.CreateServerGroupAtomicOperation",
+              "${context}.subnetIds.publicLoadBalancerRequiresTwoSubnets");
+        }
       }
     }
     if (description.getCertificates() != null) {
