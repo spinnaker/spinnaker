@@ -392,6 +392,7 @@ export class AwsLoadBalancerTransformer {
       subnetType: loadBalancer.subnetType,
       vpcId: undefined,
       deletionProtection: loadBalancer.deletionProtection,
+      loadBalancingCrossZone: loadBalancer.loadBalancingCrossZone,
     };
 
     if (loadBalancer.elb) {
@@ -594,6 +595,7 @@ export class AwsLoadBalancerTransformer {
       vpcId: null,
       subnetType: defaultSubnetType,
       deletionProtection: false,
+      loadBalancingCrossZone: true,
       securityGroups: [],
       targetGroups: [
         {

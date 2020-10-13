@@ -211,6 +211,8 @@ const helpContents: { [key: string]: string } = {
     '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
   'loadBalancer.advancedSettings.unhealthyThreshold':
     '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
+  'loadBalancer.advancedSettings.loadBalancingCrossZone':
+    '<p>Cross-zone load balancing distributes traffic evenly across all targets in the Availability Zones enabled for the load balancer.</p><p> Default: <b>True</b></p>',
   'pipeline.config.resizeAsg.action': `
       <p>Configures the resize action for the target server group.
       <ul>

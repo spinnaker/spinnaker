@@ -23,6 +23,15 @@ export class NLBAdvancedSettings extends React.Component<INLBAdvancedSettingsPro
             Enable deletion protection
           </label>
         </div>
+        <div className="col-md-3 sm-label-right">
+          <b>Cross-Zone Load Balancing</b> <HelpField id="loadBalancer.advancedSettings.loadBalancingCrossZone" />
+        </div>
+        <div className="col-md-7 checkbox">
+          <label>
+            <Field type="checkbox" name="loadBalancingCrossZone" checked={values.loadBalancingCrossZone} />
+            Cross-Zone Load Balancing
+          </label>
+        </div>
       </div>
     );
   }
