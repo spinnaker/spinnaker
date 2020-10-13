@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.randomUID
@@ -133,6 +134,7 @@ class IntermittentFailureTests : JUnit5Minutests {
         before {
           // diff has happened twice
           every { diffFingerprintRepository.actionTakenCount(resource.id) } returns 2
+          every { plugin1.willTakeAction(resource, any()) } returns ActionDecision()
 
           runBlocking { subject.checkResource(resource) }
         }

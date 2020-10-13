@@ -7,12 +7,14 @@ import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
@@ -171,44 +173,50 @@ class ResourceActuator(
 
         log.debug("Checking resource {}", id)
 
-        // todo eb: add support for plugins to look at a diff and say "I can't fix this"
-        // todo eb: emit event for ^ with custom message provided by the plugin
+        val decision = plugin.willTakeAction(resource, diff)
+        if (decision.willAct) {
+          when {
+            current == null -> {
+              log.warn("Resource {} is missing", id)
+              publisher.publishEvent(ResourceMissing(resource, clock))
 
-        when {
-          current == null -> {
-            log.warn("Resource {} is missing", id)
-            publisher.publishEvent(ResourceMissing(resource, clock))
+              plugin.create(resource, diff)
+                .also { tasks ->
+                  publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                  diffFingerprintRepository.markActionTaken(id)
+                }
+            }
+            diff.hasChanges() -> {
+              log.warn("Resource {} is invalid", id)
+              log.info("Resource {} delta: {}", id, diff.toDebug())
+              publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
-            plugin.create(resource, diff)
-              .also { tasks ->
-                publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-                diffFingerprintRepository.markActionTaken(id)
+              plugin.update(resource, diff)
+                .also { tasks ->
+                  publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                  diffFingerprintRepository.markActionTaken(id)
+                }
+            }
+            else -> {
+              log.info("Resource {} is valid", id)
+              val lastEvent = resourceRepository.lastEvent(id)
+              when (lastEvent) {
+                is ResourceActuationLaunched -> log.debug("waiting for actuating task to be completed") // do nothing and wait
+                is ResourceDeltaDetected, is ResourceTaskSucceeded, is ResourceTaskFailed -> {
+                  // if a delta was detected and a task wasn't launched, the delta is resolved
+                  // if a task was launched and it completed, either successfully or not, the delta is resolved
+                  publisher.publishEvent(ResourceDeltaResolved(resource, clock))
+                }
+                else -> publisher.publishEvent(ResourceValid(resource, clock))
               }
-          }
-          diff.hasChanges() -> {
-            log.warn("Resource {} is invalid", id)
-            log.info("Resource {} delta: {}", id, diff.toDebug())
-            publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
-
-            plugin.update(resource, diff)
-              .also { tasks ->
-                publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-                diffFingerprintRepository.markActionTaken(id)
-              }
-          }
-          else -> {
-            log.info("Resource {} is valid", id)
-            val lastEvent = resourceRepository.lastEvent(id)
-            when (lastEvent) {
-              is ResourceActuationLaunched -> log.debug("waiting for actuating task to be completed") // do nothing and wait
-              is ResourceDeltaDetected, is ResourceTaskSucceeded, is ResourceTaskFailed -> {
-                // if a delta was detected and a task wasn't launched, the delta is resolved
-                // if a task was launched and it completed, either successfully or not, the delta is resolved
-                publisher.publishEvent(ResourceDeltaResolved(resource, clock))
-              }
-              else -> publisher.publishEvent(ResourceValid(resource, clock))
             }
           }
+        } else {
+          log.warn("Resource {} skipped because it can't be fixed: {} (diff: {})", id, decision.message, diff.toDeltaJson())
+          if (diff.hasChanges()) {
+            publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
+          }
+          publisher.publishEvent(ResourceDiffNotActionable(resource, decision.message))
         }
       } catch (e: ResourceCurrentlyUnresolvable) {
         log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
@@ -284,6 +292,13 @@ class ResourceActuator(
     resource: Resource<*>
   ): R? =
     current(resource as Resource<S>)
+
+  @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.willTakeAction(
+    resource: Resource<*>,
+    resourceDiff: ResourceDiff<*>
+  ): ActionDecision =
+    willTakeAction(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.create(

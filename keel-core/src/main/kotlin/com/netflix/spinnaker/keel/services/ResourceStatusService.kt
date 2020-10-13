@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
+import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
@@ -21,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVABLE
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF_NOT_ACTIONABLE
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
@@ -60,6 +62,7 @@ class ResourceStatusService(
       history.isUnhappy() -> UNHAPPY // order matters! must be after all other veto-related statuses
       history.isDiff() -> DIFF
       history.isActuating() -> ACTUATING
+      history.isDiffNotActionable() -> DIFF_NOT_ACTIONABLE
       history.isError() -> ERROR
       history.isCreated() -> CREATED
       history.isResumed() -> RESUMED
@@ -70,6 +73,10 @@ class ResourceStatusService(
 
   private fun List<ResourceHistoryEvent>.isHappy(): Boolean {
     return first() is ResourceValid || first() is ResourceDeltaResolved
+  }
+
+  private fun List<ResourceHistoryEvent>.isDiffNotActionable(): Boolean {
+    return first() is ResourceDiffNotActionable
   }
 
   private fun List<ResourceHistoryEvent>.isActuating(): Boolean {

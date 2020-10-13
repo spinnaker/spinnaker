@@ -36,6 +36,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
+import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -120,6 +121,43 @@ class TitusClusterHandler(
           .getCorrelatedExecutions("${resource.id}:$region", resource.serviceAccount)
           .isNotEmpty()
       }
+
+  override suspend fun willTakeAction(
+    resource: Resource<TitusClusterSpec>,
+    resourceDiff: ResourceDiff<Map<String, TitusServerGroup>>
+  ): ActionDecision {
+    // we can't take any action if there is more than one active server group
+    //  AND the current active server group is unhealthy
+    val potentialInactionableRegions = mutableListOf<String>()
+    val inactionableRegions = mutableListOf<String>()
+    resourceDiff.toIndividualDiffs().forEach { diff ->
+      if (diff.hasChanges() && diff.isEnabledOnly()) {
+        potentialInactionableRegions.add(diff.desired.location.region)
+      }
+    }
+    if (potentialInactionableRegions.isNotEmpty()) {
+      val activeServerGroups = cloudDriverService.getActiveServerGroups(resource)
+      activeServerGroups.forEach { serverGroup ->
+        val healthy = serverGroup.instanceCounts?.isHealthy(
+            resource.spec.deployWith.health,
+            resource.spec.resolveCapacity(serverGroup.location.region)
+          ) == true
+        if (!healthy && potentialInactionableRegions.contains(serverGroup.location.region)) {
+          inactionableRegions.add(serverGroup.location.region)
+        }
+      }
+      if (inactionableRegions.isNotEmpty()) {
+        return ActionDecision(
+          willAct = false,
+          message = "There is more than one server group enabled " +
+            "but the latest is not healthy in ${inactionableRegions.joinToString(" and ")}. " +
+            "Spinnaker cannot resolve the problem at this time. " +
+            "Manual intervention might be required."
+        )
+      }
+    }
+    return ActionDecision(willAct = true)
+  }
 
   override suspend fun upsert(
     resource: Resource<TitusClusterSpec>,

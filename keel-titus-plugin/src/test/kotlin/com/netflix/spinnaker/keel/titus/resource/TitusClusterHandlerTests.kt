@@ -82,8 +82,10 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
+import strikt.assertions.isTrue
 import strikt.assertions.map
 import java.time.Clock
 import java.time.Duration
@@ -323,6 +325,79 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
         test("no deployed event fires") {
           verify(exactly = 0) { publisher.publishEvent(ArtifactVersionDeployed(resource.id, "master-h2.blah")) }
+        }
+      }
+    }
+
+    context("will we take action?") {
+      val east = serverGroupEast.toMultiServerGroupResponse(listOf(sg1East, sg2East), awsAccount, allEnabled = true)
+      val west = serverGroupWest.toMultiServerGroupResponse(listOf(sg1West, sg2West), awsAccount)
+
+      before {
+        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns
+          ServerGroupCollection(
+            titusAccount,
+            east + west
+          )
+        coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+          listOf(
+            DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111")
+          )
+      }
+
+      context("there is a diff in more than just enabled/disabled") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false).withDoubleCapacity(),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+        test("we will take action"){
+          val response = runBlocking { willTakeAction(resource, diff) }
+          expectThat(response.willAct).isTrue()
+        }
+      }
+
+      context("there is a diff only in enabled/disabled") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        context("active server group is healthy") {
+          before {
+            coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allServerGroups
+            coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+            coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+          }
+          test("we will take action"){
+            val response = runBlocking { willTakeAction(resource, diff) }
+            expectThat(response.willAct).isTrue()
+          }
+        }
+
+        context("active server group is not healthy") {
+          before {
+            coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns ServerGroupCollection(
+              titusAccount,
+              setOf(
+                activeServerGroupResponseEast.toAllServerGroupsResponse(false),
+                activeServerGroupResponseWest.toAllServerGroupsResponse(false)
+              )
+            )
+            coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount, InstanceCounts(1,0,1,0,0,0))
+            coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+          }
+          test("we won't take action"){
+            val response = runBlocking { willTakeAction(resource, diff) }
+            expectThat(response.willAct).isFalse()
+          }
         }
       }
     }

@@ -119,7 +119,8 @@ fun TitusServerGroup.toMultiServerGroupResponse(
   }
 
 fun TitusActiveServerGroup.toAllServerGroupsResponse(
-  disabled: Boolean = false
+  disabled: Boolean = false,
+  healthy: Boolean = true
 ): ClouddriverTitusServerGroup =
   ClouddriverTitusServerGroup(
     name = name,
@@ -143,7 +144,7 @@ fun TitusActiveServerGroup.toAllServerGroupsResponse(
     tags = tags,
     resources = resources,
     capacityGroup = capacityGroup,
-    instanceCounts = instanceCounts,
+    instanceCounts = if (healthy) instanceCounts else instanceCounts.copy(down = instanceCounts.total, up = 0),
     createdTime = createdTime,
     disabled = disabled
   )

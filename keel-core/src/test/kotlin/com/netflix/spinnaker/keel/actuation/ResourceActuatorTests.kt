@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -21,6 +22,7 @@ import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
@@ -72,6 +74,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
+    val clock = Clock.systemUTC()
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,
@@ -81,7 +84,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       actuationPauser,
       vetoEnforcer,
       publisher,
-      Clock.systemUTC()
+      clock
     )
   }
 
@@ -91,8 +94,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
     before {
       every { plugin1.name } returns "plugin1"
+      every { plugin1.willTakeAction(any(), any()) } returns ActionDecision()
       every { plugin1.supportedKind } returns SupportedKind(parseKind("plugin1/foo@v1"), DummyArtifactVersionedResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
+      every { plugin2.willTakeAction(any(), any()) } returns ActionDecision()
       every { plugin2.supportedKind } returns SupportedKind(parseKind("plugin2/bar@v1"), DummyArtifactVersionedResourceSpec::class.java)
     }
 
@@ -472,6 +477,29 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               }
             }
           }
+        }
+      }
+
+      context("the plugin can't resolve the diff") {
+        before {
+          every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+          every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactName = "BLAH!BLAH!")
+          every { plugin1.actuationInProgress(resource) } returns false
+          every { veto.check(resource) } returns VetoResponse(allowed = true, vetoName = "aVeto")
+          every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
+          every { plugin1.willTakeAction(resource, any()) } returns ActionDecision(false, "i just can't right now")
+
+          runBlocking {
+            subject.checkResource(resource)
+          }
+        }
+
+        test("no action is taken and event is emitted") {
+          verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
+          verify { publisher.publishEvent(any<ResourceDiffNotActionable>()) }
+          verify(exactly = 0) { plugin1.create(any(), any()) }
+          verify(exactly = 0) { plugin1.update(any(), any()) }
+          verify(exactly = 0) { plugin1.delete(any()) }
         }
       }
 

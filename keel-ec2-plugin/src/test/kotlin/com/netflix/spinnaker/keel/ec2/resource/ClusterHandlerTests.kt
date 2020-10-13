@@ -62,7 +62,6 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -73,6 +72,7 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
@@ -528,6 +528,72 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
       }
     }
+
+    context("will we take action?") {
+      val east = serverGroupEast.toMultiServerGroupResponse(vpc = vpcEast, subnets = listOf(subnet1East, subnet2East, subnet3East), securityGroups = listOf(sg1East, sg2East), allEnabled = true)
+      val west = serverGroupWest.toMultiServerGroupResponse(vpc = vpcWest, subnets = listOf(subnet1West, subnet2West, subnet3West), securityGroups = listOf(sg1West, sg2West))
+
+
+      before {
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(vpcEast.account, east + west)
+      }
+
+      context("there is a diff in more than just enabled/disabled") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false).withDoubleCapacity(),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+        test("we will take action"){
+          val response = runBlocking { willTakeAction(resource, diff) }
+          expectThat(response.willAct).isTrue()
+        }
+      }
+
+      context("there is a diff only in enabled/disabled") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+        context("active server group is healthy") {
+          before {
+            coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+            coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+          }
+          test("we will take action"){
+            val response = runBlocking { willTakeAction(resource, diff) }
+            expectThat(response.willAct).isTrue()
+          }
+        }
+
+        context("active server group is not healthy") {
+          before {
+            coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any())} returns ServerGroupCollection(
+              vpcEast.account,
+              setOf(
+                activeServerGroupResponseEast.toAllServerGroupsResponse(false),
+                activeServerGroupResponseWest.toAllServerGroupsResponse(false)
+              )
+            )
+            coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East), null, InstanceCounts(1,0,1,0,0,0))
+            coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+          }
+          test("we won't take action"){
+            val response = runBlocking { willTakeAction(resource, diff) }
+            expectThat(response.willAct).isFalse()
+          }
+        }
+      }
+    }
+
 
     context("a diff has been detected") {
       context("the diff is only in capacity") {

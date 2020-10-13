@@ -61,7 +61,8 @@ import org.slf4j.LoggerFactory
   Type(value = ResourceActuationResumed::class, name = "ResourceActuationResumed"),
   Type(value = ResourceActuationVetoed::class, name = "ResourceActuationVetoed"),
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
-  Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded")
+  Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded"),
+  Type(value = ResourceDiffNotActionable::class, name = "ResourceDiffNotActionable")
 )
 abstract class ResourceEvent(
   open val message: String? = null,
@@ -440,5 +441,24 @@ data class ResourceCheckError(
     clock.instant(),
     exception.javaClass,
     exception.message
+  )
+}
+
+data class ResourceDiffNotActionable(
+  override val kind: ResourceKind,
+  override val id: String,
+  override val application: String,
+  override val timestamp: Instant,
+  override val message: String?
+) : ResourceEvent() {
+  @JsonIgnore
+  override val ignoreRepeatedInHistory = true
+
+  constructor(resource: Resource<*>, message: String?, clock: Clock = Companion.clock) : this(
+    resource.kind,
+    resource.id,
+    resource.application,
+    clock.instant(),
+    message
   )
 }

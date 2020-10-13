@@ -76,6 +76,17 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
   suspend fun current(resource: Resource<S>): R?
 
   /**
+   * Evaluates the resource diff and determines whether it can take action to resolve the diff.
+   * @return a response indicating if it can take action, and a message explaining why if it can't.
+   *
+   * The default value is to take action on all changes. Only override if needed.
+   */
+  suspend fun willTakeAction(
+    resource: Resource<S>,
+    resourceDiff: ResourceDiff<R>
+  ): ActionDecision = ActionDecision(willAct = true)
+
+  /**
    * Create a resource so that it matches the desired state represented by [resource].
    *
    * By default this just delegates to [upsert].

@@ -154,5 +154,6 @@ enum class ResourceStatus {
   ERROR,
   PAUSED,
   RESUMED,
-  UNKNOWN
+  UNKNOWN,
+  DIFF_NOT_ACTIONABLE
 }
