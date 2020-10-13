@@ -27,6 +27,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.clouddriver.aws.data.InstanceFamilyUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
@@ -57,17 +58,6 @@ import java.util.regex.Pattern
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
   private static final String SUBNET_ID_OVERRIDE_TAG = "SPINNAKER_SUBNET_ID_OVERRIDE"
-
-
-  private static final KNOWN_VIRTUALIZATION_FAMILIES = [
-    paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
-    hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'r3', 'm3', 'm4', 't2']
-  ]
-
-  // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSOptimized.html
-  private static final DEFAULT_EBS_OPTIMIZED_FAMILIES = [
-    'c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'p2', 'r4', 'x1'
-  ]
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -243,7 +233,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName in $region")
       }
-      validateInstanceType(ami, description.instanceType)
+      InstanceFamilyUtils.isAmiAndFamilyCompatible(ami.virtualizationType, description.instanceType)
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
       if (account == null) {
@@ -300,7 +290,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         kernelId: description.kernelId,
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
-        ebsOptimized: description.ebsOptimized == null ? getDefaultEbsOptimizedFlag(description.instanceType) : description.ebsOptimized,
+        ebsOptimized: description.ebsOptimized == null ? InstanceFamilyUtils.getDefaultEbsOptimizedFlag(description.instanceType) : description.ebsOptimized,
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
@@ -309,7 +299,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         setLaunchTemplate: description.setLaunchTemplate,
         requireIMDSv2: description.requireIMDSv2,
         associateIPv6Address: description.associateIPv6Address,
-        dynamicConfigService: dynamicConfigService
+        dynamicConfigService: dynamicConfigService,
+        unlimitedCpuCredits: getUnlimitedCpuCredits(description.unlimitedCpuCredits, description.instanceType)
       )
 
       def asgName = autoScalingWorker.deploy()
@@ -493,6 +484,22 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     return lifecycleHooks
   }
 
+  /**
+   * default unlimitedCpuCredits to false if applicable (i.e. burstable performance instance type), and not specified
+   * Reasoning:
+   * 1) consistent default cpu credits value for burstable performance instance families
+   * AWS default mode if cpu credits is not specified depends on the instance family:
+   *    * t2: standard
+   *    * t3/t3a: unlimited
+   *
+   * 2) let users explicitly choose 'unlimited' bursting which could translate to higher instance costs, depending on usage
+   */
+  @VisibleForTesting
+  static Boolean getUnlimitedCpuCredits(final Boolean unlimitedCpuCredits, final String instanceType) {
+    def isApplicableButNotSpecified = unlimitedCpuCredits == null && InstanceFamilyUtils.isBurstingSupported(instanceType)
+    return isApplicableButNotSpecified ? false : unlimitedCpuCredits
+  }
+
   @VisibleForTesting
   @PackageScope
   static List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
@@ -559,21 +566,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     return null
-  }
-
-  private static void validateInstanceType(ResolvedAmiResult ami, String instanceType) {
-    String family = instanceType?.contains('.') ? instanceType.split("\\.")[0] : ''
-    boolean familyIsKnown = KNOWN_VIRTUALIZATION_FAMILIES.containsKey(ami.virtualizationType) &&
-        KNOWN_VIRTUALIZATION_FAMILIES.any { it.value.contains(family) }
-    if (familyIsKnown && !KNOWN_VIRTUALIZATION_FAMILIES[ami.virtualizationType].contains(family)) {
-      throw new IllegalArgumentException("Instance type ${instanceType} does not support " +
-          "virtualization type ${ami.virtualizationType}. Please select a different image or instance type.")
-    }
-  }
-
-  private static boolean getDefaultEbsOptimizedFlag(String instanceType) {
-    String family = instanceType?.contains('.') ? instanceType.split("\\.")[0] : ''
-    return DEFAULT_EBS_OPTIMIZED_FAMILIES.contains(family)
   }
 
   /**

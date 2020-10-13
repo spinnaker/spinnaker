@@ -41,6 +41,25 @@ public class LaunchTemplateService {
   private final LocalFileUserDataProperties localFileUserDataProperties;
   private final RetrySupport retrySupport = new RetrySupport();
 
+  /**
+   * Traditional Amazon EC2 instance types provide fixed CPU utilization, while burstable
+   * performance instances provide a baseline level of CPU utilization with the ability to burst CPU
+   * utilization above the baseline level. The baseline utilization and ability to burst are
+   * governed by CPU credits.
+   *
+   * <p>CPU credits can be configured with 2 modes: (1) unlimited: Can sustain high CPU utilization
+   * for any period of time whenever required. If the average CPU usage over a rolling 24-hour
+   * period exceeds the baseline, charges for surplus credits will apply. (2) standard: Suited to
+   * workloads with an average CPU utilization that is consistently below the baseline CPU
+   * utilization of the instance. To burst above the baseline, the instance spends credits that it
+   * has accrued in its CPU credit balance.
+   *
+   * <p>https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html
+   */
+  private static final String UNLIMITED_CPU_CREDITS = "unlimited";
+
+  private static final String STANDARD_CPU_CREDITS = "standard";
+
   public LaunchTemplateService(
       AmazonEC2 ec2,
       List<UserDataProvider> userDataProviders,
@@ -99,9 +118,11 @@ public class LaunchTemplateService {
       LaunchConfigurationSettings settings,
       String launchTemplateName,
       Boolean requireIMDSv2,
-      Boolean associateIPv6Address) {
+      Boolean associateIPv6Address,
+      Boolean unlimitedCpuCredits) {
     final RequestLaunchTemplateData data =
-        buildLaunchTemplateData(settings, launchTemplateName, requireIMDSv2, associateIPv6Address);
+        buildLaunchTemplateData(
+            settings, launchTemplateName, requireIMDSv2, associateIPv6Address, unlimitedCpuCredits);
     return retrySupport.retry(
         () -> {
           final CreateLaunchTemplateRequest launchTemplateRequest =
@@ -176,6 +197,8 @@ public class LaunchTemplateService {
     // instance market options
     setSpotInstanceMarketOptions(request, description.getSpotPrice());
 
+    setCreditSpecification(request, description.getUnlimitedCpuCredits());
+
     // network interfaces
     LaunchTemplateInstanceNetworkInterfaceSpecificationRequest networkInterfaceRequest =
         new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest();
@@ -216,7 +239,8 @@ public class LaunchTemplateService {
       LaunchConfigurationSettings settings,
       String launchTemplateName,
       Boolean requireIMDSv2,
-      Boolean associateIPv6Address) {
+      Boolean associateIPv6Address,
+      Boolean unlimitedCpuCredits) {
     RequestLaunchTemplateData request =
         new RequestLaunchTemplateData()
             .withImageId(settings.getAmi())
@@ -256,6 +280,8 @@ public class LaunchTemplateService {
     // instance market options
     setSpotInstanceMarketOptions(request, settings.getSpotPrice());
 
+    setCreditSpecification(request, unlimitedCpuCredits);
+
     // network interfaces
     request.withNetworkInterfaces(
         new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
@@ -265,6 +291,16 @@ public class LaunchTemplateService {
             .withDeviceIndex(0));
 
     return request;
+  }
+
+  /** Set credit option for burstable performance instances to 'unlimited' only if explicitly set */
+  private void setCreditSpecification(
+      RequestLaunchTemplateData request, Boolean unlimitedCpuCredits) {
+    if (unlimitedCpuCredits != null) {
+      request.setCreditSpecification(
+          new CreditSpecificationRequest()
+              .withCpuCredits(unlimitedCpuCredits ? UNLIMITED_CPU_CREDITS : STANDARD_CPU_CREDITS));
+    }
   }
 
   /**

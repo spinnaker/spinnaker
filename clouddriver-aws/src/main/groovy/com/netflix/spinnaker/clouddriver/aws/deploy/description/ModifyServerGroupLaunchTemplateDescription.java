@@ -23,6 +23,7 @@ public class ModifyServerGroupLaunchTemplateDescription
   private String kernelId;
   private String imageId;
   private Boolean associateIPv6Address;
+  private Boolean unlimitedCpuCredits;
 
   public Boolean getRequireIMDV2() {
     return requireIMDV2;
@@ -54,5 +55,13 @@ public class ModifyServerGroupLaunchTemplateDescription
 
   public void setAssociateIPv6Address(boolean associateIPv6Address) {
     this.associateIPv6Address = associateIPv6Address;
+  }
+
+  public Boolean getUnlimitedCpuCredits() {
+    return unlimitedCpuCredits;
+  }
+
+  public void setUnlimitedCpuCredits(Boolean unlimitedCpuCredits) {
+    this.unlimitedCpuCredits = unlimitedCpuCredits;
   }
 }

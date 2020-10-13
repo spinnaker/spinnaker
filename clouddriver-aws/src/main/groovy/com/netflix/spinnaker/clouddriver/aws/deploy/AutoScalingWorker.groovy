@@ -39,7 +39,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -106,6 +105,7 @@ class AutoScalingWorker {
   private Boolean setLaunchTemplate
   private Boolean requireIMDSv2
   private Boolean associateIPv6Address
+  private Boolean unlimitedCpuCredits
 
   private int minInstances
   private int maxInstances
@@ -125,7 +125,7 @@ class AutoScalingWorker {
    *    <li>Looking up security group ids for the names provided as "securityGroups";</li>
    *    <li>Look up an ancestor ASG based on Netflix naming conventions, and bring its security groups to the new ASG;</li>
    *    <li>Retrieve user data from all available {@link com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider}s;</li>
-   *    <li>Create the ASG's Launch Configuration with User Data and Security Groups;</li>
+   *    <li>Create the ASG's Launch Configuration or Launch Template with User Data and Security Groups;</li>
    *    <li>Create a new ASG in the subnets found from the optionally supplied subnetType.</li>
    *  </ol>
    *
@@ -184,9 +184,15 @@ class AutoScalingWorker {
 
       final LaunchTemplate launchTemplate = regionScopedProvider
         .getLaunchTemplateService()
-        .createLaunchTemplate(settings, DefaultLaunchConfigurationBuilder.createName(settings), requireIMDSv2, associateIPv6Address)
+        .createLaunchTemplate(
+              settings,
+              DefaultLaunchConfigurationBuilder.createName(settings),
+              requireIMDSv2,
+              associateIPv6Address,
+              unlimitedCpuCredits)
       launchTemplateSpecification = new LaunchTemplateSpecification(
-        launchTemplateId: launchTemplate.launchTemplateId, version: launchTemplate.latestVersionNumber)
+              launchTemplateId: launchTemplate.launchTemplateId,
+              version: launchTemplate.latestVersionNumber)
     } else {
       launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf)
     }

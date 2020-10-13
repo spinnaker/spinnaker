@@ -180,6 +180,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
               securityGroups = networkInterface.groups
             }
           }
+
+          // unlimited CPU credits is not applicable for all instance types. So, simply use the incoming request's value to keep the description valid.
+          newDescription.unlimitedCpuCredits = description.unlimitedCpuCredits
         } else {
           def ancestorLaunchConfiguration = sourceRegionScopedProvider
             .asgService.getLaunchConfiguration(ancestorAsg.launchConfigurationName)

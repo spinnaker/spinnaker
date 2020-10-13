@@ -45,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.data.InstanceFamilyUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
@@ -62,7 +63,6 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory.RegionScopedProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Shared
@@ -132,6 +132,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   def cleanupSpec() {
     AutoScalingWorker.metaClass = null
+    InstanceFamilyUtils.metaClass = null
   }
 
   void "handler supports basic deploy description type"() {
@@ -289,6 +290,35 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     actualClassicLinkVpcId == null
+  }
+
+  void "should not modify unlimited cpu credits if not applicable"() {
+    setup:
+    def unlimitedCreditsInput = null
+    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return false }
+
+    expect:
+    handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == unlimitedCreditsInput
+  }
+
+  void "should set unlimited cpu credits to false if applicable but not specified"() {
+    setup:
+    def unlimitedCreditsInput = null
+    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return true }
+
+    expect:
+    handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == false
+  }
+
+  void "should not modify unlimited cpu credits if applicable, and specified"() {
+    setup:
+    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return true }
+
+    expect:
+    handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == unlimitedCreditsInput
+
+    where:
+    unlimitedCreditsInput << [true, false]
   }
 
   void "should send instance class block devices to AutoScalingWorker when matched and none are specified"() {
@@ -831,18 +861,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     "app"       | "{{application}}IamRole" | null                     || "appIamRole"
     "app"       | null                     | "{{application}}IamRole" || "appIamRole"
     null        | null                     | "{{application}}IamRole" || "{{application}}IamRole"
-  }
-
-  @Unroll
-  void "should assign default EBS optimized flag if unset"() {
-    expect:
-    BasicAmazonDeployHandler.getDefaultEbsOptimizedFlag(instanceType) == expectedFlag
-
-    where:
-    instanceType || expectedFlag
-    'invalid'    || false
-    'm3.medium'  || false
-    'm4.large'   || true
   }
 
   @Unroll

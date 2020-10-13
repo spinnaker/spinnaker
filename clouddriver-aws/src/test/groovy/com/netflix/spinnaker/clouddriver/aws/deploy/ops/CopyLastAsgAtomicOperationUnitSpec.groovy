@@ -26,8 +26,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
 import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsRequest
-import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsResult
+import com.amazonaws.services.ec2.model.CreditSpecification
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
 import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
 import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions
@@ -133,12 +132,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
     op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
 
-    ec2.describeLaunchTemplateVersions(_) >> { DescribeLaunchTemplateVersionsRequest request ->
-      assert request.launchTemplateName == launchTemplateSpec.launchTemplateName
-      assert launchTemplateSpec.version in request.versions
-      new DescribeLaunchTemplateVersionsResult(launchTemplateVersions: [launchTemplateVersion])
-    }
-
     when:
     def result = op.operate([])
 
@@ -175,7 +168,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   }
 
   @Unroll
-  void "operation builds description based on ancestor asg"() {
+  void "operation builds description based on ancestor asg backed by launch configuration"() {
     setup:
     def deployHandler = Mock(BasicAmazonDeployHandler)
     def description = new BasicAmazonDeployDescription(application: "asgard", stack: "stack")
@@ -233,8 +226,10 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
     0 * serverGroupNameResolver._
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-east-1'), _) >> new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-west-1'), _) >> new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-east-1'), _) >>
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDescription(expectedSpotPrice, 'us-west-1'), _) >>
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
 
     where:
     requestSpotPrice | ancestorSpotPrice || expectedSpotPrice
@@ -245,8 +240,107 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     null             | null              || null
   }
 
+  @Unroll
+  void "operation builds new description with correct cpu credits based on ancestor asg and request"() {
+    given:
+    def launchTemplateVersion = new LaunchTemplateVersion(
+      launchTemplateName: "foo",
+      launchTemplateId: "foo",
+      versionNumber: 0,
+      launchTemplateData: new ResponseLaunchTemplateData(
+        keyName: "key-pair-name"
+      )
+    )
+    if (ancestorUnlimitedCpuCredits != null) {
+      launchTemplateVersion.launchTemplateData.creditSpecification = new CreditSpecification(
+        cpuCredits: ancestorUnlimitedCpuCredits
+      )
+    }
+
+    def launchTemplateSpec = new LaunchTemplateSpecification(
+      launchTemplateName: launchTemplateVersion.launchTemplateName,
+      launchTemplateId: launchTemplateVersion.launchTemplateId,
+      version: launchTemplateVersion.versionNumber.toString(),
+    )
+
+    and:
+    def requestDescription = new BasicAmazonDeployDescription(
+      application: "asgard",
+      stack: "stack",
+      availabilityZones: [
+        'us-east-1': []
+      ],
+      credentials: TestCredential.named('baz'),
+      capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
+      securityGroups: ["someGroupName", "sg-12345a"],
+      setLaunchTemplate: true,
+      unlimitedCpuCredits: unlimitedCpuCreditsInReq
+    )
+
+    and:
+    def deployHandler = Mock(BasicAmazonDeployHandler)
+    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def ec2 = Mock(AmazonEC2)
+    def mockProvider = Mock(AmazonClientProvider)
+    mockProvider.getAmazonEC2(_, _, true) >> ec2
+    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
+
+    def op = new CopyLastAsgAtomicOperation(requestDescription)
+    op.amazonClientProvider = mockProvider
+    op.basicAmazonDeployHandler = deployHandler
+
+    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
+    def asgService = new AsgService(mockAutoScaling)
+    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
+
+    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
+        getAsgService() >> asgService
+        getAWSServerGroupNameResolver() >> serverGroupNameResolver
+        getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+          getLaunchTemplateVersion(launchTemplateSpec) >> Optional.of(launchTemplateVersion)
+        }
+      }
+    }
+
+    op.basicAmazonDeployDescriptionValidator = Stub(BasicAmazonDeployDescriptionValidator)
+
+    and:
+    def mockAncestorAsg = Mock(AutoScalingGroup)
+    mockAncestorAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
+    mockAncestorAsg.getMinSize() >> 0
+    mockAncestorAsg.getMaxSize() >> 2
+    mockAncestorAsg.getDesiredCapacity() >> 4
+    mockAncestorAsg.getLaunchTemplate() >> launchTemplateSpec
+    mockAncestorAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
+    mockAutoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAncestorAsg])
+    }
+
+    serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+
+    when:
+    op.operate([])
+
+    then:
+    1 * deployHandler.handle(expectedDescription(null, expectedUnlimitedCpuCredits, 'us-east-1'), _) >>
+      new DeploymentResult(serverGroupNames: ['asgard-stack-v001'], serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+
+    where:
+    ancestorUnlimitedCpuCredits   ||  unlimitedCpuCreditsInReq  || expectedUnlimitedCpuCredits
+    "standard"                    ||    true                    || true
+    "standard"                    ||    false                   || false
+    "standard"                    ||    null                    || null
+    "unlimited"                   ||    true                    || true
+    "unlimited"                   ||    false                   || false
+    "unlimited"                   ||    null                    || null
+  }
+
   private static BasicAmazonDeployDescription expectedDescription(
-    Double expectedSpotPrice, String region) {
+          Double expectedSpotPrice,
+          Boolean unlimitedCpuCredits = null,
+          String region) {
     return new BasicAmazonDeployDescription(
       application: 'asgard',
       stack: 'stack',
@@ -260,6 +354,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         asgName: "asgard-stack-v000",
         account: 'baz',
         region: null
-      ))
+      ),
+      unlimitedCpuCredits: unlimitedCpuCredits
+    )
   }
 }

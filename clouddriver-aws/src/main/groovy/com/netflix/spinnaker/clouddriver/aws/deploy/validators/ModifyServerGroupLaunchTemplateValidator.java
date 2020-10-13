@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
+import com.netflix.spinnaker.clouddriver.aws.data.InstanceFamilyUtils;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -82,6 +83,14 @@ public class ModifyServerGroupLaunchTemplateValidator
       for (AmazonBlockDevice device : description.getBlockDevices()) {
         BasicAmazonDeployDescriptionValidator.BlockDeviceRules.validate(device, errors);
       }
+    }
+
+    // unlimitedCpuCredits (set to true / false) is valid only with supported instance types
+    if (description.getUnlimitedCpuCredits() != null
+        && !InstanceFamilyUtils.isBurstingSupported(description.getInstanceType())) {
+      errors.rejectValue(
+          "unlimitedCpuCredits",
+          "modifyservergrouplaunchtemplatedescription.bursting.not.supported.by.instanceType");
     }
   }
 }

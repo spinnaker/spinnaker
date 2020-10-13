@@ -70,8 +70,20 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    */
   Boolean associateIPv6Address = false
 
-  Collection<OperationEvent> events = []
+  /**
+   * Applicable only for burstable performance instance types like t2/t3.
+   * * set to null when not applicable / by default.
+   *
+   * The burstable performance instances in the created server group will have:
+   * * unlimited CPU credits, when set to true
+   * * standard CPU credits, when set to false
+   * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html
+   *
+   * This is a Launch Template only feature.
+   */
+  Boolean unlimitedCpuCredits
 
+  Collection<OperationEvent> events = []
 
   //Default behaviour (legacy reasons) is to carry forward some settings (even on a deploy vs a cloneServerGroup) from an ancestor ASG
   // the following flags disable copying of those attributes:

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -26,9 +27,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component("basicAmazonDeployDescriptionValidator")
 @AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
 class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
@@ -74,6 +77,45 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.source?.useSourceCapacity) {
       validateCapacity description, errors
     }
+
+    // unlimitedCpuCredits (set to true / false) is valid only with supported instance types
+    if (description.unlimitedCpuCredits != null && !InstanceTypeUtils.isBurstingSupported(description.instanceType)) {
+      errors.rejectValue "unlimitedCpuCredits", "basicAmazonDeployDescription.bursting.not.supported.by.instanceType"
+    }
+
+    // log warnings
+    final String warnings = getWarnings(description)
+    log.warn(warnings)
+  }
+
+  /**
+   * Log warnings to indicate potential user error, invalid configurations that could result in unexpected outcome, etc.
+   */
+  @VisibleForTesting
+  private String getWarnings(BasicAmazonDeployDescription description) {
+    List<String> warnings = []
+
+    // certain features work as expected only when AWS EC2 Launch Template feature is enabled and used
+    if (!description.setLaunchTemplate) {
+      def ltFeaturesEnabled = []
+      if (description.requireIMDSv2) {
+        ltFeaturesEnabled.add("requireIMDSv2")
+      }
+      if (description.associateIPv6Address) {
+        ltFeaturesEnabled.add("associateIPv6Address")
+      }
+      if (description.unlimitedCpuCredits != null) {
+        ltFeaturesEnabled.add("unlimitedCpuCredits")
+      }
+
+      if (ltFeaturesEnabled) {
+        warnings.add("WARNING: The following fields ${ltFeaturesEnabled} work as expected only with AWS EC2 Launch Template, " +
+                "but 'setLaunchTemplate' is set to false in request with account: ${description.account}, " +
+                "application: ${description.application}, stack: ${description.stack})")
+      }
+    }
+
+    return warnings.join("\n")
   }
 
   enum BlockDeviceRules {

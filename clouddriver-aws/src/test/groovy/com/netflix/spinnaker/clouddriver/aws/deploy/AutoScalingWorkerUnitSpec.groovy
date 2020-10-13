@@ -120,7 +120,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     and:
     mockAutoScalingWorker.setLaunchTemplate = true
     regionScopedProvider.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
-      createLaunchTemplate(_,_,_,_) >> new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
+      createLaunchTemplate(_,_,_,_,_) >> new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
     }
 
     when:
@@ -170,7 +170,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
-    1 * launchTemplateService.createLaunchTemplate(_,_,_,_) >>
+    1 * launchTemplateService.createLaunchTemplate(_,_,_,_,_) >>
       new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
     1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
       new Cluster.SimpleCluster(type: 'aws', serverGroups: [
