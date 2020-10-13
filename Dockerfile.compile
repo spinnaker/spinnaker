@@ -1,6 +1,7 @@
 FROM alpine:3.11
 RUN apk add --update \
     openjdk11 \
+    git \
     && rm -rf /var/cache/apk
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
