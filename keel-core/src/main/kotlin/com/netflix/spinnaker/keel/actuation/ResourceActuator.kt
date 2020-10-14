@@ -46,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
+import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
  * The core component in keel responsible for resource state monitoring and actuation.
@@ -66,9 +67,13 @@ class ResourceActuator(
   private val actuationPauser: ActuationPauser,
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
-  private val clock: Clock
+  private val clock: Clock,
+  private val springEnv: SpringEnvironment,
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val diffNotActionableEnabled: Boolean
+    get() = springEnv.getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false)
 
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     withTracingContext(resource) {
@@ -216,7 +221,9 @@ class ResourceActuator(
           if (diff.hasChanges()) {
             publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
           }
-          publisher.publishEvent(ResourceDiffNotActionable(resource, decision.message))
+          if (diffNotActionableEnabled) { // todo eb: remove this conditional once ui support exists
+            publisher.publishEvent(ResourceDiffNotActionable(resource, decision.message))
+          }
         }
       } catch (e: ResourceCurrentlyUnresolvable) {
         log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)

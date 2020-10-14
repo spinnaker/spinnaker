@@ -57,6 +57,7 @@ import java.time.Duration
 import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
+import org.springframework.core.env.Environment as SpringEnvironment
 
 internal class ResourceActuatorTests : JUnit5Minutests {
 
@@ -68,6 +69,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val actuationPauser: ActuationPauser = mockk() {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
+    }
+    val springEnv: SpringEnvironment = mockk(relaxed = true) {
+      every { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false) } returns true
     }
     val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
@@ -84,7 +88,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       actuationPauser,
       vetoEnforcer,
       publisher,
-      clock
+      clock,
+      springEnv
     )
   }
 

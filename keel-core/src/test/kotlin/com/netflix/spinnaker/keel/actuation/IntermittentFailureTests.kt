@@ -33,6 +33,7 @@ import java.time.Clock
 import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
+import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
  * This class tests a specific scenario:
@@ -53,6 +54,9 @@ class IntermittentFailureTests : JUnit5Minutests {
     val actuationPauser: ActuationPauser = mockk() {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
+    }
+    val springEnv: SpringEnvironment = mockk(relaxed = true) {
+      io.mockk.coEvery { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false) } returns true
     }
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResourceSpec>>(relaxUnitFun = true) {
       every { name } returns "plugin1"
@@ -93,7 +97,8 @@ class IntermittentFailureTests : JUnit5Minutests {
       actuationPauser,
       vetoEnforcer,
       publisher,
-      Clock.systemUTC()
+      Clock.systemUTC(),
+      springEnv
     )
     val desired = DummyResourceSpec(data = "fnord")
     val current = DummyResourceSpec()
