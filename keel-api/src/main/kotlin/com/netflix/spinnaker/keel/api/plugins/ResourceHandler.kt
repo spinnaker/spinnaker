@@ -81,6 +81,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * The default value is to take action on all changes. Only override if needed.
    */
+  @JvmDefault
   suspend fun willTakeAction(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
