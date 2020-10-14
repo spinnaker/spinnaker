@@ -24,22 +24,25 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DisableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDisabledServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class DisableServerGroupStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
+  public static final String TOGGLE = "stages.disable-server-group.wait-for-disabled.enabled"
   static final String PIPELINE_CONFIG_TYPE = "disableServerGroup"
 
-  private final DynamicConfigService dynamicConfigService;
+  private final Environment environment
 
   @Autowired
-  DisableServerGroupStage(DynamicConfigService dynamicConfigService) {
-    this.dynamicConfigService = dynamicConfigService;
+  DisableServerGroupStage(Environment environment) {
+    this.environment = environment
   }
 
   @Override
@@ -50,7 +53,11 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport implem
       .withTask("monitorServerGroup", MonitorKatoTask)
       .withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
 
-    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+    if (environment.getProperty(TOGGLE, Boolean, false)) {
+      builder.withTask("waitForServerGroupDisabled", WaitForDisabledServerGroupTask)
+    }
+
+    if (isForceCacheRefreshEnabled(environment)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     }
   }

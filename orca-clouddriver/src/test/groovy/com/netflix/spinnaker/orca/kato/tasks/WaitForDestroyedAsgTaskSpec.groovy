@@ -60,8 +60,9 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
 
     and:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
-      "regions": [region],
+      "region": region,
       "asgName": asgName,
+      "account": "test"
     ])
 
     def result = task.execute(stage)
@@ -101,9 +102,10 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
 
     and:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
-        "regions": ["us-east-1"],
+        "region": ["us-east-1"],
         "asgName": "app-test-v000",
-        "remainingInstances": ["i-123"]
+        "remainingInstances": ["i-123"],
+        "account": "test"
     ])
 
     def result = task.execute(stage)
@@ -128,9 +130,10 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
 
     and:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
-        "regions": ["us-east-1"],
+        "region": ["us-east-1"],
         "asgName": "app-test-v000",
-        "remainingInstances": ['i-123', 'i-234', 'i-345']
+        "remainingInstances": ['i-123', 'i-234', 'i-345'],
+        "account": "test"
     ])
 
     def result = task.execute(stage)

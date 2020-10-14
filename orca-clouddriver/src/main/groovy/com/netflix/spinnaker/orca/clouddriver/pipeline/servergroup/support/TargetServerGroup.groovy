@@ -48,6 +48,11 @@ class TargetServerGroup {
     serverGroup = new HashMap(serverGroupData).asImmutable()
   }
 
+  Collection<String> getSuspendedProcesses() {
+    def asgDetails = serverGroup.asg as Map
+    return asgDetails.suspendedProcesses*.processName
+  }
+
   /**
    * All invocations of this method should use the full 'getLocation()' signature, instead of the shorthand dot way
    * (i.e. "serverGroup.location"). Otherwise, the property 'location' is looked for in the serverGroup map, which is

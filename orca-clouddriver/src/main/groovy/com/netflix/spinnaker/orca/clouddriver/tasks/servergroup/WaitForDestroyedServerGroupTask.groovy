@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.ClusterDescriptor
+import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,15 +45,13 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
 
   @Override
   TaskResult execute(StageExecution stage) {
-    String cloudProvider = getCloudProvider(stage)
-    String account = getCredentials(stage)
-    String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0) ?: stage.context.region
-    String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
-    Names names = Names.parseName(serverGroupName)
-    String appName = stage.context.moniker?.app ?: names.app
-    String clusterName = stage.context.moniker?.cluster ?: names.cluster
+    ClusterDescriptor clusterDescriptor = getClusterDescriptor(stage)
     try {
-      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
+      def response = oortService.getCluster(
+          clusterDescriptor.app,
+          clusterDescriptor.account,
+          clusterDescriptor.name,
+          clusterDescriptor.cloudProvider)
 
       if (response.status != 200) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
@@ -62,12 +61,17 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
       if (!cluster || !cluster.serverGroups) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([remainingInstances: []]).build()
       }
-      def serverGroup = cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }
+
+      ServerGroupDescriptor serverGroupDescriptor = getServerGroupDescriptor(stage)
+      def serverGroup = cluster.serverGroups.find {
+        it.name == serverGroupDescriptor.name && it.region == serverGroupDescriptor.region
+      }
       if (!serverGroup) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([remainingInstances: []]).build()
       }
+
       def instances = serverGroup.instances ?: []
-      log.info("${serverGroupName}: not yet destroyed, found instances: ${instances?.join(', ') ?: 'none'}")
+      log.info("${serverGroupDescriptor.name}: not yet destroyed, found instances: ${instances?.join(', ') ?: 'none'}")
       return TaskResult.builder(ExecutionStatus.RUNNING).context([remainingInstances: instances.findResults { it.name }]).build()
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)

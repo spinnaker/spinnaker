@@ -73,7 +73,7 @@ class ModifyAwsScalingProcessStageSpec extends Specification {
     )
 
     expect:
-    ModifyAwsScalingProcessStage.WaitForScalingProcess.getSuspendedProcesses(targetServerGroup) == suspendedProcesses
+    targetServerGroup.getSuspendedProcesses() == suspendedProcesses
 
     where:
     suspendedProcesses      || _

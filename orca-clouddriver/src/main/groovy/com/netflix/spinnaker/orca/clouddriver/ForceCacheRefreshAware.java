@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import org.springframework.core.env.Environment;
 
 /**
  * Provides convenience methods for stages that are aware of force cache refresh operations.
@@ -27,19 +28,28 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
  */
 public interface ForceCacheRefreshAware {
 
-  default boolean isForceCacheRefreshEnabled(DynamicConfigService dynamicConfigService) {
-    String className = getClass().getSimpleName();
-
+  default boolean isForceCacheRefreshEnabled(Environment environment) {
     try {
-      return dynamicConfigService.isEnabled(
-          String.format(
-              "stages.%s.force-cache-refresh",
-              CaseFormat.LOWER_CAMEL.to(
-                  CaseFormat.LOWER_HYPHEN,
-                  Character.toLowerCase(className.charAt(0)) + className.substring(1))),
-          true);
+      return environment.getProperty(propertyName(), Boolean.class, true);
     } catch (Exception e) {
       return true;
     }
+  }
+
+  default boolean isForceCacheRefreshEnabled(DynamicConfigService dynamicConfigService) {
+    try {
+      return dynamicConfigService.isEnabled(propertyName(), true);
+    } catch (Exception e) {
+      return true;
+    }
+  }
+
+  private String propertyName() {
+    String className = getClass().getSimpleName();
+    return String.format(
+        "stages.%s.force-cache-refresh.enabled",
+        CaseFormat.LOWER_CAMEL.to(
+            CaseFormat.LOWER_HYPHEN,
+            Character.toLowerCase(className.charAt(0)) + className.substring(1)));
   }
 }

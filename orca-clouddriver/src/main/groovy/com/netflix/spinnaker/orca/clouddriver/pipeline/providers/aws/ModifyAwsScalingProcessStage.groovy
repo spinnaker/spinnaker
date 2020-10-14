@@ -101,7 +101,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport i
         throw new IllegalStateException("No server group found (serverGroupName: ${stageData.region}:${stageData.serverGroupName})")
       }
 
-      def suspendedProcesses = getSuspendedProcesses(targetServerGroup.get())
+      def suspendedProcesses = targetServerGroup.get().getSuspendedProcesses()
 
       def isComplete
       if (stageData.isResume()) {
@@ -111,12 +111,6 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport i
       }
 
       return isComplete ? TaskResult.ofStatus(ExecutionStatus.SUCCEEDED) : TaskResult.ofStatus(ExecutionStatus.RUNNING)
-    }
-
-    @CompileDynamic
-    static Collection<String> getSuspendedProcesses(TargetServerGroup targetServerGroup) {
-      def asgDetails = targetServerGroup.asg as Map
-      return asgDetails.suspendedProcesses*.processName
     }
 
     static class StageData {
