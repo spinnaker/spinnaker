@@ -65,11 +65,14 @@ class ManualJudgementNotifier(
     val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
     val gitMetadata = repository.getArtifactInstance(artifact.name, artifact.type, currentState.artifactVersion, null)
       ?.gitMetadata
-    var details =
-      "*Version:* <$artifactUrl|$normalizedVersion>\n" +
-      "*Application:* ${deliveryConfig.application}, *Environment:* ${currentState.environmentName}\n"
+
+    var details = ""
 
     if (gitMetadata!= null) {
+      if (!gitMetadata.commitInfo?.message.isNullOrEmpty()) {
+        details += "*Message:* ${gitMetadata.commitInfo!!.message}\n"
+      }
+
       if (gitMetadata.project != null && gitMetadata.repo?.name != null) {
         details += if (gitMetadata.repo!!.link.isNullOrEmpty()) {
           "*Repo:* ${gitMetadata.project}/${gitMetadata.repo!!.name}"
@@ -93,11 +96,11 @@ class ManualJudgementNotifier(
       } else {
         "*Commit:* <${gitMetadata.commitInfo!!.link}|${gitMetadata.commit}>\n"
       }
-
-      if (!gitMetadata.commitInfo?.message.isNullOrEmpty()) {
-        details += "*Message:* ${gitMetadata.commitInfo!!.message}\n"
-      }
     }
+
+    details +=
+      "*Version:* <$artifactUrl|$normalizedVersion>\n" +
+      "*Application:* ${deliveryConfig.application}, *Environment:* ${currentState.environmentName}\n"
 
     if (!keelNotificationConfig.enabled) {
       details += "<br/>Please consult the <$MANUAL_JUDGEMENT_DOC_URL|documentation> on how to approve the deployment."
