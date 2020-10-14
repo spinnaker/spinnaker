@@ -17,8 +17,10 @@ function getCallingIdentifier(calleeObject) {
 
 /** given an identifier, finds its Variable in the enclosing scope */
 function getVariableInScope(context, identifier) {
-  const { variables } = context.getScope();
-  return variables.find((v) => v.name === identifier.name);
+  if (identifier.type === 'Identifier') {
+    const { variables } = context.getScope();
+    return variables.find((v) => v.name === identifier.name);
+  }
 }
 
 function getProgram(node) {
