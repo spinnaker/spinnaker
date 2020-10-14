@@ -1,8 +1,8 @@
-FROM alpine:3.11
-RUN apk add --update \
-    openjdk11 \
-    git \
-    && rm -rf /var/cache/apk
+FROM openjdk:11-slim
+
+RUN apt-get update && apt-get install -y \
+  git
+
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx2048m
