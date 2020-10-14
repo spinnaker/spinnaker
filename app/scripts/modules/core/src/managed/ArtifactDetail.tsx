@@ -294,7 +294,12 @@ export const ArtifactDetail = ({
                     </a>
                   }
                 />
-                <VersionMetadataItem label="Message" value={git.commitInfo.message} />
+                <VersionMetadataItem
+                  label="Message"
+                  value={
+                    <span style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{git.commitInfo.message}</span>
+                  }
+                />
               </>
             )}
             {git?.branch && <VersionMetadataItem label="Branch" value={git.branch} />}
