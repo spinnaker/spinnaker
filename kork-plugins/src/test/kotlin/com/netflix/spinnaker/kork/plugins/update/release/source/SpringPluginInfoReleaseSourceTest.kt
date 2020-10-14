@@ -32,6 +32,7 @@ import io.mockk.mockk
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.lang.IllegalArgumentException
 
 class SpringPluginInfoReleaseSourceTest : JUnit5Minutests {
 
@@ -64,6 +65,15 @@ class SpringPluginInfoReleaseSourceTest : JUnit5Minutests {
         .get { releases.size }.isEqualTo(2)
         .get { releases.find { it.pluginId == plugin1.id } }.isEqualTo(PluginInfoRelease(plugin1.id, plugin1ExpectedRelease))
         .get { releases.find { it.pluginId == plugin2.id } }.isEqualTo(PluginInfoRelease(plugin2.id, plugin2ExpectedRelease))
+    }
+
+    test("Skips plugin with version configuration that throws IllegalArgumentException") {
+      every { pluginStatusProvider.pluginVersion(plugin1.id) } throws IllegalArgumentException()
+
+      val releases = subject.getReleases(pluginInfoList.subList(0, 1))
+
+      expectThat(releases).isA<Set<PluginInfoRelease>>()
+        .get { releases.size }.isEqualTo(0)
     }
   }
 

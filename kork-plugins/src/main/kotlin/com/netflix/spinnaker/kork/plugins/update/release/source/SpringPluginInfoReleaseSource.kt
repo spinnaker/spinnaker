@@ -36,7 +36,13 @@ class SpringPluginInfoReleaseSource(
   }
 
   private fun pluginInfoRelease(pluginInfo: SpinnakerPluginInfo): PluginInfoRelease? {
-    val pluginVersion = pluginStatusProvider.pluginVersion(pluginInfo.id)
+    val pluginVersion: String?
+    try {
+      pluginVersion = pluginStatusProvider.pluginVersion(pluginInfo.id)
+    } catch(e : IllegalArgumentException) {
+      log.error("Unable to read configured plugin version from Spring property due to: {}", e.message)
+      return null
+    }
     val release = pluginInfo.getReleases().firstOrNull { it.version == pluginVersion }
     return if (release != null) {
       log.info("Spring configured release version '{}' for plugin '{}'", release.version, pluginInfo.id)
