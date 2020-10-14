@@ -324,6 +324,14 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
             mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0], deploymentDetailTemplate, config)
           ]
         }
+        //Docker registry to deployment detail conversion
+        else if (imageSummaries[location] == null && image.repository != null && image.tag != null) {
+          String imageId = (String) image.repository + ":" + (String) image.tag
+          imageSummaries[location] = [
+              //In the context of Spinnaker Docker images the imageId and imageName are the same
+              mkDeploymentDetail(imageId, imageId, deploymentDetailTemplate, config)
+          ]
+        }
       }
     }
   }
