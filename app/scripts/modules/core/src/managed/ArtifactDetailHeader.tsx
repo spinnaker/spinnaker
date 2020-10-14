@@ -8,19 +8,19 @@ import { getArtifactVersionDisplayName } from './displayNames';
 import './ArtifactDetailHeader.less';
 
 export interface IArtifactDetailHeaderProps {
-  name: string;
+  reference: string;
   version: IManagedArtifactVersion;
   onRequestClose: () => any;
 }
 
-export const ArtifactDetailHeader = ({ name, version, onRequestClose }: IArtifactDetailHeaderProps) => (
+export const ArtifactDetailHeader = ({ reference, version, onRequestClose }: IArtifactDetailHeaderProps) => (
   <div className="ArtifactDetailHeader flex-container-h space-between middle text-bold">
     <div className="header-section-left flex-container-h middle">
       <Icon name="artifact" appearance="light" size="extraLarge" />
-      <span className="header-version-pill">{getArtifactVersionDisplayName(version)}</span>
+      <span className="header-version-pill">{`${getArtifactVersionDisplayName(version)}${
+        reference ? ' ' + reference : ''
+      }`}</span>
     </div>
-
-    <div className="header-section-center">{name}</div>
 
     <div className="header-close flex-container-h center middle" onClick={() => onRequestClose()}>
       <Icon name="close" appearance="light" size="medium" />

@@ -204,17 +204,18 @@ export interface IArtifactDetailProps {
   version: IManagedArtifactVersion;
   allVersions: IManagedArtifactSummary['versions'];
   allEnvironments: IManagedEnvironmentSummary[];
+  showReferenceNames: boolean;
   resourcesByEnvironment: { [environment: string]: IManagedResourceSummary[] };
   onRequestClose: () => any;
 }
 
 export const ArtifactDetail = ({
   application,
-  name,
   reference,
   version: versionDetails,
   allVersions,
   allEnvironments,
+  showReferenceNames,
   resourcesByEnvironment,
   onRequestClose,
 }: IArtifactDetailProps) => {
@@ -233,7 +234,11 @@ export const ArtifactDetail = ({
 
   return (
     <>
-      <ArtifactDetailHeader name={name} version={versionDetails} onRequestClose={onRequestClose} />
+      <ArtifactDetailHeader
+        reference={showReferenceNames ? reference : null}
+        version={versionDetails}
+        onRequestClose={onRequestClose}
+      />
 
       <div className="ArtifactDetail flex-grow">
         <div className="flex-container-h top sp-margin-xl-bottom">

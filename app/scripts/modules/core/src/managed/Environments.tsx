@@ -190,6 +190,7 @@ export function Environments({ app }: IEnvironmentsProps) {
                   version={item.selectedVersionDetails}
                   allVersions={item.selectedArtifactDetails.versions}
                   allEnvironments={environments}
+                  showReferenceNames={artifacts.length > 1}
                   resourcesByEnvironment={resourcesByEnvironment}
                   onRequestClose={() => go('^')}
                 />
