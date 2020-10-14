@@ -79,7 +79,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
     def response
     try {
-      response = webhookService.getStatus(stageData.statusEndpoint, stageData.customHeaders)
+      response = webhookService.getWebhookStatus(stage)
       log.debug(
         "Received status code {} from status endpoint {} in execution {} in stage {}",
         response.statusCode,
@@ -176,28 +176,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   }
 
   @Override void onCancel(@Nonnull StageExecution stage) {
-    WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
-
-    // Only do cancellation if we made the initial webhook request and the user specified a cancellation endpoint
-    if (Strings.isNullOrEmpty(stageData.cancelEndpoint) || Strings.isNullOrEmpty(stageData.webhook?.statusCode)) {
-      return
-    }
-
-    try {
-      log.info("Sending best effort webhook cancellation to ${stageData.cancelEndpoint}")
-      def response = webhookService.exchange(stageData.cancelMethod, stageData.cancelEndpoint, stageData.cancelPayload, stageData.customHeaders)
-      log.debug(
-        "Received status code {} from cancel endpoint {} in execution {} in stage {}",
-        response.statusCode,
-        stageData.cancelEndpoint,
-        stage.execution.id,
-        stage.id
-      )
-    } catch (HttpStatusCodeException e) {
-      log.warn("Failed to cancel webhook ${stageData.cancelEndpoint} with statusCode=${e.getStatusCode().value()}", e)
-    } catch (Exception e) {
-      log.warn("Failed to cancel webhook ${stageData.cancelEndpoint}", e)
-    }
+    webhookService.cancelWebhook(stage)
   }
 
   private static Map<String, ExecutionStatus> createStatusMap(String successStatuses, String canceledStatuses, String terminalStatuses) {

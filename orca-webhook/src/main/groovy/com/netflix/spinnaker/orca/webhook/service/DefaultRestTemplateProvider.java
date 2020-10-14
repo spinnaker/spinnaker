@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.webhook.service;
 
+import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Order
 @Component
-public class DefaultRestTemplateProvider implements RestTemplateProvider {
+public class DefaultRestTemplateProvider implements RestTemplateProvider<WebhookStage.StageData> {
   private final RestTemplate restTemplate;
 
   @Autowired
@@ -32,12 +33,17 @@ public class DefaultRestTemplateProvider implements RestTemplateProvider {
   }
 
   @Override
-  public boolean supports(String targetUrl) {
+  public boolean supports(String targetUrl, WebhookStage.StageData stageData) {
     return true;
   }
 
   @Override
   public RestTemplate getRestTemplate(String targetUrl) {
     return restTemplate;
+  }
+
+  @Override
+  public Class<WebhookStage.StageData> getStageDataType() {
+    return WebhookStage.StageData.class;
   }
 }

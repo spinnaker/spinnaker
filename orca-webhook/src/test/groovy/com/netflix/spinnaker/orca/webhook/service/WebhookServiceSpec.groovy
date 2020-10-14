@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.http.HttpHeaders
@@ -88,12 +90,13 @@ class WebhookServiceSpec extends Specification {
     when:
     HttpHeaders headers = new HttpHeaders()
     headers.add("customHeader", "value")
-    def responseEntity = webhookService.exchange(
-      HttpMethod.POST,
-      "https://localhost/v1/test",
-      payload,
-      customHeaders
-    )
+    StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
+        'url': "https://localhost/v1/test",
+        'method': HttpMethod.POST,
+        'customHeaders': customHeaders,
+        'payload': payload
+    ])
+    def responseEntity = webhookService.callWebhook(stageExecution)
 
     then:
     server.verify()
@@ -123,7 +126,13 @@ class WebhookServiceSpec extends Specification {
       responseActions.andRespond(withSuccess('["element1", 123, false]', MediaType.APPLICATION_JSON))
 
     when:
-    def responseEntity = webhookService.getStatus("https://localhost/v1/status/123", [Authorization: "Basic password"])
+    StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
+        'statusEndpoint': "https://localhost/v1/status/123",
+        'method': HttpMethod.GET,
+        'customHeaders': customHeaders,
+        'payload': null
+    ])
+    def responseEntity = webhookService.getWebhookStatus(stageExecution)
 
     then:
     server.verify()
@@ -158,12 +167,13 @@ class WebhookServiceSpec extends Specification {
 
     when:
     webhookService
-    def responseEntity = webhookService.exchange(
-      HttpMethod.GET,
-      "https://localhost/v1/text/test",
-      null,
-      null
-    )
+    StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
+        'url': "https://localhost/v1/text/test",
+        'method': HttpMethod.GET,
+        'customHeaders': null,
+        'payload': null
+    ])
+    def responseEntity = webhookService.callWebhook(stageExecution)
 
     then:
     server.verify()
@@ -179,12 +189,13 @@ class WebhookServiceSpec extends Specification {
 
     when:
     webhookService
-    def responseEntity = webhookService.exchange(
-      HttpMethod.PATCH,
-      "https://localhost/v1/test",
-      null,
-      null
-    )
+    StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
+        'url': "https://localhost/v1/test",
+        'method': HttpMethod.PATCH,
+        'customHeaders': null,
+        'payload': null
+    ])
+    def responseEntity = webhookService.callWebhook(stageExecution)
 
     then:
     noExceptionThrown()

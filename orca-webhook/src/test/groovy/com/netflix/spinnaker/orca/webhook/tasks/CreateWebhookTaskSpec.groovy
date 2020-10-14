@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
@@ -52,12 +53,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.POST,
-        "https://my-service.io/api/",
-        [payload1: "Hello Spinnaker!"],
-        [header1: "Header"]
-      ) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+      callWebhook(stage) >> new ResponseEntity<Map>([:], HttpStatus.OK)
     }
 
     when:
@@ -74,43 +70,16 @@ class CreateWebhookTaskSpec extends Specification {
     ]
   }
 
-  def "should default to POST if no method is specified"() {
+  def "should succeed when webhook call returns OK status"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", [
       url: "https://my-service.io/api/"
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.POST,
-        "https://my-service.io/api/",
-        null,
-        null
-      ) >> new ResponseEntity<Map>([:], HttpStatus.OK)
-    }
-
-    when:
-    def result = createWebhookTask.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-  }
-
-  def "should support GET"() {
-    setup:
-    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
-      url: "https://my-service.io/api/",
-      waitForCompletion: "false",
-      method: "get"
-    ])
-
-    createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.GET,
-        "https://my-service.io/api/",
-        null,
-        null
-      ) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+      callWebhook(stage) >> {
+        new ResponseEntity<Map>([:], HttpStatus.OK)
+      }
     }
 
     when:
@@ -131,12 +100,7 @@ class CreateWebhookTaskSpec extends Specification {
     def bodyString = "Oh noes, you can't do this"
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.DELETE,
-        "https://my-service.io/api/",
-        [:],
-        [:]
-      ) >> new ResponseEntity<Map>([error: bodyString], HttpStatus.BAD_REQUEST)
+      callWebhook(stage) >> new ResponseEntity<Map>([error: bodyString], HttpStatus.BAD_REQUEST)
     }
 
     when:
@@ -165,12 +129,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.DELETE,
-        "https://my-service.io/api/",
-        [:],
-        [:]
-      ) >> { throwHttpException(status, null) }
+      callWebhook(stage) >> { throwHttpException(status, null) }
     }
 
     WebhookProperties webhookProperties = new WebhookProperties()
@@ -201,7 +160,7 @@ class CreateWebhookTaskSpec extends Specification {
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "https://my-service.io/api/"])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(_, _, _, _) >> {
+      callWebhook(stage) >> {
         // throwing it like UserConfiguredUrlRestrictions::validateURI does
         throw new Exception("Invalid URL", new UnknownHostException("Temporary failure in name resolution"))
       }
@@ -228,7 +187,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(HttpMethod.GET, webhookUrl, _, _) >> {
+      callWebhook(stage) >> {
         throw new ResourceAccessException("I/O error on GET request for ${webhookUrl}", new SocketTimeoutException("timeout"))
       }
     }
@@ -251,7 +210,7 @@ class CreateWebhookTaskSpec extends Specification {
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(_, _, _, _) >> {
+      callWebhook(stage) >> {
         throw new IllegalArgumentException("Invalid URL")
       }
     }
@@ -280,12 +239,7 @@ class CreateWebhookTaskSpec extends Specification {
     HttpStatus statusCode = HttpStatus.BAD_REQUEST
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.DELETE,
-        "https://my-service.io/api/",
-        [:],
-        [:]
-      ) >> { throwHttpException(statusCode, bodyString) }
+      callWebhook(stage) >> { throwHttpException(statusCode, bodyString) }
     }
 
     when:
@@ -325,12 +279,7 @@ class CreateWebhookTaskSpec extends Specification {
     def bodyString = "Fail fast, ok?"
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.GET,
-        "https://my-service.io/api/",
-        [:],
-        [:]
-      ) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+      callWebhook(stage) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
     }
 
     when:
@@ -360,12 +309,7 @@ class CreateWebhookTaskSpec extends Specification {
     def bodyString = "Fail fast, ok?"
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.GET,
-        "https://my-service.io/api/",
-        [:],
-        [:]
-      ) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+      callWebhook(stage) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
     }
 
     when:
@@ -384,7 +328,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >> new ResponseEntity<Map>([success: true], HttpStatus.CREATED)
+      callWebhook(stage) >> new ResponseEntity<Map>([success: true], HttpStatus.CREATED)
     }
 
     when:
@@ -414,7 +358,7 @@ class CreateWebhookTaskSpec extends Specification {
     createWebhookTask.webhookService = Stub(WebhookService) {
       def headers = new HttpHeaders()
       headers.add(HttpHeaders.LOCATION, "https://my-service.io/api/status/123")
-      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >> new ResponseEntity<Map>([success: true], headers, HttpStatus.CREATED)
+      callWebhook(stage) >> new ResponseEntity<Map>([success: true], headers, HttpStatus.CREATED)
     }
 
     when:
@@ -445,7 +389,7 @@ class CreateWebhookTaskSpec extends Specification {
     def body = [success: true, location: "https://my-service.io/api/status/123"]
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+      callWebhook(stage) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
     }
 
     when:
@@ -482,7 +426,7 @@ class CreateWebhookTaskSpec extends Specification {
     ]
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+      callWebhook(stage) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
     }
 
     when:
@@ -508,7 +452,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >>> [
+      callWebhook(stage) >>> [
         new ResponseEntity<Map>([ success: true, id: "1" ], HttpStatus.CREATED),
         new ResponseEntity<Map>([ success: true, id: "2" ], HttpStatus.CREATED)
       ]
@@ -535,12 +479,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.POST,
-        "https://my-service.io/api/",
-        [payload1: "Hello Spinnaker!"],
-        null
-      ) >> new ResponseEntity<String>("<html></html>", HttpStatus.OK)
+      callWebhook(stage) >> new ResponseEntity<String>("<html></html>", HttpStatus.OK)
     }
 
     when:
@@ -567,12 +506,7 @@ class CreateWebhookTaskSpec extends Specification {
     ])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        HttpMethod.POST,
-        "https://my-service.io/api/",
-        [payload1: "Hello Spinnaker!"],
-        null
-      ) >> new ResponseEntity<Map>([
+      callWebhook(stage) >> new ResponseEntity<Map>([
         artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
       ], HttpStatus.OK)
 
@@ -612,12 +546,7 @@ class CreateWebhookTaskSpec extends Specification {
     }
 
     createWebhookTask.webhookService = Stub(WebhookService) {
-      exchange(
-        stage.context.method as HttpMethod,
-        stage.context.url as String,
-        stage.context.payload,
-        null
-      ) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
+      callWebhook(stage) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
 
     }
 

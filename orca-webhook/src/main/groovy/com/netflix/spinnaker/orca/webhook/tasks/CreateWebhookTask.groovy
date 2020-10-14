@@ -48,12 +48,10 @@ class CreateWebhookTask implements RetryableTask {
 
   @Override
   TaskResult execute(StageExecution stage) {
-    WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     WebhookResponseProcessor responseProcessor = new WebhookResponseProcessor(objectMapper, stage, webhookProperties)
-
     try {
-      def response = webhookService.exchange(stageData.method, stageData.url, stageData.payload, stageData.customHeaders)
+      def response = webhookService.callWebhook(stage)
       return responseProcessor.process(response, null)
     } catch (Exception e) {
       return responseProcessor.process(null, e)
