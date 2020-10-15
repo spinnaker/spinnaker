@@ -21,8 +21,6 @@ import static java.lang.String.format;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -44,40 +42,12 @@ public class DefaultStageResolver implements StageResolver {
   public DefaultStageResolver(
       ObjectProvider<Collection<StageDefinitionBuilder>> stageDefinitionBuildersProvider) {
     this.stageDefinitionBuildersProvider = stageDefinitionBuildersProvider;
-    computeStageDefinitionBuilders();
-  }
-
-  /**
-   * Compute a cache of stage definition builders. A local map is first built and validated for
-   * duplicate stages and then copied to the thread safe cache.
-   *
-   * <p>This allows us to re-compute the stage definition builder cache if necessary (on a cache
-   * miss for example) and ensures the validation always runs correctly against the latest set of
-   * {@link StageDefinitionBuilder} classes.
-   */
-  private void computeStageDefinitionBuilders() {
     Collection<StageDefinitionBuilder> stageDefinitionBuilders =
         stageDefinitionBuildersProvider.getIfAvailable(ArrayList::new);
-    Map<String, StageDefinitionBuilder> localStageDefinitionBuildersByAlias = new HashMap<>();
-
     for (StageDefinitionBuilder stageDefinitionBuilder : stageDefinitionBuilders) {
-      localStageDefinitionBuildersByAlias.put(
-          stageDefinitionBuilder.getType(), stageDefinitionBuilder);
-      for (String alias : stageDefinitionBuilder.aliases()) {
-        if (localStageDefinitionBuildersByAlias.containsKey(alias)) {
-          throw new DuplicateStageAliasException(
-              format(
-                  "Duplicate stage alias detected (alias: %s, previous: %s, current: %s)",
-                  alias,
-                  localStageDefinitionBuildersByAlias.get(alias).getClass().getCanonicalName(),
-                  stageDefinitionBuilder.getClass().getCanonicalName()));
-        }
-
-        localStageDefinitionBuildersByAlias.put(alias, stageDefinitionBuilder);
-      }
+      stageDefinitionBuilderByAlias.put(stageDefinitionBuilder.getType(), stageDefinitionBuilder);
+      addAliases(stageDefinitionBuilder);
     }
-
-    stageDefinitionBuilderByAlias.putAll(localStageDefinitionBuildersByAlias);
   }
 
   /**
@@ -95,9 +65,9 @@ public class DefaultStageResolver implements StageResolver {
 
     if (stageDefinitionBuilder == null) {
       log.debug(
-          "Stage definition builder for '{}' not found in initial stage definition builder cache, re-computing...",
+          "Stage definition builder for '{}' not found in initial stage definition builder cache, fetching missing stage from stage provider.",
           type);
-      computeStageDefinitionBuilders();
+      addMissingStagesFromStageProvider();
       stageDefinitionBuilder = getOrDefault(type, typeAlias);
 
       if (stageDefinitionBuilder == null) {
@@ -124,5 +94,37 @@ public class DefaultStageResolver implements StageResolver {
     }
 
     return stageDefinitionBuilder;
+  }
+
+  /**
+   * Lookup stages from the stage provider and add missing stages to stageDefinitionBuilderByAlias
+   * cache.
+   */
+  private void addMissingStagesFromStageProvider() {
+    for (StageDefinitionBuilder stageDefinitionBuilder :
+        stageDefinitionBuildersProvider.getIfAvailable(ArrayList::new)) {
+      if (stageDefinitionBuilderByAlias.get(stageDefinitionBuilder.getType()) == null) {
+        stageDefinitionBuilderByAlias.put(stageDefinitionBuilder.getType(), stageDefinitionBuilder);
+        addAliases(stageDefinitionBuilder);
+        log.info(
+            "{} stage resolved from stage provider and added to cache",
+            stageDefinitionBuilder.getType());
+      }
+    }
+  }
+
+  private void addAliases(StageDefinitionBuilder stageDefinitionBuilder) {
+    for (String alias : stageDefinitionBuilder.aliases()) {
+      if (stageDefinitionBuilderByAlias.containsKey(alias)) {
+        throw new DuplicateStageAliasException(
+            format(
+                "Duplicate stage alias detected (alias: %s, previous: %s, current: %s)",
+                alias,
+                stageDefinitionBuilderByAlias.get(alias).getClass().getCanonicalName(),
+                stageDefinitionBuilder.getClass().getCanonicalName()));
+      }
+
+      stageDefinitionBuilderByAlias.put(alias, stageDefinitionBuilder);
+    }
   }
 }
