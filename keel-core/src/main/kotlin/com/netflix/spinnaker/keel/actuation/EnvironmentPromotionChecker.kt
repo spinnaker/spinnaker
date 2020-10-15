@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
+import com.newrelic.api.agent.Trace
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -22,6 +23,7 @@ class EnvironmentPromotionChecker(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  @Trace(dispatcher=true)
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     val pinnedEnvs: Map<String, PinnedEnvironment> = repository
       .pinnedEnvironments(deliveryConfig)

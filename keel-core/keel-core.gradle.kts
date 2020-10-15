@@ -37,9 +37,9 @@ dependencies {
   api("com.github.ben-manes.caffeine:caffeine")
 
   implementation("org.springframework:spring-tx")
-
   implementation ("io.github.resilience4j:resilience4j-kotlin")
   implementation ("io.github.resilience4j:resilience4j-retry")
+  implementation("com.newrelic.agent.java:newrelic-api:6.1.0")
 
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))

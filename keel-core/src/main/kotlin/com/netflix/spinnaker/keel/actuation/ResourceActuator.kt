@@ -39,6 +39,7 @@ import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
+import com.newrelic.api.agent.Trace
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
@@ -75,6 +76,7 @@ class ResourceActuator(
   private val diffNotActionableEnabled: Boolean
     get() = springEnv.getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false)
 
+  @Trace(dispatcher=true)
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     withTracingContext(resource) {
       val id = resource.id
