@@ -104,7 +104,28 @@ public interface CloudProviderAware {
   }
 
   default @Nullable Moniker getMoniker(StageExecution stage) {
-    return (Moniker) stage.getContext().get("moniker");
+    Object moniker = stage.getContext().get("moniker");
+    if (moniker == null) {
+      return null;
+    }
+
+    if (moniker instanceof Moniker) {
+      return (Moniker) moniker;
+    }
+
+    if (moniker instanceof Map) {
+      var monikerAsMap = (Map<?, ?>) moniker;
+      return Moniker.builder()
+          .app((String) monikerAsMap.get("app"))
+          .cluster((String) monikerAsMap.get("cluster"))
+          .stack((String) monikerAsMap.get("stack"))
+          .detail((String) monikerAsMap.get("detail"))
+          .sequence((Integer) monikerAsMap.get("sequence"))
+          .build();
+    }
+
+    cloudProviderAwareLog.warn("Unexpected moniker in context: {}", moniker);
+    return null;
   }
 
   default ClusterDescriptor getClusterDescriptor(StageExecution stage) {
