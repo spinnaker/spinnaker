@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.titus.deploy.ops
+package com.netflix.spinnaker.clouddriver.titus.deploy.actions
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
@@ -27,53 +29,46 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.Relocatio
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.SelfManaged
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.UnhealthyTasksLimit
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpsertTitusJobDisruptionBudgetAtomicOperation
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertDisruptionBudgetOperationSpec extends Specification {
+class UpsertTitusJobDisruptionBudgetSpec extends Specification {
+  def testCredentials = Mock(NetflixTitusCredentials)
 
-  TitusClient titusClient = Mock(TitusClient)
-
-  TitusClientProvider titusClientProvider = Stub(TitusClientProvider) {
-    getTitusClient(_, _) >> titusClient
-  }
-
-  NetflixTitusCredentials testCredentials = new NetflixTitusCredentials(
-      'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', "blah", "blah", 7104, [], null, null)], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], Permissions.EMPTY, ""
-  )
-
-  DisruptionBudget disruptionBudget = new DisruptionBudget(
-      selfManaged: new SelfManaged(relocationTimeMs: 1),
-      rateUnlimited: false,
-      relocationLimit: new RelocationLimit(limit: 1),
-      unhealthyTasksLimit: new UnhealthyTasksLimit(limitOfUnhealthyContainers: 5)
-  )
-
-  UpsertJobDisruptionBudgetDescription description = new UpsertJobDisruptionBudgetDescription(
-      jobId: "abc123", region: "us-east-1", credentials: testCredentials, disruptionBudget: disruptionBudget
-  )
+  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def titusClientProvider = Mock(TitusClientProvider)
+  def titusClient = Mock(TitusClient)
 
   @Subject
-  AtomicOperation atomicOperation = new UpsertTitusJobDisruptionBudgetAtomicOperation(titusClientProvider, description)
+  UpsertTitusJobDisruptionBudget upsertTitusJobDisruptionBudget = new UpsertTitusJobDisruptionBudget(
+    accountCredentialsProvider, titusClientProvider
+  )
 
-  def setup() {
-    Task task = Mock(Task)
-    TaskRepository.threadLocalTask.set(task)
-  }
-
-  void 'UpdateDisruptionBudgetOperation should update Titus job successfully'() {
+  void 'should update disruption budget'() {
+    given:
+    def saga = new Saga("my-saga", "my-id")
+    def disruptionBudget = new DisruptionBudget()
+    def description = new UpsertJobDisruptionBudgetDescription(
+      jobId: "my-job-id", region: "us-east-1", credentials: testCredentials, disruptionBudget: disruptionBudget
+    )
+    def command = UpsertTitusJobDisruptionBudget.UpsertTitusJobDisruptionBudgetCommand.builder().description(
+      description
+    ).build()
 
     when:
-    atomicOperation.operate([])
+    upsertTitusJobDisruptionBudget.apply(command, saga)
 
     then:
+    1 * accountCredentialsProvider.getCredentials(_) >> { return testCredentials }
+    1 * titusClientProvider.getTitusClient(testCredentials, "us-east-1") >> { return titusClient }
+
     1 * titusClient.updateDisruptionBudget(new JobDisruptionBudgetUpdateRequest()
         .withDisruptionBudget(disruptionBudget)
-        .withJobId("abc123"))
-    disruptionBudget.rateUnlimited == false
-    disruptionBudget.unhealthyTasksLimit.limitOfUnhealthyContainers == 5
-
+        .withJobId("my-job-id"))
+    0 * _
   }
 }

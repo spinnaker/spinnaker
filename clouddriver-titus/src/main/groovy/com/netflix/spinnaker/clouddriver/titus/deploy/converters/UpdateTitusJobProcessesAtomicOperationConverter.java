@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest;
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpdateTitusJobProcessesAtomicOperation;
@@ -33,20 +32,16 @@ import org.springframework.stereotype.Component;
 public class UpdateTitusJobProcessesAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
 
-  private final TitusClientProvider titusClientProvider;
   private final ObjectMapper objectMapper;
 
   @Autowired
-  UpdateTitusJobProcessesAtomicOperationConverter(
-      TitusClientProvider titusClientProvider, ObjectMapper objectMapper) {
-    this.titusClientProvider = titusClientProvider;
+  UpdateTitusJobProcessesAtomicOperationConverter(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
   }
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new UpdateTitusJobProcessesAtomicOperation(
-        titusClientProvider, convertDescription(input));
+    return new UpdateTitusJobProcessesAtomicOperation(convertDescription(input));
   }
 
   @Override

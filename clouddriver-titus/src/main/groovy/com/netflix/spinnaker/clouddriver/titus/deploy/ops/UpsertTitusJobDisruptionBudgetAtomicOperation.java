@@ -16,43 +16,43 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
-import com.netflix.spinnaker.clouddriver.titus.client.model.JobDisruptionBudgetUpdateRequest;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge;
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.UpsertTitusJobDisruptionBudget;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription;
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler;
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
-public class UpsertTitusJobDisruptionBudgetAtomicOperation implements AtomicOperation<Void> {
-
-  private static final String PHASE = "UPSERT_TITUS_JOB_DISRUPTION_BUDGET";
-  private final TitusClientProvider titusClientProvider;
-  private final UpsertJobDisruptionBudgetDescription description;
-
+public class UpsertTitusJobDisruptionBudgetAtomicOperation
+    extends AbstractSagaAtomicOperation<UpsertJobDisruptionBudgetDescription, Void, Void> {
   public UpsertTitusJobDisruptionBudgetAtomicOperation(
-      TitusClientProvider titusClientProvider, UpsertJobDisruptionBudgetDescription description) {
-    this.titusClientProvider = titusClientProvider;
-    this.description = description;
+      UpsertJobDisruptionBudgetDescription description) {
+    super(description);
+  }
+
+  @NotNull
+  @Override
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+        .then(UpsertTitusJobDisruptionBudget.class)
+        .exceptionHandler(TitusExceptionHandler.class);
   }
 
   @Override
-  public Void operate(List priorOutputs) {
-
-    TitusClient titusClient =
-        titusClientProvider.getTitusClient(description.getCredentials(), description.getRegion());
-    getTask()
-        .updateStatus(PHASE, "Updating Titus Job Disruption: " + description.getJobId() + "...");
-
-    titusClient.updateDisruptionBudget(
-        new JobDisruptionBudgetUpdateRequest()
-            .withJobId(description.getJobId())
-            .withDisruptionBudget(description.getDisruptionBudget()));
-    return null;
+  protected void configureSagaBridge(
+      @NotNull @Nonnull
+          SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    builder.initialCommand(
+        UpsertTitusJobDisruptionBudget.UpsertTitusJobDisruptionBudgetCommand.builder()
+            .description(description)
+            .build());
   }
 
-  private static Task getTask() {
-    return TaskRepository.threadLocalTask.get();
+  @Override
+  protected Void parseSagaResult(@NotNull Void result) {
+    return null;
   }
 }
