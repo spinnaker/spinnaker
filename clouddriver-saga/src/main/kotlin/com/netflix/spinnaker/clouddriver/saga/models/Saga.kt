@@ -176,6 +176,8 @@ class Saga(
   }
 
   fun log(message: String) {
+    this.log.info(message)
+
     addEvent(
       SagaLogAppended(
         SagaLogAppended.Message(message, null),

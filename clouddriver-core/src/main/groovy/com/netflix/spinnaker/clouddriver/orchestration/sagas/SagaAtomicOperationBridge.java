@@ -27,6 +27,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
+import org.slf4j.MDC;
 
 /**
  * A helper class to reduce boilerplate code while integrating Sagas into existing AtomicOperations.
@@ -55,18 +56,23 @@ public class SagaAtomicOperationBridge {
 
     applyCommand.sagaFlow.injectFirst(SnapshotAtomicOperationInput.class);
 
-    return sagaService.applyBlocking(
-        sagaName,
-        sagaId,
-        applyCommand.sagaFlow,
-        SnapshotAtomicOperationInput.SnapshotAtomicOperationInputCommand.builder()
-            .cloudProvider(sagaContext.getCloudProvider())
-            .descriptionName(sagaContext.getDescriptionName())
-            .descriptionInput(sagaContext.getOriginalInput())
-            .description(applyCommand.inputDescription)
-            .priorOutputs(applyCommand.priorOutputs)
-            .nextCommand(applyCommand.initialCommand)
-            .build());
+    try {
+      MDC.put("X-SAGA", sagaName + "/" + sagaId);
+      return sagaService.applyBlocking(
+          sagaName,
+          sagaId,
+          applyCommand.sagaFlow,
+          SnapshotAtomicOperationInput.SnapshotAtomicOperationInputCommand.builder()
+              .cloudProvider(sagaContext.getCloudProvider())
+              .descriptionName(sagaContext.getDescriptionName())
+              .descriptionInput(sagaContext.getOriginalInput())
+              .description(applyCommand.inputDescription)
+              .priorOutputs(applyCommand.priorOutputs)
+              .nextCommand(applyCommand.initialCommand)
+              .build());
+    } finally {
+      MDC.remove("X-SAGA");
+    }
   }
 
   @Builder
