@@ -16,94 +16,43 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.MonitorTitusScalingPolicy
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.UpsertTitusScalingPolicy
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
-import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.titus.grpc.protogen.*
-import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
-import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
+import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusScalingPolicyModified
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.UpsertTitusScalingPolicyCompletionHandler
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
+import org.jetbrains.annotations.NotNull
+
+import javax.annotation.Nonnull
 
 @Slf4j
-class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
-
-  UpsertTitusScalingPolicyDescription description
-
+class UpsertTitusScalingPolicyAtomicOperation extends AbstractSagaAtomicOperation<UpsertTitusScalingPolicyDescription, TitusScalingPolicyModified, Map<String, String>> {
   UpsertTitusScalingPolicyAtomicOperation(UpsertTitusScalingPolicyDescription description) {
-    this.description = description
+    super(description)
   }
-
-  private static final String BASE_PHASE = "UPSERT_SCALING_POLICY"
-
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
-  }
-
-  @Autowired
-  TitusClientProvider titusClientProvider
-
-  @Autowired
-  RetrySupport retrySupport
 
   @Override
-  Map operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Upsert Scaling Policy..."
-    def client = titusClientProvider.getTitusAutoscalingClient(description.credentials, description.region)
-
-    if (!client) {
-      throw new UnsupportedOperationException("Autoscaling is not supported for this account/region")
-    }
-
-    if (description.scalingPolicyID) {
-
-      retrySupport.retry({ ->
-        client.updateScalingPolicy(
-          UpdatePolicyRequest.newBuilder()
-            .setScalingPolicy(description.toScalingPolicyBuilder().build())
-            .setPolicyId(ScalingPolicyID.newBuilder().setId(description.scalingPolicyID).build())
-            .build()
-        )
-      }, 10, 3000, false)
-
-      task.updateStatus BASE_PHASE, "Scaling policy successfully updated"
-
-      return [scalingPolicyID: description.scalingPolicyID]
-    } else {
-      ScalingPolicy.Builder builder = description.toScalingPolicyBuilder()
-
-      Builder requestBuilder = PutPolicyRequest.newBuilder()
-        .setScalingPolicy(builder)
-        .setJobId(description.jobId)
-
-      task.updateStatus BASE_PHASE, "Create Scaling Policy request constructed, sending..."
-
-      ScalingPolicyID result = retrySupport.retry({ ->
-        client.createScalingPolicy(requestBuilder.build())
-      }, 10, 3000, false)
-
-      task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}; monitoring creation..."
-
-      // make sure the new policy was applied
-      verifyNewPolicyState(client, result)
-
-      task.updateStatus BASE_PHASE, "Scaling policy successfully created"
-
-      return [scalingPolicyID: result.id]
-    }
-
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(UpsertTitusScalingPolicy.class)
+      .then(MonitorTitusScalingPolicy.class)
+      .exceptionHandler(TitusExceptionHandler.class)
+      .completionHandler(UpsertTitusScalingPolicyCompletionHandler.class);
   }
 
-  private void verifyNewPolicyState(client, result) {
-    retrySupport.retry({ ->
-      ScalingPolicyResult updatedPolicy = client.getScalingPolicy(result.id)
-      if (!updatedPolicy || (updatedPolicy.getPolicyState().state != ScalingPolicyState.Applied)) {
-        throw new IllegalStateException("Timed out while waiting for policy to be applied")
-      }
-    }, 10, 5000, true)
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    def build = UpsertTitusScalingPolicy.UpsertTitusScalingPolicyCommand.builder().description(description).build()
+    builder.initialCommand(build)
   }
 
+  @Override
+  protected Map<String, String> parseSagaResult(@NotNull @Nonnull TitusScalingPolicyModified result) {
+    return [scalingPolicyID: result.getScalingPolicyId()]
+  }
 }
