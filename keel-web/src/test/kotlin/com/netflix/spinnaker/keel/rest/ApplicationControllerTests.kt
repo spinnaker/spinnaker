@@ -1,11 +1,17 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.artifacts.Commit
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.core.api.ArtifactSummary
+import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
@@ -36,6 +42,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.isEqualTo
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
@@ -254,6 +261,58 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 """.trimIndent()
               )
             )
+        }
+      }
+
+      context("with artifact summaries") {
+        context("with crazy Slack markdown in commit message") {
+          before {
+            every {
+              actuationPauser.applicationIsPaused(application)
+            } returns false
+
+            every { applicationService.getArtifactSummariesFor(application, any()) } returns listOf(
+              ArtifactSummary(
+                name = "test",
+                type = DEBIAN,
+                reference = "test",
+                versions = setOf(
+                  ArtifactVersionSummary(
+                    version = "0.0.1",
+                    displayName = "0.0.1",
+                    environments = emptySet(),
+                    git = GitMetadata(
+                      commit = "a1b2c3d",
+                      commitInfo = Commit(
+                        message = """
+                          A commit message with <https://bananas.com|a crazy Slack link>
+                          And a second line with <http://abacaxi.com|another crazy link>
+                          """.trimIndent()
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          }
+
+          test("converts crazy Slack link syntax to regular markdown") {
+            val request = get("/application/$application?entities=artifacts")
+              .accept(APPLICATION_JSON_VALUE)
+            val result = mvc
+              .perform(request)
+              .andExpect(status().isOk)
+              .andDo { println(it.response.contentAsString) }
+              .andReturn()
+            val response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
+            val artifactSummaries = jsonMapper.convertValue<List<ArtifactSummary>>(response["artifacts"]!!)
+            expectThat(artifactSummaries.first().versions.first().git!!.commitInfo!!.message!!)
+              .isEqualTo("""
+                A commit message with [a crazy Slack link](https://bananas.com)
+                And a second line with [another crazy link](http://abacaxi.com)
+                """.trimIndent()
+              )
+          }
         }
       }
     }
