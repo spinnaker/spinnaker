@@ -46,23 +46,24 @@ class WerckerConfig {
         WerckerCache cache,
         IgorConfigurationProperties igorConfigurationProperties,
         OkHttpClientProvider clientProvider,
-        @Valid WerckerProperties werckerProperties) {
+        @Valid WerckerProperties werckerProperties,
+        RestAdapter.LogLevel retrofitLogLevel) {
         log.debug "creating werckerMasters"
         Map<String, WerckerService> werckerMasters = werckerProperties?.masters?.collectEntries { WerckerHost host ->
             log.debug "bootstrapping Wercker ${host.address} as ${host.name}"
-            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, clientProvider), host.permissions.build())]
+            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, clientProvider, retrofitLogLevel), host.permissions.build())]
         }
 
         buildServices.addServices(werckerMasters)
         werckerMasters
     }
 
-    static WerckerClient werckerClient(WerckerHost host, int timeout = 30000, OkHttpClientProvider clientProvider) {
+    static WerckerClient werckerClient(WerckerHost host, int timeout = 30000, OkHttpClientProvider clientProvider, RestAdapter.LogLevel retrofitLogLevel) {
         OkHttpClient client = clientProvider.getClient(new DefaultServiceEndpoint(host.name, host.address, false))
         client = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS).build()
         return new RestAdapter.Builder()
                 .setLog(new Slf4jRetrofitLogger(WerckerService))
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(retrofitLogLevel)
                 .setEndpoint(Endpoints.newFixedEndpoint(host.address))
                 .setClient(new Ok3Client(client))
                 .build()

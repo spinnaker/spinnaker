@@ -34,12 +34,6 @@ import retrofit.converter.JacksonConverter;
 public class KeelConfig {
 
   @Bean
-  public RestAdapter.LogLevel retrofitLogLevel(
-      @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
-    return RestAdapter.LogLevel.valueOf(retrofitLogLevel);
-  }
-
-  @Bean
   public Endpoint keelEndpoint(@Value("${services.keel.base-url}") String keelBaseUrl) {
     return Endpoints.newFixedEndpoint(keelBaseUrl);
   }

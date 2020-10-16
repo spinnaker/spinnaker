@@ -52,7 +52,9 @@ public class PluginMonitorConfig {
 
   @Bean
   public PluginReleaseService pluginReleaseService(
-      OkHttpClientProvider clientProvider, IgorConfigurationProperties properties) {
+      OkHttpClientProvider clientProvider,
+      IgorConfigurationProperties properties,
+      RestAdapter.LogLevel retrofitLogLevel) {
     String address = properties.getServices().getFront50().getBaseUrl();
 
     Front50Service front50Service =
@@ -61,7 +63,7 @@ public class PluginMonitorConfig {
             .setClient(
                 new Ok3Client(
                     clientProvider.getClient(new DefaultServiceEndpoint("front50", address))))
-            .setLogLevel(RestAdapter.LogLevel.BASIC)
+            .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(Front50Service.class))
             .build()
             .create(Front50Service.class);

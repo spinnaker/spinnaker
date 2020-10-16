@@ -75,7 +75,8 @@ public class HelmConfig {
   @Bean
   HelmAccountsService helmAccountsService(
       OkHttpClientConfiguration okHttpClientConfig,
-      IgorConfigurationProperties igorConfigurationProperties) {
+      IgorConfigurationProperties igorConfigurationProperties,
+      RestAdapter.LogLevel retrofitLogLevel) {
     String address = igorConfigurationProperties.getServices().getClouddriver().getBaseUrl();
 
     if (StringUtils.isEmpty(address)) {
@@ -87,7 +88,7 @@ public class HelmConfig {
         .setEndpoint(Endpoints.newFixedEndpoint(address))
         .setClient(new OkClient(okHttpClientConfig.create()))
         .setConverter(new StringConverter())
-        .setLogLevel(RestAdapter.LogLevel.BASIC)
+        .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(HelmAccountsService.class))
         .build()
         .create(HelmAccountsService.class);

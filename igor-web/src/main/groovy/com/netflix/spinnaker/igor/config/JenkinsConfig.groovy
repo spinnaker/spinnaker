@@ -87,7 +87,8 @@ class JenkinsConfig {
                                                JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider,
                                                JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider,
                                                Registry registry,
-                                               CircuitBreakerRegistry circuitBreakerRegistry) {
+                                               CircuitBreakerRegistry circuitBreakerRegistry,
+                                               RestAdapter.LogLevel retrofitLogLevel) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
@@ -98,6 +99,7 @@ class JenkinsConfig {
                     jenkinsOkHttpClientProvider.provide(host),
                     jenkinsRetrofitRequestInterceptorProvider.provide(host),
                     registry,
+                    retrofitLogLevel,
                     igorConfigurationProperties.client.timeout
                 ),
                 host.csrf,
@@ -130,6 +132,7 @@ class JenkinsConfig {
                                        OkHttpClient client,
                                        RequestInterceptor requestInterceptor,
                                        Registry registry,
+                                       RestAdapter.LogLevel retrofitLogLevel,
                                        int timeout = 30000) {
 
         OkHttpClient.Builder clientBuilder = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS)
@@ -185,7 +188,7 @@ class JenkinsConfig {
                     requestInterceptor.intercept(request)
                 }
             })
-            .setLogLevel(RestAdapter.LogLevel.BASIC)
+            .setLogLevel(retrofitLogLevel)
             .setClient(new Ok3Client(clientBuilder.build()))
             .setConverter(new JacksonConverter(getObjectMapper()))
             .setLog(new Slf4jRetrofitLogger(JenkinsClient))
@@ -205,9 +208,9 @@ class JenkinsConfig {
         return trustManagerFactory.trustManagers
     }
 
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, Registry registry = null, int timeout = 30000) {
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, Registry registry = null, RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
-        jenkinsClient(host, client, RequestInterceptor.NONE, registry, timeout)
+        jenkinsClient(host, client, RequestInterceptor.NONE, registry, retrofitLogLevel, timeout)
     }
 
     static class TrustAllTrustManager implements X509TrustManager {

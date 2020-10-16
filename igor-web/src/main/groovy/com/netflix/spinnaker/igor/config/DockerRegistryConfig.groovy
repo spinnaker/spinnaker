@@ -42,7 +42,9 @@ class DockerRegistryConfig {
     }
 
     @Bean
-    ClouddriverService dockerRegistryProxyService(OkHttpClientProvider clientProvider, IgorConfigurationProperties igorConfigurationProperties) {
+    ClouddriverService dockerRegistryProxyService(OkHttpClientProvider clientProvider,
+                                                  IgorConfigurationProperties igorConfigurationProperties,
+                                                  RestAdapter.LogLevel retrofitLogLevel) {
         def address = igorConfigurationProperties.services.clouddriver.baseUrl ?: 'none'
         if (address == 'none') {
             null
@@ -51,7 +53,7 @@ class DockerRegistryConfig {
         new RestAdapter.Builder()
                 .setEndpoint(Endpoints.newFixedEndpoint(address))
                 .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", address))))
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(retrofitLogLevel)
                 .setLog(new Slf4jRetrofitLogger(ClouddriverService))
                 .build()
                 .create(ClouddriverService)

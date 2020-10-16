@@ -17,6 +17,7 @@ import com.netflix.spinnaker.igor.wercker.model.*
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import okhttp3.OkHttpClient
+import retrofit.RestAdapter
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -100,7 +101,7 @@ class WerckerClientSpec extends Specification {
                 )
         server.start()
         def host = new WerckerHost(name: 'werckerMaster', address: server.url('/').toString())
-        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]))
+        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), RestAdapter.LogLevel.BASIC)
     }
 
     String read(String fileName) {

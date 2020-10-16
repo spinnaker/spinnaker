@@ -35,7 +35,9 @@ import retrofit.RestAdapter
 @Configuration
 class EchoConfig {
     @Bean
-    EchoService echoService(OkHttpClientProvider okHttpClientProvider, IgorConfigurationProperties igorConfigurationProperties) {
+    EchoService echoService(OkHttpClientProvider okHttpClientProvider,
+                            IgorConfigurationProperties igorConfigurationProperties,
+                            RestAdapter.LogLevel retrofitLogLevel) {
         String address = igorConfigurationProperties.services.echo.baseUrl ?: 'none'
 
         if (address == 'none') {
@@ -45,7 +47,7 @@ class EchoConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setClient(new Ok3Client(okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", address))))
-            .setLogLevel(RestAdapter.LogLevel.NONE)
+            .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(EchoService))
             .build()
             .create(EchoService)

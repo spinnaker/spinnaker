@@ -45,20 +45,21 @@ import javax.validation.Valid
 class StashConfig {
 
     @Bean
-    StashMaster stashMaster(@Valid StashProperties stashProperties) {
+    StashMaster stashMaster(@Valid StashProperties stashProperties,
+                            RestAdapter.LogLevel retrofitLogLevel) {
         log.info "bootstrapping ${stashProperties.baseUrl} as stash"
         new StashMaster(
-            stashClient: stashClient(stashProperties.baseUrl, stashProperties.username, stashProperties.password),
+            stashClient: stashClient(stashProperties.baseUrl, stashProperties.username, stashProperties.password, retrofitLogLevel),
             baseUrl: stashProperties.baseUrl)
     }
 
-    StashClient stashClient(String address, String username, String password) {
+    StashClient stashClient(String address, String username, String password, RestAdapter.LogLevel retrofitLogLevel) {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
             .setClient(new OkClient())
             .setConverter(new JacksonConverter())
-            .setLogLevel(RestAdapter.LogLevel.BASIC)
+            .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(StashClient))
             .build()
             .create(StashClient)
