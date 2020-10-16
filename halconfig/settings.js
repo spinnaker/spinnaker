@@ -37,6 +37,13 @@ var appengine = {
     account: '{%appengine.default.account%}',
   },
 };
+var oracle = {
+  defaults: {
+    account: '{%oracle.default.account%}',
+    bakeryRegions: '{%oracle.default.bakeryRegions%}',
+    region: '{%oracle.default.region%}',
+  },
+};
 var aws = {
   defaults: {
     account: '{%aws.default.account%}',
@@ -140,7 +147,7 @@ window.spinnakerSettings = {
     gce: gce,
     huaweicloud: huaweicloud,
     kubernetes: {},
-    oracle: {},
+    oracle: oracle,
     tencentcloud: tencentcloud,
   },
   version: version,
