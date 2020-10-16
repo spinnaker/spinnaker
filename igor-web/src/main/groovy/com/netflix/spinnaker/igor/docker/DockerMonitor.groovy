@@ -159,7 +159,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                 if (sendEvents && item.sendEvent) {
                     postEvent(delta.cachedImages, item.image, item.imageId)
                 } else {
+                  if (!sendEvents) {
                     registry.counter(missedNotificationId.withTags("monitor", getName(), "reason", "fastForward")).increment()
+                  } else {
+                    registry.counter(missedNotificationId.withTags("monitor", getName(), "reason", "skippedDueToEmptyCache")).increment()
+                  }
                 }
             }
         }
