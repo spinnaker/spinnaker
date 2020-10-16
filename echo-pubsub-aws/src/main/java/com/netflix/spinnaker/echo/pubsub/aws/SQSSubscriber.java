@@ -128,11 +128,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
         initializeQueue();
       } catch (Exception e) {
         log.error("Unexpected error running " + getWorkerName() + ", restarting worker", e);
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e1) {
-          log.error("Thread {} interrupted while sleeping", getWorkerName(), e1);
-        }
+        sleepALittle();
       }
     }
   }
@@ -161,6 +157,9 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
       receiveMessageResult.getMessages().forEach(this::handleMessage);
     }
+
+    // If isEnabled is false, let's not busy spin
+    sleepALittle();
   }
 
   private void handleMessage(Message message) {
@@ -257,5 +256,13 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     return registry
         .createId("echo.pubsub.amazon.failedMessages")
         .withTag("exceptionClass", e.getClass().getSimpleName());
+  }
+
+  private void sleepALittle() {
+    try {
+      Thread.sleep(500);
+    } catch (InterruptedException e1) {
+      log.error("Thread {} interrupted while sleeping", getWorkerName(), e1);
+    }
   }
 }

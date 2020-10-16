@@ -150,6 +150,6 @@ public class SQSSubscriberProvider {
   private Supplier<Boolean> isEnabledSupplier() {
     return () ->
         discoveryStatusListener.isEnabled()
-            && dynamicConfigService.isEnabled("pubsub.amazon", true);
+            && dynamicConfigService.isEnabled("pubsub.amazon.processing", true);
   }
 }
