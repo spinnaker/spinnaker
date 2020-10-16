@@ -302,7 +302,9 @@ export const ArtifactDetail = ({
                 <VersionMetadataItem
                   label="Message"
                   value={
-                    <span style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{git.commitInfo.message}</span>
+                    <span style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                      <Markdown message={git.commitInfo.message} tag="span" />
+                    </span>
                   }
                 />
               </>
