@@ -41,11 +41,12 @@ public final class ArtifactDownloaderImpl implements ArtifactDownloader {
         throw new IOException(
             String.format(
                 "Failed to read input stream of downloaded artifact: %s. Error: %s",
-                artifact, e.getMessage()));
+                artifact, e.getMessage()),
+            e);
       }
     } catch (RetrofitError e) {
       throw new IOException(
-          String.format("Failed to download artifact: %s. Error: %s", artifact, e.getMessage()));
+          String.format("Failed to download artifact: %s. Error: %s", artifact, e.getMessage()), e);
     }
   }
 }
