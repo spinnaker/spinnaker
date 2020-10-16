@@ -22,7 +22,7 @@ import java.time.Duration
 
 class UnhealthyNotificationListenerTests : JUnit5Minutests {
   class Fixture {
-    val config = UnhealthyNotificationConfig()
+    val config = UnhealthyNotificationConfig(minUnhealthyDuration = Duration.ofMinutes(5))
     val unhealthyRepository: UnhealthyRepository = mockk(relaxed = true)
     val springEnv: Environment = mockk(relaxed = true) {
       every { getProperty("keel.notifications.unhealthy", Boolean::class.java, true)} returns true
