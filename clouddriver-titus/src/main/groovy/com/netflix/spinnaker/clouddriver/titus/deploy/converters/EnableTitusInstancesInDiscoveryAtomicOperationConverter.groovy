@@ -29,17 +29,9 @@ import org.springframework.stereotype.Component
 @Component
 @TitusOperation(AtomicOperations.ENABLE_INSTANCES_IN_DISCOVERY)
 class EnableTitusInstancesInDiscoveryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  private final TitusClientProvider titusClientProvider
-
-  @Autowired
-  EnableTitusInstancesInDiscoveryAtomicOperationConverter(TitusClientProvider titusClientProvider) {
-    this.titusClientProvider = titusClientProvider
-  }
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new EnableTitusInstancesInDiscoveryAtomicOperation(titusClientProvider, convertDescription(input))
+    new EnableTitusInstancesInDiscoveryAtomicOperation(convertDescription(input))
   }
 
   @Override

@@ -29,17 +29,9 @@ import org.springframework.stereotype.Component
 @TitusOperation(AtomicOperations.DISABLE_SERVER_GROUP)
 @Component
 class DisableTitusServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  private final TitusClientProvider titusClientProvider
-
-  @Autowired
-  DisableTitusServerGroupAtomicOperationConverter(TitusClientProvider titusClientProvider) {
-    this.titusClientProvider = titusClientProvider
-  }
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DisableTitusServerGroupAtomicOperation(titusClientProvider, convertDescription(input))
+    new DisableTitusServerGroupAtomicOperation(convertDescription(input))
   }
 
   @Override

@@ -16,21 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery
 
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.DisableTitusTasks
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class DisableTitusInstancesInDiscoveryAtomicOperation extends AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation {
-  DisableTitusInstancesInDiscoveryAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableInstanceDiscoveryDescription description) {
-    super(titusClientProvider, description)
+import javax.annotation.Nonnull
+
+class DisableTitusInstancesInDiscoveryAtomicOperation extends AbstractSagaAtomicOperation<EnableDisableInstanceDiscoveryDescription, Void, Void> {
+  DisableTitusInstancesInDiscoveryAtomicOperation(EnableDisableInstanceDiscoveryDescription description) {
+    super(description)
   }
 
   @Override
-  boolean isEnable() {
-    return false
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(DisableTitusTasks.class)
+      .exceptionHandler(TitusExceptionHandler.class);
   }
 
   @Override
-  String getPhaseName() {
-    return "DISABLE_INSTANCES_IN_DISCOVERY"
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    def build = DisableTitusTasks.DisableTitusTasksCommand.builder().description(description).build()
+    builder.initialCommand(build)
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }

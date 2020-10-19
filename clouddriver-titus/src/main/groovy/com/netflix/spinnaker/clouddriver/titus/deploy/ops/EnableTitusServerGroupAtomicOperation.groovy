@@ -15,18 +15,36 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.EnableTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class EnableTitusServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
-  final String phaseName = "ENABLE_TITUS_SERVER_GROUP"
+import javax.annotation.Nonnull
 
-  EnableTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableServerGroupDescription description) {
-    super(titusClientProvider, description)
+class EnableTitusServerGroupAtomicOperation extends AbstractSagaAtomicOperation<EnableDisableServerGroupDescription, Void, Void> {
+  EnableTitusServerGroupAtomicOperation(EnableDisableServerGroupDescription description) {
+    super(description)
   }
 
   @Override
-  boolean isDisable() {
-    false
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(EnableTitusJob.class)
+      .exceptionHandler(TitusExceptionHandler.class);
+  }
+
+  @Override
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    def build = EnableTitusJob.EnableTitusJobCommand.builder().description(description).build()
+    builder.initialCommand(build)
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }

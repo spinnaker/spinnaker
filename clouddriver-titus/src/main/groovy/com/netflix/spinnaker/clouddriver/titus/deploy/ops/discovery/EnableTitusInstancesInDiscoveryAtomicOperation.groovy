@@ -16,21 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery
 
-import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.AbstractSagaAtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SagaAtomicOperationBridge
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
+import com.netflix.spinnaker.clouddriver.titus.deploy.actions.EnableTitusTasks
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusExceptionHandler
+import org.jetbrains.annotations.NotNull
 
-class EnableTitusInstancesInDiscoveryAtomicOperation extends AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation {
-  EnableTitusInstancesInDiscoveryAtomicOperation(TitusClientProvider titusClientProvider, EnableDisableInstanceDiscoveryDescription description) {
-    super(titusClientProvider, description)
+import javax.annotation.Nonnull
+
+class EnableTitusInstancesInDiscoveryAtomicOperation extends AbstractSagaAtomicOperation<EnableDisableInstanceDiscoveryDescription, Void, Void> {
+  EnableTitusInstancesInDiscoveryAtomicOperation(EnableDisableInstanceDiscoveryDescription description) {
+    super(description)
   }
 
   @Override
-  boolean isEnable() {
-    return true
+  protected SagaFlow buildSagaFlow(List priorOutputs) {
+    return new SagaFlow()
+      .then(EnableTitusTasks.class)
+      .exceptionHandler(TitusExceptionHandler.class);
   }
 
   @Override
-  String getPhaseName() {
-    return "ENABLE_INSTANCES_IN_DISCOVERY"
+  protected void configureSagaBridge(@NotNull @Nonnull SagaAtomicOperationBridge.ApplyCommandWrapper.ApplyCommandWrapperBuilder builder) {
+    def build = EnableTitusTasks.EnableTitusTasksCommand.builder().description(description).build()
+    builder.initialCommand(build)
+  }
+
+  @Override
+  protected Void parseSagaResult(@NotNull @Nonnull Void result) {
+    return null
   }
 }
