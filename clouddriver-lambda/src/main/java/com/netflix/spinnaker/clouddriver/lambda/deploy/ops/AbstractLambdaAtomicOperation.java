@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.AbstractLambdaFunctionDescription;
+import com.netflix.spinnaker.clouddriver.lambda.deploy.exception.InvalidAccountException;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -52,7 +53,9 @@ public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunc
   AWSLambda getLambdaClient() {
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
-
+    if (!credentialAccount.getLambdaEnabled()) {
+      throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
+    }
     return amazonClientProvider.getAmazonLambda(credentialAccount, region);
   }
 
