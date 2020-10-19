@@ -26,4 +26,5 @@ dependencies {
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   testImplementation("org.funktionale:funktionale-partials")
   testImplementation("org.apache.commons:commons-lang3")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
 }

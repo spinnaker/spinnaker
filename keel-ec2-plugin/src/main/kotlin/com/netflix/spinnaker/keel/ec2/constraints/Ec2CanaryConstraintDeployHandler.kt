@@ -139,6 +139,7 @@ class Ec2CanaryConstraintDeployHandler(
     image: String
   ): Map<String, Any?> {
     val moniker = parseMoniker(name)
+    val launchTemplateData = launchTemplate?.launchTemplateData
     return mutableMapOf(
       "application" to moniker.app,
       "stack" to moniker.stack,
@@ -149,13 +150,13 @@ class Ec2CanaryConstraintDeployHandler(
       "amiName" to image,
       "availabilityZones" to mapOf(region to zones),
       "capacity" to Capacity(capacity, capacity, capacity),
-      "ebsOptimized" to launchConfig.ebsOptimized,
+      "ebsOptimized" to (launchConfig?.ebsOptimized ?: launchTemplateData!!.ebsOptimized),
       "healthCheckGracePeriod" to asg.healthCheckGracePeriod,
       "healthCheckType" to asg.healthCheckType,
-      "iamRole" to launchConfig.iamInstanceProfile,
-      "instanceMonitoring" to launchConfig.instanceMonitoring.enabled,
-      "instanceType" to launchConfig.instanceType,
-      "keyPair" to launchConfig.keyName,
+      "iamRole" to (launchConfig?.iamInstanceProfile ?: launchTemplateData!!.iamInstanceProfile.name),
+      "instanceMonitoring" to (launchConfig?.instanceMonitoring?.enabled ?: launchTemplateData!!.monitoring.enabled),
+      "instanceType" to (launchConfig?.instanceType ?: launchTemplateData!!.instanceType),
+      "keyPair" to (launchConfig?.keyName ?: launchTemplateData!!.keyName),
       "loadBalancers" to loadBalancers,
       "targetGroups" to targetGroups,
       "securityGroups" to securityGroups,

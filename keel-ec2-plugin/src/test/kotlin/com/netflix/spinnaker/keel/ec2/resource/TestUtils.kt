@@ -10,9 +10,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.IamInstanceProfile
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
+import com.netflix.spinnaker.keel.clouddriver.model.LaunchTemplate
+import com.netflix.spinnaker.keel.clouddriver.model.LaunchTemplateData
 import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
@@ -26,14 +29,53 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import org.apache.commons.lang3.RandomStringUtils
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup as ClouddriverServerGroup
 
+
+/**
+ * There are two possible types of payloads that can be returned from clouddriver
+ *
+ * The older launch configuration
+ * The newer launch templates
+ */
+enum class LaunchInfo {
+  LAUNCH_CONFIG,
+  LAUNCH_TEMPLATE
+}
+
 fun ServerGroup.toCloudDriverResponse(
   vpc: Network,
   subnets: List<Subnet>,
   securityGroups: List<SecurityGroupSummary>,
   image: ServerGroup.ActiveServerGroupImage? = null,
-  instanceCounts: ServerGroup.InstanceCounts = ServerGroup.InstanceCounts(1, 1, 0, 0, 0, 0)
+  instanceCounts: ServerGroup.InstanceCounts = ServerGroup.InstanceCounts(1, 1, 0, 0, 0, 0),
+  launchInfo: LaunchInfo = LaunchInfo.LAUNCH_CONFIG
+
 ): ActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
+    var launchConfig : LaunchConfig? = null
+    var launchTemplate : LaunchTemplate? = null
+
+    when(launchInfo) {
+      LaunchInfo.LAUNCH_CONFIG -> {
+        launchConfig = LaunchConfig(
+          ebsOptimized=launchConfiguration.ebsOptimized,
+          iamInstanceProfile=launchConfiguration.iamRole,
+          imageId=launchConfiguration.imageId,
+          instanceMonitoring=InstanceMonitoring(launchConfiguration.instanceMonitoring),
+          instanceType=launchConfiguration.instanceType,
+          keyName=launchConfiguration.keyPair,
+          ramdiskId=launchConfiguration.ramdiskId)
+      }
+      LaunchInfo.LAUNCH_TEMPLATE -> {
+        launchTemplate = LaunchTemplate(LaunchTemplateData(
+          ebsOptimized=launchConfiguration.ebsOptimized,
+          iamInstanceProfile= IamInstanceProfile(launchConfiguration.iamRole),
+          imageId=launchConfiguration.imageId,
+          instanceType=launchConfiguration.instanceType,
+          keyName=launchConfiguration.keyPair,
+          monitoring=InstanceMonitoring(launchConfiguration.instanceMonitoring),
+          ramDiskId=launchConfiguration.ramdiskId))
+      }
+    }
     ActiveServerGroup(
       name = "$name-v$sequence",
       region = location.region,
@@ -46,15 +88,8 @@ fun ServerGroup.toCloudDriverResponse(
         imageLocation = "location",
         description = image?.description
       ),
-      launchConfig = LaunchConfig(
-        launchConfiguration.ramdiskId,
-        launchConfiguration.ebsOptimized,
-        launchConfiguration.imageId,
-        launchConfiguration.instanceType,
-        launchConfiguration.keyPair,
-        launchConfiguration.iamRole,
-        InstanceMonitoring(launchConfiguration.instanceMonitoring)
-      ),
+      launchConfig = launchConfig,
+      launchTemplate = launchTemplate,
       asg = AutoScalingGroup(
         "$name-v$sequence",
         health.cooldown.seconds,
@@ -310,6 +345,7 @@ fun ActiveServerGroup.toAllServerGroupsResponse(
     zones = zones,
     image = image,
     launchConfig = launchConfig,
+    launchTemplate = launchTemplate,
     asg = asg,
     scalingPolicies = scalingPolicies,
     vpcId = vpcId,

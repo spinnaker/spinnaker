@@ -79,13 +79,14 @@ import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.map
 
+@Suppress("MemberVisibilityCanBePrivate")
 internal class ClusterHandlerTests : JUnit5Minutests {
 
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
-  val clock = Clock.systemUTC()
+  val clock = Clock.systemUTC()!!
   val publisher: EventPublisher = mockk(relaxUnitFun = true)
   val repository = mockk<KeelRepository>()
   val taskLauncher = OrcaTaskLauncher(
@@ -1016,7 +1017,7 @@ private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
       imageId = "ami-573e1b2650a5",
       appVersion = "keel-0.251.0-h167.9ea0465"
     ),
-    launchConfig = launchConfig.copy(
+    launchConfig = launchConfig?.copy(
       imageId = "ami-573e1b2650a5"
     )
   )
