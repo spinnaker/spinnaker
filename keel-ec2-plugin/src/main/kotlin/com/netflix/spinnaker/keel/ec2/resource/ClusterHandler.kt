@@ -79,6 +79,7 @@ import com.netflix.spinnaker.keel.orca.waitStage
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -433,7 +434,11 @@ class ClusterHandler(
     ) ?: RedBlack()
 
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = AppVersion.parseName(base.image?.appVersion).packageName
+    val appversion = try {
+      AppVersion.parseName(base.image?.appVersion).packageName
+    } catch (ex: Exception) {
+      throw SystemException("trying to parse name for image ${base.image?.name} with version ${base.image?.appVersion} but got an exception", ex)
+    }
 
     val spec = ClusterSpec(
       moniker = exportable.moniker,
@@ -482,7 +487,11 @@ class ClusterHandler(
     }
 
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val artifactName = AppVersion.parseName(base.launchConfiguration.appVersion).packageName
+    val artifactName = try {
+      AppVersion.parseName(base.launchConfiguration.appVersion).packageName
+    } catch (ex: Exception) {
+      throw SystemException("trying to parse name for configuration ${base.launchConfiguration} with version ${base.launchConfiguration.appVersion} but got an exception", ex)
+    }
 
     val status = debianArtifactParser.parseStatus(base.launchConfiguration.appVersion?.substringAfter("$artifactName-"))
     if (status == UNKNOWN) {

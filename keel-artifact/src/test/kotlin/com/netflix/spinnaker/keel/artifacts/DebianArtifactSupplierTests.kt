@@ -25,6 +25,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -46,6 +47,14 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       type = debianArtifact.type,
       reference = debianArtifact.reference,
       version = "${debianArtifact.name}-${versions.last()}",
+      metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
+    )
+
+    val artifactWithInvalidVersion = PublishedArtifact(
+      name = debianArtifact.name,
+      type = debianArtifact.type,
+      reference = debianArtifact.reference,
+      version = "etcd-3.4.10-hlocal.856d0b1",
       metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
     )
 
@@ -136,6 +145,11 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         val buildMeta = BuildMetadata(id = AppVersion.parseName(latestArtifact.version)!!.buildNumber.toInt())
         expectThat(debianArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, debianArtifact.versioningStrategy))
           .isEqualTo(buildMeta)
+      }
+
+      test("frigga parser can't parse this version") {
+        expectThat(debianArtifactSupplier.parseDefaultBuildMetadata(artifactWithInvalidVersion, debianArtifact.versioningStrategy))
+          .isNull()
       }
 
       test("returns artifact metadata based on ci provider") {

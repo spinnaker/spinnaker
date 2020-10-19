@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -89,7 +90,11 @@ class ImageResolver(
     ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
     val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
       // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-      appVersion = AppVersion.parseName(artifactVersion),
+      appVersion = try {
+        AppVersion.parseName(artifactVersion)
+      } catch (ex: Exception) {
+        throw SystemException("trying to parse name for version $artifactVersion but got an exception", ex)
+      },
       account = account,
       regions = regions
     ) ?: throw NoImageFoundForRegions(artifactVersion, regions)

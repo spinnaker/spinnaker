@@ -62,33 +62,52 @@ class DebianArtifactSupplier(
 
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = AppVersion.parseName(artifact.version)
-    return if (appversion?.version != null) {
-      appversion.version
-    } else {
-      artifact.version.removePrefix("${artifact.name}-")
+    val appversion = parseName(artifact)
+    if (appversion != null) {
+      if (appversion.version != null) {
+        return appversion.version
+      } else {
+        return artifact.version.removePrefix("${artifact.name}-")
+      }
     }
+    return artifact.version
   }
 
   override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = AppVersion.parseName(artifact.version)
-    if (appversion?.buildNumber != null) {
-      return BuildMetadata(id = appversion.buildNumber.toInt())
+    return try {
+      val appversion = AppVersion.parseName(artifact.version)
+      if (appversion?.buildNumber != null) {
+        return BuildMetadata(id = appversion.buildNumber.toInt())
+      }
+      return null
+    } catch (ex: NumberFormatException) {
+      log.warn("parsed appversion.buildNumber for artifact version ${artifact.version} is not a number! ")
+      null
+    } catch (ex: Exception) {
+      log.warn("trying to parse artifact ${artifact.name} with version ${artifact.version} but got an exception", ex)
+      null
     }
-    return null
   }
 
   override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = AppVersion.parseName(artifact.version)
+    val appversion = parseName(artifact)
     if (appversion?.commit != null) {
       return GitMetadata(commit = appversion.commit)
     }
     return null
   }
+
+  private fun parseName(artifact: PublishedArtifact): AppVersion? =
+    try {
+      AppVersion.parseName(artifact.version)
+    } catch (ex: Exception) {
+      log.warn("trying to parse artifact ${artifact.name} with version ${artifact.version} but got an exception", ex)
+      null
+    }
 
 
   // Debian Artifacts should contain a releaseStatus in the metadata
