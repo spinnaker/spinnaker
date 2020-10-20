@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredI
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import org.springframework.core.env.Environment
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -17,6 +18,9 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class WaitForClusterDisableTaskSpec extends Specification {
   def oortHelper = Mock(OortHelper)
+  def environment = Mock(Environment) {
+    getProperty(WaitForClusterDisableTask.TOGGLE, Boolean, false) >> true
+  }
 
   @Shared def region = "region"
   @Shared def clusterName = "clusterName"
@@ -28,7 +32,10 @@ class WaitForClusterDisableTaskSpec extends Specification {
     getOperations(_) >> [["aOp": "foo"]]
   }
 
-  @Subject def task = new WaitForClusterDisableTask([serverGroupCreator])
+  @Subject WaitForClusterDisableTask task = new WaitForClusterDisableTask([serverGroupCreator]).with {
+    environment = this.environment
+    return it
+  }
 
   @Unroll
   def "status=#status when desiredPercentage=#desiredPct, interestingHealthProviderNames=#interestingHealthProviderNames"() {

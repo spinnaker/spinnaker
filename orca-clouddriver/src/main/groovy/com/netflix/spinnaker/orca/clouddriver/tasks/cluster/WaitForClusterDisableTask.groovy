@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreat
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import org.springframework.beans.factory.annotation.Value
 
@@ -32,6 +33,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   // to make the logic more readable, we map true and false to words
   private static final boolean RUNNING = true
   private static final boolean COMPLETED = false
+  static final String TOGGLE = "tasks.wait-for-cluster-disable.enforce-disabled-flag.enabled"
 
   @Value('${tasks.disable-cluster-min-time-millis:90000}')
   private int MINIMUM_WAIT_TIME_MS
@@ -40,6 +42,9 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
 
   @Autowired
   WaitForRequiredInstancesDownTask waitForRequiredInstancesDownTask
+
+  @Autowired
+  Environment environment
 
   @Autowired
   public WaitForClusterDisableTask(Collection<ServerGroupCreator> serverGroupCreators) {
@@ -79,7 +84,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
 
     // make sure that we wait for the disabled flag to be set
     def targetServerGroup = serverGroup.get()
-    if (!targetServerGroup.isDisabled()) {
+    if (environment.getProperty(TOGGLE, Boolean, false) && !targetServerGroup.isDisabled()) {
       return RUNNING
     }
 
