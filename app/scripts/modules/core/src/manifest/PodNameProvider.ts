@@ -34,7 +34,7 @@ export class JobEventBasedPodNameProvider implements IPodNameProvider {
 
   public getPodName(): string {
     const { manifestEvent } = this;
-    return this.canParsePodName() ? trim(manifestEvent.message.split(':')[1]) : '';
+    return this.canParsePodName() ? trim(manifestEvent.message?.split(':')[1]) : '';
   }
 
   private canParsePodName(): boolean {
@@ -43,7 +43,7 @@ export class JobEventBasedPodNameProvider implements IPodNameProvider {
       !!manifest.manifest &&
       !!manifest.manifest.status &&
       !!manifestEvent &&
-      !!manifestEvent.message.startsWith('Created pod') &&
+      !!manifestEvent.message?.startsWith('Created pod') &&
       manifest.manifest.kind.toLowerCase() === 'job'
     );
   }
