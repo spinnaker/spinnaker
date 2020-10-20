@@ -1,6 +1,7 @@
 import { module, IPromise } from 'angular';
 
 import { OracleProviderSettings } from 'oracle/oracle.settings';
+import { OracleDefaultProviderSettings } from 'oracle/oracle.settings';
 import { Application } from '@spinnaker/core';
 
 import {
@@ -72,8 +73,16 @@ export class OracleLoadBalancerTransformer {
   }
 
   public constructNewLoadBalancerTemplate(application: Application): IOracleLoadBalancerUpsertCommand {
-    const defaultCredentials = application.defaultCredentials.oracle || OracleProviderSettings.defaults.account;
-    const defaultRegion = application.defaultRegions.oracle || OracleProviderSettings.defaults.region;
+    const defaultCredentials =
+      application.defaultCredentials.oracle ||
+      (OracleProviderSettings.defaults
+        ? OracleProviderSettings.defaults.account
+        : OracleDefaultProviderSettings.defaults.account);
+    const defaultRegion =
+      application.defaultRegions.oracle ||
+      (OracleProviderSettings.defaults
+        ? OracleProviderSettings.defaults.region
+        : OracleDefaultProviderSettings.defaults.region);
     return {
       name: undefined,
       cloudProvider: 'oracle',

@@ -12,3 +12,7 @@ export const OracleProviderSettings: IOracleProviderSettings = (SETTINGS.provide
 if (OracleProviderSettings) {
   OracleProviderSettings.resetToOriginal = SETTINGS.resetProvider('oracle');
 }
+
+export const OracleDefaultProviderSettings = {
+  defaults: { account: 'DEFAULT', bakeryRegions: 'us-phoenix-1', region: 'us-phoenix-1' },
+};
