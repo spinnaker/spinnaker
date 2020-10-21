@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { IHelmTrigger } from 'core/domain/IHelmTrigger';
@@ -34,7 +33,7 @@ const HelmManualTriggerConfig = (props: ITriggerTemplateComponentProps) => {
   );
 };
 
-HelmManualTriggerConfig.formatLabel = (trigger: IHelmTrigger): IPromise<string> => {
+HelmManualTriggerConfig.formatLabel = (trigger: IHelmTrigger): PromiseLike<string> => {
   return $q.when(`(Helm) ${trigger.account ? trigger.account + ':' : ''}${trigger.chart || ''}`);
 };
 

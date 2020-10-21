@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import React from 'react';
@@ -139,7 +138,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     ExecutionState.filterModel.expandSubject.next(false);
   };
 
-  private startPipeline(command: IPipelineCommand): IPromise<void> {
+  private startPipeline(command: IPipelineCommand): PromiseLike<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
     return executionService

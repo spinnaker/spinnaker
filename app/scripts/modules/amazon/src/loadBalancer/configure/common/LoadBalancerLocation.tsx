@@ -1,6 +1,5 @@
 import React from 'react';
 import classNames from 'classnames';
-import { IPromise } from 'angular';
 import { chain, isNil, uniq, groupBy } from 'lodash';
 import { Field, FormikErrors, FieldProps, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
@@ -218,7 +217,7 @@ export class LoadBalancerLocation
     this.props.formik.handleChange(event);
   };
 
-  private getAvailableSubnets(credentials: string, region: string): IPromise<ISubnet[]> {
+  private getAvailableSubnets(credentials: string, region: string): PromiseLike<ISubnet[]> {
     return SubnetReader.listSubnets().then((subnets) => {
       return chain(subnets)
         .filter({ account: credentials, region })

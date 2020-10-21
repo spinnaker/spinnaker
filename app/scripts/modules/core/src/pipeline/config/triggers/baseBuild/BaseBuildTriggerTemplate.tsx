@@ -3,7 +3,6 @@ import React from 'react';
 import { capitalize, get } from 'lodash';
 import { Option } from 'react-select';
 import { $q } from 'ngimport';
-import { IPromise } from 'angular';
 
 import { Observable, Subject } from 'rxjs';
 
@@ -35,7 +34,7 @@ export class BaseBuildTriggerTemplate extends React.Component<
 > {
   private destroy$ = new Subject();
 
-  public static formatLabel(trigger: IBuildTrigger): IPromise<string> {
+  public static formatLabel(trigger: IBuildTrigger): PromiseLike<string> {
     return $q.when(`(${capitalize(trigger.type)}) ${trigger.master}: ${trigger.job}`);
   }
 

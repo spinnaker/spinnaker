@@ -1,6 +1,5 @@
 import React from 'react';
 import { Option } from 'react-select';
-import { IPromise } from 'angular';
 import { Observable, Subject } from 'rxjs';
 import { forOwn, uniqBy } from 'lodash';
 
@@ -74,11 +73,11 @@ export class Network
     return {};
   }
 
-  private getAvailableSubnets(): IPromise<ISubnet[]> {
+  private getAvailableSubnets(): PromiseLike<ISubnet[]> {
     return SubnetReader.listSubnetsByProvider('aws');
   }
 
-  private getAvailableSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
+  private getAvailableSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
     return ReactInjector.securityGroupReader.getAllSecurityGroups();
   }
   private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {

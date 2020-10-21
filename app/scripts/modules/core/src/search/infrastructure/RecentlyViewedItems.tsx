@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
 import ReactGA from 'react-ga';
@@ -68,7 +67,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   }
 
   /** fetches the displayName and adds it to the history entry */
-  private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): IPromise<ISearchResult> {
+  private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
     const routeParams = { ...item.params, ...item.extraData };
     return this.search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
   }

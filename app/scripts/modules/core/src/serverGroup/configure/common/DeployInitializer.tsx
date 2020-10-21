@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { IPromise } from 'angular';
 import { groupBy, sortBy } from 'lodash';
 
 import { AccountTag } from 'core/account';
@@ -94,7 +93,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     Object.assign(baseCommand, command);
   }
 
-  private buildCommandFromTemplate(serverGroup: IServerGroup): IPromise<any> {
+  private buildCommandFromTemplate(serverGroup: IServerGroup): PromiseLike<any> {
     const { application, cloudProvider } = this.props;
 
     const commandBuilder: any = ReactInjector.providerServiceDelegate.getDelegate(
@@ -112,7 +111,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     });
   }
 
-  private buildEmptyCommand = (): IPromise<any> => {
+  private buildEmptyCommand = (): PromiseLike<any> => {
     const { application, cloudProvider } = this.props;
     const commandBuilder: any = ReactInjector.providerServiceDelegate.getDelegate(
       cloudProvider,
@@ -121,7 +120,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     return commandBuilder.buildNewServerGroupCommand(application, { mode: 'createPipeline' });
   };
 
-  private selectTemplate = (): IPromise<void> => {
+  private selectTemplate = (): PromiseLike<void> => {
     const buildCommand =
       this.state.selectedTemplate === this.noTemplate
         ? this.buildEmptyCommand()

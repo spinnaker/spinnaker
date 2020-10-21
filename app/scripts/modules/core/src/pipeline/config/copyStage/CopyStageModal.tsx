@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Form } from 'formik';
-import { IPromise } from 'angular';
 import { flatten, isEmpty } from 'lodash';
 import { Option } from 'react-select';
 
@@ -43,7 +42,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
 
   const error = fetchApplications.status === 'REJECTED' || fetchStages.status === 'REJECTED';
 
-  function getStagesForApplication(applicationName: string): IPromise<ICopyStageCardProps[]> {
+  function getStagesForApplication(applicationName: string): PromiseLike<ICopyStageCardProps[]> {
     const configType = forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
     return API.one('applications')

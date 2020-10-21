@@ -1,6 +1,5 @@
 import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
-import { IPromise } from 'angular';
 import { Observable, Subject } from 'rxjs';
 import { $q } from 'ngimport';
 import { get, isEmpty } from 'lodash';
@@ -163,7 +162,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   public componentWillUnmount = () => this.destroy$.next();
 
-  public loadAccounts = (): IPromise<void> => {
+  public loadAccounts = (): PromiseLike<void> => {
     return AccountService.getAllAccountDetailsForProvider('kubernetes').then((accounts) => {
       const selector = this.state.selector;
       const kind = parseSpinnakerName(selector.manifestName).kind;
@@ -243,7 +242,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   private isExpression = (value: string): boolean => (typeof value === 'string' ? value.includes('${') : false);
 
-  private search = (kind: string, namespace: string, account: string): IPromise<string[]> => {
+  private search = (kind: string, namespace: string, account: string): PromiseLike<string[]> => {
     if (this.isExpression(account)) {
       return $q.resolve([]);
     }

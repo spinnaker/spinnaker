@@ -1,5 +1,4 @@
 import React from 'react';
-import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { ReactSelectProps, HandlerRendererResult, MenuRendererProps, Option, OptionValues } from 'react-select';
 import { Subject, Observable, BehaviorSubject } from 'rxjs';
@@ -57,7 +56,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return { imageName, amis, attributes } as IAmazonImage;
   }
 
-  private loadImagesFromApplicationName(application: Application): IPromise<IAmazonImage[]> {
+  private loadImagesFromApplicationName(application: Application): PromiseLike<IAmazonImage[]> {
     const query = application.name.replace(/_/g, '[_\\-]') + '*';
     return this.awsImageReader.findImages({ q: query });
   }
@@ -75,11 +74,11 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return tooShort ? null : packageBase + (addDashToQuery ? '-*' : '*');
   }
 
-  private loadImageById(imageId: string, region: string, credentials: string): IPromise<IAmazonImage> {
+  private loadImageById(imageId: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
     return !imageId ? $q.when(null) : this.awsImageReader.getImage(imageId, region, credentials).catch(() => null);
   }
 
-  private searchForImages(query: string): IPromise<IAmazonImage[]> {
+  private searchForImages(query: string): PromiseLike<IAmazonImage[]> {
     const hasMinLength = query && query.length >= 3;
     return hasMinLength ? this.awsImageReader.findImages({ q: query }) : $q.when([]);
   }
@@ -89,7 +88,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     region: string,
     credentials: string,
     application: Application,
-  ): IPromise<IAmazonImage[]> {
+  ): PromiseLike<IAmazonImage[]> {
     const imageId = value && value.amis && value.amis[region] && value.amis[region][0];
 
     return this.loadImageById(imageId, region, credentials).then((image) => {

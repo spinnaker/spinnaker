@@ -1,7 +1,6 @@
 import React from 'react';
 import { get, has } from 'lodash';
 import { Option } from 'react-select';
-import { IPromise } from 'angular';
 
 import { IExecution, IPipeline, IPipelineTrigger } from 'core/domain';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
@@ -24,7 +23,7 @@ export class PipelineTriggerTemplate extends React.Component<
   ITriggerTemplateComponentProps,
   IPipelineTriggerTemplateState
 > {
-  public static formatLabel(trigger: IPipelineTrigger): IPromise<string> {
+  public static formatLabel(trigger: IPipelineTrigger): PromiseLike<string> {
     // if this is a re-run, the trigger info will be on the parentExecution; otherwise, check the trigger itself
     // (normalization occurs in the pipelineTriggerOptions component, but that renders after this method is called)
     const application = get(trigger, 'parentExecution.application', trigger.application);

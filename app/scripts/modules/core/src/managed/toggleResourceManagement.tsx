@@ -8,7 +8,6 @@ import { ConfirmationModalService } from 'core/confirmationModal';
 import { ManagedWriter } from './ManagedWriter';
 
 import './ManagedResourceStatusIndicator.less';
-import { IPromise } from 'angular';
 
 interface IToggleConfiguration {
   pauseWarning?: JSX.Element;
@@ -37,7 +36,7 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleCo
  * @param resource
  * @param application
  */
-export const confirmNotManaged = (resource: IManagedResource, application: Application): IPromise<boolean> => {
+export const confirmNotManaged = (resource: IManagedResource, application: Application): PromiseLike<boolean> => {
   const { managedResourceSummary, isManaged } = resource;
   if (!isManaged || managedResourceSummary.isPaused) {
     return $q.when(true);

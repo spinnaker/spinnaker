@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactGA from 'react-ga';
-import { IPromise } from 'angular';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { flatten, uniq, without } from 'lodash';
 
@@ -122,7 +121,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     this.setState({ open });
   };
 
-  private startPipeline(command: IPipelineCommand): IPromise<void> {
+  private startPipeline(command: IPipelineCommand): PromiseLike<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
     return executionService

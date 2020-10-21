@@ -1,7 +1,6 @@
 import React from 'react';
 import { Option } from 'react-select';
 import { get } from 'lodash';
-import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { Observable, Subject, Subscription } from 'rxjs';
 
@@ -37,7 +36,7 @@ export class DockerTriggerTemplate extends React.Component<
   private queryStream = new Subject();
   private subscription: Subscription;
 
-  public static formatLabel(trigger: IDockerTrigger): IPromise<string> {
+  public static formatLabel(trigger: IDockerTrigger): PromiseLike<string> {
     return $q.when(`(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`);
   }
 

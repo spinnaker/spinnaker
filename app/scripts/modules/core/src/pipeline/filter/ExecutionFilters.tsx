@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { get, isEmpty, orderBy, uniq, isEqual } from 'lodash';
@@ -166,7 +165,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     this.updateFilterSearch(event.currentTarget.value);
   };
 
-  private updatePipelines(idsToUpdatedIndices: { [key: string]: number }): IPromise<void> {
+  private updatePipelines(idsToUpdatedIndices: { [key: string]: number }): PromiseLike<void> {
     return PipelineConfigService.reorderPipelines(this.props.application.name, idsToUpdatedIndices, false);
   }
 
