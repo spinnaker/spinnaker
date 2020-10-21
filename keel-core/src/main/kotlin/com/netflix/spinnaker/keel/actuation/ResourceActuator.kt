@@ -112,8 +112,10 @@ class ResourceActuator(
         val (desired, current) = plugin.resolve(resource)
         val diff = DefaultResourceDiff(desired, current)
         if (diff.hasChanges()) {
+          log.debug("Storing diff fingerprint for resource {} delta: {}", id, diff.toDebug())
           diffFingerprintRepository.store(id, diff)
         } else {
+          log.debug("Clearing diff fingerprint for resource {} (current == desired)", id)
           diffFingerprintRepository.clear(id)
         }
 

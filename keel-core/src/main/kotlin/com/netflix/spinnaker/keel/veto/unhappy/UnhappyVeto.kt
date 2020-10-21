@@ -55,14 +55,17 @@ class UnhappyVeto(
       return allowedResponse()
     }
 
-    val vetoStatus = unhappyVetoRepository.getOrCreateVetoStatus(resourceId, application, waitingTime(resource))
+    val wait = waitingTime(resource)
+    val vetoStatus = unhappyVetoRepository.getOrCreateVetoStatus(resourceId, application, wait)
     // allow for a check every [waitingTime] even if the resource is unhappy
     if (vetoStatus.shouldRecheck) {
-      unhappyVetoRepository.markUnhappyForWaitingTime(resourceId, application, waitingTime(resource))
+      log.debug("Marking resource $resourceId unhappy for $wait, but allowing resource check.")
+      unhappyVetoRepository.markUnhappyForWaitingTime(resourceId, application, wait)
       return allowedResponse()
     }
 
     if (vetoStatus.shouldSkip) {
+      log.debug("Resource $resourceId is unhappy. Denying resource check.")
       return deniedResponse(unhappyMessage(resource))
     }
 
