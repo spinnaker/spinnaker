@@ -63,7 +63,7 @@ class MonitorKayentaCanaryTask(
             "canaryPipelineStatus" to SUCCEEDED,
             "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
             "lastUpdatedIso" to canaryResults.endTimeIso,
-            "durationString" to canaryResults.result.canaryDuration.toString(),
+            "durationString" to canaryResults.result.canaryDuration?.toString(),
             "canaryScore" to canaryScore,
             "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
             "warnings" to warnings
@@ -75,7 +75,7 @@ class MonitorKayentaCanaryTask(
             "canaryPipelineStatus" to SUCCEEDED,
             "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
             "lastUpdatedIso" to canaryResults.endTimeIso,
-            "durationString" to canaryResults.result.canaryDuration.toString(),
+            "durationString" to canaryResults.result.canaryDuration?.toString(),
             "canaryScore" to canaryScore,
             "warnings" to warnings
           )

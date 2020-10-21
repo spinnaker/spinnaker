@@ -126,25 +126,24 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
     intervalDuration: Duration
   ): Map<String, CanaryScopes> {
     val requestScopes = HashMap<String, CanaryScopes>()
+    var start: Instant
+    val end: Instant
+
+    val warmup = config.beginCanaryAnalysisAfter
+    val offset = intervalDuration.multipliedBy(interval.toLong())
+
+    if (config.endTime == null) {
+      start = (config.startTime ?: Instant.now(clock)).plus(warmup)
+      end = (config.startTime ?: Instant.now(clock)).plus(warmup + offset)
+    } else {
+      start = (config.startTime ?: Instant.now(clock))
+      end = (config.startTime ?: Instant.now(clock)).plus(offset)
+    }
+
+    if (config.lookback > Duration.ZERO) {
+      start = end.minus(config.lookback)
+    }
     config.scopes.forEach { scope ->
-      var start: Instant
-      val end: Instant
-
-      val warmup = config.beginCanaryAnalysisAfter
-      val offset = intervalDuration.multipliedBy(interval.toLong())
-
-      if (config.endTime == null) {
-        start = (config.startTime ?: Instant.now(clock)).plus(warmup)
-        end = (config.startTime ?: Instant.now(clock)).plus(warmup + offset)
-      } else {
-        start = (config.startTime ?: Instant.now(clock))
-        end = (config.startTime ?: Instant.now(clock)).plus(offset)
-      }
-
-      if (config.lookback > Duration.ZERO) {
-        start = end.minus(config.lookback)
-      }
-
       val controlExtendedScopeParams = mutableMapOf<String, String?>()
       controlExtendedScopeParams.putAll(scope.extendedScopeParams)
       var controlLocation = scope.controlLocation

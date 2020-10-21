@@ -103,7 +103,7 @@ data class CanaryResults(
 
 data class CanaryResult(
   val judgeResult: JudgeResult,
-  val canaryDuration: Duration
+  val canaryDuration: Duration?
 )
 
 data class JudgeResult(
