@@ -130,6 +130,15 @@ class TelemetryListener(
     lastArtifactCheck.set(clock.instant())
   }
 
+  @EventListener(ArtifactVersionVetoed::class)
+  fun onArtifactVersionVetoed(event: ArtifactVersionVetoed) {
+    spectator.counter(
+      ARTIFACT_VERSION_VETOED,
+      listOf(BasicTag("application", event.application))
+    )
+      .safeIncrement()
+  }
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> {
     return PolledMeter
       .using(spectator)
@@ -164,5 +173,6 @@ class TelemetryListener(
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
     private const val ENVIRONMENT_CHECK_DRIFT_GAUGE = "keel.environment.check.drift"
     private const val ENVIRONMENT_CHECK_TIMED_OUT_ID = "keel.environment.check.timeout"
+    private const val ARTIFACT_VERSION_VETOED = "keel.artifact.version.vetoed"
   }
 }

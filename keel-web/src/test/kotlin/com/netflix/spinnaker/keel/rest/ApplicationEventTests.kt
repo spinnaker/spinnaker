@@ -38,7 +38,7 @@ internal class ApplicationEventTests {
 
     publisher.publishEvent(TestEvent(this))
 
-    val eventThread = listener.awaitInvoked(Duration.ofMillis(100))
+    val eventThread = listener.awaitInvoked(Duration.ofMillis(300))
 
     expectThat(eventThread)
       .isNotEqualTo(testThread)

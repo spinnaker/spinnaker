@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.CompleteVersionedArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResourceResolutionException
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -69,7 +71,7 @@ class ResourceActuator(
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val springEnv: SpringEnvironment,
+  private val springEnv: SpringEnvironment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -117,53 +119,9 @@ class ResourceActuator(
 
         val response = vetoEnforcer.canCheck(resource)
         if (!response.allowed) {
-          /**
-           * [VersionedArtifactProvider] is a special [resource] sub-type. When a veto response sets
-           * [VetoResponse.vetoArtifact] and the resource under evaluation is of type
-           * [VersionedArtifactProvider], disallow the desired artifact version from being deployed to
-           * the environment containing [resource]. This ensures that the environment will be fully restored to
-           * a prior good-state.
-           */
-          if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {
-            try {
-              val versionedArtifact = when (desired) {
-                is Map<*, *> -> {
-                  if (desired.size > 0) {
-                    @Suppress("UNCHECKED_CAST")
-                    (desired as Map<String, VersionedArtifactProvider>).values.first()
-                  } else {
-                    null
-                  }
-                }
-                is VersionedArtifactProvider -> desired
-                else -> null
-              }?.completeVersionedArtifactOrNull()
-
-              if (versionedArtifact != null) {
-                with(versionedArtifact) {
-                  val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, artifactType)
-                    ?: error("Artifact $artifactType:$artifactName not found in delivery config ${deliveryConfig.name}")
-
-                  artifactRepository.markAsVetoedIn(
-                    deliveryConfig = deliveryConfig,
-                    veto = EnvironmentArtifactVeto(
-                      reference = artifact.reference,
-                      version = artifactVersion,
-                      targetEnvironment = environment.name,
-                      vetoedBy = "Spinnaker",
-                      comment = "Automatically marked as bad because multiple deployments of this version failed."
-                    )
-                  )
-                  // TODO: emit event + metric
-                }
-              }
-            } catch (e: Exception) {
-              log.warn("Failed to veto presumed bad artifact version for ${resource.id}", e)
-              // TODO: emit metric
-            }
-          }
-          log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
-          publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, response.vetoName))
+          handleArtifactVetoing(response, resource, deliveryConfig, environment, desired)
+          log.debug("Skipping actuation for resource {} because it was vetoed: {}", resource.id, response.message)
+          publisher.publishEvent(ResourceCheckSkipped(resource.kind, resource.id, response.vetoName))
           publisher.publishEvent(
             ResourceActuationVetoed(
               resource.kind,
@@ -236,6 +194,95 @@ class ResourceActuator(
       }
     }
   }
+
+  /**
+   * [VersionedArtifactProvider] is a special [resource] sub-type. When a veto response sets
+   * [VetoResponse.vetoArtifact], the resource under evaluation is of type
+   * [VersionedArtifactProvider], and the version has never before been deployed successfully to an environment,
+   * disallow the desired artifact version from being deployed to
+   * the environment containing [resource]. This ensures that the environment will be fully restored to
+   * a prior good-state.
+   *
+   * This method can override a veto's request to veto an artifact. In this method we have more
+   * information about the diff and the artifact version, and so we can make a better decision about
+   * whether or not to veto an artifact version
+   *
+   * If the version has previously been deployed successfully do not veto the artifact version because
+   * we do not want to veto the artifact version in the case of a bad config change or other downstream
+   * problem. Rolling back most likely will not help in these cases and it will probably cause confusion.
+   */
+  private fun handleArtifactVetoing(
+    response: VetoResponse,
+    resource: Resource<*>,
+    deliveryConfig: DeliveryConfig,
+    environment: Environment,
+    desired: Any?
+  ) {
+    if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {
+      try {
+        val versionedArtifact = desired.findArtifact()
+
+        if (versionedArtifact != null) {
+          val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, versionedArtifact.artifactType)
+            ?: error("Artifact ${versionedArtifact.artifactType}:${versionedArtifact.artifactName} not found in delivery config ${deliveryConfig.name}")
+
+          val previousSuccess = artifactRepository.wasSuccessfullyDeployedTo(
+            deliveryConfig = deliveryConfig,
+            artifact = artifact,
+            version = versionedArtifact.artifactVersion,
+            targetEnvironment = environment.name
+          )
+
+          if (!previousSuccess) {
+            artifactRepository.markAsVetoedIn(
+              deliveryConfig = deliveryConfig,
+              veto = EnvironmentArtifactVeto(
+                reference = artifact.reference,
+                version = versionedArtifact.artifactVersion,
+                targetEnvironment = environment.name,
+                vetoedBy = "Spinnaker",
+                comment = "Automatically marked as bad because multiple deployments of this version failed and none have ever succeeded."
+              )
+            )
+            log.info(
+              "Vetoing artifact version {} of artifact {} for config {} and env {} because multiple deploys failed",
+              versionedArtifact,
+              artifact.reference + ":" + artifact.type,
+              deliveryConfig.name,
+              environment.name
+            )
+            publisher.publishEvent(ArtifactVersionVetoed(resource.application))
+          } else {
+            log.info(
+              "Not vetoing artifact version {} of artifact {} for config {} and env {} because it was previously successfully deployed",
+              versionedArtifact,
+              artifact.reference + ":" + artifact.type,
+              deliveryConfig.name,
+              environment.name
+            )
+          }
+        }
+      } catch (e: Exception) {
+        log.warn("Failed to veto presumed bad artifact version for ${resource.id}", e)
+        // TODO: emit metric
+      }
+    }
+  }
+
+  private fun Any?.findArtifact() : CompleteVersionedArtifact? =
+    when (this) {
+      is Map<*, *> -> {
+        if (this.size > 0) {
+          @Suppress("UNCHECKED_CAST")
+          (this as Map<String, VersionedArtifactProvider>).values.first()
+        } else {
+          null
+        }
+      }
+      is VersionedArtifactProvider -> this
+      else -> null
+    }?.completeVersionedArtifactOrNull()
+
 
   private fun DeliveryConfig.isPromotionCheckStale(): Boolean {
     val age = Duration.between(

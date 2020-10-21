@@ -50,3 +50,7 @@ data class ArtifactCheckTimedOut(
   val name: String,
   val deliveryConfigName: String?
 ) : TelemetryEvent()
+
+data class ArtifactVersionVetoed(
+  val application: String,
+) : TelemetryEvent()

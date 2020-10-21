@@ -34,6 +34,7 @@ import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyArtifactVersionedResourceSpec
 import com.netflix.spinnaker.keel.test.artifactVersionedResource
@@ -562,16 +563,38 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
           every { plugin1.actuationInProgress(resource) } returns false
           every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
-
-          runBlocking {
-            subject.checkResource(resource)
+        }
+        
+        context("the version has not been deployed successfully before") {
+          before {
+            every { artifactRepository.wasSuccessfullyDeployedTo(any(), any(), any(), any()) } returns 
+              false
+            every { artifactRepository.markAsVetoedIn(any(), any(), false) } returns true
+            runBlocking {
+              subject.checkResource(resource)
+            }
+          }
+          test("the desired artifact version is vetoed from the target environment") {
+            verify { artifactRepository.markAsVetoedIn(any(), any(), false) }
+            verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
+            verify { publisher.publishEvent(ofType<ArtifactVersionVetoed>()) }
           }
         }
 
-        test("the desired artifact version is vetoed from the target environment") {
-          verify { artifactRepository.markAsVetoedIn(any(), EnvironmentArtifactVeto("staging", "fnord", "fnord-42.0", "Spinnaker", "Automatically marked as bad because multiple deployments of this version failed."), false) }
-          verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
+        context("the version has previously been deployed successfully") {
+          before {
+            every { artifactRepository.wasSuccessfullyDeployedTo(any(), any(), any(), any()) } returns
+              true
+            runBlocking {
+              subject.checkResource(resource)
+            }
+          }
+          test("no version was vetoed") {
+            verify(exactly = 0) { artifactRepository.markAsVetoedIn(any(), EnvironmentArtifactVeto("staging", "fnord", "fnord-42.0", "Spinnaker", "Automatically marked as bad because multiple deployments of this version failed."), false) }
+            verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
+          }
         }
+
       }
     }
   }
