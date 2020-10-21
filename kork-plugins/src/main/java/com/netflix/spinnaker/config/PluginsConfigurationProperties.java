@@ -63,6 +63,12 @@ public class PluginsConfigurationProperties {
    */
   public Map<String, PluginRepositoryProperties> repositories = new HashMap<>();
 
+  /**
+   * Whether or not to add the plugin repositories from https://github.com/spinnaker/plugins by
+   * default.
+   */
+  public boolean enableDefaultRepositories = true;
+
   /** Definition of a single {@link org.pf4j.update.UpdateRepository}. */
   public static class PluginRepositoryProperties {
     /** Flag to determine if repository is enabled. */

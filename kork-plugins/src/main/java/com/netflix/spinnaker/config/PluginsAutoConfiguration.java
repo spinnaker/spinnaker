@@ -55,10 +55,12 @@ import com.netflix.spinnaker.kork.plugins.v2.SpringPluginFactory;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
 import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.pf4j.PluginFactory;
 import org.pf4j.PluginStatusProvider;
 import org.pf4j.VersionManager;
@@ -268,9 +270,11 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
+  @SneakyThrows
   public static List<UpdateRepository> pluginUpdateRepositories(
       Map<String, PluginRepositoryProperties> pluginRepositoriesConfig,
-      FileDownloaderProvider fileDownloaderProvider) {
+      FileDownloaderProvider fileDownloaderProvider,
+      PluginsConfigurationProperties properties) {
 
     List<UpdateRepository> repositories =
         pluginRepositoriesConfig.entrySet().stream()
@@ -285,6 +289,25 @@ public class PluginsAutoConfiguration {
                         fileDownloaderProvider.get(entry.getValue().fileDownloader),
                         new CompoundVerifier()))
             .collect(Collectors.toList());
+
+    if (properties.enableDefaultRepositories) {
+      log.info("Enabling spinnaker-official and spinnaker-community plugin repositories");
+
+      repositories.add(
+          new ConfigurableUpdateRepository(
+              "spinnaker-official",
+              new URL(
+                  "https://raw.githubusercontent.com/spinnaker/plugins/master/official/plugins.json"),
+              fileDownloaderProvider.get(null),
+              new CompoundVerifier()));
+      repositories.add(
+          new ConfigurableUpdateRepository(
+              "spinnaker-community",
+              new URL(
+                  "https://raw.githubusercontent.com/spinnaker/plugins/master/community/plugins.json"),
+              fileDownloaderProvider.get(null),
+              new CompoundVerifier()));
+    }
 
     if (repositories.isEmpty()) {
       log.warn(
