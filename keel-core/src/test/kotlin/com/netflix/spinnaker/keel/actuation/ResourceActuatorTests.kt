@@ -297,7 +297,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                   verify(exactly = 0) { plugin2.current(any()) }
                 }
 
-                test("a telemetry event is published") {
+                test("resource valid event is published") {
                   verify { publisher.publishEvent(ofType<ResourceValid>()) }
                 }
               }
@@ -318,7 +318,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 verify { plugin1.create(resource, any()) }
               }
 
-              test("a telemetry event is published") {
+              test("resource history events are published") {
                 verifySequence {
                   publisher.publishEvent(ofType<ResourceMissing>())
                   publisher.publishEvent(ofType<ResourceActuationLaunched>())
@@ -341,9 +341,37 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 verify { plugin1.update(eq(resource), any()) }
               }
 
-              test("a telemetry event is published") {
+              test("resource history events are published") {
                 verify {
                   publisher.publishEvent(ofType<ResourceDeltaDetected>())
+                  publisher.publishEvent(ofType<ResourceActuationLaunched>())
+                }
+              }
+            }
+
+            context("plugin does not launch any tasks on update") {
+              before {
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+                every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.update(resource, any()) } returns emptyList()
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the plugin is called to update the resource") {
+                verify { plugin1.update(eq(resource), any()) }
+              }
+
+              test("resource delta detected event is published") {
+                verify {
+                  publisher.publishEvent(ofType<ResourceDeltaDetected>())
+                }
+              }
+
+              test("resource actuation event is NOT published") {
+                verify(exactly = 0) {
                   publisher.publishEvent(ofType<ResourceActuationLaunched>())
                 }
               }
@@ -427,7 +455,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 verify(exactly = 0) { plugin1.update(any(), any()) }
               }
 
-              test("a telemetry event is published with the wrapped exception") {
+              test("a resource history event is published with the wrapped exception") {
                 val event = slot<ResourceCheckResult>()
                 verify { publisher.publishEvent(capture(event)) }
                 expectThat(event.captured)
@@ -451,7 +479,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 verify(exactly = 0) { plugin1.update(any(), any()) }
               }
 
-              test("a telemetry event is published with detail of the problem") {
+              test("a resource history event is published with detail of the problem") {
                 val event = slot<ResourceCheckUnresolvable>()
                 verify { publisher.publishEvent(capture(event)) }
                 expectThat(event.captured)
@@ -477,7 +505,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
               }
 
-              test("a telemetry event is published") {
+              test("a resource history event is published") {
                 verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
               }
             }

@@ -81,9 +81,14 @@ class ResourceActuator(
     withTracingContext(resource) {
       val id = resource.id
       try {
-        log.debug("checkResource $id")
         val plugin = handlers.supporting(resource.kind)
+        val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+        val environment = checkNotNull(deliveryConfig.environmentFor(resource)) {
+          "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name}"
+        }
 
+        log.debug("Checking resource $id in environment ${environment.name} of application ${deliveryConfig.application}")
+        
         if (actuationPauser.isPaused(resource)) {
           log.debug("Actuation for resource {} is paused, skipping checks", id)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
@@ -94,11 +99,6 @@ class ResourceActuator(
           log.debug("Actuation for resource {} is already running, skipping checks", id)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationInProgress"))
           return@withTracingContext
-        }
-
-        val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-        val environment = checkNotNull(deliveryConfig.environmentFor(resource)) {
-          "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name}"
         }
 
         if (deliveryConfig.isPromotionCheckStale()) {
@@ -178,8 +178,6 @@ class ResourceActuator(
           return@withTracingContext
         }
 
-        log.debug("Checking resource {}", id)
-
         val decision = plugin.willTakeAction(resource, diff)
         if (decision.willAct) {
           when {
@@ -200,8 +198,10 @@ class ResourceActuator(
 
               plugin.update(resource, diff)
                 .also { tasks ->
-                  publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-                  diffFingerprintRepository.markActionTaken(id)
+                  if (tasks.isNotEmpty()) {
+                    publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                    diffFingerprintRepository.markActionTaken(id)
+                  }
                 }
             }
             else -> {
