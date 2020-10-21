@@ -5,8 +5,9 @@
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "clean": "../../../../node_modules/rimraf/bin.js lib",
-    "lib": "npm run clean && ../../../../node_modules/typescript/bin/tsc && node ../../../../node_modules/webpack/bin/webpack.js",
-    "prepublishOnly": "npm run lib"
+    "clean": "../../../../node_modules/.bin/rimraf lib",
+    "lib": "npm run build",
+    "prepublishOnly": "npm run lib",
+    "build": "npm run clean && ../../../../node_modules/.bin/tsc && node ../../../../node_modules/.bin/webpack"
   }
 }
