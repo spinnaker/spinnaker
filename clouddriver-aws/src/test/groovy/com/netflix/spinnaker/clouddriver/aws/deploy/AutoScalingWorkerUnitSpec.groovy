@@ -128,7 +128,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
-    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
+    1 * dynamicConfigService.isEnabled('aws.features.launch-templates.all-applications', false) >> false
+    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
+    0 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.excluded-applications", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, null, { it.launchTemplateId == "id" }) >> {}
     (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
@@ -163,7 +166,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * dynamicConfigService.isEnabled('aws.features.launch-templates', false) >> true
+    1 * dynamicConfigService.isEnabled("aws.features.launch-templates.all-applications", false) >> false
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
+    1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
     1 * launchTemplateService.createLaunchTemplate(_,_,_,_) >>
       new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
@@ -453,9 +458,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     applicationAccountRegions           | application   | accountName | region      || matches
     "foo:test:us-east-1"                | "foo"         | "test"      | "us-east-1" || true
     "foo:test:us-east-1,us-west-2"      | "foo"         | "test"      | "eu-west-1" || false
-    "regex=^foo.*:prod:us-east-1"       | "foobar"      | "prod"      | "us-east-1" || true
-    "regex=^foo.*:prod:us-east-1"       | "foobar"      | "test"      | "us-east-1" || false
-    "regex=^cass.*:prod:us-east-1"      | "cass_l"      | "prod"      | "us-east-1" || true
+    "foo:prod:us-east-1"                | "foo"         | "test"      | "us-east-1" || false
   }
 
   static Subnet subnet(String subnetId) {
