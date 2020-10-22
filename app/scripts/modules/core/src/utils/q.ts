@@ -1,5 +1,3 @@
-///<reference path="./q.d.ts" />
-
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { Observable } from 'rxjs';

@@ -6,7 +6,7 @@
     "declarationDir": "lib",
     "outDir": "lib",
     "rootDir": "./src",
-    "typeRoots": ["../../../../node_modules/@types"],
+    "typeRoots": ["../../../../node_modules/@types", "../../../types"],
     "paths": {
       "@spinnaker/core": ["../../core/lib"],
       "core/*": ["core/src/*"]

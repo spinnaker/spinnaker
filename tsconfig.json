@@ -60,7 +60,7 @@
     "sourceMap": true,
     "strictNullChecks": false, // should really get to a place where we can turn this on
     "target": "es6",
-    "typeRoots": ["node_modules/@types"]
+    "typeRoots": ["node_modules/@types", "app/types"]
   },
   "exclude": ["build", "node", "node_modules", "transpiled"],
   "include": ["test/helpers/custom-matchers.d.ts", "app/scripts/modules/**/*.ts", "app/scripts/modules/**/*.tsx"]
