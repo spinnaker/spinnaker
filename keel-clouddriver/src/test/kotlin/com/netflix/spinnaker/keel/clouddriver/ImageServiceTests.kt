@@ -17,23 +17,27 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.DynamicTest.dynamicTest
 import strikt.api.expectThat
+import strikt.assertions.all
+import strikt.assertions.containsExactly
+import strikt.assertions.containsKeys
+import strikt.assertions.getValue
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.map
 import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
@@ -41,19 +45,7 @@ import io.mockk.coVerify as verify
 class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
-    val subject = ImageService(cloudDriver)
-
-    val mapper = configuredObjectMapper()
-
-    /*
-    example payload for a package that has been baked 3 times
-    the oldest was baked correctly
-    the next is missing tags in one region
-    the next is missing a region
-    the most recent is the wrong package but has all tags and regions
-     */
-    val imageJson = this.javaClass.getResource("/named-images.json").readText()
-    val realImages = mapper.readValue<List<NamedImage>>(imageJson)
+    val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY)
 
     val image1 = NamedImage(
       imageName = "my-package-0.0.1_rc.97-h98",
@@ -64,7 +56,7 @@ class ImageServiceTests : JUnit5Minutests {
       tagsByImageId = mapOf(
         "ami-001" to mapOf(
           "build_host" to "https://jenkins/",
-          "appversion" to "my-package-0.0.1~rc.97-h98/JENKINS-job/98",
+          "appversion" to "my-package-0.0.1~rc.97-h98.1c684a9/JENKINS-job/98",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
           "creation_time" to "2018-10-25 13:08:59 UTC"
@@ -176,7 +168,7 @@ class ImageServiceTests : JUnit5Minutests {
       tagsByImageId = mapOf(
         "ami-006" to mapOf(
           "build_host" to "https://jenkins/",
-          "appversion" to "my-package-0.0.1~rc.97-h98/JENKINS-job/98",
+          "appversion" to "my-package-0.0.1~rc.97-h98.1c684a9/JENKINS-job/98",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.293.0-h989",
           "creation_time" to "2019-11-25 13:08:59 UTC"
@@ -233,6 +225,7 @@ class ImageServiceTests : JUnit5Minutests {
           )
         } returns listOf(image2, image4, image3, image1, image5, image6)
       }
+
       test("latest image returns actual image") {
         runBlocking {
           val image = subject.getLatestImage(
@@ -257,49 +250,17 @@ class ImageServiceTests : JUnit5Minutests {
           )
         } returns listOf(image2, image4, image3, image1, image5)
       }
+
       test("get latest named image returns actual latest image") {
         runBlocking {
-          val image = subject.getLatestNamedImage(
-            packageName = "my-package",
+          val image = subject.getLatestImage(
+            artifactName = "my-package",
             account = "test"
           )
           expectThat(image)
             .isNotNull()
-            .get { imageName }
-            .isEqualTo(newestImage.imageName)
-        }
-      }
-    }
-
-    context("get latest named image can be filtered by region") {
-      mapOf("us-west-1" to "ami-003", "ap-south-1" to "ami-005").map { (region, imageId) ->
-        dynamicTest("get latest image can be filtered by region ($region)") {
-          before {
-            every {
-              cloudDriver.namedImages(
-                user = DEFAULT_SERVICE_ACCOUNT,
-                imageName = "my-package",
-                account = "test",
-                region = region
-              )
-            } answers {
-              listOf(image2, image4, image3, image1, image5).filter { it.amis.keys.contains(region) }
-            }
-          }
-
-          test("it works") {
-            runBlocking {
-              val image = subject.getLatestNamedImage(
-                packageName = "my-package",
-                account = "test",
-                region = region
-              )
-              expectThat(image)
-                .isNotNull()
-                .get { imageId }
-                .isEqualTo(imageId)
-            }
-          }
+            .get { appVersion }
+            .isEqualTo(newestImage.appVersion)
         }
       }
     }
@@ -315,41 +276,15 @@ class ImageServiceTests : JUnit5Minutests {
           )
         } returns emptyList()
       }
+
       test("no image provided") {
         runBlocking {
-          val image = subject.getLatestNamedImage(
-            packageName = "my-package",
+          val image = subject.getLatestImage(
+            artifactName = "my-package",
             account = "test"
           )
           expectThat(image)
             .isNull()
-        }
-      }
-    }
-
-    context("searching for a very specific image version") {
-      before {
-        every {
-          cloudDriver.namedImages(any(), any(), any())
-        } returns listOf(image2)
-      }
-      test("returns correct version") {
-        runBlocking {
-          val image = subject.getLatestNamedImage(
-            appVersion = AppVersion.parseName("my-package-0.0.1~rc.98-h99.4cb755c"),
-            account = "test"
-          )
-          expectThat(image)
-            .isNotNull()
-            .isEqualTo(image2)
-        }
-
-        verify {
-          cloudDriver.namedImages(
-            user = DEFAULT_SERVICE_ACCOUNT,
-            imageName = "my-package-0.0.1_rc.98-h99.4cb755c",
-            account = "test"
-          )
         }
       }
     }
@@ -360,6 +295,7 @@ class ImageServiceTests : JUnit5Minutests {
           cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
         } returns listOf(image2, image4, image3, image1)
       }
+
       test("finds named image") {
         runBlocking {
           val image = subject.getNamedImageFromJenkinsInfo(
@@ -378,48 +314,112 @@ class ImageServiceTests : JUnit5Minutests {
     }
 
     context("given images in varying stages of completeness") {
-      val packageName = "keel"
-      val regions = listOf("us-west-2", "us-east-1")
+      val appVersion = AppVersion.parseName("my-package-0.0.1~rc.97-h98.1c684a9")
+      val regions = setOf("us-west-1", "ap-south-1")
       before {
         every {
-          cloudDriver.namedImages(
-            user = DEFAULT_SERVICE_ACCOUNT,
-            imageName = packageName,
-            account = "test"
-          )
-        } returns realImages
+          cloudDriver.namedImages(any(), any(), any())
+        } returns listOf(image1, image6)
       }
-      test("searching by package name finds latest complete image") {
-        runBlocking {
-          val image = subject.getLatestNamedImageWithAllRegions(packageName, "test", regions)
-          expectThat(image)
-            .isNotNull()
-            .get { imageName }
-            .isEqualTo("keel-0.312.0-h240.44eaaa3-x86_64-20191025212812-xenial-hvm-sriov-ebs")
+
+      test("searching for a specific appversion finds latest complete image") {
+        val images = runBlocking {
+          subject.getLatestNamedImages(
+            appVersion = appVersion,
+            account = "test",
+            regions = regions
+          )
+        }
+        expectThat(images)
+          .hasSize(2)
+          .containsKeys(*regions.toTypedArray())
+          .with(Map<*, NamedImage>::values) {
+            all {
+              get { imageName }.isEqualTo(image1.imageName)
+            }
+          }
+      }
+
+      test("the newest image is selected when searching in a single region") {
+        val image = runBlocking {
+          subject.getLatestNamedImage(appVersion, "test", regions.first())
+        }
+
+        expectThat(image)
+          .isNotNull()
+          .get { imageName }
+          .isEqualTo(image1.imageName)
+      }
+
+      test("any other regions supported by the same image are subsequently served from cache") {
+        val r1Image = runBlocking {
+          subject.getLatestNamedImage(appVersion, "test", regions.first())
+        }
+        val r2Image = runBlocking {
+          subject.getLatestNamedImage(appVersion, "test", regions.last())
+        }
+
+        expectThat(r1Image).isEqualTo(r2Image)
+
+        verify(exactly = 1) {
+          cloudDriver.namedImages(any(), any(), any())
         }
       }
     }
 
-    context("given images in varying stages of completeness") {
-      val appVersion = "keel-0.312.0-h240.44eaaa3"
-      val regions = listOf("us-west-2", "us-east-1")
+    context("images that were baked separately in the desired regions") {
+      val appVersion = AppVersion.parseName("my-package-0.0.1~rc.99-h100.8192e02")
+      val regions = setOf("us-west-1", "ap-south-1")
       before {
         every {
-          cloudDriver.namedImages(
-            user = DEFAULT_SERVICE_ACCOUNT,
-            imageName = appVersion,
-            account = "test"
-          )
-        } returns realImages
+          cloudDriver.namedImages(any(), any(), any())
+        } returns listOf(image3, image5)
       }
-      test("searching for a specific appversion finds latest complete image") {
-        runBlocking {
-          val image = subject.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName(appVersion), "test", regions)
-          expectThat(image)
-            .isNotNull()
-            .get { imageName }
-            .isEqualTo("keel-0.312.0-h240.44eaaa3-x86_64-20191025212812-xenial-hvm-sriov-ebs")
+
+      test("searching for a specific appversion finds all images for required regions") {
+        val images = runBlocking {
+          subject.getLatestNamedImages(
+            appVersion = appVersion,
+            account = "test",
+            regions = regions
+          )
         }
+
+        expectThat(images)
+          .hasSize(2)
+          .containsKeys(*regions.toTypedArray())
+          .and {
+            getValue("us-west-1").get { imageName }.isEqualTo(image3.imageName)
+          }
+          .and {
+            getValue("ap-south-1").get { imageName }.isEqualTo(image5.imageName)
+          }
+      }
+    }
+
+    context("images that are not in all desired regions") {
+      val appVersion = AppVersion.parseName("my-package-0.0.1~rc.99-h100.8192e02")
+      val regions = setOf("us-west-1", "ap-south-1")
+      before {
+        every {
+          cloudDriver.namedImages(any(), any(), any())
+        } returns listOf(image3)
+      }
+
+      test("images that were found are returned") {
+        val images = runBlocking {
+          subject.getLatestNamedImages(
+            appVersion = appVersion,
+            account = "test",
+            regions = regions
+          )
+        }
+
+        expectThat(images)
+          .hasSize(1)
+          .get(Map<*, NamedImage>::values)
+          .map { it.imageName }
+          .containsExactly(image3.imageName)
       }
     }
   }

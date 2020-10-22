@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -13,6 +12,7 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.parseAppVersionOrNull
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -62,7 +62,7 @@ class DebianArtifactSupplier(
 
   override fun getVersionDisplayName(artifact: PublishedArtifact): String {
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = parseName(artifact)
+    val appversion = artifact.version.parseAppVersionOrNull()
     if (appversion != null) {
       if (appversion.version != null) {
         return appversion.version
@@ -77,7 +77,7 @@ class DebianArtifactSupplier(
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     return try {
-      val appversion = AppVersion.parseName(artifact.version)
+      val appversion = artifact.version.parseAppVersionOrNull()
       if (appversion?.buildNumber != null) {
         return BuildMetadata(id = appversion.buildNumber.toInt())
       }
@@ -94,21 +94,12 @@ class DebianArtifactSupplier(
   override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
     // attempt to parse helpful info from the appversion.
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val appversion = parseName(artifact)
+    val appversion = artifact.version.parseAppVersionOrNull()
     if (appversion?.commit != null) {
       return GitMetadata(commit = appversion.commit)
     }
     return null
   }
-
-  private fun parseName(artifact: PublishedArtifact): AppVersion? =
-    try {
-      AppVersion.parseName(artifact.version)
-    } catch (ex: Exception) {
-      log.warn("trying to parse artifact ${artifact.name} with version ${artifact.version} but got an exception", ex)
-      null
-    }
-
 
   // Debian Artifacts should contain a releaseStatus in the metadata
   private fun PublishedArtifact.hasReleaseStatus() =

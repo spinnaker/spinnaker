@@ -27,6 +27,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 import java.time.Duration
+import java.util.concurrent.CompletableFuture.completedFuture
 
 /**
  * An in-memory cache for calls against cloud driver
@@ -51,7 +52,7 @@ class MemoryCloudDriverCache(
         val credential = credentialBy(account)
         cloudDriver.getSecurityGroupSummaryById(account, credential.type, region, id, DEFAULT_SERVICE_ACCOUNT)
           .also {
-            securityGroupsByName.synchronous().put(Triple(account, region, it.name), it)
+            securityGroupsByName.put(Triple(account, region, it.name), completedFuture(it))
           }
       }
         .handleNotFound()
@@ -67,7 +68,7 @@ class MemoryCloudDriverCache(
         val credential = credentialBy(account)
         cloudDriver.getSecurityGroupSummaryByName(account, credential.type, region, name, DEFAULT_SERVICE_ACCOUNT)
           .also {
-            securityGroupsById.synchronous().put(Triple(account, region, it.id), it)
+            securityGroupsById.put(Triple(account, region, it.id), completedFuture(it))
           }
       }
         .handleNotFound()
@@ -80,7 +81,7 @@ class MemoryCloudDriverCache(
         cloudDriver.listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
           ?.firstOrNull { it.id == id }
           ?.also {
-            networksByName.synchronous().put(Triple(it.account, it.region, it.name), it)
+            networksByName.put(Triple(it.account, it.region, it.name), completedFuture(it))
           }
       }
         .handleNotFound()
@@ -94,7 +95,7 @@ class MemoryCloudDriverCache(
           .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
           ?.firstOrNull { it.name == name && it.account == account && it.region == region }
           ?.also {
-            networksById.synchronous().put(it.id, it)
+            networksById.put(it.id, completedFuture(it))
           }
       }
         .handleNotFound()

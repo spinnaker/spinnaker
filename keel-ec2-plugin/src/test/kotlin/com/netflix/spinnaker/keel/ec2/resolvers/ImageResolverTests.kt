@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
@@ -36,6 +35,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.propertiesAreEqualTo
+import io.mockk.coEvery as every
 
 internal class ImageResolverTests : JUnit5Minutests {
 
@@ -178,7 +178,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -210,7 +210,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
             } returns null
           }
 
@@ -235,9 +235,13 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), any())
             } answers {
-              images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
+              if (thirdArg<String>() == imageRegion) {
+                images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
+              } else {
+                null
+              }
             }
           }
 

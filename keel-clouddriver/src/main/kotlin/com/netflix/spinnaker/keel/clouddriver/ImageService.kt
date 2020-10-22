@@ -18,32 +18,38 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.filterNotNullValues
+import com.netflix.spinnaker.keel.parseAppVersion
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.concurrent.CompletableFuture.completedFuture
 
 class ImageService(
-  private val cloudDriverService: CloudDriverService
+  private val cloudDriverService: CloudDriverService,
+  cacheFactory: CacheFactory
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   suspend fun getLatestImage(artifactName: String, account: String): Image? =
-    getLatestNamedImage(artifactName, account)?.toImage(artifactName)
-
-  /**
-   * If possible, return the latest image that's present in all regions and has tags.
-   * If that doesn't exist, just return the latest image.
-   */
-  suspend fun getLatestImageWithAllRegions(artifactName: String, account: String, regions: List<String>): Image? =
-    getLatestNamedImageWithAllRegions(artifactName, account, regions)?.toImage(artifactName)
-      ?: getLatestImage(artifactName, account)
+    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
+      .filter { it.hasAppVersion }
+      .sortedWith(NamedImageComparator)
+      .firstOrNull {
+        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
+        it.appVersion.parseAppVersion().packageName == artifactName
+      }?.toImage(artifactName)
 
   private fun NamedImage.toImage(artifactName: String): Image? =
     tagsByImageId
@@ -64,130 +70,61 @@ class ImageService(
         }
       }
 
-  /**
-   * Get the latest named image for a package.
-   *
-   * @param region if supplied the latest image in this region is returned, if `null` the latest
-   * image regardless of region.
-   */
-  suspend fun getLatestNamedImage(packageName: String, account: String, region: String? = null): NamedImage? =
-    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account, region)
-      .filter { it.hasAppVersion }
-      .sortedWith(NamedImageComparator)
-      .firstOrNull {
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        try {
-          AppVersion.parseName(it.appVersion).packageName == packageName
-        } catch (ex: Exception) {
-          throw SystemException("trying to parse name for version ${it.appVersion} but got an exception", ex)
-        }
-      }
+  private data class NamedImageCacheKey(
+    val appVersion: AppVersion,
+    val account: String,
+    val region: String
+  )
 
-  /**
-   * Get a specific image for an app version.
-   *
-   * @param region if supplied the latest image in this region is returned, if `null` the latest
-   * image regardless of region.
-   */
-  suspend fun getLatestNamedImage(appVersion: AppVersion, account: String, region: String? = null): NamedImage? =
-    cloudDriverService.namedImages(
-      user = DEFAULT_SERVICE_ACCOUNT,
-      imageName = appVersion.toImageName().replace("~", "_"),
-      account = account,
-      region = region
-    )
-      .filter { it.hasAppVersion }
-      .sortedWith(NamedImageComparator)
-      .firstOrNull {
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        try {
-          AppVersion.parseName(it.appVersion).run {
+  private val namedImageCache = cacheFactory
+    .asyncLoadingCache<NamedImageCacheKey, NamedImage>("namedImages") { (appVersion, account, region) ->
+      log.debug("Searching for baked image for {} in {}", appVersion.toImageName(), region)
+      cloudDriverService.namedImages(
+        user = DEFAULT_SERVICE_ACCOUNT,
+        imageName = appVersion.toImageName().replace("~", "_"),
+        account = account
+      )
+        // only consider images with tags and app version set properly
+        .asSequence()
+        .filter { image ->
+          tagsExistForAllAmis(image.tagsByImageId) && image.hasAppVersion
+        }
+        // filter to images with matching app version
+        .filter { image ->
+          // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
+          image.appVersion.parseAppVersion().run {
             packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
           }
-        } catch (ex: Exception) {
-          throw SystemException("trying to parse name for version ${it.appVersion} but got an exception", ex)
         }
-      }
+        // filter to images in the correct account and the desired region
+        .filter { image ->
+          image.accounts.contains(account) && image.amis.containsKey(region)
+        }
+        // reduce to the newest images required to support all regions we want
+        .sortedByDescending { it.creationDate }
+        .firstOrNull()
+    }
 
   /**
-   * Returns the latest image that is present in all regions.
-   * Each ami must have tags.
+   * Find the latest properly tagged image in [account] and [region].
+   *
+   * As a side effect this method will prime the cache for any additional regions where the image is
+   * available.
    */
-  suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: Collection<String>): NamedImage? =
-    cloudDriverService.namedImages(
-      user = DEFAULT_SERVICE_ACCOUNT,
-      imageName = appVersion.toImageName().replace("~", "_"),
-      account = account
-    )
-      .filter { it.hasAppVersion }
-      .sortedWith(NamedImageComparator)
-      .find { namedImage ->
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        val curAppVersion = try {
-          AppVersion.parseName(namedImage.appVersion)
-        } catch (ex: Exception) {
-          throw SystemException("trying to parse name for image ${namedImage.imageName} with version ${namedImage.appVersion} but got an exception", ex)
-        }
-        curAppVersion.packageName == appVersion.packageName &&
-          curAppVersion.version == appVersion.version &&
-          curAppVersion.commit == appVersion.commit &&
-          namedImage.accounts.contains(account) &&
-          namedImage.amis.keys.containsAll(regions) &&
-          tagsExistForAllAmis(namedImage.tagsByImageId)
-      }
-
-  /**
-   * Returns the latest image that is present in all regions.
-   * Each ami must have tags.
-   */
-  suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? {
-    val images = cloudDriverService.namedImages(
-      user = DEFAULT_SERVICE_ACCOUNT,
-      imageName = packageName,
-      account = account
-    )
-
-    val filteredImages = images
-      .filter { it.hasAppVersion }
-      .sortedWith(NamedImageComparator)
-
-    val eliminatedImages = mutableMapOf<String, String>()
-    val image = filteredImages
-      .find {
-        val errors = mutableListOf<String>()
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        val curAppVersion = try {
-          AppVersion.parseName(it.appVersion)
-        } catch (ex: Exception) {
-          throw SystemException("trying to parse name for version ${it.appVersion} but got an exception", ex)
-        }
-        if (curAppVersion.packageName != packageName) {
-          errors.add("[package name ${curAppVersion.packageName} does not match required package]")
-        }
-        if (!it.accounts.contains(account)) {
-          errors.add("[image is only in accounts ${it.accounts}]")
-        }
-        if (!it.amis.keys.containsAll(regions)) {
-          errors.add("[image is only in regions ${it.amis.keys}]")
-        }
-        if (!tagsExistForAllAmis(it.tagsByImageId)) {
-          errors.add("[image does not have tags for all regions: existing tags ${it.tagsByImageId}]")
-        }
-        if (errors.isEmpty()) {
-          true
-        } else {
-          eliminatedImages[it.imageName] = errors.joinToString(",")
-          false
+  suspend fun getLatestNamedImage(
+    appVersion: AppVersion,
+    account: String,
+    region: String
+  ): NamedImage? =
+    namedImageCache
+      .get(NamedImageCacheKey(appVersion, account, region))
+      .await()
+      // prime the cache if the image is also in other regions
+      ?.also { image ->
+        (image.amis.keys - region).forEach { otherRegion ->
+          namedImageCache.put(NamedImageCacheKey(appVersion, account, otherRegion), completedFuture(image))
         }
       }
-    log.debug(
-      "Finding latest qualifying named image for $packageName in account $account and regions $regions:\n " +
-        "selected image=${image?.imageName}\n " +
-        "rejected images=${eliminatedImages.map { it.key + ": " + it.value + "\n" }.joinToString("")}"
-    )
-
-    return image
-  }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
@@ -195,11 +132,7 @@ class ImageService(
       .sortedWith(NamedImageComparator)
       .filter {
         // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        try {
-          AppVersion.parseName(it.appVersion).packageName == packageName
-        } catch (ex: Exception) {
-          throw SystemException("trying to parse name for version ${it.appVersion} but got an exception", ex)
-        }
+        it.appVersion.parseAppVersion().packageName == packageName
       }
       .firstOrNull { namedImage ->
         val allTags = getAllTags(namedImage)
@@ -257,6 +190,35 @@ class ImageService(
     }
     return true
   }
+}
+
+
+/**
+ * Find the latest properly tagged images in [account] for each of [regions] using
+ * [ImageService.getLatestNamedImage] in parallel for each region.
+ *
+ * In many cases all the values in the resulting map will be the same [NamedImage] instance, but
+ * this may not be the case if images were baked separately in each region.
+ *
+ * The resulting map will contain no entry for regions where an image is not found. The calling
+ * code must check this if it requires all regions to be present.
+ */
+suspend fun ImageService.getLatestNamedImages(
+  appVersion: AppVersion,
+  account: String,
+  regions: Collection<String>
+): Map<String, NamedImage> = coroutineScope {
+  regions.associateWith { region ->
+    async {
+      getLatestNamedImage(
+        appVersion = appVersion,
+        account = account,
+        region = region
+      )
+    }
+  }
+    .mapValues { (_, it) -> it.await() }
+    .filterNotNullValues()
 }
 
 private fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"

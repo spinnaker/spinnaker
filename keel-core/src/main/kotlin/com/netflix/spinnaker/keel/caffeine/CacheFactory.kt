@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.caffeine
 
 import com.github.benmanes.caffeine.cache.AsyncCache
+import com.github.benmanes.caffeine.cache.AsyncCacheLoader
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micrometer.core.instrument.MeterRegistry
@@ -48,9 +49,7 @@ class CacheFactory(
     loader: suspend (K) -> V?
   ): AsyncLoadingCache<K, V> =
     builder(cacheName, defaultMaximumSize, defaultExpireAfterWrite, dispatcher)
-      .buildAsync<K, V> { key, executor ->
-        CoroutineScope(executor.asCoroutineDispatcher()).future { loader(key) }
-      }
+      .buildAsync(loader.toAsyncCacheLoader())
       .monitor(cacheName)
 
   private fun builder(
@@ -70,6 +69,12 @@ class CacheFactory(
   private fun <K, V, C: AsyncCache<K, V>> C.monitor(cacheName: String) =
     CaffeineCacheMetrics.monitor(meterRegistry, this, cacheName)
 }
+
+fun <K, V> (suspend (K) -> V?).toAsyncCacheLoader() : AsyncCacheLoader<K, V> =
+  AsyncCacheLoader<K, V> { key, executor ->
+    CoroutineScope(executor.asCoroutineDispatcher())
+      .future { this@toAsyncCacheLoader.invoke(key) }
+  }
 
 /**
  * A [CacheFactory] usable in tests that uses no-op metering and default configuration.

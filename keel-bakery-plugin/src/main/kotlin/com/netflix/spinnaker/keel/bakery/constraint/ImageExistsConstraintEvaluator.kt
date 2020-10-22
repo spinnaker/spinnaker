@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.bakery.constraint
 
-import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -10,13 +9,11 @@ import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
-import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
 import com.netflix.spinnaker.keel.getConfig
+import com.netflix.spinnaker.keel.parseAppVersion
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.exceptions.SystemException
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -31,8 +28,7 @@ import org.springframework.stereotype.Component
 class ImageExistsConstraintEvaluator(
   private val imageService: ImageService,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: EventPublisher,
-  cacheFactory: CacheFactory
+  override val eventPublisher: EventPublisher
 ) : ConstraintEvaluator<ImageExistsConstraint> {
 
   override fun isImplicit(): Boolean = true
@@ -44,37 +40,18 @@ class ImageExistsConstraintEvaluator(
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment
-  ): Boolean {
-    if (artifact !is DebianArtifact) {
-      return true
-    }
+  ): Boolean =
+    artifact !is DebianArtifact || imagesExistInAllRegions(version, artifact.vmOptions)
 
-    val image = findMatchingImage(version, artifact.vmOptions)
-    return image != null
-  }
-
-  private data class Key(
-    val account: String,
-    val version: String,
-    val regions: Set<String>
-  )
-
-  private val cache = cacheFactory
-    .asyncLoadingCache<Key, NamedImage>(cacheName = "namedImages") { key ->
-      log.debug("Searching for baked image for {} in {}", key.version, key.regions.joinToString())
-      imageService.getLatestNamedImageWithAllRegionsForAppVersion(
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        appVersion = AppVersion.parseName(key.version)
-          ?: throw SystemException("Invalid AMI app version: ${key.version}"),
-        account = key.account,
-        regions = key.regions
+  private fun imagesExistInAllRegions(version: String, vmOptions: VirtualMachineOptions): Boolean =
+    runBlocking {
+      imageService.getLatestNamedImages(
+        appVersion = version.parseAppVersion(),
+        account = defaultImageAccount,
+        regions = vmOptions.regions
       )
     }
-
-  private fun findMatchingImage(version: String, vmOptions: VirtualMachineOptions): NamedImage? =
-    runBlocking {
-      cache.get(Key(defaultImageAccount, version, vmOptions.regions)).await()
-    }
+      .keys.containsAll(vmOptions.regions)
 
   private val defaultImageAccount: String
     get() = dynamicConfigService.getConfig("images.default-account", "test")

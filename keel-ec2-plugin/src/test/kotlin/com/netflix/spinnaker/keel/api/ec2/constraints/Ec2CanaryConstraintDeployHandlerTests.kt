@@ -34,8 +34,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
-import java.time.Clock
-import java.time.Duration
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
@@ -43,6 +41,8 @@ import strikt.assertions.getValue
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.time.Clock
+import java.time.Duration
 
 internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
 
@@ -102,8 +102,14 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     context("need to launch canaries in two regions") {
       before {
         coEvery {
-          imageService.getLatestNamedImageWithAllRegionsForAppVersion(any(), any(), any())
-        } returns NamedImage("fnord-42.0.0-h42", emptyMap(), emptyMap(), emptySet(), emptyMap())
+          imageService.getLatestNamedImage(any(), any(), any())
+        } returns NamedImage(
+            imageName = "fnord-42.0.0-h42",
+            attributes = emptyMap(),
+            tagsByImageId = emptyMap(),
+            accounts = emptySet(),
+            amis = mapOf("us-west-1" to listOf("ami-001"), "us-west-2" to listOf("ami-002"))
+          )
 
         coEvery {
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-1", any())
@@ -152,7 +158,8 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
         }
 
         coVerify(exactly = 1) {
-          imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName(version), "test", any())
+          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-1")
+          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-2")
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-1", any())
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-2", any())
         }

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.constraints
 
-import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.actuation.Task
@@ -9,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
@@ -17,8 +17,8 @@ import com.netflix.spinnaker.keel.constraints.toStageBase
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
+import com.netflix.spinnaker.keel.parseAppVersion
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import com.netflix.spinnaker.kork.exceptions.SystemException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -54,17 +54,16 @@ class Ec2CanaryConstraintDeployHandler(
     val scope = CoroutineScope(GlobalScope.coroutineContext)
     val judge = "canary:${deliveryConfig.application}:${targetEnvironment.name}:${constraint.canaryConfigId}"
 
-    val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
-      // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-      appVersion = try {
-        AppVersion.parseName(version.replace("~", "_"))
-      } catch (ex: Exception) {
-        throw SystemException("trying to parse name for version $version but got an exception", ex)
-      },
+    val images = imageService.getLatestNamedImages(
+      appVersion = version.replace("~", "_").parseAppVersion(),
       account = imageResolver.defaultImageAccount,
-      regions = constraint.regions.toList()
+      regions = regions
     )
-      ?.imageName ?: error("Image not found for $version in all requested regions ($regions)")
+
+    val missingRegions = regions - images.keys
+    if (missingRegions.isNotEmpty()) {
+      error("Image not found for $version in all requested regions ($regions.joinToString())")
+    }
 
     val source = getSourceServerGroups(deliveryConfig.application, constraint, deliveryConfig.serviceAccount)
     require(regions.all { source.containsKey(it) }) {
@@ -73,13 +72,14 @@ class Ec2CanaryConstraintDeployHandler(
 
     val regionalJobs = regions.associateWith { region ->
       val sourceServerGroup = source.getValue(region)
+      val image = images.getValue(region)
       constraint.toStageBase(
         cloudDriverCache = cloudDriverCache,
         metricsAccount = constraint.metricsAccount ?: defaults.metricsAccount,
         storageAccount = constraint.storageAccount ?: defaults.storageAccount,
         app = deliveryConfig.application,
-        control = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "baseline", image),
-        experiment = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "canary", image)
+        control = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "baseline", image.imageName),
+        experiment = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "canary", image.imageName)
       )
     }
 
@@ -158,8 +158,10 @@ class Ec2CanaryConstraintDeployHandler(
       "ebsOptimized" to (launchConfig?.ebsOptimized ?: launchTemplateData!!.ebsOptimized),
       "healthCheckGracePeriod" to asg.healthCheckGracePeriod,
       "healthCheckType" to asg.healthCheckType,
-      "iamRole" to (launchConfig?.iamInstanceProfile ?: launchTemplateData!!.iamInstanceProfile.name),
-      "instanceMonitoring" to (launchConfig?.instanceMonitoring?.enabled ?: launchTemplateData!!.monitoring.enabled),
+      "iamRole" to (launchConfig?.iamInstanceProfile
+        ?: launchTemplateData!!.iamInstanceProfile.name),
+      "instanceMonitoring" to (launchConfig?.instanceMonitoring?.enabled
+        ?: launchTemplateData!!.monitoring.enabled),
       "instanceType" to (launchConfig?.instanceType ?: launchTemplateData!!.instanceType),
       "keyPair" to (launchConfig?.keyName ?: launchTemplateData!!.keyName),
       "loadBalancers" to loadBalancers,

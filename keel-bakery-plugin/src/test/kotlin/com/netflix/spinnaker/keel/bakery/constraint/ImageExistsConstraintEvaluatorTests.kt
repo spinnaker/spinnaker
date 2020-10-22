@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
-import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -21,12 +20,12 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService.NoopDynamic
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coEvery
 import io.mockk.mockk
-import io.mockk.verify
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
 
@@ -62,8 +61,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     val evaluator = ImageExistsConstraintEvaluator(
       imageService,
       NoopDynamicConfig(),
-      eventPublisher,
-      TEST_CACHE_FACTORY
+      eventPublisher
     )
     val appVersion = "fnord-1.0.0-123456"
     var promotionResult: Boolean? = null
@@ -105,8 +103,8 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
 
     context("CloudDriver cannot find an image for an artifact version") {
       before {
-        coEvery {
-          imageService.getLatestNamedImageWithAllRegionsForAppVersion(any(), any(), any())
+        every {
+          imageService.getLatestNamedImage(any(), any(), any())
         } returns null
 
         canPromote()
@@ -121,27 +119,23 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
 
     context("CloudDriver finds a matching image for an artifact version") {
       before {
-        coEvery {
-          imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+        every {
+          imageService.getLatestNamedImage(
             AppVersion.parseName(appVersion),
             "test",
-            (artifact as DebianArtifact).vmOptions.regions
+            any()
           )
         } returns NamedImage(
           imageName = appVersion,
-          attributes = mapOf(
-            "creationDate" to "2020-03-17T12:09:00.000Z"
-          ),
+          attributes = mapOf("creationDate" to "2020-03-17T12:09:00.000Z"),
           tagsByImageId = mapOf(
-            "ami-1" to mapOf("appversion" to appVersion, "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
+            "ami-1" to mapOf(
+              "appversion" to appVersion,
+              "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8"
+            )
           ),
-          accounts = setOf(
-            "test" +
-              ""
-          ),
-          amis = mapOf(
-            "us-west-2" to listOf("ami-1")
-          )
+          accounts = setOf("test"),
+          amis = regions.associateWith { listOf("ami-1") }
         )
 
         canPromote()
