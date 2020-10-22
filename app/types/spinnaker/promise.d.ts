@@ -1,7 +1,33 @@
+/* eslint-disable */ // todo(ct): disable only prefer-promise-like
+
 import { IPromise } from '@types/angular';
 
 // add an overload for normalizing a regular Promise into an angular IPromise
 declare module '@types/angular' {
+  interface IPromise<T> {
+    then<TResult>(
+      successCallback: (promiseValue: T) => PromiseLike<TResult> | TResult,
+      errorCallback?: null | undefined,
+      notifyCallback?: (state: any) => any,
+    ): IPromise<TResult>;
+    then<TResult1, TResult2>(
+      successCallback: (promiseValue: T) => PromiseLike<TResult1> | TResult2,
+      errorCallback?: null | undefined,
+      notifyCallback?: (state: any) => any,
+    ): IPromise<TResult1 | TResult2>;
+
+    then<TResult, TCatch>(
+      successCallback: (promiseValue: T) => PromiseLike<TResult> | TResult,
+      errorCallback: (reason: any) => PromiseLike<TCatch> | TCatch,
+      notifyCallback?: (state: any) => any,
+    ): IPromise<TResult | TCatch>;
+    then<TResult1, TResult2, TCatch1, TCatch2>(
+      successCallback: (promiseValue: T) => PromiseLike<TResult1> | TResult2,
+      errorCallback: (reason: any) => PromiseLike<TCatch1> | TCatch2,
+      notifyCallback?: (state: any) => any,
+    ): IPromise<TResult1 | TResult2 | TCatch1 | TCatch2>;
+  }
+
   interface IQService {
     /** Allows $q.all([p1, p2, p3]) to be called with PromiseLike */
     all<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
