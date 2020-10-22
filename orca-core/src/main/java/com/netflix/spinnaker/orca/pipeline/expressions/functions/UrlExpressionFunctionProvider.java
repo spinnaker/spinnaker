@@ -27,10 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.util.HttpClientUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +77,11 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
             new FunctionParameter(String.class, "value", "A String containing JSON text")),
         new FunctionDefinition(
             "readYaml",
-            "Parses YAML from a string to be accessed, parsed JSON can be accessed as an object",
+            "Parses YAML from a string to be accessed, parsed YAML can be accessed as an object",
+            new FunctionParameter(String.class, "value", "A String containing YAML text")),
+        new FunctionDefinition(
+            "readAllYaml",
+            "Parses multi-doc YAML from a string to be accessed, list of parsed YAML can be accessed as objects",
             new FunctionParameter(String.class, "value", "A String containing YAML text")));
   }
 
@@ -133,6 +134,26 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
       return new Yaml().load(text);
     } catch (Exception e) {
       throw new SpelHelperFunctionException(format("#readYaml(%s) failed", text), e);
+    }
+  }
+
+  /**
+   * Attempts to read a multi-doc yaml from a text String. Will throw a parsing exception on bad
+   * yaml
+   *
+   * @param text text to read as yaml
+   * @return a list of the object representations of the yaml text
+   */
+  public static Object readAllYaml(String text) {
+    try {
+      List<Object> yamlDocs = new ArrayList<>();
+      Iterable<Object> iterable = new Yaml().loadAll(text);
+      for (Object o : iterable) {
+        yamlDocs.add(o);
+      }
+      return yamlDocs;
+    } catch (Exception e) {
+      throw new SpelHelperFunctionException(format("#readAllYaml(%s) failed", text), e);
     }
   }
 
