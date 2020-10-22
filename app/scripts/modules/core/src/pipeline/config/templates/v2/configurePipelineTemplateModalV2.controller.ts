@@ -1,4 +1,4 @@
-import { module, IController, IScope, IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { module, IController, IScope, IHttpPromiseCallbackArg } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { without, chain, has } from 'lodash';
 
@@ -106,7 +106,7 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     return this.variables.every((v) => v.errors.length === 0);
   }
 
-  public submit(): IPromise<void> {
+  public submit(): PromiseLike<void> {
     const config = this.buildConfig();
 
     return PipelineTemplateReader.getPipelinePlan(config)
@@ -159,7 +159,7 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     };
   }
 
-  private loadTemplate(): IPromise<void> {
+  private loadTemplate(): PromiseLike<void> {
     return PipelineTemplateReader.getPipelineTemplateFromSourceUrl(this.source, this.executionId, this.pipelineId).then(
       (template) => {
         this.template = template;

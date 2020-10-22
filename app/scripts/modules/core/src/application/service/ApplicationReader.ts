@@ -1,5 +1,3 @@
-import { IPromise } from 'angular';
-
 import { API } from 'core/api';
 import { SchedulerFactory } from 'core/scheduler';
 import { Application } from '../application.model';
@@ -25,11 +23,11 @@ export interface IApplicationSummary {
 }
 
 export class ApplicationReader {
-  public static listApplications(): IPromise<IApplicationSummary[]> {
+  public static listApplications(): PromiseLike<IApplicationSummary[]> {
     return API.all('applications').useCache().getList();
   }
 
-  public static getApplicationAttributes(name: string): IPromise<any> {
+  public static getApplicationAttributes(name: string): PromiseLike<any> {
     return API.one('applications', name)
       .withParams({ expand: false })
       .get()
@@ -39,7 +37,7 @@ export class ApplicationReader {
       });
   }
 
-  public static getApplication(name: string, expand = true): IPromise<Application> {
+  public static getApplication(name: string, expand = true): PromiseLike<Application> {
     return API.one('applications', name)
       .withParams({ expand: expand })
       .get()

@@ -1,7 +1,7 @@
 import { ExecutionService } from '../../pipeline';
 import { IPipeline, IExecution, IStage } from '../../domain';
 import { JsonListBuilder } from './JsonListBuilder';
-import { IPromise, IQService } from 'angular';
+import { IQService } from 'angular';
 
 interface IBracket {
   open: string;
@@ -383,7 +383,7 @@ export class SpelAutocompleteService {
     return textcompleteConfig;
   }
 
-  private getLastExecutionByPipelineConfig(pipelineConfig: IPipeline): IPromise<IExecution> {
+  private getLastExecutionByPipelineConfig(pipelineConfig: IPipeline): PromiseLike<IExecution> {
     if (this.executionCache[pipelineConfig.id]) {
       return this.$q.when(this.executionCache[pipelineConfig.id]);
     } else {

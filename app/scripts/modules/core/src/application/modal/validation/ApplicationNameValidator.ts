@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 
 export interface IApplicationNameValidationMessage {
@@ -58,7 +57,7 @@ export class ApplicationNameValidator {
   public static validate(
     applicationName: string,
     providersToTest: string[],
-  ): IPromise<IApplicationNameValidationResult> {
+  ): PromiseLike<IApplicationNameValidationResult> {
     return AccountService.listProviders().then((availableProviders: string[]) => {
       const toCheck = providersToTest && providersToTest.length ? providersToTest : availableProviders;
 
