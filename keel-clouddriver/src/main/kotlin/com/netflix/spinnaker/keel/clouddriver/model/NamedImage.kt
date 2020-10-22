@@ -40,6 +40,13 @@ val NamedImage.hasAppVersion: Boolean
       vals.isNotEmpty() && vals.all { it != null && it.containsKey("appversion") }
     }
 
+val NamedImage.hasBaseImageVersion: Boolean
+  get() = tagsByImageId
+    .values
+    .let { vals ->
+      vals.isNotEmpty() && vals.all { it != null && it.containsKey("base_ami_version") }
+    }
+
 val NamedImage.appVersion: String
   get() = tagsByImageId
     .values

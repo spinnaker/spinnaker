@@ -23,8 +23,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
+import com.netflix.spinnaker.keel.clouddriver.model.hasBaseImageVersion
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.filterNotNullValues
 import com.netflix.spinnaker.keel.parseAppVersion
@@ -42,33 +44,43 @@ class ImageService(
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  suspend fun getLatestImage(artifactName: String, account: String): Image? =
-    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
-      .filter { it.hasAppVersion }
+  /**
+   * Finds the latest baked AMI(s) for [artifactName] in [account] and consolidates them into a
+   * single [Image] model. This may represent multiple actual AMIs in the case that multiple AMIs
+   * exist with the same [appVersion] and [baseImageVersion] in different regions.
+   *
+   * If no images at all exist for [artifactName] this method returns `null`.
+   */
+  suspend fun getLatestImage(artifactName: String, account: String): Image? {
+    val candidateImages = cloudDriverService
+      .namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
+      .filter { it.hasAppVersion && it.hasBaseImageVersion }
       .sortedWith(NamedImageComparator)
+    val latest = candidateImages
       .firstOrNull {
         // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
         it.appVersion.parseAppVersion().packageName == artifactName
-      }?.toImage(artifactName)
-
-  private fun NamedImage.toImage(artifactName: String): Image? =
-    tagsByImageId
-      .values
-      .firstOrNull { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-      .let { tags ->
-        return if (tags == null) {
-          log.debug("No images found for {}", artifactName)
-          null
-        } else {
-          val image = Image(
-            tags.getValue("base_ami_version")!!,
-            tags.getValue("appversion")!!.substringBefore('/'),
-            amis.keys
-          )
-          log.debug("Latest image for {} is {}", artifactName, image)
-          image
-        }
       }
+
+    return if (latest == null) {
+      log.debug("No images found for {}", artifactName)
+      null
+    } else {
+      val regions = candidateImages
+        .filter {
+          it.appVersion == latest.appVersion && it.baseImageVersion == latest.baseImageVersion
+        }
+        .flatMap { it.amis.keys }
+        .toSet()
+      Image(
+        appVersion = latest.appVersion,
+        baseAmiVersion = latest.baseImageVersion,
+        regions = regions
+      ).also {
+        log.debug("Latest image for {} is {}", artifactName, it)
+      }
+    }
+  }
 
   private data class NamedImageCacheKey(
     val appVersion: AppVersion,

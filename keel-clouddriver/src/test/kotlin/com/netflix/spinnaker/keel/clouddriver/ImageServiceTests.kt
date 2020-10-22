@@ -30,6 +30,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.containsKeys
 import strikt.assertions.getValue
@@ -286,6 +287,34 @@ class ImageServiceTests : JUnit5Minutests {
           expectThat(image)
             .isNull()
         }
+      }
+    }
+
+    context("image regions are split across multiple actual AMIs") {
+      before {
+        every {
+          cloudDriver.namedImages(
+            user = DEFAULT_SERVICE_ACCOUNT,
+            imageName = "my-package",
+            account = "test",
+            region = null
+          )
+        } returns listOf(image3, image5)
+      }
+
+      test("result includes both regions") {
+        val image = runBlocking {
+          subject.getLatestImage(
+            artifactName = "my-package",
+            account = "test"
+          )
+        }
+
+        expectThat(image)
+          .isNotNull()
+          .get {regions}
+          .contains(image3.amis.keys)
+          .contains(image5.amis.keys)
       }
     }
 
