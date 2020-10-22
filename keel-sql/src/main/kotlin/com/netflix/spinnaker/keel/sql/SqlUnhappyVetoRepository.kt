@@ -22,9 +22,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.UNHAPPY_VETO
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
-import java.time.Duration
-import java.time.LocalDateTime
 import org.jooq.DSLContext
+import java.time.Instant
 
 class SqlUnhappyVetoRepository(
   override val clock: Clock,
@@ -32,19 +31,19 @@ class SqlUnhappyVetoRepository(
   private val sqlRetry: SqlRetry
 ) : UnhappyVetoRepository(clock) {
 
-  override fun markUnhappyForWaitingTime(resourceId: String, application: String, wait: Duration?) {
+  override fun markUnhappy(resourceId: String, application: String, recheckTime: Instant?) {
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(UNHAPPY_VETO)
         .set(UNHAPPY_VETO.RESOURCE_ID, resourceId)
         .set(UNHAPPY_VETO.APPLICATION, application)
         .run {
-          calculateExpirationTime(wait)
+          recheckTime
             ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime.toTimestamp()) }
             ?: setNull(UNHAPPY_VETO.RECHECK_TIME)
         }
         .onDuplicateKeyUpdate()
         .run {
-          calculateExpirationTime(wait)
+          recheckTime
             ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime.toTimestamp()) }
             ?: setNull(UNHAPPY_VETO.RECHECK_TIME)
         }
@@ -60,21 +59,14 @@ class SqlUnhappyVetoRepository(
     }
   }
 
-  override fun getOrCreateVetoStatus(resourceId: String, application: String, wait: Duration?): UnhappyVetoStatus {
-    val recheckTime: LocalDateTime? = sqlRetry.withRetry(READ) {
+  override fun getRecheckTime(resourceId: String): Instant? {
+    return sqlRetry.withRetry(READ) {
       jooq
         .select(UNHAPPY_VETO.RECHECK_TIME)
         .from(UNHAPPY_VETO)
         .where(UNHAPPY_VETO.RESOURCE_ID.eq(resourceId))
-        .fetchOne()
-        ?.value1()
-    }
-
-    return if (recheckTime == null || recheckTime > clock.timestamp()) {
-      markUnhappyForWaitingTime(resourceId, application, wait)
-      UnhappyVetoStatus(shouldSkip = true, shouldRecheck = false)
-    } else {
-      UnhappyVetoStatus(shouldSkip = false, shouldRecheck = true)
+        .fetchOne(UNHAPPY_VETO.RECHECK_TIME)
+        ?.toInstant()
     }
   }
 

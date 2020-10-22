@@ -37,12 +37,12 @@ abstract class UnhappyVetoRepository(
   /**
    * Marks [resourceId] as unhappy for [waitingTime]
    *
-   * @param wait the time to wait before re-checking the resource, `null` means "never re-check".
+   * @param recheckTime the time to wait before re-checking the resource, `null` means "never re-check".
    */
-  abstract fun markUnhappyForWaitingTime(
+  abstract fun markUnhappy(
     resourceId: String,
     application: String,
-    wait: Duration? = Duration.parse(waitingTime)
+    recheckTime: Instant? = clock.instant() + Duration.parse(waitingTime)
   )
 
   /**
@@ -55,11 +55,9 @@ abstract class UnhappyVetoRepository(
    *
    * @param wait the time to wait before re-checking the resource, `null` means "never re-check".
    */
-  abstract fun getOrCreateVetoStatus(
-    resourceId: String,
-    application: String,
-    wait: Duration? = Duration.parse(waitingTime)
-  ): UnhappyVetoStatus
+  abstract fun getRecheckTime(
+    resourceId: String
+  ): Instant?
 
   /**
    * Returns all currently vetoed resources
@@ -70,12 +68,4 @@ abstract class UnhappyVetoRepository(
    * Returns all currently vetoed resources for an [application]
    */
   abstract fun getAllForApp(application: String): Set<String>
-
-  fun calculateExpirationTime(wait: Duration?): Instant? =
-    wait?.let { clock.instant().plus(it) }
-
-  data class UnhappyVetoStatus(
-    val shouldSkip: Boolean = false,
-    val shouldRecheck: Boolean = false
-  )
 }

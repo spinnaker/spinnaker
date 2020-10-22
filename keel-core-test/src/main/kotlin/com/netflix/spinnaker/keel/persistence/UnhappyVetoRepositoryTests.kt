@@ -17,21 +17,16 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository.UnhappyVetoStatus
 import com.netflix.spinnaker.time.MutableClock
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Clock
 import java.time.Duration
-import strikt.api.Assertion
-import strikt.api.expect
-import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.assertions.isSuccess
+import strikt.assertions.isNull
 
 abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -59,21 +54,22 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
         expectThat(subject.getAll()).hasSize(0)
       }
 
-      test("can create an unhappy status") {
-        expectCatching {
-          subject.getOrCreateVetoStatus(resourceId, application)
-        }
-          .isSuccess()
+      test("recheck time is null") {
+        expectThat(subject.getRecheckTime(resourceId)).isNull()
       }
     }
 
     context("basic operations") {
       before {
-        subject.markUnhappyForWaitingTime(resourceId, application)
+        subject.markUnhappy(resourceId, application)
       }
 
       test("marking unhappy works") {
         expectThat(subject.getAll()).hasSize(1)
+      }
+
+      test("retrieving recheck time works") {
+        expectThat(subject.getRecheckTime(resourceId)).isEqualTo(clock.instant() + waitDuration)
       }
 
       test("marking happy works") {
@@ -82,64 +78,9 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       }
     }
 
-    context("expiring the time") {
-      before {
-        subject.markUnhappyForWaitingTime(resourceId, application)
-      }
-
-      test("should skip right after we mark unhappy") {
-        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
-        expect {
-          that(vetoStatus).shouldSkip.isEqualTo(true)
-          that(vetoStatus).shouldRecheck.isEqualTo(false)
-        }
-      }
-
-      test("9 minutes later we should still skip") {
-        clock.incrementBy(Duration.ofMinutes(9))
-        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
-        expect {
-          that(vetoStatus).shouldSkip.isEqualTo(true)
-          that(vetoStatus).shouldRecheck.isEqualTo(false)
-        }
-      }
-
-      test("11 minutes later don't skip, instead recheck") {
-        clock.incrementBy(Duration.ofMinutes(11))
-        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
-        expect {
-          that(vetoStatus).shouldSkip.isEqualTo(false)
-          that(vetoStatus).shouldRecheck.isEqualTo(true)
-        }
-      }
-    }
-
-    context("setting a null expiry time") {
-      before {
-        subject.markUnhappyForWaitingTime(resourceId, application, null)
-      }
-
-      test("should skip right after we mark unhappy with no timeout") {
-        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, null)
-        expect {
-          that(vetoStatus).shouldSkip.isEqualTo(true)
-          that(vetoStatus).shouldRecheck.isEqualTo(false)
-        }
-      }
-
-      test("should still skip after a long time when we mark unhappy with no timeout") {
-        clock.incrementBy(Duration.ofDays(1000))
-        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, null)
-        expect {
-          that(vetoStatus).shouldSkip.isEqualTo(true)
-          that(vetoStatus).shouldRecheck.isEqualTo(false)
-        }
-      }
-    }
-
     context("filtering") {
       before {
-        subject.markUnhappyForWaitingTime(resourceId, application)
+        subject.markUnhappy(resourceId, application)
       }
       test("filters out resources that are past the recheck time") {
         clock.incrementBy(Duration.ofMinutes(11))
@@ -153,10 +94,10 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       val resource1 = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
       val resource2 = "ec2:securityGroup:test:us-west-2:keel-managed"
       before {
-        subject.markUnhappyForWaitingTime(bake1, "keeldemo")
-        subject.markUnhappyForWaitingTime(bake2, "keel")
-        subject.markUnhappyForWaitingTime(resource1, "keeldemo")
-        subject.markUnhappyForWaitingTime(resource2, "keel")
+        subject.markUnhappy(bake1, "keeldemo")
+        subject.markUnhappy(bake2, "keel")
+        subject.markUnhappy(resource1, "keeldemo")
+        subject.markUnhappy(resource2, "keel")
       }
 
       test("get for keel returns only correct resources") {
@@ -167,9 +108,3 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
     }
   }
 }
-
-private val Assertion.Builder<UnhappyVetoStatus>.shouldSkip: Assertion.Builder<Boolean>
-  get() = get("should skip") { shouldSkip }
-
-private val Assertion.Builder<UnhappyVetoStatus>.shouldRecheck: Assertion.Builder<Boolean>
-  get() = get("should recheck") { shouldRecheck }

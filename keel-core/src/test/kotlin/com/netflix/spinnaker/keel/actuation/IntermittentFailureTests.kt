@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
-import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository.UnhappyVetoStatus
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
@@ -30,6 +29,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
@@ -85,7 +85,8 @@ class IntermittentFailureTests : JUnit5Minutests {
       diffFingerprintRepository,
       vetoRepository,
       dynamicConfigService,
-      "PT10M"
+      "PT10M",
+      clock
     )
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val subject = ResourceActuator(
@@ -157,7 +158,7 @@ class IntermittentFailureTests : JUnit5Minutests {
 
         context("resource is still in a diff state") {
           before {
-            every { vetoRepository.getOrCreateVetoStatus(resource.id, resource.application, any()) } returns UnhappyVetoStatus(shouldSkip = true)
+            every { vetoRepository.getRecheckTime(resource.id) } returns clock.instant() + Duration.ofMinutes(20)
 
             runBlocking { subject.checkResource(resource) }
           }
@@ -169,7 +170,7 @@ class IntermittentFailureTests : JUnit5Minutests {
 
         context("then, resource is briefly in no diff state") {
           before {
-            every { vetoRepository.getOrCreateVetoStatus(resource.id, resource.application, any()) } returns UnhappyVetoStatus(shouldRecheck = true)
+            every { vetoRepository.getRecheckTime(resource.id) } returns clock.instant() - Duration.ofMinutes(1)
 
             every { plugin1.desired(resource) } returns desired
             every { plugin1.current(resource) } returns desired
