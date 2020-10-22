@@ -1,11 +1,10 @@
-import { IPromise } from 'angular';
 import { groupBy, sortBy } from 'lodash';
 
 import { AccountService, CertificateReader } from '@spinnaker/core';
 import { IAmazonCertificate } from 'amazon/domain';
 
 export class AmazonCertificateReader {
-  public static listCertificates(): IPromise<{ [accountId: string]: IAmazonCertificate[] }> {
+  public static listCertificates(): PromiseLike<{ [accountId: string]: IAmazonCertificate[] }> {
     return CertificateReader.listCertificatesByProvider('aws').then((certificates: IAmazonCertificate[]) => {
       // This account grouping should really go into clouddriver but since it's not, put it here for now.
       return AccountService.listAllAccounts('aws').then((allAccountDetails) => {

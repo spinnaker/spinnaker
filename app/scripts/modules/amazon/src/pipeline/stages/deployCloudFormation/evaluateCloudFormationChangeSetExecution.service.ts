@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 import { EXECUTION_SERVICE, ExecutionService } from '@spinnaker/core';
 import { IExecution, IExecutionStage } from '@spinnaker/core';
 import { Application } from '@spinnaker/core';
@@ -12,7 +12,7 @@ export class EvaluateCloudFormationChangeSetExecutionService {
     execution: IExecution,
     stage: IExecutionStage,
     changeSetExecutionChoice: string,
-  ): IPromise<void> {
+  ): PromiseLike<void> {
     const matcher = (result: IExecution) => {
       const match = result.stages.find((test: { id: any }) => test.id === stage.id);
       return match && match.status !== 'RUNNING';

@@ -1,4 +1,4 @@
-import { module, IPromise } from 'angular';
+import { module } from 'angular';
 import { $q } from 'ngimport';
 import {
   chain,
@@ -150,7 +150,7 @@ export class AwsServerGroupConfigurationService {
     } as IAmazonServerGroupCommandBackingData;
   }
 
-  public configureCommand(application: Application, cmd: IAmazonServerGroupCommand): IPromise<void> {
+  public configureCommand(application: Application, cmd: IAmazonServerGroupCommand): PromiseLike<void> {
     this.applyOverrides('beforeConfiguration', cmd);
     // TODO: Instead of attaching these to the command itself, they could be static methods
     cmd.toggleSuspendedProcess = (command: IAmazonServerGroupCommand, process: string): void => {
@@ -222,7 +222,7 @@ export class AwsServerGroupConfigurationService {
         terminationPolicies: $q.when(clone(this.terminationPolicies)),
       })
       .then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-        let securityGroupReloader = $q.when();
+        let securityGroupReloader: PromiseLike<void> = $q.when();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
         backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
@@ -412,7 +412,7 @@ export class AwsServerGroupConfigurationService {
   public refreshSecurityGroups(
     command: IAmazonServerGroupCommand,
     skipCommandReconfiguration?: boolean,
-  ): IPromise<void> {
+  ): PromiseLike<void> {
     return this.cacheInitializer.refreshCache('securityGroups').then(() => {
       return this.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
         command.backingData.securityGroups = securityGroups;

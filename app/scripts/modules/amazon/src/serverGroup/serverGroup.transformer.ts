@@ -1,4 +1,4 @@
-import { module, IPromise } from 'angular';
+import { module } from 'angular';
 import { defaults } from 'lodash';
 
 import { IVpc } from '@spinnaker/core';
@@ -69,7 +69,7 @@ export class AwsServerGroupTransformer {
     return view;
   }
 
-  public normalizeServerGroup(serverGroup: IAmazonServerGroup): IPromise<IAmazonServerGroup> {
+  public normalizeServerGroup(serverGroup: IAmazonServerGroup): PromiseLike<IAmazonServerGroup> {
     serverGroup.instances.forEach((instance) => {
       instance.vpcId = serverGroup.vpcId;
     });

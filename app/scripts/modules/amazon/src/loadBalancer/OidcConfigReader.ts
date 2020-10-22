@@ -1,5 +1,3 @@
-import { IPromise } from 'angular';
-
 import { API } from '@spinnaker/core';
 
 export interface IAuthenticateOidcActionConfig {
@@ -17,7 +15,7 @@ export interface IAuthenticateOidcActionConfig {
 }
 
 export class OidcConfigReader {
-  public static getOidcConfigsByApp(app: string): IPromise<IAuthenticateOidcActionConfig[]> {
+  public static getOidcConfigsByApp(app: string): PromiseLike<IAuthenticateOidcActionConfig[]> {
     return API.one('oidcConfigs').withParams({ app }).getList();
   }
 }

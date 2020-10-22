@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { flatten } from 'lodash';
 
@@ -43,7 +42,7 @@ export class AmazonLoadBalancerDataUtils {
   public static populateTargetGroups(
     application: Application,
     serverGroup: IAmazonServerGroup,
-  ): IPromise<ITargetGroup[]> {
+  ): PromiseLike<ITargetGroup[]> {
     return $q
       .all([AccountService.getAccountDetails(serverGroup.account), application.getDataSource('loadBalancers').ready()])
       .then((data) => {

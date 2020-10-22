@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 
 import {
   Application,
@@ -32,7 +32,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     const jobs = this.buildMultiInstanceJob(
       instanceGroups,
       'deregisterInstancesFromLoadBalancer',
@@ -50,7 +50,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;
@@ -86,7 +86,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;

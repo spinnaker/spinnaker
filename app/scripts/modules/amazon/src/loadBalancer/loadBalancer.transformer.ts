@@ -25,7 +25,6 @@ import {
   ITargetGroup,
 } from 'amazon/domain';
 import { VpcReader } from 'amazon/vpc/VpcReader';
-import { IPromise } from 'angular';
 import { chain, filter, flatten, map } from 'lodash';
 
 import { $q } from 'ngimport';
@@ -112,7 +111,7 @@ export class AwsLoadBalancerTransformer {
     });
   }
 
-  private normalizeTargetGroup(targetGroup: ITargetGroup): IPromise<ITargetGroup> {
+  private normalizeTargetGroup(targetGroup: ITargetGroup): PromiseLike<ITargetGroup> {
     this.normalizeServerGroups(targetGroup.serverGroups, targetGroup, 'targetGroups', 'TargetGroup');
 
     const activeServerGroups = filter(targetGroup.serverGroups, { isDisabled: false });
@@ -153,7 +152,7 @@ export class AwsLoadBalancerTransformer {
     }
   }
 
-  public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): PromiseLike<IAmazonLoadBalancer> {
     this.normalizeServerGroups(loadBalancer.serverGroups, loadBalancer, 'loadBalancers', 'LoadBalancer');
 
     let serverGroups = loadBalancer.serverGroups;

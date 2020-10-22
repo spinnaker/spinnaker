@@ -1,4 +1,4 @@
-import { IController, IPromise, IQService, IScope, module } from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 import { head, sortBy } from 'lodash';
 
@@ -94,7 +94,7 @@ export class AwsLoadBalancerDetailsController implements IController {
     this.$state.go('^', null, { location: 'replace' });
   }
 
-  public extractLoadBalancer(): IPromise<void> {
+  public extractLoadBalancer(): PromiseLike<void> {
     const appLoadBalancer = this.app.loadBalancers.data.find((test: ILoadBalancer) => {
       return (
         test.name === this.loadBalancerFromParams.name &&

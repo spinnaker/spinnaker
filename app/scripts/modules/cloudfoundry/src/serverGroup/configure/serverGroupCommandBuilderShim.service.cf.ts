@@ -1,4 +1,4 @@
-import { IPromise, IQService } from 'angular';
+import { IQService } from 'angular';
 
 import { Application, IPipeline, IStage } from '@spinnaker/core';
 
@@ -13,7 +13,10 @@ export class CloudFoundryServerGroupCommandBuilderShim {
   public static $inject = ['$q'];
   constructor(private $q: IQService) {}
 
-  public buildNewServerGroupCommand(app: Application, defaults: any): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  public buildNewServerGroupCommand(
+    app: Application,
+    defaults: any,
+  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
     return this.$q.when(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommand(app, defaults));
   }
 
@@ -21,7 +24,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     app: Application,
     serverGroup: ICloudFoundryServerGroup,
     mode = 'clone',
-  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
     return this.$q.when(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup, mode),
     );
@@ -30,7 +33,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
   public buildNewServerGroupCommandForPipeline(
     stage: IStage,
     pipeline: IPipeline,
-  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
     return this.$q.when(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline));
   }
 
@@ -39,7 +42,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     originalCluster: ICloudFoundryDeployConfiguration,
     stage: IStage,
     pipeline: IPipeline,
-  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
     return this.$q.when(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromPipeline(
         application,
@@ -53,7 +56,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
   public buildCloneServerGroupCommandFromPipeline(
     stage: IStage,
     pipeline: IPipeline,
-  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
     return this.$q.when(
       CloudFoundryServerGroupCommandBuilder.buildCloneServerGroupCommandFromPipeline(stage, pipeline),
     );

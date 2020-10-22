@@ -1,4 +1,4 @@
-import { IController, IPromise, IQService, IScope, module } from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
 import { Application, ILoadBalancer, MANAGED_RESOURCE_DETAILS_INDICATOR } from '@spinnaker/core';
@@ -53,7 +53,7 @@ export class AwsTargetGroupDetailsController implements IController {
     this.$state.go('^', null, { location: 'replace' });
   }
 
-  public extractTargetGroup(): IPromise<void> {
+  public extractTargetGroup(): PromiseLike<void> {
     const { loadBalancerName, region, accountId, name } = this.targetGroupFromParams;
 
     const appLoadBalancer: IAmazonApplicationLoadBalancer = this.app.loadBalancers.data.find((test: ILoadBalancer) => {

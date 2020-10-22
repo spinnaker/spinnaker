@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
 import { API } from '@spinnaker/core';
@@ -22,7 +21,7 @@ export interface IAmazonImage {
 }
 
 export class AwsImageReader {
-  public findImages(params: { q: string; region?: string }): IPromise<IAmazonImage[]> {
+  public findImages(params: { q: string; region?: string }): PromiseLike<IAmazonImage[]> {
     if (!params.q || params.q.length < 3) {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
@@ -33,7 +32,7 @@ export class AwsImageReader {
       .catch(() => [] as IAmazonImage[]);
   }
 
-  public getImage(amiName: string, region: string, credentials: string): IPromise<IAmazonImage> {
+  public getImage(amiName: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
     return API.one('images')
       .one(credentials)
       .one(region)

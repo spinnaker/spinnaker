@@ -1,4 +1,4 @@
-import { IController, IPromise, IQService, module } from 'angular';
+import { IController, IQService, module } from 'angular';
 import { cloneDeep, flattenDeep } from 'lodash';
 
 import {
@@ -82,7 +82,7 @@ class AppengineInstanceDetailsController implements IController {
     });
   }
 
-  private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {
+  private retrieveInstance(instance: InstanceFromStateParams): PromiseLike<IAppengineInstance> {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
       return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
     };

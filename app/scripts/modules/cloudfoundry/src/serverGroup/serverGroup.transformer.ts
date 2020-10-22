@@ -1,5 +1,3 @@
-import { IPromise } from 'angular';
-
 import { defaults } from 'lodash';
 
 import { ICloudFoundryServerGroup, ICloudFoundryEnvVar } from 'cloudfoundry/domain';
@@ -12,7 +10,7 @@ export class CloudFoundryServerGroupTransformer {
     return serverGroup;
   }
 
-  public normalizeServerGroup(serverGroup: ICloudFoundryServerGroup): IPromise<ICloudFoundryServerGroup> {
+  public normalizeServerGroup(serverGroup: ICloudFoundryServerGroup): PromiseLike<ICloudFoundryServerGroup> {
     return this.$q.resolve(serverGroup);
   }
 

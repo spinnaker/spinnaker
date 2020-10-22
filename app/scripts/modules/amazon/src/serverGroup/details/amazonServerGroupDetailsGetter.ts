@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import { isEmpty } from 'lodash';
 import { Observable } from 'rxjs';
 
@@ -8,7 +7,7 @@ import { AwsReactInjector } from 'amazon/reactShims';
 import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
 
-function extractServerGroupSummary(props: IServerGroupDetailsProps): IPromise<IAmazonServerGroup> {
+function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IAmazonServerGroup> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary: IAmazonServerGroup = app.serverGroups.data.find((toCheck: IAmazonServerGroup) => {
