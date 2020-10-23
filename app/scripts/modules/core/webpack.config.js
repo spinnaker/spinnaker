@@ -3,7 +3,6 @@
 const path = require('path');
 const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const TerserPlugin = require('terser-webpack-plugin');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
@@ -119,6 +118,5 @@ module.exports = {
       },
     ],
   },
-  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
   externals: ['root/version.json', nodeExternals({ modulesDir: '../../../../node_modules' })],
 };
