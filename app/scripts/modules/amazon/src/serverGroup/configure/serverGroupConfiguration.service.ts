@@ -210,43 +210,67 @@ export class AwsServerGroupConfigurationService {
     };
 
     return $q
-      .all({
-        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('aws'),
-        securityGroups: this.securityGroupReader.getAllSecurityGroups(),
-        subnets: SubnetReader.listSubnets(),
-        preferredZones: AccountService.getPreferredZonesByAccount('aws'),
-        keyPairs: KeyPairsReader.listKeyPairs(),
-        instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
-        enabledMetrics: $q.when(clone(this.enabledMetrics)),
-        healthCheckTypes: $q.when(clone(this.healthCheckTypes)),
-        terminationPolicies: $q.when(clone(this.terminationPolicies)),
-      })
-      .then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-        let securityGroupReloader: PromiseLike<void> = $q.when();
-        backingData.accounts = keys(backingData.credentialsKeyedByAccount);
-        backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
-        backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
-        backingData.appLoadBalancers = application.getDataSource('loadBalancers').data;
-        backingData.managedResources = application.getDataSource('managedResources')?.data?.resources;
-        cmd.backingData = backingData as IAmazonServerGroupCommandBackingData;
-        this.configureVpcId(cmd);
-        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
-        if (cmd.viewState.disableImageSelection) {
-          this.configureInstanceTypes(cmd);
-        }
+      .all([
+        AccountService.getCredentialsKeyedByAccount('aws'),
+        this.securityGroupReader.getAllSecurityGroups(),
+        SubnetReader.listSubnets(),
+        AccountService.getPreferredZonesByAccount('aws'),
+        KeyPairsReader.listKeyPairs(),
+        this.awsInstanceTypeService.getAllTypesByRegion(),
+        $q.when(clone(this.enabledMetrics)),
+        $q.when(clone(this.healthCheckTypes)),
+        $q.when(clone(this.terminationPolicies)),
+      ])
+      .then(
+        ([
+          credentialsKeyedByAccount,
+          securityGroups,
+          subnets,
+          preferredZones,
+          keyPairs,
+          instanceTypes,
+          enabledMetrics,
+          healthCheckTypes,
+          terminationPolicies,
+        ]) => {
+          const backingData: Partial<IAmazonServerGroupCommandBackingData> = {
+            credentialsKeyedByAccount,
+            securityGroups,
+            subnets,
+            preferredZones,
+            keyPairs,
+            instanceTypes,
+            enabledMetrics,
+            healthCheckTypes,
+            terminationPolicies,
+          };
 
-        if (cmd.securityGroups && cmd.securityGroups.length) {
-          const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
-          if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
-            securityGroupReloader = this.refreshSecurityGroups(cmd, true);
+          let securityGroupReloader: PromiseLike<void> = $q.when();
+          backingData.accounts = keys(backingData.credentialsKeyedByAccount);
+          backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
+          backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
+          backingData.appLoadBalancers = application.getDataSource('loadBalancers').data;
+          backingData.managedResources = application.getDataSource('managedResources')?.data?.resources;
+          cmd.backingData = backingData as IAmazonServerGroupCommandBackingData;
+          this.configureVpcId(cmd);
+          backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
+          if (cmd.viewState.disableImageSelection) {
+            this.configureInstanceTypes(cmd);
           }
-        }
 
-        return securityGroupReloader.then(() => {
-          this.applyOverrides('afterConfiguration', cmd);
-          this.attachEventHandlers(cmd);
-        });
-      });
+          if (cmd.securityGroups && cmd.securityGroups.length) {
+            const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
+            if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
+              securityGroupReloader = this.refreshSecurityGroups(cmd, true);
+            }
+          }
+
+          return securityGroupReloader.then(() => {
+            this.applyOverrides('afterConfiguration', cmd);
+            this.attachEventHandlers(cmd);
+          });
+        },
+      );
   }
 
   public applyOverrides(phase: string, command: IAmazonServerGroupCommand): void {
