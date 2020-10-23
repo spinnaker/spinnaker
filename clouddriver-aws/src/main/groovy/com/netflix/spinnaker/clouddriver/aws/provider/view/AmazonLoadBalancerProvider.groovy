@@ -66,7 +66,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   }
 
   private static boolean applicationMatcher(String key, String applicationName) {
-    return key ==~ 'aws:.*:' + applicationName + '-.*' || key ==~ 'aws:.*:' + applicationName || key ==~ 'aws:.*:' + applicationName + ':.*'
+    // aws:loadBalancers:account:region:loadbalancer-name:vpc:type
+    return key ==~ 'aws:[^:]*:[^:]*:[^:]*:' + applicationName + '(-[^:]*):'
   }
 
   @Override
