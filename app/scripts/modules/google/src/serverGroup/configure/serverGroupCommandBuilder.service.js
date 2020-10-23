@@ -520,66 +520,62 @@ angular
           'gce',
           pipelineCluster.instanceType,
         );
+
         const commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-        const asyncLoader = $q.all({
-          command: buildNewServerGroupCommand(application, commandOptions),
-          instanceProfile: instanceTypeCategoryLoader,
-        });
+        return $q
+          .all([buildNewServerGroupCommand(application, commandOptions), instanceTypeCategoryLoader])
+          .then(function ([command, instanceProfile]) {
+            const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
+              currentStage,
+              pipeline,
+            );
+            const viewState = {
+              pipeline,
+              stage: currentStage,
+              instanceProfile,
+              disableImageSelection: true,
+              expectedArtifacts: expectedArtifacts,
+              showImageSourceSelector: true,
+              useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
+              mode: 'editPipeline',
+              submitButtonLabel: 'Done',
+              customInstance:
+                instanceProfile === 'buildCustom'
+                  ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType)
+                  : null,
+              templatingEnabled: true,
+            };
 
-        return asyncLoader.then(function (asyncData) {
-          const command = asyncData.command;
+            const viewOverrides = {
+              region: region,
+              credentials: pipelineCluster.account,
+              enableTraffic: !pipelineCluster.disableTraffic,
+              viewState: viewState,
+            };
 
-          const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
-            currentStage,
-            pipeline,
-          );
-          const viewState = {
-            pipeline,
-            stage: currentStage,
-            instanceProfile: asyncData.instanceProfile,
-            disableImageSelection: true,
-            expectedArtifacts: expectedArtifacts,
-            showImageSourceSelector: true,
-            useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
-            mode: 'editPipeline',
-            submitButtonLabel: 'Done',
-            customInstance:
-              asyncData.instanceProfile === 'buildCustom'
-                ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType)
-                : null,
-            templatingEnabled: true,
-          };
+            pipelineCluster.strategy = pipelineCluster.strategy || '';
 
-          const viewOverrides = {
-            region: region,
-            credentials: pipelineCluster.account,
-            enableTraffic: !pipelineCluster.disableTraffic,
-            viewState: viewState,
-          };
+            const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
-          pipelineCluster.strategy = pipelineCluster.strategy || '';
+            return populateDisksFromPipeline(extendedCommand).then(function () {
+              const instanceMetadata = extendedCommand.instanceMetadata;
+              extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
+              extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']
+                ? instanceMetadata['backend-service-names'].split(',')
+                : [];
+              extendedCommand.minCpuPlatform = pipelineCluster.minCpuPlatform || '(Automatic)';
+              extendedCommand.instanceMetadata = {};
+              populateCustomMetadata(instanceMetadata, extendedCommand);
+              populateAutoHealingPolicy(pipelineCluster, extendedCommand);
+              populateShieldedVmConfig(pipelineCluster, extendedCommand);
 
-          const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+              const instanceTemplateTags = { items: extendedCommand.tags };
+              extendedCommand.tags = [];
+              populateTags(instanceTemplateTags, extendedCommand);
 
-          return populateDisksFromPipeline(extendedCommand).then(function () {
-            const instanceMetadata = extendedCommand.instanceMetadata;
-            extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
-            extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']
-              ? instanceMetadata['backend-service-names'].split(',')
-              : [];
-            extendedCommand.minCpuPlatform = pipelineCluster.minCpuPlatform || '(Automatic)';
-            extendedCommand.instanceMetadata = {};
-            populateCustomMetadata(instanceMetadata, extendedCommand);
-            populateAutoHealingPolicy(pipelineCluster, extendedCommand);
-            populateShieldedVmConfig(pipelineCluster, extendedCommand);
-
-            const instanceTemplateTags = { items: extendedCommand.tags };
-            extendedCommand.tags = [];
-            populateTags(instanceTemplateTags, extendedCommand);
-
-            return extendedCommand;
+              return extendedCommand;
+            });
           });
-        });
       }
 
       return {
