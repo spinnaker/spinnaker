@@ -231,11 +231,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
       const pipelineCluster = _.cloneDeep(originalCluster);
 
       const commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
-      const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
-
-      return asyncLoader.then(function (asyncData) {
-        const command = asyncData.command;
-
+      return buildNewServerGroupCommand(application, commandOptions).then(function (command) {
         let contextImages = findUpstreamImages(current, pipeline.stages) || [];
         contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
 
