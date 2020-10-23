@@ -368,6 +368,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
       webhook: [
+        headers:[Location: "https://my-service.io/api/status/123"],
         statusCode: HttpStatus.CREATED,
         statusCodeValue: HttpStatus.CREATED.value(),
         body: [success: true],
@@ -544,6 +545,7 @@ class CreateWebhookTaskSpec extends Specification {
     if (statusUrlResolution == WebhookProperties.StatusUrlResolution.locationHeader) {
       headers.add(HttpHeaders.LOCATION, responseStatusCheckUrl)
     }
+    headers.add(HttpHeaders.CONTENT_TYPE, "application/json")
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       callWebhook(stage) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
@@ -555,6 +557,7 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     stage.context.statusEndpoint == resultstatusCheckUrl
+    result.context.webhook.headers.size() >= 1
 
     where:
     webHookUrl                   | statusUrlResolution                                    | responseStatusCheckUrl             || resultstatusCheckUrl

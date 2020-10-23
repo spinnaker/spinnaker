@@ -85,6 +85,9 @@ public class WebhookResponseProcessor {
     Map<String, Object> webHookOutput = (Map<String, Object>) stageOutput.get("webhook");
     webHookOutput.put("statusCode", e.getStatusCode());
     webHookOutput.put("statusCodeValue", e.getStatusCode().value());
+    if (e.getResponseHeaders() != null) {
+      webHookOutput.put("headers", e.getResponseHeaders().toSingleValueMap());
+    }
     if (!StringUtils.isEmpty(e.getResponseBodyAsString())) {
       webHookOutput.put("body", processResponseBodyAsJson(e.getResponseBodyAsString()));
     }
@@ -164,6 +167,9 @@ public class WebhookResponseProcessor {
 
     if (response.getBody() != null) {
       webHookOutput.put("body", response.getBody());
+    }
+    if (!response.getHeaders().isEmpty()) {
+      webHookOutput.put("headers", response.getHeaders().toSingleValueMap());
     }
     HttpStatus status = response.getStatusCode();
 

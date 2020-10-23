@@ -87,7 +87,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         stage.execution.id,
         stage.id
       )
-    } catch (HttpStatusCodeException  e) {
+    } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
       def statusValue = statusCode.value()
 
@@ -104,6 +104,9 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       log.error(errorMessage, e)
       Map<String, ?> outputs = originalResponse
       outputs.webhook.monitor << [error: errorMessage]
+      if (e.getResponseHeaders() != null && !e.getResponseHeaders().isEmpty()) {
+        outputs.webhook.monitor << [headers: e.getResponseHeaders().toSingleValueMap()]
+      }
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     } catch (Exception e) {
       if (e instanceof UnknownHostException || e.cause instanceof UnknownHostException) {
@@ -129,6 +132,10 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
           statusCode: response.statusCode,
           statusCodeValue: response.statusCode.value()
         ]
+
+    if (!response.getHeaders().isEmpty()) {
+      responsePayload.webhook.monitor << [headers: response.getHeaders().toSingleValueMap()]
+    }
 
     if (Strings.isNullOrEmpty(stageData.statusJsonPath)) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(responsePayload).build()

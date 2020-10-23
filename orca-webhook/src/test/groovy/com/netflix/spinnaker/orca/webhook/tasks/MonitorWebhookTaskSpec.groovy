@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpServerErrorException
@@ -170,8 +171,10 @@ class MonitorWebhookTaskSpec extends Specification {
 
   def "should do a get request to the defined statusEndpoint"() {
     setup:
+    def headers = new HttpHeaders()
+    headers.add(HttpHeaders.CONTENT_TYPE, "application/json")
     monitorWebhookTask.webhookService = Mock(WebhookService) {
-      1 * getWebhookStatus(_) >> new ResponseEntity<Map>([status:"RUNNING"], HttpStatus.OK)
+      1 * getWebhookStatus(_) >> new ResponseEntity<Map>([status:"RUNNING"], headers, HttpStatus.OK)
     }
     def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
@@ -188,7 +191,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.context.webhook.monitor == [body: [status: "RUNNING"], statusCode: HttpStatus.OK, statusCodeValue: HttpStatus.OK.value()]
+    result.context.webhook.monitor == [headers: ["Content-Type": "application/json"], body: [status: "RUNNING"], statusCode: HttpStatus.OK, statusCodeValue: HttpStatus.OK.value()]
   }
 
   def "should find correct element using statusJsonPath parameter"() {
