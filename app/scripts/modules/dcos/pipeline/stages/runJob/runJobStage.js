@@ -118,14 +118,14 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
         }
       }
 
-      $q.all({
-        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
-      }).then((backingData) => {
-        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
-        $scope.backingData = backingData;
+      AccountService.getCredentialsKeyedByAccount('dcos').then((credentialsKeyedByAccount) => {
+        $scope.backingData = {
+          credentialsKeyedByAccount,
+          accounts: Object.keys(credentialsKeyedByAccount),
+        };
 
         if (!stage.account) {
-          attemptToSetValidAccount(backingData.credentialsKeyedByAccount, stage);
+          attemptToSetValidAccount(credentialsKeyedByAccount, stage);
         }
 
         setRegistry();
