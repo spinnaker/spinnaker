@@ -59,17 +59,21 @@ angular
 
       function configureCommand(application, command) {
         return $q
-          .all({
-            credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('azure'),
-            securityGroups: securityGroupReader.loadSecurityGroups(),
-            loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
-            dataDiskTypes: $q.when(angular.copy(dataDiskTypes)),
-            dataDiskCachingTypes: $q.when(angular.copy(dataDiskCachingTypes)),
-          })
-          .then(function (backingData) {
-            backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
-            backingData.filtered = {};
-            command.backingData = backingData;
+          .all([
+            AccountService.getCredentialsKeyedByAccount('azure'),
+            securityGroupReader.loadSecurityGroups(),
+            loadBalancerReader.loadLoadBalancers(application.name),
+          ])
+          .then(function ([credentialsKeyedByAccount, securityGroups, loadBalancers]) {
+            command.backingData = {
+              credentialsKeyedByAccount,
+              securityGroups,
+              loadBalancers,
+              dataDiskTypes: angular.copy(dataDiskTypes),
+              dataDiskCachingTypes: angular.copy(dataDiskCachingTypes),
+              accounts: _.keys(credentialsKeyedByAccount),
+              filtered: {},
+            };
             attachEventHandlers(command);
           });
       }
