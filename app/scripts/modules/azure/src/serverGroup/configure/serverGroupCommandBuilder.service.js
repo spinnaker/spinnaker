@@ -142,14 +142,9 @@ angular
       function buildServerGroupCommandFromPipeline(application, originalCluster) {
         const pipelineCluster = _.cloneDeep(originalCluster);
         const region = pipelineCluster.region;
+
         const commandOptions = { account: pipelineCluster.account, region: region };
-        const asyncLoader = $q.all({
-          command: buildNewServerGroupCommand(application, commandOptions),
-        });
-
-        return asyncLoader.then(function (asyncData) {
-          const command = asyncData.command;
-
+        return buildNewServerGroupCommand(application, commandOptions).then(function (command) {
           const viewState = {
             disableImageSelection: true,
             useSimpleCapacity: true,
