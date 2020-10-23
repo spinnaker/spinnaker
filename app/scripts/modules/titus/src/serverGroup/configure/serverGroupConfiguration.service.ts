@@ -169,23 +169,29 @@ export class TitusServerGroupConfigurationService {
     };
     cmd.image = cmd.viewState.imageId;
     return $q
-      .all({
-        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
-        securityGroups: this.securityGroupReader.getAllSecurityGroups(),
-        vpcs: VpcReader.listVpcs(),
-        images: [],
-      })
-      .then((backingData: any) => {
-        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
+      .all([
+        AccountService.getCredentialsKeyedByAccount('titus'),
+        this.securityGroupReader.getAllSecurityGroups(),
+        VpcReader.listVpcs(),
+      ])
+      .then(([credentialsKeyedByAccount, securityGroups, vpcs]) => {
+        const backingData: any = {
+          credentialsKeyedByAccount,
+          securityGroups,
+          vpcs,
+        };
+        backingData.images = [];
+        backingData.accounts = Object.keys(credentialsKeyedByAccount);
         backingData.filtered = {};
         if (cmd.credentials.includes('${')) {
           // If our dependency is an expression, the only thing we can really do is to just preserve current selections
           backingData.filtered.regions = [{ name: cmd.region }];
         } else {
-          backingData.filtered.regions = (backingData.credentialsKeyedByAccount[cmd.credentials] || []).regions || [];
+          backingData.filtered.regions = (credentialsKeyedByAccount[cmd.credentials] || []).regions || [];
         }
-        cmd.backingData = backingData;
         backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
+        cmd.backingData = backingData;
+
         let securityGroupRefresher = $q.when();
         if (cmd.securityGroups && cmd.securityGroups.length) {
           const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
