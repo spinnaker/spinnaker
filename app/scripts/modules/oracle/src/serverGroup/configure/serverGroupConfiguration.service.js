@@ -75,19 +75,24 @@ module(ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE, [SECURITY_
           defaults.region || application.defaultRegions.oracle || OracleProviderSettings.defaults.region;
 
         return $q
-          .all({
-            credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount(oracle),
-            networks: NetworkReader.listNetworksByProvider(oracle),
-            subnets: SubnetReader.listSubnetsByProvider(oracle),
-            securityGroups: securityGroupReader.getAllSecurityGroups(),
-            images: loadImages(),
-            availDomains: AccountService.getAvailabilityZonesForAccountAndRegion(
-              oracle,
-              defaultCredentials,
-              defaultRegion,
-            ),
-          })
-          .then(function (backingData) {
+          .all([
+            AccountService.getCredentialsKeyedByAccount(oracle),
+            NetworkReader.listNetworksByProvider(oracle),
+            SubnetReader.listSubnetsByProvider(oracle),
+            securityGroupReader.getAllSecurityGroups(),
+            loadImages(),
+            AccountService.getAvailabilityZonesForAccountAndRegion(oracle, defaultCredentials, defaultRegion),
+          ])
+          .then(function ([credentialsKeyedByAccount, networks, subnets, securityGroups, images, availDomains]) {
+            const backingData = {
+              credentialsKeyedByAccount,
+              networks,
+              subnets,
+              securityGroups,
+              images,
+              availDomains,
+            };
+
             backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
             backingData.filtered = {};
             loadAndSelectRegions(command, backingData);
