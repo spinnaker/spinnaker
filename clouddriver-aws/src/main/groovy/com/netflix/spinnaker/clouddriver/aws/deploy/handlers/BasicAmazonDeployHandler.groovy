@@ -27,10 +27,10 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
-import com.netflix.spinnaker.clouddriver.aws.data.InstanceFamilyUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
+import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
@@ -233,7 +233,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName in $region")
       }
-      InstanceFamilyUtils.isAmiAndFamilyCompatible(ami.virtualizationType, description.instanceType)
+      InstanceTypeUtils.validateCompatibility(ami.virtualizationType, description.instanceType)
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
       if (account == null) {
@@ -290,7 +290,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         kernelId: description.kernelId,
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
-        ebsOptimized: description.ebsOptimized == null ? InstanceFamilyUtils.getDefaultEbsOptimizedFlag(description.instanceType) : description.ebsOptimized,
+        ebsOptimized: description.ebsOptimized == null ? InstanceTypeUtils.getDefaultEbsOptimizedFlag(description.instanceType) : description.ebsOptimized,
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
@@ -496,7 +496,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    */
   @VisibleForTesting
   static Boolean getUnlimitedCpuCredits(final Boolean unlimitedCpuCredits, final String instanceType) {
-    def isApplicableButNotSpecified = unlimitedCpuCredits == null && InstanceFamilyUtils.isBurstingSupported(instanceType)
+    def isApplicableButNotSpecified = unlimitedCpuCredits == null && InstanceTypeUtils.isBurstingSupported(instanceType)
     return isApplicableButNotSpecified ? false : unlimitedCpuCredits
   }
 

@@ -45,10 +45,10 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.data.InstanceFamilyUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
+import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -132,7 +132,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   def cleanupSpec() {
     AutoScalingWorker.metaClass = null
-    InstanceFamilyUtils.metaClass = null
+    InstanceTypeUtils.metaClass = null
   }
 
   void "handler supports basic deploy description type"() {
@@ -295,7 +295,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should not modify unlimited cpu credits if not applicable"() {
     setup:
     def unlimitedCreditsInput = null
-    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return false }
+    InstanceTypeUtils.metaClass.static.isBurstingSupported = { String type -> return false }
 
     expect:
     handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == unlimitedCreditsInput
@@ -304,7 +304,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should set unlimited cpu credits to false if applicable but not specified"() {
     setup:
     def unlimitedCreditsInput = null
-    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return true }
+    InstanceTypeUtils.metaClass.static.isBurstingSupported = { String type -> return true }
 
     expect:
     handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == false
@@ -312,7 +312,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   void "should not modify unlimited cpu credits if applicable, and specified"() {
     setup:
-    InstanceFamilyUtils.metaClass.static.isBurstingSupported = { String type -> return true }
+    InstanceTypeUtils.metaClass.static.isBurstingSupported = { String type -> return true }
 
     expect:
     handler.getUnlimitedCpuCredits(unlimitedCreditsInput, "") == unlimitedCreditsInput
@@ -787,8 +787,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     where:
     instanceType | virtualizationType
-    'c1.large'   | 'hvm'
     'r3.xlarge'  | 'paravirtual'
+    't3.micro'   | 'paravirtual'
   }
 
   @Unroll
@@ -813,7 +813,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     'c3.large'    | 'hvm'
     'c3.xlarge'   | 'paravirtual'
     'mystery.big' | 'hvm'
-    'mystery.big' | 'paravirtual'
     'what.the'    | 'heck'
   }
 

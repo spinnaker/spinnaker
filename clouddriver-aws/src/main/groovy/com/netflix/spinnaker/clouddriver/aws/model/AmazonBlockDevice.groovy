@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
-import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
+import groovy.transform.TupleConstructor
 
 /**
  * Model for a block device mapping
@@ -25,10 +27,10 @@ import groovy.transform.Canonical
  *   (deviceName + virtualName)
  * or an EBS device:
  *   (deviceName + size + (optionally) volumeType, deleteOnTermination, iops, snapshotId)
- *
- *
  */
-@Canonical
+@ToString
+@EqualsAndHashCode
+@TupleConstructor(force = true)
 class AmazonBlockDevice {
 
   // Required for all:
@@ -75,4 +77,69 @@ class AmazonBlockDevice {
    */
   Boolean encrypted
 
+  private AmazonBlockDevice(Builder builder) {
+    deviceName = builder.deviceName
+    virtualName = builder.virtualName
+    size = builder.size
+    volumeType = builder.volumeType
+    deleteOnTermination = builder.deleteOnTermination
+    iops = builder.iops
+    snapshotId = builder.snapshotId
+    encrypted = builder.encrypted
+  }
+
+  static class Builder {
+    String deviceName
+    String virtualName
+    Integer size
+    String volumeType
+    Boolean deleteOnTermination
+    Integer iops
+    String snapshotId
+    Boolean encrypted
+
+    Builder deviceName(String deviceName) {
+      this.deviceName = deviceName
+      return this
+    }
+
+    Builder virtualName(String virtualName) {
+      this.virtualName = virtualName
+      return this
+    }
+
+    Builder size(Integer size) {
+      this.size = size
+      return this
+    }
+
+    Builder volumeType(String volumeType) {
+      this.volumeType = volumeType
+      return this
+    }
+
+    Builder deleteOnTermination(Boolean deleteOnTermination) {
+      this.deleteOnTermination = deleteOnTermination
+      return this
+    }
+
+    Builder iops(Integer iops) {
+      this.iops = iops
+      return this
+    }
+
+    Builder snapshotId(String snapshotId) {
+      this.snapshotId = snapshotId
+      return this
+    }
+
+    Builder encrypted(Boolean encrypted) {
+      this.encrypted = encrypted
+      return this
+    }
+
+    AmazonBlockDevice build() {
+      return new AmazonBlockDevice(this)
+    }
+  }
 }
