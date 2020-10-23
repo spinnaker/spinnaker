@@ -187,7 +187,7 @@ export class TitusServerGroupConfigurationService {
           // If our dependency is an expression, the only thing we can really do is to just preserve current selections
           backingData.filtered.regions = [{ name: cmd.region }];
         } else {
-          backingData.filtered.regions = (credentialsKeyedByAccount[cmd.credentials] || []).regions || [];
+          backingData.filtered.regions = credentialsKeyedByAccount[cmd.credentials]?.regions ?? [];
         }
         backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
         cmd.backingData = backingData;
