@@ -191,6 +191,18 @@ public final class Replacer {
           .replacePathFromPlaceholder("secret.secretName")
           .type(KubernetesArtifactType.Secret)
           .build();
+  private static final Replacer CONFIG_MAP_PROJECTED_VOLUME =
+      builder()
+          .path("$..spec.template.spec.volumes.*.projected.sources.[?].configMap.name")
+          .replacePathFromPlaceholder("configMap.name")
+          .type(KubernetesArtifactType.ConfigMap)
+          .build();
+  private static final Replacer SECRET_PROJECTED_VOLUME =
+      builder()
+          .path("$..spec.template.spec.volumes.*.projected.sources.[?].secret.name")
+          .replacePathFromPlaceholder("secret.name")
+          .type(KubernetesArtifactType.Secret)
+          .build();
   private static final Replacer CONFIG_MAP_KEY_VALUE =
       builder()
           .path(
@@ -252,6 +264,14 @@ public final class Replacer {
 
   public static Replacer secretVolume() {
     return SECRET_VOLUME;
+  }
+
+  public static Replacer configMapProjectedVolume() {
+    return CONFIG_MAP_PROJECTED_VOLUME;
+  }
+
+  public static Replacer secretProjectedVolume() {
+    return SECRET_PROJECTED_VOLUME;
   }
 
   public static Replacer configMapKeyValue() {

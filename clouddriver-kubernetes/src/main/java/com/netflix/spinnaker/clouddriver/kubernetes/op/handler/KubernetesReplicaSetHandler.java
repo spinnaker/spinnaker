@@ -63,6 +63,8 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
         Replacer.dockerImage(),
         Replacer.configMapVolume(),
         Replacer.secretVolume(),
+        Replacer.configMapProjectedVolume(),
+        Replacer.secretProjectedVolume(),
         Replacer.configMapEnv(),
         Replacer.secretEnv(),
         Replacer.configMapKeyValue(),

@@ -46,6 +46,8 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
         Replacer.dockerImage(),
         Replacer.configMapVolume(),
         Replacer.secretVolume(),
+        Replacer.configMapProjectedVolume(),
+        Replacer.secretProjectedVolume(),
         Replacer.configMapEnv(),
         Replacer.secretEnv(),
         Replacer.configMapKeyValue(),

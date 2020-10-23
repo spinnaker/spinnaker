@@ -34,6 +34,8 @@ class KubernetesDeploymentHandlerSpec extends Specification {
   def CONFIG_MAP_VOLUME = "my-config-map"
   def SECRET_ENV = "my-secret-env"
   def CONFIG_MAP_ENV_KEY = "my-config-map-env"
+  def PROJECTED_CONFIG_MAP_VOLUME = "my-projected-config-map"
+  def PROJECTED_SECRET_VOLUME = "my-projected-secret"
   def ACCOUNT = "my-account"
 
   def BASIC_DEPLOYMENT = """
@@ -67,9 +69,20 @@ spec:
             configMapKeyRef:
               name: $CONFIG_MAP_ENV_KEY
               key: value
+        volumeMounts:
+        - name: all-in-one
+          mountPath: "/projected-volume"
+          readOnly: true
       volumes:
       - configMap:
           name: $CONFIG_MAP_VOLUME
+      - name: all-in-one
+        projected:
+          sources:
+          - configMap:
+              name: $PROJECTED_CONFIG_MAP_VOLUME
+          - secret:
+              name: $PROJECTED_SECRET_VOLUME
 """
 
   KubernetesManifest stringToManifest(String input) {
@@ -263,5 +276,145 @@ spec:
 
     then:
     result.findAll { a -> a.getReference() == CONFIG_MAP_ENV_KEY && a.getType() == KubernetesArtifactType.ConfigMap.type}.size() == 1
+  }
+
+  void "check that projected configmap volume is replaced by the artifact replacer without an account specified"() {
+    when:
+    def target = "$PROJECTED_CONFIG_MAP_VOLUME-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.ConfigMap.type)
+        .name(PROJECTED_CONFIG_MAP_VOLUME)
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[0].configMap.name == target
+  }
+
+  void "check that projected configmap volume is replaced by the artifact replacer"() {
+    when:
+    def target = "$PROJECTED_CONFIG_MAP_VOLUME-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.ConfigMap.type)
+        .name(PROJECTED_CONFIG_MAP_VOLUME)
+        .reference(target)
+        .metadata(["account": ACCOUNT])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[0].configMap.name == target
+  }
+
+  void "check that projected configmap volume replaced by the artifact replacer"() {
+    when:
+    def target = "$PROJECTED_CONFIG_MAP_VOLUME:version-bad"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.ConfigMap.type)
+        .name("not-$PROJECTED_CONFIG_MAP_VOLUME")
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[0].configMap.name == PROJECTED_CONFIG_MAP_VOLUME
+  }
+
+  void "check that projected configmap volume is not replaced by the artifact replacer in the wrong account"() {
+    when:
+    def target = "$PROJECTED_CONFIG_MAP_VOLUME:version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.ConfigMap.type)
+        .name("$PROJECTED_CONFIG_MAP_VOLUME")
+        .reference(target)
+        .metadata(["account": "not-$ACCOUNT".toString()])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[0].configMap.name != target
+  }
+
+  void "check that projected configmap volume is found"() {
+    when:
+    def result = handler.listArtifacts(stringToManifest(BASIC_DEPLOYMENT))
+
+    then:
+    result.findAll { a -> a.getReference() == PROJECTED_CONFIG_MAP_VOLUME && a.getType() == KubernetesArtifactType.ConfigMap.type}.size() == 1
+  }
+
+  void "check that projected secret volume is replaced by the artifact replacer without an account specified"() {
+    when:
+    def target = "$PROJECTED_SECRET_VOLUME-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.Secret.type)
+        .name(PROJECTED_SECRET_VOLUME)
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[1].secret.name == target
+  }
+
+  void "check that projected secret volume is replaced by the artifact replacer"() {
+    when:
+    def target = "$PROJECTED_SECRET_VOLUME-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.Secret.type)
+        .name(PROJECTED_SECRET_VOLUME)
+        .reference(target)
+        .metadata(["account": ACCOUNT])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[1].secret.name == target
+  }
+
+  void "check that projected secret volume replaced by the artifact replacer"() {
+    when:
+    def target = "$PROJECTED_SECRET_VOLUME:version-bad"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.Secret.type)
+        .name("not-$PROJECTED_SECRET_VOLUME")
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[1].secret.name == PROJECTED_SECRET_VOLUME
+  }
+
+  void "check that projected secret volume is not replaced by the artifact replacer in the wrong account"() {
+    when:
+    def target = "$PROJECTED_SECRET_VOLUME:version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(KubernetesArtifactType.Secret.type)
+        .name("$PROJECTED_SECRET_VOLUME")
+        .reference(target)
+        .metadata(["account": "not-$ACCOUNT".toString()])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[1].projected.sources[1].secret.name != target
+  }
+
+  void "check that projected secret volume is found"() {
+    when:
+    def result = handler.listArtifacts(stringToManifest(BASIC_DEPLOYMENT))
+
+    then:
+    result.findAll { a -> a.getReference() == PROJECTED_SECRET_VOLUME && a.getType() == KubernetesArtifactType.Secret.type}.size() == 1
   }
 }

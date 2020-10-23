@@ -28,35 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCach
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.kubernetes.client.openapi.JSON;
-import io.kubernetes.client.openapi.models.V1ConfigMapEnvSource;
-import io.kubernetes.client.openapi.models.V1ConfigMapEnvSourceBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapKeySelector;
-import io.kubernetes.client.openapi.models.V1ConfigMapKeySelectorBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapVolumeSource;
-import io.kubernetes.client.openapi.models.V1ConfigMapVolumeSourceBuilder;
-import io.kubernetes.client.openapi.models.V1Container;
-import io.kubernetes.client.openapi.models.V1ContainerBuilder;
-import io.kubernetes.client.openapi.models.V1CrossVersionObjectReferenceBuilder;
-import io.kubernetes.client.openapi.models.V1EnvFromSource;
-import io.kubernetes.client.openapi.models.V1EnvFromSourceBuilder;
-import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
-import io.kubernetes.client.openapi.models.V1EnvVarSource;
-import io.kubernetes.client.openapi.models.V1EnvVarSourceBuilder;
-import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscaler;
-import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscalerBuilder;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodBuilder;
-import io.kubernetes.client.openapi.models.V1ReplicaSet;
-import io.kubernetes.client.openapi.models.V1ReplicaSetBuilder;
-import io.kubernetes.client.openapi.models.V1SecretEnvSource;
-import io.kubernetes.client.openapi.models.V1SecretEnvSourceBuilder;
-import io.kubernetes.client.openapi.models.V1SecretKeySelector;
-import io.kubernetes.client.openapi.models.V1SecretKeySelectorBuilder;
-import io.kubernetes.client.openapi.models.V1SecretVolumeSource;
-import io.kubernetes.client.openapi.models.V1SecretVolumeSourceBuilder;
-import io.kubernetes.client.openapi.models.V1Volume;
-import io.kubernetes.client.openapi.models.V1VolumeBuilder;
+import io.kubernetes.client.openapi.models.*;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -438,6 +410,219 @@ final class ReplacerTest {
                 .endSpec()
                 .build());
     return gson.fromJson(replicaSet, KubernetesManifest.class);
+  }
+
+  @Test
+  void findProjectedConfigMapVolume() {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.configMapProjectedVolume()));
+    KubernetesManifest replicaSet = getReplicaSetWithProjectedVolumes();
+
+    Set<Artifact> artifacts = artifactReplacer.findAll(replicaSet);
+    assertThat(artifacts).hasSize(2);
+
+    Map<String, Artifact> byReference =
+        artifacts.stream().collect(toImmutableMap(Artifact::getReference, a -> a));
+
+    assertThat(byReference.get("first-config-map"))
+        .satisfies(
+            artifact -> {
+              assertThat(artifact).isNotNull();
+              assertThat(artifact.getType()).isEqualTo("kubernetes/configMap");
+              assertThat(artifact.getName()).isEqualTo("first-config-map");
+              assertThat(artifact.getReference()).isEqualTo("first-config-map");
+            });
+
+    assertThat(byReference.get("second-config-map"))
+        .satisfies(
+            artifact -> {
+              assertThat(artifact).isNotNull();
+              assertThat(artifact.getType()).isEqualTo("kubernetes/configMap");
+              assertThat(artifact.getName()).isEqualTo("second-config-map");
+              assertThat(artifact.getReference()).isEqualTo("second-config-map");
+            });
+  }
+
+  @Test
+  void replaceProjectedConfigMapVolume() {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.configMapProjectedVolume()));
+    KubernetesManifest replicaSet = getReplicaSetWithProjectedVolumes();
+
+    Artifact inputArtifact =
+        Artifact.builder()
+            .type("kubernetes/configMap")
+            .name("second-config-map")
+            .location(NAMESPACE)
+            .version("v003")
+            .reference("second-config-map-v003")
+            .putMetadata("account", ACCOUNT)
+            .build();
+    ReplaceResult replaceResult =
+        artifactReplacer.replaceAll(
+            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+
+    V1ReplicaSet replacedReplicaSet =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1ReplicaSet.class);
+
+    assertThat(replacedReplicaSet.getSpec().getTemplate().getSpec().getVolumes())
+        .extracting(V1Volume::getProjected)
+        .filteredOn(Objects::nonNull)
+        .extracting(V1ProjectedVolumeSource::getSources)
+        .flatExtracting(list -> list)
+        .extracting("configMap")
+        .filteredOn(Objects::nonNull)
+        .extracting("getName")
+        .containsExactly(
+            // Only the second config map should have been replaced.
+            "first-config-map", "second-config-map-v003");
+
+    assertThat(replacedReplicaSet.getSpec().getTemplate().getSpec().getVolumes())
+        .extracting(V1Volume::getProjected)
+        .filteredOn(Objects::nonNull)
+        .extracting(V1ProjectedVolumeSource::getSources)
+        .flatExtracting(list -> list)
+        .extracting("secret")
+        .filteredOn(Objects::nonNull)
+        .extracting("getName")
+        .containsExactly(
+            // No secrets should have been replaced.
+            "first-secret", "second-secret");
+
+    Set<Artifact> artifacts = replaceResult.getBoundArtifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(Iterables.getOnlyElement(artifacts)).isEqualTo(inputArtifact);
+  }
+
+  @Test
+  void findProjectedSecretVolume() {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.secretProjectedVolume()));
+    KubernetesManifest replicaSet = getReplicaSetWithProjectedVolumes();
+
+    Set<Artifact> artifacts = artifactReplacer.findAll(replicaSet);
+    assertThat(artifacts).hasSize(2);
+
+    Map<String, Artifact> byReference =
+        artifacts.stream().collect(toImmutableMap(Artifact::getReference, a -> a));
+
+    assertThat(byReference.get("first-secret"))
+        .satisfies(
+            artifact -> {
+              assertThat(artifact).isNotNull();
+              assertThat(artifact.getType()).isEqualTo("kubernetes/secret");
+              assertThat(artifact.getName()).isEqualTo("first-secret");
+              assertThat(artifact.getReference()).isEqualTo("first-secret");
+            });
+
+    assertThat(byReference.get("second-secret"))
+        .satisfies(
+            artifact -> {
+              assertThat(artifact).isNotNull();
+              assertThat(artifact.getType()).isEqualTo("kubernetes/secret");
+              assertThat(artifact.getName()).isEqualTo("second-secret");
+              assertThat(artifact.getReference()).isEqualTo("second-secret");
+            });
+  }
+
+  @Test
+  void replaceProjectedSecretVolume() {
+    ArtifactReplacer artifactReplacer =
+        new ArtifactReplacer(ImmutableList.of(Replacer.secretProjectedVolume()));
+    KubernetesManifest replicaSet = getReplicaSetWithProjectedVolumes();
+
+    Artifact inputArtifact =
+        Artifact.builder()
+            .type("kubernetes/secret")
+            .name("first-secret")
+            .location(NAMESPACE)
+            .version("v007")
+            .reference("first-secret-v007")
+            .putMetadata("account", ACCOUNT)
+            .build();
+    ReplaceResult replaceResult =
+        artifactReplacer.replaceAll(
+            replicaSet, ImmutableList.of(inputArtifact), NAMESPACE, ACCOUNT);
+
+    V1ReplicaSet replacedReplicaSet =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1ReplicaSet.class);
+    assertThat(replacedReplicaSet.getSpec().getTemplate().getSpec().getVolumes())
+        .extracting(V1Volume::getProjected)
+        .filteredOn(Objects::nonNull)
+        .extracting(V1ProjectedVolumeSource::getSources)
+        .flatExtracting(list -> list)
+        .extracting("configMap")
+        .filteredOn(Objects::nonNull)
+        .extracting("getName")
+        .containsExactly(
+            // No config maps should have been replaced.
+            "first-config-map", "second-config-map");
+
+    assertThat(replacedReplicaSet.getSpec().getTemplate().getSpec().getVolumes())
+        .extracting(V1Volume::getProjected)
+        .filteredOn(Objects::nonNull)
+        .extracting(V1ProjectedVolumeSource::getSources)
+        .flatExtracting(list -> list)
+        .extracting("secret")
+        .filteredOn(Objects::nonNull)
+        .extracting("getName")
+        .containsExactly(
+            // Only the first secret should have been replaced.
+            "first-secret-v007", "second-secret");
+
+    Set<Artifact> artifacts = replaceResult.getBoundArtifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(Iterables.getOnlyElement(artifacts)).isEqualTo(inputArtifact);
+  }
+
+  private KubernetesManifest getReplicaSetWithProjectedVolumes() {
+    String replicaSet =
+        json.serialize(
+            new V1ReplicaSetBuilder()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .addToVolumes(
+                    new V1VolumeBuilder()
+                        .withName("first-projected-volume")
+                        .withProjected(
+                            new V1ProjectedVolumeSourceBuilder()
+                                .build()
+                                .addSourcesItem(
+                                    new V1VolumeProjectionBuilder()
+                                        .withConfigMap(
+                                            new V1ConfigMapProjectionBuilder()
+                                                .withName("first-config-map")
+                                                .build())
+                                        .build())
+                                .addSourcesItem(
+                                    new V1VolumeProjectionBuilder()
+                                        .withConfigMap(
+                                            new V1ConfigMapProjectionBuilder()
+                                                .withName("second-config-map")
+                                                .build())
+                                        .build())
+                                .addSourcesItem(
+                                    new V1VolumeProjectionBuilder()
+                                        .withSecret(
+                                            new V1SecretProjectionBuilder()
+                                                .withName("first-secret")
+                                                .build())
+                                        .build())
+                                .addSourcesItem(
+                                    new V1VolumeProjectionBuilder()
+                                        .withSecret(
+                                            new V1SecretProjectionBuilder()
+                                                .withName("second-secret")
+                                                .build())
+                                        .build()))
+                        .build())
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build());
+    KubernetesManifest kubernetesManifest = gson.fromJson(replicaSet, KubernetesManifest.class);
+    return kubernetesManifest;
   }
 
   @Test
