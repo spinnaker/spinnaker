@@ -49,12 +49,12 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
 
       function initialize() {
         $scope.viewState.providerSelected = true;
-        $q.all({
-          baseOsOptions: BakeryReader.getBaseOsOptions('docker'),
-          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        }).then(function (results) {
-          $scope.baseOsOptions = results.baseOsOptions.baseImages;
-          $scope.baseLabelOptions = results.baseLabelOptions;
+        $q.all([BakeryReader.getBaseOsOptions('docker'), BakeryReader.getBaseLabelOptions()]).then(function ([
+          baseOsOptions,
+          baseLabelOptions,
+        ]) {
+          $scope.baseOsOptions = baseOsOptions.baseImages;
+          $scope.baseLabelOptions = baseLabelOptions;
 
           if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
             $scope.stage.baseOs = $scope.baseOsOptions[0].id;
