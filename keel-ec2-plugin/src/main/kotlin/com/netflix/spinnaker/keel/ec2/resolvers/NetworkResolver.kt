@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import org.springframework.stereotype.Component
@@ -43,7 +43,7 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
 
 @Component
 class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClusterSpec>(cloudDriverCache) {
-  override val supportedKind = EC2_CLUSTER_V1
+  override val supportedKind = EC2_CLUSTER_V1_1
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =
     resource.run {

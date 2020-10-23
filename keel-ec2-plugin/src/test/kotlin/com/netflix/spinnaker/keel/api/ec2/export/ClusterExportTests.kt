@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration.Companion.defaultIamRoleFor
@@ -290,7 +289,7 @@ internal class ClusterExportTests : JUnit5Minutests {
           get { defaults.scaling!!.targetTrackingPolicies }.hasSize(1)
           get { defaults.health }.isNull()
           get { deployWith }.isA<RedBlack>()
-          get { imageProvider }.isA<ReferenceArtifactImageProvider>()
+          get { artifactReference }.isNotNull()
         }
       }
     }

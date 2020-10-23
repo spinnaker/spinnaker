@@ -6,17 +6,14 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -25,6 +22,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.propertiesAreEqualTo
+import java.time.Duration
 
 internal class ClusterSpecTests : JUnit5Minutests {
 
@@ -136,12 +134,7 @@ data class Fixture(
       app = "fnord",
       stack = "test"
     ),
-    imageProvider = ArtifactImageProvider(
-      DebianArtifact(
-        name = "fnord",
-        vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2", "us-east-1"))
-      )
-    ),
+    artifactReference = "fnord-deb",
     locations = SubnetAwareLocations(
       account = "test",
       vpc = "vpc0",

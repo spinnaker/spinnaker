@@ -9,11 +9,9 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -39,8 +37,8 @@ import io.mockk.coEvery as every
 
 internal class ImageResolverTests : JUnit5Minutests {
 
-  data class Fixture<T : ImageProvider>(
-    val imageProvider: T?,
+  data class Fixture(
+    val artifactReference: String?,
     val imageRegion: String = "ap-south-1",
     val resourceRegion: String = imageRegion
   ) {
@@ -48,7 +46,8 @@ internal class ImageResolverTests : JUnit5Minutests {
       name = "fnord",
       deliveryConfigName = "my-manifest",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf(imageRegion)),
-      statuses = setOf(RELEASE)
+      statuses = setOf(RELEASE),
+      reference = "my-artifact"
     )
     private val account = "test"
     val version1 = "1.0.0-123456"
@@ -112,7 +111,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       kind = EC2_CLUSTER_V1.kind,
       spec = ClusterSpec(
         moniker = Moniker("fnord"),
-        imageProvider = imageProvider,
+        artifactReference = artifactReference,
         locations = SubnetAwareLocations(
           account = account,
           vpc = "vpc0",
@@ -150,7 +149,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     }
   }
 
-  fun tests() = rootContext<Fixture<*>> {
+  fun tests() = rootContext<Fixture> {
     context("no image provider") {
       fixture { Fixture(null) }
 
@@ -160,12 +159,9 @@ internal class ImageResolverTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<Fixture<ArtifactImageProvider>>("an image derived from an artifact") {
-      val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")), statuses = setOf(RELEASE))
+    context("an image derived from an artifact") {
       fixture {
-        Fixture(
-          ArtifactImageProvider(artifact, listOf(RELEASE))
-        )
+        Fixture("my-artifact")
       }
 
       context("the resource is part of an environment in a delivery config manifest") {

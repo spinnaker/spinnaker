@@ -11,8 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.cli.ArgType.Int
@@ -85,16 +84,14 @@ class DataGenCommand(
       val configName = "${TEST_APP.capitalize()}$configIndex"
       val resources = (1..resourceCount).map { resourceIndex ->
         Resource(
-          kind = EC2_CLUSTER_V1.kind,
+          kind = EC2_CLUSTER_V1_1.kind,
           metadata = mapOf(
             "application" to configName,
             "id" to "${configName}TestCluster$resourceIndex"
           ),
           spec = ClusterSpec(
             moniker = Moniker(configName, TEST_STACK),
-            imageProvider = ReferenceArtifactImageProvider(
-              reference = TEST_APP
-            ),
+            artifactReference = TEST_APP,
             locations = SubnetAwareLocations(
               account = TEST_ACCT,
               regions = setOf(SubnetAwareRegionSpec("us-west-2")),

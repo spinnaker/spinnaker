@@ -13,14 +13,13 @@ artifacts:
 environments:
 - name: test
   resources:
-  - kind: ec2/cluster@v1
+  - kind: ec2/cluster@v1.1
     spec:
       moniker:
         app: keeldemo
         stack: examples
         detail: ec2v1
-      imageProvider:
-        reference: fnord
+      artifactReference: fnord
       locations:
         account: test
         vpc: vpc0
@@ -28,7 +27,6 @@ environments:
         regions:
           - name: us-west-2
           - name: us-east-1
-      overrides: {}
       launchConfiguration:
         instanceType: m5.large
         ebsOptimized: true

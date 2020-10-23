@@ -3,13 +3,10 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -18,7 +15,6 @@ import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
-import com.netflix.spinnaker.keel.ec2.NoImageFound
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.filterNotNullValues
@@ -38,25 +34,22 @@ class ImageResolver(
   private val imageService: ImageService
 ) : Resolver<ClusterSpec> {
 
-  override val supportedKind = EC2_CLUSTER_V1
+  override val supportedKind = EC2_CLUSTER_V1_1
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   data class VersionedNamedImage(
     val namedImages: Map<String, NamedImage>,
-    val artifact: DeliveryArtifact?, // TODO: make this non-nullable
+    val artifact: DeliveryArtifact,
     val version: String
   )
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> {
-    val imageProvider = resource.spec.imageProvider ?: return resource
+    val ref = resource.spec.artifactReference
+    if (ref == null) return resource
+
     val image = runBlocking {
-      when (imageProvider) {
-        is ReferenceArtifactImageProvider -> resolveFromReference(resource, imageProvider)
-        // todo eb: artifact provider is here for backwards compatibility. Remove?
-        is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider.deliveryArtifact as DebianArtifact)
-        is JenkinsImageProvider -> resolveFromJenkinsJob(imageProvider)
-      }
+      resource.resolveFromReference(ref)
     }
     return resource.withVirtualMachineImages(image)
   }
@@ -64,25 +57,23 @@ class ImageResolver(
   val defaultImageAccount: String
     get() = dynamicConfigService.getConfig("images.default-account", "test")
 
-  private suspend fun resolveFromReference(
-    resource: Resource<ClusterSpec>,
-    imageProvider: ReferenceArtifactImageProvider
+  private suspend fun Resource<ClusterSpec>.resolveFromReference(
+    ref: String
   ): VersionedNamedImage {
-    val deliveryConfig = repository.deliveryConfigFor(resource.id)
-    val artifact = deliveryConfig.artifacts.find { it.reference == imageProvider.reference && it.type == DEBIAN }
-      ?: throw NoMatchingArtifactException(deliveryConfig.name, DEBIAN, imageProvider.reference)
+    val deliveryConfig = repository.deliveryConfigFor(id)
+    val artifact = deliveryConfig.artifacts.find { it.reference == ref && it.type == DEBIAN }
+      ?: throw NoMatchingArtifactException(deliveryConfig.name, DEBIAN, ref)
 
-    return resolveFromArtifact(resource, artifact as DebianArtifact)
+    return this.resolveFromArtifact(artifact as DebianArtifact)
   }
 
-  private suspend fun resolveFromArtifact(
-    resource: Resource<ClusterSpec>,
+  private suspend fun Resource<ClusterSpec>.resolveFromArtifact(
     artifact: DebianArtifact
   ): VersionedNamedImage {
-    val deliveryConfig = repository.deliveryConfigFor(resource.id)
-    val environment = repository.environmentFor(resource.id)
+    val deliveryConfig = repository.deliveryConfigFor(id)
+    val environment = repository.environmentFor(id)
     val account = defaultImageAccount
-    val regions = resource.spec.locations.regions.map { it.name }
+    val regions = spec.locations.regions.map { it.name }
 
     val artifactVersion = repository.latestVersionApprovedIn(
       deliveryConfig,
@@ -97,25 +88,6 @@ class ImageResolver(
     )
 
     return VersionedNamedImage(images, artifact, artifactVersion)
-  }
-
-  private suspend fun resolveFromJenkinsJob(
-    imageProvider: JenkinsImageProvider
-  ): VersionedNamedImage {
-    val image = imageService.getNamedImageFromJenkinsInfo(
-      imageProvider.packageName,
-      dynamicConfigService.getConfig("images.default-account", "test"),
-      imageProvider.buildHost,
-      imageProvider.buildName,
-      imageProvider.buildNumber
-    ) ?: throw NoImageFound(imageProvider.packageName)
-
-    log.info("Image found for {}: {}", imageProvider.packageName, image)
-    return VersionedNamedImage(
-      namedImages = image.amis.keys.associateWith { image },
-      artifact = null,
-      version = image.appVersion
-    )
   }
 
   private fun Resource<ClusterSpec>.withVirtualMachineImages(image: VersionedNamedImage): Resource<ClusterSpec> {
@@ -150,8 +122,7 @@ class ImageResolver(
     return copy(
       spec = spec.copy(
         overrides = overrides,
-        _artifactName = image.artifact?.name
-          ?: error("Artifact not found in images ${image.namedImages.values.map { it.imageName }}"),
+        artifactName = image.artifact.name,
         artifactVersion = image.version
       )
     )

@@ -25,12 +25,13 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
@@ -49,6 +50,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
   fun tests() = rootContext<Unit> {
     before {
       mapper.registerSubtypes(EC2_CLUSTER_V1.toNamedType())
+      mapper.registerSubtypes(EC2_CLUSTER_V1_1.toNamedType())
       mapper.registerSubtypes(EC2_SECURITY_GROUP_V1.toNamedType())
       mapper.registerSubtypes(EC2_CLASSIC_LOAD_BALANCER_V1.toNamedType())
       mapper.registerSubtypes(EC2_APPLICATION_LOAD_BALANCER_V1_1.toNamedType())
@@ -64,7 +66,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         }
           .isSuccess()
           .get { environments.first().resources.first().spec }
-          .isA<ClusterSpec>()
+          .isA<ClusterV1Spec>()
       }
     }
 

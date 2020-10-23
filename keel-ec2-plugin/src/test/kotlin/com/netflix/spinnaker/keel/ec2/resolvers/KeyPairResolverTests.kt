@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -46,7 +46,7 @@ internal class KeyPairResolverTests : JUnit5Minutests {
 
   data class Fixture(val subject: KeyPairResolver, val spec: ClusterSpec) {
     val resource = resource(
-      kind = EC2_CLUSTER_V1.kind,
+      kind = EC2_CLUSTER_V1_1.kind,
       spec = spec
     )
     val resolved by lazy { subject(resource) }

@@ -4,13 +4,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.node.BooleanNode
+import com.fasterxml.jackson.databind.node.MissingNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.ec2.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -78,8 +80,8 @@ class ApiDocTests : JUnit5Minutests {
   val constraintTypes
     get() = extensionRegistry.extensionsOf<Constraint>().values.toList()
 
-  val imageProviderTypes
-    get() = ImageProvider::class.sealedSubclasses.map(KClass<*>::java)
+  val securityGroupRuleTypes
+    get() = SecurityGroupRule::class.sealedSubclasses.map(KClass<*>::java)
 
   val containerProviderTypes
     get() = ContainerProvider::class.sealedSubclasses.map(KClass<*>::java)
@@ -114,7 +116,7 @@ class ApiDocTests : JUnit5Minutests {
     }
 
     resourceSpecTypes
-      .mapValues{ it.value.simpleName }
+      .mapValues { it.value.simpleName }
       .forEach { (kind, specSubType) ->
         test("contains a sub-schema for SubmittedResource predicated on a kind of $kind") {
           at("/\$defs/SubmittedResource/allOf")
@@ -191,37 +193,23 @@ class ApiDocTests : JUnit5Minutests {
         }
       }
 
-    test("schema for a sealed class is oneOf the sub-types") {
-      at("/\$defs/ImageProvider")
-        .isObject()
-        .has("oneOf")
-        .path("oneOf")
-        .isArray()
-        .findValuesAsText("\$ref")
-        .containsExactlyInAnyOrder(
-          "#/\$defs/ArtifactImageProvider",
-          "#/\$defs/JenkinsImageProvider",
-          "#/\$defs/ReferenceArtifactImageProvider"
-        )
-    }
-
-    imageProviderTypes.map(Class<*>::getSimpleName)
+    securityGroupRuleTypes.map(Class<*>::getSimpleName)
       .forEach { type ->
-        test("ImageProvider sub-type $type has its own schema") {
+        test("SecurityGroupRule sub-type $type has its own schema") {
           at("/\$defs/$type")
             .isObject()
         }
       }
 
-    test("schema for ImageProvider is oneOf the sub-types") {
-      at("/\$defs/ImageProvider")
+    test("schema for SecurityGroupRule is oneOf the sub-types") {
+      at("/\$defs/SecurityGroupRule")
         .isObject()
         .has("oneOf")
         .path("oneOf")
         .isArray()
         .findValuesAsText("\$ref")
         .containsExactlyInAnyOrder(
-          imageProviderTypes.map { "#/\$defs/${it.simpleName}" }
+          securityGroupRuleTypes.map { "#/\$defs/${it.simpleName}" }
         )
     }
 
@@ -350,6 +338,22 @@ class ApiDocTests : JUnit5Minutests {
         .isA<BooleanNode>()
         .booleanValue()
         .isTrue()
+    }
+
+    listOf(
+      VersionedArtifactProvider::artifactName.name,
+      VersionedArtifactProvider::artifactType.name,
+      VersionedArtifactProvider::artifactVersion.name,
+    ).forEach { propertyName ->
+      test("ClusterSpec does not contain transient property $propertyName used for image resolution") {
+        at("/\$defs/ClusterSpec/properties/$propertyName")
+          .isA<MissingNode>()
+      }
+
+      test("TitusClusterSpec does not contain transient property $propertyName used for image resolution") {
+        at("/\$defs/TitusClusterSpec/properties/$propertyName")
+          .isA<MissingNode>()
+      }
     }
   }
 }

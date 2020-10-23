@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import java.time.Duration
 
-interface ClusterSpecMixin {
+interface ClusterV1SpecMixin {
   @get:JsonInclude(NON_EMPTY)
   val overrides: Map<String, ServerGroupSpec>
 
@@ -19,12 +18,6 @@ interface ClusterSpecMixin {
   val artifactVersion: String?
 
   @get:JsonIgnore
-  val maxDiffCount: Int?
-
-  @get:JsonIgnore
-  val unhappyWaitTime: Duration?
-
-  @get:JsonIgnore
   val id: String
 
   @get:JsonUnwrapped
@@ -32,4 +25,7 @@ interface ClusterSpecMixin {
 
   @get:JsonIgnore
   val artifactName: String?
+
+  @get:JsonIgnore
+  val artifactReference: String?
 }

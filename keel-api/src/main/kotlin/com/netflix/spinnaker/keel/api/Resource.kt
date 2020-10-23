@@ -32,11 +32,6 @@ data class Resource<out T : ResourceSpec>(
           ?.let { ref ->
             deliveryConfig.matchingArtifactByReference(ref.artifactReference)
           }
-      is ArtifactProvider ->
-        spec.completeArtifactOrNull()
-          ?.let { art ->
-            deliveryConfig.matchingArtifactByName(art.artifactName, art.artifactType)
-          }
       else -> null
     }
 

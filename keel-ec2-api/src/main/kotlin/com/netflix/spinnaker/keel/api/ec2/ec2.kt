@@ -16,11 +16,13 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
+import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
 import com.netflix.spinnaker.keel.api.plugins.kind
 
 const val CLOUD_PROVIDER = "aws"
 
-val EC2_CLUSTER_V1 = kind<ClusterSpec>("ec2/cluster@v1")
+val EC2_CLUSTER_V1_1 = kind<ClusterSpec>("ec2/cluster@v1.1")
+val EC2_CLUSTER_V1 = kind<ClusterV1Spec>("ec2/cluster@v1")
 
 val EC2_SECURITY_GROUP_V1 = kind<SecurityGroupSpec>("ec2/security-group@v1")
 

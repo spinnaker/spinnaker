@@ -8,9 +8,7 @@ import com.netflix.spinnaker.keel.api.RegionSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
@@ -21,10 +19,9 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -244,18 +241,13 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ClusterSpec> =
     resource(
-      kind = EC2_CLUSTER_V1.kind,
+      kind = EC2_CLUSTER_V1_1.kind,
       spec = ClusterSpec(
         moniker = Moniker(
           app = "fnord",
           stack = "test"
         ),
-        imageProvider = ArtifactImageProvider(
-          DebianArtifact(
-            name = "fnord",
-            vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = locations.regions.map(SubnetAwareRegionSpec::name).toSet())
-          )
-        ),
+        artifactReference = "fnord-deb",
         locations = locations,
         _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(

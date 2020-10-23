@@ -113,10 +113,9 @@ environments:
     regions:
     - name: us-west-2
   resources:
-  - kind: ec2/cluster@v1
+  - kind: ec2/cluster@v1.1
     spec:
-      imageProvider:
-        reference: fnord
+      artifactReference: fnord
       moniker:
         app: fnord
         stack: staging
@@ -208,13 +207,12 @@ environments:
     regions:
     - name: us-west-2
   resources:
-  - kind: "ec2/cluster@v1"
+  - kind: "ec2/cluster@v1.1"
     spec:
       moniker:
         app: "fnord"
         stack: "main"
-      imageProvider:
-        reference: "fnord"
+      artifactReference: "fnord"
       deployWith:
         strategy: "red-black"
         rollbackOnFailure: true
