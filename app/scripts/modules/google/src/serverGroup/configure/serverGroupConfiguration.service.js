@@ -90,20 +90,45 @@ angular
 
       function configureCommand(application, command) {
         return $q
-          .all({
-            credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('gce'),
-            securityGroups: securityGroupReader.getAllSecurityGroups(),
-            networks: NetworkReader.listNetworksByProvider('gce'),
-            subnets: SubnetReader.listSubnetsByProvider('gce'),
-            loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
-            allImages: loadAllImages(command.credentials),
-            instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
-            persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
-            authScopes: $q.when(angular.copy(authScopes)),
-            healthChecks: gceHealthCheckReader.listHealthChecks(),
-            accounts: AccountService.listAccounts('gce'),
-          })
-          .then(function (backingData) {
+          .all([
+            AccountService.getCredentialsKeyedByAccount('gce'),
+            securityGroupReader.getAllSecurityGroups(),
+            NetworkReader.listNetworksByProvider('gce'),
+            SubnetReader.listSubnetsByProvider('gce'),
+            loadBalancerReader.listLoadBalancers('gce'),
+            loadAllImages(command.credentials),
+            gceInstanceTypeService.getAllTypesByRegion(),
+            $q.when(angular.copy(persistentDiskTypes)),
+            $q.when(angular.copy(authScopes)),
+            gceHealthCheckReader.listHealthChecks(),
+            AccountService.listAccounts('gce'),
+          ])
+          .then(function ([
+            credentialsKeyedByAccount,
+            securityGroups,
+            networks,
+            subnets,
+            loadBalancers,
+            allImages,
+            instanceTypes,
+            persistentDiskTypes,
+            authScopes,
+            healthChecks,
+            accounts,
+          ]) {
+            const backingData = {
+              credentialsKeyedByAccount,
+              securityGroups,
+              networks,
+              subnets,
+              loadBalancers,
+              allImages,
+              instanceTypes,
+              persistentDiskTypes,
+              authScopes,
+              healthChecks,
+              accounts,
+            };
             let securityGroupReloader = $q.when(null);
             let networkReloader = $q.when(null);
             let healthCheckReloader = $q.when(null);
