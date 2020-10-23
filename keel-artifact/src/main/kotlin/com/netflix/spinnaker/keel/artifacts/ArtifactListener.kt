@@ -54,17 +54,21 @@ class ArtifactListener(
       .forEach { artifact ->
         if (repository.isRegistered(artifact.name, artifact.artifactType)) {
           val artifactSupplier = artifactSuppliers.supporting(artifact.artifactType)
-          val enrichedArtifact = artifactSupplier.addMetadata(artifact.normalized())
+          if (artifactSupplier.shouldProcessArtifact(artifact)) {
+            val enrichedArtifact = artifactSupplier.addMetadata(artifact.normalized())
 
-          log.info("Registering version {} (status={}) of {} artifact {}",
-            artifact.version, artifact.status, artifact.type, artifact.name)
+            log.info("Registering version {} (status={}) of {} artifact {}",
+              artifact.version, artifact.status, artifact.type, artifact.name)
 
-          repository.storeArtifactInstance(enrichedArtifact)
-            .also { wasAdded ->
-              if (wasAdded) {
-                publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
+            repository.storeArtifactInstance(enrichedArtifact)
+              .also { wasAdded ->
+                if (wasAdded) {
+                  publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
+                }
               }
-            }
+          } else {
+            log.debug("Artifact $artifact shouldn't be processed due to supplier limitations. Ignoring this artifact version.")
+          }
         } else {
           log.debug("Artifact $artifact is not registered. Ignoring new artifact version.")
         }
@@ -151,7 +155,7 @@ class ArtifactListener(
   /**
    * Returns a copy of the [PublishedArtifact] with the git and build metadata populated, if available.
    */
-  private fun ArtifactSupplier<*,*>.addMetadata(artifact: PublishedArtifact): PublishedArtifact {
+  private fun ArtifactSupplier<*, *>.addMetadata(artifact: PublishedArtifact): PublishedArtifact {
     val artifactMetadata = runBlocking {
       try {
         getArtifactMetadata(artifact)

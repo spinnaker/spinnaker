@@ -124,6 +124,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         every {
           debianArtifactSupplier.getArtifactMetadata(publishedDeb)
         } returns artifactMetadata
+        every {
+          debianArtifactSupplier.shouldProcessArtifact(any())
+        } returns true
       }
 
       context("the version was already known") {

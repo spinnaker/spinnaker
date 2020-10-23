@@ -136,4 +136,8 @@ class DockerArtifactSupplier(
       ?.let { it.strategy in listOf(BRANCH_JOB_COMMIT_BY_JOB, SEMVER_JOB_COMMIT_BY_JOB, SEMVER_JOB_COMMIT_BY_SEMVER) }
       ?: false
   }
+
+  override fun shouldProcessArtifact(artifact: PublishedArtifact): Boolean =
+    artifact.version != "latest"
+
 }

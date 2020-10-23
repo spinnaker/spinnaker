@@ -22,7 +22,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -57,6 +59,14 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
         "date" to "1598707355157"
       )
     )
+
+    val latestArtifactWithBadVersion = PublishedArtifact(
+      name = dockerArtifact.name,
+      type = dockerArtifact.type,
+      reference = dockerArtifact.reference,
+      version = "latest"
+    )
+
     val dockerArtifactSupplier = DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
   }
 
@@ -116,6 +126,16 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
           .isEqualTo(BuildMetadata(id = 1182))
         expectThat(dockerArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
           .isNull()
+      }
+
+      test("should not process artifact with latest version") {
+        expectThat(dockerArtifactSupplier.shouldProcessArtifact(latestArtifact))
+          .isTrue()
+      }
+
+      test("should not process artifact with latest version") {
+        expectThat(dockerArtifactSupplier.shouldProcessArtifact(latestArtifactWithBadVersion))
+          .isFalse()
       }
     }
 

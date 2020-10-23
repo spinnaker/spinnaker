@@ -79,4 +79,7 @@ class NpmArtifactSupplier(
 
   private val DeliveryArtifact.statusesForQuery: List<String>
     get() = statuses.map { it.name }
+
+  // Currently, we don't have any limitations for NPM artifact versions
+  override fun shouldProcessArtifact(artifact: PublishedArtifact) = true
 }

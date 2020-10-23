@@ -280,7 +280,6 @@ class SqlArtifactRepository(
     } else {
       val sortedVersions = versions.sortedWith(artifact.versioningStrategy.comparator)
       if (artifact is DockerArtifact) {
-        // FIXME: remove special handling for Docker
         filterDockerVersions(artifact, sortedVersions, limit)
       } else {
         sortedVersions.subList(0, Math.min(sortedVersions.size, limit))
@@ -382,7 +381,6 @@ class SqlArtifactRepository(
    * Given a docker artifact and a list of docker tags, filters out all tags that don't produce exactly one capture
    * group with the provided regex.
    *
-   * This means that this will filter out tags like "latest" from the list.
    */
   private fun filterDockerVersions(artifact: DockerArtifact, versions: List<String>, limit: Int): List<String> =
     versions.filter { shouldInclude(it, artifact) }
@@ -393,11 +391,11 @@ class SqlArtifactRepository(
 
 
   /**
-   * Returns true if a docker tag is not latest and the regex produces exactly one capture group on the tag, false otherwise.
+   * Returns true if a docker tag is not a match to the regex produces exactly one capture group on the tag, false otherwise.
    */
   private fun shouldInclude(tag: String, artifact: DockerArtifact) =
-    try {
-      tag != "latest" && TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
+     try {
+      TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
     } catch (e: InvalidRegexException) {
       log.warn("Version $tag produced more than one capture group based on artifact $artifact, excluding")
       false

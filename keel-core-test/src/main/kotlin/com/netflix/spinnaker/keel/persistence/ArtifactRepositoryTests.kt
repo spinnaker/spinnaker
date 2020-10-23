@@ -162,7 +162,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version4 = "keeldemo-1.0.0-h11.518aea2" // release
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d" // release
     val version6 = "master-h12.4ea8a9d"
-    val versionBad = "latest"
     val versionOnly = "0.0.1~dev.8-h8.41595c4"
 
     val pin1 = EnvironmentArtifactPin(
@@ -223,7 +222,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         storeArtifactInstance(versionedReleaseDebian.toArtifactInstance(it, RELEASE))
       }
       register(versionedDockerArtifact)
-      setOf(version6, versionBad).forEach {
+      setOf(version6).forEach {
         storeArtifactInstance(versionedDockerArtifact.toArtifactInstance(it))
       }
       register(debianFilteredByBranch)
@@ -371,7 +370,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("docker") {
           test("querying for all returns all") {
-            expectThat(subject.versions(versionedDockerArtifact.name, versionedDockerArtifact.type)).containsExactlyInAnyOrder(version6, versionBad)
+            expectThat(subject.versions(versionedDockerArtifact.name, versionedDockerArtifact.type)).containsExactlyInAnyOrder(version6)
           }
 
           test("querying the artifact filters out the bad tag") {

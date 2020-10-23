@@ -88,6 +88,11 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * This function is currently expected to make calls to CI systems.
    */
   suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata?
+
+  /**
+   * Given an actual artifact version as [PublishedArtifact], return whether this artifact should be processed and saved
+   */
+  fun shouldProcessArtifact(artifact: PublishedArtifact): Boolean
 }
 
 /**

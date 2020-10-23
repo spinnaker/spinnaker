@@ -25,7 +25,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -56,6 +58,13 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       reference = debianArtifact.reference,
       version = "etcd-3.4.10-hlocal.856d0b1",
       metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
+    )
+
+    val artifactWithoutStatus = PublishedArtifact (
+      name = debianArtifact.name,
+      type = debianArtifact.type,
+      reference = debianArtifact.reference,
+      version = "${debianArtifact.name}-${versions.last()}"
     )
 
     val artifactMetadata = ArtifactMetadata(
@@ -158,6 +167,21 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
         }
         expectThat(results)
           .isEqualTo(artifactMetadata)
+      }
+
+      test ("should process artifact successfully") {
+        expectThat(debianArtifactSupplier.shouldProcessArtifact(latestArtifact))
+          .isTrue()
+      }
+
+      test ("should not process artifact with local in its version string") {
+        expectThat(debianArtifactSupplier.shouldProcessArtifact(artifactWithInvalidVersion))
+          .isFalse()
+      }
+
+      test ("should not process artifact without a status") {
+        expectThat(debianArtifactSupplier.shouldProcessArtifact(artifactWithoutStatus))
+          .isFalse()
       }
     }
   }
