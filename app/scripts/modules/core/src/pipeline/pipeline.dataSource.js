@@ -27,7 +27,9 @@ module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).
     const loadPipelineConfigs = (application) => {
       const pipelineLoader = PipelineConfigService.getPipelinesForApplication(application.name);
       const strategyLoader = PipelineConfigService.getStrategiesForApplication(application.name);
-      return $q.all({ pipelineConfigs: pipelineLoader, strategyConfigs: strategyLoader });
+      return $q
+        .all([pipelineLoader, strategyLoader])
+        .then(([pipelineConfigs, strategyConfigs]) => ({ pipelineConfigs, strategyConfigs }));
     };
 
     const addPipelineConfigs = (application, data) => {
