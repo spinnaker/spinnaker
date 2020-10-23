@@ -60,36 +60,35 @@ module(ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE, [ORACLE_PIPELINE_STAGES_BAKE_BA
       function initialize() {
         $scope.viewState.providerSelected = true;
 
-        $q.all({
-          baseOsOptions: BakeryReader.getBaseOsOptions(provider),
-          accounts: AccountService.listAccounts(provider),
-        }).then((results) => {
-          if (results.baseOsOptions.baseImages.length > 0) {
-            $scope.baseOsOptions = results.baseOsOptions;
-          }
-          if (!$scope.stage.user) {
-            $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-          }
-          if (!$scope.stage.baseOs) {
-            $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
-          }
-          if (!$scope.stage.upgrade) {
-            $scope.stage.upgrade = true;
-          }
+        $q.all([BakeryReader.getBaseOsOptions(provider), AccountService.listAccounts(provider)]).then(
+          ([baseOsOptions, accounts]) => {
+            if (baseOsOptions.baseImages.length > 0) {
+              $scope.baseOsOptions = baseOsOptions;
+            }
+            if (!$scope.stage.user) {
+              $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
+            }
+            if (!$scope.stage.baseOs) {
+              $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
+            }
+            if (!$scope.stage.upgrade) {
+              $scope.stage.upgrade = true;
+            }
 
-          $scope.accounts = results.accounts;
+            $scope.accounts = accounts;
 
-          if ($scope.stage.accountName) {
-            AccountService.getRegionsForAccount($scope.stage.accountName).then(function (regions) {
-              if (Array.isArray(regions) && regions.length != 0) {
-                // there is exactly one region per account
-                $scope.stage.region = regions[0].name;
-              }
-            });
-          }
+            if ($scope.stage.accountName) {
+              AccountService.getRegionsForAccount($scope.stage.accountName).then(function (regions) {
+                if (Array.isArray(regions) && regions.length != 0) {
+                  // there is exactly one region per account
+                  $scope.stage.region = regions[0].name;
+                }
+              });
+            }
 
-          $scope.viewState.loading = false;
-        });
+            $scope.viewState.loading = false;
+          },
+        );
       }
 
       this.getBaseOsDescription = function (baseOsOption) {
