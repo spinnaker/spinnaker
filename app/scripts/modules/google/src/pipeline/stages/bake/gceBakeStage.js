@@ -68,17 +68,14 @@ module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [GOOGLE_PIPELINE_STAGES_BAKE_BA
 
       function initialize() {
         $scope.viewState.providerSelected = true;
-        $q.all({
-          baseOsOptions: BakeryReader.getBaseOsOptions('gce'),
-          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-          expectedArtifacts: ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
-            $scope.stage,
-            $scope.pipeline,
-          ),
-        }).then(function (results) {
-          $scope.baseOsOptions = results.baseOsOptions.baseImages;
-          $scope.baseLabelOptions = results.baseLabelOptions;
-          $scope.viewState.expectedArtifacts = results.expectedArtifacts;
+        $q.all([
+          BakeryReader.getBaseOsOptions('gce'),
+          BakeryReader.getBaseLabelOptions(),
+          ExpectedArtifactService.getExpectedArtifactsAvailableToStage($scope.stage, $scope.pipeline),
+        ]).then(function ([baseOsOptions, baseLabelOptions, expectedArtifacts]) {
+          $scope.baseOsOptions = baseOsOptions.baseImages;
+          $scope.baseLabelOptions = baseLabelOptions;
+          $scope.viewState.expectedArtifacts = expectedArtifacts;
 
           if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
             $scope.stage.baseOs = $scope.baseOsOptions[0].id;
