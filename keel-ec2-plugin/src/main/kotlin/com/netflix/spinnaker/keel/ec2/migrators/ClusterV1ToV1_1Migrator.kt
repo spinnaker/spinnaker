@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class ClusterV1ToV1_1Migrator : SpecMigrator<ClusterV1Spec, ClusterSpec> {
+  @Suppress("DEPRECATION")
   override val input = EC2_CLUSTER_V1
   override val output = EC2_CLUSTER_V1_1
 

@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -108,7 +108,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     )
 
     val resource = resource(
-      kind = EC2_CLUSTER_V1.kind,
+      kind = EC2_CLUSTER_V1_1.kind,
       spec = ClusterSpec(
         moniker = Moniker("fnord"),
         artifactReference = artifactReference,

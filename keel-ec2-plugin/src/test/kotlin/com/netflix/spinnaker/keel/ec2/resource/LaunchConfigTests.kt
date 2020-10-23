@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -156,7 +156,7 @@ internal class LaunchConfigTests {
   fun setup(ramdiskId : String?, launchInfo: LaunchInfo) {
     spec = clusterSpec(vpc, subnet, ramdiskId)
     resource = resource(
-      kind = EC2_CLUSTER_V1.kind,
+      kind = EC2_CLUSTER_V1_1.kind,
       spec = spec
     )
 

@@ -15,7 +15,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
@@ -33,8 +33,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.MockKAnswerScope
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
@@ -43,6 +41,8 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isNullOrEmpty
 import strikt.assertions.isTrue
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
 
@@ -219,7 +219,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
     derivedContext<Fixture<ClusterSpec>>("a resource with complex dependency overrides") {
       fixture {
         Fixture(
-          EC2_CLUSTER_V1.kind,
+          EC2_CLUSTER_V1_1.kind,
           ClusterSpec(
             moniker = Moniker("fnord", "dev"),
             locations = SubnetAwareLocations(

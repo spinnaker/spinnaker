@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class ApplicationLoadBalancerV1ToV1_1Migrator : SpecMigrator<ApplicationLoadBalancerV1Spec, ApplicationLoadBalancerSpec> {
+  @Suppress("DEPRECATION")
   override val input = EC2_APPLICATION_LOAD_BALANCER_V1
   override val output = EC2_APPLICATION_LOAD_BALANCER_V1_1
 

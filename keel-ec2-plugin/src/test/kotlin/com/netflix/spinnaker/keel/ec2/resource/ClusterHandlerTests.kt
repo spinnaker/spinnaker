@@ -16,7 +16,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -27,7 +27,10 @@ import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
@@ -37,9 +40,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
-import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
-import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
-import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -58,9 +58,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectCatching
@@ -78,6 +75,9 @@ import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.map
+import java.time.Clock
+import java.time.Duration
+import java.util.UUID.randomUUID
 
 @Suppress("MemberVisibilityCanBePrivate")
 internal class ClusterHandlerTests : JUnit5Minutests {
@@ -170,7 +170,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
 
   val resource = resource(
-    kind = EC2_CLUSTER_V1.kind,
+    kind = EC2_CLUSTER_V1_1.kind,
     spec = spec
   )
 
@@ -183,7 +183,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
-    kind = EC2_CLUSTER_V1.kind
+    kind = EC2_CLUSTER_V1_1.kind
   )
 
   fun tests() = rootContext<ClusterHandler> {

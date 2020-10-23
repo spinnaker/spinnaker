@@ -49,6 +49,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
   fun tests() = rootContext<Unit> {
     before {
+      @Suppress("DEPRECATION")
       mapper.registerSubtypes(EC2_CLUSTER_V1.toNamedType())
       mapper.registerSubtypes(EC2_CLUSTER_V1_1.toNamedType())
       mapper.registerSubtypes(EC2_SECURITY_GROUP_V1.toNamedType())

@@ -3,7 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
@@ -35,6 +35,6 @@ class KeelCliConfiguration(
 
   @PostConstruct
   fun registerResourceSpecSubtypes() {
-    extensionRegistry.register<ResourceSpec>(ClusterSpec::class.java, EC2_CLUSTER_V1.kind.toString())
+    extensionRegistry.register<ResourceSpec>(ClusterSpec::class.java, EC2_CLUSTER_V1_1.kind.toString())
   }
 }
