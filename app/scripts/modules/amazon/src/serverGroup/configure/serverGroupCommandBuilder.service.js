@@ -41,14 +41,9 @@ angular
         );
 
         return $q
-          .all({
-            preferredZones: preferredZonesLoader,
-            credentialsKeyedByAccount: credentialsLoader,
-          })
-          .then(function (asyncData) {
-            const availabilityZones = asyncData.preferredZones;
-
-            const credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
+          .all([preferredZonesLoader, credentialsLoader])
+          .then(function ([preferredZones, credentialsKeyedByAccount]) {
+            const credentials = credentialsKeyedByAccount[defaultCredentials];
             const keyPair = credentials ? credentials.defaultKeyPair : null;
             const applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
 
@@ -79,7 +74,7 @@ angular
               terminationPolicies: ['Default'],
               vpcId: null,
               subnetType: defaultSubnet,
-              availabilityZones: availabilityZones,
+              availabilityZones: preferredZones,
               keyPair: keyPair,
               suspendedProcesses: [],
               securityGroups: [],
@@ -132,18 +127,17 @@ angular
           pipelineCluster.instanceType,
         );
         const commandOptions = { account: pipelineCluster.account, region: region };
-        const asyncLoader = $q.all({
-          command: buildNewServerGroupCommand(application, commandOptions),
-          instanceProfile: instanceTypeCategoryLoader,
-        });
+        const asyncLoader = $q.all([
+          buildNewServerGroupCommand(application, commandOptions),
+          instanceTypeCategoryLoader,
+        ]);
 
-        return asyncLoader.then(function (asyncData) {
-          const command = asyncData.command;
+        return asyncLoader.then(function ([command, instanceProfile]) {
           const zones = pipelineCluster.availabilityZones[region];
           const usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
           const viewState = {
-            instanceProfile: asyncData.instanceProfile,
+            instanceProfile,
             disableImageSelection: true,
             useSimpleCapacity:
               pipelineCluster.capacity.min === pipelineCluster.capacity.max &&
@@ -220,178 +214,175 @@ angular
           : null;
         const instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
 
-        const asyncLoader = $q.all({
-          preferredZones: preferredZonesLoader,
-          subnets: subnetsLoader,
-          instanceProfile: instanceTypeCategoryLoader,
-        });
-
-        return asyncLoader.then(function (asyncData) {
-          const zones = serverGroup.asg.availabilityZones.sort();
-          let usePreferredZones = false;
-          const preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
-          if (preferredZonesForAccount) {
-            const preferredZones = preferredZonesForAccount[serverGroup.region].sort();
-            usePreferredZones = zones.join(',') === preferredZones.join(',');
-          }
-
-          // These processes should never be copied over, as the affect launching instances and enabling traffic
-          const enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
-
-          const applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
-          const useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
-
-          const existingTags = {};
-          // These tags are applied by Clouddriver (if configured to do so), regardless of what the user might enter
-          // Might be worth feature flagging this if it turns out other folks are hard-coding these values
-          const reservedTags = ['spinnaker:application', 'spinnaker:stack', 'spinnaker:details'];
-          if (serverGroup.asg.tags) {
-            serverGroup.asg.tags
-              .filter((t) => !reservedTags.includes(t.key))
-              .forEach((tag) => {
-                existingTags[tag.key] = tag.value;
-              });
-          }
-
-          const command = {
-            application: application.name,
-            strategy: '',
-            stack: serverGroupName.stack,
-            freeFormDetails: serverGroupName.freeFormDetails,
-            credentials: serverGroup.account,
-            cooldown: serverGroup.asg.defaultCooldown,
-            enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map((m) => m.metric),
-            healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
-            healthCheckType: serverGroup.asg.healthCheckType,
-            terminationPolicies: serverGroup.asg.terminationPolicies,
-            loadBalancers: serverGroup.asg.loadBalancerNames,
-            region: serverGroup.region,
-            useSourceCapacity: false,
-            capacity: {
-              min: serverGroup.asg.minSize,
-              max: serverGroup.asg.maxSize,
-              desired: serverGroup.asg.desiredCapacity,
-            },
-            targetHealthyDeployPercentage: 100,
-            availabilityZones: zones,
-            selectedProvider: 'aws',
-            source: {
-              account: serverGroup.account,
-              region: serverGroup.region,
-              asgName: serverGroup.asg.autoScalingGroupName,
-            },
-            suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
-              .map((process) => process.processName)
-              .filter((name) => !enabledProcesses.includes(name)),
-            tags: Object.assign({}, serverGroup.tags, existingTags),
-            targetGroups: serverGroup.targetGroups,
-            useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
-            copySourceCustomBlockDeviceMappings: mode === 'clone', // default to using block device mappings if not cloning
-            viewState: {
-              instanceProfile: asyncData.instanceProfile,
-              useAllImageSelection: false,
-              useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
-              usePreferredZones: usePreferredZones,
-              mode: mode,
-              submitButtonLabel: getSubmitButtonLabel(mode),
-              isNew: false,
-              dirty: {},
-            },
-          };
-
-          if (
-            application.attributes &&
-            application.attributes.platformHealthOnlyShowOverride &&
-            application.attributes.platformHealthOnly
-          ) {
-            command.interestingHealthProviderNames = ['Amazon'];
-          }
-
-          if (mode === 'editPipeline') {
-            command.useSourceCapacity = true;
-            command.viewState.useSimpleCapacity = false;
-            command.strategy = 'redblack';
-            const redblack = DeploymentStrategyRegistry.getStrategy('redblack');
-            redblack.initializationMethod && redblack.initializationMethod(command);
-            command.suspendedProcesses = [];
-          }
-
-          const vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-          if (vpcZoneIdentifier !== '') {
-            const subnetId = vpcZoneIdentifier.split(',')[0];
-            const subnet = _.chain(asyncData.subnets).find({ id: subnetId }).value();
-            command.subnetType = subnet.purpose;
-            command.vpcId = subnet.vpcId;
-          } else {
-            command.subnetType = '';
-            command.vpcId = null;
-          }
-
-          if (serverGroup.launchConfig) {
-            angular.extend(command, {
-              instanceType: serverGroup.launchConfig.instanceType,
-              iamRole: serverGroup.launchConfig.iamInstanceProfile,
-              keyPair: serverGroup.launchConfig.keyName,
-              associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
-              ramdiskId: serverGroup.launchConfig.ramdiskId,
-              instanceMonitoring: serverGroup.launchConfig.instanceMonitoring.enabled,
-              ebsOptimized: serverGroup.launchConfig.ebsOptimized,
-              spotPrice: serverGroup.launchConfig.spotPrice,
-            });
-            if (serverGroup.launchConfig.userData) {
-              command.base64UserData = serverGroup.launchConfig.userData;
+        return $q
+          .all([preferredZonesLoader, subnetsLoader, instanceTypeCategoryLoader])
+          .then(function ([preferredZones, subnets, instanceProfile]) {
+            const zones = serverGroup.asg.availabilityZones.sort();
+            let usePreferredZones = false;
+            const preferredZonesForAccount = preferredZones[serverGroup.account];
+            if (preferredZonesForAccount) {
+              const preferredZones = preferredZonesForAccount[serverGroup.region].sort();
+              usePreferredZones = zones.join(',') === preferredZones.join(',');
             }
-            command.viewState.imageId = serverGroup.launchConfig.imageId;
-          }
 
-          if (serverGroup.launchTemplate) {
-            const { launchTemplateData } = serverGroup.launchTemplate;
-            const maxPrice =
-              launchTemplateData.instanceMarketOptions &&
-              launchTemplateData.instanceMarketOptions.spotOptions &&
-              launchTemplateData.instanceMarketOptions.spotOptions.maxPrice;
-            const { ipv6AddressCount } =
-              launchTemplateData.networkInterfaces &&
-              launchTemplateData.networkInterfaces.length &&
-              launchTemplateData.networkInterfaces[0];
+            // These processes should never be copied over, as the affect launching instances and enabling traffic
+            const enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
 
-            angular.extend(command, {
-              instanceType: launchTemplateData.instanceType,
-              iamRole: launchTemplateData.iamInstanceProfile.name,
-              keyPair: launchTemplateData.keyName,
-              associateIPv6Address: Boolean(ipv6AddressCount),
-              ramdiskId: launchTemplateData.ramdiskId,
-              instanceMonitoring: launchTemplateData.monitoring.enabled,
-              ebsOptimized: launchTemplateData.ebsOptimized,
-              spotPrice: maxPrice || undefined,
-              requireIMDSv2: Boolean(
-                launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
-              ),
-            });
+            const applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+            const useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
-            command.viewState.imageId = launchTemplateData.imageId;
-          }
+            const existingTags = {};
+            // These tags are applied by Clouddriver (if configured to do so), regardless of what the user might enter
+            // Might be worth feature flagging this if it turns out other folks are hard-coding these values
+            const reservedTags = ['spinnaker:application', 'spinnaker:stack', 'spinnaker:details'];
+            if (serverGroup.asg.tags) {
+              serverGroup.asg.tags
+                .filter((t) => !reservedTags.includes(t.key))
+                .forEach((tag) => {
+                  existingTags[tag.key] = tag.value;
+                });
+            }
 
-          if (mode === 'clone' && serverGroup.image && serverGroup.image.name) {
-            command.amiName = serverGroup.image.name;
-          }
+            const command = {
+              application: application.name,
+              strategy: '',
+              stack: serverGroupName.stack,
+              freeFormDetails: serverGroupName.freeFormDetails,
+              credentials: serverGroup.account,
+              cooldown: serverGroup.asg.defaultCooldown,
+              enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map((m) => m.metric),
+              healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
+              healthCheckType: serverGroup.asg.healthCheckType,
+              terminationPolicies: serverGroup.asg.terminationPolicies,
+              loadBalancers: serverGroup.asg.loadBalancerNames,
+              region: serverGroup.region,
+              useSourceCapacity: false,
+              capacity: {
+                min: serverGroup.asg.minSize,
+                max: serverGroup.asg.maxSize,
+                desired: serverGroup.asg.desiredCapacity,
+              },
+              targetHealthyDeployPercentage: 100,
+              availabilityZones: zones,
+              selectedProvider: 'aws',
+              source: {
+                account: serverGroup.account,
+                region: serverGroup.region,
+                asgName: serverGroup.asg.autoScalingGroupName,
+              },
+              suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
+                .map((process) => process.processName)
+                .filter((name) => !enabledProcesses.includes(name)),
+              tags: Object.assign({}, serverGroup.tags, existingTags),
+              targetGroups: serverGroup.targetGroups,
+              useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
+              copySourceCustomBlockDeviceMappings: mode === 'clone', // default to using block device mappings if not cloning
+              viewState: {
+                instanceProfile,
+                useAllImageSelection: false,
+                useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
+                usePreferredZones: usePreferredZones,
+                mode: mode,
+                submitButtonLabel: getSubmitButtonLabel(mode),
+                isNew: false,
+                dirty: {},
+              },
+            };
 
-          if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
-            command.securityGroups = serverGroup.launchConfig.securityGroups;
-          }
+            if (
+              application.attributes &&
+              application.attributes.platformHealthOnlyShowOverride &&
+              application.attributes.platformHealthOnly
+            ) {
+              command.interestingHealthProviderNames = ['Amazon'];
+            }
 
-          if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.securityGroups.length) {
-            command.securityGroups = serverGroup.launchTemplate.launchTemplateData.securityGroups;
-          }
+            if (mode === 'editPipeline') {
+              command.useSourceCapacity = true;
+              command.viewState.useSimpleCapacity = false;
+              command.strategy = 'redblack';
+              const redblack = DeploymentStrategyRegistry.getStrategy('redblack');
+              redblack.initializationMethod && redblack.initializationMethod(command);
+              command.suspendedProcesses = [];
+            }
 
-          if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.networkInterfaces) {
-            const networkInterface =
-              serverGroup.launchTemplate.launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) || {};
-            command.securityGroups = networkInterface.groups;
-          }
+            const vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
+            if (vpcZoneIdentifier !== '') {
+              const subnetId = vpcZoneIdentifier.split(',')[0];
+              const subnet = _.chain(subnets).find({ id: subnetId }).value();
+              command.subnetType = subnet.purpose;
+              command.vpcId = subnet.vpcId;
+            } else {
+              command.subnetType = '';
+              command.vpcId = null;
+            }
 
-          return command;
-        });
+            if (serverGroup.launchConfig) {
+              angular.extend(command, {
+                instanceType: serverGroup.launchConfig.instanceType,
+                iamRole: serverGroup.launchConfig.iamInstanceProfile,
+                keyPair: serverGroup.launchConfig.keyName,
+                associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
+                ramdiskId: serverGroup.launchConfig.ramdiskId,
+                instanceMonitoring: serverGroup.launchConfig.instanceMonitoring.enabled,
+                ebsOptimized: serverGroup.launchConfig.ebsOptimized,
+                spotPrice: serverGroup.launchConfig.spotPrice,
+              });
+              if (serverGroup.launchConfig.userData) {
+                command.base64UserData = serverGroup.launchConfig.userData;
+              }
+              command.viewState.imageId = serverGroup.launchConfig.imageId;
+            }
+
+            if (serverGroup.launchTemplate) {
+              const { launchTemplateData } = serverGroup.launchTemplate;
+              const maxPrice =
+                launchTemplateData.instanceMarketOptions &&
+                launchTemplateData.instanceMarketOptions.spotOptions &&
+                launchTemplateData.instanceMarketOptions.spotOptions.maxPrice;
+              const { ipv6AddressCount } =
+                launchTemplateData.networkInterfaces &&
+                launchTemplateData.networkInterfaces.length &&
+                launchTemplateData.networkInterfaces[0];
+
+              angular.extend(command, {
+                instanceType: launchTemplateData.instanceType,
+                iamRole: launchTemplateData.iamInstanceProfile.name,
+                keyPair: launchTemplateData.keyName,
+                associateIPv6Address: Boolean(ipv6AddressCount),
+                ramdiskId: launchTemplateData.ramdiskId,
+                instanceMonitoring: launchTemplateData.monitoring.enabled,
+                ebsOptimized: launchTemplateData.ebsOptimized,
+                spotPrice: maxPrice || undefined,
+                requireIMDSv2: Boolean(
+                  launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
+                ),
+              });
+
+              command.viewState.imageId = launchTemplateData.imageId;
+            }
+
+            if (mode === 'clone' && serverGroup.image && serverGroup.image.name) {
+              command.amiName = serverGroup.image.name;
+            }
+
+            if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
+              command.securityGroups = serverGroup.launchConfig.securityGroups;
+            }
+
+            if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.securityGroups.length) {
+              command.securityGroups = serverGroup.launchTemplate.launchTemplateData.securityGroups;
+            }
+
+            if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.networkInterfaces) {
+              const networkInterface =
+                serverGroup.launchTemplate.launchTemplateData.networkInterfaces.find((ni) => ni.deviceIndex === 0) ||
+                {};
+              command.securityGroups = networkInterface.groups;
+            }
+
+            return command;
+          });
       }
 
       return {
