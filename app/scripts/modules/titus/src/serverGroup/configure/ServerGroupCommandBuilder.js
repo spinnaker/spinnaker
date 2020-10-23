@@ -178,11 +178,8 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
         imageId: pipelineCluster.imageId,
         region: pipelineCluster.region,
       };
-      const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-      return asyncLoader.then(function (asyncData) {
-        const command = asyncData.command;
-
+      return buildNewServerGroupCommand(application, commandOptions).then(function (command) {
         command.constraints = {
           hard:
             (originalCluster.constraints && originalCluster.constraints.hard) ||
