@@ -32,7 +32,8 @@ const rule = function (context) {
       // This isn't 100% accurate, but it's good enough.
       function sourceCodeHasSlash(node) {
         const text = node ? context.getSourceCode().getText(node) : '';
-        return !!(text && text.includes('/'));
+        const splitOnSlash = /\.split\(['"`]\/['"]\)/;
+        return !!(text && text.includes('/') && !splitOnSlash.exec(text));
       }
 
       function isArgLiteralWithSlash(arg) {

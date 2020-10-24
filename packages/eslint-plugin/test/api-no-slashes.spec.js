@@ -11,6 +11,9 @@ ruleTester.run('api-no-slashes', rule, {
     {
       code: `API.one('foo', 'bar');`,
     },
+    {
+      code: `const uri = "foo/bar/baz"; API.one(...uri.split('/'));`,
+    },
   ],
 
   invalid: [
