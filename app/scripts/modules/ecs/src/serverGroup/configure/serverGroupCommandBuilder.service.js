@@ -177,11 +177,9 @@ angular
         const pipelineCluster = _.cloneDeep(originalCluster);
         const region = Object.keys(pipelineCluster.availabilityZones)[0];
         // var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('ecs', pipelineCluster.instanceType);
-        const commandOptions = { account: pipelineCluster.account, region: region };
-        const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-        return asyncLoader.then(function (asyncData) {
-          const command = asyncData.command;
+        const commandOptions = { account: pipelineCluster.account, region: region };
+        return buildNewServerGroupCommand(application, commandOptions).then(function (command) {
           const zones = pipelineCluster.availabilityZones[region];
           const usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
@@ -193,7 +191,7 @@ angular
           }
 
           const viewState = {
-            instanceProfile: asyncData.instanceProfile,
+            instanceProfile: undefined,
             disableImageSelection: true,
             useSimpleCapacity:
               pipelineCluster.capacity.min === pipelineCluster.capacity.max &&
@@ -255,14 +253,10 @@ angular
       }
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-        const commandOptions = { account: serverGroup.account, region: serverGroup.region };
-        const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
-
         // do NOT copy: deployment strategy. DO copy: account, region, cluster name, stack
         // TODO: query for & pull in ECS-specific data that would be useful, e.g, network mode, launch type
-        return asyncLoader.then(function (asyncData) {
-          const command = asyncData.command;
-
+        const commandOptions = { account: serverGroup.account, region: serverGroup.region };
+        return buildNewServerGroupCommand(application, commandOptions).then(function (command) {
           command.credentials = serverGroup.account;
           command.app = serverGroup.moniker.app;
           command.stack = serverGroup.moniker.stack;
