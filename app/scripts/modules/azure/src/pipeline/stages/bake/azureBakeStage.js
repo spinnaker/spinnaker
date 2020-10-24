@@ -63,12 +63,12 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
       };
 
       function initialize() {
-        $q.all({
-          regions: BakeryReader.getRegions('azure'),
-          baseOsOptions: BakeryReader.getBaseOsOptions('azure'),
-          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        }).then(function (results) {
-          $scope.regions = results.regions;
+        $q.all([
+          BakeryReader.getRegions('azure'),
+          BakeryReader.getBaseOsOptions('azure'),
+          BakeryReader.getBaseLabelOptions(),
+        ]).then(function ([regions, baseOsOptions, baseLabelOptions]) {
+          $scope.regions = regions;
           if ($scope.regions.length === 1) {
             $scope.stage.region = $scope.regions[0];
           } else if (!$scope.regions.includes($scope.stage.region)) {
@@ -80,12 +80,12 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
           if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {
             $scope.stage.regions.push($scope.application.defaultRegions.azure);
           }
-          $scope.baseOsOptions = results.baseOsOptions.baseImages;
+          $scope.baseOsOptions = baseOsOptions.baseImages;
           if ($scope.baseOsOptions.length) {
-            $scope.stage.osType = results.baseOsOptions.baseImages[0].osType;
+            $scope.stage.osType = baseOsOptions.baseImages[0].osType;
           }
 
-          $scope.baseLabelOptions = results.baseLabelOptions;
+          $scope.baseLabelOptions = baseLabelOptions;
 
           if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
             $scope.stage.baseOs = $scope.baseOsOptions[0].id;
