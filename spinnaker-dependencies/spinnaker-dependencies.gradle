@@ -122,7 +122,7 @@ dependencies {
     api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-retry:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-spring-boot2:${versions.resilience4j}")
-    api("io.mockk:mockk:1.10.2")
+    api("io.mockk:mockk:1.10.0")
     api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
     api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
     api("io.swagger:swagger-annotations:${versions.swagger}")
