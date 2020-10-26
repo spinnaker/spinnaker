@@ -39,8 +39,14 @@ jobs:
 
       - name: Add ready to merge label
         if: steps.purebump.outputs.ispurebump == 'true'
-        uses: actions/github@v1.0.0
+        # pin to v3.0.0 tag by commit hash
+        uses: actions/github-script@626af12
         with:
-          args: label "ready to merge"
-        env:
-          GITHUB_TOKEN: ${{ secrets.SPINNAKERBOT_TOKEN }}
+          github-token: ${{ secrets.SPINNAKERBOT_TOKEN }}
+          script: |
+            github.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['ready to merge']
+            })
