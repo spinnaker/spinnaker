@@ -113,6 +113,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     log.info("Describing items in {}", getAgentType());
 
     AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
+
     String nextMarker = null;
     List<FunctionConfiguration> lstFunction = new ArrayList<FunctionConfiguration>();
 
@@ -139,9 +140,18 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       attributes.put("account", account.getName());
       attributes.put("region", region);
       attributes.put("revisions", listFunctionRevisions(x.getFunctionArn()));
-      attributes.put("aliasConfigurations", listAliasConfiguration(x.getFunctionArn()));
-      attributes.put(
-          "eventSourceMappings", listEventSourceMappingConfiguration(x.getFunctionArn()));
+      List<AliasConfiguration> allAliases = listAliasConfiguration(x.getFunctionArn());
+      attributes.put("aliasConfigurations", allAliases);
+      List<EventSourceMappingConfiguration> eventSourceMappings =
+          listEventSourceMappingConfiguration(x.getFunctionArn());
+      List<EventSourceMappingConfiguration> aliasEvents = new ArrayList<>();
+      for (AliasConfiguration currAlias : allAliases) {
+        List<EventSourceMappingConfiguration> currAliasEvents =
+            listEventSourceMappingConfiguration(currAlias.getAliasArn());
+        aliasEvents.addAll(currAliasEvents);
+      }
+      eventSourceMappings.addAll(aliasEvents);
+      attributes.put("eventSourceMappings", eventSourceMappings);
 
       attributes = addConfigAttributes(attributes, x, lambda);
       String functionName = x.getFunctionName();
