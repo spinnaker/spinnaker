@@ -174,11 +174,7 @@ public class LaunchTemplateService {
     }
 
     // instance market options
-    request.withInstanceMarketOptions(
-        new LaunchTemplateInstanceMarketOptionsRequest()
-            .withSpotOptions(
-                new LaunchTemplateSpotMarketOptionsRequest()
-                    .withMaxPrice(description.getSpotPrice())));
+    setSpotInstanceMarketOptions(request, description.getSpotPrice());
 
     // network interfaces
     LaunchTemplateInstanceNetworkInterfaceSpecificationRequest networkInterfaceRequest =
@@ -259,11 +255,7 @@ public class LaunchTemplateService {
     }
 
     // instance market options
-    request.withInstanceMarketOptions(
-        new LaunchTemplateInstanceMarketOptionsRequest()
-            .withSpotOptions(
-                new LaunchTemplateSpotMarketOptionsRequest()
-                    .withMaxPrice(settings.getSpotPrice())));
+    setSpotInstanceMarketOptions(request, settings.getSpotPrice());
 
     // network interfaces
     request.withNetworkInterfaces(
@@ -274,6 +266,21 @@ public class LaunchTemplateService {
             .withDeviceIndex(0));
 
     return request;
+  }
+
+  /**
+   * Set instance market options, required when launching spot instances
+   * https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata-instancemarketoptions.html
+   */
+  private void setSpotInstanceMarketOptions(
+      RequestLaunchTemplateData request, String maxSpotPrice) {
+    if (maxSpotPrice != null) {
+      request.setInstanceMarketOptions(
+          new LaunchTemplateInstanceMarketOptionsRequest()
+              .withMarketType("spot")
+              .withSpotOptions(
+                  new LaunchTemplateSpotMarketOptionsRequest().withMaxPrice(maxSpotPrice)));
+    }
   }
 
   private void setUserData(
