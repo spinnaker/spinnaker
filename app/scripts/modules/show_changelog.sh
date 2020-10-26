@@ -48,12 +48,12 @@ ENDSHA=HEAD
 if [[ -z $STARTVERSION ]] ; then
   STARTSHA=$($SCRIPTDIR/show_package_bumps.js "$PACKAGEJSON" | head -n 1 | awk '{ print $1; }')
 else
-  STARTSHA=$($SCRIPTDIR/show_package_bumps.js "$PACKAGEJSON" | grep "${STARTVERSION}" | awk '{ print $1; }')
+  STARTSHA=$($SCRIPTDIR/show_package_bumps.js "$PACKAGEJSON" | grep " ${STARTVERSION}$" | tail -n 1 | awk '{ print $1; }')
 fi
 
 # Find the ending SHA
 if [[ ! -z $ENDVERSION ]] ; then
-  ENDSHA=$($SCRIPTDIR/show_package_bumps.js "$PACKAGEJSON" | grep "${ENDVERSION}" | awk '{ print $1; }')
+  ENDSHA=$($SCRIPTDIR/show_package_bumps.js "$PACKAGEJSON" | grep " ${ENDVERSION}$" | head -n 1 | awk '{ print $1; }')
 fi
 
 if [[ -z "$STARTSHA" || -z "$ENDSHA" ]] ; then
