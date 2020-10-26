@@ -79,7 +79,8 @@ export class PipelineConfigService {
     idsToIndices: { [key: string]: number },
     isStrategy = false,
   ): IPromise<void> {
-    return API.one(`actions/${isStrategy ? 'strategies' : 'pipelines'}/reorder`)
+    const type = isStrategy ? 'strategies' : 'pipelines';
+    return API.one('actions', type, 'reorder')
       .data({
         application,
         idsToIndices,
