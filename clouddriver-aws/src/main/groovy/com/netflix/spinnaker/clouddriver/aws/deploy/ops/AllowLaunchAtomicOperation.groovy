@@ -18,6 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
+import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
+import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -25,11 +29,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
-import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
-import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,14 +51,14 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   AmazonClientProvider amazonClientProvider
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   @Override
   ResolvedAmiResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def sourceCredentials = description.credentials
-    def targetCredentials = accountCredentialsProvider.getCredentials(description.targetAccount) as NetflixAmazonCredentials
+    def targetCredentials = credentialsRepository.getOne(description.targetAccount)
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
@@ -83,10 +83,9 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     // Spinnaker, switch to using that for modifying the image
     if (resolvedAmi.ownerId != sourceCredentials.accountId) {
       if (resolvedAmi.getRegion()) {
-        ownerCredentials = accountCredentialsProvider.all.find { accountCredentials ->
-          accountCredentials instanceof NetflixAmazonCredentials &&
+        ownerCredentials = credentialsRepository.getAll().find { accountCredentials ->
             ((AmazonCredentials) accountCredentials).accountId == resolvedAmi.ownerId
-        } as NetflixAmazonCredentials
+        }
       }
       if (ownerCredentials) {
         ownerAmazonEC2 = amazonClientProvider.getAmazonEC2(ownerCredentials, description.region, true)

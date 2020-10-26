@@ -17,18 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -38,7 +32,7 @@ class SecurityGroupLookupSpec extends Specification {
   def amazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonEC2(_, "us-east-1", _) >> amazonEC2
   }
-  def accountCredentialsRepository = Stub(AccountCredentialsRepository) {
+  def accountCredentialsRepository = Stub(CredentialsRepository) {
     getAll() >> [
       Stub(NetflixAmazonCredentials) {
         getName() >> "test"

@@ -21,6 +21,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-aws"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.kork:kork-credentials"
   implementation "com.netflix.spinnaker.kork:kork-moniker"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-apache"

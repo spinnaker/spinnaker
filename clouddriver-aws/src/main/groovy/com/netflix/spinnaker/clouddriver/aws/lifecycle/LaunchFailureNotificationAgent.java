@@ -38,12 +38,11 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -64,7 +63,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
 
   private final ObjectMapper objectMapper;
   private final AmazonClientProvider amazonClientProvider;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final LaunchFailureConfigurationProperties properties;
   private final EntityTagger serverGroupTagger;
 
@@ -77,18 +76,18 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   LaunchFailureNotificationAgent(
       ObjectMapper objectMapper,
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsProvider accountCredentialsProvider,
+      NetflixAmazonCredentials netflixAmazonCredentials,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       LaunchFailureConfigurationProperties properties,
       EntityTagger serverGroupTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.properties = properties;
     this.serverGroupTagger = serverGroupTagger;
 
-    Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
-    this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
-    this.queueARN = new ARN(accountCredentials, properties.getQueueARN());
+    this.topicARN = new ARN(netflixAmazonCredentials, properties.getTopicARN());
+    this.queueARN = new ARN(netflixAmazonCredentials, properties.getQueueARN());
   }
 
   @Override
@@ -118,8 +117,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   @Override
   public void run() {
     List<String> allAccountIds =
-        accountCredentialsProvider.getAll().stream()
-            .filter(c -> c instanceof NetflixAmazonCredentials)
+        credentialsRepository.getAll().stream()
             .map(AccountCredentials::getAccountId)
             .collect(Collectors.toList());
 

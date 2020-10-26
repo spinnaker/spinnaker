@@ -29,8 +29,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
@@ -47,15 +47,15 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
   private static final int MAX_RESULTS = 10000;
 
   private final AmazonClientProvider amazonClientProvider;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final EntityTagger serverGroupTagger;
 
   LaunchFailureNotificationCleanupAgent(
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsProvider accountCredentialsProvider,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       EntityTagger serverGroupTagger) {
     this.amazonClientProvider = amazonClientProvider;
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.serverGroupTagger = serverGroupTagger;
   }
 
@@ -93,8 +93,7 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
         entityTags -> {
           EntityTags.EntityRef entityRef = entityTags.getEntityRef();
           Optional<NetflixAmazonCredentials> credentials =
-              Optional.ofNullable(accountCredentialsProvider.getCredentials(entityRef.getAccount()))
-                  .filter((c) -> c instanceof NetflixAmazonCredentials)
+              Optional.ofNullable(credentialsRepository.getOne(entityRef.getAccount()))
                   .map(NetflixAmazonCredentials.class::cast);
 
           if (!credentials.isPresent()) {

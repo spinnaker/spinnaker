@@ -22,7 +22,7 @@ class StringTemplaterSpec extends Specification {
 
     def 'it should work'(String template, Map<String, String> params, String expected) {
         expect:
-        CredentialsLoader.StringTemplater.render(template, params) == expected
+        AmazonCredentialsParser.StringTemplater.render(template, params) == expected
 
         where:
         template                                      | params                              || expected

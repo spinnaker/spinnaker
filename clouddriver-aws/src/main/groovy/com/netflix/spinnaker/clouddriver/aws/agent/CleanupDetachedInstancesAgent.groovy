@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -40,17 +40,17 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(20)
 
   final AmazonClientProvider amazonClientProvider
-  final AccountCredentialsRepository accountCredentialsRepository
+  final CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository
   final long pollIntervalMillis
   final long timeoutMillis
 
   CleanupDetachedInstancesAgent(AmazonClientProvider amazonClientProvider,
-                                AccountCredentialsRepository accountCredentialsRepository) {
+                                CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository) {
     this(amazonClientProvider, accountCredentialsRepository, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
   }
 
   CleanupDetachedInstancesAgent(AmazonClientProvider amazonClientProvider,
-                                AccountCredentialsRepository accountCredentialsRepository,
+                                CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository,
                                 long pollIntervalMillis,
                                 long timeoutMills) {
     this.amazonClientProvider = amazonClientProvider
@@ -108,7 +108,7 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
   }
 
   private Set<NetflixAmazonCredentials> getAccounts() {
-    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
+    return accountCredentialsRepository.getAll()
   }
 
   /**

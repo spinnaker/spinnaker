@@ -20,7 +20,11 @@ package com.netflix.spinnaker.clouddriver.aws.provider.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent;
+import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent;
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent;
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
@@ -43,21 +47,21 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.EddaLoadBalancerCach
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent;
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.config.AwsConfiguration;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -74,7 +78,7 @@ public class ProviderHelpers {
   public static BuildResult buildAwsInfrastructureAgents(
       NetflixAmazonCredentials credentials,
       AwsInfrastructureProvider awsInfrastructureProvider,
-      AccountCredentialsRepository accountCredentialsRepository,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       ObjectMapper amazonObjectMapper,
       Registry registry,
@@ -86,7 +90,7 @@ public class ProviderHelpers {
       if (!scheduledAccounts.contains(credentials.getName())) {
         if (regions.add(region.getName())) {
           newlyAddedAgents.add(
-              new AmazonInstanceTypeCachingAgent(region.getName(), accountCredentialsRepository));
+              new AmazonInstanceTypeCachingAgent(region.getName(), credentialsRepository));
         }
         newlyAddedAgents.add(
             new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.getName()));
@@ -113,6 +117,7 @@ public class ProviderHelpers {
 
   public static BuildResult buildAwsProviderAgents(
       NetflixAmazonCredentials credentials,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       ObjectMapper objectMapper,
       Registry registry,
@@ -121,12 +126,13 @@ public class ProviderHelpers {
       AmazonCloudProvider amazonCloudProvider,
       DynamicConfigService dynamicConfigService,
       EddaApiFactory eddaApiFactory,
+      Optional<ExecutorService> reservationReportPool,
+      Optional<Collection<AgentProvider>> agentProviders,
       ApplicationContext ctx,
+      AmazonS3DataProvider amazonS3DataProvider,
       Set<String> publicRegions) {
-
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider);
     List<Agent> newlyAddedAgents = new ArrayList<>();
-
     for (NetflixAmazonCredentials.AWSRegion region : credentials.getRegions()) {
       if (!scheduledAccounts.contains(credentials.getName())) {
         newlyAddedAgents.add(
@@ -221,14 +227,21 @@ public class ProviderHelpers {
         }
       }
     }
+    agentProviders.ifPresent(
+        providers ->
+            providers.stream()
+                .filter(it -> it.supports(AwsProvider.PROVIDER_NAME))
+                .forEach(provider -> newlyAddedAgents.addAll(provider.agents(credentials))));
     return new BuildResult(newlyAddedAgents, publicRegions);
   }
 
   public static List<Agent> buildAwsCleanupAgents(
       NetflixAmazonCredentials credentials,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       AwsCleanupProvider awsCleanupProvider,
-      AwsConfiguration.DeployDefaults deployDefaults) {
+      AwsConfiguration.DeployDefaults deployDefaults,
+      AwsConfigurationProperties awsConfigurationProperties) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(awsCleanupProvider);
     List<Agent> newlyAddedAgents = new ArrayList<>();
     if (!scheduledAccounts.contains(credentials.getName())) {
@@ -240,42 +253,17 @@ public class ProviderHelpers {
         }
       }
     }
-    return newlyAddedAgents;
-  }
-
-  public static void synchronizeReservationReportCachingAgentAccounts(
-      AwsProvider awsProvider, Collection<NetflixAmazonCredentials> allAccounts) {
-    ReservationReportCachingAgent reservationReportCachingAgent =
-        awsProvider.getAgents().stream()
-            .filter(agent -> agent instanceof ReservationReportCachingAgent)
-            .map(ReservationReportCachingAgent.class::cast)
-            .findFirst()
-            .orElse(null);
-    if (reservationReportCachingAgent != null) {
-      Collection<NetflixAmazonCredentials> reservationReportAccounts =
-          reservationReportCachingAgent.getAccounts();
-      List<String> oldAccountNames =
-          reservationReportAccounts.stream()
-              .map(NetflixAmazonCredentials::getName)
-              .collect(Collectors.toList());
-      List<String> newAccountNames =
-          allAccounts.stream().map(NetflixAmazonCredentials::getName).collect(Collectors.toList());
-      List<String> accountNamesToDelete =
-          oldAccountNames.stream()
-              .filter(it -> !newAccountNames.contains(it))
-              .collect(Collectors.toList());
-      List<String> accountNamesToAdd =
-          newAccountNames.stream()
-              .filter(it -> !oldAccountNames.contains(it))
-              .collect(Collectors.toList());
-      for (String name : accountNamesToDelete) {
-        reservationReportCachingAgent.getAccounts().removeIf(it -> it.getName().equals(name));
+    if (awsCleanupProvider.getAgentScheduler() != null) {
+      if (awsConfigurationProperties.getCleanup().getAlarms().getEnabled()) {
+        newlyAddedAgents.add(
+            new CleanupAlarmsAgent(
+                amazonClientProvider,
+                credentialsRepository,
+                awsConfigurationProperties.getCleanup().getAlarms().getDaysToKeep()));
       }
-      for (String name : accountNamesToAdd) {
-        Optional<NetflixAmazonCredentials> accountToAdd =
-            allAccounts.stream().filter(it -> it.getName().equals(name)).findFirst();
-        accountToAdd.ifPresent(account -> reservationReportCachingAgent.getAccounts().add(account));
-      }
+      newlyAddedAgents.add(
+          new CleanupDetachedInstancesAgent(amazonClientProvider, credentialsRepository));
     }
+    return newlyAddedAgents;
   }
 }

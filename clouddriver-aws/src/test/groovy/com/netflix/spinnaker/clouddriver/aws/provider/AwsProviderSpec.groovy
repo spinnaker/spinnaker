@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -77,7 +77,9 @@ class AwsProviderSpec extends Specification {
 
     def eurekaAccounts = [ eurekaAccount1, eurekaAccount2 ]
 
-    def eurekaRepos = Stub(AccountCredentialsRepository) {
+    def eurekaRepos = Stub(CredentialsRepository) {
+      getOne("my-ci-account") >> eurekaAccount1
+      getOne("my-qa-account") >> eurekaAccount2
       getAll() >> eurekaAccounts
     }
 
@@ -130,7 +132,9 @@ class AwsProviderSpec extends Specification {
 
     def accounts = [ account1, account2 ]
 
-    def repos = Stub(AccountCredentialsRepository) {
+    def repos = Stub(CredentialsRepository) {
+      getOne("my-ci-account") >> account1
+      getOne("my-qa-account") >> account2
       getAll() >> accounts
     }
 

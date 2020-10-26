@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteSecurityGroupDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

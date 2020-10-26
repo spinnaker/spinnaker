@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import retrofit.RetrofitError
 import retrofit.RetrofitError.Kind
 import retrofit.client.Response
@@ -52,7 +52,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
   AmazonSQS amazonSQS = Mock()
   AmazonSNS amazonSNS = Mock()
-  AccountCredentialsProvider accountCredentialsProvider = Mock() {
+  CredentialsRepository credentialsRepository = Mock(CredentialsRepository) {
     getAll() >>[mgmtCredentials, testCredentials]
   }
   Provider<AwsEurekaSupport> awsEurekaSupportProvider = Mock()
@@ -70,7 +70,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
   def subject = new InstanceTerminationLifecycleWorker(
     objectMapper,
     Mock(AmazonClientProvider),
-    accountCredentialsProvider,
+    credentialsRepository,
     new InstanceTerminationConfigurationProperties(
       'mgmt',
       queueARN.arn,
@@ -133,7 +133,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     subject.handleMessage(message)
 
     then:
-    1 * accountCredentialsProvider.getAll() >> [mgmtCredentials, testCredentials]
+    1 * credentialsRepository.getAll() >> [mgmtCredentials, testCredentials]
     1 * awsEurekaSupportProvider.get() >> awsEurekaSupport
     1 * awsEurekaSupport.getEureka(_, 'us-west-2') >> eureka
     1 * eureka.updateInstanceStatus('clouddriver', 'i-1234', DiscoveryStatus.OUT_OF_SERVICE.value)

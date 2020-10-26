@@ -3,14 +3,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.Image
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.DescribeImagesResult
-import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
-import com.amazonaws.services.ec2.model.LaunchTemplateEbsBlockDevice
-import com.amazonaws.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification
-import com.amazonaws.services.ec2.model.LaunchTemplateVersion
-import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
+import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
@@ -19,7 +12,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,7 +22,7 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
   def asgService = Mock(AsgService)
   def ec2 = Mock(AmazonEC2)
   def blockDeviceConfig = Mock(BlockDeviceConfig)
-  def credentialsRepository = Mock(AccountCredentialsRepository) {
+  def credentialsRepository = Stub(MapBackedCredentialsRepository) {
     getOne(_) >> credentials
   }
 
@@ -48,9 +41,9 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     forRegion(_, _) >> regionScopedProvider
   }
 
-
   @Subject
-  def prepareAction = new PrepareModifyServerGroupLaunchTemplate(blockDeviceConfig, credentialsRepository, regionScopedProviderFactory)
+  def prepareAction = new PrepareModifyServerGroupLaunchTemplate(
+    blockDeviceConfig, credentialsRepository, regionScopedProviderFactory)
 
   def "should prepare for launch template update"() {
     given:

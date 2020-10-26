@@ -17,16 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult
-import com.amazonaws.services.cloudwatch.model.ListMetricsResult
-import com.amazonaws.services.cloudwatch.model.Metric
+import com.amazonaws.services.cloudwatch.model.*
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonMetricDescriptor
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -41,14 +37,14 @@ class AmazonCloudMetricProviderSpec extends Specification {
 
   def setup() {
     cloudWatch = Mock(AmazonCloudWatch)
-    AccountCredentialsProvider accountCredentialsProvider = Stub(AccountCredentialsProvider) {
-      getCredentials(_) >> Stub(NetflixAmazonCredentials)
+    CredentialsRepository credentialsRepository = Stub(CredentialsRepository) {
+      getOne(_) >> Stub(NetflixAmazonCredentials)
     }
     AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
       getCloudWatch(_, _) >> cloudWatch
     }
     AmazonCloudProvider amazonCloudProvider = Mock(AmazonCloudProvider)
-    provider = new AmazonCloudMetricProvider(amazonClientProvider, accountCredentialsProvider, amazonCloudProvider)
+    provider = new AmazonCloudMetricProvider(amazonClientProvider, credentialsRepository, amazonCloudProvider)
   }
 
   void "getMetric returns null when none found"() {

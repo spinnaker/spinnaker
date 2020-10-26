@@ -22,8 +22,9 @@ import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import com.netflix.spinnaker.credentials.Credentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -35,19 +36,19 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
 
   private final ObjectMapper objectMapper;
   private final AmazonClientProvider amazonClientProvider;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final LaunchFailureConfigurationProperties properties;
   private final EntityTagger entityTagger;
 
   LaunchFailureNotificationAgentProvider(
       ObjectMapper objectMapper,
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsProvider accountCredentialsProvider,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       LaunchFailureConfigurationProperties properties,
       EntityTagger entityTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.properties = properties;
     this.entityTagger = entityTagger;
   }
@@ -58,42 +59,38 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
   }
 
   @Override
-  public Collection<Agent> agents() {
-    NetflixAmazonCredentials credentials =
-        (NetflixAmazonCredentials)
-            accountCredentialsProvider.getCredentials(properties.getAccountName());
+  public Collection<Agent> agents(Credentials credentials) {
+    NetflixAmazonCredentials netflixAmazonCredentials = (NetflixAmazonCredentials) credentials;
 
     // an agent for each region in the specified account
     List<Agent> agents =
-        credentials.getRegions().stream()
+        netflixAmazonCredentials.getRegions().stream()
             .map(
                 region ->
                     new LaunchFailureNotificationAgent(
                         objectMapper,
                         amazonClientProvider,
-                        accountCredentialsProvider,
+                        netflixAmazonCredentials,
+                        credentialsRepository,
                         new LaunchFailureConfigurationProperties(
                             properties.getAccountName(),
                             properties
                                 .getTopicARN()
                                 .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
                                 .replaceAll(
-                                    ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
+                                    ACCOUNT_ID_TEMPLATE_PATTERN,
+                                    netflixAmazonCredentials.getAccountId()),
                             properties
                                 .getQueueARN()
                                 .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
                                 .replaceAll(
-                                    ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
+                                    ACCOUNT_ID_TEMPLATE_PATTERN,
+                                    netflixAmazonCredentials.getAccountId()),
                             properties.getMaxMessagesPerCycle(),
                             properties.getVisibilityTimeout(),
                             properties.getWaitTimeSeconds()),
                         entityTagger))
             .collect(Collectors.toList());
-
-    // an agent that will cleanup stale notifications across all accounts + region
-    agents.add(
-        new LaunchFailureNotificationCleanupAgent(
-            amazonClientProvider, accountCredentialsProvider, entityTagger));
 
     return agents;
   }

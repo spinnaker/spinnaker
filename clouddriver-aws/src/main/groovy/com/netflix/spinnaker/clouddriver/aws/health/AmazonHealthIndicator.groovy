@@ -19,12 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonClientException
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AmazonEC2Exception
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -44,7 +42,7 @@ class AmazonHealthIndicator implements HealthIndicator {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmazonHealthIndicator)
 
-  private final AccountCredentialsProvider accountCredentialsProvider
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
   private final AmazonClientProvider amazonClientProvider
 
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
@@ -53,10 +51,10 @@ class AmazonHealthIndicator implements HealthIndicator {
   private final AtomicLong errors;
 
   @Autowired
-  AmazonHealthIndicator(AccountCredentialsProvider accountCredentialsProvider,
+  AmazonHealthIndicator(CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
                         AmazonClientProvider amazonClientProvider,
                         Registry registry) {
-    this.accountCredentialsProvider = accountCredentialsProvider
+    this.credentialsRepository = credentialsRepository
     this.amazonClientProvider = amazonClientProvider
 
     this.errors = registry.gauge("health.amazon.errors", new AtomicLong(0))
@@ -80,9 +78,7 @@ class AmazonHealthIndicator implements HealthIndicator {
   @Scheduled(fixedDelay = 120000L)
   void checkHealth() {
     try {
-      Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
-        it instanceof NetflixAmazonCredentials
-      } as Set<NetflixAmazonCredentials>
+      Set<NetflixAmazonCredentials> amazonCredentials = credentialsRepository.getAll()
       for (NetflixAmazonCredentials credentials in amazonCredentials) {
         try {
           AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentials, AmazonClientProvider.DEFAULT_REGION, true)

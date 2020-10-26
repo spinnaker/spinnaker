@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.security.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.LifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region
@@ -46,11 +47,12 @@ class CredentialsLoaderSpec extends Specification {
                 ]
         )
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
-        AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<AmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AmazonCredentials)
+        AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider, amazonClientProvider, NetflixAmazonCredentials.class, config)
 
         when:
-        List<AmazonCredentials> creds = ci.load(config)
+        List<NetflixAmazonCredentials> creds = ci.load(config)
 
         then:
         creds.size() == 2
@@ -80,10 +82,11 @@ class CredentialsLoaderSpec extends Specification {
         def config = new CredentialsConfig(accounts: [new Account(name: 'default')])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        def ci = new CredentialsLoader<AmazonCredentials>(provider, lookup, AmazonCredentials)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider, lookup, NetflixAmazonCredentials.class, config)
 
         when:
-        List<AmazonCredentials> creds = ci.load(config)
+        List<NetflixAmazonCredentials> creds = ci.load(config)
 
         then:
         1 * lookup.findAccountId() >> 696969
@@ -100,13 +103,14 @@ class CredentialsLoaderSpec extends Specification {
         }
         0 * _
     }
-
+//
     def 'availibilityZones are resolved in default regions only once'() {
         setup:
         def config = new CredentialsConfig(defaultRegions: [new Region(name: 'us-east-1'), new Region(name: 'us-west-2')], accounts: [new Account(name: 'default', accountId: 1), new Account(name: 'other', accountId: 2)])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<AmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AmazonCredentials)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider, lookup, NetflixAmazonCredentials.class, config)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -131,7 +135,8 @@ class CredentialsLoaderSpec extends Specification {
                                 regions: [ new Region(name: 'us-west-2')])])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<AmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AmazonCredentials)
+      AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+        provider, lookup, NetflixAmazonCredentials.class, config)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -178,7 +183,8 @@ class CredentialsLoaderSpec extends Specification {
         )
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<NetflixAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, NetflixAmazonCredentials)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider, lookup, NetflixAmazonCredentials.class, config)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -209,28 +215,6 @@ class CredentialsLoaderSpec extends Specification {
         0 * _
     }
 
-    def 'create single default account'() {
-        setup:
-        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
-        AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<NetflixAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, NetflixAmazonCredentials)
-
-        when:
-        NetflixAmazonCredentials cred = ci.load('default')
-
-        then:
-        1 * lookup.findAccountId() >> 12345
-        1 * lookup.listRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1a', 'us-east-1b'])]
-        cred.name == 'default'
-        cred.regions.size() == 1
-        cred.regions.first().name == 'us-east-1'
-        cred.regions.first().availabilityZones.toList().sort() == ['us-east-1a', 'us-east-1b']
-        !cred.discoveryEnabled
-        !cred.eddaEnabled
-        !cred.front50Enabled
-        cred.lifecycleHooks.size() == 0
-    }
-
     def 'accountId must be provided for assumeRole account types'() {
         setup:
         def config = new CredentialsConfig(
@@ -238,7 +222,8 @@ class CredentialsLoaderSpec extends Specification {
                 accounts: [new Account(name: 'gonnaFail')])
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
         AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-        CredentialsLoader<AssumeRoleAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AssumeRoleAmazonCredentials)
+        AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
+          provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
 
         when:
         ci.load(config)
@@ -279,14 +264,15 @@ class CredentialsLoaderSpec extends Specification {
 
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-    CredentialsLoader<AssumeRoleAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AssumeRoleAmazonCredentials)
+    AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
+      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
 
     when:
-    List<AssumeRoleAmazonCredentials> creds = ci.load(config)
+    List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)
 
     then:
     creds.size() == 1
-    with(creds.first()) { AssumeRoleAmazonCredentials cred ->
+    with(creds.first()) { NetflixAssumeRoleAmazonCredentials cred ->
       cred.name == 'test'
       cred.accountId == "12345"
       cred.defaultKeyPair == 'oss-12345-keypair'
@@ -323,14 +309,15 @@ class CredentialsLoaderSpec extends Specification {
     )
     AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
     AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
-    CredentialsLoader<AssumeRoleAmazonCredentials> ci = new CredentialsLoader<>(provider, lookup, AssumeRoleAmazonCredentials)
+    AmazonCredentialsParser<Account, NetflixAssumeRoleAmazonCredentials> ci = new AmazonCredentialsParser<>(
+      provider, lookup, NetflixAssumeRoleAmazonCredentials.class, config)
 
     when:
-    List<AssumeRoleAmazonCredentials> creds = ci.load(config)
+    List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)
 
     then:
     creds.size() == 1
-    with(creds.find { it.name == 'prod' }) { AssumeRoleAmazonCredentials cred ->
+    with(creds.find { it.name == 'prod' }) { NetflixAssumeRoleAmazonCredentials cred ->
       cred.accountId == "67890"
       cred.defaultKeyPair == 'nf-prod-keypair-a'
       cred.regions.size() == 2

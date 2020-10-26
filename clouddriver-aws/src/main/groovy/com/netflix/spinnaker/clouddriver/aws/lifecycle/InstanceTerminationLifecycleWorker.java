@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.amazonaws.auth.policy.*;
+import com.amazonaws.auth.policy.Condition;
+import com.amazonaws.auth.policy.Policy;
+import com.amazonaws.auth.policy.Principal;
+import com.amazonaws.auth.policy.Resource;
+import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.Statement.Effect;
 import com.amazonaws.auth.policy.actions.SNSActions;
 import com.amazonaws.auth.policy.actions.SQSActions;
@@ -37,10 +41,16 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka;
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Provider;
 import org.slf4j.Logger;
@@ -59,7 +69,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
 
   ObjectMapper objectMapper;
   AmazonClientProvider amazonClientProvider;
-  AccountCredentialsProvider accountCredentialsProvider;
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   InstanceTerminationConfigurationProperties properties;
   Provider<AwsEurekaSupport> discoverySupport;
   Registry registry;
@@ -72,18 +82,18 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
   public InstanceTerminationLifecycleWorker(
       ObjectMapper objectMapper,
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsProvider accountCredentialsProvider,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       InstanceTerminationConfigurationProperties properties,
       Provider<AwsEurekaSupport> discoverySupport,
       Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.properties = properties;
     this.discoverySupport = discoverySupport;
     this.registry = registry;
 
-    Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
+    Set<NetflixAmazonCredentials> accountCredentials = credentialsRepository.getAll();
     this.queueARN = new ARN(accountCredentials, properties.getQueueARN());
     this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
   }
@@ -113,7 +123,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
     AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
 
-    Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
+    Set<? extends AccountCredentials> accountCredentials = credentialsRepository.getAll();
     List<String> allAccountIds = getAllAccountIds(accountCredentials);
 
     this.queueId =
@@ -250,9 +260,9 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
   }
 
   private NetflixAmazonCredentials getAccountCredentialsById(String accountId) {
-    for (AccountCredentials credentials : accountCredentialsProvider.getAll()) {
+    for (NetflixAmazonCredentials credentials : credentialsRepository.getAll()) {
       if (credentials.getAccountId() != null && credentials.getAccountId().equals(accountId)) {
-        return (NetflixAmazonCredentials) credentials;
+        return credentials;
       }
     }
     return null;

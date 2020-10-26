@@ -46,7 +46,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
@@ -74,7 +74,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   }
 
   private final RegionScopedProviderFactory regionScopedProviderFactory
-  private final AccountCredentialsRepository accountCredentialsRepository
+  private final CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository
   private final AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
@@ -84,7 +84,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private List<CreateServerGroupEvent> deployEvents = []
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
-                           AccountCredentialsRepository accountCredentialsRepository,
+                           CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository,
                            AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider,
                            AwsConfiguration.DeployDefaults deployDefaults,
                            ScalingPolicyCopier scalingPolicyCopier,
@@ -246,8 +246,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       validateInstanceType(ami, description.instanceType)
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
-      if (!(account instanceof NetflixAmazonCredentials)) {
-        throw new IllegalArgumentException("Unsupported account type ${account.class.simpleName} for this operation")
+      if (account == null) {
+        throw new IllegalArgumentException("Account with name ${description.credentials.name} could not be found.")
       }
 
       if (description.useAmiBlockDeviceMappings) {
@@ -543,7 +543,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                                                                                            BasicAmazonDeployDescription.Source source) {
     if (source.account && source.region && source.asgName) {
       def sourceRegion = source.region
-      def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account) as NetflixAmazonCredentials
+      def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account)
       def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
       def sourceAsgs = regionScopedProvider.autoScaling.describeAutoScalingGroups(

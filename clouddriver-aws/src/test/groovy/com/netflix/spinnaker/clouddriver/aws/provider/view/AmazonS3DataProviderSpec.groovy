@@ -20,22 +20,24 @@ import com.amazonaws.services.s3.model.S3Object
 import com.amazonaws.services.s3.model.S3ObjectInputStream
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.security.access.AccessDeniedException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import java.util.regex.Pattern;
+import java.util.regex.Pattern
 
-import static com.netflix.spinnaker.clouddriver.model.DataProvider.IdentifierType.*
-import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType.*
+import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType.list
+import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecordType.string
+import static com.netflix.spinnaker.clouddriver.model.DataProvider.IdentifierType.Adhoc
+import static com.netflix.spinnaker.clouddriver.model.DataProvider.IdentifierType.Static
 
 class AmazonS3DataProviderSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def amazonClientProvider = Mock(AmazonClientProvider)
-  def accountCredentialsRepository = Mock(AccountCredentialsRepository)
+  def accountCredentialsRepository = Stub(CredentialsRepository)
   def configuration = new AmazonS3StaticDataProviderConfiguration([
     new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticId", string, "accountName", "us-east-1", "bucket", "key"),
     new AmazonS3StaticDataProviderConfiguration.StaticRecord("staticListId", list, "accountName", "us-east-1", "bucket", "listKey")
@@ -60,7 +62,7 @@ class AmazonS3DataProviderSpec extends Specification {
   void setup() {
     accountCredentialsRepository.getAll() >> {
       [
-        Mock(AccountCredentials) {
+        Mock(NetflixAmazonCredentials) {
           getAccountId() >> "12345678910"
           getName() >> "accountName"
         }

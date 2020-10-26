@@ -23,14 +23,12 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.StateValue
 import com.amazonaws.services.gamelift.model.DescribeScalingPoliciesRequest
 import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.util.logging.Slf4j
 import org.joda.time.DateTime
 
@@ -45,25 +43,25 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
   public static final Pattern ALARM_NAME_PATTERN = Pattern.compile(".+-v[0-9]{3}-alarm-.+")
 
   final AmazonClientProvider amazonClientProvider
-  final AccountCredentialsRepository accountCredentialsRepository
+  final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
   final long pollIntervalMillis
   final long timeoutMillis
   final int daysToLeave
 
 
   CleanupAlarmsAgent(AmazonClientProvider amazonClientProvider,
-                     AccountCredentialsRepository accountCredentialsRepository,
+                     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
                      int daysToLeave) {
-    this(amazonClientProvider, accountCredentialsRepository, POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS, daysToLeave)
+    this(amazonClientProvider, credentialsRepository, POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS, daysToLeave)
   }
 
   CleanupAlarmsAgent(AmazonClientProvider amazonClientProvider,
-                     AccountCredentialsRepository accountCredentialsRepository,
+                     CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
                      long pollIntervalMillis,
                      long timeoutMills,
                      int daysToLeave) {
     this.amazonClientProvider = amazonClientProvider
-    this.accountCredentialsRepository = accountCredentialsRepository
+    this.credentialsRepository = credentialsRepository
     this.pollIntervalMillis = pollIntervalMillis
     this.timeoutMillis = timeoutMills
     this.daysToLeave = daysToLeave
@@ -120,7 +118,7 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
   }
 
   private Set<NetflixAmazonCredentials> getAccounts() {
-    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
+    return credentialsRepository.getAll()
   }
 
   private static Set<String> getAttachedAlarms(AmazonAutoScaling autoScaling) {

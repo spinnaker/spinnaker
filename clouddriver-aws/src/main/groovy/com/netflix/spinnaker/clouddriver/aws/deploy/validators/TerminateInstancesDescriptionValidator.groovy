@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstancesDescription
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstancesDescription
 import org.springframework.stereotype.Component
 
 @AmazonOperation(AtomicOperations.TERMINATE_INSTANCES)

@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.BaseProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
@@ -35,7 +35,7 @@ class AwsProvider extends BaseProvider implements SearchableProvider, EurekaAwar
 
   final KeyParser keyParser = new Keys()
 
-  final AccountCredentialsRepository accountCredentialsRepository
+  final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   final Set<String> defaultCaches = [
     LOAD_BALANCERS.ns,
@@ -51,14 +51,15 @@ class AwsProvider extends BaseProvider implements SearchableProvider, EurekaAwar
     (CLUSTERS.ns)      : '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
-  final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = [
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
     (new AmazonSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator(),
   ]
 
   private Collection<HealthProvidingCachingAgent> healthAgents
 
-  AwsProvider(AccountCredentialsRepository accountCredentialsRepository) {
-    this.accountCredentialsRepository = accountCredentialsRepository
+  AwsProvider(CredentialsRepository<NetflixAmazonCredentials> credentialsRepository) {
+    super()
+    this.credentialsRepository = credentialsRepository
     synchronizeHealthAgents()
   }
 
@@ -129,15 +130,13 @@ class AwsProvider extends BaseProvider implements SearchableProvider, EurekaAwar
 
   private String getCredentialName(String accountId, boolean allowMultipleEurekaPerAccount, String eurekaAccountName) {
     if (allowMultipleEurekaPerAccount) {
-      def credentialName = accountCredentialsRepository.all.find {
-        it instanceof NetflixAmazonCredentials && it.accountId == accountId && it.name == eurekaAccountName
-      }?.name
-      if (credentialName) {
-        return credentialName
+      def credentials = credentialsRepository.getOne(eurekaAccountName)
+      if (credentials && credentials.accountId == accountId) {
+        return credentials.getName()
       }
     }
-    return accountCredentialsRepository.all.find {
-      it instanceof NetflixAmazonCredentials && it.accountId == accountId
+    return credentialsRepository.all.find {
+      it.accountId == accountId
     }?.name
   }
 

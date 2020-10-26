@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view;
 
-import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.*;
+import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.AdhocRecord;
+import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.StaticRecord;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
@@ -29,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.model.DataProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
 public class AmazonS3DataProvider implements DataProvider {
   private final ObjectMapper objectMapper;
   private final AmazonClientProvider amazonClientProvider;
-  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository;
   private final AmazonS3StaticDataProviderConfiguration configuration;
 
   private final Set<String> supportedIdentifiers;
@@ -84,7 +85,7 @@ public class AmazonS3DataProvider implements DataProvider {
   public AmazonS3DataProvider(
       @Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsRepository accountCredentialsRepository,
+      CredentialsRepository<NetflixAmazonCredentials> accountCredentialsRepository,
       AmazonS3StaticDataProviderConfiguration configuration) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;

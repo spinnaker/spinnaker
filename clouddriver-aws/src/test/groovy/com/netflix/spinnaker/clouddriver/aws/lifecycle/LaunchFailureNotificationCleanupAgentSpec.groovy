@@ -23,21 +23,21 @@ import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.model.EntityTags
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.UndeclaredThrowableException;
+import java.lang.reflect.UndeclaredThrowableException
 
 class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   static final LAUNCH_FAILURE_TAG_NAME = "spinnaker_ui_alert:autoscaling:ec2_instance_launch_error"
 
   def serverGroupTagger = Mock(EntityTagger)
   def amazonAutoScaling = Mock(AmazonAutoScaling)
-  def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
-    getCredentials(_) >> { String name ->
+  def credentialsRepository = Stub(CredentialsRepository) {
+    getOne(_) >> { String name ->
       TestCredential.named(name)
     }
   }
@@ -45,7 +45,7 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   void "should delete launch failure notification tag if server group has no launch failures"() {
     given:
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), accountCredentialsProvider, serverGroupTagger
+      Mock(AmazonClientProvider), credentialsRepository, serverGroupTagger
     ) {
       @Override
       protected boolean hasLaunchFailures(AmazonAutoScaling amazonAutoScaling, EntityTags entityTags) {
@@ -84,7 +84,7 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
     given:
     def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(account: "test", entityId: "test-v002"))
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), accountCredentialsProvider, Mock(EntityTagger)
+      Mock(AmazonClientProvider), credentialsRepository, Mock(EntityTagger)
     )
 
     when:
@@ -109,7 +109,7 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
     given:
     def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(account: "test", entityId: "test-v002"))
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), accountCredentialsProvider, Mock(EntityTagger)
+      Mock(AmazonClientProvider), credentialsRepository, Mock(EntityTagger)
     )
 
     and:

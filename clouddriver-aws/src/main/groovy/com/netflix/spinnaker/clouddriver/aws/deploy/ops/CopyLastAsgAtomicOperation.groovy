@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
@@ -22,21 +23,21 @@ import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
+import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
-import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -56,7 +57,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   AmazonClientProvider amazonClientProvider
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
@@ -90,7 +91,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       def sourceAsgCredentials
       if (description.source.account && description.source.region && description.source.asgName) {
         sourceRegion = description.source.region
-        sourceAsgCredentials = accountCredentialsProvider.getCredentials(description.source.account) as NetflixAmazonCredentials
+        sourceAsgCredentials = credentialsRepository.getOne(description.source.account)
         def sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceAsgCredentials, sourceRegion, true)
         def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.source.asgName])
         List<AutoScalingGroup> ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(request).autoScalingGroups

@@ -21,11 +21,7 @@ import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
-import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
-import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
@@ -39,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.aws.event.DefaultAfterResizeEventHandle
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
-import com.netflix.spinnaker.clouddriver.aws.provider.config.ProviderHelpers
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonClusterProvider
 import com.netflix.spinnaker.clouddriver.aws.security.*
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
@@ -48,8 +43,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.saga.config.SagaAutoConfiguration
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -61,8 +55,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.*
-
-import java.util.concurrent.ConcurrentHashMap
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
@@ -184,17 +176,19 @@ class AwsConfiguration {
   }
 
   @Bean
-  @DependsOn('netflixAmazonCredentials')
-  BasicAmazonDeployHandler basicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
-                                                    AccountCredentialsRepository accountCredentialsRepository,
-                                                    DeployDefaults deployDefaults,
-                                                    ScalingPolicyCopier scalingPolicyCopier,
-                                                    BlockDeviceConfig blockDeviceConfig,
-                                                    DynamicConfigService dynamicConfigService,
-                                                    AmazonServerGroupProvider amazonServerGroupProvider) {
+  @DependsOn('amazonCredentialsRepository')
+  BasicAmazonDeployHandler basicAmazonDeployHandler(
+    RegionScopedProviderFactory regionScopedProviderFactory,
+    CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
+    DeployDefaults deployDefaults,
+    ScalingPolicyCopier scalingPolicyCopier,
+    BlockDeviceConfig blockDeviceConfig,
+    DynamicConfigService dynamicConfigService,
+    AmazonServerGroupProvider amazonServerGroupProvider
+  ) {
     new BasicAmazonDeployHandler(
       regionScopedProviderFactory,
-      accountCredentialsRepository,
+      credentialsRepository,
       amazonServerGroupProvider,
       deployDefaults,
       scalingPolicyCopier,
@@ -210,48 +204,17 @@ class AwsConfiguration {
   }
 
   @Bean
-  @DependsOn('netflixAmazonCredentials')
-  AwsCleanupProvider awsOperationProvider(AwsConfigurationProperties awsConfigurationProperties,
-                                          AmazonClientProvider amazonClientProvider,
-                                          AccountCredentialsRepository accountCredentialsRepository,
-                                          DeployDefaults deployDefaults) {
-    def awsCleanupProvider = new AwsCleanupProvider()
-
-    synchronizeAwsCleanupProvider(awsConfigurationProperties, awsCleanupProvider, amazonClientProvider, accountCredentialsRepository, deployDefaults)
-
-    awsCleanupProvider
+  AwsCleanupProvider awsOperationProvider() {
+    return new AwsCleanupProvider()
   }
 
   @Bean
-  @DependsOn('netflixAmazonCredentials')
-  SecurityGroupLookupFactory securityGroupLookup(AmazonClientProvider amazonClientProvider,
-                                          AccountCredentialsRepository accountCredentialsRepository) {
-    new SecurityGroupLookupFactory(amazonClientProvider, accountCredentialsRepository)
-  }
-
-  private static void synchronizeAwsCleanupProvider(AwsConfigurationProperties awsConfigurationProperties,
-                                                    AwsCleanupProvider awsCleanupProvider,
-                                                    AmazonClientProvider amazonClientProvider,
-                                                    AccountCredentialsRepository accountCredentialsRepository,
-                                                    DeployDefaults deployDefaults) {
-    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
-
-    List<Agent> newlyAddedAgents = []
-
-    allAccounts.each { account ->
-      List<Agent> result = ProviderHelpers.buildAwsCleanupAgents(account, amazonClientProvider, awsCleanupProvider, deployDefaults)
-      newlyAddedAgents.addAll(result)
-    }
-
-    if (!awsCleanupProvider.agentScheduler) {
-      if (awsConfigurationProperties.cleanup.alarms.enabled) {
-        awsCleanupProvider.addAgents(Collections.singletonList(
-          new CleanupAlarmsAgent(amazonClientProvider, accountCredentialsRepository, awsConfigurationProperties.cleanup.alarms.daysToKeep)))
-      }
-      awsCleanupProvider.addAgents(Collections.singletonList(
-        new CleanupDetachedInstancesAgent(amazonClientProvider, accountCredentialsRepository)))
-    }
-    awsCleanupProvider.addAgents(newlyAddedAgents)
+  @DependsOn('amazonCredentialsRepository')
+  SecurityGroupLookupFactory securityGroupLookup(
+    AmazonClientProvider amazonClientProvider,
+    CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
+  ) {
+    new SecurityGroupLookupFactory(amazonClientProvider, credentialsRepository)
   }
 
   @Bean

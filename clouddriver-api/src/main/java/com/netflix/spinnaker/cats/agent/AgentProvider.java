@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.credentials.Credentials;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.Collection;
 
@@ -23,5 +24,7 @@ import java.util.Collection;
 public interface AgentProvider {
   boolean supports(String providerName);
 
-  Collection<Agent> agents();
+  default Collection<Agent> agents(Credentials credentials) {
+    return null;
+  }
 }

@@ -37,6 +37,8 @@ import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import lombok.Getter
+import lombok.Setter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -60,7 +62,9 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
   final String region
   final ObjectMapper objectMapper
   final Registry registry
-  final boolean includePublicImages
+  @Getter
+  @Setter
+  boolean includePublicImages
   final long pollIntervalMillis
   final DynamicConfigService dynamicConfigService
 

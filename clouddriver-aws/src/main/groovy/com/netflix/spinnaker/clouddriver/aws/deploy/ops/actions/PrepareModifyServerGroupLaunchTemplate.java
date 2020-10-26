@@ -20,7 +20,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
+import com.amazonaws.services.ec2.model.LaunchTemplateIamInstanceProfileSpecification;
+import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions;
+import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
+import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -37,7 +41,7 @@ import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -57,12 +61,12 @@ public class PrepareModifyServerGroupLaunchTemplate
     implements SagaAction<
         PrepareModifyServerGroupLaunchTemplate.PrepareModifyServerGroupLaunchTemplateCommand> {
   private final BlockDeviceConfig blockDeviceConfig;
-  private final AccountCredentialsRepository credentialsRepository;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final RegionScopedProviderFactory regionScopedProviderFactory;
 
   public PrepareModifyServerGroupLaunchTemplate(
       BlockDeviceConfig blockDeviceConfig,
-      AccountCredentialsRepository credentialsRepository,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       RegionScopedProviderFactory regionScopedProviderFactory) {
     this.blockDeviceConfig = blockDeviceConfig;
     this.credentialsRepository = credentialsRepository;

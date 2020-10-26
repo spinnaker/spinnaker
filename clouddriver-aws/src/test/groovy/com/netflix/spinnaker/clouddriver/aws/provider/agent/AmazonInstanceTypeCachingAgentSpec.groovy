@@ -6,7 +6,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.apache.http.HttpHost
 import org.apache.http.ProtocolVersion
 import org.apache.http.client.HttpClient
@@ -28,7 +28,7 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
       ]
     ]])
 
-  AccountCredentialsRepository repo = Stub(AccountCredentialsRepository) {
+  CredentialsRepository repo = Stub(CredentialsRepository) {
     getAll() >> [US_WEST_2_ACCT]
   }
 

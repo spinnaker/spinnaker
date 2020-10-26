@@ -33,7 +33,7 @@ import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collections;
 import javax.annotation.Nonnull;
 import lombok.Builder;
@@ -46,12 +46,12 @@ import org.springframework.stereotype.Component;
 public class ModifyServerGroupLaunchTemplate
     implements SagaAction<ModifyServerGroupLaunchTemplate.ModifyServerGroupLaunchTemplateCommand> {
   private final BlockDeviceConfig blockDeviceConfig;
-  private final AccountCredentialsRepository credentialsRepository;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private final RegionScopedProviderFactory regionScopedProviderFactory;
 
   public ModifyServerGroupLaunchTemplate(
       BlockDeviceConfig blockDeviceConfig,
-      AccountCredentialsRepository credentialsRepository,
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
       RegionScopedProviderFactory regionScopedProviderFactory) {
     this.blockDeviceConfig = blockDeviceConfig;
     this.credentialsRepository = credentialsRepository;

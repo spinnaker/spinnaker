@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component("allowLaunchDescriptionValidator")
 class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, AllowLaunchDescription description, ValidationErrors errors) {
@@ -38,7 +39,7 @@ class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDe
     }
     if (!description.targetAccount) {
       errors.rejectValue("targetAccount", "allowLaunchDescription.targetAccount.empty")
-    } else if (!accountCredentialsProvider.all.collect { it.name }.contains(description.targetAccount)) {
+    } else if (credentialsRepository.getOne(description.targetAccount) == null) {
       errors.rejectValue("targetAccount", "allowLaunchDescription.targetAccount.not.configured")
     }
   }

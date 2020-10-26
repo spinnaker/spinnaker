@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
@@ -42,11 +42,11 @@ import org.springframework.stereotype.Component;
 public class UpdateAutoScalingGroup
     implements SagaAction<UpdateAutoScalingGroup.UpdateAutoScalingGroupCommand> {
   private final RegionScopedProviderFactory regionScopedProviderFactory;
-  private final AccountCredentialsRepository credentialsRepository;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
 
   public UpdateAutoScalingGroup(
       RegionScopedProviderFactory regionScopedProviderFactory,
-      AccountCredentialsRepository credentialsRepository) {
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository) {
     this.regionScopedProviderFactory = regionScopedProviderFactory;
     this.credentialsRepository = credentialsRepository;
   }

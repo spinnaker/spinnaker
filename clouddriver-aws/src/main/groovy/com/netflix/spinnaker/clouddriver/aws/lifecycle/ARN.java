@@ -53,4 +53,23 @@ class ARN {
                         new IllegalArgumentException(
                             "No account credentials found for " + accountId));
   }
+
+  ARN(NetflixAmazonCredentials netflixAmazonCredentials, String arn) {
+    this.arn = arn;
+
+    Matcher sqsMatcher = PATTERN.matcher(arn);
+    if (!sqsMatcher.matches()) {
+      throw new IllegalArgumentException(arn + " is not a valid SNS or SQS ARN");
+    }
+
+    this.region = sqsMatcher.group(1);
+    this.name = sqsMatcher.group(3);
+
+    String accountId = sqsMatcher.group(2);
+    if (accountId.equals(netflixAmazonCredentials.getAccountId())) {
+      this.account = netflixAmazonCredentials;
+    } else {
+      throw new IllegalArgumentException("No account credentials found for " + accountId);
+    }
+  }
 }

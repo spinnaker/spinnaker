@@ -63,6 +63,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Shared
 import spock.lang.Specification
@@ -111,8 +112,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       }
     }
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
-    def credsRepo = new MapBackedAccountCredentialsRepository()
-    credsRepo.save('baz', TestCredential.named('baz'))
+    def credsRepo = Stub(CredentialsRepository) {
+      getOne("baz") >> {TestCredential.named("baz")}
+    }
     this.handler = new BasicAmazonDeployHandler(
       rspf, credsRepo, amazonServerGroupProvider, defaults, scalingPolicyCopier, blockDeviceConfig, Mock(DynamicConfigService)
     ) {

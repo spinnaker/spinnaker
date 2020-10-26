@@ -16,25 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.IpRange
-import com.amazonaws.services.ec2.model.Ipv6Range
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
+import com.amazonaws.services.ec2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
+import com.netflix.spinnaker.clouddriver.aws.cache.Keys
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup
+import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.cache.Keys
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -57,22 +52,13 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     getAccountId() >> "accountId2"
   }
 
-  def accountCredentialsProvider = new AccountCredentialsProvider() {
-
-    @Override
-    Set<? extends AccountCredentials> getAll() {
-      [credential1, credential2]
-    }
-
-    @Override
-    AccountCredentials getCredentials(String name) {
-      return null
-    }
+  def credentialsRepository = Stub(CredentialsRepository) {
+    getAll() >> [credential1, credential2]
   }
 
 
   def setup() {
-    provider = new AmazonSecurityGroupProvider(accountCredentialsProvider, cache, mapper)
+    provider = new AmazonSecurityGroupProvider(credentialsRepository, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -36,12 +37,13 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   @Shared
   NetflixAmazonCredentials amazonCredentials = TestCredential.named(ACCOUNT_NAME)
 
+  @Shared
+  def credentialsRepository = Stub(CredentialsRepository) {
+    getOne("auto") >> {amazonCredentials}
+  }
   void setupSpec() {
     validator = new BasicAmazonDeployDescriptionValidator()
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
-    def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    credentialsRepo.save(ACCOUNT_NAME, amazonCredentials)
-    validator.accountCredentialsProvider = credentialsProvider
+    validator.credentialsRepository = credentialsRepository
   }
 
   void "pass validation with proper description inputs"() {

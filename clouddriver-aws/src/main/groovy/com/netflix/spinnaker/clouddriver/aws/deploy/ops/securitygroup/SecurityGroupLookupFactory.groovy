@@ -17,25 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.DeleteTagsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeTagsRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.Tag
-import com.amazonaws.services.ec2.model.DescribeTagsResult
-import com.amazonaws.services.ec2.model.TagDescription
-import com.amazonaws.services.ec2.model.UpdateSecurityGroupRuleDescriptionsIngressRequest
+import com.amazonaws.services.ec2.model.*
 import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,12 +30,12 @@ import org.slf4j.LoggerFactory
 class SecurityGroupLookupFactory {
 
   private final AmazonClientProvider amazonClientProvider
-  private final AccountCredentialsRepository accountCredentialsRepository
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   SecurityGroupLookupFactory(AmazonClientProvider amazonClientProvider,
-                             AccountCredentialsRepository accountCredentialsRepository) {
+                             CredentialsRepository<NetflixAmazonCredentials> credentialsRepository) {
     this.amazonClientProvider = amazonClientProvider
-    this.accountCredentialsRepository = accountCredentialsRepository
+    this.credentialsRepository = credentialsRepository
   }
 
   SecurityGroupLookup getInstance(String region) {
@@ -56,9 +43,7 @@ class SecurityGroupLookupFactory {
   }
 
   SecurityGroupLookup getInstance(String region, boolean skipEdda) {
-    final allNetflixAmazonCredentials = (Set<NetflixAmazonCredentials>) accountCredentialsRepository.all.findAll {
-      it instanceof NetflixAmazonCredentials
-    }
+    final allNetflixAmazonCredentials = credentialsRepository.getAll()
     final accounts = ImmutableSet.copyOf(allNetflixAmazonCredentials)
     new SecurityGroupLookup(amazonClientProvider, region, accounts, skipEdda)
   }

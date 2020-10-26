@@ -20,20 +20,19 @@ import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -45,23 +44,17 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURIT
 class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurityGroup> {
 
   final String cloudProvider = AmazonCloudProvider.ID
-  final AccountCredentialsProvider accountCredentialsProvider
+  final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
   final Cache cacheView
   final ObjectMapper objectMapper
-  final Set<AmazonCredentials> accounts
 
   @Autowired
-  AmazonSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider,
+  AmazonSecurityGroupProvider(CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
                               Cache cacheView,
                               @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
-    this.accountCredentialsProvider = accountCredentialsProvider
+    this.credentialsRepository = credentialsRepository
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-
-    final allAmazonCredentials = (Set<AmazonCredentials>) accountCredentialsProvider.all.findAll {
-      it instanceof AmazonCredentials
-    }
-    accounts = ImmutableSet.copyOf(allAmazonCredentials)
   }
 
   @Override
@@ -242,7 +235,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     permission.userIdGroupPairs.each { sg ->
       def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
       if (!rules.containsKey(groupAndProtocol)) {
-        final ingressAccount = accounts.find { it.accountId == sg.userId }
+        final ingressAccount = credentialsRepository.getAll().find {it.accountId == sg.userId}
         Map<String, String> ingressGroupSummary = getIngressGroupNameAndVpcId(sg, account, ingressAccount?.name, region, vpcId)
         rules.put(groupAndProtocol, [
           protocol     : permission.ipProtocol,

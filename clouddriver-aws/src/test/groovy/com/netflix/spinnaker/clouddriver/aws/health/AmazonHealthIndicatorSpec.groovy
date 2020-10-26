@@ -23,7 +23,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
 
@@ -34,9 +34,8 @@ class AmazonHealthIndicatorSpec extends Specification {
   def "health fails when amazon appears unreachable"() {
     setup:
     def creds = [TestCredential.named('foo')]
-    def holder = Stub(AccountCredentialsProvider) {
+    def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> creds
-      getCredentials("foo") >> creds[0]
     }
     def mockEc2 = Stub(AmazonEC2) {
       describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
@@ -49,7 +48,7 @@ class AmazonHealthIndicatorSpec extends Specification {
       gauge(_, _) >> counter
     }
 
-    def indicator = new AmazonHealthIndicator(holder, mockAmazonClientProvider, mockRegistry)
+    def indicator = new AmazonHealthIndicator(credentialsRepository, mockAmazonClientProvider, mockRegistry)
 
     when:
     indicator.checkHealth()
@@ -63,9 +62,8 @@ class AmazonHealthIndicatorSpec extends Specification {
   def "health succeeds when amazon is reachable"() {
     setup:
     def creds = [TestCredential.named('foo')]
-    def holder = Stub(AccountCredentialsProvider) {
+    def credentialsRepository = Stub(CredentialsRepository) {
       getAll() >> creds
-      getCredentials("foo") >> creds[0]
     }
     def mockEc2 = Stub(AmazonEC2) {
       describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
@@ -79,7 +77,7 @@ class AmazonHealthIndicatorSpec extends Specification {
       gauge(_, _) >> counter
     }
 
-    def indicator = new AmazonHealthIndicator(holder, mockAmazonClientProvider, mockRegistry)
+    def indicator = new AmazonHealthIndicator(credentialsRepository, mockAmazonClientProvider, mockRegistry)
 
     when:
     indicator.checkHealth()

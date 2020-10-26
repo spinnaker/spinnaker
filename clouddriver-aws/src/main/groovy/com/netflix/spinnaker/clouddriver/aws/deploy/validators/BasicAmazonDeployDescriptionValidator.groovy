@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component
 @AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
 class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, BasicAmazonDeployDescription description, ValidationErrors errors) {
@@ -41,8 +42,8 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.credentials) {
       errors.rejectValue "credentials", "basicAmazonDeployDescription.credentials.empty"
     } else {
-      credentials = accountCredentialsProvider.getCredentials(description?.credentials?.name)
-      if (!(credentials instanceof AmazonCredentials)) {
+      credentials = credentialsRepository.getOne(description?.credentials?.name)
+      if (credentials == null) {
         errors.rejectValue("credentials", "basicAmazonDeployDescription.credentials.invalid")
       }
     }

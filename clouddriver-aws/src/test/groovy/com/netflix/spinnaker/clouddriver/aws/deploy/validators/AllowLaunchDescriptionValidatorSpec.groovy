@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 
 class AllowLaunchDescriptionValidatorSpec extends Specification {
@@ -42,8 +43,8 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
   void "unconfigured account is rejected"() {
     setup:
     AllowLaunchDescriptionValidator validator = new AllowLaunchDescriptionValidator()
-    def credentialsHolder = Mock(AccountCredentialsProvider)
-    validator.accountCredentialsProvider = credentialsHolder
+    def credentialsHolder = Mock(CredentialsRepository)
+    validator.credentialsRepository = credentialsHolder
     def description = new AllowLaunchDescription(targetAccount: "foo")
     def errors = Mock(ValidationErrors)
 
@@ -51,7 +52,7 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * credentialsHolder.getAll() >> { [TestCredential.named('prod')] }
+    1 * credentialsHolder.getOne("foo") >> { null }
     1 * errors.rejectValue("targetAccount", _)
   }
 }

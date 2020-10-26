@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.http.HttpStatus
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,13 +35,14 @@ class AmazonClusterControllerSpec extends Specification {
   void "should perform real-time AWS call for auto-scaling activities"() {
     setup:
     def creds = Stub(NetflixAmazonCredentials)
-    def credsProvider = Stub(AccountCredentialsProvider)
-    credsProvider.getCredentials(account) >> creds
+    def credsProvider = Stub(CredentialsRepository) {
+      getOne(account) >> creds
+    }
     def autoScaling = Mock(AmazonAutoScaling)
     def provider = Stub(AmazonClientProvider)
     provider.getAutoScaling(creds, region) >> autoScaling
     controller.amazonClientProvider = provider
-    controller.accountCredentialsProvider = credsProvider
+    controller.credentialsRepository = credsProvider
 
     when:
     def result = controller.getScalingActivities(account, asgName, region)

@@ -20,7 +20,7 @@ import com.amazonaws.services.autoscaling.model.Activity
 import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*
 class AmazonClusterController {
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -40,8 +40,8 @@ class AmazonClusterController {
 
   @RequestMapping(value = "/scalingActivities", method = RequestMethod.GET)
   ResponseEntity getScalingActivities(@PathVariable String account, @PathVariable String serverGroupName, @RequestParam(value = "region", required = true) String region) {
-    def credentials = accountCredentialsProvider.getCredentials(account)
-    if (!(credentials instanceof NetflixAmazonCredentials)) {
+    def credentials = credentialsRepository.getOne(account)
+    if (credentials == null) {
       return new ResponseEntity([message: "bad credentials"], HttpStatus.BAD_REQUEST)
     }
     def autoScaling = amazonClientProvider.getAutoScaling(credentials, region)

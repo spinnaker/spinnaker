@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger
 import spock.lang.Specification
 import spock.lang.Subject
@@ -46,7 +46,7 @@ import spock.lang.Subject
 class LaunchFailureNotificationAgentProviderSpec extends Specification {
   def objectMapper = Mock(ObjectMapper)
   def amazonClientProvider = Mock(AmazonClientProvider)
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def credentialsRepository = Mock(CredentialsRepository)
   def serverGroupTagger = Mock(EntityTagger)
 
   def launchFailureConfigurationProperties = new LaunchFailureConfigurationProperties(
@@ -62,7 +62,7 @@ class LaunchFailureNotificationAgentProviderSpec extends Specification {
   def agentProvider = new LaunchFailureNotificationAgentProvider(
     objectMapper,
     amazonClientProvider,
-    accountCredentialsProvider,
+    credentialsRepository,
     launchFailureConfigurationProperties,
     serverGroupTagger
   )
@@ -85,14 +85,11 @@ class LaunchFailureNotificationAgentProviderSpec extends Specification {
     }
 
     when:
-    def agents = agentProvider.agents()
+    def agents = agentProvider.agents(mgmtCredentials)
 
     then:
     regions.each { String region ->
       assert agents.find { it.agentType == "mgmt/${region}/LaunchFailureNotificationAgent".toString() } != null
     }
-
-    1 * accountCredentialsProvider.getCredentials("mgmt") >> { return mgmtCredentials }
-    4 * accountCredentialsProvider.getAll() >> { return [mgmtCredentials] }
   }
 }
