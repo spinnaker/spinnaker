@@ -106,12 +106,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   }
 
   def 'it should add agents'() {
-    def amazonEC2 = Mock(AmazonEC2) {
-      describeAccountAttributes(_) >> new DescribeAccountAttributesResult().withAccountAttributes(
-          new AccountAttribute().withAttributeName("supported-platforms").withAttributeValues(
-            new AccountAttributeValue().withAttributeValue("VPC")
-          ))
-    }
+    def amazonEC2 = Mock(AmazonEC2)
     def amazonClientProvider = Mock(AmazonClientProvider) {
       getAmazonEC2(_, _) >> amazonEC2
     }
@@ -133,35 +128,6 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
       .filter({ agent -> agent instanceof ReservationReportCachingAgent })
       .map({ agent -> (ReservationReportCachingAgent) agent })
       .findFirst().get()
-    reservationReportCachingAgent.getVpcOnlyAccounts().get("three")
-  }
-
-  def 'account should be flagged as not vpc only'() {
-    def amazonEC2 = Mock(AmazonEC2) {
-      describeAccountAttributes(_) >> new DescribeAccountAttributesResult().withAccountAttributes(
-        new AccountAttribute().withAttributeName("supported-platforms").withAttributeValues(
-          new AccountAttributeValue().withAttributeValue("VPC"),
-          new AccountAttributeValue().withAttributeValue("classic")
-        ))
-    }
-    def amazonClientProvider = Mock(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> amazonEC2
-    }
-    def handler = new AmazonCredentialsLifecycleHandler(awsCleanupProvider, awsInfrastructureProvider, awsProvider,
-      amazonCloudProvider, amazonClientProvider, null, null, objectMapper, null, eddaApiFactory, null, registry, reservationReportPool, agentProviders, null, dynamicConfigService, deployDefaults,
-      credentialsRepository)
-    def credThree = TestCredential.named('three')
-
-    when:
-    handler.credentialsAdded(credThree)
-
-    then:
-    handler.reservationReportCachingAgentScheduled
-    def reservationReportCachingAgent = awsProvider.getAgents().stream()
-      .filter({ agent -> agent instanceof ReservationReportCachingAgent })
-      .map({ agent -> (ReservationReportCachingAgent) agent })
-      .findFirst().get()
-    !reservationReportCachingAgent.getVpcOnlyAccounts().get("three")
   }
 
   def 'subsequent call should not add reservation caching agents'() {
@@ -205,6 +171,5 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
       .filter({ agent -> agent instanceof ReservationReportCachingAgent })
       .map({ agent -> (ReservationReportCachingAgent) agent })
       .findFirst().get()
-    !reservationReportCachingAgent.getVpcOnlyAccounts().get("three")
   }
 }

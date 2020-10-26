@@ -33,7 +33,7 @@ class ReservationReportController {
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<ReservationReport> getReservationReports(@RequestParam Map<String, String> filters) {
-    return getReservationReportsByName("v1", filters)
+    return getReservationReportsByName("v3", filters)
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{name}")

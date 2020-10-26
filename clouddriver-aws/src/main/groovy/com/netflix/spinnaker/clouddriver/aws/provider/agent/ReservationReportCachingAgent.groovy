@@ -85,7 +85,6 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final AccountReservationDetailSerializer accountReservationDetailSerializer
   final MetricsSupport metricsSupport
   final Registry registry
-  final Map<String, Boolean> vpcOnlyAccounts = new ConcurrentHashMap<>()
 
 
   ReservationReportCachingAgent(Registry registry,
@@ -193,15 +192,6 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       !errorsByRegion.containsKey(it.region())
     }
 
-    // v1 is a legacy report that does not differentiate between vpc and non-vpc reserved instances
-    accountReservationDetailSerializer.mergeVpcReservations = true
-    def v1 = objectMapper.readValue(
-      objectMapper
-        .writerWithView(AmazonReservationReport.Views.V1.class)
-        .writeValueAsString(amazonReservationReport),
-      Map
-    )
-
     // v2 differentiates reservations between vpc and non-vpc
     accountReservationDetailSerializer.mergeVpcReservations = false
     def v2 = objectMapper.readValue(
@@ -244,7 +234,6 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [
-        new MutableCacheData("v1", ["report": v1], [:]),
         new MutableCacheData("v2", ["report": v2], [:]),
 
         // temporarily backport the changes from v4 to v3 (leaving v2_5 to be what 'v3' used to be)
@@ -301,11 +290,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
             def osType = operatingSystemType(it.productDescription)
             def reservation = getReservation(region.name, it.availabilityZone, osType.name, it.instanceType)
             reservation.totalReserved.addAndGet(it.instanceCount)
-            if (osType.isVpc || vpcOnlyAccounts.get(credentials.getName())) {
-              reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
-            } else {
-              reservation.getAccount(credentials.name).reserved.addAndGet(it.instanceCount)
-            }
+            reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
           }
 
           startTime = System.currentTimeMillis()
@@ -412,18 +397,6 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       this.cacheView = ctx.getBean(Cache)
     }
     this.cacheView
-  }
-
-  public void addVPCOnlyAccounts(String accountName, Boolean vpcOnly) {
-    vpcOnlyAccounts.put(accountName, vpcOnly)
-  }
-
-  public void deleteVPCOnlyAccounts(String account) {
-    vpcOnlyAccounts.remove(account)
-  }
-
-  protected getVPCOnlyaccounts() {
-    return Collections.unmodifiableMap(vpcOnlyAccounts)
   }
 
   static class AccountReservationDetailSerializer extends JsonSerializer<AmazonReservationReport.AccountReservationDetail> {
