@@ -34,7 +34,7 @@ abstract class AbstractTitusDescriptionValidatorSupport<T extends AbstractTitusC
   }
 
   @Override
-  void validate(List priorDescriptions, T description, ValidationErrors errors) {
+  void validate(List<T> priorDescriptions, T description, ValidationErrors errors) {
     if (!description.credentials) {
       errors.rejectValue "credentials", "${descriptionName}.credentials.empty"
     } else {

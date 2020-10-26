@@ -57,7 +57,7 @@ class UpsertTitusScalingPolicyAtomicOperationConverter extends AbstractAtomicOpe
       converted.application = titusJob.appName
     } catch (Exception e) {
       converted.application = null
-      log.error("Unable to determine application for titus job (jobId: {})", converted.jobId, e)
+      log.warn("Unable to determine application for titus job (jobId: {})", converted.jobId, e)
     }
 
     converted
