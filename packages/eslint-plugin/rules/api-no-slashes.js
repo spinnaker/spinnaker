@@ -55,7 +55,6 @@ const rule = function (context) {
 
       // Literal:
       // .one(okArg, 'foo/' + barid)
-      // .one(okArg, `foo/${barid}`)
       const literalsWithSlashes = args.filter((arg) => isArgLiteralWithSlash(arg));
 
       // Initializer:
@@ -65,10 +64,11 @@ const rule = function (context) {
       // .one(badArg2)
       const varsWithSlashes = args.filter((arg) => isVariableInitializedWithSlash(arg));
 
-      // Detected an arg with a slash, but can't auto-fix
-      const argsWithSlashes = args.filter((arg) => !literalsWithSlashes.includes(arg) && sourceCodeHasSlash(arg));
+      // Expression:
+      // .one(`foo/${barid}`)
+      const expressionWithSlash = args.filter((arg) => !literalsWithSlashes.includes(arg) && sourceCodeHasSlash(arg));
 
-      if (literalsWithSlashes.length === 0 && varsWithSlashes.length === 0 && argsWithSlashes.length === 0) {
+      if (literalsWithSlashes.length === 0 && varsWithSlashes.length === 0 && expressionWithSlash.length === 0) {
         return;
       }
 
@@ -107,7 +107,22 @@ const rule = function (context) {
           return fixer.replaceText(arg, spread);
         });
 
-        return literalArgFixes.concat(variableArgFixes);
+        // within:
+        //   let prefix = 'foo/bad';
+        //   API.one(`${prefix}/path`)
+        // replaces with:
+        //   `${prefix}/path`
+        // with:
+        //   ...(`${prefix}/path`).split('/')
+        // i.e.:
+        //   API.one(...(`${prefix}/path`).split('/'))
+        const expressionWithSlashFixes = expressionWithSlash.map((arg) => {
+          const text = context.getSourceCode().getText(arg);
+          const spread = `...(${text}).split('/')`;
+          return fixer.replaceText(arg, spread);
+        });
+
+        return literalArgFixes.concat(variableArgFixes).concat(expressionWithSlashFixes);
       };
 
       context.report({ fix, node, message });

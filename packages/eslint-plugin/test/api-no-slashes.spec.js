@@ -40,6 +40,12 @@ ruleTester.run('api-no-slashes', rule, {
       output: `let foo = "foo/bad"; API.one(...foo.split('/'));`,
       errors: [errorMessage],
     },
+    // Expressions with literal slashes transform to split+spread
+    {
+      code: "API.one(`foo/${bad}`, 'bad');",
+      output: "API.one(...(`foo/${bad}`).split('/'), 'bad');",
+      errors: [errorMessage],
+    },
     // Variables whose initializer contains a slash
     {
       code: 'let foo = `foo/${variable}`; API.one(foo);',
