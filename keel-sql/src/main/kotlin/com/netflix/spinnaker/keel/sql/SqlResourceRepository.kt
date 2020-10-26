@@ -61,18 +61,23 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun get(id: String): Resource<ResourceSpec> {
-    return sqlRetry.withRetry(READ) {
+  override fun get(id: String): Resource<ResourceSpec> =
+    readResource(id, this::parseAndMigrateResource)
+
+  override fun getRaw(id: String): Resource<ResourceSpec> =
+    readResource(id, this::parseResource)
+
+  private fun readResource(id: String, callback: (String, String, String) -> Resource<ResourceSpec>): Resource<ResourceSpec> =
+    sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
         .from(RESOURCE_WITH_METADATA)
         .where(RESOURCE_WITH_METADATA.ID.eq(id))
         .fetchOne()
         ?.let { (kind, metadata, spec) ->
-          constructResource(kind, metadata, spec)
+          callback(kind, metadata, spec)
         } ?: throw NoSuchResourceId(id)
     }
-  }
 
   override fun getResourcesByApplication(application: String): List<Resource<*>> {
     return sqlRetry.withRetry(READ) {
@@ -82,23 +87,35 @@ open class SqlResourceRepository(
         .where(RESOURCE_WITH_METADATA.APPLICATION.eq(application))
         .fetch()
         .map { (kind, metadata, spec) ->
-          constructResource(kind, metadata, spec)
+          parseAndMigrateResource(kind, metadata, spec)
         }
     }
   }
 
+  private fun parseResource(kind: String, metadata: String, spec: String): Resource<ResourceSpec> =
+    parseKind(kind).let {
+      Resource(
+        it,
+        objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+        objectMapper.readValue(spec, resourceSpecIdentifier.identify(it))
+      )
+    }
+
   /**
    * Constructs a resource object from its database representation
    */
-  private fun constructResource(kind: String, metadata: String, spec: String) =
-    specMigrators
-      .migrate(parseKind(kind), objectMapper.readValue(spec, resourceSpecIdentifier.identify(parseKind(kind))))
-      .let { (endKind, endSpec) ->
-        Resource(
-          endKind,
-          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          endSpec
-        )
+  private fun parseAndMigrateResource(kind: String, metadata: String, spec: String): Resource<ResourceSpec> =
+    parseResource(kind, metadata, spec)
+      .let { resource ->
+        specMigrators
+          .migrate(resource.kind, resource.spec)
+          .let { (endKind, endSpec) ->
+            Resource(
+              endKind,
+              resource.metadata,
+              endSpec
+            )
+          }
       }
 
   override fun hasManagedResources(application: String): Boolean {
@@ -329,7 +346,7 @@ open class SqlResourceRepository(
       }
         .map { (uid, kind, metadata, spec) ->
           try {
-            constructResource(kind, metadata, spec)
+            parseAndMigrateResource(kind, metadata, spec)
           } catch (e: Exception) {
             jooq.insertInto(RESOURCE_LAST_CHECKED)
               .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)

@@ -27,13 +27,13 @@ import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
 import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 
 /**
  * A repository for interacting with delivery configs, artifacts, and resources.
@@ -51,7 +51,7 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) {
     val existingResource = try {
-      getResource(resource.id)
+      getRawResource(resource.id)
     } catch (e: NoSuchResourceException) {
       null
     }
@@ -64,7 +64,7 @@ interface KeelRepository : KeelReadOnlyRepository {
       }
 
       val diff = DefaultResourceDiff(resource.spec, existingResource.spec)
-      if (diff.hasChanges()) {
+      if (diff.hasChanges() || resource.kind.version != existingResource.kind.version) {
         log.debug("Updating ${resource.id}")
         storeResource(resource)
         publisher.publishEvent(ResourceUpdated(resource, diff.toDeltaJson(), clock))

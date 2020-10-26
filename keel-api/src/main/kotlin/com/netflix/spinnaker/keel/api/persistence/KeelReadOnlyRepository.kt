@@ -36,6 +36,8 @@ interface KeelReadOnlyRepository {
 
   fun getResource(id: String): Resource<ResourceSpec>
 
+  fun getRawResource(id: String): Resource<ResourceSpec>
+
   fun hasManagedResources(application: String): Boolean
 
   fun getResourceIdsByApplication(application: String): List<String>

@@ -25,14 +25,14 @@ import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation.REQUIRED
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 
 /**
  * A combined repository for delivery configs, artifacts, and resources.
@@ -253,6 +253,9 @@ class CombinedRepository(
 
   override fun getResource(id: String): Resource<ResourceSpec> =
     resourceRepository.get(id)
+
+  override fun getRawResource(id: String): Resource<ResourceSpec> =
+    resourceRepository.getRaw(id)
 
   override fun hasManagedResources(application: String): Boolean =
     resourceRepository.hasManagedResources(application)

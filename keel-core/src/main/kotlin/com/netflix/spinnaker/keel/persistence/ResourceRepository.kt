@@ -45,12 +45,23 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<ResourceSp
   fun allResources(callback: (ResourceHeader) -> Unit)
 
   /**
-   * Retrieves a single resource by its unique [id].
+   * Retrieves a single resource by its unique [id]. If the resource is of an obsolete kind, the
+   * result is automatically migrated to the latest version of that kind.
    *
    * @return The resource represented by [id] or `null` if [id] is unknown.
    * @throws NoSuchResourceException if [id] does not map to a resource in the repository.
    */
   fun get(id: String): Resource<ResourceSpec>
+
+  /**
+   * Retrieves a single resource by its unique [id]. No migration is performed if the resource is of
+   * an obsolete kind.
+   *
+   * This is only intended for use when updating resources as automatically migration can mask the
+   * difference between current and updated resource states when a user is trying to update to a
+   * newer kind.
+   */
+  fun getRaw(id: String): Resource<ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
