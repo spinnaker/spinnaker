@@ -107,7 +107,8 @@ public class ServiceInstances {
   }
 
   public List<CloudFoundryService> findAllServicesByRegion(String region) {
-    return orgs.findSpaceByRegion(region)
+    return spaces
+        .findSpaceByRegion(region)
         .map(
             space -> {
               List<Resource<Service>> services =
@@ -131,7 +132,8 @@ public class ServiceInstances {
   CloudFoundryServiceInstance getOsbServiceInstanceByRegion(
       String region, String serviceInstanceName) {
     CloudFoundrySpace space =
-        orgs.findSpaceByRegion(region)
+        spaces
+            .findSpaceByRegion(region)
             .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
     return Optional.ofNullable(getOsbServiceInstance(space, serviceInstanceName))
         .orElseThrow(
@@ -166,7 +168,8 @@ public class ServiceInstances {
                 throw new CloudFoundryApiException(
                     "Cannot specify 'org > space' as any of the " + gerund + " regions");
               }
-              return orgs.findSpaceByRegion(r)
+              return spaces
+                  .findSpaceByRegion(r)
                   .orElseThrow(
                       () ->
                           new CloudFoundryApiException(
@@ -316,7 +319,8 @@ public class ServiceInstances {
   @Nullable
   public CloudFoundryServiceInstance getServiceInstance(String region, String serviceInstanceName) {
     CloudFoundrySpace space =
-        orgs.findSpaceByRegion(region)
+        spaces
+            .findSpaceByRegion(region)
             .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
     Supplier<CloudFoundryServiceInstance> si =
         () -> Optional.ofNullable(getOsbServiceInstance(space, serviceInstanceName)).orElse(null);

@@ -41,7 +41,7 @@ class AbstractCloudFoundryAtomicOperationConverterTest {
 
   @Test
   void expectFindSpaceSucceeds() {
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenAnswer(
             (Answer<Optional<CloudFoundrySpace>>)
                 invocation ->

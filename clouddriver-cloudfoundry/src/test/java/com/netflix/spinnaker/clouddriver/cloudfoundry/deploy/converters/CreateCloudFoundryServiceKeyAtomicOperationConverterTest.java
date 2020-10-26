@@ -48,7 +48,7 @@ class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
           .build();
 
   {
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenReturn(Optional.of(cloudFoundrySpace));
   }
 

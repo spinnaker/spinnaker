@@ -56,7 +56,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .thenReturn(
             Optional.of(CloudFoundryOrganization.builder().id("space-guid").name("space").build()));
 
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenAnswer(
             (Answer<Optional<CloudFoundrySpace>>)
                 invocation ->

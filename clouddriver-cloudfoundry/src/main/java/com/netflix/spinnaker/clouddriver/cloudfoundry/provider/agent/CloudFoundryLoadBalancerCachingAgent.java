@@ -170,7 +170,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
       return null;
     }
 
-    CloudFoundrySpace space = getClient().getOrganizations().findSpaceByRegion(region).orElse(null);
+    CloudFoundrySpace space = getClient().getSpaces().findSpaceByRegion(region).orElse(null);
     if (space == null) {
       return null;
     }

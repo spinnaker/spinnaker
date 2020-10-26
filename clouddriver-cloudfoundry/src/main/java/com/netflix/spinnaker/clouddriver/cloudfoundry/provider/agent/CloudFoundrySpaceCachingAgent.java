@@ -64,7 +64,7 @@ public class CloudFoundrySpaceCachingAgent extends AbstractCloudFoundryCachingAg
     String accountName = getAccountName();
     log.info("Caching all spaces in Cloud Foundry account " + accountName);
 
-    List<CloudFoundrySpace> spaces = getCredentials().getSpacesLive();
+    List<CloudFoundrySpace> spaces = this.getClient().getSpaces().all();
 
     Map<String, Collection<CacheData>> results =
         ImmutableMap.of(

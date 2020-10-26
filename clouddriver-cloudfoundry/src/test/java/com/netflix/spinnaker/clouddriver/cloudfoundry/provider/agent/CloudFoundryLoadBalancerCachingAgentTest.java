@@ -21,8 +21,8 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Organizations;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Spaces;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
@@ -60,11 +60,13 @@ class CloudFoundryLoadBalancerCachingAgentTest {
           .name(spaceName)
           .organization(CloudFoundryOrganization.builder().id(orgId).name(orgName).build())
           .build();
+  private Spaces spaces = mock(Spaces.class);
 
   @BeforeEach
   void before() {
     when(credentials.getClient()).thenReturn(cloudFoundryClient);
     when(credentials.getName()).thenReturn(accountName);
+    when(cloudFoundryClient.getSpaces()).thenReturn(spaces);
   }
 
   @Test
@@ -94,15 +96,12 @@ class CloudFoundryLoadBalancerCachingAgentTest {
                 "loadBalancerName", "loadBalancerName")
             .toJavaMap();
 
-    Organizations organizations = mock(Organizations.class);
-    when(organizations.findSpaceByRegion(any())).thenReturn(Optional.empty());
-
-    when(cloudFoundryClient.getOrganizations()).thenReturn(organizations);
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
 
     OnDemandAgent.OnDemandResult result =
         cloudFoundryLoadBalancerCachingAgent.handle(mockProviderCache, data);
     assertThat(result).isNull();
-    verify(organizations).findSpaceByRegion(eq(region));
+    verify(spaces).findSpaceByRegion(eq(region));
   }
 
   @Test
@@ -114,9 +113,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
                 "region", region)
             .toJavaMap();
 
-    Organizations organizations = mock(Organizations.class);
-    when(cloudFoundryClient.getOrganizations()).thenReturn(organizations);
-    when(organizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
     OnDemandAgent.OnDemandResult result =
         cloudFoundryLoadBalancerCachingAgent.handle(mockProviderCache, data);
@@ -134,9 +131,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
                 "serverGroupName", serverGroupName)
             .toJavaMap();
 
-    Organizations organizations = mock(Organizations.class);
-    when(cloudFoundryClient.getOrganizations()).thenReturn(organizations);
-    when(organizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
     Routes mockRoutes = mock(Routes.class);
     when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
@@ -170,12 +165,10 @@ class CloudFoundryLoadBalancerCachingAgentTest {
             Keys.getLoadBalancerKey(accountName, cloudFoundryLoadBalancer),
             cacheView(cloudFoundryLoadBalancer),
             HashMap.<String, Collection<String>>of(SERVER_GROUPS.getNs(), emptyList()).toJavaMap());
-    Organizations mockOrganizations = mock(Organizations.class);
-    when(mockOrganizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
     Routes mockRoutes = mock(Routes.class);
     when(mockRoutes.find(any(), any())).thenReturn(cloudFoundryLoadBalancer);
     when(mockRoutes.toRouteId(any())).thenReturn(mock(RouteId.class));
-    when(cloudFoundryClient.getOrganizations()).thenReturn(mockOrganizations);
     when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
     Map<String, Collection<CacheData>> cacheResults =
         HashMap.<String, Collection<CacheData>>of(

@@ -62,7 +62,7 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
                           .build());
                 });
 
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
 
     when(cloudFoundryClient.getRoutes().toRouteId(any()))

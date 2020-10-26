@@ -37,6 +37,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Spaces;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
@@ -54,6 +55,7 @@ class CloudFoundrySpaceCachingAgentTest {
   private CloudFoundrySpaceCachingAgent cloudFoundrySpaceCachingAgent =
       new CloudFoundrySpaceCachingAgent(credentials, registry);
   private ProviderCache mockProviderCache = mock(ProviderCache.class);
+  private Spaces spaces = mock(Spaces.class);
 
   @BeforeEach
   void before() {
@@ -79,7 +81,8 @@ class CloudFoundrySpaceCachingAgentTest {
             .build();
 
     when(mockProviderCache.getAll(any(), anyCollection())).thenReturn(emptySet());
-    when(credentials.getSpacesLive()).thenReturn(List.of(space1, space2).toJavaList());
+    when(cloudFoundryClient.getSpaces()).thenReturn(spaces);
+    when(spaces.all()).thenReturn(List.of(space1, space2).toJavaList());
 
     CacheData spaceCacheData1 =
         new ResourceCacheData(

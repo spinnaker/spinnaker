@@ -459,7 +459,7 @@ class ServiceInstancesTest {
   void
       vetShareServiceArgumentsAndGetSharingRegionIdsShouldThrowExceptionWhenServiceSharingShareToSpaceIsTheSourceSpace() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
     when(configService.getConfigFeatureFlags())
         .thenReturn(
             singleton(new ConfigFeatureFlag().setName(SERVICE_INSTANCE_SHARING).setEnabled(true)));
@@ -478,7 +478,7 @@ class ServiceInstancesTest {
   void
       getOsbCloudFoundryServiceInstanceShouldThrowExceptionWhenServiceSharingServiceInstanceDoesNotExist() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
     when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
 
     assertThrows(
@@ -491,7 +491,7 @@ class ServiceInstancesTest {
   @Test
   void getOsbCloudFoundryServiceInstanceShouldThrowExceptionWhenServiceSharingSpaceDoesNotExist() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.empty());
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
     when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
 
     assertThrows(
@@ -561,7 +561,7 @@ class ServiceInstancesTest {
   @Test
   void checkServiceShareableShouldThrowExceptionWhenManagedServiceDoesNotSupportSharing() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
     when(configService.getConfigFeatureFlags())
         .thenReturn(
             singleton(new ConfigFeatureFlag().setName(SERVICE_INSTANCE_SHARING).setEnabled(true)));
@@ -598,7 +598,7 @@ class ServiceInstancesTest {
             .build();
 
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any()))
+    when(spaces.findSpaceByRegion(any()))
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
@@ -652,7 +652,7 @@ class ServiceInstancesTest {
             .build();
 
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any()))
+    when(spaces.findSpaceByRegion(any()))
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
@@ -721,7 +721,7 @@ class ServiceInstancesTest {
             .build();
 
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any()))
+    when(spaces.findSpaceByRegion(any()))
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
@@ -783,7 +783,7 @@ class ServiceInstancesTest {
   void
       vetUnshareServiceArgumentsAndGetSharingRegionIdsShouldThrowExceptionWhenServiceSharingRegionDoesNotExist() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.empty());
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
 
     assertThrows(
         () ->
@@ -797,7 +797,7 @@ class ServiceInstancesTest {
   void
       vetUnshareServiceArgumentsAndGetSharingRegionIdsShouldThrowExceptionWhenServiceSharingShareToSpaceDoesNotExist() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.empty());
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
     when(configService.getConfigFeatureFlags())
         .thenReturn(
             singleton(new ConfigFeatureFlag().setName(SERVICE_INSTANCE_SHARING).setEnabled(true)));
@@ -835,7 +835,7 @@ class ServiceInstancesTest {
             .build();
 
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any()))
+    when(spaces.findSpaceByRegion(any()))
         .thenReturn(Optional.of(space0))
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2));
@@ -880,7 +880,7 @@ class ServiceInstancesTest {
   @Test
   void getServiceInstanceShouldThrowAnExceptionWhenTheRegionCannotBeFound() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.empty());
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
 
     assertThrows(
         () -> serviceInstances.getServiceInstance("org > space", "service-instance-name"),
@@ -891,7 +891,7 @@ class ServiceInstancesTest {
   @Test
   void getServiceInstanceShouldReturnCloudFoundryOsbServiceInstance() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
     when(serviceInstanceService.all(any(), any())).thenReturn(createOsbServiceInstancePage());
 
@@ -912,7 +912,7 @@ class ServiceInstancesTest {
   @Test
   void getServiceInstanceShouldReturnCloudFoundryUserProvidedServiceInstance() {
     when(orgs.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
-    when(orgs.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
     when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
     when(serviceInstanceService.allUserProvided(any(), any()))

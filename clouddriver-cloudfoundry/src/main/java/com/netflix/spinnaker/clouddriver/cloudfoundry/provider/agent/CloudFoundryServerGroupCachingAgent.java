@@ -149,8 +149,7 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
       return null;
     }
 
-    CloudFoundrySpace space =
-        this.getClient().getOrganizations().findSpaceByRegion(region).orElse(null);
+    CloudFoundrySpace space = this.getClient().getSpaces().findSpaceByRegion(region).orElse(null);
     if (space == null) {
       return null;
     }

@@ -62,7 +62,7 @@ class AbstractCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
   void getServerGroupIdSuccess() {
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
     assertThat(converter.getServerGroupId("server", "region > space", cloudFoundryClient))
         .isEqualTo("servergroup-id");
@@ -70,7 +70,7 @@ class AbstractCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
   void getServerGroupIdFindFails() {
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any()))
         .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
     assertThat(
             converter.getServerGroupId(
@@ -80,8 +80,7 @@ class AbstractCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
   void getServerGroupIdSpaceInvalid() {
-    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-        .thenReturn(Optional.empty());
+    when(cloudFoundryClient.getSpaces().findSpaceByRegion(any())).thenReturn(Optional.empty());
     assertThat(converter.getServerGroupId("server", "region > region", cloudFoundryClient))
         .isNull();
   }

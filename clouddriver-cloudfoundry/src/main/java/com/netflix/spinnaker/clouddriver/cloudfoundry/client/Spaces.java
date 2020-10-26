@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.cache.CacheBuilder;
@@ -25,9 +24,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Space;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +66,7 @@ public class Spaces {
   }
 
   public List<CloudFoundrySpace> all() throws CloudFoundryApiException {
-    return collectPageResources("spaces", pg -> api.all(pg, null)).stream()
+    return collectPages("spaces", page -> api.all(page, null, null)).stream()
         .map(this::map)
         .collect(toList());
   }
@@ -93,9 +93,14 @@ public class Spaces {
   @Nullable
   public CloudFoundrySpace findByName(String orgId, String spaceName)
       throws CloudFoundryApiException {
-    return safelyCall(
-            () -> api.all(null, Arrays.asList("name:" + spaceName, "organization_guid:" + orgId)))
-        .flatMap(page -> page.getResources().stream().findAny().map(this::map))
+    return collectPages(
+            "spaces",
+            page ->
+                api.all(
+                    page, Collections.singletonList(spaceName), Collections.singletonList(orgId)))
+        .stream()
+        .findAny()
+        .map(this::map)
         .orElse(null);
   }
 
@@ -106,11 +111,53 @@ public class Spaces {
         .orElse(null);
   }
 
-  private CloudFoundrySpace map(Resource<Space> res) throws CloudFoundryApiException {
+  private CloudFoundrySpace map(Space space) throws CloudFoundryApiException {
     return CloudFoundrySpace.builder()
-        .id(res.getMetadata().getGuid())
-        .name(res.getEntity().getName())
-        .organization(organizations.findById(res.getEntity().getOrganizationGuid()))
+        .id(space.getGuid())
+        .name(space.getName())
+        .organization(
+            organizations.findById(
+                space.getRelationships().get("organization").getData().getGuid()))
         .build();
+  }
+
+  public Optional<CloudFoundrySpace> findSpaceByRegion(String region) {
+    CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
+
+    CloudFoundryOrganization organization =
+        organizations
+            .findByName(space.getOrganization().getName())
+            .orElseThrow(
+                () ->
+                    new CloudFoundryApiException(
+                        "Unable to find organization: " + space.getOrganization().getName()));
+
+    Optional<CloudFoundrySpace> spaceOptional =
+        collectPages(
+                "spaces",
+                page ->
+                    api.all(
+                        page,
+                        Collections.singletonList(space.getName()),
+                        Collections.singletonList(organization.getId())))
+            .stream()
+            .findAny()
+            .map(
+                s ->
+                    CloudFoundrySpace.builder()
+                        .id(s.getGuid())
+                        .name(s.getName())
+                        .organization(organization)
+                        .build());
+
+    spaceOptional.ifPresent(
+        spaceCase -> {
+          if (!(space.getName().equals(spaceCase.getName())
+              && space.getOrganization().getName().equals(spaceCase.getOrganization().getName()))) {
+            throw new CloudFoundryApiException("Org or Space name not in correct case");
+          }
+        });
+
+    return spaceOptional;
   }
 }

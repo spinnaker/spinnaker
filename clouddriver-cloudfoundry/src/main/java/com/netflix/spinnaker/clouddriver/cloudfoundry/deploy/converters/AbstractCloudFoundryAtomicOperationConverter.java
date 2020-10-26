@@ -27,7 +27,7 @@ public abstract class AbstractCloudFoundryAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsConverter<CloudFoundryCredentials> {
 
   protected Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
-    return client.getOrganizations().findSpaceByRegion(region);
+    return client.getSpaces().findSpaceByRegion(region);
   }
 
   protected CloudFoundryClient getClient(Map<?, ?> input) {
