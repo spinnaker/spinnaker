@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/huaweicloud",
   "license": "Apache-2.0",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
