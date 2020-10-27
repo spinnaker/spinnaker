@@ -141,8 +141,8 @@ describe('Service: dependentFilterService', function () {
           dependencyOrder,
         });
 
-        expect(region).toEqual(['us-central1', 'asia-east1']);
-        expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
+        expect(region).toEqual(['asia-east1', 'us-central1']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c', 'us-central1-f']);
         expect(instanceType).toEqual(['f1-micro']);
       });
 
@@ -157,7 +157,7 @@ describe('Service: dependentFilterService', function () {
         const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region.length).toEqual(3);
-        expect(availabilityZone).toEqual(['asia-east1-c', 'asia-east1-b']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c']);
       });
 
       it(`should return us-west-2a, us-west-2b, and Amazon regions
@@ -211,8 +211,8 @@ describe('Service: dependentFilterService', function () {
         } as any;
         const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
-        expect(region).toEqual(['us-central1', 'asia-east1']);
-        expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
+        expect(region).toEqual(['asia-east1', 'us-central1']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c', 'us-central1-f']);
         expect(sortFilter.region['us-west-2']).not.toBeDefined();
       });
 
@@ -225,8 +225,8 @@ describe('Service: dependentFilterService', function () {
         } as any;
         const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
-        expect(region).toEqual(['us-central1', 'asia-east1']);
-        expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
+        expect(region).toEqual(['asia-east1', 'us-central1']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c', 'us-central1-f']);
         expect(sortFilter.availabilityZone['us-west-2a']).not.toBeDefined();
       });
 
@@ -243,8 +243,8 @@ describe('Service: dependentFilterService', function () {
           dependencyOrder,
         });
 
-        expect(region).toEqual(['us-central1', 'asia-east1']);
-        expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
+        expect(region).toEqual(['asia-east1', 'us-central1']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c', 'us-central1-f']);
         expect(instanceType).toEqual(['f1-micro']);
         expect(sortFilter.availabilityZone['us-west-2a']).not.toBeDefined();
         expect(sortFilter.region['us-west-2']).not.toBeDefined();
@@ -263,7 +263,7 @@ describe('Service: dependentFilterService', function () {
         });
 
         expect(region.length).toEqual(3);
-        expect(availabilityZone).toEqual(['asia-east1-c', 'asia-east1-b']);
+        expect(availabilityZone).toEqual(['asia-east1-b', 'asia-east1-c']);
         expect(instanceType).toEqual(['f1-micro']);
         expect(sortFilter.availabilityZone['us-central1-f']).not.toBeDefined();
       });

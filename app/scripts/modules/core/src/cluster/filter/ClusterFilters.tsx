@@ -244,7 +244,7 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
           <FilterSection key="filter-status" heading="Status" expanded={true}>
             <div className="form">
               {['Up', 'Down', 'Disabled', 'Starting', 'OutOfService', 'Unknown'].map((status) => (
-                <div className="checkbox">
+                <div className="checkbox" key={status}>
                   <label>
                     <input
                       key={status}
