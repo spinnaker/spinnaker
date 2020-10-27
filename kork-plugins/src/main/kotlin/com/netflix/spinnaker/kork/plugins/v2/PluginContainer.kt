@@ -37,11 +37,9 @@ import org.springframework.context.support.GenericApplicationContext
 class PluginContainer(
   val actual: Plugin,
   private val serviceApplicationContext: GenericApplicationContext,
-  private val beanPromoter: BeanPromoter,
-  private val invocationAspects: List<InvocationAspect<*>>
 ) : Plugin(actual.wrapper) {
 
-  private val pluginContext = GenericApplicationContext(serviceApplicationContext).also {
+  internal val pluginContext = GenericApplicationContext(serviceApplicationContext).also {
     ApplicationContextGraph.pluginContexts[wrapper.pluginId] = it
   }
 
@@ -49,7 +47,7 @@ class PluginContainer(
    * Registers the [SpringPluginInitializer] with the service [ApplicationContext] so that the plugin can be
    * initialized at the correct time in the service's startup process.
    */
-  fun registerInitializer(registry: BeanDefinitionRegistry) {
+  fun registerInitializer(registry: BeanDefinitionRegistry): String {
     val initializerBeanName = "${wrapper.pluginId}Initializer"
 
     val initializerBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition(SpringPluginInitializer::class.java)
@@ -58,14 +56,10 @@ class PluginContainer(
       .addConstructorArgValue(actual)
       .addConstructorArgValue(actual.wrapper)
       .addConstructorArgValue(pluginContext)
-      .addConstructorArgValue(LegacyProxyingBeanPromoter(
-        beanPromoter,
-        invocationAspects,
-        wrapper.descriptor as SpinnakerPluginDescriptor
-      ))
       .beanDefinition
 
     registry.registerBeanDefinition(initializerBeanName, initializerBeanDefinition)
+    return initializerBeanName
   }
 
   override fun start() {

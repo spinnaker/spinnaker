@@ -17,11 +17,12 @@
 
 package com.netflix.spinnaker.kork.plugins.api.internal
 
+import com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy
+import com.netflix.spinnaker.kork.plugins.proxy.LazyExtensionInvocationProxy
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
 import strikt.api.expectThat
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 
 class ExtensionInvocationHandlerProviderTest : JUnit5Minutests {
 
@@ -33,6 +34,11 @@ class ExtensionInvocationHandlerProviderTest : JUnit5Minutests {
       expectThat(extensionClass == extension.javaClass)
     }
 
+    test("Provides the lazily proxied class") {
+      val extensionClass = lazyProxy.extensionClass
+      expectThat(extensionClass == extension.javaClass)
+    }
+
     test("Passes through the class if not proxied") {
       val extensionClass = extension.extensionClass
       expectThat(extensionClass == extension.javaClass)
@@ -41,30 +47,14 @@ class ExtensionInvocationHandlerProviderTest : JUnit5Minutests {
 
   private inner class Fixture {
     val extension = SomeExtension()
-    val proxy = ProxyExtension.proxy(extension) as SpinnakerExtensionPoint
+    val proxy = ExtensionInvocationProxy.proxy(extension, emptyList(), mockk(relaxed = true)) as SpinnakerExtensionPoint
+    val lazyProxy = LazyExtensionInvocationProxy.proxy(
+      lazy { extension },
+      extension.javaClass,
+      emptyList(),
+      mockk(relaxed = true)
+    ) as SpinnakerExtensionPoint
   }
 }
 
 class SomeExtension : SpinnakerExtensionPoint
-
-class ProxyExtension(private val target: SpinnakerExtensionPoint): ExtensionInvocationHandler {
-  override fun getTargetClass(): Class<out SpinnakerExtensionPoint> {
-    return target.javaClass
-  }
-
-  override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any {
-    return method.invoke(target, *(args ?: arrayOfNulls<Any>(0)))
-  }
-
-  companion object {
-    fun proxy(
-      target: SpinnakerExtensionPoint
-    ): Any {
-      return Proxy.newProxyInstance(
-        target.javaClass.classLoader,
-        target.javaClass.interfaces,
-        ProxyExtension(target)
-      )
-    }
-  }
-}

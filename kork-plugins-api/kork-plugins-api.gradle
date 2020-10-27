@@ -24,4 +24,6 @@ dependencies {
   api "javax.annotation:javax.annotation-api"
   api project(":kork-annotations")
   api "org.pf4j:pf4j"
+
+  testImplementation(project(":kork-plugins"))
 }

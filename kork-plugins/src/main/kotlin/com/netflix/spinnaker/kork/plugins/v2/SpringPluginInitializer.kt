@@ -25,7 +25,6 @@ import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.io.DefaultResourceLoader
@@ -38,7 +37,6 @@ class SpringPluginInitializer(
   private val plugin: Plugin,
   private val pluginWrapper: PluginWrapper,
   private val pluginApplicationContext: GenericApplicationContext,
-  private val beanPromoter: BeanPromoter
 ) : ApplicationContextAware {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -49,20 +47,6 @@ class SpringPluginInitializer(
     }
 
     log.info("Initializing '${pluginWrapper.pluginId}'")
-
-    // For every bean created in the plugin ApplicationContext, we'll need to post-process to evaluate
-    // which ones need to be promoted to the service ApplicationContext for autowiring into core functionality.
-    pluginApplicationContext
-      .beanFactory
-      .addBeanPostProcessor(
-        ExtensionPromotionBeanPostProcessor(
-          pluginWrapper,
-          pluginApplicationContext,
-          beanPromoter,
-          applicationContext
-        )
-      )
-
     pluginApplicationContext.classLoader = pluginWrapper.pluginClassLoader
     pluginApplicationContext.setResourceLoader(DefaultResourceLoader(pluginWrapper.pluginClassLoader))
 

@@ -17,9 +17,13 @@
 package com.netflix.spinnaker.kork.plugins.v2
 
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
+import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.ConfigurableApplicationContext
 import java.lang.IllegalStateException
 
 fun AssertableApplicationContext.pluginContext(pluginId: String): ConfigurableApplicationContext =
   ApplicationContextGraph.pluginContext(pluginId)
     ?: throw IllegalStateException("No plugin context found for plugin '$pluginId'")
+
+fun ApplicationContextRunner.enablePlugin(pluginId: String): ApplicationContextRunner =
+  withPropertyValues("spinnaker.extensibility.plugins.$pluginId.enabled=true")

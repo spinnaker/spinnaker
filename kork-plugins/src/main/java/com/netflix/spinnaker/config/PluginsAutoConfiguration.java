@@ -159,10 +159,8 @@ public class PluginsAutoConfiguration {
   public static PluginFactory pluginFactoryV2(
       List<SdkFactory> sdkFactories,
       ConfigFactory configFactory,
-      GenericApplicationContext applicationContext,
-      List<InvocationAspect<?>> invocationAspects) {
-    return new SpringPluginFactory(
-        sdkFactories, configFactory, applicationContext, invocationAspects);
+      GenericApplicationContext applicationContext) {
+    return new SpringPluginFactory(sdkFactories, configFactory, applicationContext);
   }
 
   @Bean
@@ -372,9 +370,15 @@ public class PluginsAutoConfiguration {
       SpinnakerUpdateManager updateManager,
       PluginInfoReleaseProvider pluginInfoReleaseProvider,
       SpringPluginStatusProvider springPluginStatusProvider,
-      ApplicationEventPublisher applicationEventPublisher) {
+      ApplicationEventPublisher applicationEventPublisher,
+      List<InvocationAspect<? extends InvocationState>> invocationAspects) {
     return new SpinnakerPluginService(
-        pluginManager, updateManager, pluginInfoReleaseProvider, springPluginStatusProvider);
+        pluginManager,
+        updateManager,
+        pluginInfoReleaseProvider,
+        springPluginStatusProvider,
+        invocationAspects,
+        applicationEventPublisher);
   }
 
   @Bean

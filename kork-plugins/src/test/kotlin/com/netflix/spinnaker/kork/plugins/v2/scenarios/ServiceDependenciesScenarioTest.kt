@@ -19,6 +19,7 @@ import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.plugins.FRAMEWORK_V2
 import com.netflix.spinnaker.kork.plugins.testplugin.testPlugin
 import com.netflix.spinnaker.kork.plugins.v2.ApplicationContextGraph
+import com.netflix.spinnaker.kork.plugins.v2.enablePlugin
 import com.netflix.spinnaker.kork.plugins.v2.scenarios.fixtures.ParentServiceBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -102,6 +103,3 @@ class ServiceDependenciesScenarioTest : JUnit5Minutests {
     }.run { generate() }
   }
 }
-
-fun ApplicationContextRunner.enablePlugin(pluginId: String): ApplicationContextRunner =
-  withPropertyValues("spinnaker.extensibility.plugins.$pluginId.enabled=true")

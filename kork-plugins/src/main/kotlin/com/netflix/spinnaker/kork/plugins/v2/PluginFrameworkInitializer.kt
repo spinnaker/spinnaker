@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.plugins.v2
 
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
