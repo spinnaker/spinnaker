@@ -90,7 +90,6 @@ public class EcsProviderConfig {
           new IamRoleCachingAgent(
               credentials,
               amazonClientProvider,
-              awsCredentialsProvider,
               iamPolicyReader)); // IAM is region-agnostic, so one caching agent per account is
       // enough
 
@@ -137,28 +136,15 @@ public class EcsProviderConfig {
                   objectMapper));
           newAgents.add(
               new EcsCloudMetricAlarmCachingAgent(
-                  credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
+                  credentials, region.getName(), amazonClientProvider));
           newAgents.add(
               new ScalableTargetsCachingAgent(
-                  credentials,
-                  region.getName(),
-                  amazonClientProvider,
-                  awsCredentialsProvider,
-                  objectMapper));
+                  credentials, region.getName(), amazonClientProvider, objectMapper));
           newAgents.add(
-              new SecretCachingAgent(
-                  credentials,
-                  region.getName(),
-                  amazonClientProvider,
-                  awsCredentialsProvider,
-                  objectMapper));
+              new SecretCachingAgent(credentials, region.getName(), amazonClientProvider));
           newAgents.add(
               new ServiceDiscoveryCachingAgent(
-                  credentials,
-                  region.getName(),
-                  amazonClientProvider,
-                  awsCredentialsProvider,
-                  objectMapper));
+                  credentials, region.getName(), amazonClientProvider));
           newAgents.add(
               new TargetHealthCachingAgent(
                   credentials,

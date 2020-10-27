@@ -18,12 +18,11 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SECRETS;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
 import com.amazonaws.services.secretsmanager.model.ListSecretsResult;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -40,30 +39,22 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SecretCachingAgent implements CachingAgent {
+public class SecretCachingAgent implements CachingAgent, AccountAware {
   static final Collection<AgentDataType> types =
       Collections.unmodifiableCollection(Arrays.asList(AUTHORITATIVE.forType(SECRETS.toString())));
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private final ObjectMapper objectMapper;
   private AmazonClientProvider amazonClientProvider;
-  private AWSCredentialsProvider awsCredentialsProvider;
   private NetflixAmazonCredentials account;
   private String accountName;
   private String region;
 
   public SecretCachingAgent(
-      NetflixAmazonCredentials account,
-      String region,
-      AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
-      ObjectMapper objectMapper) {
+      NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider) {
     this.region = region;
     this.account = account;
     this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
-    this.awsCredentialsProvider = awsCredentialsProvider;
-    this.objectMapper = objectMapper;
   }
 
   public static Map<String, Object> convertSecretToAttributes(
@@ -163,5 +154,10 @@ public class SecretCachingAgent implements CachingAgent {
   @Override
   public String getProviderName() {
     return EcsProvider.NAME;
+  }
+
+  @Override
+  public String getAccountName() {
+    return accountName;
   }
 }

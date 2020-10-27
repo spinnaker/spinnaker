@@ -39,7 +39,7 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
-  ServiceDiscoveryCachingAgent agent = new ServiceDiscoveryCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, credentialsProvider, objectMapper)
+  ServiceDiscoveryCachingAgent agent = new ServiceDiscoveryCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)
 
   def 'should get a list of service discovery registries'() {
     given:

@@ -39,7 +39,7 @@ class ScalableTargetCachingAgentSpec extends Specification {
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
-  ScalableTargetsCachingAgent agent = new ScalableTargetsCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, credentialsProvider, objectMapper)
+  ScalableTargetsCachingAgent agent = new ScalableTargetsCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, objectMapper)
 
   def 'should get a list of cloud watch alarms'() {
     given:

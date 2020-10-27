@@ -15,13 +15,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace
+
 import com.amazonaws.services.secretsmanager.AWSSecretsManager
 import com.amazonaws.services.secretsmanager.model.ListSecretsResult
 import com.amazonaws.services.secretsmanager.model.SecretListEntry
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Secret
@@ -34,12 +31,9 @@ class SecretCachingAgentSpec extends Specification {
   def secretsManager = Mock(AWSSecretsManager)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  def credentialsProvider = Mock(AWSCredentialsProvider)
-  def objectMapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   @Subject
-  SecretCachingAgent agent = new SecretCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider, credentialsProvider, objectMapper)
+  SecretCachingAgent agent = new SecretCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)
 
   def 'should get a list of secrets'() {
     given:

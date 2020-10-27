@@ -19,12 +19,12 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.ListRolesResult;
 import com.amazonaws.services.identitymanagement.model.Role;
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -50,13 +50,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IamRoleCachingAgent implements CachingAgent {
+public class IamRoleCachingAgent implements CachingAgent, AccountAware {
 
   static final Collection<AgentDataType> types =
       Collections.unmodifiableCollection(Arrays.asList(AUTHORITATIVE.forType(IAM_ROLE.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
   private AmazonClientProvider amazonClientProvider;
-  private AWSCredentialsProvider awsCredentialsProvider;
   private NetflixAmazonCredentials account;
   private String accountName;
   private IamPolicyReader iamPolicyReader;
@@ -64,12 +63,10 @@ public class IamRoleCachingAgent implements CachingAgent {
   public IamRoleCachingAgent(
       NetflixAmazonCredentials account,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       IamPolicyReader iamPolicyReader) {
     this.account = account;
     this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
-    this.awsCredentialsProvider = awsCredentialsProvider;
     this.iamPolicyReader = iamPolicyReader;
   }
 
@@ -216,5 +213,10 @@ public class IamRoleCachingAgent implements CachingAgent {
   @Override
   public Collection<AgentDataType> getProvidedDataTypes() {
     return types;
+  }
+
+  @Override
+  public String getAccountName() {
+    return accountName;
   }
 }

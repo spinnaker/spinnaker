@@ -25,6 +25,7 @@ import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.ListClustersRequest;
 import com.amazonaws.services.ecs.model.ListClustersResult;
 import com.google.common.base.CaseFormat;
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
+abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   final AmazonClientProvider amazonClientProvider;
@@ -227,5 +228,14 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
   protected Map<String, Collection<String>> addExtraEvictions(
       Map<String, Collection<String>> evictions) {
     return evictions;
+  }
+  /**
+   * Returns the account name with which this agent is associated.
+   *
+   * @return The name of the account this agent handles.
+   */
+  @Override
+  public String getAccountName() {
+    return accountName;
   }
 }

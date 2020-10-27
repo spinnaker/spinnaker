@@ -48,8 +48,7 @@ public class IamRoleCacheTest extends CommonCachingAgent {
 
   @Subject
   private final IamRoleCachingAgent agent =
-      new IamRoleCachingAgent(
-          netflixAmazonCredentials, clientProvider, credentialsProvider, iamPolicyReader);
+      new IamRoleCachingAgent(netflixAmazonCredentials, clientProvider, iamPolicyReader);
 
   @Test
   public void shouldRetrieveFromWrittenCache() {
