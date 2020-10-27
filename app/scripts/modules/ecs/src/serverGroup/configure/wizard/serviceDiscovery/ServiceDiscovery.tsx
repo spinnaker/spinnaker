@@ -1,5 +1,5 @@
 import React from 'react';
-import { module, IPromise } from 'angular';
+import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
@@ -12,7 +12,7 @@ import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 export interface IServiceDiscoveryProps {
   command: IEcsServerGroupCommand;
   notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => IPromise<void>;
+  configureCommand: (query: string) => PromiseLike<void>;
 }
 
 export interface IEcsServiceDiscoveryRegistry {

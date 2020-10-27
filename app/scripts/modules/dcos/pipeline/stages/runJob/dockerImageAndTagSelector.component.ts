@@ -26,7 +26,7 @@ export class DockerImageAndTagSelectorController implements IController {
   private organizationMap: { [key: string]: string[] };
   private repositoryMap: { [key: string]: string[] };
   private registryMap: { [key: string]: string };
-  private imageLoader: ng.IPromise<any>;
+  private imageLoader: PromiseLike<any>;
 
   public labelClass: string;
   public fieldClass: string;

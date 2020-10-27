@@ -1,4 +1,4 @@
-import { IController, IPromise, IQService, IScope, module } from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { flattenDeep } from 'lodash';
 import { StateService } from '@uirouter/angularjs';
@@ -121,7 +121,7 @@ class KubernetesInstanceDetailsController implements IController {
       });
   }
 
-  private fetchInstance(instance: InstanceIdentifier): IPromise<IKubernetesInstance> {
+  private fetchInstance(instance: InstanceIdentifier): PromiseLike<IKubernetesInstance> {
     return InstanceReader.getInstanceDetails(instance.account, instance.namespace, instance.name).then(
       (instanceDetails: IKubernetesInstance) => {
         instanceDetails.id = instance.id;

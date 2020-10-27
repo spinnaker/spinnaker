@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 import { chain, flatten, intersection, xor, cloneDeep } from 'lodash';
 import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
@@ -192,7 +192,7 @@ export class TitusServerGroupConfigurationService {
         backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
         cmd.backingData = backingData;
 
-        let securityGroupRefresher = $q.when();
+        let securityGroupRefresher: PromiseLike<any> = $q.when();
         if (cmd.securityGroups && cmd.securityGroups.length) {
           const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
           if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
@@ -269,7 +269,10 @@ export class TitusServerGroupConfigurationService {
     }
   }
 
-  public refreshSecurityGroups(command: ITitusServerGroupCommand, skipCommandReconfiguration: boolean): IPromise<void> {
+  public refreshSecurityGroups(
+    command: ITitusServerGroupCommand,
+    skipCommandReconfiguration: boolean,
+  ): PromiseLike<void> {
     return this.cacheInitializer.refreshCache('securityGroups').then(() => {
       return this.securityGroupReader.getAllSecurityGroups().then((securityGroups: any) => {
         command.backingData.securityGroups = securityGroups;

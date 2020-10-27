@@ -9,7 +9,7 @@ export class GceSecurityGroupHelpTextService {
   private account: string;
   private network: string;
 
-  public register(application: Application, account: string, network: string): ng.IPromise<void> {
+  public register(application: Application, account: string, network: string): PromiseLike<void> {
     this.reset();
     this.application = application;
     this.account = account;
@@ -51,7 +51,7 @@ export class GceSecurityGroupHelpTextService {
     this.serverGroupsIndexedByTag = new Map<string, Set<string>>();
   }
 
-  private indexServerGroupsByTag(): ng.IPromise<void> {
+  private indexServerGroupsByTag(): PromiseLike<void> {
     return this.application.ready().then(() => {
       this.application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
         if (

@@ -1,4 +1,4 @@
-import { IPromise, IDeferred } from 'angular';
+import { IDeferred } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $timeout, $q } from 'ngimport';
 import { Subject } from 'rxjs';
@@ -14,7 +14,7 @@ export interface ITaskMonitorConfig {
   onTaskComplete?: () => any;
   onTaskRetry?: () => void;
   monitorInterval?: number;
-  submitMethod?: () => IPromise<ITask>;
+  submitMethod?: () => PromiseLike<ITask>;
 }
 
 export interface IModalServiceInstanceEmulation<T = any> extends IModalServiceInstance {
@@ -28,7 +28,7 @@ export class TaskMonitor {
   public errorMessage: string;
   public title: string;
   public application: Application;
-  public submitMethod: (params?: any) => IPromise<ITask>;
+  public submitMethod: (params?: any) => PromiseLike<ITask>;
   public modalInstance: IModalServiceInstance;
   private monitorInterval: number;
   private onTaskComplete: () => any;
@@ -134,7 +134,7 @@ export class TaskMonitor {
     this.statusUpdatedStream.next();
   };
 
-  public submit = (submitMethod?: () => IPromise<ITask>) => {
+  public submit = (submitMethod?: () => PromiseLike<ITask>) => {
     this.startSubmit();
     (submitMethod || this.submitMethod)()
       .then((task: ITask) => this.handleTaskSuccess(task))

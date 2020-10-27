@@ -1,4 +1,4 @@
-import { module, IPromise } from 'angular';
+import { module } from 'angular';
 
 import { OracleProviderSettings } from 'oracle/oracle.settings';
 import { OracleDefaultProviderSettings } from 'oracle/oracle.settings';
@@ -17,7 +17,7 @@ import {
 import { $q } from 'ngimport';
 
 export class OracleLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): IPromise<IOracleLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): PromiseLike<IOracleLoadBalancer> {
     /*loadBalancer.serverGroups.forEach(function(serverGroup) {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;

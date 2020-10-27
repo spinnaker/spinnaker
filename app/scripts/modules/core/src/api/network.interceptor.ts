@@ -3,7 +3,6 @@ import {
   IHttpInterceptor,
   IHttpPromiseCallbackArg,
   IHttpProvider,
-  IPromise,
   IQService,
   IRequestConfig,
   ITimeoutService,
@@ -57,7 +56,7 @@ export class NetworkInterceptor implements IHttpInterceptor {
   // in essence, we need to do this because "the ng1 implementation of interceptors only keeps references to the handler
   // functions themselves and invokes them directly without any context (stateless) which means we lose `this` inside
   // the handlers"
-  public responseError = <T>(response: IHttpPromiseCallbackArg<T>): IPromise<T> => {
+  public responseError = <T>(response: IHttpPromiseCallbackArg<T>): PromiseLike<T> => {
     const { config, status } = response;
     // status of -1 indicates the request was aborted, retry if we haven't already, with incremental backoff + jitter
     const retryCount = this.retryQueue[config.url] || 0;

@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 import _ from 'lodash';
 
 import {
@@ -19,7 +19,7 @@ import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthChec
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {
-    existingLoadBalancerNamesByAccount: (): IPromise<_.Dictionary<any>> => {
+    existingLoadBalancerNamesByAccount: (): PromiseLike<_.Dictionary<any>> => {
       return this.loadBalancerReader.listLoadBalancers('gce').then((loadBalancerList: ILoadBalancersByAccount[]) => {
         return _.chain(loadBalancerList)
           .map('accounts')
@@ -37,11 +37,11 @@ export class GceCommonLoadBalancerCommandBuilder {
           .value();
       });
     },
-    accounts: (): IPromise<IAccount[]> => AccountService.listAccounts('gce'),
-    networks: (): IPromise<INetwork[]> => NetworkReader.listNetworksByProvider('gce'),
-    subnets: (): IPromise<ISubnet[]> => SubnetReader.listSubnetsByProvider('gce'),
-    healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
-    certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
+    accounts: (): PromiseLike<IAccount[]> => AccountService.listAccounts('gce'),
+    networks: (): PromiseLike<INetwork[]> => NetworkReader.listNetworksByProvider('gce'),
+    subnets: (): PromiseLike<ISubnet[]> => SubnetReader.listSubnetsByProvider('gce'),
+    healthChecks: (): PromiseLike<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
+    certificates: (): PromiseLike<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
 
   public static $inject = ['$q', 'loadBalancerReader', 'gceHealthCheckReader', 'gceCertificateReader'];
@@ -52,8 +52,8 @@ export class GceCommonLoadBalancerCommandBuilder {
     private gceCertificateReader: GceCertificateReader,
   ) {}
 
-  public getBackingData(dataTypes: string[]): IPromise<any> {
-    const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {
+  public getBackingData(dataTypes: string[]): PromiseLike<any> {
+    const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: PromiseLike<any> }, dataType: string) => {
       if (this.dataFetchers[dataType]) {
         promisesByDataType[dataType] = this.dataFetchers[dataType]();
       }

@@ -1,6 +1,6 @@
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
-import { IPromise } from 'angular';
+
 
 import { AccountService, IAccountDetails } from 'core/account';
 import { Application } from 'core/application';
@@ -15,7 +15,7 @@ export class ProviderSelectionService {
     application: Application,
     feature: string,
     filterFn?: IProviderSelectionFilter,
-  ): IPromise<string> {
+  ): PromiseLike<string> {
     return AccountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {

@@ -80,7 +80,7 @@ export class AppengineLoadBalancerTransformer {
   public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {}
 
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -104,7 +104,7 @@ export class AppengineLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: IAppengineLoadBalancer,
     application: Application,
-  ): ng.IPromise<IAppengineLoadBalancer> {
+  ): PromiseLike<IAppengineLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

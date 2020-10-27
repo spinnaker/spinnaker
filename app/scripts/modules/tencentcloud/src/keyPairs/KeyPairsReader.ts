@@ -1,11 +1,11 @@
-import { IPromise } from 'angular';
+
 
 import { API } from '@spinnaker/core';
 
 import { IKeyPair } from 'tencentcloud/domain';
 
 export class KeyPairsReader {
-  public static listKeyPairs(): IPromise<IKeyPair[]> {
+  public static listKeyPairs(): PromiseLike<IKeyPair[]> {
     return API.all('keyPairs')
       .useCache()
       .getList()

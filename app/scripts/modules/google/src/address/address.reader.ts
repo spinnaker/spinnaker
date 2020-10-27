@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 
 import { InfrastructureCaches, ISearchResults, SearchService } from '@spinnaker/core';
 
@@ -27,7 +27,7 @@ export interface IGceAddress {
 }
 
 class GceAddressReader {
-  public listAddresses(region?: string): IPromise<IGceAddress[]> {
+  public listAddresses(region?: string): PromiseLike<IGceAddress[]> {
     if (region) {
       return this.listAddresses(null /* region */).then((addresses) =>
         addresses.filter((address) => address.region === region),

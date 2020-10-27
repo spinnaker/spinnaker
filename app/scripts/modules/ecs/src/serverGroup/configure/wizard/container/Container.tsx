@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { module, IPromise } from 'angular';
+import { module } from 'angular';
 import { uniqWith, isEqual } from 'lodash';
 import { react2angular } from 'react2angular';
 import {
@@ -14,7 +14,7 @@ import { Option } from 'react-select';
 export interface IContainerProps {
   command: IEcsServerGroupCommand;
   notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => IPromise<void>;
+  configureCommand: (query: string) => PromiseLike<void>;
 }
 
 interface IContainerState {

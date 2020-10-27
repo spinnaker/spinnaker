@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 import { Application } from '@spinnaker/core';
 import { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../interfaces';
 
@@ -6,7 +6,7 @@ export class KubernetesV2ServerGroupTransformer {
   public normalizeServerGroup(
     serverGroup: IKubernetesServerGroup,
     application: Application,
-  ): IPromise<IKubernetesServerGroup> {
+  ): PromiseLike<IKubernetesServerGroup> {
     return application
       .getDataSource('serverGroupManagers')
       .ready()

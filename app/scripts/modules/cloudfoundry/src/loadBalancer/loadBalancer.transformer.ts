@@ -45,7 +45,7 @@ export class CloudFoundryLoadBalancerTransformer {
   public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {}
 
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -87,7 +87,7 @@ export class CloudFoundryLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: ICloudFoundryLoadBalancer,
     application: Application,
-  ): ng.IPromise<ICloudFoundryLoadBalancer> {
+  ): PromiseLike<ICloudFoundryLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

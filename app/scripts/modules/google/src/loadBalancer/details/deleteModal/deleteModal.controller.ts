@@ -1,4 +1,4 @@
-import { IController, IPromise, module } from 'angular';
+import { IController, module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP, { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { Application, ILoadBalancerDeleteCommand, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
@@ -71,7 +71,7 @@ class DeleteLoadBalancerModalController implements IController {
     }
   }
 
-  private getSubmitMethod(): () => IPromise<any> {
+  private getSubmitMethod(): () => PromiseLike<any> {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
         return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);

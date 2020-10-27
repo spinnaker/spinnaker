@@ -1,11 +1,11 @@
-import { IQService, IPromise } from 'angular';
+import { IQService } from 'angular';
 import { IEcsLoadBalancerSourceData, IEcsLoadBalancer, IEcsTargetGroup } from '../domain/IEcsLoadBalancer';
 
 export class EcsLoadBalancerTransformer {
   public static $inject = ['$q'];
   constructor(private $q: IQService) {}
 
-  public normalizeLoadBalancer(loadBalancer: IEcsLoadBalancerSourceData): IPromise<IEcsLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IEcsLoadBalancerSourceData): PromiseLike<IEcsLoadBalancer> {
     loadBalancer.targetGroups.forEach((tg: IEcsTargetGroup) => {
       tg.region = loadBalancer.region;
       tg.account = loadBalancer.account;

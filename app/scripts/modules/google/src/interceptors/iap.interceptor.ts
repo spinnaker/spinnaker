@@ -1,4 +1,4 @@
-import { IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider, IPromise, module } from 'angular';
+import { IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider, module } from 'angular';
 import { $http, $q } from 'ngimport';
 import { SETTINGS } from '@spinnaker/core';
 
@@ -7,7 +7,7 @@ import { SETTINGS } from '@spinnaker/core';
  */
 
 export class IapInterceptor implements IHttpInterceptor {
-  public responseError = <T>(response: IHttpPromiseCallbackArg<T>): IPromise<T> => {
+  public responseError = <T>(response: IHttpPromiseCallbackArg<T>): PromiseLike<T> => {
     const { config, status } = response;
 
     if (status === 401 && SETTINGS.feature.iapRefresherEnabled) {

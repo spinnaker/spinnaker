@@ -1,4 +1,4 @@
-import { module, IDeferred, IPromise, IQService } from 'angular';
+import { module, IDeferred, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
@@ -40,7 +40,7 @@ export class InfrastructureSearcher {
       });
   }
 
-  public query(q: string): IPromise<ISearchResultSet[]> {
+  public query(q: string): PromiseLike<ISearchResultSet[]> {
     this.deferred = this.$q.defer();
     this.querySubject.next(q);
     return this.deferred.promise;
@@ -50,11 +50,11 @@ export class InfrastructureSearcher {
     return searchResultTypeRegistry.get(category);
   }
 
-  public formatRouteResult(category: string, entry: ISearchResult): IPromise<string> {
+  public formatRouteResult(category: string, entry: ISearchResult): PromiseLike<string> {
     return this.formatResult(category, entry, true);
   }
 
-  private formatResult(category: string, entry: ISearchResult, fromRoute = false): IPromise<string> {
+  private formatResult(category: string, entry: ISearchResult, fromRoute = false): PromiseLike<string> {
     const type = searchResultTypeRegistry.get(category);
     if (!type) {
       return this.$q.when('');

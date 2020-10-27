@@ -73,7 +73,7 @@ class AppengineServerGroupTransformer {
   public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {}
 
-  public normalizeServerGroup(serverGroup: IServerGroup): ng.IPromise<IServerGroup> {
+  public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
     return this.$q.resolve(serverGroup);
   }
 

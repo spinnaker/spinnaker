@@ -1,4 +1,4 @@
-import { IPromise, IRequestConfig } from 'angular';
+import { IRequestConfig } from 'angular';
 import { $q, $http } from 'ngimport';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { SETTINGS } from 'core/config/settings';
@@ -12,11 +12,11 @@ export interface IRequestBuilder {
   useCache?: (useCache: boolean | ICache) => IRequestBuilder;
   withParams?: (data: any) => IRequestBuilder;
   data?: (data: any) => IRequestBuilder;
-  get?: (data?: any) => IPromise<any>;
-  getList?: (data?: any) => IPromise<any>;
-  post?: (data: any) => IPromise<any>;
-  remove?: (data: any) => IPromise<any>;
-  put?: (data: any) => IPromise<any>;
+  get?: (data?: any) => PromiseLike<any>;
+  getList?: (data?: any) => PromiseLike<any>;
+  post?: (data: any) => PromiseLike<any>;
+  remove?: (data: any) => PromiseLike<any>;
+  put?: (data: any) => PromiseLike<any>;
 }
 
 export class InvalidAPIResponse extends Error {
@@ -37,7 +37,7 @@ export class API {
 
   public static readonly invalidContentMessage = 'API response was neither JSON nor zero-length html or text';
 
-  private static getData(result: any): IPromise<any> {
+  private static getData(result: any): PromiseLike<any> {
     return $q((resolve, reject) => {
       const contentType = result.headers('content-type');
       if (contentType) {
@@ -97,7 +97,7 @@ export class API {
   }
 
   // HTTP GET operation
-  private static getFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static getFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
     return (params: any) => {
       config.method = 'get';
       Object.assign(config, this.defaultParams);
@@ -110,7 +110,7 @@ export class API {
   }
 
   // HTTP POST operation
-  private static postFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static postFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
     return (data: any) => {
       config.method = 'post';
       if (data) {
@@ -123,7 +123,7 @@ export class API {
   }
 
   // HTTP DELETE operation
-  private static removeFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static removeFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
     return (params: any) => {
       config.method = 'delete';
       if (params) {
@@ -136,7 +136,7 @@ export class API {
   }
 
   // HTTP PUT operation
-  private static putFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static putFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
     return (data: any) => {
       config.method = 'put';
       if (data) {

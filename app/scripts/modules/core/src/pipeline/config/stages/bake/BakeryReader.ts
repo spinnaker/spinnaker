@@ -1,5 +1,5 @@
 import { get, has } from 'lodash';
-import { IPromise } from 'angular';
+
 import { $q } from 'ngimport';
 
 import { AccountService } from 'core/account/AccountService';
@@ -20,7 +20,7 @@ export interface IBaseOsOptions {
 }
 
 export class BakeryReader {
-  public static getRegions(provider: string): IPromise<string[]> {
+  public static getRegions(provider: string): PromiseLike<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
       return $q.when(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
@@ -29,17 +29,17 @@ export class BakeryReader {
     );
   }
 
-  public static getBaseOsOptions(provider: string): ng.IPromise<IBaseOsOptions> {
+  public static getBaseOsOptions(provider: string): PromiseLike<IBaseOsOptions> {
     return this.getAllBaseOsOptions().then((options) => {
       return options.find((o) => o.cloudProvider === provider);
     });
   }
 
-  private static getAllBaseOsOptions(): ng.IPromise<IBaseOsOptions[]> {
+  private static getAllBaseOsOptions(): PromiseLike<IBaseOsOptions[]> {
     return API.one('bakery', 'options').useCache().getList();
   }
 
-  public static getBaseLabelOptions(): ng.IPromise<string[]> {
+  public static getBaseLabelOptions(): PromiseLike<string[]> {
     return $q.when(['release', 'candidate', 'previous', 'unstable']);
   }
 }

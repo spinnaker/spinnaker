@@ -413,7 +413,7 @@ class AppengineServerGroupDetailsController implements IController {
     }
   }
 
-  private extractServerGroup(fromParams: IServerGroupFromStateParams): ng.IPromise<void> {
+  private extractServerGroup(fromParams: IServerGroupFromStateParams): PromiseLike<void> {
     return ServerGroupReader.getServerGroup(
       this.app.name,
       fromParams.accountId,

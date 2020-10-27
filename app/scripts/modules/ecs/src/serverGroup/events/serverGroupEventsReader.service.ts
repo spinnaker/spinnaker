@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { $log } from 'ngimport';
 
 import { API, IServerGroup } from '@spinnaker/core';
@@ -11,7 +11,7 @@ export interface IEventDescription {
 }
 
 export class ServerGroupEventsReader {
-  public static getEvents(serverGroup: IServerGroup): IPromise<IEventDescription[]> {
+  public static getEvents(serverGroup: IServerGroup): PromiseLike<IEventDescription[]> {
     return API.one('applications')
       .one(serverGroup.app)
       .one('serverGroups')

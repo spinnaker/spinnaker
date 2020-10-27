@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
@@ -17,13 +17,13 @@ export class SecurityGroupWriter {
     securityGroup: ISecurityGroup,
     application: Application,
     params: ISecurityGroupJob,
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'deleteSecurityGroup';
     params.securityGroupName = securityGroup.name;
     params.regions = [securityGroup.region];
     params.credentials = securityGroup.accountId;
 
-    const operation: IPromise<ITask> = TaskExecutor.executeTask({
+    const operation: PromiseLike<ITask> = TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Delete ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,
@@ -38,14 +38,14 @@ export class SecurityGroupWriter {
     application: Application,
     description: string,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'upsertSecurityGroup';
     params.securityGroupName = securityGroup.name;
     params.credentials = securityGroup.credentials || securityGroup.accountName;
 
     const job: ISecurityGroupJob = { ...securityGroup, ...params };
 
-    const operation: IPromise<ITask> = TaskExecutor.executeTask({
+    const operation: PromiseLike<ITask> = TaskExecutor.executeTask({
       job: [job],
       application,
       description: `${description} ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,

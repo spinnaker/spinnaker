@@ -1,4 +1,4 @@
-import { module, IPromise, IQService } from 'angular';
+import { module, IQService } from 'angular';
 import { chain, clone, extend, find, flatten, has, intersection, keys, some, xor } from 'lodash';
 
 import {
@@ -178,7 +178,7 @@ export class EcsServerGroupConfigurationService {
   }
 
   // TODO (Bruno Carrier): Why do we need to inject an Application into this constructor so that the app works?  This is strange, and needs investigating
-  public configureCommand(cmd: IEcsServerGroupCommand, imageQuery = ''): IPromise<void> {
+  public configureCommand(cmd: IEcsServerGroupCommand, imageQuery = ''): PromiseLike<void> {
     this.applyOverrides('beforeConfiguration', cmd);
     cmd.toggleSuspendedProcess = (command: IEcsServerGroupCommand, process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];

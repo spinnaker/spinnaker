@@ -1,5 +1,5 @@
 import React from 'react';
-import { IPromise } from 'angular';
+
 import classNames from 'classnames';
 
 import { Modal } from 'react-bootstrap';
@@ -17,7 +17,7 @@ export interface IShowPipelineTemplateJsonModalProps extends IModalComponentProp
   editable?: boolean;
   modalHeading?: string;
   descriptionText?: string;
-  saveTemplate?: (template: IPipelineTemplateV2) => IPromise<boolean>;
+  saveTemplate?: (template: IPipelineTemplateV2) => PromiseLike<boolean>;
 }
 
 export interface IShowPipelineTemplateJsonModalState {

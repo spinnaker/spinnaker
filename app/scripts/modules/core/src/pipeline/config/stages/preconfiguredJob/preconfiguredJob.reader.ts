@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { API } from 'core/api';
 
 export interface IPreconfiguredJobParameter {
@@ -21,7 +21,7 @@ export interface IPreconfiguredJob {
 }
 
 export const PreconfiguredJobReader = {
-  list(): IPromise<IPreconfiguredJob[]> {
+  list(): PromiseLike<IPreconfiguredJob[]> {
     return API.one('jobs').all('preconfigured').useCache().getList();
   },
 };
