@@ -1,8 +1,9 @@
-const deckWebpackConfigurer = require('../webpack.config');
 const createCompiler = require('@storybook/addon-docs/mdx-compiler-plugin');
 
+const deckWebpackConfigurer = require('../webpack.config');
+
 module.exports = {
-  addons: ['@storybook/preset-typescript', '@storybook/addon-essentials'],
+  addons: ['@storybook/preset-typescript', '@storybook/addon-essentials', '@storybook/addon-storysource'],
   stories: [
     '../app/scripts/modules/core/src/presentation/**/*.stories.[tj]sx',
     '../app/scripts/modules/core/src/presentation/**/*.stories.mdx',
@@ -29,6 +30,16 @@ module.exports = {
           { loader: 'babel-loader', options: { presets: ['@babel/preset-env', '@babel/preset-react'] } },
           { loader: '@mdx-js/loader', options: { compilers: [createCompiler()] } },
         ],
+      },
+      {
+        test: /\.stories\.tsx?$/,
+        loaders: [
+          {
+            loader: require.resolve('@storybook/source-loader'),
+            options: { parser: 'typescript' },
+          },
+        ],
+        enforce: 'pre',
       },
     ];
 
