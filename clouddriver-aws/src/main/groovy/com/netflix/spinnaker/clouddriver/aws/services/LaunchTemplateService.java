@@ -230,8 +230,7 @@ public class LaunchTemplateService {
                     .withName(settings.getIamRole()))
             .withMonitoring(
                 new LaunchTemplatesMonitoringRequest()
-                    .withEnabled(settings.getInstanceMonitoring()))
-            .withSecurityGroupIds(settings.getSecurityGroups());
+                    .withEnabled(settings.getInstanceMonitoring()));
 
     setUserData(
         request,
