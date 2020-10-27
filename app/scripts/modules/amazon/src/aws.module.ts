@@ -70,6 +70,8 @@ import { AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/
 import { AMAZON_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResultFormatter';
 import { AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
 import { INSTANCE_STATUS_COMPONENT } from './instance/details/instanceStatus.component';
+import { INSTANCE_TAGS_COMPONENT } from './instance/details/instanceTags.component';
+import { INSTANCE_SECURITY_GROUPS_COMPONENT } from './instance/details/instanceSecurityGroups.component';
 import { AMAZON_INSTANCE_INFORMATION_COMPONENT } from './instance/details/amazonInstanceInformation.component';
 
 // load all templates into the $templateCache
@@ -111,6 +113,8 @@ module(AMAZON_MODULE, [
   CLOUD_FORMATION_CHANGE_SET_INFO,
   AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE,
   INSTANCE_STATUS_COMPONENT,
+  INSTANCE_TAGS_COMPONENT,
+  INSTANCE_SECURITY_GROUPS_COMPONENT,
   AMAZON_INSTANCE_INFORMATION_COMPONENT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {

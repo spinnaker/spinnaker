@@ -103,24 +103,8 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="{{securityGroupsLabel}}">
-      <ul>
-        <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
-          <a
-            ui-sref="^.firewallDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region, vpcId: instance.vpcId, provider: instance.provider})"
-          >
-            {{securityGroup.groupName}} ({{securityGroup.groupId}})
-          </a>
-        </li>
-      </ul>
-    </collapsible-section>
-    <collapsible-section heading="Tags">
-      <div ng-if=" !instance.tags.length">No tags associated with this server</div>
-      <dl ng-if="instance.tags.length">
-        <dt ng-repeat-start="tag in instance.tags | orderBy: 'key.toLowerCase()'">{{tag.key}}</dt>
-        <dd ng-repeat-end>{{tag.value}}</dd>
-      </dl>
-    </collapsible-section>
+    <instance-security-groups instance="instance"></instance-security-groups>
+    <instance-tags tags="instance.tags"></instance-tags>
     <collapsible-section heading="Console Output" ng-if="baseIpAddress">
       <ul>
         <li>
