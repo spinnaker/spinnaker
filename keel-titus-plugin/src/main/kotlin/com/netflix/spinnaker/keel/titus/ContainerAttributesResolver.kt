@@ -45,19 +45,22 @@ class ContainerAttributesResolver(
       topLevelAttrs.putIfAbsent(defaults.getAccountKey(), awsAccountId)
     }
 
-    if (!keyPresentInAllRegions(resource, defaults.getSubnetKey())){
+    if (!keyPresentInAllRegions(resource, defaults.getSubnetKey())) {
       val regions = resource.spec.locations.regions.map { it.name }
       regions.forEach { region ->
         var override = overrides[region] ?: TitusServerGroupSpec()
-        val subnetDefault = mapOf(defaults.getSubnetKey() to defaults.getSubnetValue(account, region))
-        val containerAttributes = override.containerAttributes ?: mutableMapOf()
-        override = if (!containerAttributes.containsKey(defaults.getSubnetKey())) {
-          override.copy(containerAttributes = containerAttributes + subnetDefault)
-        } else {
-          override.copy(containerAttributes = containerAttributes)
+        val subnet = defaults.getSubnetValue(account, region)
+        if (subnet != null) {
+          // only add subnet pair if we have an entry for the subnet
+          val subnetDefault = mapOf(defaults.getSubnetKey() to subnet)
+          val containerAttributes = override.containerAttributes ?: mutableMapOf()
+          override = if (!containerAttributes.containsKey(defaults.getSubnetKey())) {
+            override.copy(containerAttributes = containerAttributes + subnetDefault)
+          } else {
+            override.copy(containerAttributes = containerAttributes)
+          }
+          overrides[region] = override
         }
-
-        overrides[region] = override
       }
     }
     val resourceDefaults = resource.spec.defaults.copy(containerAttributes = topLevelAttrs)

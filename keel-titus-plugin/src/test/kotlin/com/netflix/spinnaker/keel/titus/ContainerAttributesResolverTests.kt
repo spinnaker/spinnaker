@@ -20,6 +20,7 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 
 internal class ContainerAttributesResolverTests : JUnit5Minutests {
 
@@ -35,6 +36,7 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
     every { getSubnetKey() } returns subnetKey
     every { getSubnetValue(account, "east")} returns eastSubnets
     every { getSubnetValue(account, "west")} returns westSubnets
+    every { getSubnetValue(account, "south")} returns null
   }
 
   val baseSpec = TitusClusterSpec(
@@ -55,6 +57,7 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
   val springEnv: Environment = mockk(relaxed = true) {
     coEvery { getProperty("keel.titus.resolvers.container-attributes.enabled", Boolean::class.java, true) } returns true
   }
+
   data class Fixture(val subject: ContainerAttributesResolver, val spec: TitusClusterSpec) {
     val resource = resource(
       kind = TITUS_CLUSTER_V1.kind,
@@ -63,23 +66,24 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
     val resolved by lazy { subject(resource) }
   }
 
-
   fun tests() = rootContext<Fixture> {
-    fixture {
-      Fixture(
-        ContainerAttributesResolver(defaults, clouddriverService, springEnv),
-        baseSpec
-      )
-    }
+    context("basic test") {
+      fixture {
+        Fixture(
+          ContainerAttributesResolver(defaults, clouddriverService, springEnv),
+          baseSpec
+        )
+      }
 
-    test("supports the resource kind") {
-      expectThat(listOf(subject).supporting(resource))
-        .containsExactly(subject)
-    }
+      test("supports the resource kind") {
+        expectThat(listOf(subject).supporting(resource))
+          .containsExactly(subject)
+      }
 
-    context("spec has no defaults set") {
-      test("account and subnet are set") {
-        validateKeysSet(resolved)
+      context("spec has no defaults set") {
+        test("account and subnet are set") {
+          validateKeysSet(resolved)
+        }
       }
     }
 
@@ -105,13 +109,33 @@ internal class ContainerAttributesResolverTests : JUnit5Minutests {
       }
 
       test("we leave the values that are set") {
-        val resolvedEast = resource.spec.resolveContainerAttributes("east")
-        val resolvedWest = resource.spec.resolveContainerAttributes("west")
+        val resolvedEast = resolved.spec.resolveContainerAttributes("east")
+        val resolvedWest = resolved.spec.resolveContainerAttributes("west")
         expect {
           that(resolvedEast[accountKey]).isEqualTo("blah")
           that(resolvedEast[subnetKey]).isEqualTo("fake-subnets")
           that(resolvedWest[accountKey]).isEqualTo("blah")
           that(resolvedWest[subnetKey]).isEqualTo("fake-subnets")
+        }
+      }
+    }
+
+    context("we don't have an entry for the region") {
+      fixture {
+        Fixture(
+          ContainerAttributesResolver(defaults, clouddriverService, springEnv),
+          baseSpec.copy(locations = SimpleLocations(
+            account = account,
+            regions = setOf(SimpleRegionSpec("south"))
+          ))
+        )
+      }
+
+      test("we only add account") {
+        val resolvedSouth = resolved.spec.resolveContainerAttributes("south")
+        expect {
+          that(resolvedSouth[accountKey]).isEqualTo(awsAccountId)
+          that(resolvedSouth[subnetKey]).isNull()
         }
       }
     }
