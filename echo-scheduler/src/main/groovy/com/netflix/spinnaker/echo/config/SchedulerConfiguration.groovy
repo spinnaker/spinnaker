@@ -115,6 +115,7 @@ class SchedulerConfiguration {
           props.put("org.quartz.jobStore.isClustered", "true")
           props.put("org.quartz.jobStore.acquireTriggersWithinLock", "true")
           props.put("org.quartz.scheduler.instanceId", "AUTO")
+          props.put("org.quartz.jobStore.dontSetAutoCommitFalse", "false")
           schedulerFactoryBean.setQuartzProperties(props)
         }
         schedulerFactoryBean.setGlobalTriggerListeners(triggerListener)
