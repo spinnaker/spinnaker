@@ -75,6 +75,21 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
       </>
     ),
   },
+  DIFF_NOT_ACTIONABLE: {
+    appearance: 'warning',
+    iconName: 'mdDiff',
+    popoverContents: (resourceSummary: IManagedResourceSummary) => (
+      <>
+        <p>
+          <b>Spinnaker detected a difference from the desired state, but can't take action to resolve it.</b>
+        </p>
+        <p>
+          Spinnaker doesn't have a way of resolving this kind of difference. Manual action might be required. You can
+          click History to see more. <LearnMoreLink resourceSummary={resourceSummary} />
+        </p>
+      </>
+    ),
+  },
   CURRENTLY_UNRESOLVABLE: {
     appearance: 'warning',
     // Needs its own icon
