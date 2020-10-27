@@ -1,4 +1,4 @@
-/* eslint-disable */ // todo(ct): disable only prefer-promise-like
+/* eslint-disable @spinnaker/prefer-promise-like */
 
 import { IPromise } from '@types/angular';
 
@@ -115,6 +115,18 @@ declare module '@types/angular' {
 declare global {
   // This allows an angular $q promise to be returned as a PromiseLike<T>
   interface PromiseLike<T> {
+    // Copied from lib.es5.d.ts
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    ): PromiseLike<TResult1 | TResult2>;
+
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
@@ -123,5 +135,14 @@ declare global {
     catch<TResult = never>(
       onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
     ): PromiseLike<T | TResult>;
+
+    // copied from lib.es2018.promise.d.ts
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): PromiseLike<T>;
   }
 }

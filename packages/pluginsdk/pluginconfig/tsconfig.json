@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es2017", "dom"],
+    "lib": ["es2017", "dom", "ES2018.Promise"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,
