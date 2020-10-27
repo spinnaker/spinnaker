@@ -1,7 +1,7 @@
 import React from 'react';
 import { cloneDeep, get } from 'lodash';
 import { FormikErrors } from 'formik';
-import { IPromise } from 'angular';
+
 
 import {
   AccountService,
@@ -89,7 +89,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
     return certificateId;
   }
 
-  private formatListeners(command: IAmazonNetworkLoadBalancerUpsertCommand): IPromise<void> {
+  private formatListeners(command: IAmazonNetworkLoadBalancerUpsertCommand): PromiseLike<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         if (listener.protocol === 'TCP') {

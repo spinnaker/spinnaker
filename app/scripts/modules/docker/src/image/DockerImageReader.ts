@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { API, IFindImageParams, IFindTagsParams, IImage, RetryService } from '@spinnaker/core';
 
@@ -10,7 +10,7 @@ export interface IDockerImage extends IImage {
 }
 
 export class DockerImageReader {
-  public static getImage(imageName: string, region: string, credentials: string): IPromise<IDockerImage> {
+  public static getImage(imageName: string, region: string, credentials: string): PromiseLike<IDockerImage> {
     return API.all('images')
       .one(credentials)
       .one(region)
@@ -21,7 +21,7 @@ export class DockerImageReader {
       .catch((): IDockerImage => null);
   }
 
-  public static findImages(params: IFindImageParams): IPromise<IDockerImage[]> {
+  public static findImages(params: IFindImageParams): PromiseLike<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
       () => API.all('images', 'find').getList(params),
       (results: IDockerImage[]) => results.length > 0,
@@ -32,7 +32,7 @@ export class DockerImageReader {
       .catch((): IDockerImage[] => []);
   }
 
-  public static findTags(params: IFindTagsParams): IPromise<string[]> {
+  public static findTags(params: IFindTagsParams): PromiseLike<string[]> {
     return RetryService.buildRetrySequence<string[]>(
       () => API.all('images', 'tags').getList(params),
       (results: string[]) => results.length > 0,

@@ -1,5 +1,5 @@
 import { chain, intersection, zipObject, uniq } from 'lodash';
-import { IPromise, IQResolveReject } from 'angular';
+import { IQResolveReject } from 'angular';
 import { $log, $q } from 'ngimport';
 import { Observable } from 'rxjs';
 
@@ -77,7 +77,7 @@ export class AccountService {
     });
   }
 
-  public static challengeDestructiveActions(account: string): IPromise<boolean> {
+  public static challengeDestructiveActions(account: string): PromiseLike<boolean> {
     return $q((resolve: IQResolveReject<boolean>) => {
       if (account) {
         this.getAccountDetails(account)
@@ -95,15 +95,15 @@ export class AccountService {
     });
   }
 
-  public static getArtifactAccounts(): IPromise<IArtifactAccount[]> {
+  public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
     return API.one('artifacts').one('credentials').useCache().get();
   }
 
-  public static getAccountDetails(account: string): IPromise<IAccountDetails> {
+  public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {
     return this.listAllAccounts().then((accounts) => accounts.find((a) => a.name === account));
   }
 
-  public static getAllAccountDetailsForProvider(provider: string): IPromise<IAccountDetails[]> {
+  public static getAllAccountDetailsForProvider(provider: string): PromiseLike<IAccountDetails[]> {
     return this.listAccounts(provider).catch((error: any) => {
       $log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
       return [];
@@ -114,20 +114,20 @@ export class AccountService {
     provider: string,
     account: string,
     region: string,
-  ): IPromise<string[]> {
+  ): PromiseLike<string[]> {
     return this.getPreferredZonesByAccount(provider).then(
       (result: IAccountZone) => (result[account] && result[account][region]) || [],
     );
   }
 
-  public static getCredentialsKeyedByAccount(provider: string = null): IPromise<IAggregatedAccounts> {
+  public static getCredentialsKeyedByAccount(provider: string = null): PromiseLike<IAggregatedAccounts> {
     return this.listAllAccounts(provider).then((accounts: IAccountDetails[]) => {
       const names: string[] = accounts.map((account: IAccount) => account.name);
       return zipObject<IAccountDetails, IAggregatedAccounts>(names, accounts);
     });
   }
 
-  public static getPreferredZonesByAccount(provider: string): IPromise<IAccountZone> {
+  public static getPreferredZonesByAccount(provider: string): PromiseLike<IAccountZone> {
     const preferred: IAccountZone = {};
     return this.getAllAccountDetailsForProvider(provider).then((accounts: IAccountDetails[]) => {
       accounts.forEach((account: IAccountDetails) => {
@@ -146,11 +146,11 @@ export class AccountService {
     });
   }
 
-  public static getRegionsForAccount(account: string): IPromise<IRegion[]> {
+  public static getRegionsForAccount(account: string): PromiseLike<IRegion[]> {
     return this.getAccountDetails(account).then((details: IAccountDetails) => (details ? details.regions : []));
   }
 
-  public static getUniqueAttributeForAllAccounts(provider: string, attribute: string): IPromise<string[]> {
+  public static getUniqueAttributeForAllAccounts(provider: string, attribute: string): PromiseLike<string[]> {
     return this.getCredentialsKeyedByAccount(provider).then((credentials: IAggregatedAccounts) => {
       return chain(credentials)
         .map(attribute)
@@ -162,19 +162,19 @@ export class AccountService {
     });
   }
 
-  public static listAllAccounts(provider: string = null): IPromise<IAccountDetails[]> {
+  public static listAllAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
     return $q
       .when(this.accounts$.toPromise())
       .then((accounts: IAccountDetails[]) => accounts.filter((account) => !provider || account.type === provider));
   }
 
-  public static listAccounts(provider: string = null): IPromise<IAccountDetails[]> {
+  public static listAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
     return this.listAllAccounts(provider).then((accounts) =>
       accounts.filter((account) => account.authorized !== false),
     );
   }
 
-  public static applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
+  public static applicationAccounts(application: Application = null): PromiseLike<IAccountDetails[]> {
     return $q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
       return providers.reduce((memo, p) => {
         return memo.concat(accounts.filter((acc) => acc.cloudProvider === p));
@@ -198,11 +198,11 @@ export class AccountService {
       .map((results) => results.sort());
   }
 
-  public static listProviders(application: Application = null): IPromise<string[]> {
+  public static listProviders(application: Application = null): PromiseLike<string[]> {
     return $q.when(this.listProviders$(application).toPromise());
   }
 
-  public static getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
+  public static getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): PromiseLike<string> {
     return app.ready().then(() => {
       const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
       const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];

@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { API } from 'core/api/ApiService';
 import { TaskReader } from './task.read.service';
@@ -10,11 +10,11 @@ export interface ITaskCreateResult {
 }
 
 export class TaskWriter {
-  public static postTaskCommand(taskCommand: ITaskCommand): IPromise<ITaskCreateResult> {
+  public static postTaskCommand(taskCommand: ITaskCommand): PromiseLike<ITaskCreateResult> {
     return API.all('tasks').post(taskCommand);
   }
 
-  public static cancelTask(taskId: string): IPromise<void> {
+  public static cancelTask(taskId: string): PromiseLike<void> {
     return API.all('tasks')
       .one(taskId, 'cancel')
       .put()

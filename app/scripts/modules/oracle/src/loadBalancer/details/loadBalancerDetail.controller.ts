@@ -42,7 +42,7 @@ export class OracleLoadBalancerDetailController implements IController {
     };
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
-    const extractLoadBalancer = () => {
+    const extractLoadBalancer = (): PromiseLike<any> => {
       $scope.loadBalancer = app.loadBalancers.data.filter((test: IOracleLoadBalancer) => {
         return (
           test.name === loadBalancer.name &&

@@ -1,4 +1,4 @@
-import { IPromise, IRequestConfig, module } from 'angular';
+import { IRequestConfig, module } from 'angular';
 import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
@@ -10,7 +10,7 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
   // in essense, we need to do this because "the ng1 implementaiton of interceptors only keeps references to the handler
   // functions themselves and invokes them directly without any context (stateless) which means we lose `this` inside
   // the handlers"
-  public request = (config: IRequestConfig): IPromise<IRequestConfig> => {
+  public request = (config: IRequestConfig): PromiseLike<IRequestConfig> => {
     return this.$q((resolve: ng.IQResolveReject<any>) => {
       // pass through to authentication endpoint and non-http resources
       if (config.url === SETTINGS.authEndpoint || config.url.indexOf('http') !== 0) {

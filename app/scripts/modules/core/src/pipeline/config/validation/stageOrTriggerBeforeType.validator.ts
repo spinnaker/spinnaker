@@ -1,4 +1,4 @@
-import { IPromise, IDeferred } from 'angular';
+import { IDeferred } from 'angular';
 import { $q } from 'ngimport';
 
 import { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
@@ -23,7 +23,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     stage: IStage,
     validator: IStageOrTriggerBeforeTypeValidationConfig,
     _config: IStageOrTriggerTypeConfig,
-  ): IPromise<string> {
+  ): PromiseLike<string> {
     const stageTypes = validator.getStageTypes
       ? validator.getStageTypes()
       : validator.stageTypes || [validator.stageType];
@@ -62,7 +62,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(
       (t) => t.type === 'pipeline',
     ) as IPipelineTrigger[];
-    const parentTriggersToCheck: Array<IPromise<any>> = [];
+    const parentTriggersToCheck: Array<PromiseLike<any>> = [];
     pipelineTriggers.forEach((trigger) => {
       const deferred: IDeferred<any> = $q.defer();
       if (this.pipelineCache.has(trigger.application)) {

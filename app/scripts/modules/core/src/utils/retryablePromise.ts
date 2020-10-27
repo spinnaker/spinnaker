@@ -1,19 +1,19 @@
-import { IPromise } from 'angular';
+
 import { $timeout } from 'ngimport';
 
 export interface IRetryablePromise<T> {
   cancel: () => void;
-  promise: IPromise<T>;
+  promise: PromiseLike<T>;
 }
 
 export const retryablePromise = <T>(
-  closure: () => IPromise<T>,
+  closure: () => PromiseLike<T>,
   interval = 1000,
   maxTries = 0,
 ): IRetryablePromise<T> => {
-  let currentTimeout: IPromise<T>;
+  let currentTimeout: PromiseLike<T>;
   let currentTries = 0;
-  const retryPromise: () => IPromise<T> = () => {
+  const retryPromise: () => PromiseLike<T> = () => {
     currentTries++;
     if (maxTries === 0 || currentTries <= maxTries) {
       return closure().catch(() => {

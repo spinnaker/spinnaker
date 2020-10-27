@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { $log } from 'ngimport';
 
@@ -6,7 +6,7 @@ import { API } from 'core/api/ApiService';
 import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
-  public static getScalingActivities(serverGroup: IServerGroup): IPromise<any[]> {
+  public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {
     return API.one('applications')
       .one(serverGroup.app)
       .all('clusters')
@@ -30,7 +30,7 @@ export class ServerGroupReader {
     account: string,
     region: string,
     serverGroupName: string,
-  ): IPromise<IServerGroup> {
+  ): PromiseLike<IServerGroup> {
     return API.one('applications')
       .one(application)
       .all('serverGroups')

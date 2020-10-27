@@ -1,11 +1,11 @@
-import { IPromise } from 'angular';
+
 import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
 
 export class SubnetReader {
-  private static cache: IPromise<ISubnet[]>;
+  private static cache: PromiseLike<ISubnet[]>;
 
-  public static listSubnets(): IPromise<ISubnet[]> {
+  public static listSubnets(): PromiseLike<ISubnet[]> {
     if (this.cache) {
       return this.cache;
     }
@@ -24,17 +24,17 @@ export class SubnetReader {
     return this.cache;
   }
 
-  public static listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
+  public static listSubnetsByProvider(cloudProvider: string): PromiseLike<ISubnet[]> {
     return API.one('subnets', cloudProvider).getList();
   }
 
-  public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): ng.IPromise<ISubnet> {
+  public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): PromiseLike<ISubnet> {
     return this.listSubnetsByProvider(cloudProvider).then((subnets: ISubnet[]) => {
       return subnets.find((subnet) => subnet.id === subnetId);
     });
   }
 
-  public static getSubnetPurpose(subnetId: string): ng.IPromise<string> {
+  public static getSubnetPurpose(subnetId: string): PromiseLike<string> {
     return this.listSubnets().then((subnets: ISubnet[]) => {
       const match: ISubnet = subnets.find((test) => test.id === subnetId);
       return match ? match.purpose : null;

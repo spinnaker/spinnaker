@@ -1,11 +1,11 @@
-import { IPromise } from 'angular';
+
 
 import { Application } from 'core/application/application.model';
 import { ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
 
 export class ManifestWriter {
-  public static deployManifest(command: any, application: Application): IPromise<ITask> {
+  public static deployManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Deploy manifest';
     command.type = 'deployManifest';
     return TaskExecutor.executeTask({
@@ -15,7 +15,7 @@ export class ManifestWriter {
     });
   }
 
-  public static deleteManifest(command: any, application: Application): IPromise<ITask> {
+  public static deleteManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Delete manifest';
     command.type = 'deleteManifest';
     return TaskExecutor.executeTask({
@@ -25,7 +25,7 @@ export class ManifestWriter {
     });
   }
 
-  public static scaleManifest(command: any, application: Application): IPromise<ITask> {
+  public static scaleManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Scale manifest';
     command.type = 'scaleManifest';
     return TaskExecutor.executeTask({
@@ -35,7 +35,7 @@ export class ManifestWriter {
     });
   }
 
-  public static undoRolloutManifest(command: any, application: Application): IPromise<ITask> {
+  public static undoRolloutManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Undo rollout of manifest';
     command.type = 'undoRolloutManifest';
     return TaskExecutor.executeTask({
@@ -45,7 +45,7 @@ export class ManifestWriter {
     });
   }
 
-  public static resumeRolloutManifest(command: any, application: Application): IPromise<ITask> {
+  public static resumeRolloutManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Resume rollout of manifest';
     command.type = 'resumeRolloutManifest';
     return TaskExecutor.executeTask({
@@ -55,7 +55,7 @@ export class ManifestWriter {
     });
   }
 
-  public static pauseRolloutManifest(command: any, application: Application): IPromise<ITask> {
+  public static pauseRolloutManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Pause rollout of manifest';
     command.type = 'pauseRolloutManifest';
     return TaskExecutor.executeTask({
@@ -65,7 +65,7 @@ export class ManifestWriter {
     });
   }
 
-  public static rollingRestartManifest(command: any, application: Application): IPromise<ITask> {
+  public static rollingRestartManifest(command: any, application: Application): PromiseLike<ITask> {
     const description = 'Rolling restart of manifest';
     command.type = 'rollingRestartManifest';
     return TaskExecutor.executeTask({

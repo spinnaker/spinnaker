@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { IManifest, ITask, TaskExecutor, Application } from '@spinnaker/core';
 
@@ -8,7 +8,7 @@ export class ManifestTrafficService {
   public static readonly ENABLE_MANIFEST_OPERATION = 'enableManifest';
   public static readonly DISABLE_MANIFEST_OPERATION = 'disableManifest';
 
-  public static enable = (manifest: IManifest, application: Application, reason?: string): IPromise<ITask> => {
+  public static enable = (manifest: IManifest, application: Application, reason?: string): PromiseLike<ITask> => {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -25,7 +25,7 @@ export class ManifestTrafficService {
     });
   };
 
-  public static disable = (manifest: IManifest, application: Application, reason?: string): IPromise<ITask> => {
+  public static disable = (manifest: IManifest, application: Application, reason?: string): PromiseLike<ITask> => {
     return TaskExecutor.executeTask({
       job: [
         {

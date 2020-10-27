@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 
 import { API } from 'core/api/ApiService';
 import { IFunctionSourceData } from 'core/domain';
@@ -20,7 +20,7 @@ export class FunctionReader {
 
   public constructor(private functionTransformer: IFunctionTransformer) {}
 
-  public loadFunctions(applicationName: string): IPromise<IFunctionSourceData[]> {
+  public loadFunctions(applicationName: string): PromiseLike<IFunctionSourceData[]> {
     return API.one('applications', applicationName)
       .all('functions')
       .getList()
@@ -35,7 +35,7 @@ export class FunctionReader {
     account: string,
     region: string,
     name: string,
-  ): IPromise<IFunctionSourceData[]> {
+  ): PromiseLike<IFunctionSourceData[]> {
     return API.all('functions')
       .withParams({ provider: cloudProvider, functionName: name, region: region, account: account })
       .get()
@@ -45,7 +45,7 @@ export class FunctionReader {
       });
   }
 
-  public listFunctions(cloudProvider: string): IPromise<IFunctionByAccount[]> {
+  public listFunctions(cloudProvider: string): PromiseLike<IFunctionByAccount[]> {
     return API.all('functions').withParams({ provider: cloudProvider }).getList();
   }
 

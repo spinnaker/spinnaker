@@ -1,5 +1,5 @@
 import { cloneDeep, uniq } from 'lodash';
-import { IPromise, IQService, module, noop } from 'angular';
+import { IQService, module, noop } from 'angular';
 import { Duration } from 'luxon';
 
 import { AccountService } from 'core/account/AccountService';
@@ -28,7 +28,7 @@ export class CacheInitializerService {
     config.onReset = config.onReset || [noop];
   }
 
-  private extendConfig(): IPromise<void> {
+  private extendConfig(): PromiseLike<void> {
     Object.keys(this.cacheConfig).forEach((key: string) => {
       this.setConfigDefaults(key, this.cacheConfig[key]);
     });
@@ -58,11 +58,11 @@ export class CacheInitializerService {
     });
   }
 
-  private initializeCache(key: string): IPromise<any[]> {
+  private initializeCache(key: string): PromiseLike<any[]> {
     InfrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
-      const all: Array<IPromise<any>> = [];
+      const all: Array<PromiseLike<any>> = [];
       initializer.forEach((method: Function) => {
         all.push(method());
       });
@@ -80,7 +80,7 @@ export class CacheInitializerService {
     private providerServiceDelegate: any,
   ) {}
 
-  public initialize(): IPromise<any[]> {
+  public initialize(): PromiseLike<any[]> {
     return this.extendConfig().then(() => {
       const all: any[] = [];
       Object.keys(this.cacheConfig).forEach((key: string) => {
@@ -91,13 +91,13 @@ export class CacheInitializerService {
     });
   }
 
-  public refreshCache(key: string): IPromise<any[]> {
+  public refreshCache(key: string): PromiseLike<any[]> {
     InfrastructureCaches.clearCache(key);
     return this.initializeCache(key);
   }
 
-  public refreshCaches(): IPromise<any[]> {
-    const all: Array<IPromise<any[]>> = [];
+  public refreshCaches(): PromiseLike<any[]> {
+    const all: Array<PromiseLike<any[]>> = [];
     Object.keys(this.cacheConfig).forEach((key: string) => {
       all.push(this.refreshCache(key));
     });

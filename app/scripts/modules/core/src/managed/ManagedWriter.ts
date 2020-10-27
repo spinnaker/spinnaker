@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { API } from 'core/api';
 import { StatefulConstraintStatus } from 'core/domain';
@@ -33,7 +33,7 @@ export class ManagedWriter {
     reference,
     version,
     comment,
-  }: IArtifactVersionRequest): IPromise<void> {
+  }: IArtifactVersionRequest): PromiseLike<void> {
     return API.one('managed').one('application', application).one('pin').post({
       targetEnvironment: environment,
       reference,
@@ -46,7 +46,7 @@ export class ManagedWriter {
     application,
     environment,
     reference,
-  }: IUnpinArtifactVersionRequest): IPromise<void> {
+  }: IUnpinArtifactVersionRequest): PromiseLike<void> {
     return API.one('managed')
       .one('application', application)
       .one('pin')
@@ -61,7 +61,7 @@ export class ManagedWriter {
     reference,
     version,
     comment,
-  }: IArtifactVersionRequest): IPromise<void> {
+  }: IArtifactVersionRequest): PromiseLike<void> {
     return API.one('managed').one('application', application).one('veto').post({
       targetEnvironment: environment,
       reference,
@@ -77,7 +77,7 @@ export class ManagedWriter {
     reference,
     version,
     status,
-  }: IUpdateConstraintStatusRequest): IPromise<void> {
+  }: IUpdateConstraintStatusRequest): PromiseLike<void> {
     return API.one('managed').one('application', application).one('environment', environment).one('constraint').post({
       type,
       artifactReference: reference,
@@ -86,19 +86,19 @@ export class ManagedWriter {
     });
   }
 
-  public static pauseApplicationManagement(applicationName: string): IPromise<void> {
+  public static pauseApplicationManagement(applicationName: string): PromiseLike<void> {
     return API.one('managed').one('application', applicationName).one('pause').post();
   }
 
-  public static resumeApplicationManagement(applicationName: string): IPromise<void> {
+  public static resumeApplicationManagement(applicationName: string): PromiseLike<void> {
     return API.one('managed').one('application', applicationName).one('pause').remove();
   }
 
-  public static pauseResourceManagement(resourceId: string): IPromise<void> {
+  public static pauseResourceManagement(resourceId: string): PromiseLike<void> {
     return API.one('managed').one('resources', resourceId).one('pause').post();
   }
 
-  public static resumeResourceManagement(resourceId: string): IPromise<void> {
+  public static resumeResourceManagement(resourceId: string): PromiseLike<void> {
     return API.one('managed').one('resources', resourceId).one('pause').remove();
   }
 }

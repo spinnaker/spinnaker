@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { Application } from 'core/application/application.model';
 import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
@@ -9,7 +9,7 @@ export class EntityTagWriter {
     tag: IEntityTag,
     entityRef: IEntityRef,
     isNew: boolean,
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `${isNew ? 'Create' : 'Update'} entity tag on ${entityRef.entityId}`,

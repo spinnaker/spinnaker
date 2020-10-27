@@ -1,6 +1,6 @@
 import { cloneDeep, has } from 'lodash';
 import { $q } from 'ngimport';
-import { IPromise } from 'angular';
+
 import { load } from 'js-yaml';
 
 import { AccountService, Application, IMoniker, IArtifactAccount, IAccountDetails } from '@spinnaker/core';
@@ -60,7 +60,7 @@ export class KubernetesManifestCommandBuilder {
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
     sourceAccount?: string,
-  ): IPromise<IKubernetesManifestCommandData> {
+  ): PromiseLike<IKubernetesManifestCommandData> {
     if (sourceManifest != null && has(sourceManifest, ['metadata', 'annotations', LAST_APPLIED_CONFIGURATION])) {
       sourceManifest = load(sourceManifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]);
     }

@@ -1,4 +1,4 @@
-import { IPromise, IScope } from 'angular';
+import { IScope } from 'angular';
 import { $log, $q } from 'ngimport';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
@@ -101,7 +101,7 @@ export interface IDataSourceConfig<T> {
    * It does *not* automatically populate the "data" field of the data source - that is the responsibility of the
    * "onLoad" method.
    */
-  loader?: (application: Application) => IPromise<any>;
+  loader?: (application: Application) => PromiseLike<any>;
 
   /**
    * (Optional) A method that is called when the "loader" method resolves. The method must return a promise. If the "loader"
@@ -111,7 +111,7 @@ export interface IDataSourceConfig<T> {
    * If the onLoad method resolves with a null value, the result will be discarded and the data source's "data" field
    * will remain unchanged.
    */
-  onLoad?: (application: Application, result: any) => IPromise<T>;
+  onLoad?: (application: Application, result: any) => PromiseLike<T>;
 
   /**
    * (Optional) whether this data source should be included in the application by default
@@ -206,8 +206,8 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   public label: string;
   public category: string;
   public lazy = false;
-  public loader: (application: Application) => IPromise<any>;
-  public onLoad: (application: Application, result: any) => IPromise<T>;
+  public loader: (application: Application) => PromiseLike<any>;
+  public onLoad: (application: Application, result: any) => PromiseLike<T>;
   public optIn = false;
   public optional = false;
   public primary = false;
@@ -474,9 +474,9 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    *
    * The promise will reject if the data source has failed to load, or fails to load the next time it tries to load
    *
-   * @returns {IPromise<T>}
+   * @returns {PromiseLike<T>}
    */
-  public ready(): IPromise<T> {
+  public ready(): PromiseLike<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       return $q.resolve(this.data);
     }
@@ -525,7 +525,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): IPromise<any> {
+  public refresh(forceRefresh?: boolean): PromiseLike<any> {
     this.debug(`refresh(${forceRefresh})`);
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;

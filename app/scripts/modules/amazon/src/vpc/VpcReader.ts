@@ -1,11 +1,11 @@
-import { IPromise } from 'angular';
+
 
 import { IVpc, NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {
-  private static cache: IPromise<IVpc[]>;
+  private static cache: PromiseLike<IVpc[]>;
 
-  public static listVpcs(): IPromise<IVpc[]> {
+  public static listVpcs(): PromiseLike<IVpc[]> {
     if (this.cache) {
       return this.cache;
     }

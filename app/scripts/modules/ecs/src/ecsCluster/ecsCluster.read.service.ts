@@ -4,7 +4,7 @@ import { API } from '@spinnaker/core';
 import { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EcsClusterReader {
-  public listClusters(): ng.IPromise<IEcsClusterDescriptor[]> {
+  public listClusters(): PromiseLike<IEcsClusterDescriptor[]> {
     return API.all('ecs').all('ecsClusters').getList();
   }
 }

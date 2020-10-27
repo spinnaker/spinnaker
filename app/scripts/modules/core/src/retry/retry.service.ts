@@ -1,16 +1,16 @@
-import { IPromise } from 'angular';
+
 import { $q, $timeout } from 'ngimport';
 
 export class RetryService {
   // interval is in milliseconds
   public static buildRetrySequence<T>(
-    func: () => T | IPromise<T>,
+    func: () => T | PromiseLike<T>,
     stopCondition: (results: T) => boolean,
     limit: number,
     interval: number,
-  ): IPromise<T> {
-    const call: T | IPromise<T> = func();
-    const promise: IPromise<T> = call.hasOwnProperty('then') ? (call as IPromise<T>) : $q.resolve(call);
+  ): PromiseLike<T> {
+    const call: T | PromiseLike<T> = func();
+    const promise: PromiseLike<T> = call.hasOwnProperty('then') ? (call as PromiseLike<T>) : $q.resolve(call);
     if (limit === 0) {
       return promise;
     } else {

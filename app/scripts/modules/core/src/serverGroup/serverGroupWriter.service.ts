@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
@@ -31,7 +31,7 @@ export class ServerGroupWriter {
   public static $inject = ['serverGroupTransformer'];
   constructor(private serverGroupTransformer: any) {}
 
-  public cloneServerGroup(command: IServerGroupCommand, application: Application): ng.IPromise<ITask> {
+  public cloneServerGroup(command: IServerGroupCommand, application: Application): PromiseLike<ITask> {
     let description: string;
     if (command.viewState.mode === 'clone') {
       description = `Create Cloned Server Group from ${command.source.asgName}`;
@@ -56,7 +56,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.asgName = serverGroup.name;
     params.moniker = serverGroup.moniker;
     params.serverGroupName = serverGroup.name;
@@ -76,7 +76,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     appName: string,
     params: IServerGroupJob = {},
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -96,7 +96,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -121,7 +121,7 @@ export class ServerGroupWriter {
       .join(', ');
   }
 
-  public mapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): IPromise<ITask> {
+  public mapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): PromiseLike<ITask> {
     params.type = 'mapLoadBalancers';
     params.name = [serverGroup.name];
     params.loadBalancerNames = serverGroup.loadBalancers;
@@ -139,7 +139,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -162,7 +162,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'rollbackServerGroup';
     params.moniker = serverGroup.moniker;
     params.region = serverGroup.region;
@@ -176,7 +176,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public unmapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): IPromise<ITask> {
+  public unmapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): PromiseLike<ITask> {
     params.type = 'unmapLoadBalancers';
     params.name = [serverGroup.name];
     params.loadBalancerNames = serverGroup.loadBalancers;
@@ -195,7 +195,7 @@ export class ServerGroupWriter {
     securityGroups: ISecurityGroup[],
     application: Application,
     hasLaunchTemplate?: boolean,
-  ): ng.IPromise<ITask> {
+  ): PromiseLike<ITask> {
     const job: IServerGroupJob = {
       amiName: serverGroup.image.name,
       imageId: serverGroup.image.imageId,

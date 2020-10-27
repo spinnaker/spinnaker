@@ -1,4 +1,4 @@
-import { IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { IHttpPromiseCallbackArg } from 'angular';
 import { $log } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -42,7 +42,7 @@ export class SearchService {
   public static search<T extends ISearchResult>(
     searchParams: ISearchParams,
     cache: ICache = null,
-  ): IPromise<ISearchResults<T>> {
+  ): PromiseLike<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
       pageSize: SearchService.DEFAULT_PAGE_SIZE,
     };

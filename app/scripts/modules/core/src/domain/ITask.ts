@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { ITaskStep } from './ITaskStep';
 
@@ -12,7 +12,7 @@ export interface ITask extends IOrchestratedItem {
   startTime: number;
   execution: any;
   history: any;
-  poller?: IPromise<void>;
+  poller?: PromiseLike<void>;
 }
 
 export interface ITaskVariable {

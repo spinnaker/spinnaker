@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
 
@@ -60,7 +60,7 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
 }
 
 export class ScalingPolicyWriter {
-  public static upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): IPromise<ITask> {
+  public static upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): PromiseLike<ITask> {
     command.type = command.type || 'upsertScalingPolicy';
     return TaskExecutor.executeTask({
       application,
@@ -73,7 +73,7 @@ export class ScalingPolicyWriter {
     application: Application,
     serverGroup: IServerGroup,
     scalingPolicy: IScalingPolicy,
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: 'Delete scaling policy ' + scalingPolicy.policyName,

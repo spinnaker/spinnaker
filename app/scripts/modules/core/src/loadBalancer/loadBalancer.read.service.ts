@@ -1,4 +1,4 @@
-import { IPromise, IQService, module } from 'angular';
+import { IQService, module } from 'angular';
 
 import { API } from 'core/api/ApiService';
 import { IComponentName, NameUtils } from 'core/naming';
@@ -20,7 +20,7 @@ export class LoadBalancerReader {
   public static $inject = ['$q', 'loadBalancerTransformer'];
   public constructor(private $q: IQService, private loadBalancerTransformer: any) {}
 
-  public loadLoadBalancers(applicationName: string): IPromise<ILoadBalancerSourceData[]> {
+  public loadLoadBalancers(applicationName: string): PromiseLike<ILoadBalancerSourceData[]> {
     return API.one('applications', applicationName)
       .all('loadBalancers')
       .getList()
@@ -35,15 +35,15 @@ export class LoadBalancerReader {
     account: string,
     region: string,
     name: string,
-  ): IPromise<ILoadBalancerSourceData[]> {
+  ): PromiseLike<ILoadBalancerSourceData[]> {
     return API.all('loadBalancers').all(account).all(region).all(name).withParams({ provider: cloudProvider }).get();
   }
 
-  public listLoadBalancers(cloudProvider: string): IPromise<ILoadBalancersByAccount[]> {
+  public listLoadBalancers(cloudProvider: string): PromiseLike<ILoadBalancersByAccount[]> {
     return API.all('loadBalancers').withParams({ provider: cloudProvider }).getList();
   }
 
-  private normalizeLoadBalancer(loadBalancer: ILoadBalancerSourceData): IPromise<ILoadBalancer> {
+  private normalizeLoadBalancer(loadBalancer: ILoadBalancerSourceData): PromiseLike<ILoadBalancer> {
     return this.loadBalancerTransformer.normalizeLoadBalancer(loadBalancer).then((lb: ILoadBalancer) => {
       const nameParts: IComponentName = NameUtils.parseLoadBalancerName(lb.name);
       lb.stack = nameParts.stack;

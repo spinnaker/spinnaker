@@ -1,4 +1,4 @@
-import { IPromise, IQService, module } from 'angular';
+import { IQService, module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keys, values, keyBy } from 'lodash';
 
 import { ArtifactReferenceService } from 'core/artifact';
@@ -32,7 +32,7 @@ export class ClusterService {
 
   // Retrieves and normalizes all server groups. If a server group for an unsupported cloud provider (i.e. one that does
   // not have a server group transformer) is encountered, it will be omitted from the result.
-  public loadServerGroups(application: Application): IPromise<IServerGroup[]> {
+  public loadServerGroups(application: Application): PromiseLike<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
       const serverGroupLoader = API.one('applications').one(application.name).all('serverGroups');
@@ -222,7 +222,7 @@ export class ClusterService {
     this.getArtifactExtractor(cluster.cloudProvider).removeArtifact(cluster, artifactId);
   }
 
-  private getClusters(application: string): IPromise<IClusterSummary[]> {
+  private getClusters(application: string): PromiseLike<IClusterSummary[]> {
     return API.one('applications')
       .one(application)
       .one('clusters')

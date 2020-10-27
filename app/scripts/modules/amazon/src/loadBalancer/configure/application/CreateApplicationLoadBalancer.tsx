@@ -1,6 +1,6 @@
 import React from 'react';
 import { cloneDeep, get } from 'lodash';
-import { IPromise } from 'angular';
+
 
 import {
   AccountService,
@@ -94,7 +94,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     return certificateId;
   }
 
-  private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
+  private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): PromiseLike<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         if (listener.protocol === 'HTTP') {

@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { get, set, flatMap } from 'lodash';
 
 import { API } from 'core/api';
@@ -82,7 +82,7 @@ export class ManagedReader {
     return response;
   }
 
-  public static getApplicationSummary(app: string): IPromise<IManagedApplicationSummary<'resources'>> {
+  public static getApplicationSummary(app: string): PromiseLike<IManagedApplicationSummary<'resources'>> {
     return API.one('managed')
       .one('application', app)
       .withParams({ entities: 'resources' })
@@ -90,7 +90,7 @@ export class ManagedReader {
       .then(this.decorateResources);
   }
 
-  public static getEnvironmentsSummary(app: string): IPromise<IManagedApplicationEnvironmentSummary> {
+  public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationEnvironmentSummary> {
     return API.one('managed')
       .one('application', app)
       .withParams({ entities: ['resources', 'artifacts', 'environments'], maxArtifactVersions: 30 })
@@ -98,7 +98,7 @@ export class ManagedReader {
       .then(this.decorateResources);
   }
 
-  public static getResourceHistory(resourceId: string): IPromise<IManagedResourceEventHistory> {
+  public static getResourceHistory(resourceId: string): PromiseLike<IManagedResourceEventHistory> {
     return API.one('history', resourceId)
       .withParams({ limit: 100 })
       .get()

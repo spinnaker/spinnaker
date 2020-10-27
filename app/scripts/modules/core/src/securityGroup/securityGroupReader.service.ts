@@ -1,5 +1,5 @@
 import { filter, forOwn, has, uniq } from 'lodash';
-import { module, IPromise, ILogService, IQService } from 'angular';
+import { module, ILogService, IQService } from 'angular';
 
 import { API } from 'core/api/ApiService';
 import { IComponentName, NameUtils } from 'core/naming';
@@ -218,7 +218,7 @@ export class SecurityGroupReader {
   private clearCacheAndRetryAttachingSecurityGroups(
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
-  ): IPromise<any[]> {
+  ): PromiseLike<any[]> {
     InfrastructureCaches.clearCache('securityGroups');
     return this.loadSecurityGroups().then((refreshedSecurityGroups: ISecurityGroupsByAccount) => {
       application['securityGroupsIndex'] = refreshedSecurityGroups;
@@ -238,7 +238,7 @@ export class SecurityGroupReader {
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
     retryIfNotFound: boolean,
-  ): IPromise<any[]> {
+  ): PromiseLike<any[]> {
     let data: ISecurityGroup[] = [];
     let notFoundCaught = false;
     if (nameBasedSecurityGroups) {
@@ -294,7 +294,7 @@ export class SecurityGroupReader {
     private providerServiceDelegate: ProviderServiceDelegate,
   ) {}
 
-  public getAllSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
+  public getAllSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
     const cache = InfrastructureCaches.get('securityGroups');
     const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
@@ -371,7 +371,7 @@ export class SecurityGroupReader {
   public getApplicationSecurityGroups(
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
-  ): IPromise<any> {
+  ): PromiseLike<any> {
     return this.loadSecurityGroups()
       .then((allSecurityGroups: ISecurityGroupsByAccount) => {
         application['securityGroupsIndex'] = allSecurityGroups;
@@ -390,7 +390,7 @@ export class SecurityGroupReader {
     region: string,
     vpcId: string,
     id: string,
-  ): IPromise<ISecurityGroupDetail> {
+  ): PromiseLike<ISecurityGroupDetail> {
     return API.one('securityGroups')
       .one(account)
       .one(region)
@@ -434,7 +434,7 @@ export class SecurityGroupReader {
       });
   }
 
-  public loadSecurityGroups(): IPromise<ISecurityGroupsByAccount> {
+  public loadSecurityGroups(): PromiseLike<ISecurityGroupsByAccount> {
     return this.getAllSecurityGroups().then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
       const securityGroups: IReaderSecurityGroup[] = [];
       forOwn(groupsByAccount, (groupsByProvider, account) => {
@@ -453,7 +453,7 @@ export class SecurityGroupReader {
     });
   }
 
-  public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
+  public loadSecurityGroupsByApplicationName(applicationName: string): PromiseLike<ISecurityGroup[]> {
     return SearchService.search<ISecurityGroupSearchResult>({
       q: applicationName,
       type: 'securityGroups',

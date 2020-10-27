@@ -18,7 +18,7 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
     stage: ITriggerWithServiceAccount,
     validator: IServiceAccountAccessValidationConfig,
     _config: IStageOrTriggerTypeConfig,
-  ): ng.IPromise<string> {
+  ): PromiseLike<string> {
     if (SETTINGS.feature.fiatEnabled) {
       return ServiceAccountReader.getServiceAccounts().then((serviceAccounts: string[]) => {
         if (stage.runAsUser && !serviceAccounts.includes(stage.runAsUser)) {

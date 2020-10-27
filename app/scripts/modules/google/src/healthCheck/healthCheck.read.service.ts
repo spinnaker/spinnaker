@@ -16,7 +16,7 @@ interface IHealthCheckSearchResults {
 }
 
 export class GceHealthCheckReader {
-  public listHealthChecks(type?: string): ng.IPromise<IGceHealthCheck[]> {
+  public listHealthChecks(type?: string): PromiseLike<IGceHealthCheck[]> {
     if (type) {
       return this.listHealthChecks().then((healthChecks) =>
         healthChecks.filter((healthCheck) => healthCheck.healthCheckType === type),

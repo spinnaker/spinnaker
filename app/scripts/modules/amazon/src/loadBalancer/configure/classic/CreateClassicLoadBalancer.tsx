@@ -1,7 +1,7 @@
 import React from 'react';
 import { cloneDeep, get } from 'lodash';
 import { FormikErrors, FormikValues } from 'formik';
-import { IPromise } from 'angular';
+
 
 import {
   AccountService,
@@ -93,7 +93,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     return certificateId;
   }
 
-  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): IPromise<void> {
+  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): PromiseLike<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         listener.sslCertificateId = this.certificateIdAsARN(

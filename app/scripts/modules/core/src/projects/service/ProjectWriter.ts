@@ -1,10 +1,10 @@
-import { IPromise } from 'angular';
+
 
 import { IProject, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
 
 export class ProjectWriter {
-  public static upsertProject(project: IProject): IPromise<ITask> {
+  public static upsertProject(project: IProject): PromiseLike<ITask> {
     const descriptor = project.id ? 'Update' : 'Create';
     return TaskExecutor.executeTask({
       application: 'spinnaker',
@@ -19,7 +19,7 @@ export class ProjectWriter {
     });
   }
 
-  public static deleteProject(project: IProject): IPromise<ITask> {
+  public static deleteProject(project: IProject): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       application: 'spinnaker',
       job: [

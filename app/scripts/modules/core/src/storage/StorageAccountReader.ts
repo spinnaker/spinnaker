@@ -1,9 +1,9 @@
-import { IPromise } from 'angular';
+
 
 import { API } from 'core/api/ApiService';
 
 export class StorageAccountReader {
-  public static getStorageAccounts(): IPromise<string[]> {
+  public static getStorageAccounts(): PromiseLike<string[]> {
     return API.one('storage').get();
   }
 }

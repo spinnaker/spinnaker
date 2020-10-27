@@ -12,7 +12,7 @@ interface IAppengineServerGroupWriteJob extends IJob {
 }
 
 export class AppengineServerGroupWriter {
-  public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
+  public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): PromiseLike<ITask> {
     const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
 
     const command: ITaskCommand = {
@@ -24,7 +24,7 @@ export class AppengineServerGroupWriter {
     return TaskExecutor.executeTask(command);
   }
 
-  public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
+  public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): PromiseLike<ITask> {
     const job = this.buildJob(serverGroup, application, 'stopAppEngineServerGroup');
 
     const command: ITaskCommand = {

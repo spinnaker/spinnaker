@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { Subject, Subscription } from 'rxjs';
 import { $log, $q } from 'ngimport';
 import { values, flatten, isNumber } from 'lodash';
@@ -46,7 +46,7 @@ export interface IStageOrTriggerValidator {
     stageOrTrigger: IStage | ITrigger,
     validator: IValidatorConfig,
     config: IStageOrTriggerTypeConfig,
-  ): string | IPromise<string>;
+  ): string | PromiseLike<string>;
 }
 
 export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorConfig {
@@ -61,10 +61,10 @@ export class PipelineConfigValidator {
     this.validators.set(type, validator);
   }
 
-  public static validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
+  public static validatePipeline(pipeline: IPipeline): PromiseLike<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [];
     const triggers: ITrigger[] = pipeline.triggers || [];
-    const validations: Array<IPromise<void>> = [];
+    const validations: Array<PromiseLike<void>> = [];
     const pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline);
     const stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;

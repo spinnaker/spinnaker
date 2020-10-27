@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { module } from 'angular';
 
 import { TaskExecutor, IJob } from 'core/task/taskExecutor';
 import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
@@ -32,7 +32,7 @@ export class InstanceWriter {
   public static $inject = ['providerServiceDelegate'];
   public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {}
 
-  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): IPromise<ITask> {
+  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): PromiseLike<ITask> {
     params.type = 'terminateInstances';
     params['instanceIds'] = [instance.id];
     params['region'] = instance.region;
@@ -46,7 +46,7 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstances(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
+  public terminateInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
   }
 
@@ -57,7 +57,7 @@ export class InstanceWriter {
     baseDescriptor: string,
     descriptorSuffix?: string,
     additionalJobProperties: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
     const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return TaskExecutor.executeTask({
@@ -67,11 +67,11 @@ export class InstanceWriter {
     });
   }
 
-  public rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
+  public rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
     return this.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
   }
 
-  public rebootInstance(instance: IInstance, application: Application, params: any = {}): IPromise<ITask> {
+  public rebootInstance(instance: IInstance, application: Application, params: any = {}): PromiseLike<ITask> {
     params.type = 'rebootInstances';
     params.instanceIds = [instance.id];
     params.region = instance.region;
@@ -91,7 +91,7 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
@@ -106,7 +106,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -124,7 +124,7 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
@@ -139,7 +139,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -153,7 +153,7 @@ export class InstanceWriter {
     });
   }
 
-  public enableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
+  public enableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
     return this.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -163,7 +163,7 @@ export class InstanceWriter {
     );
   }
 
-  public enableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
+  public enableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -181,7 +181,7 @@ export class InstanceWriter {
     });
   }
 
-  public disableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): IPromise<ITask> {
+  public disableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
     return this.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -191,7 +191,7 @@ export class InstanceWriter {
     );
   }
 
-  public disableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
+  public disableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -212,7 +212,7 @@ export class InstanceWriter {
   public terminateInstancesAndShrinkServerGroups(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     return this.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -231,7 +231,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): IPromise<ITask> {
+  ): PromiseLike<ITask> {
     return ServerGroupReader.getServerGroup(
       application.name,
       instance.account,

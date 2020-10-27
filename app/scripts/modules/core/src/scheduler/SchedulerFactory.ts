@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { Observable, Subject, Subscription } from 'rxjs';
 import { $log, $window, $timeout } from 'ngimport';
 
@@ -15,7 +15,7 @@ export class SchedulerFactory {
     let scheduler = new Subject();
 
     let lastRunTimestamp = new Date().getTime();
-    let pendingRun: IPromise<void> = null;
+    let pendingRun: PromiseLike<void> = null;
     let suspended = false;
 
     // When creating the timer, use last run as the dueTime (first arg); zero can lead to concurrency issues

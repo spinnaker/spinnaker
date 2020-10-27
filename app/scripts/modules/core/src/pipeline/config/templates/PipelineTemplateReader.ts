@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 import { $q } from 'ngimport';
 import { flatten } from 'lodash';
 import { API } from 'core/api/ApiService';
@@ -83,7 +83,7 @@ export class PipelineTemplateReader {
     source: string,
     executionId?: string,
     pipelineConfigId?: string,
-  ): IPromise<IPipelineTemplate> {
+  ): PromiseLike<IPipelineTemplate> {
     return API.one('pipelineTemplates')
       .one('resolve')
       .withParams({ source, executionId, pipelineConfigId })
@@ -97,7 +97,7 @@ export class PipelineTemplateReader {
   public static getPipelinePlan(
     config: IPipelineTemplateConfig | IPipelineTemplateConfigV2,
     executionId?: string,
-  ): IPromise<IPipeline> {
+  ): PromiseLike<IPipeline> {
     const urls = PipelineTemplateV2Service.isV2PipelineConfig(config)
       ? ['v2', 'pipelineTemplates', 'plan']
       : ['pipelines', 'start'];
@@ -105,11 +105,11 @@ export class PipelineTemplateReader {
     return API.one(...urls).post({ ...config, plan: true, executionId });
   }
 
-  public static getPipelineTemplatesByScope = (scope: string): IPromise<IPipelineTemplate[]> => {
+  public static getPipelineTemplatesByScope = (scope: string): PromiseLike<IPipelineTemplate[]> => {
     return API.one('pipelineTemplates').withParams({ scope }).get();
   };
 
-  public static getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
+  public static getPipelineTemplatesByScopes(scopes: string[]): PromiseLike<IPipelineTemplate[]> {
     return $q
       .all(scopes.map(this.getPipelineTemplatesByScope))
       .then((templates) => flatten(templates))
@@ -140,7 +140,7 @@ export class PipelineTemplateReader {
     };
   }
 
-  public static getV2PipelineTemplateList(): IPromise<IPipelineTemplateV2Collections> {
+  public static getV2PipelineTemplateList(): PromiseLike<IPipelineTemplateV2Collections> {
     return API.one('v2', 'pipelineTemplates', 'versions').get();
   }
 }

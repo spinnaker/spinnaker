@@ -1,4 +1,4 @@
-import { IPromise } from 'angular';
+
 
 import { $q } from 'ngimport';
 
@@ -17,7 +17,7 @@ import {
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
-  public static getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
+  public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {
     return API.one('tags')
       .withParams({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
       .getList()
@@ -144,7 +144,7 @@ export class EntityTagsReader {
     });
   }
 
-  public static getEntityTagsForId(entityType: string, entityId: string): IPromise<IEntityTags[]> {
+  public static getEntityTagsForId(entityType: string, entityId: string): PromiseLike<IEntityTags[]> {
     if (!entityId) {
       return $q.when([]);
     }
