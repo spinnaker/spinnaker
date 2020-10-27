@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
 import com.netflix.spinnaker.credentials.Credentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -61,6 +62,12 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
   @Override
   public Collection<Agent> agents(Credentials credentials) {
     NetflixAmazonCredentials netflixAmazonCredentials = (NetflixAmazonCredentials) credentials;
+
+    if (!credentials.getName().equals(properties.getAccountName())) {
+      // LaunchFailureNotificationAgent only supports the account specified in
+      // `properties.getAccountName()`
+      return Collections.emptyList();
+    }
 
     // an agent for each region in the specified account
     List<Agent> agents =
