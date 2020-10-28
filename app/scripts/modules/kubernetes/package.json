@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/kubernetes",
   "license": "Apache-2.0",
-  "version": "0.0.54",
+  "version": "0.0.55",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
