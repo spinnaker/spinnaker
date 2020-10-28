@@ -35,7 +35,7 @@ import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 
 @Configuration
-@ConditionalOnProperty("keel.enabled")
+@ConditionalOnProperty("services.keel.enabled")
 @ComponentScan(
   basePackages = [
     "com.netflix.spinnaker.orca.keel.task",
@@ -43,7 +43,7 @@ import retrofit.converter.JacksonConverter
   ]
 )
 class KeelConfiguration {
-  @Bean fun keelEndpoint(@Value("\${keel.base-url}") keelBaseUrl: String): Endpoint {
+  @Bean fun keelEndpoint(@Value("\${services.keel.base-url}") keelBaseUrl: String): Endpoint {
     return Endpoints.newFixedEndpoint(keelBaseUrl)
   }
 
