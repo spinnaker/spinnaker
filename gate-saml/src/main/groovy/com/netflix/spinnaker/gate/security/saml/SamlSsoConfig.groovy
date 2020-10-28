@@ -91,6 +91,8 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     String issuerId
 
     List<String> requiredRoles
+    boolean sortRoles = false
+    boolean forceLowercaseRoles = true
     UserAttributeMapping userAttributeMapping = new UserAttributeMapping()
     long maxAuthenticationAge = 7200
 
@@ -239,7 +241,11 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
         def subjectNameId = assertion.getSubject().nameID.value
         def email = attributes[userAttributeMapping.email]?.get(0) ?: subjectNameId
         String username = attributes[userAttributeMapping.username]?.get(0) ?: subjectNameId
-        def roles = extractRoles(email, attributes, userAttributeMapping)
+        def roles = extractRoles(email, attributes, userAttributeMapping, samlSecurityConfigProperties.forceLowercaseRoles)
+
+        if (samlSecurityConfigProperties.sortRoles) {
+          roles = roles.sort()
+        }
 
         if (samlSecurityConfigProperties.requiredRoles) {
           if (!samlSecurityConfigProperties.requiredRoles.any { it in roles }) {
@@ -288,13 +294,18 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
       Set<String> extractRoles(String email,
                                Map<String, List<String>> attributes,
-                               UserAttributeMapping userAttributeMapping) {
+                               UserAttributeMapping userAttributeMapping,
+                               boolean forceLowercaseRoles) {
         def assertionRoles = attributes[userAttributeMapping.roles].collect { String roles ->
           def commonNames = roles.split(userAttributeMapping.rolesDelimiter)
           commonNames.collect {
             return it.indexOf("CN=") < 0 ? it : it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
           }
-        }.flatten()*.toLowerCase() as Set<String>
+        }.flatten() as Set<String>
+
+        if (forceLowercaseRoles) {
+          assertionRoles = assertionRoles*.toLowerCase()
+        }
 
         return assertionRoles
       }
