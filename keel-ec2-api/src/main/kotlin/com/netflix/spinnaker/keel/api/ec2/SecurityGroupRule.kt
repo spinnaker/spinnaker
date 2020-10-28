@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.schema.Literal
+import com.netflix.spinnaker.keel.api.schema.Optional
 
 sealed class SecurityGroupRule {
   abstract val protocol: Protocol
@@ -24,18 +25,14 @@ sealed class SecurityGroupRule {
   enum class Protocol {
     ALL, TCP, UDP, ICMP
   }
-
-  open val isSelfReference: Boolean = false
 }
 
 data class ReferenceRule(
   override val protocol: Protocol,
-  val name: String? = null,
+  @Optional("defaults to the name of the security group the rule belongs to")
+  val name: String,
   override val portRange: IngressPorts
-) : SecurityGroupRule() {
-  override val isSelfReference: Boolean
-    get() = name == null
-}
+) : SecurityGroupRule()
 
 data class CrossAccountReferenceRule(
   override val protocol: Protocol,
