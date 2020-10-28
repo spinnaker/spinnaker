@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
+import com.fasterxml.jackson.databind.BeanProperty
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.InjectableValues.Std
 import com.fasterxml.jackson.databind.JsonNode
@@ -29,6 +30,6 @@ class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec
 
   private inline fun <reified T> DeserializationContext.findInjectableValue(valueId: String) =
     (parser.codec as ObjectMapper).let { mapper ->
-      mapper.injectableValues.findInjectableValue(valueId, this, null, null) as T
+      mapper.injectableValues.findInjectableValue(valueId, this, BeanProperty.Bogus(), null) as T
     }
 }
