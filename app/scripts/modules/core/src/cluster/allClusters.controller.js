@@ -41,7 +41,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
       this.dataSource = app.getDataSource('serverGroups');
       this.application = app;
 
-      $scope.sortFilter = ClusterState.filterModel.sortFilter;
+      $scope.filterModel = ClusterState.filterModel;
 
       this.createLabel = 'Create Server Group';
 

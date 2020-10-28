@@ -4,7 +4,7 @@
       <div class="form-group">
         <button
           class="btn btn-xs btn-default"
-          ng-class="{active: sortFilter.multiselect}"
+          ng-class="{active: filterModel.sortFilter.multiselect}"
           ng-click="ctrl.toggleMultiselect()"
         >
           <span class="glyphicon glyphicon-list visible-lg-inline"></span>
@@ -18,17 +18,17 @@
           <label>
             <input
               type="checkbox"
-              ng-model="sortFilter.showAllInstances"
+              ng-model="filterModel.sortFilter.showAllInstances"
               ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
             />
             Instances
           </label>
         </div>
-        <div class="checkbox" is-visible="sortFilter.showAllInstances">
+        <div class="checkbox" is-visible="filterModel.sortFilter.showAllInstances">
           <label>
             <input
               type="checkbox"
-              ng-model="sortFilter.listInstances"
+              ng-model="filterModel.sortFilter.listInstances"
               ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
             />
             with details
