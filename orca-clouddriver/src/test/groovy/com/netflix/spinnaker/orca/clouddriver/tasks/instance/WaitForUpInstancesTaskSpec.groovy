@@ -362,7 +362,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
       context.capacity = [
         min    : configured.min,
         max    : configured.max,
-        desired: configured.desired
+        desired: configured.desired,
+        pinned : configured.pinned
       ]
     }
 
@@ -381,8 +382,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
     result || snapshot | healthy | asg                          | configured
     false  || null     | 2       | [min: 3, max: 3, desired: 3] | null
     // configured is used if present and min == max == desired
-    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 2, desired: 2]
-    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "2", desired: "2"]
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 2, desired: 2, pinned: true]
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "2", desired: "2", pinned: "true"]
     // configured is used if current allows autoscaling but configured doesn't
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 500, desired: 2]
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "500", desired: "2"]

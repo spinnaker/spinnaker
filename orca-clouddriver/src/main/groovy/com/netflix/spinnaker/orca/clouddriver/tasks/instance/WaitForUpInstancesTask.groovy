@@ -165,6 +165,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   static boolean useConfiguredCapacity(StageExecution stage, Map<String, Integer> current) {
     Map<String, Integer> configured =
       (stage.context.getOrDefault("capacity", [:]))
+      .subMap(["min", "max", "desired"])
       .collectEntries { k, v -> [(k): v as Integer] } as Map<String, Integer>
 
     if (configured.desired == null) {
