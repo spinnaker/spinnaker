@@ -48,7 +48,11 @@ class StartWaitingExecutionsHandler(
             when (purgedMessage) {
               is StartExecution -> {
                 log.info("Dropping queued pipeline {} {}", purgedMessage.application, purgedMessage.executionId)
-                queue.push(CancelExecution(purgedMessage))
+                queue.push(CancelExecution(
+                  source = purgedMessage,
+                  user = "spinnaker",
+                  reason = "Keep waiting pipelines configuration is disabled"
+                ))
               }
               is RestartStage -> {
                 log.info("Cancelling restart of {} {}", purgedMessage.application, purgedMessage.executionId)

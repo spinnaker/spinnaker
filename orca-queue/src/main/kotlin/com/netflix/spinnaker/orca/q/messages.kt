@@ -337,6 +337,9 @@ data class CancelExecution(
 
   constructor(source: ExecutionLevel) :
     this(source.executionType, source.executionId, source.application, null, null)
+
+  constructor(source: ExecutionLevel, user: String?, reason: String?) :
+    this(source.executionType, source.executionId, source.application, user, reason)
 }
 
 @JsonTypeName("startWaitingExecutions")
