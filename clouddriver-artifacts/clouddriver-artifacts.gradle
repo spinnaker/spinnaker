@@ -33,6 +33,7 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

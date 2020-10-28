@@ -23,14 +23,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 @Slf4j
 @Data
@@ -105,7 +103,11 @@ public class IndexParser {
   }
 
   private String findLatestVersion(List<EntryConfig> configs) {
-    return configs.stream().max(Comparator.comparing(EntryConfig::getVersion)).get().getVersion();
+    return configs.stream()
+        .map(c -> new ComparableVersion(c.getVersion()))
+        .max(ComparableVersion::compareTo)
+        .orElseGet(() -> new ComparableVersion(""))
+        .toString();
   }
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {

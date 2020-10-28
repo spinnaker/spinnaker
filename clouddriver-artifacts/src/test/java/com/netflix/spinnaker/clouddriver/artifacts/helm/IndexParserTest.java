@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class IndexParserTest {
 
@@ -25,6 +27,21 @@ public class IndexParserTest {
         .append("\n")
         .append("    version: ")
         .append(version)
+        .append("\n")
+        .append("    urls:\n");
+    urls.forEach(url -> indexYamlBuilder.append("    - ").append(url).append("\n"));
+    return indexYamlBuilder.toString();
+  }
+
+  private String addIndexEntry(
+      String index, String chartName, String newVersion, List<String> urls) {
+    StringBuilder indexYamlBuilder = new StringBuilder(index);
+    indexYamlBuilder
+        .append("  - name: ")
+        .append(chartName)
+        .append("\n")
+        .append("    version: ")
+        .append(newVersion)
         .append("\n")
         .append("    urls:\n");
     urls.forEach(url -> indexYamlBuilder.append("    - ").append(url).append("\n"));
@@ -87,6 +104,39 @@ public class IndexParserTest {
           .containsExactlyInAnyOrder(
               "https://absolute.url/test/test-chart1-0.0.1.tgz",
               "http://localhost/test/test-chart1-0.0.1.tgz");
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"1.0.10", "1.0.90"})
+  public void findUrlsShouldFindLatestNumericVersion(String maxVersion) throws IOException {
+    IndexParser parser = new IndexParser("http://localhost/test/");
+
+    String indexYaml =
+        buildIndexYaml("test-chart1", "1.0.9", Arrays.asList("test-chart1-1.0.9.tgz"));
+    indexYaml =
+        addIndexEntry(
+            indexYaml,
+            "test-chart1",
+            maxVersion,
+            Arrays.asList("test-chart1-" + maxVersion + ".tgz"));
+    try (InputStream is = new ByteArrayInputStream(indexYaml.getBytes())) {
+      List<String> actualUrls = parser.findUrls(is, "test-chart1", null);
+      assertThat(actualUrls)
+          .containsOnly("http://localhost/test/test-chart1-" + maxVersion + ".tgz");
+    }
+  }
+
+  @Test
+  public void findUrlsShouldFindLatestNonNumericVersion() throws IOException {
+    IndexParser parser = new IndexParser("http://localhost/test/");
+
+    String indexYaml = buildIndexYaml("test-chart1", "abc", Arrays.asList("test-chart1-abc.tgz"));
+    indexYaml =
+        addIndexEntry(indexYaml, "test-chart1", "def", Arrays.asList("test-chart1-def.tgz"));
+    try (InputStream is = new ByteArrayInputStream(indexYaml.getBytes())) {
+      List<String> actualUrls = parser.findUrls(is, "test-chart1", null);
+      assertThat(actualUrls).containsOnly("http://localhost/test/test-chart1-def.tgz");
     }
   }
 }
