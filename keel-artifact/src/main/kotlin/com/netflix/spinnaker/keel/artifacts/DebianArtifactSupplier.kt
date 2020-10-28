@@ -122,11 +122,17 @@ class DebianArtifactSupplier(
   // Debian Artifacts should not have "local" as a part of their version string
   private fun PublishedArtifact.hasCorrectVersion() : Boolean {
     val appversion = this.version.parseAppVersionOrNull()
-    return if (appversion?.buildNumber?.contains("local")!!) {
-      log.debug("Ignoring artifact which contains local is its version string: $this")
-      false
+    return if (appversion != null && appversion.buildNumber != null) {
+      if (appversion.buildNumber.contains("local")) {
+        log.debug("Ignoring artifact which contains local is its version string: $this")
+        false
+      } else {
+        //appversion is not null, and the version does not contains "local"
+        true
+      }
     } else {
-      true
+      log.debug("Either appversion or appversion.buildNumber is null. Ignoring this version")
+      false
     }
   }
 }
