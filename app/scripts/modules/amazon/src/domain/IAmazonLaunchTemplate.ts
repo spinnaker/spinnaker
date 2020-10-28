@@ -56,10 +56,15 @@ export interface ITagSpecification {
   }>;
 }
 
+export interface ICreditSpecification {
+  cpuCredits?: string;
+}
+
 export interface ILaunchTemplateData {
   [attribute: string]: any;
   blockDeviceMappings?: IBlockDeviceMapping[];
   cpuOptions?: ICpuOptions;
+  creditSpecification?: ICreditSpecification;
   disableApiTermination?: boolean;
   ebsOptimized: boolean;
   elasticGpuSpecifications?: IElasticGpuSpecification[];

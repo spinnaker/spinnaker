@@ -14,6 +14,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
 
   const { launchTemplateData } = launchTemplate;
   const maxSpotPrice = launchTemplateData?.instanceMarketOptions?.spotOptions?.maxPrice;
+  const creditSpecification = launchTemplateData?.creditSpecification?.cpuCredits;
 
   return (
     <CollapsibleSection heading="Launch Template">
@@ -23,6 +24,7 @@ export const LaunchTemplateDetailsSection = ({ serverGroup }: IAmazonServerGroup
         {image?.imageLocation && <LabeledValue label="Image Name" value={image?.imageLocation} />}
         {baseImage && <LabeledValue label="Base Image Name" value={baseImage} />}
         <LabeledValue label="Instance Type" value={launchTemplateData.instanceType} />
+        {creditSpecification && <LabeledValue label="CPU Credit Specification" value={creditSpecification} />}
         <LabeledValue label="IAM Profile" value={launchTemplateData.iamInstanceProfile.name} />
         <LabeledValue
           label="Instance Monitoring"
