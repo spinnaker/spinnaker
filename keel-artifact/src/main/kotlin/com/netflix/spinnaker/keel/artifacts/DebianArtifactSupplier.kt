@@ -36,14 +36,6 @@ class DebianArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy("deb", DebianVersioningStrategy::class.java)
 
-  override fun publishArtifact(artifact: PublishedArtifact) {
-    if (artifact.hasReleaseStatus()) {
-      super.publishArtifact(artifact)
-    } else {
-      log.debug("Ignoring artifact event without release status: $artifact")
-    }
-  }
-
   override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
     runWithIoContext {
       artifactService.getVersions(artifact.name, artifact.statusesForQuery, DEBIAN)
@@ -121,7 +113,7 @@ class DebianArtifactSupplier(
 
   // Debian Artifacts should not have "local" as a part of their version string
   private fun PublishedArtifact.hasCorrectVersion() : Boolean {
-    val appversion = this.version.parseAppVersionOrNull()
+    val appversion = "${this.name}-${this.version}".parseAppVersionOrNull()
     return if (appversion != null && appversion.buildNumber != null) {
       if (appversion.buildNumber.contains("local")) {
         log.debug("Ignoring artifact which contains local is its version string: $this")

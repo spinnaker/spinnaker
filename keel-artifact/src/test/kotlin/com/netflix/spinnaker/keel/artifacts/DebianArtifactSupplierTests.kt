@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Commit
@@ -16,7 +17,6 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
@@ -50,6 +50,14 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
       reference = debianArtifact.reference,
       version = "${debianArtifact.name}-${versions.last()}",
       metadata = mapOf("releaseStatus" to SNAPSHOT, "buildNumber" to "1", "commitId" to "a15p0")
+    )
+
+    val actualVersionInPublishedArtifact = PublishedArtifact(
+      name = debianArtifact.name,
+      type = debianArtifact.type,
+      reference = debianArtifact.reference,
+      version = "0.72.0-h242.32775e4",
+      metadata = mapOf("releaseStatus" to ArtifactStatus.RELEASE, "buildNumber" to "1", "commitId" to "a15p0")
     )
 
     val artifactWithInvalidVersion = PublishedArtifact(
@@ -171,6 +179,11 @@ internal class DebianArtifactSupplierTests : JUnit5Minutests {
 
       test ("should process artifact successfully") {
         expectThat(debianArtifactSupplier.shouldProcessArtifact(latestArtifact))
+          .isTrue()
+      }
+
+      test ("should process artifact successfully2") {
+        expectThat(debianArtifactSupplier.shouldProcessArtifact(actualVersionInPublishedArtifact))
           .isTrue()
       }
 
