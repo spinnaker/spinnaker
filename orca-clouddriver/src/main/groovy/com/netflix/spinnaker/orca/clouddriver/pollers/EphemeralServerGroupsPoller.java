@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
@@ -58,6 +59,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final ObjectMapper objectMapper;
   private final OortService oortService;
   private final RetrySupport retrySupport;
+  private final Registry registry;
   private final ExecutionLauncher executionLauncher;
   private final Front50Service front50Service;
   private final PollerConfigurationProperties pollerConfigurationProperties;
@@ -65,7 +67,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final PollerSupport pollerSupport;
 
   private final Counter errorsCounter;
-  private final Counter triggeredCounter;
+  private final Id triggeredCounterId;
 
   @Autowired
   public EphemeralServerGroupsPoller(
@@ -82,14 +84,15 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     this.objectMapper = objectMapper;
     this.oortService = oortService;
     this.retrySupport = retrySupport;
+    this.registry = registry;
     this.executionLauncher = executionLauncher;
     this.front50Service = front50Service;
     this.pollerConfigurationProperties = pollerConfigurationProperties;
 
     this.pollerSupport = new PollerSupport(objectMapper, retrySupport, oortService);
 
+    this.triggeredCounterId = registry.createId("poller.ephemeralServerGroups.triggered");
     this.errorsCounter = registry.counter("poller.ephemeralServerGroups.errors");
-    this.triggeredCounter = registry.counter("poller.ephemeralServerGroups.triggered");
   }
 
   @Override
@@ -164,7 +167,18 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
                         objectMapper.writeValueAsString(cleanupOperation)))
             .call();
 
-        triggeredCounter.increment();
+        // if a server group still exists >= 30 minutes past it's TTL, flag it as stale.
+        boolean isStale =
+            ephemeralServerGroupTag.expiry.isBefore(
+                ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(30));
+        if (isStale) {
+          log.warn(
+              "Ephemeral server group appears stale (id: {}, expiry: {})",
+              ephemeralServerGroupTag.id,
+              ephemeralServerGroupTag.expiry);
+        }
+
+        registry.counter(triggeredCounterId.withTag("stale", isStale)).increment();
       } catch (Exception e) {
         log.error(
             "Failed to destroy ephemeral server group (id: {})", ephemeralServerGroupTag.id, e);
