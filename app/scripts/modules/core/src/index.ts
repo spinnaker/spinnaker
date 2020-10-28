@@ -1,3 +1,5 @@
+/// <reference path="./types/index.d.ts" />
+
 import './utils/failedToInstantiateModule';
 
 export * from './account';

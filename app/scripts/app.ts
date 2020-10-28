@@ -1,3 +1,4 @@
+///<reference path="./modules/core/src/types/index.d.ts" />
 import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
 import { module } from 'angular';
 import './strictDi';
