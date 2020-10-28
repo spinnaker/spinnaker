@@ -17,6 +17,7 @@ export const AmazonInstanceInformation = ({ instance }: IAmazonInstanceInformati
           account={instance.account}
           availabilityZone={instance.availabilityZone}
           instanceType={instance.instanceType}
+          capacityType={instance.capacityType}
           launchTime={instance.launchTime}
           provider={instance.provider}
           region={instance.region}

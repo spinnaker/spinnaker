@@ -8,6 +8,7 @@ export interface IInstanceInformationProps {
   account: string;
   availabilityZone: string;
   instanceType: string;
+  capacityType?: string;
   launchTime: number;
   provider: string;
   region: string;
@@ -19,6 +20,7 @@ export const InstanceInformation = ({
   account,
   availabilityZone,
   instanceType,
+  capacityType,
   launchTime,
   provider,
   region,
@@ -37,6 +39,7 @@ export const InstanceInformation = ({
       }
     />
     {showInstanceType && <LabeledValue label="Type" value={instanceType || 'Unknown'} />}
+    {showInstanceType && capacityType && <LabeledValue label="Capacity Type" value={capacityType || 'Unknown'} />}
     {serverGroup && (
       <LabeledValue
         label="Server Group"
