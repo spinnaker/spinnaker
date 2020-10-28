@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.rocket.api.artifact.internal.debian.DebianArtifactParser
+import com.netflix.spinnaker.keel.api.DeployHealth
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
@@ -41,8 +42,7 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
-import com.netflix.spinnaker.keel.api.plugins.ActionDecision
-import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.withDefaultsOmitted
@@ -99,7 +99,7 @@ class ClusterHandler(
   override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
-) : ResolvableResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
+) : BaseClusterHandler<ClusterSpec, ServerGroup>(resolvers) {
 
   private val debianArtifactParser = DebianArtifactParser()
 
@@ -117,42 +117,30 @@ class ClusterHandler(
       .getActiveServerGroups(resource)
       .byRegion()
 
-  override suspend fun willTakeAction(
-    resource: Resource<ClusterSpec>,
-    resourceDiff: ResourceDiff<Map<String, ServerGroup>>
-  ): ActionDecision {
-    // we can't take any action if there is more than one active server group
-    //  AND the current active server group is unhealthy
-    val potentialInactionableRegions = mutableListOf<String>()
-    val inactionableRegions = mutableListOf<String>()
-    resourceDiff.toIndividualDiffs().forEach { diff ->
-      if (diff.hasChanges() && diff.isEnabledOnly()) {
-        potentialInactionableRegions.add(diff.desired.location.region)
+  override fun getDesiredRegion(diff: ResourceDiff<ServerGroup>): String =
+    diff.desired.location.region
+
+  override fun getUnhealthyRegionsForActiveServerGroup(resource: Resource<ClusterSpec>): List<String> {
+    val unhealthyRegions = mutableListOf<String>()
+    val activeServerGroups = runBlocking {
+      cloudDriverService.getActiveServerGroups(resource)
+    }
+
+    activeServerGroups.forEach { serverGroup ->
+      val healthy = isHealthy(serverGroup, resource)
+      if (!healthy) {
+        unhealthyRegions.add(serverGroup.location.region)
       }
     }
-    if (potentialInactionableRegions.isNotEmpty()) {
-      val activeServerGroups = cloudDriverService.getActiveServerGroups(resource)
-      activeServerGroups.forEach { serverGroup ->
-        val healthy = serverGroup.instanceCounts?.isHealthy(
-          resource.spec.deployWith.health,
-          resource.spec.resolveCapacity(serverGroup.location.region)
-        ) == true
-        if (!healthy && potentialInactionableRegions.contains(serverGroup.location.region)) {
-          inactionableRegions.add(serverGroup.location.region)
-        }
-      }
-      if (inactionableRegions.isNotEmpty()) {
-        return ActionDecision(
-          willAct = false,
-          message = "There is more than one server group enabled " +
-            "but the latest is not healthy in ${inactionableRegions.joinToString(" and ")}. " +
-            "Spinnaker cannot resolve the problem at this time. " +
-            "Manual intervention might be required."
-        )
-      }
-    }
-    return ActionDecision(willAct = true)
+
+    return unhealthyRegions
   }
+
+  fun isHealthy(serverGroup: ServerGroup, resource: Resource<ClusterSpec>): Boolean =
+    serverGroup.instanceCounts?.isHealthy(
+      resource.spec.deployWith.health,
+      resource.spec.resolveCapacity(serverGroup.location.region)
+    ) == true
 
   override suspend fun upsert(
     resource: Resource<ClusterSpec>,
@@ -561,7 +549,7 @@ class ClusterHandler(
   /**
    * @return true if the only difference is in the onlyEnabledServerGroup property
    */
-  private fun ResourceDiff<ServerGroup>.isEnabledOnly(): Boolean =
+  override fun ResourceDiff<ServerGroup>.isEnabledOnly(): Boolean =
     current != null &&
       affectedRootPropertyNames.all { it == "onlyEnabledServerGroup" } &&
       current!!.onlyEnabledServerGroup != desired.onlyEnabledServerGroup

@@ -37,7 +37,7 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.plugins.ActionDecision
-import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.ResourcesSpec
@@ -94,7 +94,7 @@ class TitusClusterHandler(
   override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
-) : ResolvableResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
+) : BaseClusterHandler<TitusClusterSpec, TitusServerGroup>(resolvers) {
 
   private val mapper = configuredObjectMapper()
 
@@ -122,41 +122,33 @@ class TitusClusterHandler(
           .isNotEmpty()
       }
 
-  override suspend fun willTakeAction(
-    resource: Resource<TitusClusterSpec>,
-    resourceDiff: ResourceDiff<Map<String, TitusServerGroup>>
-  ): ActionDecision {
-    // we can't take any action if there is more than one active server group
-    //  AND the current active server group is unhealthy
-    val potentialInactionableRegions = mutableListOf<String>()
-    val inactionableRegions = mutableListOf<String>()
-    resourceDiff.toIndividualDiffs().forEach { diff ->
-      if (diff.hasChanges() && diff.isEnabledOnly()) {
-        potentialInactionableRegions.add(diff.desired.location.region)
+  override fun getDesiredRegion(diff: ResourceDiff<TitusServerGroup>): String =
+    diff.desired.location.region
+
+  override fun getUnhealthyRegionsForActiveServerGroup(resource: Resource<TitusClusterSpec>): List<String> {
+    val unhealthyRegions = mutableListOf<String>()
+    val activeServerGroups = runBlocking {
+      cloudDriverService.getActiveServerGroups(resource)
+    }
+
+    activeServerGroups.forEach { serverGroup ->
+      val healthy = isHealthy(serverGroup, resource)
+      if (!healthy) {
+        unhealthyRegions.add(serverGroup.location.region)
       }
     }
-    if (potentialInactionableRegions.isNotEmpty()) {
-      val activeServerGroups = cloudDriverService.getActiveServerGroups(resource)
-      activeServerGroups.forEach { serverGroup ->
-        val healthy = serverGroup.instanceCounts?.isHealthy(
-            resource.spec.deployWith.health,
-            resource.spec.resolveCapacity(serverGroup.location.region)
-          ) == true
-        if (!healthy && potentialInactionableRegions.contains(serverGroup.location.region)) {
-          inactionableRegions.add(serverGroup.location.region)
-        }
-      }
-      if (inactionableRegions.isNotEmpty()) {
-        return ActionDecision(
-          willAct = false,
-          message = "There is more than one server group enabled " +
-            "but the latest is not healthy in ${inactionableRegions.joinToString(" and ")}. " +
-            "Spinnaker cannot resolve the problem at this time. " +
-            "Manual intervention might be required."
-        )
-      }
-    }
-    return ActionDecision(willAct = true)
+
+    return unhealthyRegions
+  }
+
+  fun isHealthy(serverGroup: TitusServerGroup, resource: Resource<TitusClusterSpec>): Boolean =
+    serverGroup.instanceCounts?.isHealthy(
+      resource.spec.deployWith.health,
+      resource.spec.resolveCapacity(serverGroup.location.region)
+    ) == true
+
+  override suspend fun willTakeAction(resource: Resource<TitusClusterSpec>, resourceDiff: ResourceDiff<Map<String, TitusServerGroup>>): ActionDecision {
+    return super.willTakeAction(resource, resourceDiff)
   }
 
   override suspend fun upsert(
@@ -497,7 +489,7 @@ class TitusClusterHandler(
   /**
    * @return true if the only difference is in the onlyEnabledServerGroup property
    */
-  private fun ResourceDiff<TitusServerGroup>.isEnabledOnly(): Boolean =
+  override fun ResourceDiff<TitusServerGroup>.isEnabledOnly(): Boolean =
     current != null &&
       affectedRootPropertyNames.all { it == "onlyEnabledServerGroup" } &&
       current!!.onlyEnabledServerGroup != desired.onlyEnabledServerGroup
