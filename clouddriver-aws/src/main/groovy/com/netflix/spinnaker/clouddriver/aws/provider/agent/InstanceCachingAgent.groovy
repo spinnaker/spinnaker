@@ -204,6 +204,10 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
       } else {
         relationships[SERVER_GROUPS.ns].clear()
       }
+      def capacityType = getCapacityType(data.instance)
+      if (capacityType) {
+        attributes.put("capacityType", capacityType)
+      }
     }
   }
 
@@ -220,6 +224,18 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
       awsInstanceHealth.description = stateReason.message
     }
     awsInstanceHealth
+  }
+
+  private String getCapacityType(Instance instance) {
+    if (instance.instanceLifecycle == null) {
+      return "on-demand"
+    }
+
+    if (instance.instanceLifecycle.toString().equalsIgnoreCase("spot")) {
+      return "spot"
+    }
+
+    return null
   }
 
   private static class InstanceData {
