@@ -18,11 +18,13 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class V2PipelineTemplateControllerSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
@@ -152,6 +154,18 @@ class V2PipelineTemplateControllerSpec extends Specification {
 
     then:
     hash1 == hash2
+  }
+
+  @Unroll
+  def 'should fail with InvalidEntityException if Id(#id) is not provided or empty'() {
+    when:
+    controller.save('latest', new PipelineTemplate(id: id))
+
+    then:
+    thrown(InvalidEntityException)
+
+    where:
+    id << [null, "", "    "]
   }
 }
 

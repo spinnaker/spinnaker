@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
+import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
@@ -90,6 +91,10 @@ public class V2PipelineTemplateController {
       @RequestBody PipelineTemplate pipelineTemplate) {
     if (StringUtils.isNotEmpty(tag)) {
       validatePipelineTemplateTag(tag);
+    }
+
+    if (StringUtils.isBlank(pipelineTemplate.getId())) {
+      throw new InvalidEntityException("A pipeline template requires an id");
     }
 
     String templateId;

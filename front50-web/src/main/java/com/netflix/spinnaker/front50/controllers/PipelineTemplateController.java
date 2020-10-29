@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
+import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
@@ -34,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,7 +65,7 @@ public class PipelineTemplateController {
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   void save(@RequestBody PipelineTemplate pipelineTemplate) {
-    checkForDuplicatePipelineTemplate(pipelineTemplate.getId());
+    validatePipelineTemplate(pipelineTemplate);
     getPipelineTemplateDAO().create(pipelineTemplate.getId(), pipelineTemplate);
   }
 
@@ -197,13 +199,22 @@ public class PipelineTemplateController {
     }
   }
 
-  private void checkForDuplicatePipelineTemplate(String id) {
-    try {
-      getPipelineTemplateDAO().findById(id);
-    } catch (NotFoundException e) {
-      return;
+  private void validatePipelineTemplate(PipelineTemplate pipelineTemplate) {
+    // Required attr check
+    String pipelineTemplateId = pipelineTemplate.getId();
+    if (StringUtils.isBlank(pipelineTemplateId)) {
+      throw new InvalidEntityException("A pipeline template requires an id");
     }
-    throw new DuplicateEntityException("A pipeline template with the id " + id + " already exists");
+
+    // Duplicate check
+    try {
+      if (getPipelineTemplateDAO().findById(pipelineTemplateId) != null) {
+        throw new DuplicateEntityException(
+            "A pipeline template with the id " + pipelineTemplateId + " already exists");
+      }
+    } catch (NotFoundException e) {
+      // ignore and continue creation process.
+    }
   }
 
   private PipelineTemplateDAO getPipelineTemplateDAO() {

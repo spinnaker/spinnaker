@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -224,8 +225,7 @@ public class PipelineController {
    */
   private void validatePipeline(final Pipeline pipeline, Boolean staleCheck) {
     // Pipelines must have an application and a name
-    if (Strings.isNullOrEmpty(pipeline.getApplication())
-        || Strings.isNullOrEmpty(pipeline.getName())) {
+    if (StringUtils.isAnyBlank(pipeline.getApplication(), pipeline.getName())) {
       throw new InvalidEntityException("A pipeline requires name and application fields");
     }
 
