@@ -14,13 +14,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.kork.expressions
+@NonnullByDefault
+package com.netflix.spinnaker.kork.api.expressions;
 
-import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
-
-/**
- * Backwards-compatibility interface: [ExpressionFunctionProvider] was not originally exposed
- * as an extension point. This class can be removed once services have updated their dependencies.
- */
-@Deprecated("Interface has been moved to kork-api with a new package")
-interface ExpressionFunctionProvider : ExpressionFunctionProvider
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
