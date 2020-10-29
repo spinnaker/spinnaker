@@ -19,10 +19,23 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.SuspendedProcess
+import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spectator.api.Spectator
+import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ClusterCachingAgentSpec extends Specification {
+  static String region = 'region'
+  static String accountName = 'accountName'
+  static String accountId = 'accountId'
+
   static int defaultMin = 1
   static int defaultMax = 1
   static int defaultDesired = 1
@@ -37,6 +50,27 @@ class ClusterCachingAgentSpec extends Specification {
     .withVPCZoneIdentifier("subnetId1,subnetId2")
     .withSuspendedProcesses(defaultSuspendedProcesses.collect { new SuspendedProcess().withProcessName(it) }
   )
+
+  @Shared
+  ProviderCache providerCache = Mock(ProviderCache)
+
+  @Shared
+  AmazonEC2 ec2 = Mock(AmazonEC2)
+
+  @Shared
+  EddaTimeoutConfig edda = Mock(EddaTimeoutConfig)
+
+  def getAgent() {
+    def creds = Stub(NetflixAmazonCredentials) {
+      getName() >> accountName
+      it.getAccountId() >> accountId
+    }
+    def cloud = Stub(AmazonCloudProvider)
+    def client = Stub(AmazonClientProvider) {
+      getAmazonEC2(creds, region, _) >> ec2
+    }
+    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), edda)
+  }
 
   @Unroll
   def "should compare capacity and suspended processes when determining if ASGs are similar"() {
@@ -84,6 +118,23 @@ class ClusterCachingAgentSpec extends Specification {
     then:
     def e = thrown(RuntimeException)
     e.message.startsWith("failed to resolve only one vpc")
+  }
+
+  def "on demand update result should have authoritative types correctly set"() {
+    given:
+    def agent = getAgent()
+    def data = [
+      asgName: "asgName",
+      serverGroupName: "serverGroupName",
+      region: region,
+      account: accountName
+    ]
+
+    when:
+    def result = agent.handle(providerCache, data)
+
+    then:
+    result.authoritativeTypes as Set == ["clusters", "serverGroups", "applications"] as Set
   }
 
   private SuspendedProcess sP(String processName) {

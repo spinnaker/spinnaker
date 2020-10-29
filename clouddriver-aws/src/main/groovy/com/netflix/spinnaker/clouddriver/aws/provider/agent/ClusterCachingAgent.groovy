@@ -249,7 +249,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
     log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
     return new OnDemandAgent.OnDemandResult(
-      sourceAgentType: getOnDemandAgentType(), cacheResult: cacheResult, evictions: evictions
+      sourceAgentType: getOnDemandAgentType(),
+      cacheResult: cacheResult,
+      evictions: evictions,
+      authoritativeTypes: types.findAll { it.authority == AgentDataType.Authority.AUTHORITATIVE }.collect { it.typeName }
     )
   }
 
