@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.InstanceProvider
-import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
@@ -43,8 +42,8 @@ import com.netflix.spinnaker.keel.ec2.jackson.mixins.CustomizedMetricSpecificati
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.HealthMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.HealthSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.InstanceProviderMixin
-import com.netflix.spinnaker.keel.ec2.jackson.mixins.ReferenceRuleMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ScalingMixin
+import com.netflix.spinnaker.keel.ec2.jackson.mixins.SecurityGroupRuleMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.SecurityGroupSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ServerGroupSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.StepAdjustmentMixin
@@ -72,8 +71,8 @@ object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
       setMixInAnnotations<Health, HealthMixin>()
       setMixInAnnotations<HealthSpec, HealthSpecMixin>()
       setMixInAnnotations<InstanceProvider, InstanceProviderMixin>()
-      setMixInAnnotations<ReferenceRule, ReferenceRuleMixin>()
       setMixInAnnotations<Scaling, ScalingMixin>()
+      setMixInAnnotations<SecurityGroupRule, SecurityGroupRuleMixin>()
       setMixInAnnotations<SecurityGroupSpec, SecurityGroupSpecMixin>()
       setMixInAnnotations<ServerGroupSpec, ServerGroupSpecMixin>()
       setMixInAnnotations<StepAdjustment, StepAdjustmentMixin>()
@@ -98,7 +97,6 @@ internal object KeelEc2ApiDeserializers : Deserializers.Base() {
     when (type.rawClass) {
       ActiveServerGroupImage::class.java -> ActiveServerGroupImageDeserializer()
       IngressPorts::class.java -> IngressPortsDeserializer()
-      SecurityGroupSpec::class.java -> SecurityGroupSpecDeserializer()
       SecurityGroupRule::class.java -> SecurityGroupRuleDeserializer()
       else -> null
     }

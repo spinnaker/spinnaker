@@ -28,7 +28,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
         ),
         description = "I can see the fnords",
         inboundRules = setOf(
-          ReferenceRule(name = "fnord-ext", protocol = TCP, portRange = PortRange(7001, 7002)),
+          ReferenceRule(protocol = TCP, portRange = PortRange(7001, 7002)),
           CidrRule(TCP, PortRange(443, 443), "127.0.0.1/16")
         )
       )

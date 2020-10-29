@@ -2,9 +2,6 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.ALL
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
@@ -21,22 +18,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
   data class Fixture(
     val mapper: ObjectMapper = configuredYamlMapper().registerKeelEc2ApiModule(),
     val yaml: String,
-    val rule: SecurityGroupRule
-  ) {
-    val model: SecurityGroupSpec = SecurityGroupSpec(
-      moniker = Moniker(
-        app = "fnord",
-        stack = "ext"
-      ),
-      locations = SimpleLocations(
-        account = "test",
-        vpc = "vpc0",
-        regions = setOf(SimpleRegionSpec("ap-south-1"))
-      ),
-      description = "fnord security group",
-      inboundRules = setOf(rule)
-    )
-  }
+    val model: SecurityGroupRule
+  )
 
   fun tests() = rootContext<Fixture> {
     context("a self referencing ingress rule") {
@@ -45,54 +28,20 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
           yaml =
             """
             |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "TCP"
-            |  portRange:
-            |    startPort: 8080
-            |    endPort: 8080
+            |protocol: "TCP"
+            |portRange:
+            |  startPort: 8080
+            |  endPort: 8080
             |""".trimMargin(),
-          rule = ReferenceRule(
-            name = "fnord-ext",
+          model = ReferenceRule(
             protocol = TCP,
             portRange = PortRange(8080, 8080)
           )
         )
       }
 
+      canSerialize()
       canDeserialize()
-
-      // when serialized the name is added to the reference rule
-      test("serializes") {
-        val serialized = mapper.writeValueAsString(model)
-        expectThat(serialized).isEqualTo(
-            """
-            |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "TCP"
-            |  name: "fnord-ext"
-            |  portRange:
-            |    startPort: 8080
-            |    endPort: 8080
-            |""".trimMargin())
-      }
     }
 
     context("an ingress rule referencing another security group") {
@@ -101,25 +50,15 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
           yaml =
             """
             |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "TCP"
-            |  name: "fnord-int"
-            |  portRange:
-            |    startPort: 8080
-            |    endPort: 8080
+            |protocol: "TCP"
+            |name: "fnord"
+            |portRange:
+            |  startPort: 8080
+            |  endPort: 8080
             |""".trimMargin(),
-          rule = ReferenceRule(
+          model = ReferenceRule(
             protocol = TCP,
-            name = "fnord-int",
+            name = "fnord",
             portRange = PortRange(8080, 8080)
           )
         )
@@ -135,29 +74,19 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
           yaml =
             """
             |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "TCP"
-            |  name: "fnord-ext"
-            |  account: "prod"
-            |  vpc: "vpc0"
-            |  portRange:
-            |    startPort: 8080
-            |    endPort: 8080
+            |protocol: "TCP"
+            |name: "fnord"
+            |account: "prod"
+            |vpc: "vpc0"
+            |portRange:
+            |  startPort: 8080
+            |  endPort: 8080
             |""".trimMargin(),
-          rule = CrossAccountReferenceRule(
+          model = CrossAccountReferenceRule(
             protocol = TCP,
             account = "prod",
             vpc = "vpc0",
-            name = "fnord-ext",
+            name = "fnord",
             portRange = PortRange(8080, 8080)
           )
         )
@@ -173,23 +102,13 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
           yaml =
             """
             |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "TCP"
-            |  portRange:
-            |    startPort: 8080
-            |    endPort: 8080
-            |  blockRange: "172.16.0.0/24"
+            |protocol: "TCP"
+            |portRange:
+            |  startPort: 8080
+            |  endPort: 8080
+            |blockRange: "172.16.0.0/24"
             |""".trimMargin(),
-          rule = CidrRule(
+          model = CidrRule(
             protocol = TCP,
             blockRange = "172.16.0.0/24",
             portRange = PortRange(8080, 8080)
@@ -206,21 +125,11 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
           yaml =
             """
             |---
-            |moniker:
-            |  app: "fnord"
-            |  stack: "ext"
-            |locations:
-            |  account: "test"
-            |  vpc: "vpc0"
-            |  regions:
-            |  - name: "ap-south-1"
-            |description: "fnord security group"
-            |inboundRules:
-            |- protocol: "ALL"
-            |  portRange: "ALL"
-            |  blockRange: "172.16.0.0/24"
+            |protocol: "ALL"
+            |portRange: "ALL"
+            |blockRange: "172.16.0.0/24"
             |""".trimMargin(),
-          rule = CidrRule(
+          model = CidrRule(
             protocol = ALL,
             blockRange = "172.16.0.0/24",
             portRange = AllPorts
@@ -235,7 +144,7 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
 
   private fun TestContextBuilder<Fixture, Fixture>.canDeserialize() {
     test("deserializes") {
-      val deserialized = mapper.readValue<SecurityGroupSpec>(yaml)
+      val deserialized = mapper.readValue<SecurityGroupRule>(yaml)
       expectThat(deserialized).propertiesAreEqualTo(model)
     }
   }

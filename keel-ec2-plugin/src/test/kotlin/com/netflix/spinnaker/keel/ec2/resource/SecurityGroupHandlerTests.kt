@@ -45,7 +45,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityG
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleReference
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
-import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.model.Job
@@ -597,7 +596,6 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
               ReferenceRule(
-                name = securityGroupSpec.moniker.name,
                 protocol = TCP,
                 portRange = PortRange(startPort = 443, endPort = 443)
               )
@@ -647,7 +645,6 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
               ReferenceRule(
-                name = securityGroupSpec.moniker.name,
                 protocol = TCP,
                 portRange = PortRange(startPort = 443, endPort = 443)
               )
