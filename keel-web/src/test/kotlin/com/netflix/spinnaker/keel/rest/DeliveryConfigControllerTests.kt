@@ -269,7 +269,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         derivedContext<ResultActions>("persisting a delivery config as $contentType") {
           fixture {
             every {
-              repository.upsertDeliveryConfig(any<SubmittedDeliveryConfig>())
+              repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
             } answers {
               firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
             }
@@ -344,7 +344,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
     context("importing a delivery config from source control") {
       before {
         every {
-          repository.upsertDeliveryConfig(any<SubmittedDeliveryConfig>())
+          repository.upsertDeliveryConfig(ofType<SubmittedDeliveryConfig>())
         } returns deliveryConfig.toDeliveryConfig()
       }
 

@@ -293,7 +293,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         }
 
         test("a deployed event fires") {
-          verify { publisher.publishEvent(any<ArtifactVersionDeployed>()) }
+          verify { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
         }
       }
     }

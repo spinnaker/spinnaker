@@ -177,7 +177,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         }
 
         test("a telemetry event is recorded") {
-          verify { publisher.publishEvent(any<ArtifactVersionUpdated>()) }
+          verify { publisher.publishEvent(ofType<ArtifactVersionUpdated>()) }
         }
       }
     }

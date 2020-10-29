@@ -530,7 +530,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         test("no action is taken and event is emitted") {
           verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
-          verify { publisher.publishEvent(any<ResourceDiffNotActionable>()) }
+          verify { publisher.publishEvent(ofType<ResourceDiffNotActionable>()) }
           verify(exactly = 0) { plugin1.create(any(), any()) }
           verify(exactly = 0) { plugin1.update(any(), any()) }
           verify(exactly = 0) { plugin1.delete(any()) }
@@ -564,10 +564,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.actuationInProgress(resource) } returns false
           every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
         }
-        
+
         context("the version has not been deployed successfully before") {
           before {
-            every { artifactRepository.wasSuccessfullyDeployedTo(any(), any(), any(), any()) } returns 
+            every { artifactRepository.wasSuccessfullyDeployedTo(any(), any(), any(), any()) } returns
               false
             every { artifactRepository.markAsVetoedIn(any(), any(), false) } returns true
             runBlocking {

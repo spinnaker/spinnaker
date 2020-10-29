@@ -183,7 +183,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("an event gets published") {
-          verify { publisher.publishEvent(any<ArtifactRegisteredEvent>()) }
+          verify { publisher.publishEvent(ofType<ArtifactRegisteredEvent>()) }
         }
       }
 
@@ -373,7 +373,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
               test("an event is triggered because we want to track region mismatches") {
                 verify {
-                  publisher.publishEvent(any<ImageRegionMismatchDetected>())
+                  publisher.publishEvent(ofType<ImageRegionMismatchDetected>())
                 }
               }
             }
@@ -395,7 +395,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
               test("no region mismatch event is triggered") {
                 verify(exactly = 0) {
-                  publisher.publishEvent(any<ImageRegionMismatchDetected>())
+                  publisher.publishEvent(ofType<ImageRegionMismatchDetected>())
                 }
               }
             }
