@@ -174,7 +174,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
           test("an event is not sent") {
             verify(exactly = 0) {
-              publisher.publishEvent(any<ArtifactVersionApproved>())
+              publisher.publishEvent(ofType<ArtifactVersionApproved>())
             }
           }
         }
@@ -193,7 +193,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
           test("nothing is approved") {
             verify(exactly = 0) {
               repository.approveVersionFor(deliveryConfig, dockerArtifact, "2.0", environment.name)
-              publisher.publishEvent(any<ArtifactVersionApproved>())
+              publisher.publishEvent(ofType<ArtifactVersionApproved>())
             }
           }
         }

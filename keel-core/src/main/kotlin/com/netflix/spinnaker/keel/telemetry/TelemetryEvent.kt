@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import java.time.Duration
 
 sealed class TelemetryEvent
 
@@ -39,6 +40,12 @@ data class EnvironmentsCheckTimedOut(
   val application: String,
   val deliveryConfigName: String
 ) : TelemetryEvent()
+
+data class EnvironmentCheckComplete(
+  val application: String,
+  val deliveryConfigName: String,
+  val duration: Duration
+)
 
 data class ArtifactCheckSkipped(
   val type: ArtifactType,

@@ -9,13 +9,13 @@ import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
+import org.slf4j.LoggerFactory
+import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
-import org.slf4j.LoggerFactory
-import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 
 @Component
 class TelemetryListener(
@@ -139,6 +139,14 @@ class TelemetryListener(
       .safeIncrement()
   }
 
+  @EventListener(EnvironmentCheckComplete::class)
+  fun onEnvironmentCheckComplete(event : EnvironmentCheckComplete) {
+    spectator.timer(
+      ENVIRONMENT_CHECK_DURATION_ID,
+      listOf(BasicTag("application", event.application))
+    ).record(event.duration)
+  }
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> {
     return PolledMeter
       .using(spectator)
@@ -173,6 +181,7 @@ class TelemetryListener(
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
     private const val ENVIRONMENT_CHECK_DRIFT_GAUGE = "keel.environment.check.drift"
     private const val ENVIRONMENT_CHECK_TIMED_OUT_ID = "keel.environment.check.timeout"
+    private const val ENVIRONMENT_CHECK_DURATION_ID = "keel.environment.check.duration"
     private const val ARTIFACT_VERSION_VETOED = "keel.artifact.version.vetoed"
   }
 }

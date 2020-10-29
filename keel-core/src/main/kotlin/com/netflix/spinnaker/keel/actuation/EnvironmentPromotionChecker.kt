@@ -7,10 +7,13 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
+import com.netflix.spinnaker.keel.telemetry.EnvironmentCheckComplete
 import com.newrelic.api.agent.Trace
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
 
 /**
  * This class is responsible for approving artifacts in environments
@@ -19,12 +22,15 @@ import org.springframework.stereotype.Component
 class EnvironmentPromotionChecker(
   private val repository: KeelRepository,
   private val constraintRunner: EnvironmentConstraintRunner,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  private val clock: Clock = Clock.systemDefaultZone()
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @Trace(dispatcher=true)
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
+    val startTime = clock.instant()
+    try {
     val pinnedEnvs: Map<String, PinnedEnvironment> = repository
       .pinnedEnvironments(deliveryConfig)
       .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
@@ -94,6 +100,15 @@ class EnvironmentPromotionChecker(
           }
         }
       }
+    } finally {
+      publisher.publishEvent(
+        EnvironmentCheckComplete(
+          application = deliveryConfig.application,
+          deliveryConfigName = deliveryConfig.name,
+          duration = Duration.between(startTime, clock.instant())
+        )
+      )
+    }
   }
 
   private fun approveVersion(
