@@ -365,4 +365,142 @@ public class CreateServerGroupSpec extends EcsSpec {
         String.format("Failed to observe task failure after %s seconds", TASK_RETRY_SECONDS),
         TASK_RETRY_SECONDS);
   }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ inputs, EC2 launch type "
+          + "with no load balancing successfully submit createServerGroup operation"
+          + "\n===")
+  @Test
+  public void createServerGroup_InputsEc2WithoutLoadBalacingTest()
+      throws IOException, InterruptedException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile("/createServerGroup-inputs-ec2-withoutLoadBalacing.json");
+    String expectedServerGroupName = "ecs-integInputsEc2NoLoadBalancing";
+    setEcsAccountCreds();
+
+    // when
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    // then
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals("EC2", seenCreateServRequest.getLaunchType());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ inputs, EC2 launch type"
+          + "and service discovery registry fields, "
+          + "successfully submit createServerGroup operation"
+          + "\n===")
+  @Test
+  public void createServerGroup_InputsEc2ServiceDiscoveryTest()
+      throws IOException, InterruptedException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile("/createServerGroup-inputs-ec2-serviceDiscovery.json");
+    String expectedServerGroupName = "ecs-integInputsEc2WithServiceDiscovery";
+    setEcsAccountCreds();
+
+    // when
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    // then
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals("EC2", seenCreateServRequest.getLaunchType());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+    assertEquals(80, seenCreateServRequest.getServiceRegistries().get(0).getContainerPort());
+    assertEquals(
+        "arn:aws:servicediscovery:us-west-2:910995322324:service/srv-ckeydmrhzmqh6yfz",
+        seenCreateServRequest.getServiceRegistries().get(0).getRegistryArn());
+    assertEquals(
+        true,
+        seenCreateServRequest.getServiceRegistries().get(0).getContainerName().contains("v000"));
+  }
 }

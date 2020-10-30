@@ -41,6 +41,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.restassured.http.ContentType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -318,5 +319,63 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
     assertEquals("application", serviceLB.getContainerName());
     assertEquals(80, serviceLB.getContainerPort().intValue());
     assertEquals("integArtifactsFargateTgMappings-cluster", seenCreateServRequest.getCluster());
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ task def artifacts, EC2 launch type, and new target group fields "
+          + "without container definition, gives an exception(Provided task definition does not contain any container definitions). "
+          + "\n===")
+  @Test
+  public void createServerGroup_errorIfNoContainersTest() throws IOException, InterruptedException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile("/createServerGroup-artifact-EC2-targetGroupMappings.json");
+
+    setEcsAccountCreds();
+
+    ByteArrayInputStream byteArrayInputStreamOfArtifactsForEC2Type =
+        new ByteArrayInputStream(
+            generateStringFromTestArtifactFile(
+                    "createServerGroup-artifact-EC2-targetGroup-WithNoContainers-artifactFile.json")
+                .getBytes());
+
+    when(mockArtifactDownloader.download(any(Artifact.class)))
+        .thenReturn(byteArrayInputStreamOfArtifactsForEC2Type);
+
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          HashMap<String, Object> status =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("status");
+          assertEquals(
+              true,
+              status
+                  .get("status")
+                  .toString()
+                  .contains("Provided task definition does not contain any container definitions"));
+          return status.get("failed").equals(true);
+        },
+        String.format("Failed to detect task failure, in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
   }
 }
