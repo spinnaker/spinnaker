@@ -1,7 +1,8 @@
 FROM alpine:3.12
 LABEL maintainer="sig-platform@spinnaker.io"
 
-ENV KUBECTL_VERSION v1.17.13
+# KUBECTL_VERSION kept one minor version behind latest to maximise compatibility overlap
+ENV KUBECTL_VERSION v1.18.10
 
 RUN apk --no-cache add --update bash wget unzip openjdk11 'python2>2.7.9' && \
   wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
