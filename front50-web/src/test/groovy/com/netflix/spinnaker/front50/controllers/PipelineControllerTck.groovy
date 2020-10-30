@@ -19,17 +19,20 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
-import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import org.springframework.beans.factory.ObjectProvider
 
+import java.time.Clock
 import java.util.concurrent.Executors
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
-import com.netflix.spinnaker.front50.utils.S3TestHelper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -43,14 +46,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 abstract class PipelineControllerTck extends Specification {
-
   static final int OK = 200
   static final int BAD_REQUEST = 400
   static final int UNPROCESSABLE_ENTITY = 422
 
   MockMvc mockMvc
 
-  @Subject PipelineDAO pipelineDAO
+  @Subject
+  PipelineDAO pipelineDAO
   def serviceAccountsService
 
   void setup() {
@@ -58,15 +61,21 @@ abstract class PipelineControllerTck extends Specification {
     this.serviceAccountsService = Mock(ServiceAccountsService)
 
     mockMvc = MockMvcBuilders
-      .standaloneSetup(new PipelineController(pipelineDAO, new ObjectMapper(), serviceAccountsService, Optional.empty()))
-      .setHandlerExceptionResolvers(createExceptionResolver())
+      .standaloneSetup(
+        new PipelineController(
+          pipelineDAO,
+          new ObjectMapper(),
+          Optional.of(serviceAccountsService),
+          Collections.emptyList(),
+          Optional.empty()
+        )
+      )
+      .setControllerAdvice(
+        new GenericExceptionHandlers(
+          new ExceptionMessageDecorator(Mock(ObjectProvider))
+        )
+      )
       .build()
-  }
-
-  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
-    def resolver = new SimpleExceptionHandlerExceptionResolver()
-    resolver.afterPropertiesSet()
-    return resolver
   }
 
   abstract PipelineDAO createPipelineDAO()
@@ -80,10 +89,10 @@ abstract class PipelineControllerTck extends Specification {
     when:
     def response = mockMvc
       .perform(
-      post("/pipelines")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(command))
-    )
+        post("/pipelines")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(command))
+      )
       .andReturn()
       .response
 
@@ -125,7 +134,7 @@ abstract class PipelineControllerTck extends Specification {
     when:
     pipeline.name = "Updated Name"
     def response = mockMvc.perform(put("/pipelines/${pipeline.id}").contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(pipeline))).andReturn().response
+      .content(new ObjectMapper().writeValueAsString(pipeline))).andReturn().response
 
     then:
     response.status == OK
@@ -157,33 +166,33 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.errorMessage == "The provided id ${pipeline2.id} doesn't match the pipeline id ${pipeline1.id}"
+    response.errorMessage == "The provided id ${pipeline1.id} doesn't match the pipeline id ${pipeline2.id}"
   }
 
   @Unroll
   void 'should only (re)generate cron trigger ids for new pipelines'() {
     given:
     def pipeline = [
-        name       : "My Pipeline",
-        application: "test",
-        triggers   : [
-            [type: "cron", id: "original-id"]
-        ]
+      name       : "My Pipeline",
+      application: "test",
+      triggers   : [
+        [type: "cron", id: "original-id"]
+      ]
     ]
     if (lookupPipelineId) {
       pipelineDAO.create(null, pipeline as Pipeline)
       pipeline.id = pipelineDAO.findById(
-          pipelineDAO.getPipelineId("test", "My Pipeline")
+        pipelineDAO.getPipelineId("test", "My Pipeline")
       ).getId()
     }
 
     when:
     def response = mockMvc.perform(post('/pipelines').
-        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
-        .andReturn().response
+      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      .andReturn().response
 
     def updatedPipeline = pipelineDAO.findById(
-        pipelineDAO.getPipelineId("test", "My Pipeline")
+      pipelineDAO.getPipelineId("test", "My Pipeline")
     )
 
     then:
@@ -232,10 +241,10 @@ abstract class PipelineControllerTck extends Specification {
   void 'should delete an existing pipeline by name or id and its associated managed service account'() {
     given:
     def pipelineToDelete = pipelineDAO.create(null, new Pipeline([
-        name: "pipeline1", application: "test"
+      name: "pipeline1", application: "test"
     ]))
     pipelineDAO.create(null, new Pipeline([
-        name: "pipeline2", application: "test"
+      name: "pipeline2", application: "test"
     ]))
 
     when:
@@ -258,10 +267,10 @@ abstract class PipelineControllerTck extends Specification {
   void 'should enforce unique names on save operations'() {
     given:
     pipelineDAO.create(null, new Pipeline([
-            name: "pipeline1", application: "test"
+      name: "pipeline1", application: "test"
     ]))
     pipelineDAO.create(null, new Pipeline([
-            name: "pipeline2", application: "test"
+      name: "pipeline2", application: "test"
     ]))
 
     when:
@@ -274,9 +283,9 @@ abstract class PipelineControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(post('/pipelines')
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
-                  .andReturn().response
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
+      .andReturn().response
 
     then:
     response.status == BAD_REQUEST
@@ -284,23 +293,38 @@ abstract class PipelineControllerTck extends Specification {
   }
 }
 
-@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
-class S3PipelineControllerTck extends PipelineControllerTck {
-  @Shared
+class SqlPipelineControllerTck extends PipelineControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
-  @Shared
-  PipelineDAO pipelineDAO
+  @AutoCleanup("close")
+  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
+
+  void cleanup() {
+    SqlTestUtil.cleanupDb(currentDatabase.context)
+  }
 
   @Override
   PipelineDAO createPipelineDAO() {
-    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
-    amazonS3.setEndpoint("http://127.0.0.1:9999")
-    S3TestHelper.setupBucket(amazonS3, "front50")
+    def registry = new NoopRegistry()
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000, null)
-    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler,new DefaultObjectKeyLoader(storageService), 0,false, new NoopRegistry())
+    def storageService = new SqlStorageService(
+      new ObjectMapper(),
+      registry,
+      currentDatabase.context,
+      Clock.systemDefaultZone(),
+      new SqlRetryProperties(),
+      100,
+      "default"
+    )
 
-    return pipelineDAO
+    return new DefaultPipelineDAO(
+      storageService,
+      scheduler,
+      new DefaultObjectKeyLoader(storageService),
+      0,
+      false,
+      new NoopRegistry(),
+      new InMemoryCircuitBreakerRegistry()
+    )
   }
 }

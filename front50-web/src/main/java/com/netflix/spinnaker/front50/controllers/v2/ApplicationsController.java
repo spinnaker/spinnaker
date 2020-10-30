@@ -67,7 +67,7 @@ public class ApplicationsController {
       notes =
           "Fetch all applications.\n\nSupports filtering by one or more attributes:\n- ?email=my@email.com\n- ?email=my@email.com&name=flex")
   @RequestMapping(method = RequestMethod.GET)
-  public Set<Application> applications(
+  public List<Application> applications(
       @RequestParam(value = "pageSize", required = false) Integer pageSize,
       @RequestParam(required = false, value = "restricted", defaultValue = "true")
           boolean restricted,
@@ -94,8 +94,8 @@ public class ApplicationsController {
       applications = new ArrayList<>(applicationDAO.search(params));
     }
 
-    Set<Application> results =
-        new HashSet<>(
+    List<Application> results =
+        new ArrayList<>(
             pageSize == null
                 ? applications
                 : applications.subList(0, Math.min(pageSize, applications.size())));

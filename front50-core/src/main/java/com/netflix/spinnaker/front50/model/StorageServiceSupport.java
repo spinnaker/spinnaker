@@ -220,14 +220,15 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         SupplierUtils.recover(
             () -> service.loadObject(objectType, buildObjectKey(id)),
             e ->
-                allItemsCache.get().stream()
+                Optional.ofNullable(allItemsCache.get()).orElseGet(HashSet::new).stream()
                     .filter(item -> item.getId().equalsIgnoreCase(id))
                     .findFirst()
                     .orElseThrow(
                         () ->
                             new NotFoundException(
                                 String.format(
-                                    "No item found in cache with id of %s", id.toLowerCase()))));
+                                    "No item found in cache with id of %s",
+                                    id == null ? "null" : id.toLowerCase()))));
 
     return breaker.executeSupplier(recoverableSupplier);
   }

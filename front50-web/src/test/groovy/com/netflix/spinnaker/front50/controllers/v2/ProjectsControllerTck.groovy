@@ -17,27 +17,27 @@
 
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.front50.controllers.SimpleExceptionHandlerExceptionResolver
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.S3StorageService
-import com.netflix.spinnaker.front50.model.StorageService
+import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
-import com.netflix.spinnaker.front50.utils.S3TestHelper
-import org.springframework.context.support.StaticMessageSource
+import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 import rx.schedulers.Schedulers
 import spock.lang.*
 
+import java.time.Clock
 import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -45,15 +45,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 abstract class ProjectsControllerTck extends Specification {
-  static final int BAD_REQUEST = 400
-
-  @Shared
   ObjectMapper objectMapper = new ObjectMapper()
 
-  @Shared
   MockMvc mockMvc
 
-  @Shared
   ProjectsController controller
 
   @Subject
@@ -62,20 +57,15 @@ abstract class ProjectsControllerTck extends Specification {
   void setup() {
     this.dao = createProjectDAO()
 
-    this.controller = new ProjectsController(
-        projectDAO: dao,
-        messageSource: new StaticMessageSource()
-    )
+    this.controller = new ProjectsController(dao)
     this.mockMvc = MockMvcBuilders
       .standaloneSetup(controller)
-      .setHandlerExceptionResolvers(createExceptionResolver())
+      .setControllerAdvice(
+        new GenericExceptionHandlers(
+          new ExceptionMessageDecorator(Mock(ObjectProvider))
+        )
+      )
       .build()
-  }
-
-  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
-    def resolver = new SimpleExceptionHandlerExceptionResolver()
-    resolver.afterPropertiesSet()
-    return resolver
   }
 
   abstract ProjectDAO createProjectDAO()
@@ -98,7 +88,7 @@ abstract class ProjectsControllerTck extends Specification {
     criteria       | project
     "Project1"     | new Project(name: "Project1")
     "Application1" | new Project(name: "Project1", config: new Project.ProjectConfig(
-        applications: ["Application1", "Application2"]
+      applications: ["Application1", "Application2"]
     ))
   }
 
@@ -227,7 +217,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     when:
     def response1 = mockMvc.perform(
-        post("/v2/projects").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
+      post("/v2/projects").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
     )
 
     then:
@@ -236,7 +226,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     when:
     def response2 = mockMvc.perform(
-        post("/v2/projects").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
+      post("/v2/projects").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
     )
 
     then:
@@ -255,7 +245,7 @@ abstract class ProjectsControllerTck extends Specification {
     sleep(2500)
     when:
     def response = mockMvc.perform(
-        put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
+      put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
     )
 
     then:
@@ -268,12 +258,12 @@ abstract class ProjectsControllerTck extends Specification {
     project.name = "Project2"
 
     response = mockMvc.perform(
-        put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
+      put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
     ).andReturn().response
 
     then:
-    response.status == BAD_REQUEST
-    response.errorMessage == "A Project named ${project.name} already exists"
+    response.status == 400
+    response.errorMessage == "A Project named '${project.name}' already exists"
 
   }
 
@@ -283,7 +273,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(
-        delete("/v2/projects/" + project.id)
+      delete("/v2/projects/" + project.id)
     )
 
     then:
@@ -306,25 +296,38 @@ abstract class ProjectsControllerTck extends Specification {
   }
 }
 
-@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
-class S3ProjectsControllerTck extends ProjectsControllerTck {
-  @Shared
+class SqlProjectsControllerTck extends ProjectsControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
-  @Shared
-  ProjectDAO projectDAO
+  @AutoCleanup("close")
+  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
 
-
+  void cleanup() {
+    SqlTestUtil.cleanupDb(currentDatabase.context)
+  }
 
   @Override
   ProjectDAO createProjectDAO() {
-    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
-    amazonS3.setEndpoint("http://127.0.0.1:9999")
-    S3TestHelper.setupBucket(amazonS3, "front50")
+    def registry = new NoopRegistry()
 
-    StorageService storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000, null)
-    projectDAO = new DefaultProjectDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
+    def storageService = new SqlStorageService(
+      new ObjectMapper(),
+      registry,
+      currentDatabase.context,
+      Clock.systemDefaultZone(),
+      new SqlRetryProperties(),
+      100,
+      "default"
+    )
 
-    return projectDAO
+    return new DefaultProjectDAO(
+      storageService,
+      scheduler,
+      new DefaultObjectKeyLoader(storageService),
+      0,
+      false,
+      new NoopRegistry(),
+      new InMemoryCircuitBreakerRegistry()
+    )
   }
 }

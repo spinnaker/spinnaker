@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.pipeline.Trigger;
 import java.util.*;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,9 +68,11 @@ public class StrategyController {
 
       // ensure that cron triggers are assigned a unique identifier for new strategies
       if (strategy.getTriggers() != null) {
-        strategy.getTriggers().stream()
+        Collection<Trigger> triggers = strategy.getTriggers();
+        triggers.stream()
             .filter(it -> "cron".equals(it.getType()))
             .forEach(it -> it.put("id", UUID.randomUUID().toString()));
+        strategy.setTriggers(triggers);
       }
     }
 

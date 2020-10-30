@@ -17,16 +17,19 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
-import com.netflix.spinnaker.front50.utils.S3TestHelper
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -34,6 +37,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 import rx.schedulers.Schedulers
 import spock.lang.*
 
+import java.time.Clock
 import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -52,15 +56,13 @@ abstract class StrategyControllerTck extends Specification {
     this.pipelineStrategyDAO = createPipelineStrategyDAO()
 
     mockMvc = MockMvcBuilders
-      .standaloneSetup(new StrategyController(pipelineStrategyDAO: pipelineStrategyDAO))
-      .setHandlerExceptionResolvers(createExceptionResolver())
+      .standaloneSetup(new StrategyController(pipelineStrategyDAO))
+      .setControllerAdvice(
+        new GenericExceptionHandlers(
+          new ExceptionMessageDecorator(Mock(ObjectProvider))
+        )
+      )
       .build()
-  }
-
-  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
-    def resolver = new SimpleExceptionHandlerExceptionResolver()
-    resolver.afterPropertiesSet()
-    return resolver
   }
 
   abstract PipelineStrategyDAO createPipelineStrategyDAO()
@@ -132,7 +134,7 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.errorMessage == "A strategy with name ${strategy2.name} already exists in application ${strategy2.application}"
+    response.errorMessage == "A strategy with name '${strategy2.name}' already exists in application '${strategy2.application}'"
 
     when:
     response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +142,7 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.errorMessage == "The provided id ${strategy1.id} doesn't match the strategy id ${strategy2.id}"
+    response.errorMessage == "The provided id '${strategy1.id}' doesn't match the strategy id '${strategy2.id}'"
   }
 
   void 'should delete an existing pipeline by name or id'() {
@@ -197,23 +199,38 @@ abstract class StrategyControllerTck extends Specification {
   }
 }
 
-@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
-class S3StrategyControllerTck extends StrategyControllerTck {
-  @Shared
+class SqlStrategyControllerTck extends StrategyControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
-  @Shared
-  PipelineStrategyDAO pipelineStrategyDAO
+  @AutoCleanup("close")
+  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
+
+  void cleanup() {
+    SqlTestUtil.cleanupDb(currentDatabase.context)
+  }
 
   @Override
   PipelineStrategyDAO createPipelineStrategyDAO() {
-    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
-    amazonS3.setEndpoint("http://127.0.0.1:9999")
-    S3TestHelper.setupBucket(amazonS3, "front50")
+    def registry = new NoopRegistry()
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000, null)
-    pipelineStrategyDAO = new DefaultPipelineStrategyDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
+    def storageService = new SqlStorageService(
+      new ObjectMapper(),
+      registry,
+      currentDatabase.context,
+      Clock.systemDefaultZone(),
+      new SqlRetryProperties(),
+      100,
+      "default"
+    )
 
-    return pipelineStrategyDAO
+    return new DefaultPipelineStrategyDAO(
+      storageService,
+      scheduler,
+      new DefaultObjectKeyLoader(storageService),
+      0,
+      false,
+      new NoopRegistry(),
+      new InMemoryCircuitBreakerRegistry()
+    )
   }
 }

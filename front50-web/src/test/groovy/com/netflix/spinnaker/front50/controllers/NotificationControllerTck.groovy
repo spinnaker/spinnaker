@@ -17,64 +17,58 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
-import com.netflix.spinnaker.front50.utils.S3TestHelper
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import rx.schedulers.Schedulers
-import spock.lang.IgnoreIf
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.time.Clock
 import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 abstract class NotificationControllerTck extends Specification {
-  @Shared
   ObjectMapper objectMapper = new ObjectMapper()
 
-  @Shared
   MockMvc mockMvc
 
-  @Shared
   NotificationController controller
 
-  @Subject
   NotificationDAO dao
 
   def global = new Notification([
-      email: [[
-          "level": "global",
-          "when": [
-              "pipeline.complete",
-              "pipeline.failed"
-          ],
-          "type": "email",
-          "address": "default@netflix.com"
-      ]]
+    email: [[
+              "level": "global",
+              "when": [
+                "pipeline.complete",
+                "pipeline.failed"
+              ],
+              "type": "email",
+              "address": "default@netflix.com"
+            ]]
   ])
 
   void setup() {
     this.dao = createNotificationDAO()
-    this.controller = new NotificationController(
-        notificationDAO: dao,
-        messageSource: new StaticMessageSource()
-    )
+    this.controller = new NotificationController(dao)
     this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
   }
 
@@ -83,7 +77,7 @@ abstract class NotificationControllerTck extends Specification {
   void "should create global notifications"() {
     when:
     def response1 = mockMvc.perform(
-        post("/notifications/global").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(global))
+      post("/notifications/global").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(global))
     )
 
     then:
@@ -98,7 +92,7 @@ abstract class NotificationControllerTck extends Specification {
 
     when:
     def response2 = mockMvc.perform(
-        get("/notifications")
+      get("/notifications")
     )
 
     then:
@@ -114,23 +108,23 @@ abstract class NotificationControllerTck extends Specification {
     given:
     dao.saveGlobal(global)
     def application = new Notification([
-        application: "my-application",
-        hipchat: [[
-            "level": "application",
-            "when": [
-                "pipeline.complete",
-                "pipeline.failed"
-            ],
-            "type": "hipchat",
-            "address": "hipchatuser"
-        ]]
+      application: "my-application",
+      hipchat: [[
+                  "level": "application",
+                  "when": [
+                    "pipeline.complete",
+                    "pipeline.failed"
+                  ],
+                  "type": "hipchat",
+                  "address": "hipchatuser"
+                ]]
     ])
 
     def expectedApplication = new Notification(application + global)
 
     when:
     def response1 = mockMvc.perform(
-        post("/notifications/application/" + application.application).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(application))
+      post("/notifications/application/" + application.application).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(application))
     )
 
     then:
@@ -138,7 +132,7 @@ abstract class NotificationControllerTck extends Specification {
 
     when:
     def response2 = mockMvc.perform(
-        get("/notifications/application/" + application.application)
+      get("/notifications/application/" + application.application)
     )
 
     then:
@@ -156,21 +150,21 @@ abstract class NotificationControllerTck extends Specification {
   void "should delete application and global notifications"() {
     given:
     dao.save(HierarchicalLevel.APPLICATION, "my-application", new Notification([
-        application: "my-application",
-        hipchat: [[
-                      "level": "application",
-                      "when": [
-                          "pipeline.complete",
-                          "pipeline.failed"
-                      ],
-                      "type": "hipchat",
-                      "address": "hipchatuser"
-                  ]]
+      application: "my-application",
+      hipchat: [[
+                  "level": "application",
+                  "when": [
+                    "pipeline.complete",
+                    "pipeline.failed"
+                  ],
+                  "type": "hipchat",
+                  "address": "hipchatuser"
+                ]]
     ]))
 
     when:
     def response2 = mockMvc.perform(
-        delete("/notifications/application/my-application")
+      delete("/notifications/application/my-application")
     )
 
     then:
@@ -180,23 +174,38 @@ abstract class NotificationControllerTck extends Specification {
 }
 
 
-@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
-class S3NotificationControllerTck extends NotificationControllerTck {
-  @Shared
+class SqlNotificationControllerTck extends NotificationControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
-  @Shared
-  NotificationDAO notificationDAO
+  @AutoCleanup("close")
+  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
+
+  void cleanup() {
+    SqlTestUtil.cleanupDb(currentDatabase.context)
+  }
 
   @Override
   NotificationDAO createNotificationDAO() {
-    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
-    amazonS3.setEndpoint("http://127.0.0.1:9999")
-    S3TestHelper.setupBucket(amazonS3, "front50")
+    def registry = new NoopRegistry()
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000, null)
-    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
+    def storageService = new SqlStorageService(
+      new ObjectMapper(),
+      registry,
+      currentDatabase.context,
+      Clock.systemDefaultZone(),
+      new SqlRetryProperties(),
+      100,
+      "default"
+    )
 
-    return notificationDAO
+    return new DefaultNotificationDAO(
+      storageService,
+      scheduler,
+      new DefaultObjectKeyLoader(storageService),
+      0,
+      false,
+      new NoopRegistry(),
+      new InMemoryCircuitBreakerRegistry()
+    )
   }
 }

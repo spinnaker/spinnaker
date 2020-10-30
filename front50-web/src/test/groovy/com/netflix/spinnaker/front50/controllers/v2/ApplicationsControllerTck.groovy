@@ -17,96 +17,106 @@
 
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
+import com.netflix.spinnaker.front50.model.SqlStorageService
+import com.netflix.spinnaker.front50.model.application.ApplicationService
+import com.netflix.spinnaker.front50.validator.HasEmailValidator
+import com.netflix.spinnaker.front50.validator.HasNameValidator
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
-import com.netflix.spinnaker.front50.model.notification.NotificationDAO
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
-import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
-import com.netflix.spinnaker.front50.model.project.ProjectDAO
-import com.netflix.spinnaker.front50.utils.S3TestHelper
-import com.netflix.spinnaker.front50.validator.HasEmailValidator
-import com.netflix.spinnaker.front50.validator.HasNameValidator
+import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import rx.schedulers.Schedulers
-import spock.lang.IgnoreIf
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.time.Clock
 import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 
 abstract class ApplicationsControllerTck extends Specification {
-  @Shared
   ObjectMapper objectMapper = new ObjectMapper()
 
-  @Shared
   MockMvc mockMvc
-
-  @Shared
   ApplicationsController controller
+  ApplicationService applicationService
+
+  def projectDAO = Mock(ProjectDAO)
+  def pipelineDAO = Mock(PipelineDAO)
+  def pipelineStrategyDAO = Mock(PipelineStrategyDAO)
+  def fiatStatus = Mock(FiatStatus)
 
   @Subject
   ApplicationDAO dao
 
-  @Shared
-  ProjectDAO projectDAO = Stub(ProjectDAO)
-
-  @Shared
-  NotificationDAO notificationDAO = Stub(NotificationDAO)
-
-  @Shared
-  PipelineDAO pipelineDAO = Stub(PipelineDAO)
-
-  @Shared
-  PipelineStrategyDAO pipelineStrategyDAO = Stub(PipelineStrategyDAO)
-
-  @Shared
-  Optional<FiatService> fiatService = Optional.empty();
-
   void setup() {
     this.dao = createApplicationDAO()
-    this.controller = new ApplicationsController(
-      applicationDAO: dao,
-      projectDAO: projectDAO,
-      notificationDAO: notificationDAO,
-      pipelineStrategyDAO: pipelineStrategyDAO,
-      pipelineDAO: pipelineDAO,
-      applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
-      messageSource: new StaticMessageSource(),
-      fiatService: fiatService
+    this.applicationService = new ApplicationService(
+      dao,
+      projectDAO,
+      Mock(NotificationDAO),
+      pipelineDAO,
+      pipelineStrategyDAO,
+      [new HasNameValidator(), new HasEmailValidator()],
+      Collections.emptyList(),
+      Optional.empty()
     )
-    this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+    this.controller = new ApplicationsController(
+      new StaticMessageSource(),
+      dao,
+      Optional.empty(),
+      Optional.empty(),
+      new FiatConfigurationProperties(),
+      fiatStatus,
+      applicationService
+    )
+
+    this.mockMvc = MockMvcBuilders
+      .standaloneSetup(controller)
+      .setControllerAdvice(
+        new GenericExceptionHandlers(
+          new ExceptionMessageDecorator(Mock(ObjectProvider))
+        )
+      )
+      .build()
   }
 
   abstract ApplicationDAO createApplicationDAO()
 
   def "should create a new application"() {
     given:
-    def sampleApp = new Application(name: "SAMPLEAPP", type: "Standalone App", email: "web@netflix.com", lastModifiedBy: "anonymous")
+    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", lastModifiedBy: "anonymous")
 
     when:
     def response = mockMvc
       .perform(
-      post("/v2/applications")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(sampleApp))
-    )
+        post("/v2/applications")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(sampleApp))
+      )
 
     then:
     response.andExpect status().isOk()
@@ -115,21 +125,21 @@ abstract class ApplicationsControllerTck extends Specification {
 
   def "should not create an application missing a name"() {
     given:
-    def applicationMissingName = new Application(type: "Standalone App", email: "web@netflix.com")
+    def applicationMissingName = new Application(email: "web@netflix.com")
 
     when:
     def response = mockMvc
       .perform(
-      post("/v2/applications")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(applicationMissingName))
-    )
+        post("/v2/applications")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(applicationMissingName))
+      )
 
     then:
     response.andExpect status().is4xxClientError()
   }
 
-  def "should return a applications"() {
+  def "should return all applications"() {
     given:
     [
       new Application(
@@ -155,22 +165,21 @@ abstract class ApplicationsControllerTck extends Specification {
     response.andExpect status().isOk()
 
     //The results are not in a consistent order from the DAO so sort them
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all().sort {it.name}))
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all().sort { it.name }))
   }
 
   def "should update an application"() {
     given:
-    def owner = "Andy McEntee"
-    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", owner: owner, lastModifiedBy: "anonymous")
+    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", lastModifiedBy: "anonymous")
     dao.create("SAMPLEAPP", new Application())
 
     when:
     def response = mockMvc
       .perform(
-      patch("/v2/applications/SAMPLEAPP")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(sampleApp))
-    )
+        patch("/v2/applications/SAMPLEAPP")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(sampleApp))
+      )
 
     then:
     response.andExpect status().isOk()
@@ -184,10 +193,10 @@ abstract class ApplicationsControllerTck extends Specification {
     when:
     def response = mockMvc
       .perform(
-      patch("/v2/applications")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(sampleApp))
-    )
+        patch("/v2/applications")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(sampleApp))
+      )
 
     then:
     response.andExpect status().is4xxClientError()
@@ -200,10 +209,10 @@ abstract class ApplicationsControllerTck extends Specification {
     when:
     def response = mockMvc
       .perform(
-      patch("/v2/applications/SAMPLEAPPWRONG")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(sampleApp))
-    )
+        patch("/v2/applications/SAMPLEAPPWRONG")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(sampleApp))
+      )
 
     then:
     response.andExpect status().is4xxClientError()
@@ -296,6 +305,9 @@ abstract class ApplicationsControllerTck extends Specification {
     )
 
     then:
+    1 * projectDAO.all() >> { return Collections.emptyList() }
+    1 * pipelineDAO.getPipelinesByApplication("sampleapp") >> { return Collections.emptyList() }
+    1 * pipelineStrategyDAO.getPipelinesByApplication("sampleapp") >> { return Collections.emptyList() }
     response.andExpect status().isNoContent()
 
     when:
@@ -370,23 +382,39 @@ abstract class ApplicationsControllerTck extends Specification {
   }
 }
 
-@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
-class S3ApplicationsControllerTck extends ApplicationsControllerTck {
-  @Shared
+class SqlApplicationsControllerTck extends ApplicationsControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
-  @Shared
-  DefaultApplicationDAO applicationDAO
+  @AutoCleanup("close")
+  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
+
+  void cleanup() {
+    SqlTestUtil.cleanupDb(currentDatabase.context)
+  }
 
   @Override
   ApplicationDAO createApplicationDAO() {
-    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
-    amazonS3.setEndpoint("http://127.0.0.1:9999")
-    S3TestHelper.setupBucket(amazonS3, "front50")
+    def registry = new NoopRegistry()
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us_east1", true, 10000, null)
-    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
-    return applicationDAO
+    def storageService = new SqlStorageService(
+      new ObjectMapper(),
+      registry,
+      currentDatabase.context,
+      Clock.systemDefaultZone(),
+      new SqlRetryProperties(),
+      100,
+      "default"
+    )
+
+    return new DefaultApplicationDAO(
+      storageService,
+      scheduler,
+      new DefaultObjectKeyLoader(storageService),
+      0,
+      false,
+      new NoopRegistry(),
+      new InMemoryCircuitBreakerRegistry()
+    )
   }
 }
 
