@@ -51,6 +51,13 @@ class ImageExistsConstraintEvaluator(
         regions = vmOptions.regions
       )
     }
+      .also {
+        if (it.keys.containsAll(vmOptions.regions)) {
+          log.info("Found AMIs for all desired regions for {}", version)
+        } else {
+          log.warn("Missing regions {} for {}", (vmOptions.regions - it.keys).sorted().joinToString(), version)
+        }
+      }
       .keys.containsAll(vmOptions.regions)
 
   private val defaultImageAccount: String

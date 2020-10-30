@@ -21,6 +21,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.mockk
+import org.slf4j.LoggerFactory
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -57,7 +58,9 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     )
   ) {
     val eventPublisher = mockk<EventPublisher>(relaxUnitFun = true)
-    val imageService = mockk<ImageService>(relaxUnitFun = true)
+    val imageService = mockk<ImageService>(relaxUnitFun = true) {
+      every { log } returns LoggerFactory.getLogger(ImageService::class.java)
+    }
     val evaluator = ImageExistsConstraintEvaluator(
       imageService,
       NoopDynamicConfig(),

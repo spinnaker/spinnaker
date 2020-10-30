@@ -231,6 +231,14 @@ suspend fun ImageService.getLatestNamedImages(
   }
     .mapValues { (_, it) -> it.await() }
     .filterNotNullValues()
+    .also {
+      log.debug(
+        "Found AMIs {} for {} in {}",
+        it.mapValues { (_, image) -> image.imageName }.toSortedMap(),
+        appVersion,
+        regions.sorted().joinToString()
+      )
+    }
 }
 
 private fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"

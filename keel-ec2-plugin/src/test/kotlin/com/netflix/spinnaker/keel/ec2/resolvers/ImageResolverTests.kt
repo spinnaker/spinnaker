@@ -26,6 +26,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -59,7 +60,9 @@ internal class ImageResolverTests : JUnit5Minutests {
       } returns account
     }
     val repository = mockk<KeelRepository>()
-    val imageService = mockk<ImageService>()
+    val imageService = mockk<ImageService>() {
+      every { log } returns LoggerFactory.getLogger(ImageService::class.java)
+    }
     private val subject = ImageResolver(
       dynamicConfigService,
       repository,

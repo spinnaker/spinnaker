@@ -32,9 +32,11 @@ import dev.minutest.rootContext
 import io.mockk.CapturingSlot
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.getValue
@@ -51,7 +53,9 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     val taskLauncher: TaskLauncher = mockk()
     val cloudDriverService: CloudDriverService = mockk()
     val cloudDriverCache: CloudDriverCache = mockk()
-    val imageService: ImageService = mockk()
+    val imageService: ImageService = mockk() {
+      every { log } returns LoggerFactory.getLogger(ImageService::class.java)
+    }
     val imageResolver: ImageResolver = mockk()
   }
 
