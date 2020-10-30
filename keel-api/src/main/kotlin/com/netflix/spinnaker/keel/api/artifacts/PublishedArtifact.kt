@@ -52,18 +52,22 @@ data class PublishedArtifact(
   val status: ArtifactStatus? = metadata["releaseStatus"]?.toString()
     ?.let { ArtifactStatus.valueOf(it) }
 
-  val createdAt = let {
-    metadata["createdAt"]
+  val createdAt: Instant?
+    get() = (metadata["createdAt"]
     //docker artifact createdAt time is under date field
-      ?: metadata["date"]
-  }
-    ?.let {
-      when (it) {
-        is Long -> Instant.ofEpochMilli(it) // to accommodate for artifact events from CI integration
-        is Instant -> it
-        else -> null
+      ?: metadata["date"])
+      ?.let {
+        when (it) {
+          is Long -> Instant.ofEpochMilli(it) // to accommodate for artifact events from CI integration
+          is Instant -> it
+          is String -> try {
+            Instant.ofEpochMilli(it.toLong())
+          } catch (ex: Exception) {
+            null
+          }
+          else -> null
+        }
       }
-    }
 
   fun normalized() = copy(
     type = type.toLowerCase(),
