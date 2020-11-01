@@ -85,8 +85,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   iamRoles: IRoleDescriptor[];
   metricAlarms: IMetricAlarmDescriptor[];
   launchTypes: string[];
-  // subnetTypes: string;
-  // securityGroups: string[]
+  networkModes: string[];
   secrets: ISecretDescriptor[];
   serviceDiscoveryRegistries: IServiceDiscoveryRegistryDescriptor[];
   images: IEcsDockerImage[];
@@ -115,6 +114,7 @@ export interface IEcsServiceDiscoveryRegistryAssociation {
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
+  associatePublicIpAddress: boolean;
   backingData: IEcsServerGroupCommandBackingData;
   computeUnits: number;
   reservedMemory: number;
@@ -124,6 +124,9 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   placementStrategyName: string;
   placementStrategySequence: IPlacementStrategy[];
   imageDescription: IEcsDockerImage;
+  networkMode: string;
+  subnetType: string;
+  securityGroups: string[];
   viewState: IEcsServerGroupCommandViewState;
   taskDefinitionArtifact: IEcsTaskDefinitionArtifact;
   taskDefinitionArtifactAccount: string;
@@ -135,7 +138,6 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
 
   subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
-  // subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   regionIsDeprecated: (command: IEcsServerGroupCommand) => boolean;
 
   clusterChanged: (command: IServerGroupCommand) => void;
@@ -146,6 +148,7 @@ export class EcsServerGroupConfigurationService {
   // private healthCheckTypes = ['EC2', 'ELB'];
   // private terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
   private launchTypes = ['EC2', 'FARGATE'];
+  private networkModes = ['bridge', 'host', 'awsvpc', 'none', 'default'];
 
   public static $inject = [
     '$q',
@@ -174,6 +177,7 @@ export class EcsServerGroupConfigurationService {
     command.backingData = {
       // terminationPolicies: clone(this.terminationPolicies)
       launchTypes: clone(this.launchTypes),
+      networkModes: clone(this.networkModes),
     } as IEcsServerGroupCommandBackingData;
   }
 
@@ -240,6 +244,7 @@ export class EcsServerGroupConfigurationService {
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         launchTypes: this.$q.when(clone(this.launchTypes)),
+        networkModes: this.$q.when(clone(this.networkModes)),
         secrets: this.secretReader.listSecrets(),
         serviceDiscoveryRegistries: ServiceDiscoveryReader.listServiceDiscoveryRegistries(),
         images: imagesPromise,
@@ -360,7 +365,10 @@ export class EcsServerGroupConfigurationService {
       .compact()
       .uniqBy('purpose')
       .map('purpose')
-      .value();
+      .value()
+      .filter(function(e: string) {
+        return e && e.length > 0;
+      });
   }
 
   public configureAvailableEcsClusters(command: IEcsServerGroupCommand): void {

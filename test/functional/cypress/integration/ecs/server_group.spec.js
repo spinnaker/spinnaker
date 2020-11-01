@@ -41,10 +41,10 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroup.details"]').type('artifact');
 
     cy.get('[data-test-id="Networking.networkMode"]').type('awsvpc');
-    cy.get('span:contains("awsvpc")').click();
+    cy.get('.Select-option:contains("awsvpc")').click();
 
     cy.get('[data-test-id="Networking.subnetType"]').type('public');
-    cy.get('span:contains("public-subnet")').click();
+    cy.get('.Select-option:contains("public-subnet")').click();
 
     cy.get('[data-test-id="Networking.associatePublicIpAddressFalse"]').click();
     cy.get('[data-test-id="ServerGroup.useArtifacts"]').click();
@@ -53,18 +53,10 @@ describe('amazon ecs: ECSApp Server Group', () => {
 
     cy.get('task-definition-react .Select-option:contains("Define")').click();
 
-    cy.get('task-definition-react input')
-      .eq(3)
-      .type('new-ecs-artifact');
-    cy.get('task-definition-react input')
-      .eq(4)
-      .type('0.0.1');
-    cy.get('task-definition-react input')
-      .eq(5)
-      .type('someLocation');
-    cy.get('task-definition-react input')
-      .eq(6)
-      .type('someReference');
+    cy.get('task-definition-react input').eq(3).type('new-ecs-artifact');
+    cy.get('task-definition-react input').eq(4).type('0.0.1');
+    cy.get('task-definition-react input').eq(5).type('someLocation');
+    cy.get('task-definition-react input').eq(6).type('someReference');
 
     cy.get('[data-test-id="Artifacts.containerAdd"]').click();
     cy.get('[data-test-id="Artifacts.containerName"]').type('v001-container');
@@ -105,10 +97,10 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroup.details"]').type('inputs');
 
     cy.get('[data-test-id="Networking.networkMode"]').type('awsvpc');
-    cy.get('span:contains("awsvpc")').click();
+    cy.get('.Select-option:contains("awsvpc")').click();
 
     cy.get('[data-test-id="Networking.subnetType"]').type('public');
-    cy.get('span:contains("public-subnet")').click();
+    cy.get('.Select-option:contains("public-subnet")').click();
 
     cy.get('[data-test-id="Networking.associatePublicIpAddressFalse"]').click();
 
@@ -141,19 +133,11 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('a:contains("Deploy")').click();
     cy.get('.glyphicon-edit').click();
 
-    cy.get('[data-test-id="ServerGroup.stack"]')
-      .clear()
-      .type('edit');
-    cy.get('[data-test-id="ServerGroup.details"]')
-      .clear()
-      .type('inputs');
+    cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
+    cy.get('[data-test-id="ServerGroup.details"]').clear().type('inputs');
     cy.get('[data-test-id="ServerGroup.useInputs"]').click();
-    cy.get('[data-test-id="ContainerInputs.computeUnits"]')
-      .clear()
-      .type(1024);
-    cy.get('[data-test-id="ContainerInputs.reservedMemory"]')
-      .clear()
-      .type(2048);
+    cy.get('[data-test-id="ContainerInputs.computeUnits"]').clear().type(1024);
+    cy.get('[data-test-id="ContainerInputs.reservedMemory"]').clear().type(2048);
 
     cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
 
