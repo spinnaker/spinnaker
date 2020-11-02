@@ -49,10 +49,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAware {
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final AmazonClientProvider amazonClientProvider;
   private final NetflixAmazonCredentials account;
   private final ObjectMapper objectMapper;
@@ -96,15 +100,15 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
               .collect(toSet());
 
       // store the latest template version info
-      LaunchTemplateVersion latest =
+      Optional<LaunchTemplateVersion> latest =
           versions.stream()
               .filter(v -> v.getVersionNumber().equals(launchTemplate.getLatestVersionNumber()))
-              .findFirst()
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          String.format(
-                              "No latest version found for template %s", launchTemplate)));
+              .findFirst();
+
+      if (latest.isEmpty()) {
+        log.debug("No latest version found for template {}", launchTemplate);
+        continue;
+      }
 
       String key =
           Keys.getLaunchTemplateKey(
@@ -112,7 +116,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
       Map<String, Object> attributes = objectMapper.convertValue(launchTemplate, ATTRIBUTES);
 
       attributes.put("application", Keys.parse(key).get("application"));
-      attributes.put("latestVersion", latest);
+      attributes.put("latestVersion", latest.get());
 
       // include version info
       attributes.put("versions", versions);
