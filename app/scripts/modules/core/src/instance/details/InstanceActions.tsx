@@ -19,7 +19,7 @@ export const InstanceActions = ({ actions, title }: IInstanceActionsProps) => (
       </Dropdown.Toggle>
       <Dropdown.Menu>
         {(actions || []).map((action) => (
-          <li id={`instance-action-${action.label}`}>
+          <li key={`action-${action.label}`} id={`instance-action-${action.label}`}>
             <a onClick={action.triggerAction}>{action.label}</a>
           </li>
         ))}

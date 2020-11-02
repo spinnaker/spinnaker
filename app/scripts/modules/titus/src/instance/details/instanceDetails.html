@@ -31,22 +31,7 @@
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <instance-actions actions="taskActions" title="'Titus Task Actions'"></instance-actions>
-        <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
-            Insight <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li
-              ng-repeat="action in instance.insightActions"
-              analytics-on="click"
-              analytics-category="Insight Menu (Instance)"
-              analytics-event="{{action.label}} clicked"
-              analytics-label="{{instance.account}}/{{instance.region}}/{{instance.name}}/{{instance.serverGroup}}"
-            >
-              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
-            </li>
-          </ul>
-        </div>
+        <instance-insights analytics="true" insights="instance.insightActions" instance="instance"></instance-insights>
         <div class="clearfix"></div>
       </div>
     </div>

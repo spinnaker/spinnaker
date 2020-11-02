@@ -15,7 +15,7 @@ export const InstanceTags = ({ tags }: IInstanceTagsProps) => {
   return (
     <CollapsibleSection heading="Tags" defaultExpanded={true}>
       {!tags.length && <div>No tags associated with this server</div>}
-      {tags.length && sortedTags.map((tag) => <LabeledValue label={tag.key} value={tag.value} />)}
+      {tags.length && sortedTags.map((tag) => <LabeledValue key={tag.key} label={tag.key} value={tag.value} />)}
     </CollapsibleSection>
   );
 };

@@ -35,16 +35,7 @@
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <instance-actions actions="instanceActions"></instance-actions>
-        <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
-            Insight <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in instance.insightActions">
-              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
-            </li>
-          </ul>
-        </div>
+        <instance-insights insights="instance.insightActions" instance="instance"></instance-insights>
       </div>
     </div>
   </div>

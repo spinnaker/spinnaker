@@ -38,7 +38,7 @@ export const InstanceStatus = ({
         {healthMetrics
           .sort((a: IAmazonHealth, b: IAmazonHealth) => (a.type < b.type ? -1 : a.type > b.type ? 1 : 0))
           .map((metric: IAmazonHealth) => (
-            <>
+            <React.Fragment key={`${metric.type}-${metric.description}`}>
               <dt>{robotToHuman(metric.type)}</dt>
               <dd>
                 {!metricTypes.includes(metric.type as MetricTypes) && (
@@ -82,7 +82,7 @@ export const InstanceStatus = ({
                     <InstanceLoadBalancerHealth loadBalancer={tg} ipAddress={privateIpAddress} />
                   ))}
               </dd>
-            </>
+            </React.Fragment>
           ))}
       </dl>
     </CollapsibleSection>
