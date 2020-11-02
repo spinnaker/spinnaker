@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
@@ -66,6 +67,7 @@ public class PipelineInitiator {
   private final int retryCount;
   private final long retryDelayMillis;
   private final ExecutorService executorService;
+  private final DiscoveryStatusListener discoveryStatusListener;
 
   @Autowired
   public PipelineInitiator(
@@ -77,6 +79,7 @@ public class PipelineInitiator {
       ObjectMapper objectMapper,
       @NonNull QuietPeriodIndicator quietPeriodIndicator,
       @NonNull DynamicConfigService dynamicConfigService,
+      @NonNull DiscoveryStatusListener discoveryStatusListener,
       @Value("${orca.pipeline-initiator-retry-count:5}") int retryCount,
       @Value("${orca.pipeline-initiator-retry-delay-millis:5000}") long retryDelayMillis) {
     this.registry = registry;
@@ -89,6 +92,7 @@ public class PipelineInitiator {
     this.retryCount = retryCount;
     this.retryDelayMillis = retryDelayMillis;
     this.executorService = executorService;
+    this.discoveryStatusListener = discoveryStatusListener;
   }
 
   @PostConstruct
@@ -392,6 +396,10 @@ public class PipelineInitiator {
    */
   private boolean isEnabled(TriggerSource triggerSource) {
     boolean triggerEnabled = true;
+
+    if (!discoveryStatusListener.isEnabled()) {
+      return false;
+    }
 
     if (triggerSource == TriggerSource.COMPENSATION_SCHEDULER) {
       triggerEnabled = dynamicConfigService.isEnabled("scheduler.compensation-job.triggers", true);

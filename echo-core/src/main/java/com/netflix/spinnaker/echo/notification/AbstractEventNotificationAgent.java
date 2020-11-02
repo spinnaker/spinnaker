@@ -164,7 +164,7 @@ public abstract class AbstractEventNotificationAgent implements EventListener {
     }
 
     List<Map<String, Object>> notifications =
-        (List<Map<String, Object>>) context.get("notifications");
+        (List<Map<String, Object>>) context.getOrDefault("notifications", Collections.emptyList());
 
     return notifications.stream()
         .filter(it -> shouldSendRequestForNotification(it, configType, status))

@@ -17,6 +17,7 @@
 plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
   id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+  id 'com.adarshr.test-logger' version '2.1.0'
 }
 
 subprojects {
@@ -34,6 +35,7 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "groovy"
     apply plugin: 'jacoco'
+    apply plugin: 'com.adarshr.test-logger'
 
     test {
       testLogging {

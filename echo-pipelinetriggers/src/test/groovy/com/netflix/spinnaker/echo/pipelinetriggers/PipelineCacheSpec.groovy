@@ -26,6 +26,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,6 +38,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def orca = Mock(OrcaService)
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
+  def activator = Mock(DiscoveryStatusListener)
 
   @Shared
   def interval = 30
@@ -45,7 +47,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def sleepMs = 100
 
   @Subject
-  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, objectMapper, front50, orca, registry)
+  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, objectMapper, activator, front50, orca, registry)
 
   def "keeps polling if Front50 returns an error"() {
     given:
@@ -55,6 +57,8 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
       id         : 'P1'
     ]
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
+
+    activator.isEnabled() >> true
 
     def initialLoad = []
     front50.getPipelines() >> initialLoad >> { throw unavailable() } >> [pipelineMap]

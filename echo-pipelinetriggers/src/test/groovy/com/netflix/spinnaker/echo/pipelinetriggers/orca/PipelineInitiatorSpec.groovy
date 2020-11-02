@@ -11,6 +11,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContext
@@ -29,6 +30,7 @@ class PipelineInitiatorSpec extends Specification {
   def objectMapper = Mock(ObjectMapper)
   def quietPeriodIndicator = Mock(QuietPeriodIndicator)
   def contextProvider = new AuthenticatedRequestContextProvider()
+  def activator = Mock(DiscoveryStatusListener)
 
   Optional<String> capturedSpinnakerUser
   Optional<String> capturedSpinnakerAccounts
@@ -60,7 +62,7 @@ class PipelineInitiatorSpec extends Specification {
     given:
     def dynamicConfigService = Mock(DynamicConfigService)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, dynamicConfigService, 5, 5000
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, dynamicConfigService, activator, 5, 5000
     )
 
     def pipeline = Pipeline
@@ -78,10 +80,11 @@ class PipelineInitiatorSpec extends Specification {
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
-    1 * dynamicConfigService.isEnabled('scheduler.triggers', true) >> { return !suppress }
-    _ * dynamicConfigService.isEnabled("orca", true) >> { return enabled }
-    _ * fiatStatus.isEnabled() >> { return enabled }
-    _ * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
+    1 * activator.isEnabled() >> upInDiscovery
+    _ * dynamicConfigService.isEnabled('scheduler.triggers', true) >> !suppress
+    _ * dynamicConfigService.isEnabled("orca", true) >> enabled
+    _ * fiatStatus.isEnabled() >> enabled
+    _ * fiatStatus.isLegacyFallbackEnabled() >> legacyFallbackEnabled
 
     (legacyFallbackEnabled ? 1 : 0) * fiatPermissionEvaluator.getPermission(user ?: "anonymous") >> {
       return userPermissions.get(user ?: "anonymous")
@@ -96,13 +99,14 @@ class PipelineInitiatorSpec extends Specification {
     capturedSpinnakerAccounts.orElse(null)?.split(",") as Set<String> == expectedSpinnakerAccounts?.split(",") as Set<String>
 
     where:
-    user            | enabled | suppress | legacyFallbackEnabled || expectedTriggerCalls || expectedSpinnakerUser || expectedSpinnakerAccounts
-    "anonymous"     | false   | false    | false                 || 0                    || null                  || null                          // orca not enabled
-    null            | true    | true     | false                 || 0                    || null                  || null                          // cron triggers enabled but suppressed
-    "anonymous"     | true    | false    | false                 || 1                    || "anonymous"           || null                          // fallback disabled (no accounts)
-    "anonymous"     | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
-    "not-anonymous" | true    | false    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
-    null            | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
+    user            | upInDiscovery | enabled | suppress | legacyFallbackEnabled || expectedTriggerCalls || expectedSpinnakerUser || expectedSpinnakerAccounts
+    "anonymous"     | false         | true    | false    | false                 || 0                    || null                  || null                          // down in discovery
+    "anonymous"     | true          | false   | false    | false                 || 0                    || null                  || null                          // orca not enabled
+    null            | true          | true    | true     | false                 || 0                    || null                  || null                          // cron triggers enabled but suppressed
+    "anonymous"     | true          | true    | false    | false                 || 1                    || "anonymous"           || null                          // fallback disabled (no accounts)
+    "anonymous"     | true          | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
+    "not-anonymous" | true          | true    | false    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
+    null            | true          | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
   }
 
   def "propages auth headers to orca calls without runAs"() {
@@ -110,7 +114,7 @@ class PipelineInitiatorSpec extends Specification {
     RequestContext context = contextProvider.get()
     def executor = Executors.newFixedThreadPool(2)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, noopDynamicConfigService, 5, 5000
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
     )
 
     Trigger trigger = (new Trigger.TriggerBuilder().type("cron").build()).atPropagateAuth(true)
@@ -138,8 +142,9 @@ class PipelineInitiatorSpec extends Specification {
     executor.awaitTermination(2, TimeUnit.SECONDS)
 
     then:
-    _ * fiatStatus.isEnabled() >> { return enabled }
-    _ * fiatStatus.isLegacyFallbackEnabled() >> { return false }
+    1 * activator.isEnabled() >> true
+    _ * fiatStatus.isEnabled() >> true
+    _ * fiatStatus.isLegacyFallbackEnabled() >> false
 
     1 * orca.trigger(pipeline) >> {
       captureAuthorizationContext()
@@ -154,7 +159,7 @@ class PipelineInitiatorSpec extends Specification {
   def "calls orca #expectedPlanCalls to plan pipeline if templated"() {
     given:
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, noopDynamicConfigService, 5, 5000
+      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
     )
 
     def pipeline = Pipeline.builder()
@@ -170,7 +175,8 @@ class PipelineInitiatorSpec extends Specification {
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
-    1 * fiatStatus.isEnabled() >> { return true }
+    1 * fiatStatus.isEnabled() >> true
+    1 * activator.isEnabled() >> true
     expectedPlanCalls * orca.plan(_, true) >> pipelineMap
     objectMapper.convertValue(pipelineMap, Pipeline.class) >> pipeline
     1 * orca.trigger(_) >> {

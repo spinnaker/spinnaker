@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineConfigsPollingJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerJob
+import com.netflix.spinnaker.echo.scheduler.actions.pipeline.QuartzDiscoveryActivator
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerConverter
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
@@ -121,5 +122,10 @@ class SchedulerConfiguration {
         schedulerFactoryBean.setGlobalTriggerListeners(triggerListener)
       }
     }
+  }
+
+  @Bean
+  QuartzDiscoveryActivator quartzDiscoveryActivator(SchedulerFactoryBean schedulerFactory) {
+    return new QuartzDiscoveryActivator(schedulerFactory.getScheduler())
   }
 }
