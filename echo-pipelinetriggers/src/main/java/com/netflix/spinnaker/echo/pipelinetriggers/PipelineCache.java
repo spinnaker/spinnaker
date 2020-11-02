@@ -25,7 +25,6 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
-import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
@@ -61,8 +60,6 @@ public class PipelineCache implements MonitoredPoller {
   private volatile Boolean running;
   private volatile Instant lastPollTimestamp;
 
-  private final DiscoveryStatusListener discoveryStatusListener;
-
   @Nullable private volatile List<Pipeline> pipelines;
 
   @Nullable private volatile Map<String, List<Trigger>> triggersByType;
@@ -72,7 +69,6 @@ public class PipelineCache implements MonitoredPoller {
       @Value("${front50.polling-interval-ms:30000}") int pollingIntervalMs,
       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
       ObjectMapper objectMapper,
-      @NonNull DiscoveryStatusListener discoveryStatusListener,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
       @NonNull Registry registry) {
@@ -81,7 +77,6 @@ public class PipelineCache implements MonitoredPoller {
         pollingIntervalMs,
         pollingSleepMs,
         objectMapper,
-        discoveryStatusListener,
         front50,
         orca,
         registry);
@@ -93,7 +88,6 @@ public class PipelineCache implements MonitoredPoller {
       int pollingIntervalMs,
       int pollingSleepMs,
       ObjectMapper objectMapper,
-      @NonNull DiscoveryStatusListener discoveryStatusListener,
       @NonNull Front50Service front50,
       @NonNull OrcaService orca,
       @NonNull Registry registry) {
@@ -101,7 +95,6 @@ public class PipelineCache implements MonitoredPoller {
     this.executorService = executorService;
     this.pollingIntervalMs = pollingIntervalMs;
     this.pollingSleepMs = pollingSleepMs;
-    this.discoveryStatusListener = discoveryStatusListener;
     this.front50 = front50;
     this.orca = orca;
     this.registry = registry;
@@ -137,14 +130,14 @@ public class PipelineCache implements MonitoredPoller {
   }
 
   private Double getDurationSeconds() {
-    return (lastPollTimestamp == null || !discoveryStatusListener.isEnabled())
+    return (lastPollTimestamp == null)
         ? -1d
         : (double) Duration.between(lastPollTimestamp, now()).getSeconds();
   }
 
   // VisibleForTesting
   void pollPipelineConfigs() {
-    if (!isRunning() || !discoveryStatusListener.isEnabled()) {
+    if (!isRunning()) {
       return;
     }
 
