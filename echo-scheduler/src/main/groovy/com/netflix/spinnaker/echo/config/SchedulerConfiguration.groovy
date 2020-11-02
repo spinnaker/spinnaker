@@ -122,13 +122,4 @@ class SchedulerConfiguration {
       }
     }
   }
-
-  @Bean
-  Client retrofitClient(@Value('${retrofit.connect-timeout-millis:10000}') long connectTimeoutMillis,
-                        @Value('${retrofit.read-timeout-millis:15000}') long readTimeoutMillis) {
-    OkHttpClient okHttpClient = new OkHttpClient()
-    okHttpClient.setConnectTimeout(connectTimeoutMillis, TimeUnit.MILLISECONDS)
-    okHttpClient.setReadTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS)
-    new OkClient(okHttpClient)
-  }
 }

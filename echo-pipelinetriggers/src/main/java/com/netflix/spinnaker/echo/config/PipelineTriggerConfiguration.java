@@ -26,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RestAdapter.LogLevel;
-import retrofit.client.Client;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Slf4j
@@ -54,11 +52,6 @@ public class PipelineTriggerConfiguration {
   @Bean
   public OrcaService orca(@Value("${orca.base-url}") final String endpoint) {
     return bindRetrofitService(OrcaService.class, endpoint);
-  }
-
-  @Bean
-  public Client retrofitClient() {
-    return new OkClient();
   }
 
   @Bean
