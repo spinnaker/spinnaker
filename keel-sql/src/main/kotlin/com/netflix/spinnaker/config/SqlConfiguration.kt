@@ -20,8 +20,6 @@ import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
-import java.time.Clock
-import javax.annotation.PostConstruct
 import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import java.time.Clock
+import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -70,9 +70,18 @@ class SqlConfiguration {
     clock: Clock,
     resourceSpecIdentifier: ResourceSpecIdentifier,
     objectMapper: ObjectMapper,
-    artifactSuppliers: List<ArtifactSupplier<*, *>>
+    artifactSuppliers: List<ArtifactSupplier<*, *>>,
+    specMigrators: List<SpecMigrator<*, *>>
   ) =
-    SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, objectMapper, SqlRetry(sqlRetryProperties), artifactSuppliers)
+    SqlDeliveryConfigRepository(
+      jooq = jooq,
+      clock = clock,
+      resourceSpecIdentifier = resourceSpecIdentifier,
+      mapper = objectMapper,
+      sqlRetry = SqlRetry(sqlRetryProperties),
+      artifactSuppliers = artifactSuppliers,
+      specMigrators = specMigrators
+    )
 
   @Bean
   fun diffFingerprintRepository(

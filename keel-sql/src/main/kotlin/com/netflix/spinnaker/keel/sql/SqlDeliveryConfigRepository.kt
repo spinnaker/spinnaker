@@ -38,6 +38,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
+import com.netflix.spinnaker.keel.resources.migrate
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import org.jooq.DSLContext
@@ -62,7 +64,8 @@ class SqlDeliveryConfigRepository(
   private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val mapper: ObjectMapper,
   private val sqlRetry: SqlRetry,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
+  private val specMigrators: List<SpecMigrator<*,*>> = emptyList()
 ) : DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -1031,7 +1034,17 @@ class SqlDeliveryConfigRepository(
             parseKind(kind),
             mapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
             mapper.readValue(spec, resourceSpecIdentifier.identify(parseKind(kind)))
-          )
+          ).let { resource ->
+            specMigrators
+              .migrate(resource.kind, resource.spec)
+              .let { (endKind, endSpec) ->
+                Resource(
+                  endKind,
+                  resource.metadata,
+                  endSpec
+                )
+              }
+          }
         }
     }
       .toSet()
