@@ -19,10 +19,16 @@ package com.netflix.spinnaker.rosco.manifests;
 import static com.google.common.io.RecursiveDeleteOption.ALLOW_INSECURE;
 
 import com.google.common.io.MoreFiles;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 @ParametersAreNonnullByDefault
 public final class BakeManifestEnvironment implements AutoCloseable {
@@ -55,5 +61,52 @@ public final class BakeManifestEnvironment implements AutoCloseable {
       throw new IllegalStateException("Attempting to create a file outside of the staging path.");
     }
     return path;
+  }
+
+  /**
+   * Download an artifact that's a compressed tarball, and extract the contents of the tarball into
+   * this environment
+   */
+  public void downloadArtifactTarballAndExtract(
+      ArtifactDownloader artifactDownloader, Artifact artifact) throws IOException {
+    InputStream inputStream;
+    try {
+      inputStream = artifactDownloader.downloadArtifact(artifact);
+    } catch (IOException e) {
+      throw new IOException("Failed to download artifact: " + e.getMessage(), e);
+    }
+
+    try {
+      extractArtifact(inputStream, resolvePath(""));
+    } catch (IOException e) {
+      throw new IOException("Failed to extract artifact: " + e.getMessage(), e);
+    }
+  }
+
+  private static void extractArtifact(InputStream inputStream, Path outputPath) throws IOException {
+    try (TarArchiveInputStream tarArchiveInputStream =
+        new TarArchiveInputStream(
+            new GzipCompressorInputStream(new BufferedInputStream(inputStream)))) {
+
+      ArchiveEntry archiveEntry;
+      while ((archiveEntry = tarArchiveInputStream.getNextEntry()) != null) {
+        Path archiveEntryOutput = validateArchiveEntry(archiveEntry.getName(), outputPath);
+        if (archiveEntry.isDirectory()) {
+          if (!Files.exists(archiveEntryOutput)) {
+            Files.createDirectory(archiveEntryOutput);
+          }
+        } else {
+          Files.copy(tarArchiveInputStream, archiveEntryOutput);
+        }
+      }
+    }
+  }
+
+  private static Path validateArchiveEntry(String archiveEntryName, Path outputPath) {
+    Path entryPath = outputPath.resolve(archiveEntryName);
+    if (!entryPath.normalize().startsWith(outputPath)) {
+      throw new IllegalStateException("Attempting to create a file outside of the staging path.");
+    }
+    return entryPath;
   }
 }
