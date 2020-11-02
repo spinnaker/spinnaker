@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
+import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
@@ -51,7 +52,8 @@ class EC2Config {
     clock: Clock,
     normalizers: List<Resolver<*>>,
     eventPublisher: EventPublisher,
-    clusterExportHelper: ClusterExportHelper
+    clusterExportHelper: ClusterExportHelper,
+    blockDeviceConfig : BlockDeviceConfig
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,
@@ -61,7 +63,8 @@ class EC2Config {
       clock,
       eventPublisher,
       normalizers,
-      clusterExportHelper
+      clusterExportHelper,
+      blockDeviceConfig
     )
 
   @Bean

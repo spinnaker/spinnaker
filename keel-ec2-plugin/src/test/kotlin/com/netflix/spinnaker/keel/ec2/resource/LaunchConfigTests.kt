@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.resource
@@ -140,6 +141,7 @@ internal class LaunchConfigTests {
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
+  val blockDeviceConfig = mockk<BlockDeviceConfig>()
 
 
   val clusterHandler = ClusterHandler(
@@ -150,7 +152,8 @@ internal class LaunchConfigTests {
     Clock.systemUTC(),
     mockk(relaxUnitFun = true),
     emptyList<Resolver<ClusterSpec>>(),
-    clusterExportHelper
+    clusterExportHelper,
+    blockDeviceConfig
   )
 
   fun setup(ramdiskId : String?, launchInfo: LaunchInfo) {

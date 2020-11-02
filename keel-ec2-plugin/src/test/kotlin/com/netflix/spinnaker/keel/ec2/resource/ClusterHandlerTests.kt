@@ -62,6 +62,7 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
@@ -71,6 +72,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
@@ -95,6 +97,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     publisher
   )
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
+  val blockDeviceConfig = BlockDeviceConfig(VolumeDefaultConfiguration())
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -111,59 +114,62 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val targetTrackingPolicyName = "keel-test-target-tracking-policy"
 
-  val spec = ClusterSpec(
-    moniker = Moniker(app = "keel", stack = "test"),
-    locations = SubnetAwareLocations(
-      account = vpcWest.account,
-      vpc = "vpc0",
-      subnet = subnet1West.purpose!!,
-      regions = listOf(vpcWest, vpcEast).map { subnet ->
-        SubnetAwareRegionSpec(
-          name = subnet.region,
-          availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()
-        )
-      }.toSet()
-    ),
-    deployWith = RedBlack(
-      stagger = listOf(
-        StaggeredRegion(region = vpcWest.region, hours = "10-14", pauseTime = Duration.ofMinutes(30)),
-        StaggeredRegion(region = vpcEast.region, hours = "16-02")
-      )
-    ),
-    _defaults = ServerGroupSpec(
-      launchConfiguration = LaunchConfigurationSpec(
-        image = VirtualMachineImage(
-          id = "ami-123543254134",
-          appVersion = "keel-0.287.0-h208.fe2e8a1",
-          baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
-        ),
-        instanceType = "r4.8xlarge",
-        ebsOptimized = false,
-        iamRole = LaunchConfiguration.defaultIamRoleFor("keel"),
-        keyPair = "nf-keypair-test-fake",
-        instanceMonitoring = false
+  val spec = clusterSpec()
+
+  fun clusterSpec(instanceType: String = "r4.8xlarge") =
+    ClusterSpec(
+      moniker = Moniker(app = "keel", stack = "test"),
+      locations = SubnetAwareLocations(
+        account = vpcWest.account,
+        vpc = "vpc0",
+        subnet = subnet1West.purpose!!,
+        regions = listOf(vpcWest, vpcEast).map { subnet ->
+          SubnetAwareRegionSpec(
+            name = subnet.region,
+            availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()
+          )
+        }.toSet()
       ),
-      capacity = Capacity(1, 6),
-      scaling = Scaling(
-        targetTrackingPolicies = setOf(
-          TargetTrackingPolicy(
-            name = targetTrackingPolicyName,
-            targetValue = 560.0,
-            disableScaleIn = true,
-            customMetricSpec = CustomizedMetricSpecification(
-              name = "RPS per instance",
-              namespace = "SPIN/ACH",
-              statistic = "Average"
+      deployWith = RedBlack(
+        stagger = listOf(
+          StaggeredRegion(region = vpcWest.region, hours = "10-14", pauseTime = Duration.ofMinutes(30)),
+          StaggeredRegion(region = vpcEast.region, hours = "16-02")
+        )
+      ),
+      _defaults = ServerGroupSpec(
+        launchConfiguration = LaunchConfigurationSpec(
+          image = VirtualMachineImage(
+            id = "ami-123543254134",
+            appVersion = "keel-0.287.0-h208.fe2e8a1",
+            baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
+          ),
+          instanceType = instanceType,
+          ebsOptimized = false,
+          iamRole = LaunchConfiguration.defaultIamRoleFor("keel"),
+          keyPair = "nf-keypair-test-fake",
+          instanceMonitoring = false
+        ),
+        capacity = Capacity(1, 6),
+        scaling = Scaling(
+          targetTrackingPolicies = setOf(
+            TargetTrackingPolicy(
+              name = targetTrackingPolicyName,
+              targetValue = 560.0,
+              disableScaleIn = true,
+              customMetricSpec = CustomizedMetricSpecification(
+                name = "RPS per instance",
+                namespace = "SPIN/ACH",
+                statistic = "Average"
+              )
             )
           )
+        ),
+        dependencies = ClusterDependencies(
+          loadBalancerNames = setOf("keel-test-frontend"),
+          securityGroupNames = setOf(sg1West.name, sg2West.name)
         )
-      ),
-      dependencies = ClusterDependencies(
-        loadBalancerNames = setOf("keel-test-frontend"),
-        securityGroupNames = setOf(sg1West.name, sg2West.name)
       )
     )
-  )
 
   val serverGroups = spec.resolve()
   val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
@@ -196,7 +202,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         clock,
         publisher,
         normalizers,
-        clusterExportHelper
+        clusterExportHelper,
+        blockDeviceConfig
       )
     }
 
@@ -954,6 +961,52 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             .hasSize(2)
             .map { it.trigger.correlationId }
             .containsDistinctElements()
+        }
+      }
+
+      context("nothing currently deployed, desired state is single region deployment") {
+        fun diff(instanceType: String) = 
+          DefaultResourceDiff(
+              desired=clusterSpec(instanceType).resolve().filter {it.location.region == "us-west-2"}.byRegion(),
+              current=emptyMap()
+            )
+
+        test("supported instance type for setting EBS volume type") {
+          val instanceType = "m5.large"
+
+          runBlocking {
+            upsert(resource, diff(instanceType))
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("createServerGroup")
+            get("blockDevices")
+              .isNotNull()
+              .isA<List<Map<String, Any>>>()
+              .hasSize(1)
+              .all {
+                get("volumeType").isEqualTo("gp2")
+                get("size").isEqualTo(40)
+              }
+          }
+        }
+
+        test("unsupported instance type for setting EBS volume type") {
+          val instanceType = "c1.medium"
+          runBlocking {
+            upsert(resource, diff(instanceType))
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("createServerGroup")
+            get("blockDevices").isNull()
+          }
         }
       }
     }

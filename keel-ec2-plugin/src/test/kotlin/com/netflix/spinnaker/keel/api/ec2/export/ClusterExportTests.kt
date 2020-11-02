@@ -33,6 +33,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.toCloudDriverResponse
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -77,6 +78,7 @@ internal class ClusterExportTests : JUnit5Minutests {
     publisher
   )
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
+  val blockDeviceConfig = mockk<BlockDeviceConfig>()
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -187,7 +189,8 @@ internal class ClusterExportTests : JUnit5Minutests {
         clock,
         publisher,
         normalizers,
-        clusterExportHelper
+        clusterExportHelper,
+        blockDeviceConfig
       )
     }
 

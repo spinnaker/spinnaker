@@ -32,6 +32,7 @@ class Ec2BaseClusterHandlerTests : BaseClusterHandlerTests<ClusterSpec, ServerGr
   private val orcaService: OrcaService = mockk()
   private val taskLauncher: TaskLauncher = mockk()
   private val clusterExportHelper: ClusterExportHelper = mockk()
+  private val blockDeviceConfig : BlockDeviceConfig = mockk()
 
   val metadata = mapOf("id" to "1234", "application" to "waffles", "serviceAccount" to "me@you.com" )
 
@@ -64,7 +65,8 @@ class Ec2BaseClusterHandlerTests : BaseClusterHandlerTests<ClusterSpec, ServerGr
       taskLauncher = taskLauncher,
       eventPublisher = eventPublisher,
       resolvers = resolvers,
-      clusterExportHelper = clusterExportHelper
+      clusterExportHelper = clusterExportHelper,
+      blockDeviceConfig = blockDeviceConfig
     ))
 
   override fun getRegions(resource: Resource<ClusterSpec>): List<String> =
