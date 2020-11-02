@@ -8,8 +8,6 @@ import { CollapsibleSection } from '../../presentation';
 import { Application } from '../../application';
 import { IInstance } from '../../domain';
 
-import './instanceLinks.component.less';
-
 export interface IInstanceLinksProps {
   address: string;
   application: Application;
