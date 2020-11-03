@@ -131,7 +131,7 @@ public class JobExecutorLocal implements JobExecutor {
   private Executor buildExecutor(ExecuteStreamHandler streamHandler) {
     Executor executor = new DefaultExecutor();
     executor.setStreamHandler(streamHandler);
-    executor.setWatchdog(new ExecuteWatchdog(timeoutMinutes * 60 * 1000));
+    executor.setWatchdog(new ForceDestroyWatchdog(timeoutMinutes * 60 * 1000));
     // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking
     // the exit status instead of having the executor throw an exception for non-zero exit codes.
     executor.setExitValues(null);
