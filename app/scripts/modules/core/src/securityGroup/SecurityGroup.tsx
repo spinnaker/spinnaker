@@ -35,7 +35,7 @@ const Heading = ({ application, parentGrouping, securityGroup, heading }: ISecur
       <EntityNotifications
         entity={securityGroup}
         application={application}
-        placement="top"
+        placement="bottom"
         entityType="securityGroup"
         pageLocation="details"
         onUpdate={() => application.securityGroups.refresh()}
