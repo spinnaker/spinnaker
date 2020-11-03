@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
+import com.netflix.spinnaker.keel.core.name
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.model.Job
@@ -289,7 +290,7 @@ class SecurityGroupHandler(
                   )
                   else -> ReferenceRule(
                     protocol,
-                    if (ingressGroup.name == name) null else ingressGroup.name, // if it's a self-referential rule keel models the name as null
+                    ingressGroup.name,
                     portRange
                   )
                 }
@@ -333,7 +334,7 @@ class SecurityGroupHandler(
           // we have to do a 2-phase create for self-referencing ingress rules as the referenced
           // security group must exist prior to the rule being applied. We filter then out here and
           // the subsequent diff will apply the additional group(s).
-          .filterNot { it.isSelfReference }
+          .filterNot { it is ReferenceRule && it.name == moniker.name }
           .mapNotNull {
             it.referenceRuleToJob(this)
           },

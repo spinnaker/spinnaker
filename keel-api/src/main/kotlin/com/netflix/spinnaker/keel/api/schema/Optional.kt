@@ -7,4 +7,4 @@ import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
  * heuristic would normally apply.
  */
 @Target(VALUE_PARAMETER)
-annotation class Optional
+annotation class Optional(val value: String = "")
