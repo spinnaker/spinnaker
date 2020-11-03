@@ -30,7 +30,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
     super(props);
   }
 
-  public componentWillMount(): void {
+  public componentDidMount(): void {
     const { app, functionDef } = this.props;
     let application: Application;
 

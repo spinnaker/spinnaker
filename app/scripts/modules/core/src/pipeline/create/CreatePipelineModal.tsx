@@ -75,8 +75,8 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     preselectedTemplate: null,
   };
 
-  public componentWillUpdate(nextProps: ICreatePipelineModalProps): void {
-    if (nextProps.show && !this.props.show && !this.state.loading) {
+  public componentDidUpdate(prevProps: ICreatePipelineModalProps): void {
+    if (!prevProps.show && this.props.show && !this.state.loading) {
       this.loadPipelineTemplates();
     }
   }

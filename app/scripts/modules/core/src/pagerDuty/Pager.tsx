@@ -239,18 +239,18 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     });
   }
 
-  public componentWillUpdate(_nextProps: IPagerProps, nextState: IPagerState): void {
-    if (nextState.filterString !== this.state.filterString || nextState.hideNoApps !== this.state.hideNoApps) {
+  public componentDidUpdate(_prevProps: IPagerProps, prevState: IPagerState): void {
+    if (prevState.filterString !== this.state.filterString || prevState.hideNoApps !== this.state.hideNoApps) {
       this.runFilter(
-        nextState.app,
-        nextState.initialKeys,
-        nextState.filterString,
-        nextState.sortBy,
-        nextState.sortDirection,
-        nextState.hideNoApps,
+        this.state.app,
+        this.state.initialKeys,
+        this.state.filterString,
+        this.state.sortBy,
+        this.state.sortDirection,
+        this.state.hideNoApps,
       );
     } else {
-      this.sort({ sortBy: nextState.sortBy, sortDirection: nextState.sortDirection });
+      this.sort({ sortBy: this.state.sortBy, sortDirection: this.state.sortDirection });
     }
   }
 
