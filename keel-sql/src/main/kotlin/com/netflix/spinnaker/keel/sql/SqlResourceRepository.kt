@@ -23,19 +23,18 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
-import com.netflix.spinnaker.keel.resources.migrate
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import org.jooq.DSLContext
-import org.jooq.impl.DSL
-import org.slf4j.LoggerFactory
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -47,6 +46,8 @@ open class SqlResourceRepository(
 ) : ResourceRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val resourceFactory = ResourceFactory(objectMapper, resourceSpecIdentifier, specMigrators)
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     sqlRetry.withRetry(READ) {
@@ -62,10 +63,20 @@ open class SqlResourceRepository(
   }
 
   override fun get(id: String): Resource<ResourceSpec> =
-    readResource(id, this::parseAndMigrateResource)
+    readResource(id) { kind, metadata, spec ->
+      resourceFactory.invoke(kind, metadata, spec)
+    }
 
   override fun getRaw(id: String): Resource<ResourceSpec> =
-    readResource(id, this::parseResource)
+    readResource(id) { kind, metadata, spec ->
+      parseKind(kind).let {
+        Resource(
+          it,
+          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+          objectMapper.readValue(spec, resourceSpecIdentifier.identify(it))
+        )
+      }
+    }
 
   private fun readResource(id: String, callback: (String, String, String) -> Resource<ResourceSpec>): Resource<ResourceSpec> =
     sqlRetry.withRetry(READ) {
@@ -87,36 +98,10 @@ open class SqlResourceRepository(
         .where(RESOURCE_WITH_METADATA.APPLICATION.eq(application))
         .fetch()
         .map { (kind, metadata, spec) ->
-          parseAndMigrateResource(kind, metadata, spec)
+          resourceFactory.invoke(kind, metadata, spec)
         }
     }
   }
-
-  private fun parseResource(kind: String, metadata: String, spec: String): Resource<ResourceSpec> =
-    parseKind(kind).let {
-      Resource(
-        it,
-        objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-        objectMapper.readValue(spec, resourceSpecIdentifier.identify(it))
-      )
-    }
-
-  /**
-   * Constructs a resource object from its database representation
-   */
-  private fun parseAndMigrateResource(kind: String, metadata: String, spec: String): Resource<ResourceSpec> =
-    parseResource(kind, metadata, spec)
-      .let { resource ->
-        specMigrators
-          .migrate(resource.kind, resource.spec)
-          .let { (endKind, endSpec) ->
-            Resource(
-              endKind,
-              resource.metadata,
-              endSpec
-            )
-          }
-      }
 
   override fun hasManagedResources(application: String): Boolean {
     return sqlRetry.withRetry(READ) {
@@ -346,7 +331,7 @@ open class SqlResourceRepository(
       }
         .map { (uid, kind, metadata, spec) ->
           try {
-            parseAndMigrateResource(kind, metadata, spec)
+            resourceFactory.invoke(kind, metadata, spec)
           } catch (e: Exception) {
             jooq.insertInto(RESOURCE_LAST_CHECKED)
               .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
