@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline;
 
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent;
 import com.netflix.spinnaker.kork.discovery.InstanceStatus;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -32,19 +33,21 @@ public class QuartzDiscoveryActivator implements ApplicationListener<RemoteStatu
 
   @Override
   public void onApplicationEvent(RemoteStatusChangedEvent event) {
-    if (event.getSource().getStatus() == InstanceStatus.UP) {
-      log.info("Instance is ${e.status}... resuming quartz scheduler");
+    DiscoveryStatusChangeEvent e = event.getSource();
+
+    if (e.getStatus() == InstanceStatus.UP) {
+      log.info("Instance is {}... resuming quartz scheduler", e.getStatus());
       try {
         scheduler.start();
-      } catch (SchedulerException e) {
-        log.warn("Failed to resume quartz scheduler", e);
+      } catch (SchedulerException ex) {
+        log.warn("Failed to resume quartz scheduler", ex);
       }
     } else if (event.getSource().getPreviousStatus() == InstanceStatus.UP) {
-      log.info("Instance is ${e.status}... placing quartz into standby");
+      log.info("Instance is {}... placing quartz into standby", e.getStatus());
       try {
         scheduler.standby();
-      } catch (SchedulerException e) {
-        log.warn("Failed to place quartz scheduler into standby", e);
+      } catch (SchedulerException ex) {
+        log.warn("Failed to place quartz scheduler into standby", ex);
       }
     }
   }
