@@ -6,13 +6,13 @@ import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
 
-export interface INetworkingProps {
+export interface IEcsNetworkingProps {
   command: IEcsServerGroupCommand;
   notifyAngular: (key: string, value: any) => void;
   configureCommand: (query: string) => PromiseLike<void>;
 }
 
-interface INetworkingState {
+interface IEcsNetworkingState {
   associatePublicIpAddress: boolean;
   networkMode: string;
   networkModesAvailable: string[];
@@ -22,8 +22,8 @@ interface INetworkingState {
   subnetTypesAvailable: string[];
 }
 
-export class Networking extends React.Component<INetworkingProps, INetworkingState> {
-  constructor(props: INetworkingProps) {
+export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetworkingState> {
+  constructor(props: IEcsNetworkingProps) {
     super(props);
     const cmd = this.props.command;
 
@@ -70,7 +70,7 @@ export class Networking extends React.Component<INetworkingProps, INetworkingSta
 
   private updateSecurityGroups = (newSecurityGroups: Option<string>) => {
     const updatedSecurityGroups = Array.isArray(newSecurityGroups)
-      ? newSecurityGroups.map(securityGroups => securityGroups.value)
+      ? newSecurityGroups.map((securityGroups) => securityGroups.value)
       : [];
     this.props.notifyAngular('securityGroups', updatedSecurityGroups);
     this.setState({ securityGroups: updatedSecurityGroups });
@@ -87,21 +87,21 @@ export class Networking extends React.Component<INetworkingProps, INetworkingSta
     this.setState({ associatePublicIpAddress: usePublicIp });
   };
 
-  public render(): React.ReactElement<Networking> {
+  public render(): React.ReactElement<EcsNetworking> {
     const updateAssociatePublicIpAddress = this.updateAssociatePublicIpAddress;
     const updateNetworkMode = this.updateNetworkMode;
     const updateSecurityGroups = this.updateSecurityGroups;
     const updateSubnetType = this.updateSubnetType;
 
-    const networkModesAvailable = this.state.networkModesAvailable.map(function(networkMode) {
+    const networkModesAvailable = this.state.networkModesAvailable.map(function (networkMode) {
       return { label: `${networkMode}`, value: networkMode };
     });
 
-    const securityGroupsAvailable = this.state.securityGroupsAvailable.map(function(securityGroup) {
+    const securityGroupsAvailable = this.state.securityGroupsAvailable.map(function (securityGroup) {
       return { label: `${securityGroup}`, value: securityGroup };
     });
 
-    const subnetTypesAvailable = this.state.subnetTypesAvailable.map(function(subnetType) {
+    const subnetTypesAvailable = this.state.subnetTypesAvailable.map(function (subnetType) {
       return { label: `${subnetType}`, value: subnetType };
     });
 
@@ -216,8 +216,12 @@ export class Networking extends React.Component<INetworkingProps, INetworkingSta
   }
 }
 
-export const NETWORKING_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.networking.react';
-module(NETWORKING_REACT, []).component(
-  'networkingReact',
-  react2angular(withErrorBoundary(Networking, 'networkingReact'), ['command', 'notifyAngular', 'configureCommand']),
+export const ECS_NETWORKING_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.networking.react';
+module(ECS_NETWORKING_REACT, []).component(
+  'ecsNetworkingReact',
+  react2angular(withErrorBoundary(EcsNetworking, 'ecsNetworkingReact'), [
+    'command',
+    'notifyAngular',
+    'configureCommand',
+  ]),
 );
