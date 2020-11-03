@@ -24,6 +24,7 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.AmazonEC2Exception
 import com.amazonaws.services.ec2.model.DeleteLaunchTemplateRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -118,23 +119,26 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
     String lcName = autoScalingGroup.launchConfigurationName
     String launchTemplateId = autoScalingGroup.launchTemplate?.launchTemplateId
     retrySupport.retry({
-      try {
-        if (lcName) {
-          getTask().updateStatus BASE_PHASE, "Deleting launch config $lcName in $region."
-
+      if (lcName) {
+        getTask().updateStatus BASE_PHASE, "Deleting launch config $lcName in $region."
+        try {
           autoScaling.deleteLaunchConfiguration(
             new DeleteLaunchConfigurationRequest(launchConfigurationName: lcName))
-        } else if (launchTemplateId) {
-          getTask().updateStatus BASE_PHASE, "Deleting launch template $launchTemplateId in $region."
-
+        } catch (AmazonAutoScalingException e) {
+          if (!e.message.toLowerCase().contains("launch configuration name not found")) {
+            throw e
+          }
+        }
+      } else if (launchTemplateId) {
+        getTask().updateStatus BASE_PHASE, "Deleting launch template $launchTemplateId in $region."
+        try {
           amazonEC2.deleteLaunchTemplate(
             new DeleteLaunchTemplateRequest(launchTemplateId: launchTemplateId))
-        }
-      } catch (AmazonAutoScalingException e) {
-        String msg = e.message.toLowerCase()
-        // Ignore not found exception
-        if (!msg.contains("not found") && !msg.contains("does not exist")) {
-          throw e
+        } catch (AmazonEC2Exception e) {
+          // Ignore not found exception
+          if (!e.message.toLowerCase().contains("does not exist")) {
+            throw e
+          }
         }
       }
     }, 5, Duration.ofSeconds(1), true)
