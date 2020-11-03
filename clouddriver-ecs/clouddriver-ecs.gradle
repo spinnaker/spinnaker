@@ -31,6 +31,8 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-credentials"
+  implementation "com.netflix.spinnaker.kork:kork-credentials-api"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-apache"

@@ -29,11 +29,9 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.*;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -55,10 +53,7 @@ public class EcsProviderConfig {
       Registry registry,
       IamPolicyReader iamPolicyReader,
       ObjectMapper objectMapper) {
-    EcsProvider provider =
-        new EcsProvider(
-            accountCredentialsRepository,
-            Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()));
+    EcsProvider provider = new EcsProvider();
     synchronizeEcsProvider(
         provider,
         accountCredentialsRepository,
@@ -156,7 +151,7 @@ public class EcsProviderConfig {
       }
     }
 
-    ecsProvider.getAgents().addAll(newAgents);
+    ecsProvider.addAgents(newAgents);
     ecsProvider.synchronizeHealthAgents();
   }
 }
