@@ -119,6 +119,32 @@ public class SimpleSignalFlowProgramBuilder {
     return String.join(" and ", filters);
   }
 
+  public String formatQueryPair(QueryPair queryPair) {
+
+    String qpKey = queryPair.getKey();
+    Boolean isNegatedFilter = qpKey.charAt(0) == '!';
+    String key = isNegatedFilter ? qpKey.substring(1, qpKey.length()) : qpKey;
+
+    String value = queryPair.getValue();
+    Boolean hasMultipleValues = value.contains(",");
+
+    StringBuilder filter = new StringBuilder();
+    if (hasMultipleValues) {
+      List<String> values = new ArrayList<String>();
+      for (String val : value.split(",")) {
+        values.add(String.format("'%s'", val.trim()));
+      }
+      filter.append(String.format("filter('%s', %s)", key, String.join(",", values)));
+    } else {
+      filter.append(String.format(FILTER_TEMPLATE, key, value));
+    }
+    return isNegatedFilter ? negateFilter(filter.toString()) : filter.toString();
+  }
+
+  public String negateFilter(String filter) {
+    return "(not " + filter + ")";
+  }
+
   public String build() {
 
     StringBuilder program = new StringBuilder("data('").append(metricName).append("', filter=");
@@ -126,9 +152,7 @@ public class SimpleSignalFlowProgramBuilder {
 
     if (queryPairs.size() > 0) {
       filters.add(
-          queryPairs.stream()
-              .map(qp -> String.format(FILTER_TEMPLATE, qp.getKey(), qp.getValue()))
-              .collect(Collectors.joining(" and ")));
+          queryPairs.stream().map(qp -> formatQueryPair(qp)).collect(Collectors.joining(" and ")));
     }
     filters.addAll(filterSegments);
 

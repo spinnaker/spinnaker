@@ -269,4 +269,97 @@ public class SimpleSignalFlowProgramBuilderTest {
 
     assertEquals(expected, builder.build());
   }
+
+  @Test
+  public void
+      test_that_the_program_builder_builds_the_expected_program_when_query_pair_is_negated() {
+    String metricName = "request.count";
+    String aggregationMethod = "mean";
+
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    SignalFxScopeConfiguration scopeConfiguration = new SignalFxScopeConfiguration();
+    scope.setScope("1.0.0");
+    scope.setScopeKey("version");
+    scope.setExtendedScopeParams(
+        ImmutableMap.of(
+            "env", "production",
+            "_scope_key", "version"));
+
+    SimpleSignalFlowProgramBuilder builder =
+        SimpleSignalFlowProgramBuilder.create(metricName, aggregationMethod, scopeConfiguration);
+
+    builder.withQueryPair(new QueryPair("!app", "cms"));
+    builder.withScope(scope);
+
+    String expected =
+        "data('request.count', filter="
+            + "(not filter('app', 'cms')) "
+            + "and filter('version', '1.0.0') "
+            + "and filter('env', 'production'))"
+            + ".mean(by=['env', 'version']).publish()";
+
+    assertEquals(expected, builder.build());
+  }
+
+  @Test
+  public void
+      test_that_the_program_builder_builds_the_expected_program_when_query_pair_has_comma_in_value() {
+    String metricName = "request.count";
+    String aggregationMethod = "mean";
+
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    SignalFxScopeConfiguration scopeConfiguration = new SignalFxScopeConfiguration();
+    scope.setScope("1.0.0");
+    scope.setScopeKey("version");
+    scope.setExtendedScopeParams(
+        ImmutableMap.of(
+            "env", "production",
+            "_scope_key", "version"));
+
+    SimpleSignalFlowProgramBuilder builder =
+        SimpleSignalFlowProgramBuilder.create(metricName, aggregationMethod, scopeConfiguration);
+
+    builder.withQueryPair(new QueryPair("app", "cms,api"));
+    builder.withScope(scope);
+
+    String expected =
+        "data('request.count', filter="
+            + "filter('app', 'cms','api') "
+            + "and filter('version', '1.0.0') "
+            + "and filter('env', 'production'))"
+            + ".mean(by=['env', 'version']).publish()";
+
+    assertEquals(expected, builder.build());
+  }
+
+  @Test
+  public void
+      test_that_the_program_builder_builds_the_expected_program_when_query_pair_has_comma_in_value_and_is_negated() {
+    String metricName = "request.count";
+    String aggregationMethod = "mean";
+
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    SignalFxScopeConfiguration scopeConfiguration = new SignalFxScopeConfiguration();
+    scope.setScope("1.0.0");
+    scope.setScopeKey("version");
+    scope.setExtendedScopeParams(
+        ImmutableMap.of(
+            "env", "production",
+            "_scope_key", "version"));
+
+    SimpleSignalFlowProgramBuilder builder =
+        SimpleSignalFlowProgramBuilder.create(metricName, aggregationMethod, scopeConfiguration);
+
+    builder.withQueryPair(new QueryPair("!app", "cms,api"));
+    builder.withScope(scope);
+
+    String expected =
+        "data('request.count', filter="
+            + "(not filter('app', 'cms','api')) "
+            + "and filter('version', '1.0.0') "
+            + "and filter('env', 'production'))"
+            + ".mean(by=['env', 'version']).publish()";
+
+    assertEquals(expected, builder.build());
+  }
 }
