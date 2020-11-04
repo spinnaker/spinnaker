@@ -16,17 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
+import static lombok.EqualsAndHashCode.Include;
+
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 
 /**
  * A mutable credentials configurations structure suitable for transformation into concrete
  * credentials implementations.
  */
 public class CredentialsConfig {
+  @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class Region {
-    private String name;
+    @Include private String name;
     private List<String> availabilityZones;
     private List<String> preferredZones;
     private Boolean deprecated;
@@ -74,13 +80,14 @@ public class CredentialsConfig {
     }
   }
 
+  @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class LifecycleHook {
-    private String name;
-    private String roleARN;
-    private String notificationTargetARN;
-    private String lifecycleTransition;
-    private Integer heartbeatTimeout;
-    private String defaultResult;
+    @Include private String name;
+    @Include private String roleARN;
+    @Include private String notificationTargetARN;
+    @Include private String lifecycleTransition;
+    @Include private Integer heartbeatTimeout;
+    @Include private String defaultResult;
 
     public String getName() {
       return name;
@@ -131,31 +138,32 @@ public class CredentialsConfig {
     }
   }
 
+  @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class Account implements CredentialsDefinition {
-    private String name;
-    private String environment;
-    private String accountType;
-    private String accountId;
-    private String defaultKeyPair;
-    private Boolean enabled;
-    private List<Region> regions;
-    private List<String> defaultSecurityGroups;
+    @Include private String name;
+    @Include private String environment;
+    @Include private String accountType;
+    @Include private String accountId;
+    @Include private String defaultKeyPair;
+    @Include private Boolean enabled;
+    @Include private List<Region> regions;
+    @Include private List<String> defaultSecurityGroups;
     private List<String> requiredGroupMembership;
-    private Permissions.Builder permissions;
-    private String edda;
-    private Boolean eddaEnabled;
-    private Boolean lambdaEnabled;
-    private String discovery;
-    private Boolean discoveryEnabled;
-    private String front50;
-    private Boolean front50Enabled;
-    private String bastionHost;
-    private Boolean bastionEnabled;
-    private String assumeRole;
-    private String sessionName;
-    private String externalId;
-    private List<LifecycleHook> lifecycleHooks;
-    private boolean allowPrivateThirdPartyImages;
+    @Include private Permissions.Builder permissions;
+    @Include private String edda;
+    @Include private Boolean eddaEnabled;
+    @Include private Boolean lambdaEnabled;
+    @Include private String discovery;
+    @Include private Boolean discoveryEnabled;
+    @Include private String front50;
+    @Include private Boolean front50Enabled;
+    @Include private String bastionHost;
+    @Include private Boolean bastionEnabled;
+    @Include private String assumeRole;
+    @Include private String sessionName;
+    @Include private String externalId;
+    @Include private List<LifecycleHook> lifecycleHooks;
+    @Include private boolean allowPrivateThirdPartyImages;
 
     public String getName() {
       return name;
@@ -210,6 +218,9 @@ public class CredentialsConfig {
     }
 
     public void setRegions(List<Region> regions) {
+      if (regions != null) {
+        regions.sort(Comparator.comparing(Region::getName));
+      }
       this.regions = regions;
     }
 
@@ -218,6 +229,9 @@ public class CredentialsConfig {
     }
 
     public void setDefaultSecurityGroups(List<String> defaultSecurityGroups) {
+      if (defaultSecurityGroups != null) {
+        Collections.sort(defaultSecurityGroups);
+      }
       this.defaultSecurityGroups = defaultSecurityGroups;
     }
 
