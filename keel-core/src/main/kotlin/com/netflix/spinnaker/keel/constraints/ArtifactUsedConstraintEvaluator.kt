@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 /**
@@ -37,6 +38,15 @@ class ArtifactUsedConstraintEvaluator(
           }
       }
 
-    return artifact.reference in allowedReferences
+    return (artifact.reference in allowedReferences)
+      .also {
+        if (it) {
+          log.debug("approving {} of {} for {}", version, artifact.name, targetEnvironment.name)
+        } else {
+          log.info("rejecting {} of {} for {} (artifact reference {} not in {})", version, artifact.name, targetEnvironment.name, artifact.reference, allowedReferences.joinToString())
+        }
+      }
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
