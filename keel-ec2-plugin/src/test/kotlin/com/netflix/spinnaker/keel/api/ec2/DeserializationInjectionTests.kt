@@ -9,8 +9,11 @@ import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
+import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
 
 internal class DeserializationInjectionTests {
@@ -70,5 +73,36 @@ internal class DeserializationInjectionTests {
           .isA<ReferenceRule>()
           .get { name } isEqualTo "fnord"
       }
+  }
+
+  @Test
+  fun `can deserialize a security group resource with ingress rules in a region override`() {
+    val yaml = """
+      |moniker:
+      |  app: fnord
+      |description: self-referential ingress rule
+      |locations:
+      |  account: test
+      |  regions:
+      |  - name: us-west-2
+      |  - name: us-east-1
+      |inboundRules: []
+      |overrides:
+      |  us-west-2:
+      |    inboundRules:
+      |    - protocol: TCP
+      |      portRange:
+      |        startPort: 8080
+      |        endPort: 8080
+    """.trimMargin()
+
+    expectCatching {
+      mapper.readValue<SecurityGroupSpec>(yaml)
+    }
+      .isSuccess()
+        .and {
+          get { inboundRules }.isEmpty()
+          get { overrides["us-west-2"]?.inboundRules }.isNotNull().hasSize(1)
+        }
   }
 }

@@ -17,17 +17,17 @@ class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec
   override fun convert(root: JsonNode, context: DeserializationContext) =
     with(context.parser.codec as ObjectMapper) {
       val moniker: Moniker = convertValue(root.path("moniker"))
-      SecurityGroupSpec(
-        moniker = moniker,
-        locations = convertValue(root.path("locations"))
-          ?: context.findInjectableValue("locations"),
-        description = root.get("description")?.textValue(),
-        inboundRules = copy().run {
-          injectableValues = Std(mapOf("name" to moniker.name))
-          root.get("inboundRules")?.let { convertValue(it) } ?: emptySet()
-        },
-        overrides = root.get("overrides")?.let { convertValue(it) } ?: emptyMap()
-      )
+      copy().run {
+        injectableValues = Std(mapOf("name" to moniker.name))
+        SecurityGroupSpec(
+          moniker = moniker,
+          locations = convertValue(root.path("locations"))
+            ?: context.findInjectableValue("locations"),
+          description = root.get("description")?.textValue(),
+          inboundRules = root.get("inboundRules")?.let { convertValue(it) } ?: emptySet(),
+          overrides = root.get("overrides")?.let { convertValue(it) } ?: emptyMap()
+        )
+      }
     }
 
   private inline fun <reified T> DeserializationContext.findInjectableValue(
