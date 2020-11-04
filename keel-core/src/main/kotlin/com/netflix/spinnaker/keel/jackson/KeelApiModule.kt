@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.Serializers
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
@@ -38,6 +39,7 @@ import com.netflix.spinnaker.keel.jackson.mixins.ClusterDeployStrategyMixin
 import com.netflix.spinnaker.keel.jackson.mixins.CommitMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ConstraintStateMixin
 import com.netflix.spinnaker.keel.jackson.mixins.DeliveryArtifactMixin
+import com.netflix.spinnaker.keel.jackson.mixins.DeliveryConfigMixin
 import com.netflix.spinnaker.keel.jackson.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.jackson.mixins.MonikeredMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ResourceKindMixin
@@ -58,6 +60,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<ClusterDeployStrategy, ClusterDeployStrategyMixin>()
       setMixInAnnotations<ConstraintState, ConstraintStateMixin>()
       setMixInAnnotations<DeliveryArtifact, DeliveryArtifactMixin>()
+      setMixInAnnotations<DeliveryConfig, DeliveryConfigMixin>()
       setMixInAnnotations<Locatable<*>, LocatableMixin<*>>()
       setMixInAnnotations<Monikered, MonikeredMixin>()
       setMixInAnnotations<ResourceKind, ResourceKindMixin>()

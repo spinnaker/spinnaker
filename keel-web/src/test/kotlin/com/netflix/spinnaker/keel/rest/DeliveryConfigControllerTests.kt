@@ -45,6 +45,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import retrofit.RetrofitError
 import retrofit.client.Response
+import strikt.api.expectThat
+import strikt.jackson.at
+import strikt.jackson.isMissing
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
@@ -141,7 +144,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         every { repository.getDeliveryConfig(deliveryConfig.safeName) } returns deliveryConfig.toDeliveryConfig()
       }
 
-      setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { contentType ->
+      mapOf(
+        APPLICATION_YAML to yamlMapper,
+        APPLICATION_JSON to jsonMapper
+      ).forEach { (contentType, mapper) ->
         derivedContext<ResultActions>("getting a delivery config as $contentType") {
           fixture {
             val request = get("/delivery-configs/keel-manifest")
@@ -156,6 +162,11 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
           test("the response content type is correct") {
             andExpect(content().contentTypeCompatibleWith(contentType))
+          }
+
+          test("the response does not contain inlined resources") {
+            val content = andReturn().response.contentAsString.let { mapper.readTree(it) }
+            expectThat(content).at("/resources").isMissing()
           }
         }
       }
