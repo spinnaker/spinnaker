@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Capacity
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -66,6 +68,14 @@ class TrafficGuardSpec extends Specification {
         instances: [[healthState: 'Up']] * up + [[healthState: 'OutOfService']] * down,
         capacity: [min: 0, max: 4, desired: 3]
     ] + overrides
+  }
+
+  def "pinned should not appear in serialized capacity"() {
+    def mapper = new ObjectMapper()
+    def capacity = new Capacity(1, 1, 1)
+
+    expect:
+    !mapper.writeValueAsString(capacity).contains('pinned')
   }
 
   void "should ignore disabled traffic guards"() {
