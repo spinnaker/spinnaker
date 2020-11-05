@@ -1,27 +1,11 @@
 <div class="details-panel">
-  <div class="header" ng-if="state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <h4 class="text-center">
-      <loading-spinner size="'small'"></loading-spinner>
-    </h4>
-  </div>
-
-  <div class="header" ng-if="!state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <div class="header-text horizontal middle">
-      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
-      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
-        {{instance ? instance.instanceId : instanceIdNotFound}}
-      </h3>
-    </div>
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance ? instance.instanceId : instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
   </div>
   <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">

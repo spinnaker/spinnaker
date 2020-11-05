@@ -3,30 +3,14 @@
   <a ui-sref="home.infrastructure">Back to search results</a>
 </div>
 <div class="details-panel" ng-if="!state.notFoundStandalone">
-  <div class="header" ng-if="state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <h4 class="text-center">
-      <span us-spinner="{radius:20, width:6, length: 12}"></span>
-    </h4>
-  </div>
-
-  <div class="header" ng-if="!state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <div class="header-text horizontal middle">
-      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
-      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
-        {{instance ? instance.name : instanceIdNotFound }}
-      </h3>
-    </div>
-    <div>
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance ? instance.name : instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+    <div ng-if="!state.loading">
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }">
         <!-- TODO - find out what I should do with ng-if="instance.placement" -->
         <div class="dropdown" uib-dropdown dropdown-append-to-body>

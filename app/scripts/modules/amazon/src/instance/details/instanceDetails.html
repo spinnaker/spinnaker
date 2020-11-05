@@ -3,36 +3,14 @@
   <a ui-sref="home.infrastructure">Back to search results</a>
 </div>
 <div class="details-panel" ng-if="!state.notFoundStandalone">
-  <div class="header" ng-if="state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <div class="horizontal center spinner-container">
-      <loading-spinner size="'small'"></loading-spinner>
-    </div>
-  </div>
-
-  <div class="header" ng-if="!state.loading">
-    <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link" ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <div class="header-text horizontal middle">
-      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
-      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
-        {{instance ? instance.instanceId : instanceIdNotFound }}
-      </h3>
-      <copy-to-clipboard
-        class="copy-to-clipboard copy-to-clipboard-sm"
-        text="instance.instanceId"
-        tool-tip="'Copy to clipboard'"
-      >
-      </copy-to-clipboard>
-    </div>
-    <div>
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance.instanceId || instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+    <div ng-if="!state.loading">
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <instance-actions actions="instanceActions"></instance-actions>
         <instance-insights insights="instance.insightActions" instance="instance"></instance-insights>
