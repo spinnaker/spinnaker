@@ -26,6 +26,9 @@ public class DebianArtifactParser {
     if (status.matches("\\S+dev\\.\\d+[+.0-9a-z]*$")) {
       return ArtifactStatus.SNAPSHOT;
     }
+    if (status.matches("\\S+~snapshot$")) {
+      return ArtifactStatus.SNAPSHOT;
+    }
     if (status.matches("\\S+~rc\\.\\d+$")) {
       return ArtifactStatus.CANDIDATE;
     }

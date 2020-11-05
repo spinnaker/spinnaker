@@ -74,6 +74,14 @@ public class DebianArtifactParserTests {
   }
 
   @Test
+  void shouldParseImmutableSnapshotVersionStringWithoutTimestamp() {
+    String rawVersion =
+        "debian-local:pool/g/gps-assembler/gps-assembler_573.1.0~snapshot-h13858.edfc25e_all.deb";
+
+    assertThat(parser.parseStatus(rawVersion)).isEqualTo(ArtifactStatus.SNAPSHOT);
+  }
+
+  @Test
   void shouldParseTopcoatReleases() {
     String rawVersion =
         "debian-local:pool/n/nflx-metadata:astrid/topcoat_6.0.4r3-1~bionic-LOCAL_amd64.deb";
