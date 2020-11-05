@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
 import org.junit.jupiter.api.Test;
 import retrofit.converter.ConversionException;
@@ -68,7 +69,15 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password", false, 500, 16);
+            "account",
+            "appsManUri",
+            "metricsUri",
+            "host",
+            "user",
+            "password",
+            false,
+            500,
+            ForkJoinPool.commonPool());
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -97,7 +106,15 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password", false, 500, 16);
+            "account",
+            "appsManUri",
+            "metricsUri",
+            "host",
+            "user",
+            "password",
+            false,
+            500,
+            ForkJoinPool.commonPool());
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -126,7 +143,15 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password", false, 500, 16);
+            "account",
+            "appsManUri",
+            "metricsUri",
+            "host",
+            "user",
+            "password",
+            false,
+            500,
+            ForkJoinPool.commonPool());
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {

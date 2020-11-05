@@ -28,6 +28,7 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import java.util.concurrent.ForkJoinPool;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,12 @@ public class CloudFoundryProviderConfig {
   }
 
   @Bean
+  public ForkJoinPool cloudFoundryThreadPool(
+      CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties) {
+    return new ForkJoinPool(cloudFoundryConfigurationProperties.getApiRequestParallelism());
+  }
+
+  @Bean
   @ConditionalOnMissingBean(
       value = CloudFoundryCredentials.class,
       parameterizedContainer = AbstractCredentialsLoader.class)
@@ -51,7 +58,8 @@ public class CloudFoundryProviderConfig {
               cloudFoundryCredentialSource,
       CloudFoundryConfigurationProperties configurationProperties,
       CacheRepository cacheRepository,
-      CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository) {
+      CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository,
+      ForkJoinPool cloudFoundryThreadPool) {
 
     if (cloudFoundryCredentialSource == null) {
       cloudFoundryCredentialSource = configurationProperties::getAccounts;
@@ -69,9 +77,9 @@ public class CloudFoundryProviderConfig {
                 a.getEnvironment(),
                 a.isSkipSslValidation(),
                 a.getResultsPerPage(),
-                a.getMaxCapiConnectionsForCache(),
                 cacheRepository,
-                a.getPermissions().build()),
+                a.getPermissions().build(),
+                cloudFoundryThreadPool),
         cloudFoundryCredentialsRepository);
   }
 

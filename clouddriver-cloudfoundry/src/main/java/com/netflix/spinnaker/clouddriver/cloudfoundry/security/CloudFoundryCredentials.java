@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -68,8 +69,6 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
 
   @Nullable private final Integer resultsPerPage;
 
-  private final int maxCapiConnectionsForCache;
-
   private final Supplier<List<CloudFoundrySpace>> spaceSupplier =
       Memoizer.memoizeWithExpiration(this::spaceSupplier, SPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
 
@@ -78,6 +77,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private CacheRepository cacheRepository;
 
   private Permissions permissions;
+
+  private final ForkJoinPool forkJoinPool;
 
   public CloudFoundryCredentials(
       String name,
@@ -89,9 +90,9 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
       String environment,
       boolean skipSslValidation,
       Integer resultsPerPage,
-      Integer maxCapiConnectionsForCache,
       CacheRepository cacheRepository,
-      Permissions permissions) {
+      Permissions permissions,
+      ForkJoinPool forkJoinPool) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -101,9 +102,9 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     this.environment = Optional.ofNullable(environment).orElse("dev");
     this.skipSslValidation = skipSslValidation;
     this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(100);
-    this.maxCapiConnectionsForCache = Optional.ofNullable(maxCapiConnectionsForCache).orElse(16);
     this.cacheRepository = cacheRepository;
     this.permissions = permissions == null ? Permissions.EMPTY : permissions;
+    this.forkJoinPool = forkJoinPool;
   }
 
   public CloudFoundryClient getCredentials() {
@@ -118,7 +119,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
               password,
               skipSslValidation,
               resultsPerPage,
-              maxCapiConnectionsForCache);
+              forkJoinPool);
     }
     return credentials;
   }

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganiza
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
 
 class RoutesTest {
@@ -57,7 +58,8 @@ class RoutesTest {
     when(routeService.all(any(), any(), any())).thenReturn(Page.singleton(route, "abc123"));
     when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
 
-    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500, 16);
+    Routes routes =
+        new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
     RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path");
     assertThat(routeId).isNotNull();
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
@@ -67,7 +69,7 @@ class RoutesTest {
 
   @Test
   void toRouteIdReturnsNullForInvalidRoute() {
-    Routes routes = new Routes(null, null, null, null, null, 500, 16);
+    Routes routes = new Routes(null, null, null, null, null, 500, ForkJoinPool.commonPool());
     assertNull(routes.toRouteId("demo1-pro cf-app.com/path"));
   }
 
@@ -127,7 +129,8 @@ class RoutesTest {
     when(routeService.all(any(), any(), any())).thenReturn(routePage);
     when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
 
-    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500, 16);
+    Routes routes =
+        new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
 
     CloudFoundryLoadBalancer loadBalancer =
         routes.find(new RouteId().setHost("somehost").setDomainGuid("domain-guid"), "space-guid");

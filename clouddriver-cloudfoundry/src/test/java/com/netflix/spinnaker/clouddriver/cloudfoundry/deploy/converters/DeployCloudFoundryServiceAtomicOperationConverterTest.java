@@ -41,6 +41,7 @@ import io.vavr.collection.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,18 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
-          "test", "", "", "", "", "", "", false, 500, 16, cacheRepository, null) {
+          "test",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          false,
+          500,
+          cacheRepository,
+          null,
+          ForkJoinPool.commonPool()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

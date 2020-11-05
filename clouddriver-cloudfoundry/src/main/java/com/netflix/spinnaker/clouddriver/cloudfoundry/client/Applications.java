@@ -75,7 +75,7 @@ public class Applications {
       ApplicationService api,
       Spaces spaces,
       Integer resultsPerPage,
-      int maxConnections) {
+      ForkJoinPool forkJoinPool) {
     this.account = account;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -83,7 +83,7 @@ public class Applications {
     this.spaces = spaces;
     this.resultsPerPage = resultsPerPage;
 
-    this.forkJoinPool = new ForkJoinPool(maxConnections);
+    this.forkJoinPool = forkJoinPool;
     this.serverGroupCache =
         CacheBuilder.newBuilder()
             .build(

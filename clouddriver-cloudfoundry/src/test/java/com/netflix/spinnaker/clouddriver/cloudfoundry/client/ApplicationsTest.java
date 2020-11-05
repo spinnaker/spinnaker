@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashMap;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -47,7 +48,13 @@ class ApplicationsTest {
   private Spaces spaces = mock(Spaces.class);
   private Applications apps =
       new Applications(
-          "pws", "some-apps-man-uri", "some-metrics-uri", applicationService, spaces, 500, 16);
+          "pws",
+          "some-apps-man-uri",
+          "some-metrics-uri",
+          applicationService,
+          spaces,
+          500,
+          ForkJoinPool.commonPool());
   private String spaceId = "space-guid";
   private CloudFoundrySpace cloudFoundrySpace =
       CloudFoundrySpace.builder()
@@ -68,7 +75,7 @@ class ApplicationsTest {
             "badpassword",
             false,
             500,
-            16);
+            ForkJoinPool.commonPool());
 
     assertThatThrownBy(() -> client.getApplications().all())
         .isInstanceOf(CloudFoundryApiException.class);

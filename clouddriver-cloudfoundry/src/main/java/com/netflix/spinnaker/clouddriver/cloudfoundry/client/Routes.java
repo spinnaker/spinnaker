@@ -67,7 +67,7 @@ public class Routes {
       Domains domains,
       Spaces spaces,
       Integer resultsPerPage,
-      int maxConnections) {
+      ForkJoinPool forkJoinPool) {
     this.account = account;
     this.api = api;
     this.applications = applications;
@@ -75,7 +75,7 @@ public class Routes {
     this.spaces = spaces;
     this.resultsPerPage = resultsPerPage;
 
-    this.forkJoinPool = new ForkJoinPool(maxConnections);
+    this.forkJoinPool = forkJoinPool;
     this.routeMappings =
         CacheBuilder.newBuilder()
             .expireAfterWrite(3, TimeUnit.MINUTES)

@@ -34,6 +34,7 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import io.vavr.collection.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
 
 class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
@@ -59,7 +60,18 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
-          "my-account", "", "", "", "", "", "", false, 500, 16, cacheRepository, null) {
+          "my-account",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          false,
+          500,
+          cacheRepository,
+          null,
+          ForkJoinPool.commonPool()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

@@ -45,6 +45,8 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
 
   private List<ManagedAccount> accounts = new ArrayList<>();
 
+  private int apiRequestParallelism = 100;
+
   @Override
   public void destroy() {
     this.accounts = new ArrayList<>();
@@ -63,7 +65,11 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
     private String environment;
     private boolean skipSslValidation;
     private Integer resultsPerPage;
-    private Integer maxCapiConnectionsForCache;
+
+    @Deprecated
+    private Integer
+        maxCapiConnectionsForCache; // Deprecated in favor of cloudfoundry.apiRequestParallelism
+
     private Permissions.Builder permissions = new Permissions.Builder();
   }
 }

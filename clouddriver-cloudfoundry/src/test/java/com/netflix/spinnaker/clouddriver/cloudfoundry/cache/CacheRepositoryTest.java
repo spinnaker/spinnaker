@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundr
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -121,9 +122,9 @@ class CacheRepositoryTest {
         null,
         false,
         null,
-        16,
         repo,
-        null);
+        null,
+        ForkJoinPool.commonPool());
   }
 
   @Test

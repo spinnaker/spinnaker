@@ -40,6 +40,7 @@ import io.vavr.collection.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -77,7 +78,18 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     }
 
     return new CloudFoundryCredentials(
-        name, "", "", "", "", "", "", false, 500, 16, cacheRepository, null) {
+        name,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        false,
+        500,
+        cacheRepository,
+        null,
+        ForkJoinPool.commonPool()) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }

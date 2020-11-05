@@ -51,6 +51,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -181,7 +182,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       String password,
       boolean skipSslValidation,
       Integer resultsPerPage,
-      int maxCapiConnectionsForCache) {
+      ForkJoinPool forkJoinPool) {
     this.apiHost = apiHost;
     this.user = user;
     this.password = password;
@@ -217,7 +218,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             createService(ApplicationService.class),
             spaces,
             resultsPerPage,
-            maxCapiConnectionsForCache);
+            forkJoinPool);
     this.domains = new Domains(createService(DomainService.class), organizations);
     this.serviceInstances =
         new ServiceInstances(
@@ -233,7 +234,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             domains,
             spaces,
             resultsPerPage,
-            maxCapiConnectionsForCache);
+            forkJoinPool);
     this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
     this.tasks = new Tasks(createService(TaskService.class));
 
