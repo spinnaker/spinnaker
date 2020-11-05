@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
 
@@ -242,6 +243,17 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
     artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment?
+
+  /**
+   * Given identifying information about an artifact version in an environment, return the version's promotion
+   * status in that environment, or null if not found.
+   */
+  fun getArtifactPromotionStatus(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    environmentName: String
+  ): PromotionStatus?
 
   /**
    * Returns between zero and [limit] artifacts that have not been checked (i.e. returned by this

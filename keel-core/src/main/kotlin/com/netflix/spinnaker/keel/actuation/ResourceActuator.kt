@@ -13,14 +13,15 @@ import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
-import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
@@ -228,14 +229,10 @@ class ResourceActuator(
           val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, versionedArtifact.artifactType)
             ?: error("Artifact ${versionedArtifact.artifactType}:${versionedArtifact.artifactName} not found in delivery config ${deliveryConfig.name}")
 
-          val previousSuccess = artifactRepository.wasSuccessfullyDeployedTo(
-            deliveryConfig = deliveryConfig,
-            artifact = artifact,
-            version = versionedArtifact.artifactVersion,
-            targetEnvironment = environment.name
-          )
+          val promotionStatus = artifactRepository.getArtifactPromotionStatus(
+            deliveryConfig, artifact, versionedArtifact.artifactVersion, environment.name)
 
-          if (!previousSuccess) {
+          if (promotionStatus == DEPLOYING) {
             artifactRepository.markAsVetoedIn(
               deliveryConfig = deliveryConfig,
               veto = EnvironmentArtifactVeto(
@@ -256,7 +253,7 @@ class ResourceActuator(
             publisher.publishEvent(ArtifactVersionVetoed(resource.application))
           } else {
             log.info(
-              "Not vetoing artifact version {} of artifact {} for config {} and env {} because it was previously successfully deployed",
+              "Not vetoing artifact version {} of artifact {} for config {} and env {} because it's not currently deploying",
               versionedArtifact,
               artifact.reference + ":" + artifact.type,
               deliveryConfig.name,

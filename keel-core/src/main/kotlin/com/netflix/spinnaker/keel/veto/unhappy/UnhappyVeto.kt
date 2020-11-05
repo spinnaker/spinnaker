@@ -52,8 +52,8 @@ class UnhappyVeto(
     val resourceId = resource.id
     val application = resource.application
 
-    // maxDiff count represents the number of times we're allowed to see a diff and take action to try and fix it.
-    if (diffFingerprintRepository.actionTakenCount(resourceId) <= maxDiffCount(resource)) {
+    // maxActionCountPerDiff represents the number of times we're allowed to see a diff and take action to try and fix it.
+    if (diffFingerprintRepository.actionTakenCount(resourceId) <= maxActionCountPerDiff(resource)) {
       unhappyVetoRepository.delete(resourceId)
       return allowedResponse()
     }
@@ -90,7 +90,7 @@ class UnhappyVeto(
   override fun currentRejectionsByApp(application: String) =
     unhappyVetoRepository.getAllForApp(application).toList()
 
-  private fun maxDiffCount(resource: Resource<*>) =
+  private fun maxActionCountPerDiff(resource: Resource<*>) =
     when (resource.spec) {
       is UnhappyControl -> (resource.spec as UnhappyControl).maxDiffCount ?: maxDiffCount
       else -> maxDiffCount
@@ -124,7 +124,7 @@ class UnhappyVeto(
     }
 
   private fun unhappyMessage(resource: Resource<*>): String {
-    val maxDiffs = maxDiffCount(resource)
+    val maxDiffs = maxActionCountPerDiff(resource)
     val waitingTime = waitingTime(resource)
     if (waitingTime == Duration.ZERO) {
       return "Resource is unhappy and our $maxDiffs actions have not fixed it. " +
