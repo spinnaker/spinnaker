@@ -44,12 +44,16 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
 import com.newrelic.api.agent.Trace
 import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import org.springframework.core.env.Environment as SpringEnvironment
 
 /**
@@ -74,6 +78,10 @@ class ResourceActuator(
   private val clock: Clock,
   private val springEnv: SpringEnvironment
 ) {
+  companion object {
+    private val asyncExecutor: Executor = Executors.newCachedThreadPool()
+  }
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val diffNotActionableEnabled: Boolean
@@ -301,24 +309,35 @@ class ResourceActuator(
       else -> SystemException(this)
     } as SpinnakerException
 
-  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<ResourceSpec>): Pair<T, T?> =
-    supervisorScope {
-      val desired = async {
-        try {
-          desired(resource)
-        } catch (e: ResourceCurrentlyUnresolvable) {
-          throw e
-        } catch (e: Throwable) {
-          throw CannotResolveDesiredState(resource.id, e)
+  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<ResourceSpec>): Pair<T, T?> {
+    val isKotlin = this.javaClass.isKotlinClass
+    return supervisorScope {
+      val desired = if (isKotlin) {
+        async {
+          try {
+            desired(resource)
+          } catch (e: ResourceCurrentlyUnresolvable) {
+            throw e
+          } catch (e: Throwable) {
+            throw CannotResolveDesiredState(resource.id, e)
+          }
         }
+      } else {
+        // for Java compatibility
+        desiredAsync(resource, asyncExecutor).asDeferred()
       }
 
-      val current = async {
-        try {
-          current(resource)
-        } catch (e: Throwable) {
-          throw CannotResolveCurrentState(resource.id, e)
+      val current = if (isKotlin) {
+        async {
+          try {
+            current(resource)
+          } catch (e: Throwable) {
+            throw CannotResolveCurrentState(resource.id, e)
+          }
         }
+      } else {
+        // for Java compatibility
+        currentAsync(resource, asyncExecutor).asDeferred()
       }
 
       // make await() calls on separate lines so that a stack trace will indicate which one timed out
@@ -326,12 +345,18 @@ class ResourceActuator(
       val c = current.await()
       d to c
     }
+  }
 
   private fun DeliveryConfig.environmentFor(resource: Resource<*>): Environment? =
     environments.firstOrNull {
       it.resources
         .map { r -> r.id }
         .contains(resource.id)
+    }
+
+  private val Class<*>.isKotlinClass: Boolean
+    get() = this.declaredAnnotations.any {
+      it.annotationClass.qualifiedName == "kotlin.Metadata"
     }
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
@@ -343,10 +368,22 @@ class ResourceActuator(
     desired(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.desiredAsync(
+    resource: Resource<*>, executor: Executor
+  ): CompletableFuture<R> =
+    desiredAsync(resource as Resource<S>, executor)
+
+  @Suppress("UNCHECKED_CAST")
   private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.current(
     resource: Resource<*>
   ): R? =
     current(resource as Resource<S>)
+
+  @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.currentAsync(
+    resource: Resource<*>, executor: Executor
+  ): CompletableFuture<R?> =
+    currentAsync(resource as Resource<S>, executor)
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.willTakeAction(

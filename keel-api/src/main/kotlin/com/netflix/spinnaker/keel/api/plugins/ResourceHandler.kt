@@ -12,6 +12,8 @@ import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
 /**
  * A [ResourceHandler] is a keel plugin that provides resource state monitoring and actuation capabilities
@@ -59,9 +61,24 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * The value returned by this method is used as the basis of the diff (with the result of
    * [current] in order to decide whether to call [create]/[update]/[upsert].
    *
+   * Note: Java-based plugins should override [desiredAsync] instead.
+   *
    * @param resource the resource as persisted in the Keel database.
    */
-  suspend fun desired(resource: Resource<S>): R
+  @JvmDefault
+  suspend fun desired(resource: Resource<S>): R =
+    TODO("Not implemented")
+
+  /**
+   * Asynchronous implementation of [desired] which returns a [CompletableFuture] encapsulating
+   * the execution of desired state retrieval for the [resource] using the specified [executor].
+   *
+   * This method should *only* be overridden by Java-based implementations. Kotlin-based implementations
+   * should override [desired] instead.
+   */
+  @JvmDefault
+  fun desiredAsync(resource: Resource<S>, executor: Executor): CompletableFuture<R> =
+    TODO("Not implemented")
 
   /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.
@@ -72,8 +89,23 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * [desired] in order to decide whether to call [create]/[update]/[upsert].
    *
    * Implementations of this method should not actuate any changes.
+   *
+   * Note: Java-based plugins should override [currentAsync] instead.
    */
-  suspend fun current(resource: Resource<S>): R?
+  @JvmDefault
+  suspend fun current(resource: Resource<S>): R? =
+    TODO("Not implemented")
+
+  /**
+   * Asynchronous implementation of [current] which returns a [CompletableFuture] encapsulating
+   * the execution of current state retrieval for the [resource] using the specified [executor].
+   *
+   * This method should *only* be overridden by Java-based implementations. Kotlin-based implementations
+   * should override [current] instead.
+   */
+  @JvmDefault
+  fun currentAsync(resource: Resource<S>, executor: Executor): CompletableFuture<R?> =
+    TODO("Not implemented")
 
   /**
    * Evaluates the resource diff and determines whether it can take action to resolve the diff.

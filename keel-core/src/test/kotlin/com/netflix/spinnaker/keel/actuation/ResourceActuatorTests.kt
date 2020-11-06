@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.actuation.SleepyJavaResourceHandler.SLEEPY_RESOURCE_KIND
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -9,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -40,7 +42,9 @@ import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyArtifactVersionedResourceSpec
+import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.artifactVersionedResource
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -50,10 +54,14 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.spyk
 import io.mockk.verifySequence
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.time.Clock
@@ -77,9 +85,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val springEnv: SpringEnvironment = mockk(relaxed = true) {
       every { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false) } returns true
     }
+    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
-    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+    val javaPlugin = spyk(SleepyJavaResourceHandler(SpringEventPublisherBridge(publisher)))
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val clock = Clock.systemUTC()
@@ -88,7 +97,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       artifactRepository,
       deliveryConfigRepository,
       diffFingerprintRepository,
-      listOf(plugin1, plugin2),
+      listOf(plugin1, plugin2, javaPlugin),
       actuationPauser,
       vetoEnforcer,
       publisher,
@@ -612,6 +621,74 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
         }
 
+      }
+    }
+
+    context("Java plugin compatibility") {
+      before {
+        every { deliveryConfigRepository.deliveryConfigLastChecked(any()) } returns Instant.now().minus(Duration.ofSeconds(30))
+      }
+
+      context("checking a resource managed by a Java plugin") {
+        val resource = resource(
+          kind = SLEEPY_RESOURCE_KIND,
+          spec = MapBackedResourceSpec("test", "fnord", mapOf("nada" to "nada"))
+        )
+
+        before {
+          every { resourceRepository.lastEvent(resource.id) } returns ResourceCreated(resource)
+          every {
+            deliveryConfigRepository.deliveryConfigFor(resource.id)
+          } returns DeliveryConfig(
+            name = "fnord-manifest",
+            application = "fnord",
+            serviceAccount = "keel@spin",
+            artifacts = setOf(DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
+            environments = setOf(Environment(name = "staging", resources = setOf(resource)))
+          )
+          every { veto.check(resource) } returns VetoResponse(true, "all")
+          runBlocking {
+            subject.checkResource(resource)
+          }
+        }
+
+        test("Java-compatibility methods are called on the plugin") {
+          verify(exactly=0) { javaPlugin.desired(resource) }
+          verify(exactly=1) { javaPlugin.desiredAsync(resource, any()) }
+          verify(exactly=0) { javaPlugin.current(resource) }
+          verify(exactly=1) { javaPlugin.currentAsync(resource, any()) }
+        }
+      }
+
+      context("Java plugin blocks in calls to get current/desired state") {
+        val resource = resource(
+          kind = SLEEPY_RESOURCE_KIND,
+          spec = MapBackedResourceSpec("test", "fnord", mapOf("delay" to "2000"))
+        )
+
+        before {
+          every { resourceRepository.lastEvent(resource.id) } returns ResourceCreated(resource)
+          every {
+            deliveryConfigRepository.deliveryConfigFor(resource.id)
+          } returns DeliveryConfig(
+            name = "fnord-manifest",
+            application = "fnord",
+            serviceAccount = "keel@spin",
+            artifacts = setOf(DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
+            environments = setOf(Environment(name = "staging", resources = setOf(resource)))
+          )
+          every { veto.check(resource) } returns VetoResponse(true, "all")
+        }
+
+        test("coroutine timeout applies even when plugin implementation is in Java") {
+          runBlocking {
+            expectThrows<TimeoutCancellationException> {
+              withTimeout(1000) {
+                subject.checkResource(resource)
+              }
+            }
+          }
+        }
       }
     }
   }
