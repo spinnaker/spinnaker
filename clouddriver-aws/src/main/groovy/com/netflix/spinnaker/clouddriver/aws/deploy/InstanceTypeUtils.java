@@ -389,6 +389,7 @@ public class InstanceTypeUtils {
               .put("p3.8xlarge", sizedBlockDevicesForEbs(120))
               .put("p3.16xlarge", sizedBlockDevicesForEbs(120))
               .put("p3dn.24xlarge", sizedBlockDevicesForEbs(120))
+              .put("p4d.24xlarge", enumeratedBlockDevicesWithVirtualName(1))
               .put("t1.micro", Collections.emptyList())
               .put("t2.nano", Collections.emptyList())
               .put("t2.micro", Collections.emptyList())
