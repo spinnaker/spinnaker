@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner.EnvironmentContext
+import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
@@ -10,8 +11,6 @@ import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
-import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -25,6 +24,8 @@ import strikt.api.expectCatching
 import strikt.assertions.isSuccess
 
 internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
+  class DummyImplicitConstraint : Constraint("implicit")
+
   data class Fixture(
     val environment: Environment = Environment(
       name = "test"
@@ -40,8 +41,8 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<ManualJudgementConstraint>("manual-judegment")
       every { isImplicit() } returns false
     }
-    val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator>() {
-      every { supportedType } returns SupportedConstraintType<ArtifactUsedConstraint>("artifact-type")
+    val implicitStatelessEvaluator = mockk<ConstraintEvaluator<*>>() {
+      every { supportedType } returns SupportedConstraintType<DummyImplicitConstraint>("implicit")
       every { isImplicit() } returns true
       every { canPromote(any(), any(), any(), any()) } returns true
     }

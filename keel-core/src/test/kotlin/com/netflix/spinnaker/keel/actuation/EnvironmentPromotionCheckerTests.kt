@@ -10,6 +10,8 @@ import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
+import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -36,18 +38,26 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
     val dockerArtifact = DockerArtifact(
       name = "docker",
       deliveryConfigName = "my-manifest",
-      tagVersionStrategy = SEMVER_TAG
+      tagVersionStrategy = SEMVER_TAG,
+      reference = "docker-artifact"
     )
 
     val debianArtifact = DebianArtifact(
       name = "debian",
       deliveryConfigName = "my-manifest",
-      reference = "my-artifact",
+      reference = "debian-artifact",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
     )
 
     val environment: Environment = Environment(
-      name = "test"
+      name = "test",
+      resources = setOf(
+        resource(
+          spec = DummyArtifactReferenceResourceSpec(
+            artifactReference = dockerArtifact.reference
+          )
+        )
+      )
     )
     val deliveryConfig = DeliveryConfig(
       name = "my-manifest",
@@ -57,17 +67,27 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       artifacts = setOf(dockerArtifact)
     )
 
+    val multiArtifactEnvironment = environment.copy(
+      resources = environment.resources + resource(
+        spec = DummyArtifactReferenceResourceSpec(
+          artifactReference = debianArtifact.reference
+        )
+      )
+    )
     val deliveryConfigWith2ArtifactTypes = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
       serviceAccount = "keel@spinnaker",
-      environments = setOf(environment),
+      environments = setOf(multiArtifactEnvironment),
       artifacts = setOf(dockerArtifact, debianArtifact)
     )
 
     val env1 = environment
     val env2 = env1.copy(name = "staging", constraints = setOf(DependsOnConstraint("test")))
     val multiEnvConfig = deliveryConfig.copy(environments = setOf(env1, env2))
+
+    val artifactNotUsedEnvironment = environment.copy(resources = emptySet())
+    val artifactNotUsedConfig = deliveryConfig.copy(environments = setOf(artifactNotUsedEnvironment))
   }
 
   fun tests() = rootContext<Fixture> {
@@ -369,27 +389,27 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         } returns listOf("3.0")
 
         every {
-          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, environment.name, dockerArtifact.reference)
+          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact.reference)
         } returns setOf("2.0")
 
         every {
-          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, environment.name, debianArtifact.reference)
+          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, debianArtifact.reference)
         } returns setOf("3.0")
 
         every {
-          environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "2.0", environment)
+          environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "2.0", multiArtifactEnvironment)
         } returns true
 
         every {
-          environmentConstraintRunner.checkStatelessConstraints(debianArtifact, deliveryConfigWith2ArtifactTypes, "3.0", environment)
+          environmentConstraintRunner.checkStatelessConstraints(debianArtifact, deliveryConfigWith2ArtifactTypes, "3.0", multiArtifactEnvironment)
         } returns true
 
         every {
-          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", environment.name)
+          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", multiArtifactEnvironment.name)
         } returns true
 
         every {
-          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", environment.name)
+          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", multiArtifactEnvironment.name)
         } returns true
 
         every {
@@ -407,15 +427,15 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
       test("verify the right artifact type and version approved") {
         verify {
-          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", environment.name)
-          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", environment.name)
+          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", multiArtifactEnvironment.name)
+          repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", multiArtifactEnvironment.name)
         }
       }
 
       test("approved versions of other artifact types are not getting mixed up and are not checked") {
         verify(exactly = 0) {
-          environmentConstraintRunner.checkStatelessConstraints(debianArtifact, deliveryConfigWith2ArtifactTypes, "2.0", environment)
-          environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "3.0", environment)
+          environmentConstraintRunner.checkStatelessConstraints(debianArtifact, deliveryConfigWith2ArtifactTypes, "2.0", multiArtifactEnvironment)
+          environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "3.0", multiArtifactEnvironment)
         }
       }
 
@@ -425,32 +445,59 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             repository.artifactVersions(dockerArtifact)
           } returns listOf("2.0", "1.1")
           every {
-            repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, environment.name, dockerArtifact.reference)
+            repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact.reference)
           } returns setOf("2.0", "1.1")
           every {
-            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "1.1", environment.name)
+            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "1.1", multiArtifactEnvironment.name)
           } returns true
 
           every {
-            environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "1.1", environment)
+            environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "1.1", multiArtifactEnvironment)
           } returns true
 
           runBlocking {
             subject.checkEnvironments(deliveryConfigWith2ArtifactTypes)
           }
         }
+
         test("2 docker versions are approved and 1 debian") {
           verify {
-            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", environment.name)
-            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "1.1", environment.name)
-            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", environment.name)
+            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "2.0", multiArtifactEnvironment.name)
+            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "1.1", multiArtifactEnvironment.name)
+            repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, debianArtifact, "3.0", multiArtifactEnvironment.name)
           }
         }
 
         test("verify no mixup of artifact type and version") {
           verify(exactly = 0) {
-            environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "3.0", environment)
+            environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "3.0", multiArtifactEnvironment)
           }
+        }
+      }
+    }
+
+    context("an artifact is not used in an environment") {
+      before {
+        every {
+          repository.artifactVersions(dockerArtifact)
+        } returns listOf("2.0", "1.2", "1.1", "1.0")
+
+        every {
+          repository.pinnedEnvironments(any())
+        } returns emptyList()
+
+        every {
+          repository.vetoedEnvironmentVersions(any())
+        } returns emptyList()
+
+        runBlocking {
+          subject.checkEnvironments(artifactNotUsedConfig)
+        }
+      }
+
+      test("constraint checks are skipped for that environment") {
+        verify(exactly = 0) {
+          environmentConstraintRunner.checkEnvironment(any())
         }
       }
     }

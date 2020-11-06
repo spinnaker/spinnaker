@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner.EnvironmentContext
+import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
@@ -27,79 +29,84 @@ class EnvironmentPromotionChecker(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @Trace(dispatcher=true)
+  @Trace(dispatcher = true)
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     val startTime = clock.instant()
     try {
-    val pinnedEnvs: Map<String, PinnedEnvironment> = repository
-      .pinnedEnvironments(deliveryConfig)
-      .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
+      val pinnedEnvs: Map<String, PinnedEnvironment> = repository
+        .pinnedEnvironments(deliveryConfig)
+        .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
 
-    val vetoedArtifacts: Map<String, EnvironmentArtifactVetoes> = repository
-      .vetoedEnvironmentVersions(deliveryConfig)
-      .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
+      val vetoedArtifacts: Map<String, EnvironmentArtifactVetoes> = repository
+        .vetoedEnvironmentVersions(deliveryConfig)
+        .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
 
-    deliveryConfig
-      .artifacts
-      .associateWith { repository.artifactVersions(it) }
-      .forEach { (artifact, versions) ->
-        if (versions.isEmpty()) {
-          log.warn("No versions for ${artifact.type} artifact name ${artifact.name} and reference ${artifact.reference} are known")
-        } else {
-          deliveryConfig.environments.forEach { environment ->
-            val envContext = EnvironmentContext(
-              deliveryConfig = deliveryConfig,
-              environment = environment,
-              artifact = artifact,
-              versions = versions,
-              vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions) ?: emptySet()
-            )
+      deliveryConfig
+        .artifacts
+        .associateWith { repository.artifactVersions(it) }
+        .forEach { (artifact, versions) ->
+          if (versions.isEmpty()) {
+            log.warn("No versions for ${artifact.type} artifact name ${artifact.name} and reference ${artifact.reference} are known")
+          } else {
+            deliveryConfig.environments.forEach { environment ->
+              if (artifact.isUsedIn(environment)) {
+                val envContext = EnvironmentContext(
+                  deliveryConfig = deliveryConfig,
+                  environment = environment,
+                  artifact = artifact,
+                  versions = versions,
+                  vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions)
+                    ?: emptySet()
+                )
 
-            if (pinnedEnvs.hasPinFor(environment.name, artifact)) {
-              val pinnedVersion = pinnedEnvs.versionFor(environment.name, artifact)
-              // approve version first to fast track deployment
-              approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment.name)
-              // then evaluate constraints
-              constraintRunner.checkEnvironment(envContext)
-            } else {
-              constraintRunner.checkEnvironment(envContext)
+                if (pinnedEnvs.hasPinFor(environment.name, artifact)) {
+                  val pinnedVersion = pinnedEnvs.versionFor(environment.name, artifact)
+                  // approve version first to fast track deployment
+                  approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment.name)
+                  // then evaluate constraints
+                  constraintRunner.checkEnvironment(envContext)
+                } else {
+                  constraintRunner.checkEnvironment(envContext)
 
-              // everything the constraint runner has already approved
-              val queuedForApproval: MutableSet<String> = repository
-                .getQueuedConstraintApprovals(deliveryConfig.name, environment.name, artifact.reference)
-                .toMutableSet()
+                  // everything the constraint runner has already approved
+                  val queuedForApproval: MutableSet<String> = repository
+                    .getQueuedConstraintApprovals(deliveryConfig.name, environment.name, artifact.reference)
+                    .toMutableSet()
 
-              /**
-               * Approve all constraints starting with oldest first so that the ordering is
-               * maintained.
-               */
-              queuedForApproval
-                .sortedWith(artifact.versioningStrategy.comparator.reversed())
-                .forEach { v ->
                   /**
-                   * We don't need to re-invoke stateful constraint evaluators for these, but we still
-                   * check stateless constraints to avoid approval outside of allowed-times.
+                   * Approve all constraints starting with oldest first so that the ordering is
+                   * maintained.
                    */
-                  log.debug(
-                    "Version $v of artifact ${artifact.name} is queued for approval, " +
-                      "and being evaluated for stateless constraints in environment ${environment.name}"
-                  )
-                  if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
-                    approveVersion(deliveryConfig, artifact, v, environment.name)
-                    repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v, artifact.reference)
+                  queuedForApproval
+                    .sortedWith(artifact.versioningStrategy.comparator.reversed())
+                    .forEach { v ->
+                      /**
+                       * We don't need to re-invoke stateful constraint evaluators for these, but we still
+                       * check stateless constraints to avoid approval outside of allowed-times.
+                       */
+                      log.debug(
+                        "Version $v of artifact ${artifact.name} is queued for approval, " +
+                          "and being evaluated for stateless constraints in environment ${environment.name}"
+                      )
+                      if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
+                        approveVersion(deliveryConfig, artifact, v, environment.name)
+                        repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v, artifact.reference)
+                      }
+                    }
+
+                  val versionSelected = queuedForApproval
+                    .sortedWith(artifact.versioningStrategy.comparator.reversed())
+                    .lastOrNull()
+                  if (versionSelected == null) {
+                    log.warn("No version of {} passes constraints for environment {}", artifact.name, environment.name)
                   }
                 }
-
-              val versionSelected = queuedForApproval
-                .sortedWith(artifact.versioningStrategy.comparator.reversed())
-                .lastOrNull()
-              if (versionSelected == null) {
-                log.warn("No version of {} passes constraints for environment {}", artifact.name, environment.name)
+              } else {
+                log.debug("Skipping checks for {} as it is not used in environment {}", artifact.name, environment.name)
               }
             }
           }
         }
-      }
     } finally {
       publisher.publishEvent(
         EnvironmentCheckComplete(
@@ -110,6 +117,15 @@ class EnvironmentPromotionChecker(
       )
     }
   }
+
+  /**
+   * @return `true` if this artifact is used by any resource in [environment], `false` otherwise.
+   */
+  private fun DeliveryArtifact.isUsedIn(environment: Environment) =
+    environment
+      .resources
+      .map { (it.spec as? ArtifactReferenceProvider)?.artifactReference }
+      .contains(reference)
 
   private fun approveVersion(
     deliveryConfig: DeliveryConfig,

@@ -158,7 +158,6 @@ class ApiDocTests : JUnit5Minutests {
           "#/\$defs/ManualJudgementConstraint",
           "#/\$defs/PipelineConstraint",
           "#/\$defs/TimeWindowConstraint",
-          "#/\$defs/ArtifactUsedConstraint",
           "#/\$defs/ImageExistsConstraint"
         )
     }

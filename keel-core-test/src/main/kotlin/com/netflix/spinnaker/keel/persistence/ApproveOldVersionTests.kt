@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner
 import com.netflix.spinnaker.keel.actuation.EnvironmentPromotionChecker
+import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -17,14 +18,14 @@ import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.api.support.ConstraintRepositoryBridge
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintEvaluator
-import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -40,6 +41,8 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
   abstract fun createKeelRepository(resourceSpecIdentifier: ResourceSpecIdentifier, mapper: ObjectMapper): T
 
   open fun flush() {}
+
+  class DummyImplicitConstraint : Constraint("implicit")
 
   class Fixture<T : KeelRepository>(
     val repositoryProvider: (ResourceSpecIdentifier, ObjectMapper) -> T
@@ -59,7 +62,12 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
 
     val environment: Environment = Environment(
       name = "test",
-      constraints = setOf(ManualJudgementConstraint())
+      constraints = setOf(ManualJudgementConstraint()),
+      resources = setOf(
+        resource(
+          spec = DummyArtifactReferenceResourceSpec(artifactReference = "my-artifact")
+        )
+      )
     )
 
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
@@ -73,8 +81,8 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       SpringEventPublisherBridge(publisher)
     )
 
-    val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator> {
-      every { supportedType } returns SupportedConstraintType<ArtifactUsedConstraint>("artifact-type")
+    val implicitStatelessEvaluator = mockk<ConstraintEvaluator<DummyImplicitConstraint>> {
+      every { supportedType } returns SupportedConstraintType<DummyImplicitConstraint>("implicit")
       every { isImplicit() } returns true
       every { canPromote(any(), any(), any(), any()) } returns true
     }
