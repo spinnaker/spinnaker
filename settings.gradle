@@ -29,6 +29,7 @@ def cloudProviderProjects = [
 //  'alicloud' : [':clouddriver-alicloud'],
   'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
   'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-lambda'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
+  'aws-minimal': [':clouddriver-aws', ':clouddriver-eureka'],
   'azure': [':clouddriver-azure'],
   'cloudfoundry': [':clouddriver-cloudfoundry'],
 //  'dcos': [':clouddriver-dcos'],
@@ -40,7 +41,7 @@ def cloudProviderProjects = [
   'yandex': [':clouddriver-yandex']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
-cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus' + ':clouddriver-docker')
+cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
 String icp = settings.ext.has('includeCloudProviders') ? settings.ext.get('includeCloudProviders') : 'all'
