@@ -80,6 +80,9 @@ public class RegionScopedTitusClient implements TitusClient {
   /** Default read timeout in milliseconds */
   private static final long DEFAULT_READ_TIMEOUT = 20000;
 
+  /** Default find tasks deadline in milliseconds */
+  private static final long FIND_TASKS_DEADLINE = 30000;
+
   /** An instance of {@link TitusRegion} that this RegionScopedTitusClient will use */
   private final TitusRegion titusRegion;
 
@@ -522,7 +525,8 @@ public class RegionScopedTitusClient implements TitusClient {
         taskQueryBuilder.setPage(Page.newBuilder().setCursor(cursor).setPageSize(pageSize));
       }
       taskResults =
-          TitusClientCompressionUtil.attachCaller(grpcBlockingStub)
+          TitusClientCompressionUtil.attachCaller(
+                  grpcBlockingStub.withDeadlineAfter(FIND_TASKS_DEADLINE, TimeUnit.MILLISECONDS))
               .findTasks(taskQueryBuilder.build());
       grpcTasks.addAll(taskResults.getItemsList());
       cursor = taskResults.getPagination().getCursor();
