@@ -37,4 +37,9 @@ public interface ServiceEndpoint {
 
   /** Indicates whether the certificate/host verification is desired or not */
   public boolean isSecure();
+
+  /**
+   * Indicates whether to use system default or wire up the app supplied truststore and keystore.
+   */
+  public boolean isUseDefaultSslSocketFactory();
 }

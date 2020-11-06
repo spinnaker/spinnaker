@@ -71,10 +71,11 @@ public class DefaultOkHttpClientBuilderProvider implements OkHttpClientBuilderPr
   }
 
   protected OkHttpClient.Builder setSSLSocketFactory(
-      OkHttpClient.Builder builder, ServiceEndpoint service) {
+      OkHttpClient.Builder builder, ServiceEndpoint serviceEndpoint) {
 
-    if (okHttpClientConfigurationProperties.getKeyStore() == null
-        && okHttpClientConfigurationProperties.getTrustStore() == null) {
+    if ((okHttpClientConfigurationProperties.getKeyStore() == null
+            && okHttpClientConfigurationProperties.getTrustStore() == null)
+        || serviceEndpoint.isUseDefaultSslSocketFactory()) {
       return builder;
     }
 
@@ -111,9 +112,9 @@ public class DefaultOkHttpClientBuilderProvider implements OkHttpClientBuilderPr
           trustManagers[0].getClass().getSimpleName());
       builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
     } catch (Exception e) {
-      log.error("Unable to set ssl socket factory for {}", service.getBaseUrl(), e);
+      log.error("Unable to set ssl socket factory for {}", serviceEndpoint.getBaseUrl(), e);
       throw new SystemException(
-          format("Unable to set ssl socket factory for (%s)", service.getBaseUrl()), e);
+          format("Unable to set ssl socket factory for (%s)", serviceEndpoint.getBaseUrl()), e);
     }
 
     return builder;

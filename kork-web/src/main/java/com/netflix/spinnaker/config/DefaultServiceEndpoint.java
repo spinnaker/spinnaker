@@ -22,7 +22,16 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
-/** Represents a service endpoint URL and name. */
+/**
+ * Represents a service endpoint URL and name.
+ *
+ * <p>If a secure client is constructed using this type and not set to use default ssl factory, ssl
+ * socket factory will be set with supplied trust and keystores, See {@code
+ * com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties}.
+ *
+ * <p>If a client is constructed using this type and is insecure, trust and keystores will be set to
+ * empty and host name verification will be turned off.
+ */
 public class DefaultServiceEndpoint implements ServiceEndpoint {
 
   /** Name of the service */
@@ -37,28 +46,43 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   /** Misc. config necessary for the service client. */
   @Nonnull private final Map<String, String> config;
 
+  /**
+   * Indicates whether to use system default or wire up the app supplied truststore and keystore.
+   */
+  private final boolean useDefaultSslSocketFactory;
+
   public DefaultServiceEndpoint(@Nonnull String name, @Nonnull String baseUrl) {
-    this(name, baseUrl, new HashMap<>(), true);
+    this(name, baseUrl, true);
   }
 
   public DefaultServiceEndpoint(@Nonnull String name, @Nonnull String baseUrl, boolean isSecure) {
-    this(name, baseUrl, new HashMap<>(), isSecure);
+    this(name, baseUrl, new HashMap<>(), isSecure, false);
+  }
+
+  public DefaultServiceEndpoint(
+      @Nonnull String name,
+      @Nonnull String baseUrl,
+      boolean isSecure,
+      boolean useDefaultSslSocketFactory) {
+    this(name, baseUrl, new HashMap<>(), isSecure, useDefaultSslSocketFactory);
   }
 
   public DefaultServiceEndpoint(
       @Nonnull String name, @Nonnull String baseUrl, @Nonnull Map<String, String> config) {
-    this(name, baseUrl, config, true);
+    this(name, baseUrl, config, true, false);
   }
 
   public DefaultServiceEndpoint(
       @Nonnull String name,
       @Nonnull String baseUrl,
       @Nonnull Map<String, String> config,
-      boolean isSecure) {
+      boolean isSecure,
+      boolean useDefaultSslSocketFactory) {
     this.name = Objects.requireNonNull(name);
     this.baseUrl = Objects.requireNonNull(baseUrl);
     this.config = Objects.requireNonNull(config);
     this.isSecure = isSecure;
+    this.useDefaultSslSocketFactory = useDefaultSslSocketFactory;
   }
 
   @Override
@@ -82,5 +106,10 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   @Override
   public boolean isSecure() {
     return isSecure;
+  }
+
+  @Override
+  public boolean isUseDefaultSslSocketFactory() {
+    return useDefaultSslSocketFactory;
   }
 }
