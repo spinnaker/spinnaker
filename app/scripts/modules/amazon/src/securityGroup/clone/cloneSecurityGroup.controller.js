@@ -98,6 +98,6 @@ angular
         vm.mixinUpsert('Clone');
       };
 
-      vm.initializeSecurityGroups();
+      vm.initializeSecurityGroups().then(vm.initializeAccounts);
     },
   ]);
