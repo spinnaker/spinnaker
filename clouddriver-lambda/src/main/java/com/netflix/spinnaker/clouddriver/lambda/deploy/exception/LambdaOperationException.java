@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates.
+ * Copyright 2020 Amazon.com, Inc. or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
+package com.netflix.spinnaker.clouddriver.lambda.deploy.exception;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+public class LambdaOperationException extends RuntimeException {
+  public LambdaOperationException(String message) {
+    super(message);
+  }
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class InvokeLambdaFunctionDescription extends AbstractLambdaFunctionDescription {
-  String functionName;
-  String qualifier;
-
-  String payload;
-  Artifact payloadArtifact;
+  public LambdaOperationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

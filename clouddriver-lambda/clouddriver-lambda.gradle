@@ -1,6 +1,7 @@
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
+  implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-aws")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
@@ -11,12 +12,15 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
+  implementation "commons-io:commons-io"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
+  implementation "org.apache.commons:commons-compress:1.20"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.squareup.okhttp:okhttp"
