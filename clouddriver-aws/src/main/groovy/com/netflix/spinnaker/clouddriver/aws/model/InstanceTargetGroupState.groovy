@@ -40,20 +40,17 @@ class InstanceTargetGroupState {
   private HealthState deriveHealthState() {
     //ELBv2 has concrete states: unused -> initial -> healthy    -> draining
     //                                            \-> unhealthy -/
-
-    // a draining instance is still serving active connections, and will
-    //  transition to unused once those complete - we will consider it
-    //  UP until it completes draining
-    if (state == 'healthy' || state == 'draining') {
-      return HealthState.Up
+    switch (state) {
+      case 'healthy':
+        return HealthState.Up
+      case 'initial':
+        return HealthState.Starting
+      case 'unused':
+        return HealthState.OutOfService
+      case 'draining':
+        return HealthState.Draining
+      default:
+        return HealthState.Down
     }
-
-    if (state == 'initial') {
-      return HealthState.Starting
-    }
-    if (state == 'unused') {
-      return HealthState.OutOfService
-    }
-    return HealthState.Down
   }
 }

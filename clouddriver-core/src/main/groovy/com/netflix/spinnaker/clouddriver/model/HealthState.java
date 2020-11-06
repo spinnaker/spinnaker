@@ -23,7 +23,8 @@ public enum HealthState {
   Unknown,
   Starting,
   Succeeded,
-  Up;
+  Up,
+  Draining;
 
   public static HealthState fromString(final String name) {
     for (HealthState state : values()) {
