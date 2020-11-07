@@ -19,4 +19,4 @@ RUN usermod -d /var/lib/mysql/ mysql && \
     mysql -u root --password=sa -e 'CREATE DATABASE `keel` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 
 CMD /etc/init.d/mysql restart && \
-    ./gradlew Plugin=true -PbuildingInDocker=true keel-web:installDist -x test
+    ./gradlew --no-daemon -PbuildingInDocker=true keel-web:installDist -x test
