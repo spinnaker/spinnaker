@@ -7,7 +7,7 @@ with Spinnaker on GKE.
 
 * The `app` directory contains the source code for the small "Hello World"
   application used. The Docker image is available at
-  `gcr.io/spinnaker-marketplace/helloworld:v1`.
+  `us-docker.pkg.dev/spinnaker-community/codelabs/helloworld:v1`.
 
 * The `manifests` directory contains the Kubernetes that will be deployed to GKE
   before the pipeline runs for the first time. 

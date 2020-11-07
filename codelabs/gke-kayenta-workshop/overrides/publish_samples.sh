@@ -41,9 +41,9 @@ gsutil cp -r services/manifests/backend.yml $BUCKET_URI/manifests/backend.yml
 
 bold "Pushing sample images into gcr.io/$PROJECT_ID..."
 
-gcloud docker -- pull gcr.io/spinnaker-marketplace/frontend
+gcloud docker -- pull us-docker.pkg.dev/spinnaker-community/codelabs/frontend
 
-gcloud docker -- tag gcr.io/spinnaker-marketplace/frontend \
+gcloud docker -- tag us-docker.pkg.dev/spinnaker-community/codelabs/frontend \
   gcr.io/$PROJECT_ID/frontend
 
 gcloud docker -- push gcr.io/$PROJECT_ID/frontend

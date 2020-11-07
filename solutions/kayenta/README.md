@@ -5,7 +5,7 @@ This directory contains the assets necessary for the
 tutorial.
 
 * The `app` directory contains the source code for the small "Hello World"
-application used. The Docker image is published as `gcr.io/spinnaker-marketplace/sampleapp:latest`.
+application used. The Docker image is published as `us-docker.pkg.dev/spinnaker-community/codelabs/sampleapp:latest`.
 * The `ci` directory contains the code necessary for the
 [continuous integration](https://concourse.dev.vicnastea.io/teams/main/pipelines/kayenta-gke-stackdriver)
 of the solution.
