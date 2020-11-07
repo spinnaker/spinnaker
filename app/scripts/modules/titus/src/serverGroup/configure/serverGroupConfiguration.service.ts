@@ -189,8 +189,8 @@ export class TitusServerGroupConfigurationService {
         } else {
           backingData.filtered.regions = credentialsKeyedByAccount[cmd.credentials]?.regions ?? [];
         }
-        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
         cmd.backingData = backingData;
+        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
 
         let securityGroupRefresher: PromiseLike<any> = $q.when();
         if (cmd.securityGroups && cmd.securityGroups.length) {
