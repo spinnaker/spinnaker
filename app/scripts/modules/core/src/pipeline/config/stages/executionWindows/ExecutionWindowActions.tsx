@@ -35,7 +35,7 @@ export class ExecutionWindowActions extends React.Component<
 > {
   constructor(props: IExecutionWindowActionsProps) {
     super(props);
-    const days = props.stage.context.restrictedExecutionWindow.days;
+    const days = props.stage.context.restrictedExecutionWindow?.days;
     let dayText = 'Everyday';
     if (days && days.length > 0) {
       dayText = this.replaceDays(days).join(', ');
