@@ -101,7 +101,7 @@
                         }
                       }
                     ],
-                    "image": "gcr.io/spinnaker-marketplace/sampleapp:latest",
+                    "image": "us-docker.pkg.dev/spinnaker-community/codelabs/sampleapp:latest",
                     "name": "sampleapp",
                     "ports": [
                       {
@@ -185,7 +185,7 @@
                         }
                       }
                     ],
-                    "image": "gcr.io/spinnaker-marketplace/sampleapp:latest",
+                    "image": "us-docker.pkg.dev/spinnaker-community/codelabs/sampleapp:latest",
                     "name": "sampleapp",
                     "ports": [
                       {

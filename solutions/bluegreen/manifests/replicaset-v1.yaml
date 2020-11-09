@@ -38,7 +38,7 @@ spec:
         tier: helloworld
     spec:
       containers:
-        - image: 'gcr.io/spinnaker-marketplace/helloworld:v1'
+        - image: 'us-docker.pkg.dev/spinnaker-community/codelabs/helloworld:v1'
           imagePullPolicy: IfNotPresent
           name: helloworld
           ports:

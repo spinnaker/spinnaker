@@ -70,12 +70,12 @@ bold "Pushing sample images into gcr.io/$PROJECT_ID..."
 
 gcloud auth configure-docker -q
 
-docker pull gcr.io/spinnaker-marketplace/frontend
-docker pull gcr.io/spinnaker-marketplace/backend
+docker pull us-docker.pkg.dev/spinnaker-community/codelabs/frontend
+docker pull us-docker.pkg.dev/spinnaker-community/codelabs/backend
 
-docker tag gcr.io/spinnaker-marketplace/frontend \
+docker tag us-docker.pkg.dev/spinnaker-community/codelabs/frontend \
   gcr.io/$PROJECT_ID/frontend
-docker tag gcr.io/spinnaker-marketplace/backend \
+docker tag us-docker.pkg.dev/spinnaker-community/codelabs/backend \
   gcr.io/$PROJECT_ID/backend
 
 docker push gcr.io/$PROJECT_ID/frontend

@@ -53,7 +53,7 @@
 						},
 						"spec": {
 							"containers": [{
-								"image": "gcr.io/spinnaker-marketplace/helloworld:${ parameters.hellotag }",
+								"image": "us-docker.pkg.dev/spinnaker-community/codelabs/helloworld:${ parameters.hellotag }",
 								"imagePullPolicy": "IfNotPresent",
 								"name": "helloworld",
 								"ports": [{
