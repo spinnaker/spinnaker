@@ -15,35 +15,34 @@
 
 package com.netflix.spinnaker.clouddriver.ecs;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.Main;
-import com.netflix.spinnaker.clouddriver.aws.security.*;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsLoader;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
+@Import(EcsTestConfiguration.class)
 @SpringBootTest(
     classes = {Main.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -52,7 +51,10 @@ public class EcsSpec {
   protected static final String TEST_OPERATIONS_LOCATION =
       "src/integration/resources/testoperations";
   protected static final String TEST_ARTIFACTS_LOCATION = "src/integration/resources/testartifacts";
-  protected final String ECS_ACCOUNT_NAME = "ecs-account";
+
+  @Value("${ecs.primaryAccount}")
+  protected String ECS_ACCOUNT_NAME;
+
   protected final String TEST_REGION = "us-west-2";
   protected final int TASK_RETRY_SECONDS = 3;
   protected static final String CREATE_SG_TEST_PATH = "/ecs/ops/createServerGroup";
@@ -65,29 +67,14 @@ public class EcsSpec {
 
   @LocalServerPort private int port;
 
-  @Autowired AccountCredentialsRepository accountCredentialsRepository;
-
   @MockBean protected AmazonClientProvider mockAwsProvider;
-
-  @MockBean AmazonAccountsSynchronizer mockAccountsSyncer;
-
-  @BeforeEach
-  public void setup() {
-    NetflixAmazonCredentials mockAwsCreds = mock(NetflixAmazonCredentials.class);
-    when(mockAccountsSyncer.synchronize(
-            any(CredentialsLoader.class),
-            any(CredentialsConfig.class),
-            any(AccountCredentialsRepository.class),
-            any(DefaultAccountConfigurationProperties.class),
-            any(CatsModule.class)))
-        .thenReturn(Collections.singletonList(mockAwsCreds));
-  }
 
   @DisplayName(".\n===\n" + "Assert AWS and ECS providers are enabled" + "\n===")
   @Test
   public void configTest() {
     assertTrue(awsEnabled);
     assertTrue(ecsEnabled);
+    assertEquals("ecs-account", ECS_ACCOUNT_NAME);
   }
 
   protected String generateStringFromTestFile(String path) throws IOException {
@@ -123,39 +110,5 @@ public class EcsSpec {
       }
     }
     fail(failMsg);
-  }
-
-  protected void setEcsAccountCreds() {
-    AmazonCredentials.AWSRegion testRegion = new AmazonCredentials.AWSRegion(TEST_REGION, null);
-
-    NetflixAssumeRoleAmazonCredentials ecsCreds =
-        new NetflixAssumeRoleAmazonCredentials(
-            ECS_ACCOUNT_NAME,
-            "test",
-            "test",
-            "123456789012",
-            null,
-            true,
-            Collections.singletonList(testRegion),
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            false,
-            "SpinnakerManaged",
-            "SpinnakerSession",
-            false,
-            "");
-
-    accountCredentialsRepository.save(ECS_ACCOUNT_NAME, ecsCreds);
   }
 }

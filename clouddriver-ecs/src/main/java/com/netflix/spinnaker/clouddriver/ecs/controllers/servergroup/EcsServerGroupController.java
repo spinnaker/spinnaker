@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroupEvent;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/applications/{application}/serverGroups/{account}/{serverGroupName}")
 public class EcsServerGroupController {
 
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
 
   private final AmazonClientProvider amazonClientProvider;
 
@@ -48,11 +48,11 @@ public class EcsServerGroupController {
 
   @Autowired
   public EcsServerGroupController(
-      AccountCredentialsProvider accountCredentialsProvider,
+      CredentialsRepository<NetflixECSCredentials> credentialsRepository,
       AmazonClientProvider amazonClientProvider,
       ServiceCacheClient serviceCacheClient,
       ServerGroupEventStatusConverter statusConverter) {
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.amazonClientProvider = amazonClientProvider;
     this.serviceCacheClient = serviceCacheClient;
     this.statusConverter = statusConverter;
@@ -63,10 +63,9 @@ public class EcsServerGroupController {
       @PathVariable String account,
       @PathVariable String serverGroupName,
       @RequestParam(value = "region", required = true) String region) {
-    NetflixAmazonCredentials credentials =
-        (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
+    NetflixAmazonCredentials credentials = credentialsRepository.getOne(account);
 
-    if (!(credentials instanceof NetflixECSCredentials)) {
+    if (credentials == null) {
       return new ResponseEntity(
           String.format("Account %s is not an ECS account", account), HttpStatus.BAD_REQUEST);
     }

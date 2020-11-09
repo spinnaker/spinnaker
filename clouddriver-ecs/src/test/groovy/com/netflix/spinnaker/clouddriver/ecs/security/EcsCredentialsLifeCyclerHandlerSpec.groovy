@@ -34,7 +34,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
   def setup() {
     ecsProvider = new EcsProvider()
   }
-  def credOne = new NetflixECSCredentials(TestCredential.named('one'))
+  def credOne = new NetflixAssumeRoleEcsCredentials(TestCredential.assumeRoleNamed('one'), 'one-aws')
   def ecsAccountMapper = Mock(EcsAccountMapper)
 
 
@@ -52,6 +52,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
     handler.credentialsAdded(credOne)
 
     then:
+    1 * ecsAccountMapper.addMapEntry({it.getName() == credOne.getName()})
     ecsProvider.getAgents().size() == 23 // 2 * 12 - 1 ( One IamRoleCachingAgent per account )
     ecsProvider.getHealthAgents().size() == 4
     ecsProvider.getAgents().each({actualClasses.add(it.getClass())})

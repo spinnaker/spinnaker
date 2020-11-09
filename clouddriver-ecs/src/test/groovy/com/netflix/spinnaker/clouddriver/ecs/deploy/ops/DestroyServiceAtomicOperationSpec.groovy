@@ -33,12 +33,12 @@ class DestroyServiceAtomicOperationSpec extends CommonAtomicOperation {
 
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
-    accountCredentialsProvider.getCredentials(_) >> TestCredential.named("test")
+    credentialsRepository.getOne(_) >> TestCredential.named("test")
 
     when:
     operation.operate([])

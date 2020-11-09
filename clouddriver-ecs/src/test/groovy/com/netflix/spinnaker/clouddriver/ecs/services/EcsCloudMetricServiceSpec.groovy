@@ -24,10 +24,10 @@ import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsCloudWatchAlarmCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,15 +49,15 @@ class EcsCloudMetricServiceSpec extends Specification {
   def targetServiceName = 'asgard-v001'
   def sourceResourceId = 'service/default/asgard-v000'
   def targetResourceId = 'service/default/asgard-v001'
-  def sourceCredentials = Stub(NetflixAmazonCredentials) {
+  def sourceCredentials = Stub(NetflixECSCredentials) {
     getAccountId() >> sourceAccountId
   }
-  def targetCredentials = Stub(NetflixAmazonCredentials) {
+  def targetCredentials = Stub(NetflixECSCredentials) {
     getAccountId() >> targetAccountId
   }
-  def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
-    getCredentials(sourceAccountName) >> sourceCredentials
-    getCredentials(targetAccountName) >> targetCredentials
+  def credentialsRepository = Stub(CredentialsRepository) {
+    getOne(sourceAccountName) >> sourceCredentials
+    getOne(targetAccountName) >> targetCredentials
   }
   def amazonClientProvider = Stub(AmazonClientProvider) {
     getAmazonApplicationAutoScaling(sourceCredentials, sourceRegion, false) >> sourceAutoScaling
@@ -71,7 +71,7 @@ class EcsCloudMetricServiceSpec extends Specification {
 
   def setup() {
     service.amazonClientProvider = amazonClientProvider
-    service.accountCredentialsProvider = accountCredentialsProvider
+    service.credentialsRepository = credentialsRepository
     service.metricAlarmCacheClient = metricAlarmCacheClient
   }
 

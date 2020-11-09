@@ -22,12 +22,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 
 class CommonAtomicOperation extends Specification{
   def amazonClientProvider = Mock(AmazonClientProvider)
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def credentialsRepository = Mock(CredentialsRepository)
   def containerInformationService = Mock(ContainerInformationService)
   def ecs = Mock(AmazonECS)
   def autoscaling = Mock(AWSApplicationAutoScaling)

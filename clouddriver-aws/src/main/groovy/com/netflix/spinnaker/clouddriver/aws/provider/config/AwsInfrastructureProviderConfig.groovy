@@ -25,7 +25,6 @@ import org.springframework.context.annotation.DependsOn
 @Configuration
 class AwsInfrastructureProviderConfig {
   @Bean
-  @DependsOn('netflixAmazonCredentials')
   AwsInfrastructureProvider awsInfrastructureProvider() {
     return new AwsInfrastructureProvider()
   }

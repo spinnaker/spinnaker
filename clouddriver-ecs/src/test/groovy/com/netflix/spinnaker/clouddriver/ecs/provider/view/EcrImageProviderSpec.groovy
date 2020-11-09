@@ -25,16 +25,17 @@ import com.amazonaws.services.ecr.model.ListImagesResult
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import spock.lang.Specification
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Subject
 
 class EcrImageProviderSpec extends Specification {
 
   def amazonClientProvider = Mock(AmazonClientProvider)
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def credentialsRepository = Mock(CredentialsRepository)
   @Subject
-  def provider = new EcrImageProvider(amazonClientProvider, accountCredentialsProvider)
+  def provider = new EcrImageProvider(amazonClientProvider, credentialsRepository)
 
   def 'should the handle url'() {
     given:
@@ -79,7 +80,7 @@ class EcrImageProviderSpec extends Specification {
     def amazonECR = Mock(AmazonECR)
 
     amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
-    accountCredentialsProvider.getAll() >> [TestCredential.named('')]
+    credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
     amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
     amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
 
@@ -117,7 +118,7 @@ class EcrImageProviderSpec extends Specification {
     def amazonECR = Mock(AmazonECR)
 
     amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
-    accountCredentialsProvider.getAll() >> [TestCredential.named('')]
+    credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
     amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
     amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
 
@@ -191,7 +192,7 @@ class EcrImageProviderSpec extends Specification {
     def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
     def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest
 
-    accountCredentialsProvider.getAll() >> [TestCredential.named('')]
+    credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
 
     when:
     provider.findImage(url)
@@ -215,7 +216,7 @@ class EcrImageProviderSpec extends Specification {
     def amazonECR = Mock(AmazonECR)
 
     amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
-    accountCredentialsProvider.getAll() >> [TestCredential.named('')]
+    credentialsRepository.getAll() >> [new NetflixECSCredentials(TestCredential.named('')) ]
 
     amazonECR.listImages(_) >>> [
       new ListImagesResult()

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -33,5 +34,22 @@ class TestCredential {
         ] + params
 
         new ObjectMapper().convertValue(credJson, NetflixAmazonCredentials)
+    }
+
+    public static NetflixAssumeRoleAmazonCredentials assumeRoleNamed(String name, Map params = [:]) {
+      def credJson = [
+        name: name,
+        environment: name,
+        accountType: name,
+        accountId: "123456789012" + name,
+        defaultKeyPair: 'default-keypair',
+        regions: [[name: 'us-east-1', availabilityZones: ['us-east-1b', 'us-east-1c', 'us-east-1d']],
+                  [name: 'us-west-1', availabilityZones: ["us-west-1a", "us-west-1b"]]],
+        assumeRole: "role/" + name,
+        sessionName: name,
+        externalId: name
+      ] + params
+
+      new ObjectMapper().convertValue(credJson, NetflixAssumeRoleAmazonCredentials)
     }
 }

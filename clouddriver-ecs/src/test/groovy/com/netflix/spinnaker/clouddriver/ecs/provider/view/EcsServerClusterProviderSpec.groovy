@@ -34,10 +34,11 @@ import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -52,12 +53,12 @@ class EcsServerClusterProviderSpec extends Specification {
   def taskDefinitionCacheClient = Mock(TaskDefinitionCacheClient)
   def ecsLoadbalancerCacheClient = Mock(EcsLoadbalancerCacheClient)
   def ecsCloudWatchAlarmCacheClient = Mock(EcsCloudWatchAlarmCacheClient)
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def credentialsRepository = Mock(CredentialsRepository)
   def containerInformationService = Mock(ContainerInformationService)
   def subnetSelector =  Mock(SubnetSelector)
 
   @Subject
-  def provider = new EcsServerClusterProvider(accountCredentialsProvider,
+  def provider = new EcsServerClusterProvider(credentialsRepository,
     containerInformationService,
     subnetSelector,
     taskCacheClient,
@@ -85,13 +86,13 @@ class EcsServerClusterProviderSpec extends Specification {
     def serviceName = "${FAMILY_NAME}-v007"
     def startedAt = new Date()
 
-    def creds = Mock(AmazonCredentials)
+    def creds = Mock(NetflixECSCredentials)
     creds.getCloudProvider() >> 'ecs'
     creds.getName() >> CREDS_NAME
     creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
                            new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
 
-    def creds2 = Mock(AmazonCredentials)
+    def creds2 = Mock(NetflixECSCredentials)
     creds2.getCloudProvider() >> 'ecs'
     creds2.getName() >> CREDS_NAME_2
     creds2.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
@@ -175,7 +176,9 @@ class EcsServerClusterProviderSpec extends Specification {
     def serviceCacheData2 = new DefaultCacheData('', serviceAttributes2, [:])
     def taskCacheData = new DefaultCacheData('', taskAttributes, [:])
 
-    accountCredentialsProvider.getAll() >> [creds, creds2]
+    credentialsRepository.getAll() >> [creds, creds2]
+    credentialsRepository.getOne(creds.getName()) >> creds
+    credentialsRepository.getOne(creds.getName()) >> creds2
     ecsLoadbalancerCacheClient.find(_, _) >> [loadbalancer]
     containerInformationService.getTaskPrivateAddress(_, _, _) >> "${ip}:1337"
     containerInformationService.getHealthStatus(_, _, _, _) >> [healthStatus]

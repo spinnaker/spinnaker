@@ -37,15 +37,14 @@ import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
 import com.netflix.spinnaker.clouddriver.ecs.model.TaskDefinition;
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import java.util.ArrayList;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,7 +68,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private final TaskDefinitionCacheClient taskDefinitionCacheClient;
   private final EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient;
   private final EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient;
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
   private final ContainerInformationService containerInformationService;
   private final SubnetSelector subnetSelector;
 
@@ -77,7 +76,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
   @Autowired
   public EcsServerClusterProvider(
-      AccountCredentialsProvider accountCredentialsProvider,
+      CredentialsRepository<NetflixECSCredentials> credentialsRepository,
       ContainerInformationService containerInformationService,
       SubnetSelector subnetSelector,
       TaskCacheClient taskCacheClient,
@@ -86,7 +85,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
       TaskDefinitionCacheClient taskDefinitionCacheClient,
       EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient) {
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
     this.containerInformationService = containerInformationService;
     this.subnetSelector = subnetSelector;
     this.taskCacheClient = taskCacheClient;
@@ -436,27 +435,17 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return instanceCounts;
   }
 
-  private List<AmazonCredentials> getEcsCredentials() {
-    List<AmazonCredentials> ecsCredentialsList = new ArrayList<>();
-    for (AccountCredentials credentials : accountCredentialsProvider.getAll()) {
-      if (credentials instanceof AmazonCredentials
-          && credentials.getCloudProvider().equals(EcsCloudProvider.ID)) {
-        ecsCredentialsList.add((AmazonCredentials) credentials);
-      }
-    }
-    return ecsCredentialsList;
+  private Set<NetflixECSCredentials> getEcsCredentials() {
+    return credentialsRepository.getAll();
   }
 
   private AmazonCredentials getEcsCredentials(String account) {
-    try {
-      return getEcsCredentials().stream()
-          .filter(credentials -> credentials.getName().equals(account))
-          .findFirst()
-          .get();
-    } catch (NoSuchElementException exception) {
+    NetflixECSCredentials creds = credentialsRepository.getOne(account);
+    if (creds == null) {
       throw new NoSuchElementException(
           String.format("There is no ECS account by the name of '%s'", account));
     }
+    return creds;
   }
 
   @Override

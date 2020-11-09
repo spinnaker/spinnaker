@@ -45,11 +45,10 @@ class EcsCredentialsParserSpec extends Specification{
     def assumeRoleCred = new ObjectMapper().convertValue(credJson, NetflixAssumeRoleAmazonCredentials)
 
     def compositeCredentialsRepository = Mock(CompositeCredentialsRepository)
-    def ecsAccountMapper = Mock(EcsAccountMapper)
     def parser = Mock(CredentialsParser)
 
     def ecsCredentialsParser = new EcsCredentialsParser<NetflixECSCredentials>(
-      compositeCredentialsRepository, ecsAccountMapper, parser
+      compositeCredentialsRepository, parser
     )
     def account = new ECSCredentialsConfig.Account(){{
         setName("one-ecs")

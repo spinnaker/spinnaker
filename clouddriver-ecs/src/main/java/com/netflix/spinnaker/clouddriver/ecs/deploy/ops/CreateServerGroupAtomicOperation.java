@@ -773,8 +773,7 @@ public class CreateServerGroupAtomicOperation
   private AWSApplicationAutoScaling getSourceAmazonApplicationAutoScalingClient() {
     String sourceRegion = description.getSource().getRegion();
     NetflixAmazonCredentials sourceCredentials =
-        (NetflixAmazonCredentials)
-            accountCredentialsProvider.getCredentials(description.getSource().getAccount());
+        credentialsRepository.getOne(description.getSource().getAccount());
     return amazonClientProvider.getAmazonApplicationAutoScaling(
         sourceCredentials, sourceRegion, false);
   }
@@ -782,8 +781,7 @@ public class CreateServerGroupAtomicOperation
   private AmazonECS getSourceAmazonEcsClient() {
     String sourceRegion = description.getSource().getRegion();
     NetflixAmazonCredentials sourceCredentials =
-        (NetflixAmazonCredentials)
-            accountCredentialsProvider.getCredentials(description.getSource().getAccount());
+        credentialsRepository.getOne(description.getSource().getAccount());
     return amazonClientProvider.getAmazonEcs(sourceCredentials, sourceRegion, false);
   }
 

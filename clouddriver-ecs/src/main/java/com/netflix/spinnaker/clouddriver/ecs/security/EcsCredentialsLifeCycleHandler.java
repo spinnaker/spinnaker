@@ -66,26 +66,29 @@ public class EcsCredentialsLifeCycleHandler
 
   @Override
   public void credentialsAdded(@NotNull NetflixECSCredentials credentials) {
-    // To be implemented once CredentialsRepository is implemented.
-    //    if (credentials instanceof NetflixAssumeRoleEcsCredentials) {
-    //      ecsAccountMapper.addaddMapEntry(((NetflixAssumeRoleEcsCredentials)
-    // credentials).getAwsAccount());
-    //    }
+    log.info("ECS account, {}, was added. Scheduling caching agents", credentials.getName());
+    if (credentials instanceof NetflixAssumeRoleEcsCredentials) {
+      ecsAccountMapper.addMapEntry(((NetflixAssumeRoleEcsCredentials) credentials));
+    }
     scheduleAgents(credentials);
+    log.debug("Caching agents scheduled for ECS account {}", credentials.getName());
   }
 
   @Override
   public void credentialsUpdated(@NotNull NetflixECSCredentials credentials) {
+    log.info("ECS account, {}, was updated. Updating caching agents", credentials.getName());
     ecsProvider.removeAgentsForAccounts(Collections.singleton(credentials.getName()));
     scheduleAgents(credentials);
+    log.debug("Caching agents rescheduled for ECS account {}", credentials.getName());
   }
 
   @Override
   public void credentialsDeleted(NetflixECSCredentials credentials) {
+    log.info("ECS account, {}, was deleted. Removing caching agents", credentials.getName());
     ecsProvider.removeAgentsForAccounts(Collections.singleton(credentials.getName()));
-    //    ecsAccountMapper.removeMapEntry(credentials.getName()); To be implemented once
-    // CredentialsRepository is implemented.
+    ecsAccountMapper.removeMapEntry(credentials.getName());
     ecsProvider.synchronizeHealthAgents();
+    log.debug("Caching agents removed for ECS account {}", credentials.getName());
   }
 
   private void scheduleAgents(NetflixECSCredentials credentials) {

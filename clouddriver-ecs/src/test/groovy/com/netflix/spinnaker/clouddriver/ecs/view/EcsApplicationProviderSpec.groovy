@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsApplication
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import com.netflix.spinnaker.clouddriver.model.Application
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,14 +35,14 @@ class EcsApplicationProviderSpec extends Specification {
   def mapper = new ObjectMapper()
   def cache = Mock(Cache)
   def serviceCacheClient = new ServiceCacheClient(cache, mapper)
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def credentialsRepository = Mock(CredentialsRepository)
   @Subject
-  def provider = new EcsApplicationProvider(accountCredentialsProvider, serviceCacheClient)
+  def provider = new EcsApplicationProvider(credentialsRepository, serviceCacheClient)
 
   def 'should return an application'() {
     given:
     def accountName = 'test-account'
-    def credentials = TestCredential.named(accountName)
+    def credentials = new NetflixECSCredentials(TestCredential.named(accountName))
     def appName = 'testapp'
     def serviceName = appName + '-kcats-liated'
     Map<String, Set<String>> clusterNames = new HashMap<>()
@@ -64,7 +65,7 @@ class EcsApplicationProviderSpec extends Specification {
     def attributes = ServiceCachingAgent.convertServiceToAttributes(credentials.getName(),
       credentials.getRegions()[0].getName(), service)
 
-    accountCredentialsProvider.getAll() >> [credentials]
+    credentialsRepository.getAll() >> [credentials]
     cache.filterIdentifiers(_, _) >> []
     cache.getAll(_, _) >> [new DefaultCacheData('key', attributes, [:])]
 

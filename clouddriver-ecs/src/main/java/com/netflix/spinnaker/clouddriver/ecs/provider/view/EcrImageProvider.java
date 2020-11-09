@@ -27,8 +27,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,14 +57,14 @@ public class EcrImageProvider implements ImageRepositoryProvider {
 
   private final AmazonClientProvider amazonClientProvider;
 
-  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
 
   @Autowired
   public EcrImageProvider(
       AmazonClientProvider amazonClientProvider,
-      AccountCredentialsProvider accountCredentialsProvider) {
+      CredentialsRepository<NetflixECSCredentials> credentialsRepository) {
     this.amazonClientProvider = amazonClientProvider;
-    this.accountCredentialsProvider = accountCredentialsProvider;
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
@@ -145,12 +145,9 @@ public class EcrImageProvider implements ImageRepositoryProvider {
   }
 
   private NetflixAmazonCredentials getCredentials(String accountId) {
-    for (AccountCredentials credentials : accountCredentialsProvider.getAll()) {
-      if (credentials instanceof NetflixAmazonCredentials) {
-        NetflixAmazonCredentials amazonCredentials = (NetflixAmazonCredentials) credentials;
-        if (amazonCredentials.getAccountId().equals(accountId)) {
-          return amazonCredentials;
-        }
+    for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
+      if (credentials.getAccountId().equals(accountId)) {
+        return credentials;
       }
     }
     throw new NotFoundException(

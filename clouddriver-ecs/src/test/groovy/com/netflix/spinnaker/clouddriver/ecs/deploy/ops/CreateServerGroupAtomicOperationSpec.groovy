@@ -87,7 +87,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     amazonClientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> loadBalancingV2
     amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoScalingClient
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
-    accountCredentialsProvider.getCredentials(_) >> creds
+    credentialsRepository.getOne(_) >> creds
   }
 
   def 'should create a service'() {
@@ -122,7 +122,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     when:
@@ -242,7 +242,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
     operation.subnetSelector = subnetSelector
     operation.securityGroupSelector = securityGroupSelector
@@ -769,7 +769,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     when:
@@ -892,7 +892,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     when:
@@ -1016,7 +1016,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     when:
@@ -1148,7 +1148,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.amazonClientProvider = amazonClientProvider
     operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
     operation.iamPolicyReader = iamPolicyReader
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     when:

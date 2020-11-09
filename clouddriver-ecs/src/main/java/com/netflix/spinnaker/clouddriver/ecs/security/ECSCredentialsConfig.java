@@ -28,5 +28,23 @@ public class ECSCredentialsConfig {
   public static class Account implements CredentialsDefinition {
     private String name;
     private String awsAccount;
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Account account = (Account) o;
+
+      if (!name.equals(account.name)) return false;
+      return awsAccount.equals(account.awsAccount);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = name.hashCode();
+      result = 31 * result + awsAccount.hashCode();
+      return result;
+    }
   }
 }

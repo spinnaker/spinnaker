@@ -16,28 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.ecs.security.ECSCredentialsConfig
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CompositeCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 
 class EcsAccountMapperSpec extends Specification {
-
-  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
-  def awsAccount = Mock(NetflixAssumeRoleAmazonCredentials)
-  def ecsAccount = Mock(NetflixAssumeRoleEcsCredentials)
+  def awsAccountName = "awsAccountNameHere"
+  def ecsAccountName = "ecsAccountNameHere"
+  def awsAccount = Mock(NetflixAmazonCredentials) {
+    getName() >> awsAccountName
+  }
+  def ecsAccount = Mock(NetflixAssumeRoleEcsCredentials) {
+    getName() >> ecsAccountName
+    getAwsAccount() >> awsAccountName
+  }
+  def credentialsRepository = Mock(CredentialsRepository) {
+    getOne(ecsAccountName) >> ecsAccount
+  }
+  def compositeCredentialsRepository = Mock(CompositeCredentialsRepository) {
+    getCredentials(awsAccountName, AmazonCloudProvider.ID) >> awsAccount
+  }
 
   def 'should map an AWS account to its ECS account'() {
     given:
-    awsAccount.name >> 'awsAccountNameHere'
-    ecsAccount.name >> 'ecsAccountNameHere'
-    ecsAccount.awsAccount >> awsAccount.name
+    def ecsAccountMapper = new EcsAccountMapper(credentialsRepository, compositeCredentialsRepository)
 
-
-    def accounts = [ ecsAccount, awsAccount ]
-    accountCredentialsProvider.getAll() >> accounts
-
-    def ecsAccountMapper = new EcsAccountMapper(accountCredentialsProvider)
+    ecsAccountMapper.addMapEntry(ecsAccount)
 
     when:
     def retrievedEcsAccount = ecsAccountMapper.fromAwsAccountNameToEcs(awsAccount.name)
@@ -50,15 +58,8 @@ class EcsAccountMapperSpec extends Specification {
 
   def 'should map an AWS account name to its ECS account name'() {
     given:
-    awsAccount.name >> 'awsAccountNameHere'
-    ecsAccount.name >> 'ecsAccountNameHere'
-    ecsAccount.awsAccount >> awsAccount.name
-
-
-    def accounts = [ ecsAccount, awsAccount ]
-    accountCredentialsProvider.getAll() >> accounts
-
-    def ecsAccountMapper = new EcsAccountMapper(accountCredentialsProvider)
+    def ecsAccountMapper = new EcsAccountMapper(credentialsRepository, compositeCredentialsRepository)
+    ecsAccountMapper.addMapEntry(ecsAccount)
 
     when:
     def retrievedEcsAccount = ecsAccountMapper.fromAwsAccountNameToEcsAccountName(awsAccount.name)
@@ -67,5 +68,18 @@ class EcsAccountMapperSpec extends Specification {
     then:
     retrievedEcsAccount == ecsAccount.name
     retrievedAwsAccount == awsAccount.name
+  }
+
+  def 'should remove AWS and ECS accounts'() {
+    given:
+    def ecsAccountMapper = new EcsAccountMapper(credentialsRepository, compositeCredentialsRepository)
+    ecsAccountMapper.addMapEntry(ecsAccount)
+
+    when:
+    ecsAccountMapper.removeMapEntry(ecsAccountName)
+
+    then:
+    !ecsAccountMapper.ecsCredentialsMap.containsKey(ecsAccountName)
+    !ecsAccountMapper.awsCredentialsMap.containsKey(awsAccount)
   }
 }

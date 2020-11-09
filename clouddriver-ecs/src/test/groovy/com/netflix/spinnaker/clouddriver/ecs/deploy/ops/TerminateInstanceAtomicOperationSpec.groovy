@@ -28,12 +28,12 @@ class TerminateInstanceAtomicOperationSpec extends CommonAtomicOperation {
     ))
 
     operation.amazonClientProvider = amazonClientProvider
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
     containerInformationService.getClusterArn(_, _, _) >> 'cluster-arn'
-    accountCredentialsProvider.getCredentials(_) >> TestCredential.named("test")
+    credentialsRepository.getOne(_) >> TestCredential.named("test")
 
     when:
     operation.operate([])

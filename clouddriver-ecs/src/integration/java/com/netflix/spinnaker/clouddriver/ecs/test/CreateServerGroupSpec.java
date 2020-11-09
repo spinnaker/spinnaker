@@ -104,8 +104,6 @@ public class CreateServerGroupSpec extends EcsSpec {
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody = generateStringFromTestFile("/createServerGroup-inputs-ec2.json");
     String expectedServerGroupName = "ecs-integInputsEc2LegacyTargetGroup";
-    setEcsAccountCreds();
-
     // when
     String taskId =
         given()
@@ -179,8 +177,6 @@ public class CreateServerGroupSpec extends EcsSpec {
         generateStringFromTestFile(
             "/createServerGroupOperation-inputs-fargate-legacyTargetGroup.json");
     String expectedServerGroupName = "ecs-integInputsFargateLegacyTargetGroup";
-    setEcsAccountCreds();
-
     // when
     String taskId =
         given()
@@ -255,8 +251,6 @@ public class CreateServerGroupSpec extends EcsSpec {
         generateStringFromTestFile(
             "/createServerGroupOperation-inputs-fargate-targetGroupMappings.json");
     String expectedServerGroupName = "ecs-integInputsFargateTgMappings";
-    setEcsAccountCreds();
-
     // when
     String taskId =
         given()
@@ -329,8 +323,6 @@ public class CreateServerGroupSpec extends EcsSpec {
     String url = getTestUrl(CREATE_SG_TEST_PATH);
     String requestBody =
         generateStringFromTestFile("/createServerGroup-inputs-ecsCreateFails.json");
-    setEcsAccountCreds();
-
     // when
     Mockito.doThrow(new InvalidParameterException("Something is wrong."))
         .when(mockECS)
@@ -380,7 +372,6 @@ public class CreateServerGroupSpec extends EcsSpec {
     String requestBody =
         generateStringFromTestFile("/createServerGroup-inputs-ec2-withoutLoadBalacing.json");
     String expectedServerGroupName = "ecs-integInputsEc2NoLoadBalancing";
-    setEcsAccountCreds();
 
     // when
     String taskId =
@@ -446,7 +437,6 @@ public class CreateServerGroupSpec extends EcsSpec {
     String requestBody =
         generateStringFromTestFile("/createServerGroup-inputs-ec2-serviceDiscovery.json");
     String expectedServerGroupName = "ecs-integInputsEc2WithServiceDiscovery";
-    setEcsAccountCreds();
 
     // when
     String taskId =

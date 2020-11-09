@@ -28,13 +28,13 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     ))
 
     operation.amazonClientProvider = amazonClientProvider
-    operation.accountCredentialsProvider = accountCredentialsProvider
+    operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
     amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
     amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
-    accountCredentialsProvider.getCredentials(_) >> TestCredential.named("test")
+    credentialsRepository.getOne(_) >> TestCredential.named("test")
 
     when:
     operation.operate([])
