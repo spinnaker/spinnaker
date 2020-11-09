@@ -45,6 +45,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -203,6 +205,40 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
             describe(request, "launchTemplateNames", "launchTemplates", LaunchTemplate.class));
   }
 
+  private static final Function<AmazonWebServiceRequest, Collection<String>>
+      LAUNCH_TEMPLATE_VERSION_EXTRACTOR =
+          (r) -> {
+            if (r == null) {
+              return Collections.emptyList();
+            }
+            DescribeLaunchTemplateVersionsRequest req = (DescribeLaunchTemplateVersionsRequest) r;
+            if (req.getLaunchTemplateId() == null) {
+              return Collections.emptyList();
+            }
+            if (req.getVersions() == null || req.getVersions().isEmpty()) {
+              String defaultId = req.getLaunchTemplateId() + ":$Default";
+              return Collections.singletonList(defaultId);
+            }
+            return req.getVersions().stream()
+                .map(v -> req.getLaunchTemplateId() + ":" + v)
+                .collect(Collectors.toCollection(ArrayList::new));
+          };
+
+  public DescribeLaunchTemplateVersionsResult describeLaunchTemplateVersions() {
+    return describeLaunchTemplateVersions(null);
+  }
+
+  public DescribeLaunchTemplateVersionsResult describeLaunchTemplateVersions(
+      DescribeLaunchTemplateVersionsRequest request) {
+    return new DescribeLaunchTemplateVersionsResult()
+        .withLaunchTemplateVersions(
+            describe(
+                request,
+                LAUNCH_TEMPLATE_VERSION_EXTRACTOR,
+                "launchTemplateVersions",
+                LaunchTemplateVersion.class));
+  }
+
   public DescribeImagesResult describeImages() {
     return describeImages(null);
   }
@@ -349,11 +385,19 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       String idKey,
       final String object,
       final Class<T> singleType) {
+    return describe(request, r -> getRequestIds(r, idKey), object, singleType);
+  }
+
+  private <T> List<T> describe(
+      AmazonWebServiceRequest request,
+      Function<AmazonWebServiceRequest, Collection<String>> idExtractor,
+      final String object,
+      final Class<T> singleType) {
     lastModified.set(null);
     final Map<String, String> metricTags = new HashMap<>(this.metricTags);
     metricTags.put("collection", object);
     try {
-      final Collection<String> ids = getRequestIds(request, idKey);
+      final Collection<String> ids = idExtractor.apply(request);
       metricTags.put("collectionMode", ids.isEmpty() ? "full" : "byId");
       final JavaType singleMeta =
           objectMapper
