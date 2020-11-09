@@ -16,7 +16,14 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.cloudfoundry;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
@@ -24,17 +31,33 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.squareup.okhttp.OkHttpClient;
 import java.net.URL;
-import java.util.Objects;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import retrofit.RestAdapter;
+import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Slf4j
 public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount> {
+
+  private JacksonConverter jacksonConverter = createJacksonConverter();
+  private OkClient secureOkClient = new OkClient(createHttpClient(false));
+  private OkClient insecureOkClient = new OkClient(createHttpClient(true));
+
   @Override
   public void validate(
       ConfigProblemSetBuilder problemSetBuilder, CloudFoundryAccount cloudFoundryAccount) {
@@ -46,7 +69,6 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
             + " with "
             + CloudFoundryAccountValidator.class.getSimpleName());
 
-    String environment = cloudFoundryAccount.getEnvironment();
     String apiHost = cloudFoundryAccount.getApiHost();
     URL appsManagerUrl = cloudFoundryAccount.getAppsManagerUrl();
     URL metricsUrl = cloudFoundryAccount.getMetricsUrl();
@@ -96,24 +118,10 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
       return;
     }
 
-    CloudFoundryCredentials cloudFoundryCredentials =
-        new CloudFoundryCredentials(
-            cloudFoundryAccount.getName(),
-            Objects.toString(appsManagerUrl, null),
-            Objects.toString(metricsUrl, null),
-            apiHost,
-            user,
-            password,
-            environment,
-            skipSslValidation,
-            /* resultsPerPage= */ null,
-            /* maxCapiConnectionsForCache= */ null,
-            /* cacheRepository */ null,
-            /* Permissions */ null);
-
     try {
-      int count = cloudFoundryCredentials.getCredentials().getSpaces().all().size();
-      log.debug("Retrieved {} spaces using account {}", count, accountName);
+      SpaceService spaceService = createSpaceService(apiHost, skipSslValidation, user, password);
+      int count = spaceService.all(null, null).getTotalResults();
+      log.info("Retrieved {} spaces using account {}", count, accountName);
     } catch (Exception e) {
       problemSetBuilder.addProblem(
           Problem.Severity.ERROR,
@@ -123,6 +131,79 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
               + e.getMessage()
               + ".");
     }
+  }
+
+  private SpaceService createSpaceService(
+      String apiHost, boolean skipSslValidation, String user, String password) {
+    return new RestAdapter.Builder()
+        .setEndpoint("https://" + apiHost)
+        .setClient(skipSslValidation ? insecureOkClient : secureOkClient)
+        .setConverter(jacksonConverter)
+        .setRequestInterceptor(
+            request ->
+                request.addHeader(
+                    "Authorization",
+                    "bearer "
+                        + getToken(apiHost, skipSslValidation, user, password).getAccessToken()))
+        .build()
+        .create(SpaceService.class);
+  }
+
+  private Token getToken(String apiHost, boolean skipSslValidation, String user, String password) {
+    AuthenticationService uaaService =
+        new RestAdapter.Builder()
+            .setEndpoint("https://" + apiHost.replaceAll("^api\\.", "login."))
+            .setClient(skipSslValidation ? insecureOkClient : secureOkClient)
+            .setConverter(jacksonConverter)
+            .build()
+            .create(AuthenticationService.class);
+    return uaaService.passwordToken("password", user, password, "cf", "");
+  }
+
+  @NotNull
+  private JacksonConverter createJacksonConverter() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    mapper.registerModule(new JavaTimeModule());
+    return new JacksonConverter(mapper);
+  }
+
+  private OkHttpClient createHttpClient(boolean skipSslValidation) {
+    OkHttpClient client = new OkHttpClient();
+
+    if (skipSslValidation) {
+      client.setHostnameVerifier((s, sslSession) -> true);
+
+      TrustManager[] trustAllCerts =
+          new TrustManager[] {
+            new X509TrustManager() {
+              @Override
+              public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
+
+              @Override
+              public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
+
+              @Override
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+              }
+            }
+          };
+
+      SSLContext sslContext;
+      try {
+        sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+      } catch (KeyManagementException | NoSuchAlgorithmException e) {
+        throw new RuntimeException(e);
+      }
+
+      client.setSslSocketFactory(sslContext.getSocketFactory());
+    }
+
+    return client;
   }
 
   private boolean isHttp(String protocol) {

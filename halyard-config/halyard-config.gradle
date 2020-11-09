@@ -29,6 +29,7 @@ dependencies {
   implementation 'commons-io:commons-io:2.6'
   implementation 'io.fabric8:kubernetes-client'
   implementation 'com.squareup.retrofit:retrofit'
+  implementation "com.squareup.retrofit:converter-jackson"
   implementation 'com.jcraft:jsch'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
 
