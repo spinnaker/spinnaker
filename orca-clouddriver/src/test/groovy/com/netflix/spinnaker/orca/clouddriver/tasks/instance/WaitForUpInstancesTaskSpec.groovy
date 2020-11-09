@@ -303,9 +303,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     ]
 
-    def context = [
-      source: [useSourceCapacity: useSource],
-    ]
+    def context = [:]
     if (configured) {
       context.capacity = [desired: configured]
     }
@@ -325,15 +323,14 @@ class WaitForUpInstancesTaskSpec extends Specification {
     )
 
     where:
-    result || useSource | healthy | configured | snapshot | asg | description
-    true   || true      | 3       | 4          | 4        | 3   | 'using source capacity of 3, ignoring snapshot capacity and configured capacity'
-    false  || true      | 3       | 3          | null     | 4   | 'using source capacity of 4 with no snapshot, ignoring configured capacity'
-    true   || true      | 3       | 4          | 3        | 5   | 'using source capacity of 4, snapshot overrides to account for autoscaling'
-    true   || true      | 3       | 4          | 4        | 3   | 'using source capacity of 4, snapshot ignored because it is larger than actual desired capacity'
-    true   || false     | 2       | null       | null     | 2   | 'source not specified, falling back to ASG desired size of 2'
-    false  || false     | 2       | null       | null     | 3   | 'source not specified, falling back to ASG desired size of 3'
-    false  || false     | 2       | 2          | null     | 3   | 'not using source, using configured size of 3, ignoring source size of 2'
-    true   || false     | 3       | 2          | null     | 3   | 'not using source, using configured size of 2, ignoring source size of 3'
+    result || healthy | configured | snapshot | asg | description
+    true   || 3       | 4          | 4        | 3   | 'using source capacity of 3, ignoring snapshot capacity and configured capacity'
+    false  || 3       | 3          | null     | 4   | 'using source capacity of 4 with no snapshot, ignoring configured capacity'
+    true   || 3       | 4          | 4        | 3   | 'using source capacity of 4, snapshot ignored because it is larger than actual desired capacity'
+    true   || 2       | null       | null     | 2   | 'source not specified, falling back to ASG desired size of 2'
+    false  || 2       | null       | null     | 3   | 'source not specified, falling back to ASG desired size of 3'
+    false  || 2       | 2          | null     | 3   | 'not using source, using configured size of 3, ignoring source size of 2'
+    true   || 3       | 2          | null     | 3   | 'not using source, using configured size of 2, ignoring source size of 3'
   }
 
   @Unroll
@@ -350,9 +347,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     ]
 
-    def context = [
-      source: [useSourceCapacity: (snapshot != null)],
-    ]
+    def context = [:]
 
     if (snapshot) {
       context.capacitySnapshot = [desiredCapacity: snapshot]
@@ -381,19 +376,23 @@ class WaitForUpInstancesTaskSpec extends Specification {
     where:
     result || snapshot | healthy | asg                          | configured
     false  || null     | 2       | [min: 3, max: 3, desired: 3] | null
+
     // configured is used if present and min == max == desired
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 2, desired: 2, pinned: true]
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "2", desired: "2", pinned: "true"]
+
     // configured is used if current allows autoscaling but configured doesn't
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 500, desired: 2]
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "500", desired: "2"]
     true   || null     | 2       | [min: 5, max: 5, desired: 5] | [min: 1, max: 5, desired: 2]
     true   || null     | 2       | [min: 5, max: 5, desired: 5] | [min: "1", max: "5", desired: "2"]
-    // useSourceCapacity with a snapshot is used over configured and current
-    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: 5, max: 5, desired: 5]
-    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: "5", max: "5", desired: "5"]
-    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | null
-    false  || 4        | 3       | [min: 5, max: 5, desired: 5] | null
+
+    // configured and current are used over snapshot
+    false  || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: 5, max: 5, desired: 5]
+    false  || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: "5", max: "5", desired: "5"]
+    false  || 3        | 3       | [min: 5, max: 5, desired: 5] | null
+    true   || 3        | 5       | [min: 5, max: 5, desired: 5] | null
+
     // sourceCapacity is ignored if > than the calculated target due to a scale down corner case
     true   || 4        | 3       | [min: 3, max: 3, desired: 3] | null
     false  || 4        | 3       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: 4]

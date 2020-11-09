@@ -127,15 +127,6 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       splainer.add("setting targetDesiredSize=${targetDesiredSize} from the desired size in current serverGroup capacity=${currentCapacity}")
     }
 
-    if (stage.context.capacitySnapshot) {
-      Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
-      // if the server group is being actively scaled down, this operation might never complete,
-      // so take the min of the latest capacity from the server group and the snapshot
-      def newTargetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
-      splainer.add("setting targetDesiredSize=${newTargetDesiredSize} as the min of desired in capacitySnapshot=${stage.context.capacitySnapshot} and the previous targetDesiredSize=${targetDesiredSize})")
-      targetDesiredSize = newTargetDesiredSize
-    }
-
     if (stage.context.targetHealthyDeployPercentage != null) {
       Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
       if (percentage < 0 || percentage > 100) {
@@ -159,7 +150,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     return targetDesiredSize
   }
 
-  // If either the configured capacity or current serverGroup has autoscaling diasbled, calculate
+  // If either the configured capacity or current serverGroup has autoscaling disabled, calculate
   // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
   // cache updates while resizing serverGroups.
   static boolean useConfiguredCapacity(StageExecution stage, Map<String, Integer> current) {
