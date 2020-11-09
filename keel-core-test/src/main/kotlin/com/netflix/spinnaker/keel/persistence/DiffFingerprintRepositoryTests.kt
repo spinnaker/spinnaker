@@ -95,6 +95,16 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
         subject.store(r.id, diff2)
         expectThat(subject.diffCount(r.id)).isEqualTo(1)
       }
+
+      test("resets action count when different hash") {
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        subject.store(r.id, diff)
+        subject.markActionTaken(r.id)
+        expectThat(subject.actionTakenCount(r.id)).isEqualTo(1)
+        val diff2 = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "byeBYEbyeee"))
+        subject.store(r.id, diff2)
+        expectThat(subject.actionTakenCount(r.id)).isEqualTo(0)
+      }
     }
 
     context("querying when nothing exists") {

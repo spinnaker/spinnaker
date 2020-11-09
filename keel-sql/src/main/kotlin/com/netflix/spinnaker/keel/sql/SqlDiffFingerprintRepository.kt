@@ -35,22 +35,25 @@ class SqlDiffFingerprintRepository(
     val hash = diff.generateHash()
     val record = sqlRetry.withRetry(READ) {
       jooq
-        .select(DIFF_FINGERPRINT.COUNT, DIFF_FINGERPRINT.FIRST_DETECTION_TIME, DIFF_FINGERPRINT.HASH)
+        .select(DIFF_FINGERPRINT.COUNT, DIFF_FINGERPRINT.FIRST_DETECTION_TIME, DIFF_FINGERPRINT.HASH, DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN)
         .from(DIFF_FINGERPRINT)
         .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
         .fetchOne()
     }
-    record?.let { (count, firstDetectionTime, existingHash) ->
+    record?.let { (count, firstDetectionTime, existingHash, countActionsTaken) ->
       var newCount = 1
       var newTime = clock.timestamp()
+      var newCountActionsTaken = 0
       if (hash == existingHash) {
         newCount = count + 1
         newTime = firstDetectionTime
+        newCountActionsTaken = countActionsTaken
       }
       sqlRetry.withRetry(WRITE) {
         jooq.update(DIFF_FINGERPRINT)
           .set(DIFF_FINGERPRINT.HASH, hash)
           .set(DIFF_FINGERPRINT.COUNT, newCount)
+          .set(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN, newCountActionsTaken)
           .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, newTime)
           .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
           .execute()
