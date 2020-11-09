@@ -49,7 +49,7 @@ dependencies {
   testImplementation(project(":keel-clouddriver"))
   testImplementation("com.netflix.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
-  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:mysql:${property("testContainersVersion")}")
   testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("com.netflix.spinnaker.kork:kork-plugins")
 }

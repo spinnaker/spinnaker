@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
@@ -27,7 +28,9 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -39,6 +42,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -398,6 +402,40 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             .accept(APPLICATION_YAML)
             .contentType(APPLICATION_YAML)
 
+          val response = mvc.perform(request)
+          response.andExpect(status().isNotFound)
+        }
+      }
+    }
+
+    context("deleting a delivery config") {
+      context("that exists") {
+        before {
+          every {
+            repository.deleteDeliveryConfigByName(any())
+          } just Runs
+        }
+
+        test("the request is successful and the manifest deleted") {
+          val request = delete("/delivery-configs/myconfig")
+          val response = mvc.perform(request)
+          response.andExpect(status().isOk)
+
+          verify(exactly = 1) {
+            repository.deleteDeliveryConfigByName("myconfig")
+          }
+        }
+      }
+
+      context("that does not exist") {
+        before {
+          every {
+            repository.deleteDeliveryConfigByName("myconfig")
+          } throws NoSuchDeliveryConfigName("myconfig")
+        }
+
+        test("the request fails with a not found error") {
+          val request = delete("/delivery-configs/myconfig")
           val response = mvc.perform(request)
           response.andExpect(status().isNotFound)
         }

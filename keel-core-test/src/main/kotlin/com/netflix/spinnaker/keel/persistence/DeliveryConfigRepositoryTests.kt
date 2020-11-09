@@ -18,6 +18,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -62,10 +63,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
     fun getByApplication() = expectCatching {
       repository.getByApplication(deliveryConfig.application)
-    }
-
-    fun delete() {
-      repository.deleteByApplication(deliveryConfig.application)
     }
 
     fun store() {
@@ -355,15 +352,37 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         }
       }
 
-      context("creating and deleting an application") {
+      context("deleting a delivery config") {
         before {
           store()
-          delete()
         }
 
-        test("delete application data successfully") {
-          getByName()
-            .isFailure()
+        context("by application name") {
+          test("deletes data successfully for known application") {
+            repository.deleteByApplication(deliveryConfig.application)
+            getByName()
+              .isFailure()
+          }
+
+          test("throws exception for unknown application") {
+            expectThrows<NoSuchDeliveryConfigException> {
+              repository.deleteByApplication("notfound")
+            }
+          }
+        }
+
+        context("by delivery config name") {
+          test("deletes data successfully for known delivery config") {
+            repository.deleteByName(deliveryConfig.name)
+            getByName()
+              .isFailure()
+          }
+
+          test("throws exception for unknown delivery config") {
+            expectThrows<NoSuchDeliveryConfigException> {
+              repository.deleteByName("notfound")
+            }
+          }
         }
       }
     }

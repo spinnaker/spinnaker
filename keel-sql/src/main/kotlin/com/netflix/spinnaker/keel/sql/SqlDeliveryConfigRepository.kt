@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
+import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
@@ -186,7 +187,7 @@ class SqlDeliveryConfigRepository(
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
         .fetchOne(DELIVERY_CONFIG.APPLICATION)
-    }
+    } ?: throw NoSuchDeliveryConfigName(name)
     deleteByApplication(application)
   }
 
@@ -272,7 +273,7 @@ class SqlDeliveryConfigRepository(
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
         .fetchOne(DELIVERY_CONFIG.UID)
-    }
+    } ?: throw NoDeliveryConfigForApplication(application)
 
   private fun getEnvironmentUIDs(deliveryConfigUIDs: List<String>): List<String> =
     sqlRetry.withRetry(READ) {
