@@ -12,6 +12,11 @@ export const registerNativeResourceKinds = () => {
   });
 
   registerResourceKind({
+    kind: 'ec2/cluster@v1.1',
+    iconName: 'cluster',
+  });
+
+  registerResourceKind({
     kind: 'ec2/security-group@v1',
     iconName: 'securityGroup',
   });
@@ -23,6 +28,11 @@ export const registerNativeResourceKinds = () => {
 
   registerResourceKind({
     kind: 'ec2/application-load-balancer@v1',
+    iconName: 'loadBalancer',
+  });
+
+  registerResourceKind({
+    kind: 'ec2/application-load-balancer@v1.1',
     iconName: 'loadBalancer',
   });
 };
