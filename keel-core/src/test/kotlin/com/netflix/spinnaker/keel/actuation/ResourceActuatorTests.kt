@@ -82,9 +82,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
-    val springEnv: SpringEnvironment = mockk(relaxed = true) {
-      every { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false) } returns true
-    }
+    val springEnv: SpringEnvironment = mockk(relaxed = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
