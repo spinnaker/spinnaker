@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
@@ -300,6 +301,11 @@ open class SqlResourceRepository(
       jooq.deleteFrom(PAUSED)
         .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE.name))
         .and(PAUSED.NAME.eq(id))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(ENVIRONMENT_RESOURCE)
+        .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(uid.toString()))
         .execute()
     }
   }

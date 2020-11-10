@@ -27,6 +27,7 @@ import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
+import strikt.assertions.none
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
   JUnit5Minutests {
@@ -382,6 +383,56 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             expectThrows<NoSuchDeliveryConfigException> {
               repository.deleteByName("notfound")
             }
+          }
+        }
+      }
+
+      context("updating an existing delivery config to move a resource from one environment to another") {
+        deriveFixture {
+          storeArtifacts()
+          storeResources()
+          store()
+
+          val movedResources = deliveryConfig
+            .resources
+            .filter { it.kind == parseKind("ec2/security-group@v1") }
+            .toSet()
+          val newEnvironments= deliveryConfig
+            .environments
+            .map {
+              it.copy(resources = it.resources - movedResources)
+            } + Environment(
+            name = "infrastructure",
+            resources = movedResources
+          )
+
+          copy(
+            deliveryConfig = deliveryConfig.run {
+              copy(environments = newEnvironments.toSet())
+            }
+          )
+        }
+
+        before {
+          store()
+        }
+
+        test("the resources now appear in the environment they were moved to") {
+          getByName()
+            .isSuccess()
+            .get { environments.first { it.name == "infrastructure" }.resources }
+            .hasSize(2)
+        }
+
+        listOf("test", "staging").forEach { environmentName ->
+          test("the resources no longer appear in the environments they were moved from") {
+            getByName()
+              .isSuccess()
+              .get { environments.first { it.name == environmentName }.resources }
+              .hasSize(1)
+              .none {
+                get { kind } isEqualTo parseKind("ec2/security-group@v1")
+              }
           }
         }
       }

@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
-import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
@@ -365,6 +364,12 @@ class SqlDeliveryConfigRepository(
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
             .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id)))
             .onDuplicateKeyIgnore()
+            .execute()
+          // delete any other environment's link to this same resource (in case we are moving it
+          // from one environment to another)
+          jooq.deleteFrom(ENVIRONMENT_RESOURCE)
+            .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.notEqual(environmentUID))
+            .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.equal(select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))))
             .execute()
         }
       }
