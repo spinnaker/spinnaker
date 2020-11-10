@@ -82,4 +82,15 @@ class EcsAccountMapperSpec extends Specification {
     !ecsAccountMapper.ecsCredentialsMap.containsKey(ecsAccountName)
     !ecsAccountMapper.awsCredentialsMap.containsKey(awsAccount)
   }
+
+  def 'should return null if provided name is invalid'() {
+    given:
+    def ecsAccountMapper = new EcsAccountMapper(credentialsRepository, compositeCredentialsRepository)
+
+    when:
+    def result = ecsAccountMapper.fromAwsAccountNameToEcs("invalid")
+
+    then:
+    result == null
+  }
 }
