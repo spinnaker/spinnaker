@@ -8,10 +8,10 @@
     "test:debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
   },
   "dependencies": {
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.20"
   },
   "devDependencies": {
-    "jest": "^25.2.4"
+    "jest": "^26.6.3"
   },
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.1.0",
