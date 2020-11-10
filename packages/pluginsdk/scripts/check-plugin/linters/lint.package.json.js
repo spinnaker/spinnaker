@@ -35,8 +35,7 @@ function checkPackageJson(report) {
     },
   );
 
-  // const latestPeerDepsVersion = getLatestPackageVersion(PEER_DEPS);
-  const latestPeerDepsVersion = getLatestPackageVersion(PLUGIN_SDK);
+  const latestPeerDepsVersion = getLatestPackageVersion(PEER_DEPS);
   const installedPeerDepsVersion = getInstalledPackageVersion(pkgJson, PEER_DEPS);
 
   report(
