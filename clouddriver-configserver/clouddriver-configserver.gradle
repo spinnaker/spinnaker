@@ -2,6 +2,12 @@ apply plugin: 'java-library'
 
 tasks.compileGroovy.enabled=false
 
+sourceSets {
+  main {
+    java.srcDirs = ['src/main/java']
+  }
+}
+
 dependencies {
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
