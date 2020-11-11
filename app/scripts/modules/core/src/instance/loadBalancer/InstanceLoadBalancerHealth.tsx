@@ -40,10 +40,12 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
         <span style={{ color: 'var(--color-danger)' }}>{description}</span>
       ) : null;
 
-    const healthCheckLink = (
+    const healthCheck = healthCheckProtocol.toLowerCase().startsWith('http') ? (
       <a target="_blank" href={`${healthCheckProtocol}://${ipAddress}${healthCheckPath}`}>
         Health Check
       </a>
+    ) : (
+      `${healthCheckProtocol}://${ipAddress}${healthCheckPath}`
     );
 
     return (
@@ -52,7 +54,7 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
         <div className="flex-container-v">
           {displayName}
           {downReason}
-          {ipAddress && healthCheckPath && healthCheckLink}
+          {ipAddress && healthCheckPath && healthCheck}
         </div>
       </div>
     );
