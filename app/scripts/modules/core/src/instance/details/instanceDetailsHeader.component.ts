@@ -13,6 +13,7 @@ module(name, []).component(
     'healthState',
     'instanceId',
     'loading',
+    'sshLink',
     'standalone',
   ]),
 );

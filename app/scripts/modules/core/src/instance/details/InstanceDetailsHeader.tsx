@@ -12,6 +12,7 @@ export interface IInstanceDetailsHeaderProps {
   healthState: string;
   instanceId: string;
   loading: boolean;
+  sshLink?: string;
   standalone: boolean;
 }
 export const InstanceDetailsHeader = ({
@@ -19,6 +20,7 @@ export const InstanceDetailsHeader = ({
   healthState,
   instanceId,
   loading,
+  sshLink,
   standalone,
 }: IInstanceDetailsHeaderProps) => (
   <div className="InstanceDetailsHeader">
@@ -43,7 +45,7 @@ export const InstanceDetailsHeader = ({
         {cloudProvider && <CloudProviderLogo provider={cloudProvider} height="36px" width="36px" />}
         {!cloudProvider && <span className={`glyphicon glyphicon-hdd ${healthState}`}></span>}
         <h3 className="horizontal middle space-between flex-1">{instanceId}</h3>
-        <CopyToClipboard text={instanceId} toolTip="Copy to clipboard" />
+        <CopyToClipboard text={sshLink || instanceId} toolTip="Copy to clipboard" />
       </div>
     )}
   </div>
