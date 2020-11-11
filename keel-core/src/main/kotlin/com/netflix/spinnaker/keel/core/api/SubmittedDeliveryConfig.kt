@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.schema.Description
 import com.netflix.spinnaker.keel.serialization.SubmittedEnvironmentDeserializer
@@ -30,6 +31,7 @@ data class SubmittedEnvironment(
   val name: String,
   val resources: Set<SubmittedResource<*>>,
   val constraints: Set<Constraint> = emptySet(),
+  val verifyWith: Set<Verification> = emptySet(),
   val notifications: Set<NotificationConfig> = emptySet(),
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null

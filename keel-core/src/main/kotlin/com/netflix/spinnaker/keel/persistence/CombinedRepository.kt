@@ -74,6 +74,7 @@ class CombinedRepository(
               .normalize()
           },
           constraints = env.constraints,
+          verifyWith = env.verifyWith,
           notifications = env.notifications
         )
       },
