@@ -104,6 +104,14 @@ angular
               command.interestingHealthProviderNames = ['Amazon'];
             }
 
+            if (
+              defaultCredentials === 'test' &&
+              AWSProviderSettings.serverGroups &&
+              AWSProviderSettings.serverGroups.enableIPv6
+            ) {
+              command.associateIPv6Address = true;
+            }
+
             if (AWSProviderSettings.serverGroups && AWSProviderSettings.serverGroups.enableIMDSv2) {
               /**
                * Older SDKs do not support IMDSv2. A timestamp can be optionally configured at which any apps created after can safely default to using IMDSv2.
