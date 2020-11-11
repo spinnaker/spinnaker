@@ -19,6 +19,7 @@ import { IPipeline } from '../../domain';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 
 import { ApplicationNavigation } from './ApplicationNavigation';
+import { SETTINGS } from 'core/config';
 
 describe('ApplicationNavigation', () => {
   let $uiRouter: UIRouterReact;
@@ -36,7 +37,7 @@ describe('ApplicationNavigation', () => {
     spyOn(StateMatcher.prototype, 'find').and.callFake(() => undefined as any);
   });
 
-  it('should render header, categories, and pagerduty button', () => {
+  it('should render header, categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
       'testapp',
       mockPipelineDataSourceConfig,
@@ -69,6 +70,23 @@ describe('ApplicationNavigation', () => {
 
     const navSections = wrapper.find('NavSection');
     expect(navSections.length).toEqual(3);
+
+    const pagerDutyButton = wrapper.find('.page-category');
+    expect(pagerDutyButton.length).toEqual(0);
+  });
+
+  it('should render pager button', () => {
+    SETTINGS.feature.pagerDuty = true;
+    const app = ApplicationModelBuilder.createApplicationForTests('testapp');
+    app.attributes.pdApiKey = 'fake-api-key';
+
+    const wrapper = mount(
+      <RecoilRoot>
+        <UIRouterContext.Provider value={$uiRouter}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
+    );
 
     const pagerDutyButton = wrapper.find('.page-category');
     expect(pagerDutyButton.length).toEqual(1);
