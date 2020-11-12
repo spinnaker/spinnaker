@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCachingAgentFilterConfiguration;
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCachingAgentFilter;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCloudFormationCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonElasticIpCachingAgent;
@@ -123,7 +123,7 @@ public class ProviderHelpers {
       ObjectMapper objectMapper,
       Registry registry,
       EddaTimeoutConfig eddaTimeoutConfig,
-      AmazonCachingAgentFilterConfiguration amazonCachingAgentFilterConfiguration,
+      AmazonCachingAgentFilter amazonCachingAgentFilter,
       AwsProvider awsProvider,
       AmazonCloudProvider amazonCloudProvider,
       DynamicConfigService dynamicConfigService,
@@ -146,7 +146,7 @@ public class ProviderHelpers {
                 objectMapper,
                 registry,
                 eddaTimeoutConfig,
-                amazonCachingAgentFilterConfiguration));
+                amazonCachingAgentFilter));
         newlyAddedAgents.add(
             new LaunchConfigCachingAgent(
                 amazonClientProvider, credentials, region.getName(), objectMapper, registry));

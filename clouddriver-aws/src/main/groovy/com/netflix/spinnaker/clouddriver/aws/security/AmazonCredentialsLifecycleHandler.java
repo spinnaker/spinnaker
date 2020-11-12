@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCachingAgentFilterConfiguration;
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCachingAgentFilter;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent;
 import com.netflix.spinnaker.clouddriver.aws.provider.config.ProviderHelpers;
@@ -74,7 +74,7 @@ public class AmazonCredentialsLifecycleHandler
   private final Optional<ExecutorService> reservationReportPool;
   private final Optional<Collection<AgentProvider>> agentProviders;
   private final EddaTimeoutConfig eddaTimeoutConfig;
-  private final AmazonCachingAgentFilterConfiguration amazonCachingAgentFilterConfiguration;
+  private final AmazonCachingAgentFilter amazonCachingAgentFilter;
   private final DynamicConfigService dynamicConfigService;
   private final DeployDefaults deployDefaults;
   private final CredentialsRepository<NetflixAmazonCredentials>
@@ -177,7 +177,7 @@ public class AmazonCredentialsLifecycleHandler
             objectMapper,
             registry,
             eddaTimeoutConfig,
-            amazonCachingAgentFilterConfiguration,
+            amazonCachingAgentFilter,
             awsProvider,
             amazonCloudProvider,
             dynamicConfigService,

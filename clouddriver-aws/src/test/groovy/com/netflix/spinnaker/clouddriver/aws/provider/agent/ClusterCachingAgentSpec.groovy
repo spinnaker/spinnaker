@@ -65,7 +65,7 @@ class ClusterCachingAgentSpec extends Specification {
   EddaTimeoutConfig edda = Mock(EddaTimeoutConfig)
 
   @Shared
-  AmazonCachingAgentFilterConfiguration filterConfiguration = new AmazonCachingAgentFilterConfiguration()
+  AmazonCachingAgentFilter filter = new AmazonCachingAgentFilter()
 
   def getAgent() {
     def creds = Stub(NetflixAmazonCredentials) {
@@ -76,7 +76,7 @@ class ClusterCachingAgentSpec extends Specification {
     def client = Stub(AmazonClientProvider) {
       getAmazonEC2(creds, region, _) >> ec2
     }
-    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), edda, filterConfiguration)
+    new ClusterCachingAgent(cloud, client, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), edda, filter)
   }
 
   @Unroll
@@ -158,8 +158,8 @@ class ClusterCachingAgentSpec extends Specification {
     }
 
     def clients = new ClusterCachingAgent.AmazonClients(client, agent.account, agent.region, false)
-    filterConfiguration.includeTags = includeTags
-    filterConfiguration.excludeTags = excludeTags
+    filter.includeTags = includeTags
+    filter.excludeTags = excludeTags
 
     when:
     def result = agent.loadAutoScalingGroups(clients)
@@ -175,8 +175,8 @@ class ClusterCachingAgentSpec extends Specification {
     [taggify("hello", "goo")]     | null                          | []
     [taggify("hello", ".*bye")]   | null                          | ["test-hello-tag-value"]
     [taggify(".*a.*")]            | null                          | ["test-no-hello-tag"]
-    null                          | [taggify("hello")]            | ["test-no-hello-tag"]
-    null                          | [taggify("hello", "goodbye")] | ["test-hello-tag-value-different", "test-hello-tag-no-value", "test-no-hello-tag"]
+    null                          | [taggify("hello")]            | ["test-no-hello-tag", "test-no-tags"]
+    null                          | [taggify("hello", "goodbye")] | ["test-hello-tag-value-different", "test-hello-tag-no-value", "test-no-hello-tag", "test-no-tags"]
     [taggify("hello", "goodbye")] | [taggify("hello")]            | []
     [taggify(".*", "ciao")]       | [taggify("hello", ".*")]      | []
   }
@@ -194,10 +194,12 @@ class ClusterCachingAgentSpec extends Specification {
     new AutoScalingGroup()
       .withAutoScalingGroupName("test-no-hello-tag")
       .withTags(new TagDescription().withKey("Name")),
+    new AutoScalingGroup()
+      .withAutoScalingGroupName("test-no-tags"),
   ]
 
   private static def taggify(String name = null, String value = null) {
-    return new AmazonCachingAgentFilterConfiguration.TagFilterOption(name, value)
+    return new AmazonCachingAgentFilter.TagFilterOption(name, value)
   }
 
   private SuspendedProcess sP(String processName) {

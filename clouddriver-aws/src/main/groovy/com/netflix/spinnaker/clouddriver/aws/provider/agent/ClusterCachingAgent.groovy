@@ -86,7 +86,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   final ObjectMapper objectMapper
   final Registry registry
   final EddaTimeoutConfig eddaTimeoutConfig
-  final AmazonCachingAgentFilterConfiguration amazonCachingAgentFilterConfiguration
+  final AmazonCachingAgentFilter amazonCachingAgentFilter
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -97,7 +97,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
                       ObjectMapper objectMapper,
                       Registry registry,
                       EddaTimeoutConfig eddaTimeoutConfig,
-                      AmazonCachingAgentFilterConfiguration amazonCachingAgentFilterConfiguration) {
+                      AmazonCachingAgentFilter amazonCachingAgentFilter) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
@@ -106,7 +106,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     this.registry = registry
     this.eddaTimeoutConfig = eddaTimeoutConfig
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandType.ServerGroup}")
-    this.amazonCachingAgentFilterConfiguration = amazonCachingAgentFilterConfiguration
+    this.amazonCachingAgentFilter = amazonCachingAgentFilter
   }
 
   @Override
@@ -310,30 +310,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     asgs = asgs.findAll { it.status == null }
 
     // filter asg if there is any filter configuration established
-    if (amazonCachingAgentFilterConfiguration.includeTags?.size() > 0 || amazonCachingAgentFilterConfiguration.excludeTags?.size() > 0) {
+    if (amazonCachingAgentFilter.hasTagFilter()) {
       asgs = asgs.findAll { asg ->
-
-        // retain the asg by default if there isn't an include filter setup
-        def retainASG = amazonCachingAgentFilterConfiguration.includeTags?.size() <= 0
-
-        asg.tags?.each { tag ->
-          amazonCachingAgentFilterConfiguration.includeTags?.each {includeTag ->
-            if (tag.getKey()?.matches(includeTag.name) && (!includeTag?.getValue() || tag?.getValue() == includeTag?.value || tag?.getValue()?.matches(includeTag?.value))) {
-              retainASG = true
-              return
-            }
-          }
-
-          // exclude takes precedence over include so runs second
-          amazonCachingAgentFilterConfiguration.excludeTags?.each {excludeTag ->
-            if (tag.getKey()?.matches(excludeTag.name) && (!excludeTag?.getValue() || tag?.getValue() == excludeTag?.value || tag?.getValue()?.matches(excludeTag?.value))) {
-              retainASG = false
-              return
-            }
-          }
+        def asgTags = asg.tags?.collect {
+          new AmazonCachingAgentFilter.ResourceTag(it.key, it.value)
         }
 
-        return retainASG
+        return amazonCachingAgentFilter.shouldRetainResource(asgTags)
       }
     }
 
