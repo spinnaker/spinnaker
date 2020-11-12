@@ -7,6 +7,7 @@ import { Markdown, IconNames } from '../presentation';
 import { getArtifactVersionDisplayName } from './displayNames';
 import { StatusCard, IStatusCardProps } from './StatusCard';
 import { Pill } from './Pill';
+import { Button } from './Button';
 
 interface CardTitleMetadata {
   deployedAt?: string;
@@ -101,11 +102,20 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
 
 export type IVersionStateCardProps = Pick<
   IManagedArtifactVersion['environments'][0],
-  'state' | 'deployedAt' | 'replacedAt' | 'replacedBy' | 'vetoed'
-> & { allVersions: IManagedArtifactVersion[] };
+  'state' | 'deployedAt' | 'replacedAt' | 'replacedBy' | 'vetoed' | 'compareLink'
+> & { allVersions: IManagedArtifactVersion[]; logClick: (message: string) => any };
 
 export const VersionStateCard = memo(
-  ({ state, deployedAt, replacedAt, replacedBy, vetoed, allVersions }: IVersionStateCardProps) => {
+  ({
+    state,
+    deployedAt,
+    replacedAt,
+    replacedBy,
+    vetoed,
+    compareLink,
+    allVersions,
+    logClick,
+  }: IVersionStateCardProps) => {
     const replacedByVersion = useMemo(() => allVersions.find(({ version }) => version === replacedBy), [
       replacedBy,
       allVersions,
@@ -126,6 +136,18 @@ export const VersionStateCard = memo(
         timestamp={cardAppearanceByState[state].timestamp?.(cardMetadata)}
         title={cardAppearanceByState[state].title(cardMetadata)}
         description={cardAppearanceByState[state].description?.(cardMetadata)}
+        actions={
+          compareLink && (
+            <Button
+              onClick={() => {
+                window.open(compareLink, '_blank', 'noopener noreferrer');
+                logClick('See changes clicked');
+              }}
+            >
+              See changes
+            </Button>
+          )
+        }
       />
     );
   },

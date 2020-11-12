@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from 'react';
+import ReactGA from 'react-ga';
 import classNames from 'classnames';
 import { useRouter } from '@uirouter/react';
 import { useTransition, animated, UseTransitionProps } from 'react-spring';
@@ -91,6 +92,7 @@ const EnvironmentCards = memo(
       vetoed,
       statefulConstraints,
       statelessConstraints,
+      compareLink,
     } = environment;
     const {
       stateService: { go },
@@ -147,7 +149,15 @@ const EnvironmentCards = memo(
         replacedAt={replacedAt}
         replacedBy={replacedBy}
         vetoed={vetoed}
+        compareLink={compareLink}
         allVersions={allVersions}
+        logClick={(message) => {
+          ReactGA.event({
+            category: 'Environments - version details',
+            action: message,
+            label: `${application.name}:${environmentName}:${reference}`,
+          });
+        }}
       />
     );
     const constraintCards = useMemo(

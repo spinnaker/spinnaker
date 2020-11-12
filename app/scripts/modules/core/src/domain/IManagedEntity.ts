@@ -103,6 +103,7 @@ export interface IManagedArtifactVersion {
     replacedBy?: string;
     statefulConstraints?: IStatefulConstraint[];
     statelessConstraints?: IStatelessConstraint[];
+    compareLink?: string;
   }>;
   build?: {
     id: number; // deprecated, use number
