@@ -40,7 +40,7 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
         <span style={{ color: 'var(--color-danger)' }}>{description}</span>
       ) : null;
 
-    const healthCheck = healthCheckProtocol.toLowerCase().startsWith('http') ? (
+    const healthCheck = healthCheckProtocol?.toLowerCase().startsWith('http') ? (
       <a target="_blank" href={`${healthCheckProtocol}://${ipAddress}${healthCheckPath}`}>
         Health Check
       </a>
