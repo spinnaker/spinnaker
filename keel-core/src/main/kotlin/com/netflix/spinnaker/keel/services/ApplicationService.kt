@@ -4,8 +4,12 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
+import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
@@ -14,7 +18,6 @@ import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
-import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -25,7 +28,10 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
@@ -35,12 +41,14 @@ import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
+import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
-import java.time.Instant
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 /**
  * Service object that offers high-level APIs for application-related operations.
@@ -50,7 +58,8 @@ class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
   private val constraintEvaluators: List<ConstraintEvaluator<*>>,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
+  private val scmInfo: ScmInfo
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -220,21 +229,32 @@ class ApplicationService(
   }
 
   private fun buildArtifactSummaryInEnvironment(deliveryConfig: DeliveryConfig, environmentName: String, artifact: DeliveryArtifact, version: String, status: PromotionStatus): ArtifactSummaryInEnvironment? {
-    return when (status) {
-      PENDING -> ArtifactSummaryInEnvironment(
-        environment = environmentName,
-        version = version,
-        state = status.name.toLowerCase()
+    val artifactGitMetadata = getArtifactInstance(artifact, version)?.gitMetadata
+    val baseScmUrl = artifactGitMetadata?.commitInfo?.link?.let { getScmBaseLink(it) }
+
+    // some environments contain relevant info for skipped artifacts, so
+    // try and find that summary before defaulting to less information
+    val potentialSummary =
+      repository.getArtifactSummaryInEnvironment(
+        deliveryConfig = deliveryConfig,
+        environmentName = environmentName,
+        artifactReference = artifact.reference,
+        version = version
       )
-      SKIPPED -> {
-        // some environments contain relevant info for skipped artifacts, so
-        // try and find that summary before defaulting to less information
-        val potentialSummary = repository.getArtifactSummaryInEnvironment(
-          deliveryConfig = deliveryConfig,
-          environmentName = environmentName,
-          artifactReference = artifact.reference,
-          version = version
+
+    return when (status) {
+      PENDING -> {
+        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
+
+        ArtifactSummaryInEnvironment(
+          environment = environmentName,
+          version = version,
+          state = status.name.toLowerCase(),
+          // comparing PENDING (version in question, new code) vs. CURRENT (old code)
+          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
         )
+      }
+      SKIPPED -> {
         if (potentialSummary == null || potentialSummary.state == "pending") {
           ArtifactSummaryInEnvironment(
             environment = environmentName,
@@ -245,12 +265,28 @@ class ApplicationService(
           potentialSummary
         }
       }
-      else -> repository.getArtifactSummaryInEnvironment(
-        deliveryConfig = deliveryConfig,
-        environmentName = environmentName,
-        artifactReference = artifact.reference,
-        version = version
-      )
+      DEPLOYING -> {
+        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
+        potentialSummary?.copy(
+          // comparing DEPLOYING (version in question, new code) vs. CURRENT (old code)
+          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
+        )
+      }
+      PREVIOUS -> {
+        val newerGitMetadata = potentialSummary?.replacedBy?.let { getArtifactInstance(artifact, it)?.gitMetadata }
+        potentialSummary?.copy(
+          //comparing PREVIOUS (version in question, old code) vs. the version which replaced it (new code)
+          compareLink = generateDiffLink(baseScmUrl, newerGitMetadata, artifactGitMetadata)
+        )
+      }
+      CURRENT -> {
+        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name)
+        potentialSummary?.copy(
+          // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
+          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
+        )
+      }
+      else -> potentialSummary
     }
   }
 
@@ -320,11 +356,10 @@ class ApplicationService(
     version: String,
     environments: Set<ArtifactSummaryInEnvironment>
   ): ArtifactVersionSummary {
-    val artifactSupplier = artifactSuppliers.supporting(artifact.type)
-    val releaseStatus = repository.getReleaseStatus(artifact, version)
-    val artifactInstance = repository.getArtifactInstance(artifact.name, artifact.type, version, releaseStatus)
-      ?: throw InvalidSystemStateException("Loading artifact version $version failed for known artifact $artifact.")
 
+    val artifactSupplier = artifactSuppliers.supporting(artifact.type)
+    val artifactInstance = getArtifactInstance(artifact, version)
+      ?: throw InvalidSystemStateException("Loading artifact version $version failed for known artifact $artifact.")
     return ArtifactVersionSummary(
       version = version,
       environments = environments,
@@ -344,4 +379,36 @@ class ApplicationService(
 
   private fun ConstraintState.toConstraintSummary() =
     StatefulConstraintSummary(type, status, createdAt, judgedBy, judgedAt, comment, attributes)
+
+  private fun getArtifactInstance(
+    artifact: DeliveryArtifact,
+    version: String
+  ): PublishedArtifact? {
+    val releaseStatus = repository.getReleaseStatus(artifact, version)
+    return repository.getArtifactInstance(artifact.name, artifact.type, version, releaseStatus)
+  }
+
+  // Generating a SCM diff link between source and target versions (the order does matter!)
+  private fun generateDiffLink(baseUrl: String?, newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
+    return if (baseUrl != null && newerGitMetadata != null && olderGitMetadata != null) {
+          "$baseUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
+            "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
+    } else {
+      null
+    }
+  }
+
+  // Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
+  private fun getScmBaseLink(commitLink: String): String? {
+    val scmInfo = runBlocking {
+      scmInfo.getScmInfo()
+    }
+    //TODO[gyardeni]: replace this parsing when rocket will add scm type to gitMetadata
+    when {
+      "stash" in commitLink ->
+        return scmInfo["stash"]
+      else ->
+        throw UnsupportedScmType(message = "Stash is currently the only supported SCM type")
+    }
+  }
 }

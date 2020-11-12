@@ -156,15 +156,19 @@ class ArtifactListener(
    * Returns a copy of the [PublishedArtifact] with the git and build metadata populated, if available.
    */
   private fun ArtifactSupplier<*, *>.addMetadata(artifact: PublishedArtifact): PublishedArtifact {
-    val artifactMetadata = runBlocking {
-      try {
-        getArtifactMetadata(artifact)
-      } catch (ex: Exception) {
-        log.error("Could not fetch artifact metadata for name ${artifact.name} and version ${artifact.version}", ex)
-        null
+    // only add metadata if either build or git metadata is null
+    if (artifact.buildMetadata == null || artifact.gitMetadata == null) {
+      val artifactMetadata = runBlocking {
+        try {
+          getArtifactMetadata(artifact)
+        } catch (ex: Exception) {
+          log.error("Could not fetch artifact metadata for name ${artifact.name} and version ${artifact.version}", ex)
+          null
+        }
       }
+      return artifact.copy(gitMetadata = artifactMetadata?.gitMetadata, buildMetadata = artifactMetadata?.buildMetadata)
     }
-    return artifact.copy(gitMetadata = artifactMetadata?.gitMetadata, buildMetadata = artifactMetadata?.buildMetadata)
+    return artifact
   }
 
   private val DeliveryArtifact.deliveryConfig: DeliveryConfig

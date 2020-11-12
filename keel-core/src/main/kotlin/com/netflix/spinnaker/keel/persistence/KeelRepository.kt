@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
@@ -195,6 +196,16 @@ interface KeelRepository : KeelReadOnlyRepository {
     artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment?
+
+  /**
+   * Given artifact details and promotion status, return its last deployed version git metadata, sorted by deployed_at
+   */
+  fun getGitMetadataByPromotionStatus(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    promotionStatus: String
+  ): GitMetadata?
 
   // END ArtifactRepository methods
 }

@@ -2,12 +2,15 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
@@ -30,6 +33,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.DummyArtifact
@@ -40,6 +44,7 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Runs
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -48,6 +53,7 @@ import io.mockk.verify
 import java.time.Instant
 import java.time.ZoneId
 import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.first
@@ -124,7 +130,8 @@ class ApplicationServiceTests : JUnit5Minutests {
     val version2 = "fnord-1.0.2-h2.c2c2c2c"
     val version3 = "fnord-1.0.3-h3.d3d3d3d"
     val version4 = "fnord-1.0.4-h4.e4e4e4e"
-    val versions = listOf(version0, version1, version2, version3, version4)
+    val version5 = "fnord-1.0.5-h5.f5f5f5f5"
+    val versions = listOf(version0, version1, version2, version3, version4, version5)
 
     val snapshotVersion1 = "fnord-1.0.0~dev.1-h3.d3d3d3d"
     val snapshotVersion2 = "fnord-1.0.0~dev.2-h4.e4e4e4e"
@@ -149,12 +156,21 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { parseDefaultGitMetadata(any(), any()) } returns null
     }
 
+    private val scmInfo = mockk<ScmInfo>() {
+      coEvery {
+        getScmInfo()
+      } answers {
+        mapOf("stash" to "https://stash.corp.netflix.com")
+      }
+    }
+
     // subject
     val applicationService = ApplicationService(
       repository,
       resourceStatusService,
       listOf(dependsOnEvaluator),
-      listOf(artifactSupplier)
+      listOf(artifactSupplier),
+      scmInfo
     )
 
     val buildMetadata = BuildMetadata(
@@ -162,9 +178,17 @@ class ApplicationServiceTests : JUnit5Minutests {
       number = "1",
     )
 
-    val gitMetadata = GitMetadata (
+    val gitMetadata = GitMetadata(
       author = "keel user",
-      commit = "1sdla"
+      commit = "1sdla",
+      commitInfo = Commit(
+        sha = "12345",
+        link = "https://stash"
+      ),
+      repo = Repo(
+        name = "keel"
+      ),
+      project = "spkr"
     )
   }
 
@@ -191,6 +215,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       every {
         repository.getReleaseStatus(snapshotArtifact, any())
       } returns SNAPSHOT
+
+      every {
+        repository.getGitMetadataByPromotionStatus(any(), any(), any(), any())
+      } returns null
     }
 
     context("artifact summaries by application") {
@@ -227,6 +255,11 @@ class ApplicationServiceTests : JUnit5Minutests {
             every {
               dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
             } returns false
+
+            every {
+              repository.getArtifactSummaryInEnvironment(any(), any(), any(), any())
+            } returns null
+
           }
 
           test("artifact summary shows all versions pending in all environments") {
@@ -266,7 +299,7 @@ class ApplicationServiceTests : JUnit5Minutests {
                   "test" -> ArtifactVersionStatus(
                     previous = listOf(version0, version1, version2),
                     current = version3,
-                    pending = listOf(version4)
+                    deploying = version4
                   )
                   "staging" -> ArtifactVersionStatus(
                     previous = listOf(version0, version1),
@@ -293,6 +326,7 @@ class ApplicationServiceTests : JUnit5Minutests {
                   version1,
                   version2 -> ArtifactSummaryInEnvironment(environment, version, "previous")
                   version3 -> ArtifactSummaryInEnvironment(environment, version, "current")
+                  version4 -> ArtifactSummaryInEnvironment(environment, version, "deploying")
                   else -> ArtifactSummaryInEnvironment(environment, version, "pending")
                 }
                 "staging" -> when (val version = arg<String>(3)) {
@@ -302,7 +336,7 @@ class ApplicationServiceTests : JUnit5Minutests {
                   else -> ArtifactSummaryInEnvironment(environment, version, "pending")
                 }
                 "production" -> when (val version = arg<String>(3)) {
-                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous")
+                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous", replacedBy = "version5")
                   version1 -> ArtifactSummaryInEnvironment(environment, version, "current")
                   else -> ArtifactSummaryInEnvironment(environment, version, "pending")
                 }
@@ -385,7 +419,7 @@ class ApplicationServiceTests : JUnit5Minutests {
             expectThat(summaries) {
               first()
                 .withVersionInEnvironment(version4, "test") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
+                  state.isEqualTo(DEPLOYING.name.toLowerCase())
                 }
                 .withVersionInEnvironment(version4, "staging") {
                   state.isEqualTo(PENDING.name.toLowerCase())
@@ -452,6 +486,84 @@ class ApplicationServiceTests : JUnit5Minutests {
                   .first { it.type == "manual-judgement" }
                   .get { status }.isEqualTo(NOT_EVALUATED)
               }
+          }
+
+
+          context("compare links") {
+            before {
+              every {
+                repository.getGitMetadataByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PREVIOUS.name)
+              } answers {
+                GitMetadata(commit = "previousCommitIn${arg<String>(1)}",
+                  commitInfo = Commit(sha = "previousCommitIn:${arg<String>(1)}"))
+              }
+              every {
+                repository.getGitMetadataByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, CURRENT.name)
+              } answers {
+                GitMetadata(commit = "currentCommitIn${arg<String>(1)}",
+                  commitInfo = Commit(sha = "currentCommitIn:${arg<String>(1)}"))
+              }
+
+              every {
+                repository.getArtifactInstance(releaseArtifact.name, releaseArtifact.type, version5, RELEASE)
+              } answers {
+                PublishedArtifact(arg<String>(0), arg<String>(1), arg<String>(2), gitMetadata = GitMetadata(
+                  commit = "version5",
+                  commitInfo = Commit(sha = "version5")
+                ), buildMetadata = buildMetadata)
+              }
+            }
+
+            test("compare links for previous-->current are generated as expected, in the correct env") {
+              val summaries = applicationService.getArtifactSummariesFor(application1)
+              expectThat(summaries.first())
+                .withVersionInEnvironment(version3, "test") {
+                  state.isEqualTo(CURRENT.name.toLowerCase())
+                  compareLink
+                    .isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=previousCommitIn:test&sourceBranch=12345")
+                }
+                .withVersionInEnvironment(version2, "staging") {
+                  state.isEqualTo(CURRENT.name.toLowerCase())
+                  compareLink.isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=previousCommitIn:staging&sourceBranch=12345")
+                }
+                .withVersionInEnvironment(version1, "production") {
+                  state.isEqualTo(CURRENT.name.toLowerCase())
+                  compareLink.isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=previousCommitIn:production&sourceBranch=12345")
+                }
+            }
+
+            test("compare links for current --> deploying are generated as expected, in the correct env") {
+              val summaries = applicationService.getArtifactSummariesFor(application1)
+              expectThat(summaries.first())
+                .withVersionInEnvironment(version4, "test") {
+                  state.isEqualTo(DEPLOYING.name.toLowerCase())
+                  compareLink
+                    .isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=currentCommitIn:test&sourceBranch=12345")
+                }
+            }
+
+
+            test("compare links for previous --> current  are generated as expected, in the correct env") {
+              val summaries = applicationService.getArtifactSummariesFor(application1)
+              expectThat(summaries.first())
+                .withVersionInEnvironment(version0, "production") {
+                  state.isEqualTo(PREVIOUS.name.toLowerCase())
+                  compareLink.isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=12345&sourceBranch=12345")
+                }
+            }
+
+            test("compare links for pending --> current  are generated as expected, in the correct env") {
+              val summaries = applicationService.getArtifactSummariesFor(application1)
+              expectThat(summaries.first())
+                .withVersionInEnvironment(version3, "production") {
+                  state.isEqualTo(PENDING.name.toLowerCase())
+                  compareLink.isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=currentCommitIn:production&sourceBranch=12345")
+                }
+                .withVersionInEnvironment(version3, "staging") {
+                  state.isEqualTo(PENDING.name.toLowerCase())
+                  compareLink.isEqualTo("https://stash.corp.netflix.com/projects/spkr/repos/keel/compare/commits?targetBranch=currentCommitIn:staging&sourceBranch=12345")
+                }
+            }
           }
         }
 
@@ -593,6 +705,10 @@ class ApplicationServiceTests : JUnit5Minutests {
             every {
               dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
             } returns false
+
+            every {
+              repository.getArtifactSummaryInEnvironment(any(), any(), any(), any())
+            } returns null
           }
 
           test("getting artifact summaries has a default cap on versions") {
@@ -853,6 +969,9 @@ class ApplicationServiceTests : JUnit5Minutests {
 
   val Assertion.Builder<ArtifactSummaryInEnvironment>.state: Assertion.Builder<String>
     get() = get { state }
+
+  val Assertion.Builder<ArtifactSummaryInEnvironment>.compareLink: DescribeableBuilder<String?>
+    get() = get { compareLink }
 
   private fun Fixture.toEnvironmentSummary(env: Environment, block: () -> ArtifactVersionStatus): EnvironmentSummary {
     return EnvironmentSummary(

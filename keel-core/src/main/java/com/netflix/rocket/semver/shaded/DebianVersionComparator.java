@@ -38,44 +38,52 @@ public class DebianVersionComparator implements Comparator<String> {
     String[] mainPrerelease0 = s0.split(PRERELEASE_SPLIT);
     String[] mainPrerelease1 = s1.split(PRERELEASE_SPLIT);
     int mainComparison = compareMainPart(mainPrerelease0[0], mainPrerelease1[0]);
-    if (mainComparison == 0) {
-      if (mainPrerelease0.length == mainPrerelease1.length && mainPrerelease0.length == 2) {
-        String[] prerelease0 = mainPrerelease0[1].split(PRERELEASE_SEPARATOR);
-        String[] prerelease1 = mainPrerelease1[1].split(PRERELEASE_SEPARATOR);
-        for (int i = 0; i < prerelease0.length; i++) {
-          if (i >= prerelease1.length) {
-            if (prerelease0[i].equals("dev")) {
-              return -1;
-            } else {
-              return 1;
-            }
-          }
-          boolean isNumeric0 = isNumeric(prerelease0[i]);
-          final boolean isNumeric1 = isNumeric(prerelease1[i]);
-          if (isNumeric0 && isNumeric1) {
-            int diff = Integer.parseInt(prerelease0[i]) - Integer.parseInt(prerelease1[i]);
-            if (diff != 0) {
-              return diff;
-            }
-          }
-          if (!isNumeric0 && !isNumeric1) {
-            int diff = prerelease0[i].compareTo(prerelease1[i]);
-            if (diff != 0) {
-              return diff;
-            }
+    if (mainComparison != 0) {
+      return mainComparison;
+    }
+    if (mainPrerelease0.length == mainPrerelease1.length && mainPrerelease0.length == 2) {
+      String[] prerelease0 = mainPrerelease0[1].split(PRERELEASE_SEPARATOR);
+      String[] prerelease1 = mainPrerelease1[1].split(PRERELEASE_SEPARATOR);
+      for (int i = 0; i < prerelease0.length; i++) {
+        String prerelease0AtIndex = prerelease0[i];
+        if (i >= prerelease1.length) {
+          if (prerelease0AtIndex.equals("dev") || prerelease0[0].equals("snapshot")) {
+            return -1;
+          } else {
+            return 1;
           }
         }
-        if (prerelease1.length > prerelease0.length) {
-          if (prerelease1[prerelease0.length].equals("dev")) {
-            return 1;
-          } else {
-            return -1;
+        String prerelease1AtIndex = prerelease1[i];
+        boolean isNumeric0 = isNumeric(prerelease0AtIndex);
+        final boolean isNumeric1 = isNumeric(prerelease1AtIndex);
+        if (isNumeric0 && isNumeric1) {
+          int diff = Integer.parseInt(prerelease0AtIndex) - Integer.parseInt(prerelease1AtIndex);
+          if (diff != 0) {
+            return diff;
+          }
+        }
+        if (!isNumeric0 && !isNumeric1) {
+          boolean sameStatus = prerelease0AtIndex.equals(prerelease1AtIndex);
+          if (!sameStatus) {
+            if (prerelease0AtIndex.equals("rc")) {
+              return 1;
+            } else if (prerelease0AtIndex.equals("snapshot") && (prerelease1AtIndex.equals("rc"))) {
+              return -1;
+            } else {
+              return prerelease0AtIndex.compareTo(prerelease1AtIndex);
+            }
           }
         }
       }
-      return mainPrerelease1.length - mainPrerelease0.length;
+      if (prerelease1.length > prerelease0.length) {
+        if (prerelease1[prerelease0.length].equals("dev") || prerelease0[0].equals("snapshot")) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
     }
-    return mainComparison;
+    return mainPrerelease1.length - mainPrerelease0.length;
   }
 
   /**

@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -232,6 +233,16 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    * Removes a specific pin from [targetEnvironment], by [reference].
    */
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
+
+  /**
+   * Return the git metadata for the last deployed version of the specified artifact that matches the promotion status
+   */
+  fun getGitMetadataByPromotionStatus(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    promotionStatus: String
+  ): GitMetadata?
 
   /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be

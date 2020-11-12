@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -49,6 +50,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -1066,6 +1068,44 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         val versions = subject.versions(debianFilteredByPullRequestAndBranch, 20)
         // all versions should match
         expectThat(versions).containsExactly(allVersions.reversed().subList(0, 10))
+      }
+    }
+
+    context("git metadata by promotion status") {
+      before {
+          persist(manifest)
+          subject.register(versionedReleaseDebian)
+          subject.storeArtifactInstance(versionedReleaseDebian.toArtifactInstance(version1, RELEASE).copy(
+           gitMetadata = artifactMetadata.gitMetadata,
+         ))
+        subject.storeArtifactInstance(versionedReleaseDebian.toArtifactInstance(version2, RELEASE).copy(
+          gitMetadata = artifactMetadata.gitMetadata?.copy(
+            commit = "12345"
+          ),
+        ))
+        subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version1, testEnvironment.name)
+      }
+
+      test ("no metadata for version which is not persisted") {
+        expectThat(subject.getGitMetadataByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS.name))
+          .isNull()
+      }
+
+      test ("get git metadata for deploying status") {
+        expectThat(subject.getGitMetadataByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT.name))
+          .isEqualTo(artifactMetadata.gitMetadata)
+        }
+
+      test ("get a single results (and newest) data per status") {
+        subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version2, testEnvironment.name)
+        expectThat(subject.getGitMetadataByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT.name))
+          .get { this?.commit }.isEqualTo("12345")
+      }
+
+      test ("unsupported promotion status throws exception") {
+        expectThrows<IllegalArgumentException> {
+          subject.getGitMetadataByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.DEPLOYING.name)
+        }
       }
     }
   }

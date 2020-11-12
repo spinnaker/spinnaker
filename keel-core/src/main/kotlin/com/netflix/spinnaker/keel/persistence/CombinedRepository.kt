@@ -404,5 +404,14 @@ class CombinedRepository(
     deliveryConfig, environmentName, artifactReference, version
   )
 
+  override fun getGitMetadataByPromotionStatus(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    promotionStatus: String
+  ) = artifactRepository.getGitMetadataByPromotionStatus(
+    deliveryConfig, environmentName, artifact, promotionStatus
+  )
+
   // END ArtifactRepository methods
 }
