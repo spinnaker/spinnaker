@@ -27,7 +27,8 @@ public enum HealthState {
   Unknown,
   Starting,
   Succeeded,
-  Up;
+  Up,
+  Draining;
 
   /**
    * {@code HealthState.valueOf} does:

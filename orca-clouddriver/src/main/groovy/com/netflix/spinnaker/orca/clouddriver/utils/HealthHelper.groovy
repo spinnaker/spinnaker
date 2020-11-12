@@ -99,7 +99,7 @@ class HealthHelper {
 
     // no health indicators is indicative of being down
     boolean someAreDown = !healths || healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting] }
-    boolean noneAreUp = !healths.any { HealthState.fromString(it.state) == Up }
+    boolean noneAreUp = !healths.any { HealthState.fromString(it.state) in [Up, Draining] }
 
     return someAreDown && noneAreUp
   }
@@ -108,7 +108,7 @@ class HealthHelper {
     List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
 
     boolean someAreUp = healths.any { HealthState.fromString(it.state) == Up }
-    boolean noneAreDown = !healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting] }
+    boolean noneAreDown = !healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting, Draining] }
 
     return areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp) && noneAreDown
   }
