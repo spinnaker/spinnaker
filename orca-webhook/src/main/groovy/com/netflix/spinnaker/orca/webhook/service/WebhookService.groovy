@@ -115,7 +115,7 @@ class WebhookService {
           httpMethod = stageData.method
           break
         case WebhookTaskType.MONITOR:
-          destinationUrl = stageData.statusEndpoint
+          destinationUrl = stageData.statusEndpoint?.trim() ?: stageData.url
           payloadEntity = new HttpEntity<>(null, headers)
           break
         case WebhookTaskType.CANCEL:

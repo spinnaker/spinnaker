@@ -29,7 +29,7 @@ import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.apache.commons.lang3.StringUtils
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
 
@@ -68,8 +68,12 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   TaskResult execute(StageExecution stage) {
     WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
-    if (Strings.isNullOrEmpty(stageData.statusEndpoint)) {
+    if (StringUtils.isBlank(stageData.statusEndpoint) && !stageData.monitorOnly) {
       throw new IllegalStateException("Missing required parameter: statusEndpoint = ${stageData.statusEndpoint}")
+    }
+
+    if (stageData.monitorOnly && StringUtils.isAllBlank(stageData.statusEndpoint, stageData.url)) {
+      throw new IllegalStateException("Missing required parameter. Either webhook url or statusEndpoint are required")
     }
 
     // Preserve the responses we got from createWebhookTask, but reset the monitor subkey as we will overwrite it new data

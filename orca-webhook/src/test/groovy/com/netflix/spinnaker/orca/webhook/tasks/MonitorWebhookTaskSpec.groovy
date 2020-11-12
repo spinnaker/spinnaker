@@ -39,10 +39,12 @@ class MonitorWebhookTaskSpec extends Specification {
   MonitorWebhookTask monitorWebhookTask = new MonitorWebhookTask(null, new WebhookProperties())
 
   @Unroll
-  def "should fail if required parameter #parameter is missing"() {
+  def "should fail if required parameter(url: #url, statusUrl: #statusEndpoint) is missing"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", [
-      statusEndpoint: 'https://my-service.io/api/status/123',
+      statusEndpoint: statusEndpoint,
+      url: webhookurl,
+      monitorOnly: monitorOnly,
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
       canceledStatuses: 'CANCELED',
@@ -51,7 +53,6 @@ class MonitorWebhookTaskSpec extends Specification {
     ])
 
     when:
-    stage.context.remove parameter
     monitorWebhookTask.execute stage
 
     then:
@@ -59,7 +60,9 @@ class MonitorWebhookTaskSpec extends Specification {
     ex.message.startsWith("Missing required parameter")
 
     where:
-    parameter << ["statusEndpoint"]
+    statusEndpoint   |  webhookurl        | monitorOnly
+    null             |  null              | true
+    null             | 'http://test.net'  | false
   }
 
   def "should fail if no parameters are supplied"() {
