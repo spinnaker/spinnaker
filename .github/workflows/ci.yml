@@ -14,19 +14,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Ensure code formatting and style is consistent
-      uses: golangci/golangci-lint-action@v1
+      uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.29
+        version: v1.32
 
   build:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-go@v1
+    - uses: actions/setup-go@v2
       with:
         go-version: 1.13
-    - uses: actions/cache@v1
+    - uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
