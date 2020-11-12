@@ -420,7 +420,7 @@ class CloudFoundryServerGroupCachingAgentTest {
     when(mockProviderCache.getAll(any(), anyCollection())).thenReturn(emptySet());
 
     Applications mockApplications = mock(Applications.class);
-    when(mockApplications.all())
+    when(mockApplications.all(emptyList()))
         .thenReturn(List.of(cloudFoundryApplication1, cloudFoundryApplication3).toJavaList());
 
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
@@ -513,7 +513,7 @@ class CloudFoundryServerGroupCachingAgentTest {
     CacheResult result = cloudFoundryServerGroupCachingAgent.loadData(mockProviderCache);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
-    verify(mockApplications).all();
+    verify(mockApplications).all(emptyList());
   }
 
   @Test
@@ -584,7 +584,8 @@ class CloudFoundryServerGroupCachingAgentTest {
             .toJavaMap();
 
     Applications mockApplications = mock(Applications.class);
-    when(mockApplications.all()).thenReturn(List.of(cloudFoundryApplication).toJavaList());
+    when(mockApplications.all(emptyList()))
+        .thenReturn(List.of(cloudFoundryApplication).toJavaList());
 
     ResourceCacheData onDemandCacheResults =
         new ResourceCacheData(

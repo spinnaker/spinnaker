@@ -115,11 +115,14 @@ public class Applications {
         .orElse(null);
   }
 
-  public List<CloudFoundryApplication> all() {
+  public List<CloudFoundryApplication> all(List<String> spaceGuids) {
     log.debug("Listing all applications from account {}", this.account);
 
+    String spaceGuidsQ =
+        spaceGuids == null || spaceGuids.isEmpty() ? null : String.join(",", spaceGuids);
+
     List<Application> newCloudFoundryAppList =
-        collectPages("applications", page -> api.all(page, resultsPerPage, null, null));
+        collectPages("applications", page -> api.all(page, resultsPerPage, null, spaceGuidsQ));
 
     log.debug(
         "Fetched {} total apps from foundation account {}",
@@ -232,7 +235,7 @@ public class Applications {
   @Nullable
   public CloudFoundryServerGroup findServerGroupByNameAndSpaceId(String name, String spaceId) {
     Optional<CloudFoundryServerGroup> result =
-        safelyCall(() -> api.all(null, 1, singletonList(name), singletonList(spaceId)))
+        safelyCall(() -> api.all(null, 1, singletonList(name), spaceId))
             .flatMap(page -> page.getResources().stream().findFirst().map(this::map));
     result.ifPresent(sg -> serverGroupCache.put(sg.getId(), sg));
     return result.orElse(null);
@@ -249,7 +252,7 @@ public class Applications {
         .map(CloudFoundryServerGroup::getId)
         .orElseGet(
             () ->
-                safelyCall(() -> api.all(null, 1, singletonList(name), singletonList(spaceId)))
+                safelyCall(() -> api.all(null, 1, singletonList(name), spaceId))
                     .flatMap(
                         page ->
                             page.getResources().stream()

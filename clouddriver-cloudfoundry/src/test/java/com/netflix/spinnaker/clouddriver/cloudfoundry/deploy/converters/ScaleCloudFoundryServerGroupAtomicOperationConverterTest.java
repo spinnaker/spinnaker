@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -74,7 +75,8 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
           500,
           cacheRepository,
           null,
-          ForkJoinPool.commonPool()) {
+          ForkJoinPool.commonPool(),
+          emptyMap()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

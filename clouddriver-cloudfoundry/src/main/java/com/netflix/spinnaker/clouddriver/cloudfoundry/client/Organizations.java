@@ -24,10 +24,11 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -67,11 +68,19 @@ public class Organizations {
 
   public Optional<CloudFoundryOrganization> findByName(String orgName)
       throws CloudFoundryApiException {
-    return collectPages("organizations", page -> api.all(page, Collections.singletonList(orgName)))
-        .stream()
+    return collectPages("organizations", page -> api.all(page, orgName)).stream()
         .findAny()
         .map(
             org ->
                 CloudFoundryOrganization.builder().id(org.getGuid()).name(org.getName()).build());
+  }
+
+  public List<CloudFoundryOrganization> findAllByNames(List<String> names) {
+    if (names == null || names.isEmpty())
+      throw new IllegalArgumentException("Organization names must not be empty or null");
+    return collectPages("organizations", page -> api.all(page, String.join(",", names))).stream()
+        .map(
+            org -> CloudFoundryOrganization.builder().id(org.getGuid()).name(org.getName()).build())
+        .collect(Collectors.toList());
   }
 }

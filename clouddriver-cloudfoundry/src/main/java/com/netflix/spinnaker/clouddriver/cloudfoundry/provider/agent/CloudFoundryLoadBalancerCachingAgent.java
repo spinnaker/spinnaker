@@ -65,7 +65,10 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
     long loadDataStart = this.getInternalClock().millis();
     String accountName = getAccountName();
     log.info("Caching all load balancers (routes) in Cloud Foundry account " + accountName);
-    List<CloudFoundryLoadBalancer> loadBalancers = this.getClient().getRoutes().all();
+    List<CloudFoundrySpace> spaceFilters = this.getCredentials().getFilteredSpaces();
+
+    // Once Routes are migrated to v3 we can take advantage of space_guids. Until then...
+    List<CloudFoundryLoadBalancer> loadBalancers = this.getClient().getRoutes().all(spaceFilters);
 
     Collection<CacheData> onDemandCacheData =
         providerCache.getAll(

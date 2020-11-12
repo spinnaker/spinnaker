@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
@@ -99,7 +100,8 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
           500,
           cacheRepository,
           null,
-          ForkJoinPool.commonPool()) {
+          ForkJoinPool.commonPool(),
+          emptyMap()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

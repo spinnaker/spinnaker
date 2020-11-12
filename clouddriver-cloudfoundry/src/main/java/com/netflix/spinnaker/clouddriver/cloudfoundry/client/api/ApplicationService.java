@@ -35,7 +35,7 @@ public interface ApplicationService {
       @Query("page") Integer page,
       @Query("per_page") Integer perPage,
       @Query("names") List<String> names,
-      @Query("space_guids") List<String> spaceGuids);
+      @Query("space_guids") String spaceGuids);
 
   @GET("/v3/apps/{guid}")
   Application findById(@Path("guid") String guid);

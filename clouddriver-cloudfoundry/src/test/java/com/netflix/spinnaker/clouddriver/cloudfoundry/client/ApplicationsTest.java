@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup.State.STARTED;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -77,7 +78,7 @@ class ApplicationsTest {
             500,
             ForkJoinPool.commonPool());
 
-    assertThatThrownBy(() -> client.getApplications().all())
+    assertThatThrownBy(() -> client.getApplications().all(emptyList()))
         .isInstanceOf(CloudFoundryApiException.class);
   }
 

@@ -79,7 +79,8 @@ public class CloudFoundryProviderConfig {
                 a.getResultsPerPage(),
                 cacheRepository,
                 a.getPermissions().build(),
-                cloudFoundryThreadPool),
+                cloudFoundryThreadPool,
+                a.getLocationFilter()),
         cloudFoundryCredentialsRepository);
   }
 

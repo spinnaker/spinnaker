@@ -252,7 +252,8 @@ class CloudFoundryLoadBalancerCachingAgentTest {
     when(mockProviderCache.getAll(any(), anyCollection())).thenReturn(emptySet());
 
     Routes mockRoutes = mock(Routes.class);
-    when(mockRoutes.all()).thenReturn(List.of(loadBalancer1, loadBalancer2).toJavaList());
+    when(mockRoutes.all(emptyList()))
+        .thenReturn(List.of(loadBalancer1, loadBalancer2).toJavaList());
 
     when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
 
@@ -312,7 +313,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
 
     Routes mockRoutes = mock(Routes.class);
 
-    when(mockRoutes.all()).thenReturn(List.of(loadBalancer1).toJavaList());
+    when(mockRoutes.all(emptyList())).thenReturn(List.of(loadBalancer1).toJavaList());
 
     when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
 
@@ -390,7 +391,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
             .build();
 
     Routes mockRoutes = mock(Routes.class);
-    when(mockRoutes.all()).thenReturn(List.of(loadBalancer).toJavaList());
+    when(mockRoutes.all(emptyList())).thenReturn(List.of(loadBalancer).toJavaList());
 
     CacheData onDemandCacheResults =
         new ResourceCacheData(

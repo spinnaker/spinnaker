@@ -18,14 +18,13 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Organization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
-import java.util.List;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
 
 public interface OrganizationService {
   @GET("/v3/organizations")
-  Pagination<Organization> all(@Query("page") Integer page, @Query("names") List<String> orgNames);
+  Pagination<Organization> all(@Query("page") Integer page, @Query("names") String orgNames);
 
   @GET("/v3/organizations/{guid}")
   Organization findById(@Path("guid") String guid);

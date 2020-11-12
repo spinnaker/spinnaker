@@ -73,7 +73,11 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
     String accountName = getAccountName();
     log.info("Caching all resources in Cloud Foundry account " + accountName);
 
-    List<CloudFoundryApplication> apps = this.getClient().getApplications().all();
+    List<String> spaceFilters =
+        this.getCredentials().getFilteredSpaces().stream()
+            .map(s -> s.getId())
+            .collect(Collectors.toList());
+    List<CloudFoundryApplication> apps = this.getClient().getApplications().all(spaceFilters);
     List<CloudFoundryCluster> clusters =
         apps.stream().flatMap(app -> app.getClusters().stream()).collect(Collectors.toList());
     List<CloudFoundryServerGroup> serverGroups =

@@ -18,8 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,5 +70,6 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
         maxCapiConnectionsForCache; // Deprecated in favor of cloudfoundry.apiRequestParallelism
 
     private Permissions.Builder permissions = new Permissions.Builder();
+    private Map<String, Set<String>> locationFilter = Collections.emptyMap();
   }
 }

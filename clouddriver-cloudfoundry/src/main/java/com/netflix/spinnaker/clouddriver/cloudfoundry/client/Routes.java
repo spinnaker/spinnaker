@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -161,16 +162,36 @@ public class Routes {
     }
   }
 
-  public List<CloudFoundryLoadBalancer> all() throws CloudFoundryApiException {
+  public List<CloudFoundryLoadBalancer> all(List<CloudFoundrySpace> spaces)
+      throws CloudFoundryApiException {
     try {
-      return forkJoinPool
-          .submit(
-              () ->
-                  collectPageResources("routes", pg -> api.all(pg, resultsPerPage, null))
-                      .parallelStream()
-                      .map(this::map)
-                      .collect(Collectors.toList()))
-          .get();
+      if (!spaces.isEmpty()) {
+        List<String> spaceGuids = spaces.stream().map(s -> s.getId()).collect(Collectors.toList());
+        String orgFilter =
+            "organization_guid IN "
+                + spaces.stream()
+                    .map(s -> s.getOrganization().getId())
+                    .collect(Collectors.joining(","));
+        return forkJoinPool
+            .submit(
+                () ->
+                    collectPageResources(
+                            "routes", pg -> api.all(pg, resultsPerPage, singletonList(orgFilter)))
+                        .parallelStream()
+                        .map(this::map)
+                        .filter(lb -> spaceGuids.contains(lb.getSpace().getId()))
+                        .collect(Collectors.toList()))
+            .get();
+      } else {
+        return forkJoinPool
+            .submit(
+                () ->
+                    collectPageResources("routes", pg -> api.all(pg, resultsPerPage, null))
+                        .parallelStream()
+                        .map(this::map)
+                        .collect(Collectors.toList()))
+            .get();
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -95,8 +95,8 @@ class CacheRepositoryTest {
 
     when(client.getApplications()).thenReturn(apps);
     when(client.getRoutes()).thenReturn(routes);
-    when(apps.all()).thenReturn(singletonList(app));
-    when(routes.all()).thenReturn(emptyList());
+    when(apps.all(emptyList())).thenReturn(singletonList(app));
+    when(routes.all(emptyList())).thenReturn(emptyList());
     when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptyList());
     when(providerCache.getAll(any(), anyCollectionOf(String.class))).thenReturn(emptyList());
     when(credentials.getName()).thenReturn("devaccount");
@@ -124,7 +124,8 @@ class CacheRepositoryTest {
         null,
         repo,
         null,
-        ForkJoinPool.commonPool());
+        ForkJoinPool.commonPool(),
+        emptyMap());
   }
 
   @Test

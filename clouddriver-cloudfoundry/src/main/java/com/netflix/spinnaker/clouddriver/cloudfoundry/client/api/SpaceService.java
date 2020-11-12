@@ -28,8 +28,8 @@ public interface SpaceService {
   @GET("/v3/spaces")
   Pagination<Space> all(
       @Query("page") Integer page,
-      @Query("names") List<String> names,
-      @Query("organization_guids") List<String> orgGuids);
+      @Query("names") String names,
+      @Query("organization_guids") String orgGuids);
 
   @GET("/v3/spaces/{guid}")
   Space findById(@Path("guid") String guid);

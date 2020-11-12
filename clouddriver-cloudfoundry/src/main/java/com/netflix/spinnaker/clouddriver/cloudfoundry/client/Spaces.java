@@ -23,14 +23,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Space;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -93,12 +90,7 @@ public class Spaces {
   @Nullable
   public CloudFoundrySpace findByName(String orgId, String spaceName)
       throws CloudFoundryApiException {
-    return collectPages(
-            "spaces",
-            page ->
-                api.all(
-                    page, Collections.singletonList(spaceName), Collections.singletonList(orgId)))
-        .stream()
+    return collectPages("spaces", page -> api.all(page, spaceName, orgId)).stream()
         .findAny()
         .map(this::map)
         .orElse(null);
@@ -133,13 +125,7 @@ public class Spaces {
                         "Unable to find organization: " + space.getOrganization().getName()));
 
     Optional<CloudFoundrySpace> spaceOptional =
-        collectPages(
-                "spaces",
-                page ->
-                    api.all(
-                        page,
-                        Collections.singletonList(space.getName()),
-                        Collections.singletonList(organization.getId())))
+        collectPages("spaces", page -> api.all(page, space.getName(), organization.getId()))
             .stream()
             .findAny()
             .map(
@@ -159,5 +145,30 @@ public class Spaces {
         });
 
     return spaceOptional;
+  }
+
+  public List<CloudFoundrySpace> findAllBySpaceNamesAndOrgNames(
+      List<String> spaceNames, List<String> orgNames) {
+    Map<String, CloudFoundryOrganization> allOrgsByGuids = new HashMap<>();
+    organizations.findAllByNames(orgNames).stream().forEach(o -> allOrgsByGuids.put(o.getId(), o));
+
+    String spaceNamesQ =
+        spaceNames == null || spaceNames.isEmpty() ? null : String.join(",", spaceNames);
+    String orgGuidsQ =
+        allOrgsByGuids.keySet().isEmpty() ? null : String.join(",", allOrgsByGuids.keySet());
+
+    return collectPages("spaces", page -> api.all(page, spaceNamesQ, orgGuidsQ)).stream()
+        .map(
+            s ->
+                CloudFoundrySpace.builder()
+                    .organization(
+                        allOrgsByGuids.getOrDefault(
+                            s.getRelationships().get("organization").getData().getGuid(), null))
+                    .name(s.getName())
+                    .id(s.getGuid())
+                    .build())
+        .filter(
+            s -> s.getOrganization() != null && orgNames.contains(s.getOrganization().getName()))
+        .collect(toList());
   }
 }
