@@ -23,11 +23,12 @@ import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
 
 // react components
+import { CancelModal } from 'core/cancelModal/CancelModal';
+import { ExecutionBreadcrumbs } from './ExecutionBreadcrumbs';
 import { ExecutionMarker } from './ExecutionMarker';
+import { ExecutionPermalink } from './ExecutionPermalink';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { Tooltip } from 'core/presentation/Tooltip';
-import { CancelModal } from 'core/cancelModal/CancelModal';
-import { ExecutionPermalink } from './ExecutionPermalink';
 
 import './execution.less';
 
@@ -326,6 +327,8 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       'show-durations': showDurations,
     });
 
+    const hasParentExecution = !!execution.trigger?.parentExecution;
+
     return (
       <div className={className} id={`execution-${execution.id}`} ref={this.wrapperRef}>
         <div className={`execution-overview group-by-${sortFilter.groupBy}`}>
@@ -335,6 +338,11 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
               {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
               {title || execution.name}
             </h4>
+          )}
+          {hasParentExecution && (
+            <div className="execution-breadcrumbs">
+              <ExecutionBreadcrumbs execution={execution} />
+            </div>
           )}
           <ExecutionStatus execution={execution} showingDetails={showingDetails} standalone={standalone} />
           <div className="execution-bar">

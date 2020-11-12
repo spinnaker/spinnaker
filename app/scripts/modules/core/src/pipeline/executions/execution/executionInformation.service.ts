@@ -34,6 +34,19 @@ export class ExecutionInformationService {
       });
   };
 
+  // Returns an array of parent executions starting with the one passed in.
+  public getAllParentExecutions = (execution: IExecution): IExecution[] => {
+    const executions: any[] = [];
+
+    executions.push(execution);
+
+    if (execution.trigger.parentExecution) {
+      executions.push(...this.getAllParentExecutions(execution.trigger.parentExecution));
+    }
+
+    return executions;
+  };
+
   public getPipelineConfig = async (application: string, pipelineConfigId: string): Promise<IPipeline> => {
     let pipelineConfig;
     if (this.calledPipelineConfigs.hasOwnProperty(application)) {
