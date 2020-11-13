@@ -64,7 +64,7 @@ public class HttpClientSdkConfiguration {
 
     List<OkHttp3ClientFactory> factories = new ArrayList<>(okHttpClientFactories);
     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor =
-        new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck);
+        new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties);
     factories.add(new DefaultOkHttp3ClientFactory(okHttp3MetricsInterceptor));
 
     OkHttp3ClientConfiguration config =

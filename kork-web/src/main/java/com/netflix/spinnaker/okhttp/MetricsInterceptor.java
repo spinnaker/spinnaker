@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.kork.common.Header;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Provider;
 import org.slf4j.Logger;
@@ -27,12 +29,14 @@ import org.springframework.util.StringUtils;
  */
 class MetricsInterceptor {
   private final Provider<Registry> registry;
-  private final boolean skipHeaderCheck;
+  private final OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties;
   private final Logger log;
 
-  MetricsInterceptor(Provider<Registry> registry, boolean skipHeaderCheck) {
+  MetricsInterceptor(
+      Provider<Registry> registry,
+      OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
     this.registry = registry;
-    this.skipHeaderCheck = skipHeaderCheck;
+    this.okHttpMetricsInterceptorProperties = okHttpMetricsInterceptorProperties;
     this.log = LoggerFactory.getLogger(getClass());
   }
 
@@ -56,20 +60,6 @@ class MetricsInterceptor {
     URL url = null;
 
     try {
-      String xSpinAnonymous = MDC.get(Header.XSpinnakerAnonymous);
-
-      if (xSpinAnonymous == null && !skipHeaderCheck) {
-        for (Header header : Header.values()) {
-          String headerValue =
-              (request != null)
-                  ? request.header(header.getHeader())
-                  : request3.header(header.getHeader());
-
-          if (header.isRequired() && StringUtils.isEmpty(headerValue)) {
-            missingHeaders.add(header.getHeader());
-          }
-        }
-      }
 
       Object response;
 
@@ -83,6 +73,19 @@ class MetricsInterceptor {
         url = request3.url().url();
         response = chain3.proceed(request3);
         statusCode = ((okhttp3.Response) response).code();
+      }
+
+      if (checkForHeaders(url.toString())) {
+        for (Header header : Header.values()) {
+          String headerValue =
+              (request != null)
+                  ? request.header(header.getHeader())
+                  : request3.header(header.getHeader());
+
+          if (header.isRequired() && StringUtils.isEmpty(headerValue)) {
+            missingHeaders.add(header.getHeader());
+          }
+        }
       }
 
       wasSuccessful = true;
@@ -112,6 +115,16 @@ class MetricsInterceptor {
           wasSuccessful,
           !missingAuthHeaders);
     }
+  }
+
+  private boolean checkForHeaders(String url) {
+    String xSpinAnonymous = MDC.get(Header.XSpinnakerAnonymous);
+    Pattern endPointPatternForHeaderCheck =
+        okHttpMetricsInterceptorProperties.getEndPointPatternForHeaderCheck();
+    return xSpinAnonymous == null
+        && !okHttpMetricsInterceptorProperties.isSkipHeaderCheck()
+        && (endPointPatternForHeaderCheck == null
+            || endPointPatternForHeaderCheck.matcher(url).matches());
   }
 
   private static void recordTimer(

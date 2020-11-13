@@ -15,12 +15,25 @@
  */
 package com.netflix.spinnaker.config;
 
+import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
 @ConfigurationProperties("ok-http-client.interceptor")
 public class OkHttpMetricsInterceptorProperties {
 
-  public boolean skipHeaderCheck = false;
+  /** If set to true, will skip header check completely. */
+  private boolean skipHeaderCheck = false;
+
+  /**
+   * If Skip header check is set to false and regex is set, header check will be skipped for all
+   * endpoints except for the ones that match the provided regex.
+   */
+  private String headerCheckPattern = null;
+
+  /** This is derived from the headerCheckPattern specified */
+  private Pattern endPointPatternForHeaderCheck;
 
   public boolean isSkipHeaderCheck() {
     return skipHeaderCheck;
@@ -28,5 +41,24 @@ public class OkHttpMetricsInterceptorProperties {
 
   public void setSkipHeaderCheck(boolean skipHeaderCheck) {
     this.skipHeaderCheck = skipHeaderCheck;
+  }
+
+  public String getHeaderCheckPattern() {
+    return headerCheckPattern;
+  }
+
+  public void setHeaderCheckPattern(String headerCheckPattern) {
+    this.headerCheckPattern = headerCheckPattern;
+  }
+
+  public Pattern getEndPointPatternForHeaderCheck() {
+    return endPointPatternForHeaderCheck;
+  }
+
+  @PostConstruct
+  private void initEndPointPatternForHeaderCheck() {
+    if (!StringUtils.isEmpty(this.headerCheckPattern)) {
+      endPointPatternForHeaderCheck = Pattern.compile(this.headerCheckPattern);
+    }
   }
 }

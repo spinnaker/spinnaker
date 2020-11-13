@@ -40,7 +40,7 @@ class OkHttpClientComponents {
     Provider<Registry> registry,
     OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
 
-    return new OkHttpMetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck)
+    return new OkHttpMetricsInterceptor(registry, okHttpMetricsInterceptorProperties)
   }
 
   @Bean
@@ -48,6 +48,6 @@ class OkHttpClientComponents {
     Provider<Registry> registry,
     OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
 
-    return new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck)
+    return new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties)
   }
 }
