@@ -75,6 +75,13 @@ class QueueAdminController(
     getZombieExecutionService().killZombie(getPipelineOrOrchestration(executionId))
   }
 
+  @PostMapping(value = ["/zombies/{application}:kill"])
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun killApplicationZombies(@PathVariable application: String,
+                             @QueryParam("minimumActivity") minimumActivity: Duration = Duration.ofMinutes(60)) {
+    getZombieExecutionService().killZombies(application, minimumActivity)
+  }
+
   /**
    * Posts StartWaitingExecutions message for the given pipeline message into the queue.
    * This is useful when doing DB migration. If an execution is running from an old DB

@@ -78,13 +78,25 @@ class ZombieExecutionService(
    * Find and kill all zombies.
    *
    * Since this pipeline can be highly disruptive to users in falsely identified zombies, the
-   * default [minimumActivity]cvalue of 60 minutes is the recommended low minimum setting. There
+   * default [minimumActivity] value of 60 minutes is the recommended low minimum setting. There
    * is no risk in letting a zombie "run", so be safe.
    */
   fun killZombies(minimumActivity: Duration = Duration.ofMinutes(60)) {
     findAllZombies(minimumActivity).forEach {
       killZombie(it)
     }
+  }
+
+  /**
+   * Find and kill all zombies for an application.  Find zombies based on the specified
+   * [minimumActivity] time.
+   */
+  fun killZombies(application: String, minimumActivity: Duration = Duration.ofMinutes(60)) {
+    findAllZombies(minimumActivity)
+      .filter { it.application ==  application }
+      .forEach { zombie ->
+        killZombie(zombie)
+      }
   }
 
   /**
