@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.sql.event
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -30,7 +31,6 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.context.ApplicationEventPublisher
-import org.testcontainers.shaded.com.fasterxml.jackson.annotation.JsonTypeName
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
