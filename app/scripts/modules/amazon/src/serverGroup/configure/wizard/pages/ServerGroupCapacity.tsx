@@ -9,7 +9,6 @@ import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.servic
 
 export interface IServerGroupCapacityProps {
   formik: FormikProps<IServerGroupCommand>;
-  hideTargetHealthyDeployPercentage?: boolean;
 }
 
 export class ServerGroupCapacity
@@ -21,20 +20,18 @@ export class ServerGroupCapacity
     if (values.capacity.min < 0 || values.capacity.max < 0 || values.capacity.desired < 0) {
       errors.capacity = 'Capacity min, max, and desired all have to be non-negative values.';
     }
-    if (!this.props.hideTargetHealthyDeployPercentage) {
-      const amazonValues = values as IAmazonServerGroupCommand;
-      if (
-        amazonValues.targetHealthyDeployPercentage === undefined ||
-        amazonValues.targetHealthyDeployPercentage === null
-      ) {
-        errors.targetHealthyDeployPercentage = 'Target Healthy Deploy Percentage required.';
-      }
+
+    const amazonValues = values as IAmazonServerGroupCommand;
+    if (
+      amazonValues.targetHealthyDeployPercentage === undefined ||
+      amazonValues.targetHealthyDeployPercentage === null
+    ) {
+      errors.targetHealthyDeployPercentage = 'Target Healthy Deploy Percentage required.';
     }
     return errors;
   }
 
   public render() {
-    const { hideTargetHealthyDeployPercentage } = this.props;
     const { setFieldValue, values } = this.props.formik;
 
     return (
@@ -44,26 +41,24 @@ export class ServerGroupCapacity
             <CapacitySelector command={values} setFieldValue={setFieldValue} MinMaxDesired={MinMaxDesired} />
           </div>
         </div>
-        {!hideTargetHealthyDeployPercentage && (
-          <div className="row">
-            <div className="col-md-12">
-              <div className="form-group form-inline" style={{ marginTop: '20px' }}>
-                <div className="col-md-12">
-                  Consider deployment successful when{' '}
-                  <Field
-                    type="number"
-                    name="targetHealthyDeployPercentage"
-                    min="0"
-                    max="100"
-                    className="form-control input-sm inline-number"
-                    required={true}
-                  />{' '}
-                  percent of instances are healthy.
-                </div>
+        <div className="row">
+          <div className="col-md-12">
+            <div className="form-group form-inline" style={{ marginTop: '20px' }}>
+              <div className="col-md-12">
+                Consider deployment successful when{' '}
+                <Field
+                  type="number"
+                  name="targetHealthyDeployPercentage"
+                  min="0"
+                  max="100"
+                  className="form-control input-sm inline-number"
+                  required={true}
+                />{' '}
+                percent of instances are healthy.
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   }

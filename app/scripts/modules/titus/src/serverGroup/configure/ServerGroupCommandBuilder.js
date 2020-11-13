@@ -48,6 +48,7 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
           max: 1,
           desired: 1,
         },
+        targetHealthyDeployPercentage: 100,
         env: {},
         labels: {},
         containerAttributes: {},
@@ -133,6 +134,7 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
           max: serverGroup.capacity.max,
           desired: serverGroup.capacity.desired,
         },
+        targetHealthyDeployPercentage: 100,
         cloudProvider: 'titus',
         selectedProvider: 'titus',
         viewState: {

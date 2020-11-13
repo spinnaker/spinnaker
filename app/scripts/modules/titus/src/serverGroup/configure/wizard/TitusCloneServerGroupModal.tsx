@@ -248,9 +248,7 @@ export class TitusCloneServerGroupModal extends React.Component<
               label="Capacity"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => (
-                <ServerGroupCapacity ref={innerRef} formik={formik} hideTargetHealthyDeployPercentage={true} />
-              )}
+              render={({ innerRef }) => <ServerGroupCapacity ref={innerRef} formik={formik} />}
             />
 
             <WizardPage
