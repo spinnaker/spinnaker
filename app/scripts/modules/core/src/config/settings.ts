@@ -72,6 +72,7 @@ export interface ISpinnakerSettings {
   bakeryDetailUrl: string;
   checkForUpdates: boolean;
   debugEnabled: boolean;
+  maxRunningExecutionsToRetrieve: number;
   defaultInstancePort: number;
   defaultProviders: string[];
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
