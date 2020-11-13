@@ -92,10 +92,10 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
                 .containsKey(DeliveryArtifact::deliveryConfigName.name)
             }
 
-            test("ignores versioningStrategy") {
+            test("ignores sortingStrategy") {
               expectThat(this)
                 .not()
-                .containsKey(DeliveryArtifact::versioningStrategy.name)
+                .containsKey(DeliveryArtifact::sortingStrategy.name)
             }
           }
         }

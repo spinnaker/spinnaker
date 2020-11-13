@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -45,25 +46,25 @@ class ImageService(
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   /**
-   * Finds the latest baked AMI(s) for [artifactName] in [account] and consolidates them into a
+   * Finds the latest baked AMI(s) for [artifact] in [account] and consolidates them into a
    * single [Image] model. This may represent multiple actual AMIs in the case that multiple AMIs
    * exist with the same [appVersion] and [baseImageVersion] in different regions.
    *
-   * If no images at all exist for [artifactName] this method returns `null`.
+   * If no images at all exist for [artifact] this method returns `null`.
    */
-  suspend fun getLatestImage(artifactName: String, account: String): Image? {
+  suspend fun getLatestImage(artifact: DeliveryArtifact, account: String): Image? {
     val candidateImages = cloudDriverService
-      .namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
+      .namedImages(DEFAULT_SERVICE_ACCOUNT, artifact.name, account)
       .filter { it.hasAppVersion && it.hasBaseImageVersion }
       .sortedWith(NamedImageComparator)
     val latest = candidateImages
       .firstOrNull {
         // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        it.appVersion.parseAppVersion().packageName == artifactName
+        it.appVersion.parseAppVersion().packageName == artifact.name
       }
 
     return if (latest == null) {
-      log.debug("No images found for {}", artifactName)
+      log.debug("No images found for {}", artifact)
       null
     } else {
       val regions = candidateImages
@@ -77,7 +78,7 @@ class ImageService(
         baseAmiVersion = latest.baseImageVersion,
         regions = regions
       ).also {
-        log.debug("Latest image for {} is {}", artifactName, it)
+        log.debug("Latest image for {} is {}", artifact, it)
       }
     }
   }
@@ -136,19 +137,6 @@ class ImageService(
         (image.amis.keys - region).forEach { otherRegion ->
           namedImageCache.put(NamedImageCacheKey(appVersion, account, otherRegion), completedFuture(image))
         }
-      }
-
-  suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
-    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
-      .filter { it.hasAppVersion }
-      .sortedWith(NamedImageComparator)
-      .filter {
-        // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-        it.appVersion.parseAppVersion().packageName == packageName
-      }
-      .firstOrNull { namedImage ->
-        val allTags = getAllTags(namedImage)
-        amiMatches(allTags, buildHost, buildName, buildNumber)
       }
 
   suspend fun findBaseAmiVersion(baseImageName: String): String {

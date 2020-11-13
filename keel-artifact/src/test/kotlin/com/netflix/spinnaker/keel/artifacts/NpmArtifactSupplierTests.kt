@@ -12,16 +12,18 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
-import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
+import com.netflix.spinnaker.keel.api.plugins.SupportedSortingStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -83,13 +85,22 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
     fixture { Fixture }
 
     context("NpmArtifactSupplier") {
+      val versionSlot = slot<String>()
       before {
         every {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
         } returns versions
         every {
-          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NPM_VERSION_COMPARATOR).first(), NPM)
-        } returns latestArtifact
+          artifactService.getArtifact(npmArtifact.name, capture(versionSlot), NPM)
+        } answers {
+          PublishedArtifact(
+            name = npmArtifact.name,
+            type = npmArtifact.type,
+            reference = npmArtifact.reference,
+            version = versionSlot.captured,
+            metadata = emptyMap()
+          )
+        }
         every {
           artifactMetadataService.getArtifactMetadata("7", "gc0c603")
         } returns artifactMetadata
@@ -101,10 +112,10 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         )
       }
 
-      test("supports NPM versioning strategy") {
-        expectThat(npmArtifactSupplier.supportedVersioningStrategy)
+      test("supports NPM version sorting strategy") {
+        expectThat(npmArtifactSupplier.supportedSortingStrategy)
           .isEqualTo(
-            SupportedVersioningStrategy(NPM, NpmVersioningStrategy::class.java)
+            SupportedSortingStrategy(NPM, NpmVersionSortingStrategy::class.java)
           )
       }
 
@@ -112,10 +123,12 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
         val result = runBlocking {
           npmArtifactSupplier.getLatestArtifact(deliveryConfig, npmArtifact)
         }
-        expectThat(result).isEqualTo(latestArtifact)
+        expectThat(result?.version).isNotNull().isEqualTo(latestArtifact.version)
         verify(exactly = 1) {
           artifactService.getVersions(npmArtifact.name, listOf(CANDIDATE.name), artifactType = NPM)
-          artifactService.getArtifact(npmArtifact.name, versions.sortedWith(NPM_VERSION_COMPARATOR).first(), NPM)
+        }
+        verify(exactly = versions.size) {
+          artifactService.getArtifact(npmArtifact.name, any(), NPM)
         }
       }
 
@@ -126,13 +139,13 @@ internal class NpmArtifactSupplierTests : JUnit5Minutests {
 
       test("returns git metadata based on Netflix semver convention") {
         val gitMeta = GitMetadata(commit = NetflixVersions.getCommitHash(latestArtifact)!!)
-        expectThat(npmArtifactSupplier.parseDefaultGitMetadata(latestArtifact, npmArtifact.versioningStrategy))
+        expectThat(npmArtifactSupplier.parseDefaultGitMetadata(latestArtifact, npmArtifact.sortingStrategy))
           .isEqualTo(gitMeta)
       }
 
       test("returns build metadata based on Netflix semver convention") {
         val buildMeta = BuildMetadata(id = NetflixVersions.getBuildNumber(latestArtifact)!!)
-        expectThat(npmArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, npmArtifact.versioningStrategy))
+        expectThat(npmArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, npmArtifact.sortingStrategy))
           .isEqualTo(buildMeta)
       }
 

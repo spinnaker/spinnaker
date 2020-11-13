@@ -25,11 +25,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.CapturingSlot
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import io.mockk.slot
-import java.util.UUID.randomUUID
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expect
@@ -43,6 +40,9 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
+import java.util.UUID.randomUUID
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class ImageHandlerTests : JUnit5Minutests {
 
@@ -83,6 +83,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       appVersion = "${artifact.name}-0.161.0-h63.24d0843",
       regions = artifact.vmOptions.regions
     )
+
+    val artifactVersion = artifact.toArtifactVersion(image.appVersion.removePrefix("${artifact.name}-"))
 
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
@@ -225,13 +227,13 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
           context("the desired version is known") {
             before {
-              every { repository.artifactVersions(artifact, any()) } returns listOf(image.appVersion)
+              every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)
             }
 
             context("an AMI for the desired version and base image already exists") {
               before {
                 every {
-                  imageService.getLatestImage(artifact.name, "test")
+                  imageService.getLatestImage(artifact, "test")
                 } returns image
 
                 runHandler(artifact)
@@ -245,7 +247,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             context("an AMI for the desired version does not exist") {
               before {
                 every {
-                  imageService.getLatestImage(artifact.name, "test")
+                  imageService.getLatestImage(artifact, "test")
                 } returns image.copy(
                   appVersion = "${artifact.name}-0.160.0-h62.24d0843"
                 )
@@ -330,7 +332,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             context("an AMI exists, but it has an older base AMI") {
               before {
                 every {
-                  imageService.getLatestImage(artifact.name, "test")
+                  imageService.getLatestImage(artifact, "test")
                 } returns image.copy(
                   baseAmiVersion = "nflx-base-5.377.0-h1229.3c8e02c"
                 )
@@ -357,7 +359,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             context("an AMI exists, but it does not have all the regions we need") {
               before {
                 every {
-                  imageService.getLatestImage(artifact.name, "test")
+                  imageService.getLatestImage(artifact, "test")
                 } returns image.copy(
                   regions = artifact.vmOptions.regions.take(1).toSet()
                 )
@@ -381,7 +383,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             context("an AMI exists, and it has more than just the regions we need") {
               before {
                 every {
-                  imageService.getLatestImage(artifact.name, "test")
+                  imageService.getLatestImage(artifact, "test")
                 } returns image.copy(
                   regions = artifact.vmOptions.regions + "ap-south-1"
                 )
@@ -409,10 +411,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
               baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
             } returns newerBaseAmiVersion
 
-            every { repository.artifactVersions(artifact, any()) } returns listOf(image.appVersion)
+            every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)
 
             every {
-              imageService.getLatestImage(artifact.name, "test")
+              imageService.getLatestImage(artifact, "test")
             } returns image
 
             every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false

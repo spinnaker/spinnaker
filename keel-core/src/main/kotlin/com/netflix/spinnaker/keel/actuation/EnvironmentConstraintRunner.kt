@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.anyStateful
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
@@ -43,14 +44,14 @@ class EnvironmentConstraintRunner(
   fun checkEnvironment(
     envContext: EnvironmentContext
   ) {
-    val pendingVersionsToCheck: MutableSet<String> =
-      when (envContext.environment.constraints.anyStateful) {
-        true ->
-          repository
-            .pendingConstraintVersionsFor(envContext.deliveryConfig.name, envContext.environment.name)
-            .filter { envContext.versions.contains(it) }
-            .toMutableSet()
-        false -> mutableSetOf()
+    val pendingVersionsToCheck: MutableList<PublishedArtifact> =
+      if (envContext.environment.constraints.anyStateful) {
+        repository
+          .getPendingArtifactVersions(envContext.deliveryConfig.name, envContext.environment.name, envContext.artifact)
+          .filter { envContext.versions.contains(it.version) }
+          .toMutableList()
+      } else {
+        mutableListOf()
       }
 
     checkConstraints(
@@ -76,7 +77,7 @@ class EnvironmentConstraintRunner(
    */
   private fun checkConstraints(
     envContext: EnvironmentContext,
-    pendingVersionsToCheck: MutableSet<String>
+    pendingVersionsToCheck: MutableList<PublishedArtifact>
   ) {
     var version: String? = null
     var versionIsPending = false
@@ -90,7 +91,7 @@ class EnvironmentConstraintRunner(
     version = envContext.versions
       .filterNot { vetoedVersions.contains(it) }
       .firstOrNull { v ->
-        pendingVersionsToCheck.remove(v) // remove to indicate we are rechecking this version
+        pendingVersionsToCheck.removeIf { it.version == v } // remove to indicate we are rechecking this version
         /**
          * Only check stateful evaluators if all stateless evaluators pass. We don't
          * want to request judgement or deploy a canary for artifacts that aren't
@@ -133,18 +134,18 @@ class EnvironmentConstraintRunner(
    */
   private fun handleOlderPendingVersions(
     envContext: EnvironmentContext,
-    pendingVersionsToCheck: MutableSet<String>
+    pendingVersionsToCheck: MutableList<PublishedArtifact>
   ) {
     log.debug("pendingVersionsToCheck: [$pendingVersionsToCheck] of artifact ${envContext.artifact.name} for environment ${envContext.environment.name} ")
     pendingVersionsToCheck
-      .sortedWith(envContext.artifact.versioningStrategy.comparator.reversed()) // oldest first
-      .forEach { version ->
+      .reversed() // oldest first
+      .forEach { artifactVersion ->
         val passesConstraints =
-          checkStatelessConstraints(envContext.artifact, envContext.deliveryConfig, version, envContext.environment) &&
-            checkStatefulConstraints(envContext.artifact, envContext.deliveryConfig, version, envContext.environment)
+          checkStatelessConstraints(envContext.artifact, envContext.deliveryConfig, artifactVersion.version, envContext.environment) &&
+            checkStatefulConstraints(envContext.artifact, envContext.deliveryConfig, artifactVersion.version, envContext.environment)
 
         if (passesConstraints) {
-          queueForApproval(envContext.deliveryConfig, envContext.artifact, version, envContext.environment.name)
+          queueForApproval(envContext.deliveryConfig, envContext.artifact, artifactVersion.version, envContext.environment.name)
         }
       }
   }
@@ -158,10 +159,7 @@ class EnvironmentConstraintRunner(
     val artifact: DeliveryArtifact,
     val versions: List<String>,
     val vetoedVersions: Set<String>
-  ) {
-    fun hasNoConstraints(): Boolean =
-      environment.constraints.isEmpty()
-  }
+  )
 
   /**
    * Queues a version for approval if it's not already approved in the environment.
@@ -177,7 +175,7 @@ class EnvironmentConstraintRunner(
       .latestVersionApprovedIn(deliveryConfig, artifact, targetEnvironment)
     if (latestVersion != version) {
       log.debug("Queueing version $version of ${artifact.type} artifact ${artifact.name} in environment $targetEnvironment for approval")
-      repository.queueAllConstraintsApproved(deliveryConfig.name, targetEnvironment, version, artifact.reference)
+      repository.queueArtifactVersionForApproval(deliveryConfig.name, targetEnvironment, artifact, version)
     } else {
       log.debug("Not queueing version $version of $artifact in environment $targetEnvironment for approval as it's already approved")
     }

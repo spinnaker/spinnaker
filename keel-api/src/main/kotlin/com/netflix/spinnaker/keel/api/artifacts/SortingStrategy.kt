@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.api.schema.Discriminator
 /**
  * Strategy for how to sort versions of artifacts.
  */
-interface VersioningStrategy {
+interface SortingStrategy {
   @Discriminator
   val type: String
-  val comparator: Comparator<String>
+  val comparator: Comparator<PublishedArtifact>
 }

@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -88,6 +89,9 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
     val artifactNotUsedEnvironment = environment.copy(resources = emptySet())
     val artifactNotUsedConfig = deliveryConfig.copy(environments = setOf(artifactNotUsedEnvironment))
+
+    fun Collection<String>.toArtifactVersions() =
+      map { PublishedArtifact(dockerArtifact.name, dockerArtifact.type, it) }
   }
 
   fun tests() = rootContext<Fixture> {
@@ -122,7 +126,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       before {
         every {
           repository.artifactVersions(dockerArtifact)
-        } returns listOf("2.0", "1.2", "1.1", "1.0")
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
           repository.pinnedEnvironments(any())
@@ -136,8 +140,8 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       context("a single new version is queued for approval") {
         before {
           every {
-            repository.getQueuedConstraintApprovals(deliveryConfig.name, environment.name, any())
-          } returns setOf("2.0")
+            repository.getArtifactVersionsQueuedForApproval(deliveryConfig.name, environment.name, any())
+          } returns setOf("2.0").toArtifactVersions()
         }
 
         context("the version is not already approved for the environment") {
@@ -263,7 +267,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
           test("stateless constraints for queued versions aren't rechecked") {
             verify(exactly = 0) {
-              repository.getQueuedConstraintApprovals(any(), any(), any())
+              repository.getArtifactVersionsQueuedForApproval(any(), any(), any())
             }
           }
         }
@@ -272,8 +276,8 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       context("there are several versions queued for approval") {
         before {
           every {
-            repository.getQueuedConstraintApprovals(deliveryConfig.name, environment.name, dockerArtifact.reference)
-          } returns setOf("2.0", "1.2", "1.1")
+            repository.getArtifactVersionsQueuedForApproval(deliveryConfig.name, environment.name, dockerArtifact)
+          } returns setOf("2.0", "1.2", "1.1").toArtifactVersions()
         }
 
         context("all versions still pass stateless constraints") {
@@ -310,7 +314,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
         every {
           repository.artifactVersions(dockerArtifact)
-        } returns listOf("2.0", "1.2", "1.1", "1.0")
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
           environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, multiEnvConfig, "2.0", any())
@@ -321,8 +325,8 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         } returns true
 
         every {
-          repository.getQueuedConstraintApprovals(any(), any(), any())
-        } returns setOf("2.0")
+          repository.getArtifactVersionsQueuedForApproval(any(), any(), any())
+        } returns setOf("2.0").toArtifactVersions()
       }
 
       context("there are no pins") {
@@ -382,19 +386,19 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       before {
         every {
           repository.artifactVersions(dockerArtifact)
-        } returns listOf("2.0")
+        } returns listOf("2.0").toArtifactVersions()
 
         every {
           repository.artifactVersions(debianArtifact)
-        } returns listOf("3.0")
+        } returns listOf("3.0").toArtifactVersions()
 
         every {
-          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact.reference)
-        } returns setOf("2.0")
+          repository.getArtifactVersionsQueuedForApproval(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact)
+        } returns setOf("2.0").toArtifactVersions()
 
         every {
-          repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, debianArtifact.reference)
-        } returns setOf("3.0")
+          repository.getArtifactVersionsQueuedForApproval(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, debianArtifact)
+        } returns setOf("3.0").toArtifactVersions()
 
         every {
           environmentConstraintRunner.checkStatelessConstraints(dockerArtifact, deliveryConfigWith2ArtifactTypes, "2.0", multiArtifactEnvironment)
@@ -443,10 +447,10 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         before {
           every {
             repository.artifactVersions(dockerArtifact)
-          } returns listOf("2.0", "1.1")
+          } returns listOf("2.0", "1.1").toArtifactVersions()
           every {
-            repository.getQueuedConstraintApprovals(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact.reference)
-          } returns setOf("2.0", "1.1")
+            repository.getArtifactVersionsQueuedForApproval(deliveryConfigWith2ArtifactTypes.name, multiArtifactEnvironment.name, dockerArtifact)
+          } returns setOf("2.0", "1.1").toArtifactVersions()
           every {
             repository.approveVersionFor(deliveryConfigWith2ArtifactTypes, dockerArtifact, "1.1", multiArtifactEnvironment.name)
           } returns true
@@ -480,7 +484,7 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
       before {
         every {
           repository.artifactVersions(dockerArtifact)
-        } returns listOf("2.0", "1.2", "1.1", "1.0")
+        } returns listOf("2.0", "1.2", "1.1", "1.0").toArtifactVersions()
 
         every {
           repository.pinnedEnvironments(any())

@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
+import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 
 /**
  * A [DeliveryArtifact] that describes Docker images.
@@ -18,7 +18,6 @@ data class DockerArtifact(
   override val reference: String = name,
   val tagVersionStrategy: TagVersionStrategy = SEMVER_TAG,
   val captureGroupRegex: String? = null,
-  override val versioningStrategy: VersioningStrategy = DockerVersioningStrategy(tagVersionStrategy, captureGroupRegex),
   override val from: ArtifactOriginFilterSpec? = null
 ) : DeliveryArtifact() {
   init {
@@ -37,5 +36,13 @@ data class DockerArtifact(
 
   @JsonIgnore
   override val statuses: Set<ArtifactStatus> = emptySet()
+
+  override val sortingStrategy: SortingStrategy
+    get() = if (filteredByBranch || filteredByPullRequest) {
+      CreatedAtSortingStrategy
+    } else {
+      DockerVersionSortingStrategy(tagVersionStrategy, captureGroupRegex)
+    }
+
   override fun toString(): String = super.toString()
 }

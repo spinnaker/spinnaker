@@ -198,24 +198,24 @@ class ApplicationService(
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
-      val artifactVersionSummaries = repository.artifactVersions(artifact, limit).map { version ->
+      val artifactVersionSummaries = repository.artifactVersions(artifact, limit).map { artifactVersion ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         environmentSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
-          environmentSummary.getArtifactPromotionStatus(artifact, version)
+          environmentSummary.getArtifactPromotionStatus(artifact, artifactVersion.version)
             ?.let { status ->
-              buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, version, status)
+              buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, artifactVersion.version, status)
                 ?.also {
                   artifactSummariesInEnvironments.add(
-                    it.addStatefulConstraintSummaries(deliveryConfig, environment, version)
-                      .addStatelessConstraintSummaries(deliveryConfig, environment, version, artifact)
+                    it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
+                      .addStatelessConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
                   )
                 }
             }
         }
 
-        buildArtifactVersionSummary(artifact, version, artifactSummariesInEnvironments)
+        buildArtifactVersionSummary(artifact, artifactVersion.version, artifactSummariesInEnvironments)
       }
       ArtifactSummary(
         name = artifact.name,
@@ -368,9 +368,9 @@ class ApplicationService(
 
       // first attempt to use the artifact metadata fetched from the DB, then fallback to the default if not found
       build = artifactInstance.buildMetadata
-        ?: artifactSupplier.parseDefaultBuildMetadata(artifactInstance, artifact.versioningStrategy),
+        ?: artifactSupplier.parseDefaultBuildMetadata(artifactInstance, artifact.sortingStrategy),
       git = artifactInstance.gitMetadata
-        ?: artifactSupplier.parseDefaultGitMetadata(artifactInstance, artifact.versioningStrategy)
+        ?: artifactSupplier.parseDefaultGitMetadata(artifactInstance, artifact.sortingStrategy)
     )
   }
 
@@ -385,7 +385,7 @@ class ApplicationService(
     version: String
   ): PublishedArtifact? {
     val releaseStatus = repository.getReleaseStatus(artifact, version)
-    return repository.getArtifactInstance(artifact.name, artifact.type, version, releaseStatus)
+    return repository.getArtifactVersion(artifact, version, releaseStatus)
   }
 
   // Generating a SCM diff link between source and target versions (the order does matter!)

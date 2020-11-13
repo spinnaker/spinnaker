@@ -47,52 +47,5 @@ internal class ArtifactControllerTests : JUnit5Minutests {
     after {
       clearAllMocks()
     }
-
-    test("can get the versions of an artifact") {
-      val artifact = DebianArtifact(
-        name = "fnord",
-        deliveryConfigName = "myconfig",
-        vmOptions = VirtualMachineOptions(
-          baseOs = "bionic",
-          regions = setOf("us-west-2")
-        )
-      )
-
-      every { repository.artifactVersions(artifact.name, artifact.type) } returns listOf(
-        "fnord-2.1.0-18ed1dc",
-        "fnord-2.0.0-608bd90",
-        "fnord-1.0.0-41595c4"
-      )
-
-      val request = get("/artifacts/${artifact.name}/${artifact.type}")
-        .accept(APPLICATION_YAML)
-      mvc
-        .perform(request)
-        .andExpect(status().isOk)
-        .andExpect(
-          content().string(
-            """---
-            |- "fnord-2.1.0-18ed1dc"
-            |- "fnord-2.0.0-608bd90"
-            |- "fnord-1.0.0-41595c4"
-          """.trimMargin()
-          )
-        )
-    }
-
-    test("versions empty for an artifact we're not tracking") {
-      every { repository.artifactVersions(any(), DEBIAN) } returns emptyList()
-
-      val request = get("/artifacts/unregistered/deb")
-        .accept(APPLICATION_YAML)
-      mvc
-        .perform(request)
-        .andExpect(status().isOk)
-        .andExpect(
-          content().string(
-            """--- []""".trimMargin()
-          )
-        )
-    }
   }
 }

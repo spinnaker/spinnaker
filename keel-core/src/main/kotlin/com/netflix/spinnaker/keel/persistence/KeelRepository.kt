@@ -106,9 +106,9 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String)
 
-  fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
+  fun queueArtifactVersionForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String)
 
-  fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
+  fun deleteArtifactVersionQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String)
 
   fun deliveryConfigsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig>
 
@@ -146,9 +146,9 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getAllArtifacts(type: ArtifactType? = null): List<DeliveryArtifact>
 
-  fun storeArtifactInstance(artifact: PublishedArtifact): Boolean
+  fun storeArtifactVersion(artifactVersion: PublishedArtifact): Boolean
 
-  fun getArtifactInstance(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): PublishedArtifact?
+  fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact?
 
   fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata)
 

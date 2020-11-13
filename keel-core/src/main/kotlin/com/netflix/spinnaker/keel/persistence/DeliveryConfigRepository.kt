@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
@@ -140,22 +142,22 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   /**
    * Fetches all versions have a pending stateful constraint in an environment
    */
-  fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String>
+  fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   /**
    * Gets all versions queued for approval for the environment
    */
-  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String>
+  fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   /**
    * Adds an artifact version to the queued table to indicate all constraints pass for that version
    */
-  fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
+  fun queueArtifactVersionForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String)
 
   /**
    * Removes a queued version from the queued table
    */
-  fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
+  fun deleteArtifactVersionQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String)
 
   fun getApplicationSummaries(): Collection<ApplicationSummary>
 

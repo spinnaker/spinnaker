@@ -63,7 +63,7 @@ class ManualJudgementNotifier(
     val deliveryConfig = repository.getDeliveryConfig(currentState.deliveryConfigName)
     val artifactUrl = "$spinnakerBaseUrl/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
     val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
-    val gitMetadata = repository.getArtifactInstance(artifact.name, artifact.type, currentState.artifactVersion, null)
+    val gitMetadata = repository.getArtifactVersion(artifact, currentState.artifactVersion, null)
       ?.gitMetadata
 
     var details = ""

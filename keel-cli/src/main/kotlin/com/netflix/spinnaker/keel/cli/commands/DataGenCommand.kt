@@ -68,7 +68,7 @@ class DataGenCommand(
 
     (1..artifactCount).forEach { index ->
       println("Writing artifact ${TEST_ARTIFACT.name} version 1.0.$index")
-      repository.storeArtifactInstance(
+      repository.storeArtifactVersion(
         PublishedArtifact(
           name = TEST_ARTIFACT.name,
           type = TEST_ARTIFACT.type,

@@ -91,24 +91,22 @@ class AdminService(
     // 2. for each artifact, fetch all versions
     deliveryArtifacts.forEach { artifact ->
       val versions = repository.artifactVersions(artifact, 10)
-      versions.forEach { version ->
+      versions.forEach { artifactVersion ->
         sleep(5000) // sleep a little in-between versions to cut the instance where this runs some slack
-        log.debug("Evaluating $artifact version $version as candidate to back-fill metadata")
-        val status = repository.getReleaseStatus(artifact, version)
-        val artifactVersion = repository.getArtifactInstance(artifact.name, type, version, status)
+        log.debug("Evaluating $artifact version ${artifactVersion.version} as candidate to back-fill metadata")
         // don't update if metadata is already exists
-        if (artifactVersion != null && (artifactVersion.gitMetadata == null || artifactVersion.buildMetadata == null)) {
+        if (artifactVersion.gitMetadata == null || artifactVersion.buildMetadata == null) {
           runBlocking {
             try {
               // 3. for each version, get and store artifact metadata
-              log.debug("Fetching artifact metadata for $artifact version $version")
+              log.debug("Fetching artifact metadata for $artifact version $artifactVersion")
               val artifactMetadata = artifactSupplier.getArtifactMetadata(artifactVersion)
               if (artifactMetadata != null) {
-                log.debug("Storing updated metadata for $artifact version $version: $artifactMetadata")
+                log.debug("Storing updated metadata for $artifact version $artifactVersion: $artifactMetadata")
                 repository.updateArtifactMetadata(artifactVersion, artifactMetadata)
               }
             } catch (ex: Exception) {
-              log.error("error trying to get artifact by version or its metadata for artifact ${artifact.name}, and version $version", ex)
+              log.error("error trying to get artifact by version or its metadata for artifact ${artifact.name}, and version $artifactVersion", ex)
             }
           }
         }

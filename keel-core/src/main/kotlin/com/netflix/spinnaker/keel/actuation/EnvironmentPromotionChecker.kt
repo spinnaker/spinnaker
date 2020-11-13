@@ -54,7 +54,7 @@ class EnvironmentPromotionChecker(
                   deliveryConfig = deliveryConfig,
                   environment = environment,
                   artifact = artifact,
-                  versions = versions,
+                  versions = versions.map { it.version },
                   vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions)
                     ?: emptySet()
                 )
@@ -69,40 +69,42 @@ class EnvironmentPromotionChecker(
                   constraintRunner.checkEnvironment(envContext)
 
                   // everything the constraint runner has already approved
-                  val queuedForApproval: MutableSet<String> = repository
-                    .getQueuedConstraintApprovals(deliveryConfig.name, environment.name, artifact.reference)
-                    .toMutableSet()
+                  val queuedForApproval = repository
+                    .getArtifactVersionsQueuedForApproval(deliveryConfig.name, environment.name, artifact)
+                    .toMutableList()
 
                   /**
                    * Approve all constraints starting with oldest first so that the ordering is
                    * maintained.
                    */
                   queuedForApproval
-                    .sortedWith(artifact.versioningStrategy.comparator.reversed())
-                    .forEach { v ->
+                    .reversed()
+                    .forEach { artifactVersion ->
                       /**
                        * We don't need to re-invoke stateful constraint evaluators for these, but we still
                        * check stateless constraints to avoid approval outside of allowed-times.
                        */
                       log.debug(
-                        "Version $v of artifact ${artifact.name} is queued for approval, " +
+                        "Version ${artifactVersion.version} of artifact ${artifact.name} is queued for approval, " +
                           "and being evaluated for stateless constraints in environment ${environment.name}"
                       )
-                      if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
-                        approveVersion(deliveryConfig, artifact, v, environment.name)
-                        repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v, artifact.reference)
+                      if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, artifactVersion.version, environment)) {
+                        approveVersion(deliveryConfig, artifact, artifactVersion.version, environment.name)
+                        repository.deleteArtifactVersionQueuedForApproval(
+                          deliveryConfig.name, environment.name, artifact, artifactVersion.version)
+                      } else {
+                        log.debug("Version ${artifactVersion.version} of $artifact does not currently pass stateless constraints")
+                        queuedForApproval.remove(artifactVersion)
                       }
                     }
 
-                  val versionSelected = queuedForApproval
-                    .sortedWith(artifact.versioningStrategy.comparator.reversed())
-                    .lastOrNull()
+                  val versionSelected = queuedForApproval.firstOrNull()
                   if (versionSelected == null) {
-                    log.warn("No version of {} passes constraints for environment {}", artifact.name, environment.name)
+                    log.warn("No version of {} passes constraints for environment {}", artifact, environment.name)
                   }
                 }
               } else {
-                log.debug("Skipping checks for {} as it is not used in environment {}", artifact.name, environment.name)
+                log.debug("Skipping checks for {} as it is not used in environment {}", artifact, environment.name)
               }
             }
           }

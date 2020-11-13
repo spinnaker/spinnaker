@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
+import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import org.slf4j.LoggerFactory
 
-abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy>(
+abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy>(
   open val artifactMetadataService: ArtifactMetadataService
 ) : ArtifactSupplier<A, V> {
   override suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata? {
@@ -33,5 +33,5 @@ abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy
     }
   }
 
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+  protected val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

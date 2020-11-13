@@ -77,7 +77,7 @@ class ImageHandler(
   }
 
   private suspend fun DeliveryArtifact.findLatestAmi() =
-    imageService.getLatestImage(name, "test")
+    imageService.getLatestImage(this, "test")
 
   private fun DebianArtifact.findLatestBaseAmiVersion() =
     baseImageCache.getBaseAmiVersion(vmOptions.baseOs, vmOptions.baseLabel)
@@ -91,8 +91,8 @@ class ImageHandler(
         .artifactVersions(this, 1)
         .firstOrNull()
       if (knownVersion != null) {
-        log.debug("Latest known version of $name = $knownVersion")
-        return knownVersion
+        log.debug("Latest known version of $name = ${knownVersion.version}")
+        return knownVersion.version
       }
     } catch (e: NoSuchArtifactException) {
       log.debug("Latest known version of $name = null")

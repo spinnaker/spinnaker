@@ -60,16 +60,6 @@ class ArtifactController(
     eventPublisher.publishEvent(ArtifactSyncEvent(true))
   }
 
-  @GetMapping(
-    path = ["/{name}/{type}"],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  fun listVersions(
-    @PathVariable name: String,
-    @PathVariable type: ArtifactType
-  ): List<String> =
-    repository.artifactVersions(name, type)
-
   // This endpoint is calling Igor (and then the CI provider) under the covers.
   @GetMapping(
     path = ["/build/{buildNumber}/commit/{commitId}"],

@@ -32,29 +32,29 @@ class ComparatorSortingTests : JUnit5Minutests {
 
     context("increasing version") {
       test("descending by default") {
-        expectThat(incrTags.sortedWith(DockerVersioningStrategy(INCREASING_TAG).comparator).first()).isEqualTo("3")
+        expectThat(incrTags.sortedWith(TagComparator(INCREASING_TAG)).first()).isEqualTo("3")
       }
     }
 
     context("semver version") {
       test("descending by default") {
-        expectThat(semverTags.sortedWith(DockerVersioningStrategy(SEMVER_TAG).comparator).first()).isEqualTo("v0.10.3")
+        expectThat(semverTags.sortedWith(TagComparator(SEMVER_TAG)).first()).isEqualTo("v0.10.3")
       }
     }
 
     context("branchjobcommit version") {
       test("descending by default") {
-        expectThat(branchJobCommitTags.sortedWith(DockerVersioningStrategy(BRANCH_JOB_COMMIT_BY_JOB).comparator).first()).isEqualTo("master-h3.blah")
+        expectThat(branchJobCommitTags.sortedWith(TagComparator(BRANCH_JOB_COMMIT_BY_JOB)).first()).isEqualTo("master-h3.blah")
       }
     }
 
     context("semver job commit version") {
       test("descending by default, by job") {
-        expectThat(semverJobCommitTags.sortedWith(DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_JOB).comparator).first()).isEqualTo("v1.12.3-rc.1-h1192.f876e5a")
+        expectThat(semverJobCommitTags.sortedWith(TagComparator(SEMVER_JOB_COMMIT_BY_JOB)).first()).isEqualTo("v1.12.3-rc.1-h1192.f876e5a")
       }
 
       test("descending by default, by version") {
-        expectThat(semverJobCommitTags.sortedWith(DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER).comparator).first()).isEqualTo("v1.12.3-rc.1-h1192.f876e5a")
+        expectThat(semverJobCommitTags.sortedWith(TagComparator(SEMVER_JOB_COMMIT_BY_SEMVER)).first()).isEqualTo("v1.12.3-rc.1-h1192.f876e5a")
       }
     }
 

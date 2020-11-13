@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 
 /**
@@ -30,9 +31,9 @@ interface KeelReadOnlyRepository {
 
   fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState>
 
-  fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String>
+  fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
-  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String>
+  fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact>
 
   fun getResource(id: String): Resource<ResourceSpec>
 
@@ -52,9 +53,7 @@ interface KeelReadOnlyRepository {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
-  fun artifactVersions(artifact: DeliveryArtifact, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<String>
-
-  fun artifactVersions(name: String, type: ArtifactType): List<String>
+  fun artifactVersions(artifact: DeliveryArtifact, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<PublishedArtifact>
 
   fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String?
 

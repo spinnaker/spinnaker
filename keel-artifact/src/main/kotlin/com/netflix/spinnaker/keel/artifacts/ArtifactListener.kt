@@ -60,7 +60,7 @@ class ArtifactListener(
             log.info("Registering version {} (status={}) of {} artifact {}",
               artifact.version, artifact.status, artifact.type, artifact.name)
 
-            repository.storeArtifactInstance(enrichedArtifact)
+            repository.storeArtifactVersion(enrichedArtifact)
               .also { wasAdded ->
                 if (wasAdded) {
                   publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
@@ -93,7 +93,7 @@ class ArtifactListener(
       if (latestArtifact != null) {
         log.debug("Storing latest version {} (status={}) for registered artifact {}", latestArtifact.version, latestArtifact.status, artifact)
         val enrichedArtifact = artifactSupplier.addMetadata(latestArtifact.normalized())
-        repository.storeArtifactInstance(enrichedArtifact)
+        repository.storeArtifactVersion(enrichedArtifact)
       } else {
         log.warn("No artifact versions found for ${artifact.type}:${artifact.name}")
       }
@@ -129,8 +129,8 @@ class ArtifactListener(
             if (latestArtifact != null) {
               val hasNew = when {
                 lastRecordedVersion == null -> true
-                latestArtifact.version != lastRecordedVersion -> {
-                  artifact.versioningStrategy.comparator.compare(lastRecordedVersion, latestArtifact.version) > 0
+                latestArtifact.version != lastRecordedVersion.version -> {
+                  artifact.sortingStrategy.comparator.compare(lastRecordedVersion, latestArtifact) > 0
                 }
                 else -> false
               }
@@ -138,7 +138,7 @@ class ArtifactListener(
               if (hasNew) {
                 log.debug("$artifact has a missing version ${latestArtifact.version}, persisting.")
                 val enrichedArtifact = artifactSupplier.addMetadata(latestArtifact.normalized())
-                repository.storeArtifactInstance(enrichedArtifact)
+                repository.storeArtifactVersion(enrichedArtifact)
               } else {
                 log.debug("No new versions to persist for $artifact")
               }
@@ -149,7 +149,7 @@ class ArtifactListener(
     }
   }
 
-  private fun getLatestStoredVersion(artifact: DeliveryArtifact): String? =
+  private fun getLatestStoredVersion(artifact: DeliveryArtifact): PublishedArtifact? =
     repository.artifactVersions(artifact, 1).firstOrNull()
 
   /**

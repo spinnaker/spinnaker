@@ -213,17 +213,17 @@ class CombinedRepository(
   override fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState> =
     deliveryConfigRepository.constraintStateFor(deliveryConfigName, environmentName, artifactVersion)
 
-  override fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String> =
-    deliveryConfigRepository.pendingConstraintVersionsFor(deliveryConfigName, environmentName)
+  override fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
+    deliveryConfigRepository.getPendingArtifactVersions(deliveryConfigName, environmentName, artifact)
 
-  override fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String> =
-    deliveryConfigRepository.getQueuedConstraintApprovals(deliveryConfigName, environmentName, artifactReference)
+  override fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> =
+    deliveryConfigRepository.getArtifactVersionsQueuedForApproval(deliveryConfigName, environmentName, artifact)
 
-  override fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?) =
-    deliveryConfigRepository.queueAllConstraintsApproved(deliveryConfigName, environmentName, artifactVersion, artifactReference)
+  override fun queueArtifactVersionForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String) =
+    deliveryConfigRepository.queueArtifactVersionForApproval(deliveryConfigName, environmentName, artifact, artifactVersion)
 
-  override fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?) =
-    deliveryConfigRepository.deleteQueuedConstraintApproval(deliveryConfigName, environmentName, artifactVersion, artifactReference)
+  override fun deleteArtifactVersionQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact, artifactVersion: String) =
+    deliveryConfigRepository.deleteArtifactVersionQueuedForApproval(deliveryConfigName, environmentName, artifact, artifactVersion)
 
   override fun getConstraintStateById(uid: UID): ConstraintState? =
     deliveryConfigRepository.getConstraintStateById(uid)
@@ -320,11 +320,11 @@ class CombinedRepository(
   override fun getAllArtifacts(type: ArtifactType?): List<DeliveryArtifact> =
     artifactRepository.getAll(type)
 
-  override fun storeArtifactInstance(artifact: PublishedArtifact): Boolean =
-    artifactRepository.storeArtifactInstance(artifact)
+  override fun storeArtifactVersion(artifactVersion: PublishedArtifact): Boolean =
+    artifactRepository.storeArtifactVersion(artifactVersion)
 
-  override fun getArtifactInstance(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): PublishedArtifact? =
-    artifactRepository.getArtifactInstance(name, type, version, status)
+  override fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact? =
+    artifactRepository.getArtifactVersion(artifact, version, status)
 
   override fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata) =
     artifactRepository.updateArtifactMetadata(artifact, artifactMetadata)
@@ -332,11 +332,8 @@ class CombinedRepository(
   override fun deleteArtifact(artifact: DeliveryArtifact) =
     artifactRepository.delete(artifact)
 
-  override fun artifactVersions(artifact: DeliveryArtifact, limit: Int): List<String> =
+  override fun artifactVersions(artifact: DeliveryArtifact, limit: Int): List<PublishedArtifact> =
     artifactRepository.versions(artifact, limit)
-
-  override fun artifactVersions(name: String, type: ArtifactType): List<String> =
-    artifactRepository.versions(name, type)
 
   override fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String? =
     artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, targetEnvironment)

@@ -62,7 +62,7 @@ data class ArtifactOriginFilterSpec(
 abstract class DeliveryArtifact {
   abstract val name: String
   @Discriminator abstract val type: ArtifactType
-  abstract val versioningStrategy: VersioningStrategy
+  abstract val sortingStrategy: SortingStrategy
   /** A friendly reference to use within a delivery config. */
   abstract val reference: String
   /** The delivery config this artifact is a part of. */
@@ -81,7 +81,7 @@ abstract class DeliveryArtifact {
   val filteredByReleaseStatus: Boolean
     get() = statuses.isNotEmpty()
 
-  fun toArtifactInstance(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null) =
+  fun toArtifactVersion(version: String, status: ArtifactStatus? = null, createdAt: Instant? = null) =
     PublishedArtifact(
       name = name,
       type = type,

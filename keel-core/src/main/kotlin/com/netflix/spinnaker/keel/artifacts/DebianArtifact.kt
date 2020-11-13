@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
+import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 
 /**
@@ -16,9 +16,16 @@ data class DebianArtifact(
   override val reference: String = name,
   val vmOptions: VirtualMachineOptions,
   override val statuses: Set<ArtifactStatus> = emptySet(),
-  override val versioningStrategy: VersioningStrategy = DebianVersioningStrategy,
   override val from: ArtifactOriginFilterSpec? = null
 ) : DeliveryArtifact() {
   override val type = DEBIAN
+
+  override val sortingStrategy: SortingStrategy
+    get() = if (filteredByBranch || filteredByPullRequest) {
+      CreatedAtSortingStrategy
+    } else {
+      DebianVersionSortingStrategy
+    }
+
   override fun toString(): String = super.toString()
 }

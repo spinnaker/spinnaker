@@ -91,9 +91,9 @@ class KeelConfigurationFinalizer(
       }
 
     artifactSuppliers
-      .map { it.supportedVersioningStrategy }
+      .map { it.supportedSortingStrategy }
       .forEach { (name, strategyClass) ->
-        log.info("Registering VersioningStrategy sub-type {}: {}", name, strategyClass.simpleName)
+        log.info("Registering SortingStrategy sub-type {}: {}", name, strategyClass.simpleName)
         extensionRegistry.register(strategyClass, name)
       }
   }

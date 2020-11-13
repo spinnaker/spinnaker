@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.rocket.semver.shaded.DebianVersionComparator
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.SortType.INCREASING
 import com.netflix.spinnaker.keel.api.artifacts.SortType.SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
@@ -37,9 +38,9 @@ class TagComparator(
   private val semverComparator = NullSafeComparator(SEMVER_COMPARATOR, false)
   private val increasingComparator = NullSafeComparator(INCREASING_COMPARATOR, false)
 
-  override fun compare(o1: String, o2: String): Int {
-    val i1 = parseWithRegex(o1, strategy, customRegex)
-    val i2 = parseWithRegex(o2, strategy, customRegex)
+  override fun compare(v1: String, v2: String): Int {
+    val i1 = parseWithRegex(v1, strategy, customRegex)
+    val i2 = parseWithRegex(v2, strategy, customRegex)
     return when (strategy.sortType) {
       SEMVER -> semverComparator.compare(parseSemver(i1), parseSemver(i2))
       INCREASING -> increasingComparator.compare(i1?.toLongOrNull(), i2?.toLongOrNull())
@@ -76,8 +77,8 @@ val INCREASING_COMPARATOR: Comparator<Long> = Comparator { a, b ->
 
 // descending by default
 val DEBIAN_VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
-  override fun compare(s1: String, s2: String) =
-    debComparator.compare(s2.toVersion(), s1.toVersion())
+  override fun compare(v1: String, v2: String) =
+    debComparator.compare(v2.toVersion(), v1.toVersion())
 
   private val debComparator = NullSafeComparator(DebianVersionComparator(), true)
 
@@ -96,13 +97,13 @@ val DEBIAN_VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> 
 
 // descending by default
 val NPM_VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
-  override fun compare(s1: String, s2: String) =
-    semverComparator.compare(s1.toVersion(), s2.toVersion())
+  override fun compare(v1: String, v2: String) =
+    semverComparator.compare(v1.toSemVer(), v2.toSemVer())
 
   // SEMVER_COMPARATOR is already descending by default
   private val semverComparator = NullSafeComparator(SEMVER_COMPARATOR, true)
 
-  private fun String.toVersion(): SemVer? = run {
+  private fun String.toSemVer(): SemVer? = run {
     val version = NetflixVersions.extractVersion(this)
     if (version == null) {
       log.warn("Unparseable NPM artifact version \"{}\" encountered. Sorting results will be unpredictable.", this)

@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
@@ -47,7 +49,8 @@ class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
     val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY)
-
+    val artifact = DebianArtifact("my-package", vmOptions = VirtualMachineOptions(baseOs = "ignored", regions = emptySet()))
+    
     val image1 = NamedImage(
       imageName = "my-package-0.0.1_rc.97-h98",
       attributes = mapOf(
@@ -230,7 +233,7 @@ class ImageServiceTests : JUnit5Minutests {
       test("latest image returns actual image") {
         runBlocking {
           val image = subject.getLatestImage(
-            artifactName = "my-package",
+            artifact = artifact,
             account = "test"
           )
           expectThat(image)
@@ -255,7 +258,7 @@ class ImageServiceTests : JUnit5Minutests {
       test("get latest named image returns actual latest image") {
         runBlocking {
           val image = subject.getLatestImage(
-            artifactName = "my-package",
+            artifact = artifact,
             account = "test"
           )
           expectThat(image)
@@ -281,7 +284,7 @@ class ImageServiceTests : JUnit5Minutests {
       test("no image provided") {
         runBlocking {
           val image = subject.getLatestImage(
-            artifactName = "my-package",
+            artifact = artifact,
             account = "test"
           )
           expectThat(image)
@@ -305,7 +308,7 @@ class ImageServiceTests : JUnit5Minutests {
       test("result includes both regions") {
         val image = runBlocking {
           subject.getLatestImage(
-            artifactName = "my-package",
+            artifact = artifact,
             account = "test"
           )
         }
@@ -315,30 +318,6 @@ class ImageServiceTests : JUnit5Minutests {
           .get {regions}
           .contains(image3.amis.keys)
           .contains(image5.amis.keys)
-      }
-    }
-
-    context("given jenkins info") {
-      before {
-        every {
-          cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
-        } returns listOf(image2, image4, image3, image1)
-      }
-
-      test("finds named image") {
-        runBlocking {
-          val image = subject.getNamedImageFromJenkinsInfo(
-            packageName = "my-package",
-            account = "test",
-            buildHost = "https://jenkins/",
-            buildName = "JENKINS-job",
-            buildNumber = "98"
-          )
-          expectThat(image)
-            .isNotNull()
-            .get { imageName }
-            .isEqualTo("my-package-0.0.1_rc.97-h98")
-        }
       }
     }
 

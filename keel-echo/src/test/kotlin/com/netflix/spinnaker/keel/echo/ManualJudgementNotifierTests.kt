@@ -51,6 +51,9 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     val echoService: EchoService = mockk(relaxed = true)
     val repository: KeelRepository = mockk(relaxed = true)
     val baseUrl = "https://spinnaker.acme.net"
+    val artifact = DebianArtifact("mypkg", "test", "deb",
+      vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet())
+    )
     val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, baseUrl)
   }
 
@@ -106,7 +109,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         } returns DeliveryConfig("test", "test", "test@acme.net")
 
         every {
-          repository.getArtifactInstance("mypkg", DEBIAN, "v1.0.0", any())
+          repository.getArtifactVersion(artifact, "v1.0.0", any())
         } returns null
       }
 
@@ -202,7 +205,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
       context("when git metadata is available for the artifact") {
         before {
           every {
-            repository.getArtifactInstance("mypkg", DEBIAN, "v1.0.0", any())
+            repository.getArtifactVersion(artifact, "v1.0.0", any())
           } returns PublishedArtifact(
             name = "mypkg",
             type = DEBIAN,

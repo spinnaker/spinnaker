@@ -23,6 +23,7 @@ object NamedImageComparator : Comparator<NamedImage> {
   }
 }
 
+
 val NamedImage.creationDate: Instant
   get() =
     if (attributes["creationDate"] !is String) {

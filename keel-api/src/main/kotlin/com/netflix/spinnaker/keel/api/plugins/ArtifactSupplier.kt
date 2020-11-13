@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
+import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -25,10 +25,10 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  * version of an artifact. This is so that we don't miss any versions in case of missed or failure
  * to handle events in case of downtime, etc.
  */
-interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : SpinnakerExtensionPoint {
+interface ArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy> : SpinnakerExtensionPoint {
   val eventPublisher: EventPublisher
   val supportedArtifact: SupportedArtifact<A>
-  val supportedVersioningStrategy: SupportedVersioningStrategy<V>
+  val supportedSortingStrategy: SupportedSortingStrategy<V>
 
   /**
    * Publishes an [ArtifactPublishedEvent] to core Keel so that the corresponding artifact version can be
@@ -64,22 +64,22 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
   fun getVersionDisplayName(artifact: PublishedArtifact): String = artifact.version
 
   /**
-   * Given a [PublishedArtifact] and a [VersioningStrategy] supported by this [ArtifactSupplier],
+   * Given a [PublishedArtifact] and a [SortingStrategy] supported by this [ArtifactSupplier],
    * return the [BuildMetadata] for the artifact, if available.
    *
    * This function is currently *not* expected to make calls to other systems, but only look into
    * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? = null
+  fun parseDefaultBuildMetadata(artifact: PublishedArtifact, sortingStrategy: SortingStrategy): BuildMetadata? = null
 
   /**
-   * Given a [PublishedArtifact] and a [VersioningStrategy] supported by this [ArtifactSupplier],
+   * Given a [PublishedArtifact] and a [SortingStrategy] supported by this [ArtifactSupplier],
    * return the [GitMetadata] for the artifact, if available.
    *
    * This function is currently *not* expected to make calls to other systems, but only look into
    * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? = null
+  fun parseDefaultGitMetadata(artifact: PublishedArtifact, sortingStrategy: SortingStrategy): GitMetadata? = null
 
   /**
    * Given a [PublishedArtifact] supported by this [ArtifactSupplier],

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.allPass
@@ -19,6 +21,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -944,37 +947,58 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  override fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String> {
+  override fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptyList()
 
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION)
-        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA
+        )
+        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT, ARTIFACT_VERSIONS)
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(ConstraintStatus.PENDING.toString())
         )
-        .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION)
+        .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+        .and(ARTIFACT_VERSIONS.VERSION.eq(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION))
+        .fetchSortedArtifactVersions(artifact)
     }
   }
 
-  override fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String> {
+  override fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
-      ?: return emptySet()
+      ?: return emptyList()
 
     return sqlRetry.withRetry(READ) {
-      jooq.select(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
-        .from(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+      jooq.select(
+        ARTIFACT_VERSIONS.NAME,
+        ARTIFACT_VERSIONS.TYPE,
+        ARTIFACT_VERSIONS.VERSION,
+        ARTIFACT_VERSIONS.RELEASE_STATUS,
+        ARTIFACT_VERSIONS.CREATED_AT,
+        ARTIFACT_VERSIONS.GIT_METADATA,
+        ARTIFACT_VERSIONS.BUILD_METADATA
+      )
+        .from(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL, ARTIFACT_VERSIONS)
         .where(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.eq(environmentUID))
         .and(
-          ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE.eq(artifactReference)
+          ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE.eq(artifact.reference)
             // for backward comparability
             .or(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE.isNull)
         )
-        .fetch(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
-        .toSet()
+        .and(ARTIFACT_VERSIONS.VERSION.eq(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION))
+        .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+        .fetchSortedArtifactVersions(artifact)
     }
   }
 
@@ -983,11 +1007,11 @@ class SqlDeliveryConfigRepository(
    * in that place the envId does not have to be queried for.
    * It's also done as part of the existing transaction
    */
-  override fun queueAllConstraintsApproved(
+  override fun queueArtifactVersionForApproval(
     deliveryConfigName: String,
     environmentName: String,
-    artifactVersion: String,
-    artifactReference: String?
+    artifact: DeliveryArtifact,
+    artifactVersion: String
   ) {
     sqlRetry.withRetry(WRITE) {
       environmentUidByName(deliveryConfigName, environmentName)
@@ -996,18 +1020,18 @@ class SqlDeliveryConfigRepository(
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, artifactVersion)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
-            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE, artifactReference)
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE, artifact.reference)
             .onDuplicateKeyIgnore()
             .execute()
         }
     }
   }
 
-  override fun deleteQueuedConstraintApproval(
+  override fun deleteArtifactVersionQueuedForApproval(
     deliveryConfigName: String,
     environmentName: String,
-    artifactVersion: String,
-    artifactReference: String?
+    artifact: DeliveryArtifact,
+    artifactVersion: String
   ) {
     sqlRetry.withRetry(WRITE) {
       environmentUidByName(deliveryConfigName, environmentName)
@@ -1016,7 +1040,7 @@ class SqlDeliveryConfigRepository(
             .where(
               ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.eq(envUid),
               ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION.eq(artifactVersion),
-              ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE.eq(artifactReference)
+              ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE.eq(artifact.reference)
             )
             .execute()
         }

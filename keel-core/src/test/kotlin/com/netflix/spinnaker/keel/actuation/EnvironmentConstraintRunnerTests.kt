@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner.Environm
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
@@ -115,7 +116,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         } returns true
 
         every {
-          repository.pendingConstraintVersionsFor(any(), any())
+          repository.getPendingArtifactVersions(any(), any(), any())
         } returns emptyList()
       }
 
@@ -134,7 +135,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
         test("the latest version is queued for approval") {
           verify {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "2.0", artifact.reference)
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "2.0")
           }
         }
       }
@@ -172,7 +173,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
         test("we don't re-queue the version") {
           verify(exactly = 0) {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, any(), any())
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, any(), any())
           }
         }
       }
@@ -189,7 +190,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
           every {
-            repository.pendingConstraintVersionsFor(any(), any())
+            repository.getPendingArtifactVersions(any(), any(), any())
           } returns emptyList()
 
           every { statelessEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
@@ -228,10 +229,10 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
           test("the correct version is the only one queued for approval") {
             verify(exactly = 0) {
-              repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "2.0", artifact.reference)
+              repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "2.0")
             }
             verify(exactly = 1) {
-              repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "1.2", artifact.reference)
+              repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "1.2")
             }
           }
         }
@@ -260,7 +261,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
           test("the latest version is queued for approval") {
             verify(exactly = 1) {
-              repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "2.0", artifact.reference)
+              repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "2.0")
             }
           }
         }
@@ -286,8 +287,9 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           } returns passedManualJudgement
 
           every {
-            repository.pendingConstraintVersionsFor(any(), any())
+            repository.getPendingArtifactVersions(any(), any(), any())
           } returns listOf("2.0", "1.2")
+            .map { PublishedArtifact(artifact.name, artifact.type, it) }
 
           every {
             repository.constraintStateFor("my-manifest", "staging", "1.2")
@@ -322,7 +324,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
           test("the latest version that passes constraints is queued for approval") {
             verify {
-              repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "1.2", artifact.reference)
+              repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "1.2")
             }
 
             /**
@@ -363,7 +365,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           }
 
           verify(exactly = 0) {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, any(), any())
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, any(), any())
           }
         }
       }
@@ -380,7 +382,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
-          every { repository.pendingConstraintVersionsFor(any(), any()) } returns emptyList()
+          every { repository.getPendingArtifactVersions(any(), any(), any()) } returns emptyList()
 
           every { statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
 
@@ -405,7 +407,7 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
         test("no artifact is approved") {
           verify(exactly = 0) {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, any(), any())
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, any(), any())
           }
         }
 
@@ -431,9 +433,15 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
           every { repository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name) } returns "1.1"
 
-          every { repository.pendingConstraintVersionsFor(any(), any()) } returns listOf("1.2", "1.1")
+          every {
+            repository.getPendingArtifactVersions(any(), any(), any())
+          } returns listOf("1.2", "1.1")
+            .map { PublishedArtifact(artifact.name, artifact.type, it) }
 
-          every { repository.getQueuedConstraintApprovals(any(), any(), artifact.reference) } returns setOf("1.2", "1.0")
+          every {
+            repository.getArtifactVersionsQueuedForApproval(any(), any(), artifact)
+          } returns setOf("1.2", "1.0")
+            .map { PublishedArtifact(artifact.name, artifact.type, it) }
 
           every { statefulEvaluator.canPromote(any(), "2.0", any(), any()) } returns false
           every { statefulEvaluator.canPromote(any(), "1.2", any(), any()) } returns true
@@ -460,11 +468,11 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
           }
 
           verify(exactly = 1) {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "1.2", artifact.reference)
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "1.2")
           }
 
           verify(exactly = 0) {
-            repository.queueAllConstraintsApproved(deliveryConfig.name, environment.name, "2.0", artifact.reference)
+            repository.queueArtifactVersionForApproval(deliveryConfig.name, environment.name, artifact, "2.0")
           }
         }
       }
