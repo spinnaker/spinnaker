@@ -76,10 +76,6 @@ class EurekaProviderConfiguration {
     return properties
   }
 
-  private OkHttpClientConfiguration eurekaOkHttpClientConfig() {
-    new OkHttpClientConfiguration(eurekaClientConfig(), new OkHttpMetricsInterceptor({ registry }, true))
-  }
-
   private static Converter eurekaConverter() {
     new JacksonConverter(new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -88,8 +84,10 @@ class EurekaProviderConfiguration {
       .enable(MapperFeature.AUTO_DETECT_CREATORS))
   }
 
-  private EurekaApiFactory eurekaApiFactory() {
-    new EurekaApiFactory(eurekaConverter(), eurekaOkHttpClientConfig())
+  private EurekaApiFactory eurekaApiFactory(OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
+    OkHttpClientConfiguration config = new OkHttpClientConfiguration(eurekaClientConfig(),
+      new OkHttpMetricsInterceptor({ registry }, okHttpMetricsInterceptorProperties))
+    return new EurekaApiFactory(eurekaConverter(), config)
   }
 
   @Value('${eureka.poll-interval-millis:15000}')
@@ -100,10 +98,11 @@ class EurekaProviderConfiguration {
 
   @Bean
   EurekaCachingProvider eurekaCachingProvider(EurekaAccountConfigurationProperties eurekaAccountConfigurationProperties,
+                                              OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties,
                                               List<EurekaAwareProvider> eurekaAwareProviderList,
                                               ObjectMapper objectMapper) {
     List<EurekaCachingAgent> agents = []
-    def eurekaApiFactory = eurekaApiFactory()
+    def eurekaApiFactory = eurekaApiFactory(okHttpMetricsInterceptorProperties)
     eurekaAccountConfigurationProperties.accounts.each { EurekaAccountConfigurationProperties.EurekaAccount accountConfig ->
       accountConfig.regions.each { region ->
         String eurekaHost = accountConfig.readOnlyUrl.replaceAll(Pattern.quote('{{region}}'), region)
