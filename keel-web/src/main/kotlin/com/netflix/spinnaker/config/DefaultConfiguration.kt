@@ -6,6 +6,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.rest.DeliveryConfigYamlParsingFilter
@@ -16,7 +17,6 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
-import java.time.Clock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -28,6 +28,7 @@ import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import java.time.Clock
 
 private const val IPC_SERVER_METRIC = "controller.invocations"
 
@@ -76,6 +77,10 @@ class DefaultConfiguration(
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
   fun noResourcePlugins(): List<ResourceHandler<*, *>> = emptyList()
+
+  @Bean
+  @ConditionalOnMissingBean(VerificationEvaluator::class)
+  fun noVerificationEvaluators(): List<VerificationEvaluator<*>> = emptyList()
 
   @Bean
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =

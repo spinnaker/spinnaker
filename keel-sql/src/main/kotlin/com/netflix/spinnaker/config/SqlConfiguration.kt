@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.sql.SqlRetry
 import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhealthyRepository
+import com.netflix.spinnaker.keel.sql.SqlVerificationRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -127,4 +128,10 @@ class SqlConfiguration {
     clock: Clock,
     properties: SqlProperties
   ) = SqlUnhealthyRepository(clock, jooq, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun verificationRepository(
+    jooq: DSLContext,
+    clock: Clock
+  ) = SqlVerificationRepository(jooq, clock)
 }

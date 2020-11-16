@@ -6,4 +6,6 @@ data class TestContainerVerification(
   val container: String
 ) : Verification {
   override val type = "test-container"
+
+  override val id = "$type:$container"
 }

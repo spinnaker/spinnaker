@@ -191,3 +191,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201006-add-unhealthy-repository.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201112-add-verification-repository.yml
+      relativeToChangelogFile: true
