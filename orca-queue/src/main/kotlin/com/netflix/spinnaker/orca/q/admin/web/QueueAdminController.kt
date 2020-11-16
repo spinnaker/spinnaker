@@ -75,7 +75,7 @@ class QueueAdminController(
     getZombieExecutionService().killZombie(getPipelineOrOrchestration(executionId))
   }
 
-  @PostMapping(value = ["/zombies/{application}:kill"])
+  @PostMapping(value = ["/zombies/application/{application}:kill"])
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun killApplicationZombies(@PathVariable application: String,
                              @QueryParam("minimumActivity") minimumActivity: Duration = Duration.ofMinutes(60)) {
