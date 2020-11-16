@@ -256,7 +256,7 @@ public class ProviderHelpers {
         }
       }
     }
-    if (awsCleanupProvider.getAgentScheduler() != null) {
+    if (awsCleanupProvider.getAgentScheduler() == null) {
       if (awsConfigurationProperties.getCleanup().getAlarms().getEnabled()) {
         newlyAddedAgents.add(
             new CleanupAlarmsAgent(
