@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static java.util.Comparator.*;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesManifestContainer;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
@@ -47,10 +49,10 @@ final class KubernetesManifestContainerBuilder {
     Function<KubernetesManifest, String> lastEventTimestamp =
         (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
 
-    events =
-        events.stream()
-            .sorted(Comparator.comparing(lastEventTimestamp))
-            .collect(Collectors.toList());
+    Comparator<KubernetesManifest> eventComparator =
+        nullsLast(comparing(lastEventTimestamp, nullsLast(naturalOrder())));
+
+    events = events.stream().sorted(eventComparator).collect(Collectors.toList());
 
     Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
 
