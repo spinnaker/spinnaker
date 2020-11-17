@@ -131,8 +131,8 @@ class ClusterExportHelper(
         ?.get("onFailure") as Boolean?,
       resizePreviousToZero = this["scaleDown"] as Boolean,
       maxServerGroups = this["maxRemainingAsgs"].toString().toInt(),
-      delayBeforeDisable = Duration.ofSeconds((this["delayBeforeDisableSec"].toString().toInt()).toLong()),
-      delayBeforeScaleDown = Duration.ofSeconds((this["delayBeforeScaleDownSec"].toString().toInt()).toLong())
+      delayBeforeDisable = this["delayBeforeDisableSec"]?.toString()?.toInt()?.toLong()?.let{ Duration.ofSeconds(it) },
+      delayBeforeScaleDown = this["delayBeforeScaleDownSec"]?.toString()?.toInt()?.toLong()?.let{ Duration.ofSeconds(it) }
     )
 
   @Suppress("UNCHECKED_CAST")

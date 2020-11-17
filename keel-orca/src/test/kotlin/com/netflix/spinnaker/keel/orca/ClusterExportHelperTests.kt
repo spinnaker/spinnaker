@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 
 class ClusterExportHelperTests : JUnit5Minutests {
   class Fixture {
@@ -108,7 +109,27 @@ class ClusterExportHelperTests : JUnit5Minutests {
       )
     )
 
-    val orcaTaskExecution = ExecutionDetailResponse(
+    val deployContextWithOptionalFields = mapOf(
+      "strategy" to "redblack",
+      "scaleDown" to false,
+      "maxRemainingAsgs" to 3,
+
+      //
+      // optional fields
+      //
+      "rollback" to mapOf("onFailure" to true),
+      "delayBeforeDisableSec" to 10,
+      "delayBeforeScaleDownSec" to 10
+    )
+
+    val deployContextWithoutOptionalFields = mapOf(
+      "strategy" to "redblack",
+      "scaleDown" to false,
+      "maxRemainingAsgs" to 3
+    )
+
+
+    fun orcaTaskExecution(context : Map<String, Any>) = ExecutionDetailResponse(
       id = "01E609548XWA7ZBP5M5FGMZ964",
       name = "A keel deployment task",
       application = "keel",
@@ -120,16 +141,7 @@ class ClusterExportHelperTests : JUnit5Minutests {
         stages = listOf(
           mapOf(
             "type" to "createServerGroup",
-            "context" to mapOf(
-              "strategy" to "redblack",
-              "rollback" to mapOf(
-                "onFailure" to true
-              ),
-              "scaleDown" to false,
-              "maxRemainingAsgs" to 3,
-              "delayBeforeDisableSec" to 10,
-              "delayBeforeScaleDownSec" to 10
-            )
+            "context" to context
           )
         )
       )
@@ -180,28 +192,60 @@ class ClusterExportHelperTests : JUnit5Minutests {
           coEvery {
             cloudDriverService.getEntityTags("aws", "test", "keel", "servergroup", any())
           } returns listOf(taskEntityTags)
-          coEvery {
-            orcaService.getOrchestrationExecution("01E609548XWA7ZBP5M5FGMZ964", any())
-          } returns orcaTaskExecution
         }
 
-        test("retrieves current deployment strategy from task execution") {
-          val deploymentStrategy = runBlocking {
-            subject.discoverDeploymentStrategy(
-              cloudProvider = "aws",
-              account = "test",
-              application = "keel",
-              serverGroupName = "keel-test-v001"
-            )
+        context("when task execution context contains all optional fields") {
+          before {
+            coEvery {
+              orcaService.getOrchestrationExecution("01E609548XWA7ZBP5M5FGMZ964", any())
+            } returns orcaTaskExecution(deployContextWithOptionalFields)
           }
 
-          expectThat(deploymentStrategy)
-            .isA<RedBlack>()
-            .and {
-              get { maxServerGroups }.isEqualTo(3)
-              get { delayBeforeDisable }.isEqualTo(Duration.ofSeconds(10))
-              get { delayBeforeScaleDown }.isEqualTo(Duration.ofSeconds(10))
+          test("retrieves current deployment strategy from task execution") {
+            val deploymentStrategy = runBlocking {
+              subject.discoverDeploymentStrategy(
+                cloudProvider = "aws",
+                account = "test",
+                application = "keel",
+                serverGroupName = "keel-test-v001"
+              )
             }
+
+            expectThat(deploymentStrategy)
+              .isA<RedBlack>()
+              .and {
+                get { maxServerGroups }.isEqualTo(3)
+                get { delayBeforeDisable }.isEqualTo(Duration.ofSeconds(10))
+                get { delayBeforeScaleDown }.isEqualTo(Duration.ofSeconds(10))
+              }
+          }
+        }
+
+        context("when task execution context contains none of the optional fields") {
+          before {
+            coEvery {
+              orcaService.getOrchestrationExecution("01E609548XWA7ZBP5M5FGMZ964", any())
+            } returns orcaTaskExecution(deployContextWithoutOptionalFields)
+          }
+
+          test("retrieves current deployment strategy from task execution") {
+            val deploymentStrategy = runBlocking {
+              subject.discoverDeploymentStrategy(
+                cloudProvider = "aws",
+                account = "test",
+                application = "keel",
+                serverGroupName = "keel-test-v001"
+              )
+            }
+
+            expectThat(deploymentStrategy)
+              .isA<RedBlack>()
+              .and {
+                get { maxServerGroups }.isEqualTo(3)
+                get { delayBeforeDisable }.isNull()
+                get { delayBeforeScaleDown }.isNull()
+              }
+          }
         }
       }
 
