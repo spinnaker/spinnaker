@@ -80,7 +80,7 @@ public class CloudFoundryProviderConfig {
                 cacheRepository,
                 a.getPermissions().build(),
                 cloudFoundryThreadPool,
-                a.getLocationFilter()),
+                a.getSpaceFilter()),
         cloudFoundryCredentialsRepository);
   }
 

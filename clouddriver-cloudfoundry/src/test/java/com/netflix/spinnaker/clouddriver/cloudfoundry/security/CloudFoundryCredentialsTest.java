@@ -42,7 +42,7 @@ public class CloudFoundryCredentialsTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
 
   @Test
-  void emptyLocationFilterShouldConvertToEmptyList() {
+  void emptySpaceFilterShouldConvertToEmptyList() {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
@@ -63,7 +63,7 @@ public class CloudFoundryCredentialsTest {
   }
 
   @Test
-  void singleOrgLocationFilterShouldConvert() {
+  void singleOrgSpaceFilterShouldConvert() {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
@@ -88,7 +88,7 @@ public class CloudFoundryCredentialsTest {
           }
         };
 
-    Map<String, Set<String>> locationFilter = ImmutableMap.of("org", emptySet());
+    Map<String, Set<String>> spaceFilter = ImmutableMap.of("org", emptySet());
 
     CloudFoundryOrganization organization =
         CloudFoundryOrganization.builder().id("org123").name("org").build();
@@ -107,12 +107,12 @@ public class CloudFoundryCredentialsTest {
 
     when(cloudFoundryClient.getSpaces().findAllBySpaceNamesAndOrgNames(isNull(), any()))
         .thenReturn(List.of(space1, space2));
-    List<CloudFoundrySpace> result = credentials.createFilteredSpaces(locationFilter);
+    List<CloudFoundrySpace> result = credentials.createFilteredSpaces(spaceFilter);
     assertThat(result).isEqualTo(List.of(space1, space2));
   }
 
   @Test
-  void singleOrgSingleSpaceLocationFilterShouldConvert() {
+  void singleOrgSingleSpaceSpaceFilterShouldConvert() {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
@@ -137,7 +137,7 @@ public class CloudFoundryCredentialsTest {
           }
         };
 
-    Map<String, Set<String>> locationFilter = ImmutableMap.of("org", Set.of("space1"));
+    Map<String, Set<String>> spaceFilter = ImmutableMap.of("org", Set.of("space1"));
 
     CloudFoundryOrganization organization =
         CloudFoundryOrganization.builder().id("org123").name("org").build();
@@ -156,12 +156,12 @@ public class CloudFoundryCredentialsTest {
 
     when(cloudFoundryClient.getSpaces().findAllBySpaceNamesAndOrgNames(any(), any()))
         .thenReturn(List.of(space1, space2));
-    List<CloudFoundrySpace> result = credentials.createFilteredSpaces(locationFilter);
+    List<CloudFoundrySpace> result = credentials.createFilteredSpaces(spaceFilter);
     assertThat(result).isEqualTo(List.of(space1));
   }
 
   @Test
-  void fakeOrgFakeSpaceLocationFilterShouldThrowError() {
+  void fakeOrgFakeSpaceSpaceFilterShouldThrowError() {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
@@ -186,14 +186,14 @@ public class CloudFoundryCredentialsTest {
           }
         };
 
-    Map<String, Set<String>> locationFilter = ImmutableMap.of("org", Set.of("space1"));
+    Map<String, Set<String>> spaceFilter = ImmutableMap.of("org", Set.of("space1"));
 
     when(cloudFoundryClient.getSpaces().findAllBySpaceNamesAndOrgNames(any(), any()))
         .thenReturn(emptyList());
     Exception e =
-        assertThrows(Exception.class, () -> credentials.createFilteredSpaces(locationFilter));
+        assertThrows(Exception.class, () -> credentials.createFilteredSpaces(spaceFilter));
     assertThat(e)
         .hasMessageContaining(
-            "The locationFilter had Orgs and/or Spaces but CloudFoundry returned no spaces as a result. Spaces must not be null or empty when a locationFilter is included.");
+            "The spaceFilter had Orgs and/or Spaces but CloudFoundry returned no spaces as a result. Spaces must not be null or empty when a spaceFilter is included.");
   }
 }

@@ -70,6 +70,6 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
         maxCapiConnectionsForCache; // Deprecated in favor of cloudfoundry.apiRequestParallelism
 
     private Permissions.Builder permissions = new Permissions.Builder();
-    private Map<String, Set<String>> locationFilter = Collections.emptyMap();
+    private Map<String, Set<String>> spaceFilter = Collections.emptyMap();
   }
 }
