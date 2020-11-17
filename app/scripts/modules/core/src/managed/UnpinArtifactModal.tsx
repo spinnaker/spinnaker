@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import ReactGA from 'react-ga';
 
 import {
@@ -23,11 +23,11 @@ import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResourc
 
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
 
-const logClick = (label: string, application: string) =>
+const logEvent = (label: string, application: string, environment?: string, reference?: string) =>
   ReactGA.event({
     category: 'Environments - unpin version modal',
-    action: `${label} clicked`,
-    label: application,
+    action: label,
+    label: environment ? `${application}:${environment}:${reference}` : application,
   });
 
 export interface IUnpinArtifactModalProps extends IModalComponentProps {
@@ -39,7 +39,12 @@ export interface IUnpinArtifactModalProps extends IModalComponentProps {
 }
 
 export const showUnpinArtifactModal = (props: IUnpinArtifactModalProps) =>
-  showModal(UnpinArtifactModal, props, { maxWidth: 628 });
+  showModal(UnpinArtifactModal, props, { maxWidth: 628 }).then((result) => {
+    if (result.status === 'DISMISSED') {
+      logEvent('Modal dismissed', props.application.name);
+    }
+    return result;
+  });
 
 export const UnpinArtifactModal = memo(
   ({
@@ -55,6 +60,8 @@ export const UnpinArtifactModal = memo(
     const [submitStatus, setSubmitStatus] = useState<IRequestStatus>('NONE');
     const [error, setError] = useState<{ title: string; message: string }>(null);
 
+    useEffect(() => logEvent('Modal seen', application.name), []);
+
     const submit = () => {
       setSubmitStatus('PENDING');
 
@@ -63,10 +70,14 @@ export const UnpinArtifactModal = memo(
         reference,
         application: application.name,
       })
-        .then(() => closeModal())
+        .then(() => {
+          logEvent('Version unpinned', application.name, environment, reference);
+          closeModal();
+        })
         .catch((error: { data: { error: string; message: string } }) => {
           setSubmitStatus('REJECTED');
           setError({ title: error.data?.error, message: error.data.message });
+          logEvent('Error unpinning version', application.name, environment, reference);
         });
     };
 
@@ -89,7 +100,7 @@ export const UnpinArtifactModal = memo(
                 </p>{' '}
                 <a
                   target="_blank"
-                  onClick={() => logClick('Pinning docs link', application.name)}
+                  onClick={() => logEvent('Pinning docs link clicked', application.name)}
                   href={PINNING_DOCS_URL}
                 >
                   Check out our documentation

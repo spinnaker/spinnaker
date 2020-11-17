@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react';
+import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
 import {
@@ -45,6 +46,13 @@ const skippedConstraintCardAppearanceByStatus = {
   [OVERRIDE_PASS]: 'neutral',
   [OVERRIDE_FAIL]: 'neutral',
 } as const;
+
+const logEvent = (label: string, application: string, environment: string, reference: string) =>
+  ReactGA.event({
+    category: 'Environments - version details',
+    action: label,
+    label: `${application}:${environment}:${reference}`,
+  });
 
 const logUnsupportedConstraintError = (type: string) => {
   console.error(
@@ -138,9 +146,23 @@ export const ConstraintCard = memo(
                           version,
                           status: pass ? OVERRIDE_PASS : OVERRIDE_FAIL,
                         })
-                          .then(() => setActionStatus('RESOLVED'))
+                          .then(() => {
+                            setActionStatus('RESOLVED');
+                            logEvent(
+                              `${type} constraint - ${title} action taken`,
+                              application.name,
+                              environment.name,
+                              reference,
+                            );
+                          })
                           .catch(() => {
                             setActionStatus('REJECTED');
+                            logEvent(
+                              `${type} constraint - ${title} action failed`,
+                              application.name,
+                              environment.name,
+                              reference,
+                            );
                           });
                       }}
                     >

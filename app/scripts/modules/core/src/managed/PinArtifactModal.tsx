@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import ReactGA from 'react-ga';
 import { Option } from 'react-select';
 
@@ -28,11 +28,11 @@ import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResourc
 
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
 
-const logClick = (label: string, application: string) =>
+const logEvent = (label: string, application: string, environment?: string, reference?: string) =>
   ReactGA.event({
     category: 'Environments - pin version modal',
-    action: `${label} clicked`,
-    label: application,
+    action: label,
+    label: environment ? `${application}:${environment}:${reference}` : application,
   });
 
 type IEnvironmentOptionProps = Option<string> & { disabledReason: string; allResources: IManagedResourceSummary[] };
@@ -62,7 +62,12 @@ export interface IPinArtifactModalProps extends IModalComponentProps {
 }
 
 export const showPinArtifactModal = (props: IPinArtifactModalProps) =>
-  showModal(PinArtifactModal, props, { maxWidth: 750 });
+  showModal(PinArtifactModal, props, { maxWidth: 750 }).then((result) => {
+    if (result.status === 'DISMISSED') {
+      logEvent('Modal dismissed', props.application.name);
+    }
+    return result;
+  });
 
 export const PinArtifactModal = memo(
   ({ application, reference, version, resourcesByEnvironment, dismissModal, closeModal }: IPinArtifactModalProps) => {
@@ -72,6 +77,8 @@ export const PinArtifactModal = memo(
       ),
       [resourcesByEnvironment],
     );
+
+    useEffect(() => logEvent('Modal seen', application.name), []);
 
     return (
       <>
@@ -83,7 +90,7 @@ export const PinArtifactModal = memo(
           initialValues={{
             environment: version.environments.find(({ pinned, state }) => !pinned && state !== 'vetoed').name,
           }}
-          onSubmit={({ environment, comment }, { setSubmitting, setStatus }) =>
+          onSubmit={({ environment, comment }, { setSubmitting, setStatus }) => {
             ManagedWriter.pinArtifactVersion({
               environment,
               reference,
@@ -91,12 +98,16 @@ export const PinArtifactModal = memo(
               application: application.name,
               version: version.version,
             })
-              .then(() => closeModal())
+              .then(() => {
+                logEvent('Version pinned', application.name, environment, reference);
+                closeModal();
+              })
               .catch((error: { data: { error: string; message: string } }) => {
                 setSubmitting(false);
                 setStatus({ error: error.data });
-              })
-          }
+                logEvent('Error pinning version', application.name, environment, reference);
+              });
+          }}
           render={({ status, isValid, isSubmitting, submitForm }) => {
             const errorTitle = status?.error?.error;
             const errorMessage = status?.error?.message;
@@ -117,7 +128,7 @@ export const PinArtifactModal = memo(
                         </p>{' '}
                         <a
                           target="_blank"
-                          onClick={() => logClick('Pinning docs link', application.name)}
+                          onClick={() => logEvent('Pinning docs link clicked', application.name)}
                           href={PINNING_DOCS_URL}
                         >
                           Check out our documentation

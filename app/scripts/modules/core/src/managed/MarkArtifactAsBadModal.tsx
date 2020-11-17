@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import ReactGA from 'react-ga';
 import { Option } from 'react-select';
 
@@ -28,11 +28,11 @@ import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResourc
 
 const MARK_BAD_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/marking-as-bad/';
 
-const logClick = (label: string, application: string) =>
+const logEvent = (label: string, application: string, environment?: string, reference?: string) =>
   ReactGA.event({
     category: 'Environments - mark version as bad modal',
-    action: `${label} clicked`,
-    label: application,
+    action: label,
+    label: environment ? `${application}:${environment}:${reference}` : application,
   });
 
 type IEnvironmentOptionProps = Option<string> & { disabledReason: string; allResources: IManagedResourceSummary[] };
@@ -62,7 +62,12 @@ export interface IMarkArtifactAsBadModalProps extends IModalComponentProps {
 }
 
 export const showMarkArtifactAsBadModal = (props: IMarkArtifactAsBadModalProps) =>
-  showModal(MarkArtifactAsBadModal, props, { maxWidth: 750 });
+  showModal(MarkArtifactAsBadModal, props, { maxWidth: 750 }).then((result) => {
+    if (result.status === 'DISMISSED') {
+      logEvent('Modal dismissed', props.application.name);
+    }
+    return result;
+  });
 
 export const MarkArtifactAsBadModal = memo(
   ({
@@ -79,6 +84,8 @@ export const MarkArtifactAsBadModal = memo(
       ),
       [resourcesByEnvironment],
     );
+
+    useEffect(() => logEvent('Modal seen', application.name), []);
 
     return (
       <>
@@ -98,10 +105,14 @@ export const MarkArtifactAsBadModal = memo(
               application: application.name,
               version: version.version,
             })
-              .then(() => closeModal())
+              .then(() => {
+                logEvent('Version marked bad', application.name, environment, reference);
+                closeModal();
+              })
               .catch((error: { data: { error: string; message: string } }) => {
                 setSubmitting(false);
                 setStatus({ error: error.data });
+                logEvent('Error marking version bad', application.name, environment, reference);
               })
           }
           render={({ status, isValid, isSubmitting, submitForm }) => {
@@ -124,7 +135,7 @@ export const MarkArtifactAsBadModal = memo(
                         </p>{' '}
                         <a
                           target="_blank"
-                          onClick={() => logClick('Mark as bad docs link', application.name)}
+                          onClick={() => logEvent('Mark as bad docs link clicked', application.name)}
                           href={MARK_BAD_DOCS_URL}
                         >
                           Check out our documentation

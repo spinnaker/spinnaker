@@ -36,6 +36,13 @@ function shouldDisplayResource(reference: string, resource: IManagedResourceSumm
   return isResourceKindSupported(resource.kind) && reference === resource.artifact?.reference;
 }
 
+const logEvent = (label: string, application: string, environment: string, reference: string) =>
+  ReactGA.event({
+    category: 'Environments - version details',
+    action: label,
+    label: `${application}:${environment}:${reference}`,
+  });
+
 const inStyles = {
   opacity: 1,
   transform: 'scale(1.0, 1.0)',
@@ -151,13 +158,7 @@ const EnvironmentCards = memo(
         vetoed={vetoed}
         compareLink={compareLink}
         allVersions={allVersions}
-        logClick={(message) => {
-          ReactGA.event({
-            category: 'Environments - version details',
-            action: message,
-            label: `${application.name}:${environmentName}:${reference}`,
-          });
-        }}
+        logClick={(message) => logEvent(message, application.name, environmentName, reference)}
       />
     );
     const constraintCards = useMemo(
@@ -293,7 +294,12 @@ export const ArtifactDetail = ({
               <VersionMetadataItem
                 label="Pull Request"
                 value={
-                  <a href={git.pullRequest.url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={git.pullRequest.url}
+                    onClick={() => logEvent('PR link clicked', application.name, 'none', reference)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     #{git.pullRequest.number}
                   </a>
                 }
@@ -304,7 +310,12 @@ export const ArtifactDetail = ({
                 <VersionMetadataItem
                   label="Commit"
                   value={
-                    <a href={git.commitInfo.link} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={git.commitInfo.link}
+                      onClick={() => logEvent('Commit link clicked', application.name, 'none', reference)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {git.commitInfo.sha.substring(0, 7)}
                     </a>
                   }
