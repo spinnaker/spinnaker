@@ -1,11 +1,10 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.servlet.MockMvc
@@ -19,7 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 )
 
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class ErrorSimulationControllerTests {
   @Autowired
   lateinit var mvc: MockMvc

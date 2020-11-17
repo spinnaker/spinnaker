@@ -21,14 +21,13 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
@@ -65,7 +64,7 @@ import kotlin.reflect.KClass
   webEnvironment = NONE
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 class ApiDocTests : JUnit5Minutests {
 
   @Autowired

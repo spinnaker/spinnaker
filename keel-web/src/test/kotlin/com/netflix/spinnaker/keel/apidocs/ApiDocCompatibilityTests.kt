@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
@@ -18,8 +19,6 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
@@ -36,7 +35,7 @@ import strikt.api.expectThat
   webEnvironment = NONE
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 class ApiDocCompatibilityTests {
   @Autowired
   lateinit var generator: Generator

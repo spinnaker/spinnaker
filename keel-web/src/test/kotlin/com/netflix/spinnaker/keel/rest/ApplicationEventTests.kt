@@ -1,14 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import java.time.Duration
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeoutException
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.ApplicationEvent
@@ -18,12 +13,16 @@ import org.springframework.stereotype.Component
 import strikt.api.expectThat
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.startsWith
+import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeoutException
 
 @SpringBootTest(
   classes = [KeelApplication::class, ThreadCapturingEventListener::class],
   webEnvironment = MOCK
 )
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class ApplicationEventTests {
 
   @Autowired

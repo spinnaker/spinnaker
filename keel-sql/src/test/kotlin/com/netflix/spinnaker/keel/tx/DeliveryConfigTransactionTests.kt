@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.test.DummyResourceHandlerV1
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -49,6 +50,7 @@ import strikt.assertions.isFalse
     "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
   ]
 )
+@DisableSpringScheduling
 internal class DeliveryConfigTransactionTests : JUnit5Minutests {
 
   @SpykBean

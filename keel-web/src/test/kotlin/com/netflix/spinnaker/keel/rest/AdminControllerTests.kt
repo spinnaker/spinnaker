@@ -5,14 +5,13 @@ import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.services.AdminService
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -26,7 +25,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
   webEnvironment = SpringBootTest.WebEnvironment.MOCK
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class AdminControllerTests : JUnit5Minutests {
 
   @Autowired

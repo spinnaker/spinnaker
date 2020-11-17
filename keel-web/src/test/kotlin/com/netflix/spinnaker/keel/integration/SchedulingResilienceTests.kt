@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
-import java.io.IOException
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit.SECONDS
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
@@ -12,8 +10,6 @@ import okhttp3.ResponseBody
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.annotation.Bean
@@ -21,6 +17,9 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import strikt.api.Assertion
 import strikt.api.expectThat
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit.SECONDS
 
 // TODO: this doesn't really need to be an integration test except that it's painful to configure
 //       the retrofit client without Spring
@@ -28,7 +27,7 @@ import strikt.api.expectThat
   classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
 )
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class SchedulingResilienceTests {
 
   @Autowired

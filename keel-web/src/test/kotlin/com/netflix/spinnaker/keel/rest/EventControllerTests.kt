@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -24,13 +25,7 @@ import com.netflix.spinnaker.time.MutableClock
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery as every
-import java.net.URI
-import java.time.Clock
-import java.time.Duration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -50,13 +45,17 @@ import strikt.assertions.hasSize
 import strikt.assertions.map
 import strikt.jackson.hasSize
 import strikt.jackson.isArray
+import java.net.URI
+import java.time.Clock
+import java.time.Duration
+import io.mockk.coEvery as every
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, MockTimeConfiguration::class],
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class EventControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc

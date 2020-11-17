@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.test.submittedResource
@@ -19,8 +20,6 @@ import dev.minutest.rootContext
 import io.mockk.every
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -41,7 +40,7 @@ import strikt.assertions.isNotNull
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class ResourceControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc

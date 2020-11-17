@@ -15,11 +15,11 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.services.ApplicationService
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
@@ -28,8 +28,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -49,7 +47,7 @@ import strikt.assertions.isEqualTo
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class ApplicationControllerTests : JUnit5Minutests {
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -33,8 +34,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -58,7 +57,7 @@ import strikt.jackson.isMissing
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
+@DisableSpringScheduling
 internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
   @Autowired
