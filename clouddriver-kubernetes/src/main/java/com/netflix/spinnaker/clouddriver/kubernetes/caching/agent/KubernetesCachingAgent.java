@@ -227,7 +227,8 @@ public abstract class KubernetesCachingAgent
                     credentials.getKubernetesSpinnakerKindMap(),
                     credentials.getNamer(),
                     rs,
-                    relationships.getOrDefault(rs, ImmutableList.of()));
+                    relationships.getOrDefault(rs, ImmutableList.of()),
+                    credentials.isCacheAllApplicationRelationships());
               } catch (RuntimeException e) {
                 log.warn("{}: Failure converting {}", getAgentType(), rs, e);
               }

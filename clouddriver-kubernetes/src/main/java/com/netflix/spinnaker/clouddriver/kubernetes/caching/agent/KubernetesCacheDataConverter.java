@@ -106,7 +106,8 @@ public class KubernetesCacheDataConverter {
       KubernetesSpinnakerKindMap kindMap,
       Namer<KubernetesManifest> namer,
       KubernetesManifest manifest,
-      List<KubernetesManifest> resourceRelationships) {
+      List<KubernetesManifest> resourceRelationships,
+      boolean cacheAllRelationships) {
     KubernetesKind kind = manifest.getKind();
     String name = manifest.getName();
     String namespace = manifest.getNamespace();
@@ -127,8 +128,8 @@ public class KubernetesCacheDataConverter {
     kubernetesCacheData.addItem(key, attributes);
 
     SpinnakerKind spinnakerKind = kindMap.translateKubernetesKind(kind);
-    if (logicalRelationshipKinds.contains(spinnakerKind)
-        && !Strings.isNullOrEmpty(moniker.getApp())) {
+
+    if (cacheAllRelationships || logicalRelationshipKinds.contains(spinnakerKind)) {
       addLogicalRelationships(
           kubernetesCacheData,
           key,
@@ -166,6 +167,9 @@ public class KubernetesCacheDataConverter {
       Moniker moniker,
       boolean hasClusterRelationship) {
     String application = moniker.getApp();
+    if (Strings.isNullOrEmpty(application)) {
+      return;
+    }
     Keys.CacheKey applicationKey = new Keys.ApplicationCacheKey(application);
     kubernetesCacheData.addRelationship(infrastructureKey, applicationKey);
 

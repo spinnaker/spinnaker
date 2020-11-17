@@ -27,6 +27,7 @@ import lombok.Data;
 public class KubernetesConfigurationProperties {
   private static final int DEFAULT_CACHE_THREADS = 1;
   private List<ManagedAccount> accounts = new ArrayList<>();
+  private RawResourcesEndpointConfig rawResourcesEndpointConfig = new RawResourcesEndpointConfig();
 
   @Data
   public static class ManagedAccount implements CredentialsDefinition {
@@ -56,6 +57,7 @@ public class KubernetesConfigurationProperties {
     private List<String> omitKinds = new ArrayList<>();
     private boolean onlySpinnakerManaged = false;
     private Long cacheIntervalSeconds;
+    private boolean cacheAllApplicationRelationships = false;
 
     public void validate() {
       if (Strings.isNullOrEmpty(name)) {

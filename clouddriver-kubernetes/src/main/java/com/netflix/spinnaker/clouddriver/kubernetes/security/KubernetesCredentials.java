@@ -109,6 +109,8 @@ public class KubernetesCredentials {
 
   @Include @Getter private final boolean onlySpinnakerManaged;
 
+  @Include @Getter private final boolean cacheAllApplicationRelationships;
+
   @Include private final boolean checkPermissionsOnStartup;
 
   @Include @Getter private final List<KubernetesCachingPolicy> cachingPolicies;
@@ -193,6 +195,7 @@ public class KubernetesCredentials {
 
     this.debug = managedAccount.isDebug();
     this.namer = manifestNamer;
+    this.cacheAllApplicationRelationships = managedAccount.isCacheAllApplicationRelationships();
   }
 
   /**

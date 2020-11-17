@@ -117,7 +117,7 @@ class KubernetesCacheUtils {
   ImmutableCollection<String> getRelationshipKeys(
       CacheData cacheData, SpinnakerKind spinnakerKind) {
     return relationshipTypes(spinnakerKind)
-        .flatMap(t -> relationshipKeys(cacheData, t))
+        .flatMap(t -> getRelationshipKeys(cacheData, t))
         .collect(toImmutableSet());
   }
 
@@ -126,19 +126,40 @@ class KubernetesCacheUtils {
       Collection<CacheData> cacheData, String type) {
     return cacheData.stream()
         .collect(
-            flatteningToImmutableSetMultimap(CacheData::getId, cd -> relationshipKeys(cd, type)));
+            flatteningToImmutableSetMultimap(
+                CacheData::getId, cd -> getRelationshipKeys(cd, type)));
   }
 
   /** Gets the data for all relationships of a given type for a CacheData item. */
   Collection<CacheData> getRelationships(CacheData cacheData, String relationshipType) {
-    return cache.getAll(
-        relationshipType, relationshipKeys(cacheData, relationshipType).collect(toImmutableSet()));
+    return getRelationships(
+        cacheData, relationshipType, getRelationshipKeys(cacheData, relationshipType));
+  }
+
+  /**
+   * Gets the data for all relationships of a given type for a CacheData item and all its
+   * relationship keys
+   */
+  Collection<CacheData> getRelationships(
+      CacheData cacheData, String relationshipType, Stream<String> relationshipKeys) {
+    return cache.getAll(relationshipType, relationshipKeys.collect(toImmutableSet()));
   }
 
   /** Gets the data for all relationships of a given Spinnaker kind for a single CacheData item. */
   ImmutableCollection<CacheData> getRelationships(
       CacheData cacheData, SpinnakerKind spinnakerKind) {
     return getRelationships(ImmutableList.of(cacheData), spinnakerKind).get(cacheData.getId());
+  }
+
+  /** Gets the data for all relationships for a single CacheData item. */
+  ImmutableCollection<CacheData> getAllRelationships(CacheData cacheData) {
+    ImmutableList.Builder<CacheData> result = ImmutableList.builder();
+    cacheData
+        .getRelationships()
+        .forEach(
+            (kind, relationships) ->
+                result.addAll(getRelationships(cacheData, kind, relationships.stream())));
+    return result.build();
   }
 
   /**
@@ -175,7 +196,7 @@ class KubernetesCacheUtils {
   }
 
   /** Returns a stream of all relationships of a given type for a given CacheData. */
-  private Stream<String> relationshipKeys(CacheData cacheData, String type) {
+  private Stream<String> getRelationshipKeys(CacheData cacheData, String type) {
     Collection<String> relationships = cacheData.getRelationships().get(type);
     // Avoiding creating an Optional here as this is deeply nested in performance-sensitive code.
     if (relationships == null) {
