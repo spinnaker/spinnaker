@@ -158,7 +158,7 @@ class IntermittentFailureTests : JUnit5Minutests {
 
         context("resource is still in a diff state") {
           before {
-            every { vetoRepository.getRecheckTime(resource.id) } returns clock.instant() + Duration.ofMinutes(20)
+            every { vetoRepository.getRecheckTime(resource) } returns clock.instant() + Duration.ofMinutes(20)
 
             runBlocking { subject.checkResource(resource) }
           }
@@ -170,7 +170,7 @@ class IntermittentFailureTests : JUnit5Minutests {
 
         context("then, resource is briefly in no diff state") {
           before {
-            every { vetoRepository.getRecheckTime(resource.id) } returns clock.instant() - Duration.ofMinutes(1)
+            every { vetoRepository.getRecheckTime(resource) } returns clock.instant() - Duration.ofMinutes(1)
 
             every { plugin1.desired(resource) } returns desired
             every { plugin1.current(resource) } returns desired

@@ -1,9 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spinnaker.config.UnhealthyNotificationConfig
-import com.netflix.spinnaker.keel.api.NotificationConfig
-import com.netflix.spinnaker.keel.api.NotificationFrequency
-import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
@@ -48,19 +45,19 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
     context("no existing record") {
       before {
         every {
-          unhealthyRepository.durationUnhealthy(r.id)
+          unhealthyRepository.durationUnhealthy(r)
         } returns Duration.ZERO
       }
 
       test("healthy marks resource healthy and clears unhealthy notification") {
         subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = true))
-        verify(exactly = 1) { unhealthyRepository.markHealthy(r.id) }
+        verify(exactly = 1) { unhealthyRepository.markHealthy(r) }
         verify(exactly = 1) { publisher.publishEvent(ClearNotificationEvent(RESOURCE, r.id, UNHEALTHY_RESOURCE)) }
       }
 
       test("unhealthy adds a record") {
         subject.onResourceHealthEvent(event)
-        verify(exactly = 1) { unhealthyRepository.markUnhealthy(r.id) }
+        verify(exactly = 1) { unhealthyRepository.markUnhealthy(r) }
         verify(exactly = 0) { publisher.publishEvent(any()) }
       }
     }
@@ -73,7 +70,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
       context("it's been 4 minutes (less than the min time)") {
         before {
           every {
-            unhealthyRepository.durationUnhealthy(r.id)
+            unhealthyRepository.durationUnhealthy(r)
           } returns Duration.ofMinutes(4)
         }
 
@@ -86,7 +83,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
       context("it's been 6 minutes (more than the min time)") {
         before {
           every {
-            unhealthyRepository.durationUnhealthy(r.id)
+            unhealthyRepository.durationUnhealthy(r)
           } returns Duration.ofMinutes(6)
         }
 

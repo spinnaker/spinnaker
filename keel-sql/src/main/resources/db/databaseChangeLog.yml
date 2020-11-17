@@ -194,3 +194,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201112-add-verification-repository.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201116-foreign-keys.yml
+      relativeToChangelogFile: true

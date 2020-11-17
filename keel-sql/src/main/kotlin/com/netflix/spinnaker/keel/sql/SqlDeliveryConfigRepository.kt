@@ -29,14 +29,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
@@ -47,7 +43,6 @@ import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
-import org.jooq.impl.DSL.row
 import org.jooq.impl.DSL.select
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
@@ -111,68 +106,6 @@ class SqlDeliveryConfigRepository(
           jooq.transaction { config ->
             val txn = DSL.using(config)
             txn
-              .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
-              .from(CURRENT_CONSTRAINT)
-              .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
-              .fetch { (application, type) ->
-                txn.deleteFrom(CURRENT_CONSTRAINT)
-                  .where(
-                    CURRENT_CONSTRAINT.APPLICATION.eq(application),
-                    CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
-                    CURRENT_CONSTRAINT.TYPE.eq(type)
-                  )
-                  .execute()
-              }
-            txn
-              .select(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
-              .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-              .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
-              .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
-              .sorted()
-              .chunked(DELETE_CHUNK_SIZE)
-              .forEach {
-                txn.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-                  .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID.`in`(*it.toTypedArray()))
-                  .execute()
-              }
-            txn
-              .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-              .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-              .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
-              .fetch { (artId, artVersion) ->
-                Pair(artId, artVersion)
-              }
-              .chunked(DELETE_CHUNK_SIZE)
-              .forEach {
-                txn.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
-                  .where(
-                    row(
-                      ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID,
-                      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
-                      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION
-                    )
-                      .`in`(
-                        it.map { t -> row(envUid, t.first, t.second) }
-                      )
-                  )
-                  .execute()
-              }
-            txn.select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
-              .from(ENVIRONMENT_RESOURCE)
-              .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid))
-              .fetch(ENVIRONMENT_RESOURCE.RESOURCE_UID)
-              .chunked(DELETE_CHUNK_SIZE)
-              .forEach {
-                txn.deleteFrom(ENVIRONMENT_RESOURCE)
-                  .where(
-                    row(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, ENVIRONMENT_RESOURCE.RESOURCE_UID)
-                      .`in`(
-                        it.map { resourceId -> row(envUid, resourceId) }
-                      )
-                  )
-                  .execute()
-              }
-            txn
               .deleteFrom(ENVIRONMENT)
               .where(ENVIRONMENT.UID.eq(envUid))
               .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
@@ -202,55 +135,9 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.transaction { config ->
         val txn = DSL.using(config)
-        // remove resources from environment
-        txn.deleteFrom(ENVIRONMENT_RESOURCE)
-          .where(
-            ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.`in`(envUids),
-            ENVIRONMENT_RESOURCE.RESOURCE_UID.`in`(resourceUids)
-          )
-          .execute()
         // delete resources
         txn.deleteFrom(RESOURCE)
           .where(RESOURCE.UID.`in`(resourceUids))
-          .execute()
-        // delete from resource last checked
-        txn.deleteFrom(RESOURCE_LAST_CHECKED)
-          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.`in`(resourceUids))
-          .execute()
-        // delete environment
-        txn.deleteFrom(ENVIRONMENT)
-          .where(ENVIRONMENT.UID.`in`(envUids))
-          .execute()
-        // remove from env artifact versions
-        txn.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // delete constraints
-        txn.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // delete current constraints
-        txn.deleteFrom(CURRENT_CONSTRAINT)
-          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // delete from pin
-        txn.deleteFrom(ENVIRONMENT_ARTIFACT_PIN)
-          .where(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // delete from veto
-        txn.deleteFrom(ENVIRONMENT_ARTIFACT_VETO)
-          .where(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // delete from queued approval
-        txn.deleteFrom(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
-          .where(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.`in`(envUids))
-          .execute()
-        // remove artifact from delivery config
-        txn.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
-          .where(
-            DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(configUid),
-            DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.`in`(artifactUids)
-          )
           .execute()
         // delete artifact
         txn.deleteFrom(DELIVERY_ARTIFACT)
@@ -259,10 +146,6 @@ class SqlDeliveryConfigRepository(
         // delete delivery config
         txn.deleteFrom(DELIVERY_CONFIG)
           .where(DELIVERY_CONFIG.UID.eq(configUid))
-          .execute()
-        // delete from delivery config last checked
-        txn.deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
-          .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(configUid))
           .execute()
       }
     }

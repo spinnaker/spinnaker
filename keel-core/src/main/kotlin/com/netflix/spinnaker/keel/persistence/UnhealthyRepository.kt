@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.Resource
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
@@ -17,16 +18,15 @@ abstract class UnhealthyRepository() {
   /**
    * Marks resource unhealthy
    */
-  abstract fun markUnhealthy(resourceId: String)
+  abstract fun markUnhealthy(resource: Resource<*>)
 
   /**
    * Clears unhealthy marking
    */
-  abstract fun markHealthy(resourceId: String)
+  abstract fun markHealthy(resource: Resource<*>)
 
   /**
    * Returns the duration a resource has been unhealthy for
    */
-  abstract fun durationUnhealthy(resourceId: String): Duration
+  abstract fun durationUnhealthy(resource: Resource<*>): Duration
 }
-

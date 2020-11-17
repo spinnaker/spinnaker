@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -15,43 +17,46 @@ abstract class UnhealthyRepositoryTests<T : UnhealthyRepository> : JUnit5Minutes
 
   abstract fun factory(clock: Clock): T
 
-  open fun T.flush() {}
+  open fun flush() {}
+  open fun store(resource: Resource<*>) {}
 
   val clock = MutableClock()
-  val resourceId = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
+  val resource = resource()
+
   data class Fixture<T : UnhealthyRepository>(
     val subject: T
   )
+
   fun tests() = rootContext<Fixture<T>> {
     fixture {
       Fixture(subject = factory(clock))
     }
 
-    after { subject.flush() }
+    before { store(resource) }
+    after { flush() }
 
     context("nothing is unhealthy") {
       test("marking healthy works") {
-        expectCatching {subject.markUnhealthy(resourceId) }.isSuccess()
+        expectCatching { subject.markUnhealthy(resource) }.isSuccess()
       }
       test("marking unhealthy works") {
-        expectCatching { subject.markHealthy(resourceId) }.isSuccess()
+        expectCatching { subject.markHealthy(resource) }.isSuccess()
       }
       test("getting duration works") {
-        expectThat(subject.durationUnhealthy(resourceId)).isEqualTo(Duration.ZERO)
+        expectThat(subject.durationUnhealthy(resource)).isEqualTo(Duration.ZERO)
       }
     }
 
     context("marked unhealthy 10 minutes ago") {
       before {
-        subject.markUnhealthy(resourceId)
+        subject.markUnhealthy(resource)
         clock.incrementBy(Duration.ofMinutes(10))
       }
 
       test("duration is correct") {
         expect {
-          that(subject.durationUnhealthy(resourceId)).isEqualTo(Duration.ofMinutes(10))
+          that(subject.durationUnhealthy(resource)).isEqualTo(Duration.ofMinutes(10))
         }
-
       }
     }
   }

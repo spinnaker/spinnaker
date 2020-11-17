@@ -17,29 +17,44 @@
  */
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepositoryTests
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
-import java.time.Clock
 import org.junit.jupiter.api.AfterAll
+import java.time.Clock
 
-internal object SqlUnhappyVetoRepositoryTests : UnhappyVetoRepositoryTests<SqlUnhappyVetoRepository>() {
+internal object SqlUnhappyVetoRepositoryTests :
+  UnhappyVetoRepositoryTests<SqlUnhappyVetoRepository>() {
 
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
+  private val resourceRepository = SqlResourceRepository(
+    jooq,
+    clock,
+    DummyResourceSpecIdentifier,
+    emptyList(),
+    configuredObjectMapper(),
+    sqlRetry
+  )
 
-  override fun factory(clock: Clock): SqlUnhappyVetoRepository {
-    return SqlUnhappyVetoRepository(
+  override fun factory(clock: Clock) =
+    SqlUnhappyVetoRepository(
       clock,
       jooq,
       sqlRetry
     )
+
+  override fun store(resource: Resource<*>) {
+    resourceRepository.store(resource)
   }
 
-  override fun SqlUnhappyVetoRepository.flush() {
+  override fun flush() {
     SqlTestUtil.cleanupDb(jooq)
   }
 

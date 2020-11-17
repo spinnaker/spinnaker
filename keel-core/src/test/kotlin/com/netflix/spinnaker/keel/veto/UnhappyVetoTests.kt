@@ -77,7 +77,7 @@ class UnhappyVetoTests : JUnit5Minutests {
       }
 
       test("veto status is cleared") {
-        verify { unhappyRepository.delete(r.id) }
+        verify { unhappyRepository.delete(r) }
       }
     }
 
@@ -86,11 +86,11 @@ class UnhappyVetoTests : JUnit5Minutests {
         every { diffFingerprintRepository.actionTakenCount(r.id) } returns 11
 
         every {
-          unhappyRepository.markUnhappy(r.id, r.application, capture(recheckTime))
+          unhappyRepository.markUnhappy(r, capture(recheckTime))
         } just Runs
 
         every {
-          unhappyRepository.getRecheckTime(r.id)
+          unhappyRepository.getRecheckTime(r)
         } answers {
           if (recheckTime.isCaptured) recheckTime.captured else null
         }
@@ -107,7 +107,7 @@ class UnhappyVetoTests : JUnit5Minutests {
         }
 
         test("veto status is not cleared") {
-          verify(exactly = 0) { unhappyRepository.delete(r.id) }
+          verify(exactly = 0) { unhappyRepository.delete(r) }
         }
 
         test("recheck time is set") {
@@ -142,7 +142,7 @@ class UnhappyVetoTests : JUnit5Minutests {
         }
 
         test("should update recheck time") {
-          verify { unhappyRepository.markUnhappy(r.id, r.application, any()) }
+          verify { unhappyRepository.markUnhappy(r, any()) }
           expectThat(recheckTime.captured).isEqualTo(clock.instant() + Duration.ofMinutes(10))
         }
       }
@@ -150,11 +150,11 @@ class UnhappyVetoTests : JUnit5Minutests {
       context("with a null recheck expiry time") {
         before {
           every {
-            unhappyRepository.getRecheckTime(r.id)
+            unhappyRepository.getRecheckTime(r)
           } returns null
           check()
         }
-  
+
         test("should veto unhappy resource") {
           expectThat(result).isNotNull().isNotAllowed()
         }

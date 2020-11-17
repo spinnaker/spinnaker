@@ -40,7 +40,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
@@ -173,16 +172,8 @@ class SqlArtifactRepository(
 
   override fun delete(artifact: DeliveryArtifact) {
     requireNotNull(artifact.deliveryConfigName) { "Error removing artifact - it has no delivery config!" }
-    val deliveryConfigId = select(DELIVERY_CONFIG.UID)
-      .from(DELIVERY_CONFIG)
-      .where(DELIVERY_CONFIG.NAME.eq(artifact.deliveryConfigName))
-
     jooq.transaction { config ->
       val txn = DSL.using(config)
-      txn.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
-        .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(deliveryConfigId))
-        .and(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(artifact.uid))
-        .execute()
       txn.deleteFrom(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.UID.eq(artifact.uid))
         .execute()

@@ -24,13 +24,13 @@ import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import java.time.Duration
-import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
+import java.time.format.DateTimeParseException
 
 /**
  * A veto that stops keel from checking a resource for a configurable
@@ -49,17 +49,14 @@ class UnhappyVeto(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override suspend fun check(resource: Resource<*>): VetoResponse {
-    val resourceId = resource.id
-    val application = resource.application
-
     // maxActionCountPerDiff represents the number of times we're allowed to see a diff and take action to try and fix it.
-    if (diffFingerprintRepository.actionTakenCount(resourceId) <= maxActionCountPerDiff(resource)) {
-      unhappyVetoRepository.delete(resourceId)
+    if (diffFingerprintRepository.actionTakenCount(resource.id) <= maxActionCountPerDiff(resource)) {
+      unhappyVetoRepository.delete(resource)
       return allowedResponse()
     }
 
     val wait = waitingTime(resource)
-    val recheckTime = unhappyVetoRepository.getRecheckTime(resourceId)
+    val recheckTime = unhappyVetoRepository.getRecheckTime(resource)
 
     /**
      * We deny the resource check if it's the first time we detected the resource being unhappy with this diff
@@ -69,19 +66,17 @@ class UnhappyVeto(
      * If the recheck time has expired, the resource remains marked unhappy in the database, but we allow it
      * to be rechecked and update the recheck time.
      */
-    val response = if (recheckTime == null || recheckTime > clock.instant()) {
+    return if (recheckTime == null || recheckTime > clock.instant()) {
       if (recheckTime == null) {
-        unhappyVetoRepository.markUnhappy(resourceId, application, calculateRecheckTime(wait))
+        unhappyVetoRepository.markUnhappy(resource, calculateRecheckTime(wait))
       }
-      log.debug("Resource $resourceId is unhappy. Denying resource check.")
+      log.debug("Resource ${resource.id} is unhappy. Denying resource check.")
       deniedResponse(unhappyMessage(resource))
     } else {
-      log.debug("Marking resource $resourceId unhappy for $wait, but allowing resource check.")
-      unhappyVetoRepository.markUnhappy(resourceId, application, calculateRecheckTime(wait))
+      log.debug("Marking resource ${resource.id} unhappy for $wait, but allowing resource check.")
+      unhappyVetoRepository.markUnhappy(resource, calculateRecheckTime(wait))
       allowedResponse()
     }
-
-    return response
   }
 
   override fun currentRejections(): List<String> =

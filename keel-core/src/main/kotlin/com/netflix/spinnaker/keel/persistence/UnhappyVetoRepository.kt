@@ -17,11 +17,12 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.Resource
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 
 abstract class UnhappyVetoRepository(
   open val clock: Clock,
@@ -35,37 +36,32 @@ abstract class UnhappyVetoRepository(
   }
 
   /**
-   * Marks [resourceId] as unhappy for [waitingTime]
+   * Marks [resource] as unhappy for [waitingTime]
    *
    * @param recheckTime the time to wait before re-checking the resource, `null` means "never re-check".
    */
   abstract fun markUnhappy(
-    resourceId: String,
-    application: String,
+    resource: Resource<*>,
     recheckTime: Instant? = clock.instant() + Duration.parse(waitingTime)
   )
 
   /**
-   * Clears unhappy marking for [resourceId]
+   * Clears unhappy marking for [resource]
    */
-  abstract fun delete(resourceId: String)
+  abstract fun delete(resource: Resource<*>)
 
   /**
-   * Calculates whether a resource should be skipped or rechecked at this instant
-   *
-   * @param wait the time to wait before re-checking the resource, `null` means "never re-check".
+   * Calculates whether a resource should be skipped or rechecked at this instant.
    */
-  abstract fun getRecheckTime(
-    resourceId: String
-  ): Instant?
+  abstract fun getRecheckTime(resource: Resource<*>): Instant?
 
   /**
-   * Returns all currently vetoed resources
+   * @return the ids of all currently vetoed resources
    */
   abstract fun getAll(): Set<String>
 
   /**
-   * Returns all currently vetoed resources for an [application]
+   * @return the ids of all currently vetoed resources for [application]
    */
   abstract fun getAllForApp(application: String): Set<String>
 }

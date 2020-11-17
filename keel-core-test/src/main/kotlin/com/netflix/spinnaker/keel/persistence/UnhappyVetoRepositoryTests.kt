@@ -17,24 +17,27 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.time.Clock
-import java.time.Duration
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import java.time.Clock
+import java.time.Duration
 
 abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
 
-  open fun T.flush() {}
+  open fun store(resource: Resource<*>) {}
+  open fun flush() {}
 
   val clock = MutableClock()
-  val resourceId = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
+  val resource = resource()
   val application = "keeldemo"
   val waitDuration = Duration.ofMinutes(10)
 
@@ -47,7 +50,8 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       Fixture(subject = factory(clock))
     }
 
-    after { subject.flush() }
+    before { store(resource) }
+    after { flush() }
 
     context("nothing currently vetoed") {
       test("no applications returned") {
@@ -55,13 +59,13 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       }
 
       test("recheck time is null") {
-        expectThat(subject.getRecheckTime(resourceId)).isNull()
+        expectThat(subject.getRecheckTime(resource)).isNull()
       }
     }
 
     context("basic operations") {
       before {
-        subject.markUnhappy(resourceId, application)
+        subject.markUnhappy(resource)
       }
 
       test("marking unhappy works") {
@@ -69,18 +73,18 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       }
 
       test("retrieving recheck time works") {
-        expectThat(subject.getRecheckTime(resourceId)).isEqualTo(clock.instant() + waitDuration)
+        expectThat(subject.getRecheckTime(resource)).isEqualTo(clock.instant() + waitDuration)
       }
 
       test("marking happy works") {
-        subject.delete(resourceId)
+        subject.delete(resource)
         expectThat(subject.getAll()).hasSize(0)
       }
     }
 
     context("filtering") {
       before {
-        subject.markUnhappy(resourceId, application)
+        subject.markUnhappy(resource)
       }
       test("filters out resources that are past the recheck time") {
         clock.incrementBy(Duration.ofMinutes(11))
@@ -89,21 +93,25 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
     }
 
     context("getting all by app name") {
-      val bake1 = "bakery:image:keeldemo"
-      val bake2 = "bakery:image:keel"
-      val resource1 = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
-      val resource2 = "ec2:securityGroup:test:us-west-2:keel-managed"
+      val resources = listOf(
+        resource(application = "keeldemo"),
+        resource(application = "keel"),
+        resource(application = "keeldemo"),
+        resource(application = "keel")
+      )
+
       before {
-        subject.markUnhappy(bake1, "keeldemo")
-        subject.markUnhappy(bake2, "keel")
-        subject.markUnhappy(resource1, "keeldemo")
-        subject.markUnhappy(resource2, "keel")
+        resources.forEach {
+          store(it)
+          subject.markUnhappy(it)
+        }
       }
 
       test("get for keel returns only correct resources") {
-        val resources = subject.getAllForApp("keel")
-        expectThat(resources)
-          .hasSize(2).containsExactlyInAnyOrder(bake2, resource2)
+        val unhappyIds = subject.getAllForApp("keel")
+        expectThat(unhappyIds)
+          .hasSize(2)
+          .containsExactlyInAnyOrder(resources.filter { it.application == "keel" }.map { it.id })
       }
     }
   }

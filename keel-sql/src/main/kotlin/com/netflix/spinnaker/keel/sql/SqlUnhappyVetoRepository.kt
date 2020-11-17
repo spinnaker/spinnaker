@@ -17,12 +17,16 @@
  */
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.UNHAPPY_VETO
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import java.time.Clock
 import org.jooq.DSLContext
+import org.jooq.Record1
+import org.jooq.Select
+import java.time.Clock
 import java.time.Instant
 
 class SqlUnhappyVetoRepository(
@@ -31,11 +35,10 @@ class SqlUnhappyVetoRepository(
   private val sqlRetry: SqlRetry
 ) : UnhappyVetoRepository(clock) {
 
-  override fun markUnhappy(resourceId: String, application: String, recheckTime: Instant?) {
+  override fun markUnhappy(resource: Resource<*>, recheckTime: Instant?) {
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(UNHAPPY_VETO)
-        .set(UNHAPPY_VETO.RESOURCE_ID, resourceId)
-        .set(UNHAPPY_VETO.APPLICATION, application)
+        .set(UNHAPPY_VETO.RESOURCE_UID, resource.uid)
         .run {
           recheckTime
             ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime.toTimestamp()) }
@@ -51,20 +54,20 @@ class SqlUnhappyVetoRepository(
     }
   }
 
-  override fun delete(resourceId: String) {
+  override fun delete(resource: Resource<*>) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(UNHAPPY_VETO)
-        .where(UNHAPPY_VETO.RESOURCE_ID.eq(resourceId))
+        .where(UNHAPPY_VETO.RESOURCE_UID.eq(resource.uid))
         .execute()
     }
   }
 
-  override fun getRecheckTime(resourceId: String): Instant? {
+  override fun getRecheckTime(resource: Resource<*>): Instant? {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(UNHAPPY_VETO.RECHECK_TIME)
         .from(UNHAPPY_VETO)
-        .where(UNHAPPY_VETO.RESOURCE_ID.eq(resourceId))
+        .where(UNHAPPY_VETO.RESOURCE_UID.eq(resource.uid))
         .fetchOne(UNHAPPY_VETO.RECHECK_TIME)
         ?.toInstant()
     }
@@ -73,10 +76,11 @@ class SqlUnhappyVetoRepository(
   override fun getAll(): Set<String> {
     val now = clock.timestamp()
     return sqlRetry.withRetry(READ) {
-      jooq.select(UNHAPPY_VETO.RESOURCE_ID)
-        .from(UNHAPPY_VETO)
+      jooq.select(RESOURCE.ID)
+        .from(UNHAPPY_VETO, RESOURCE)
         .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(now)))
-        .fetch(UNHAPPY_VETO.RESOURCE_ID)
+        .and(UNHAPPY_VETO.RESOURCE_UID.eq(RESOURCE.UID))
+        .fetch(RESOURCE.ID)
         .toSet()
     }
   }
@@ -84,12 +88,18 @@ class SqlUnhappyVetoRepository(
   override fun getAllForApp(application: String): Set<String> {
     val now = clock.timestamp()
     return sqlRetry.withRetry(READ) {
-      jooq.select(UNHAPPY_VETO.RESOURCE_ID)
-        .from(UNHAPPY_VETO)
-        .where(UNHAPPY_VETO.APPLICATION.eq(application))
-        .and(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(now)))
-        .fetch(UNHAPPY_VETO.RESOURCE_ID)
+      jooq.select(RESOURCE.ID)
+        .from(UNHAPPY_VETO, RESOURCE)
+        .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(now)))
+        .and(UNHAPPY_VETO.RESOURCE_UID.eq(RESOURCE.UID))
+        .and(RESOURCE.APPLICATION.eq(application))
+        .fetch(RESOURCE.ID)
         .toSet()
     }
   }
+
+  private val Resource<*>.uid: Select<Record1<String>>
+    get() = jooq.select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(id))
 }
