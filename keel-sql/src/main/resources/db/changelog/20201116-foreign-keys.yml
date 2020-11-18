@@ -252,6 +252,14 @@ databaseChangeLog:
         tableName: unhappy_veto
         columnName: application
 - changeSet:
+    id: primary-key-on-unhappy_veto
+    author: fletch
+    changes:
+    - addPrimaryKey:
+        tableName: unhappy_veto
+        columnNames: resource_uid
+        constraintName: pk_unhappy_veto
+- changeSet:
     id: resource_uid-on-unhealthy
     author: fletch
     changes:
@@ -288,3 +296,11 @@ databaseChangeLog:
     - dropColumn:
         tableName: unhealthy
         columnName: resource_id
+- changeSet:
+    id: primary-key-on-unhealthy
+    author: fletch
+    changes:
+    - addPrimaryKey:
+        tableName: unhealthy
+        columnNames: resource_uid
+        constraintName: pk_unhealthy
