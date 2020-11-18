@@ -21,9 +21,9 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
+import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.DefaultStageResolver;
 import com.netflix.spinnaker.orca.DynamicStageResolver;
 import com.netflix.spinnaker.orca.StageResolver;

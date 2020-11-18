@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.capabilities;
 
-import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
 import com.netflix.spinnaker.orca.capabilities.models.ExpressionCapabilityResult;
 import com.netflix.spinnaker.orca.capabilities.models.ExpressionFunctionDefinition;

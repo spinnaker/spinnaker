@@ -18,11 +18,12 @@ package com.netflix.spinnaker.orca.pipeline.expressions.functions;
 
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.orca.ExecutionContext;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import java.util.Arrays;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +64,7 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
         new FunctionDefinition(
             "stage",
             "Locates a stage by name",
+            Arrays.asList(stageParameters),
             new FunctionDocumentation(
                 "The most common use of this function is to check whether a specific stage has succeeded or failed. It can also be used to retrieve any information from the specified stage.",
                 new FunctionUsageExample(
@@ -70,8 +72,7 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
                     "Returns `true` if the stage with the name `bake` has succeeded"),
                 new FunctionUsageExample(
                     "#stage('bake').hasFailed",
-                    "Returns `true` if the stage with the name `bake` has failed")),
-            stageParameters),
+                    "Returns `true` if the stage with the name `bake` has failed"))),
         new FunctionDefinition(
             "stageExists",
             "Checks if the stage with the specified name exists in the current execution",

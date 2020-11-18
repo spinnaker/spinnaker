@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
-import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
 import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
