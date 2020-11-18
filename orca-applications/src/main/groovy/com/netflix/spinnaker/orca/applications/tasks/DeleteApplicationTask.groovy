@@ -16,17 +16,22 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
+import com.netflix.spinnaker.orca.KeelService
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Slf4j
 @Component
 class DeleteApplicationTask extends AbstractFront50Task {
+  @Autowired(required = false)
+  KeelService keelService
+
   @Override
   TaskResult performRequest(Application application) {
     Map<String, Object> outputs = [:]
@@ -42,15 +47,20 @@ class DeleteApplicationTask extends AbstractFront50Task {
           if (re.response?.status == 404) {
             return TaskResult.SUCCEEDED
           }
-          log.error("Could not create or update application permission", re)
+          log.error("Could not delete application permission", re)
           return TaskResult.builder(ExecutionStatus.TERMINAL).outputs(outputs).build()
+        }
+        // delete Managed Delivery data
+        if (keelService != null) {
+          log.debug("Deleting Managed Delivery data for {}", application.name)
+          keelService.deleteDeliveryConfig(application.name)
         }
       }
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         return TaskResult.SUCCEEDED
       }
-      log.error("Could not create or update application permission", e)
+      log.error("Could not delete application", e)
       return TaskResult.builder(ExecutionStatus.TERMINAL).outputs(outputs).build()
     }
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build()

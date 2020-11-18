@@ -20,8 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.KeelService
+import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -50,6 +53,9 @@ class DeleteApplicationTaskSpec extends Specification {
       1 * deletePermission(config.application.name)
       0 * _._
     }
+    task.keelService = Mock(KeelService) {
+      1 * deleteDeliveryConfig(config.application.name)
+    }
 
     when:
     def taskResult = task.execute(pipeline.stages.first())
@@ -67,11 +73,31 @@ class DeleteApplicationTaskSpec extends Specification {
       1 * deletePermission(config.application.name)
       0 * _._
     }
+    task.keelService = Mock(KeelService) {
+      1 * deleteDeliveryConfig(config.application.name)
+    }
 
     when:
     def taskResult = task.execute(pipeline.stages.first())
 
     then:
     taskResult.context.previousState == application
+  }
+
+  void "should ignore not found errors when deleting managed delivery data"() {
+    given:
+    task.front50Service = Mock(Front50Service) {
+      get(config.application.name) >> new Application()
+    }
+    task.keelService = Mock(KeelService) {
+      1 * deleteDeliveryConfig(config.application.name) >>
+          new Response("http://keel", 404, "not found", [], null)
+    }
+
+    when:
+    def taskResult = task.execute(pipeline.stages.first())
+
+    then:
+    taskResult.status == ExecutionStatus.SUCCEEDED
   }
 }

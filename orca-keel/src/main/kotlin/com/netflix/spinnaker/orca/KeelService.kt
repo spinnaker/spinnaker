@@ -19,12 +19,17 @@ package com.netflix.spinnaker.orca
 import com.netflix.spinnaker.orca.keel.model.DeliveryConfig
 import retrofit.client.Response
 import retrofit.http.Body
+import retrofit.http.DELETE
 import retrofit.http.Header
 import retrofit.http.Headers
 import retrofit.http.POST
+import retrofit.http.Path
 
 interface KeelService {
   @POST("/delivery-configs/")
   @Headers("Accept: application/json")
   fun publishDeliveryConfig(@Body deliveryConfig: DeliveryConfig, @Header(value = "X-SPINNAKER-USER") user: String): Response
+
+  @DELETE("/application/{application}/config")
+  fun deleteDeliveryConfig(@Path("application") application: String): Response
 }
