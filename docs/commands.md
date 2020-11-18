@@ -8050,6 +8050,7 @@ hal config provider cloudfoundry account add ACCOUNT [parameters]
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--skip-ssl-validation`: (*Default*: `false`) Skip SSL server certificate validation of the API endpoint
+ * `--space-filter, --spaceFilter`: Organization and Space filter applied to the Spinnaker CF account
  * `--user`: (*Required*) User name for the account to use on for this CloudFoundry Foundation
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
@@ -8098,6 +8099,7 @@ hal config provider cloudfoundry account edit ACCOUNT [parameters]
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--skip-ssl-validation`: (*Default*: `false`) Skip SSL server certificate validation of the API endpoint
+ * `--space-filter, --spaceFilter`: Organization and Space filter applied to the Spinnaker CF account
  * `--user`: User name for the account to use on for this CloudFoundry Foundation
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 

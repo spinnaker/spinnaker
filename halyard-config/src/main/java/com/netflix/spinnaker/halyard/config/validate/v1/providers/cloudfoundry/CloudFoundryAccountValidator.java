@@ -120,7 +120,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
 
     try {
       SpaceService spaceService = createSpaceService(apiHost, skipSslValidation, user, password);
-      int count = spaceService.all(null, null).getTotalResults();
+      int count = spaceService.all(null, null, null).getResources().size();
       log.info("Retrieved {} spaces using account {}", count, accountName);
     } catch (Exception e) {
       problemSetBuilder.addProblem(

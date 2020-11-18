@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import java.net.URL;
+import java.util.Map;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -40,4 +42,7 @@ public class CloudFoundryAccount extends Account {
   @Secret String password;
   String user;
   boolean skipSslValidation = false;
+
+  @JsonProperty("spaceFilter")
+  Map<String, Set<String>> spaceFilter;
 }

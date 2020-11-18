@@ -31,4 +31,6 @@ public class CloudFoundryCommandProperties {
       "Password for the account to use on for this CloudFoundry Foundation";
   public static final String SKIP_SSL_VALIDATION_DESCRIPTION =
       "Skip SSL server certificate validation of the API endpoint";
+  public static final String SPACE_FILTER_DESCRIPTION =
+      "Organization and Space filter applied to the Spinnaker CF account";
 }

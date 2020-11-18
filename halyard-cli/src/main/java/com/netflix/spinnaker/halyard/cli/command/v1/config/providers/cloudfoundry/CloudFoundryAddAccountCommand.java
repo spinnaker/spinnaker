@@ -22,6 +22,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
 import java.net.URL;
+import java.util.Map;
+import java.util.Set;
 
 @Parameters(separators = "=")
 public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
@@ -59,6 +61,13 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
       description = CloudFoundryCommandProperties.SKIP_SSL_VALIDATION_DESCRIPTION)
   private Boolean skipSslValidation = false;
 
+  @Parameter(
+      names = {"--space-filter", "--spaceFilter"},
+      required = false,
+      converter = CloudFoundrySpaceFilterMapConverter.class,
+      description = CloudFoundryCommandProperties.SPACE_FILTER_DESCRIPTION)
+  private Map<String, Set<String>> spaceFilter;
+
   @Override
   protected Account buildAccount(String accountName) {
     CloudFoundryAccount cloudFoundryAccount =
@@ -69,7 +78,8 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
         .setMetricsUrl(metricsUrl)
         .setPassword(password)
         .setUser(user)
-        .setSkipSslValidation(skipSslValidation);
+        .setSkipSslValidation(skipSslValidation)
+        .setSpaceFilter(spaceFilter);
   }
 
   @Override
