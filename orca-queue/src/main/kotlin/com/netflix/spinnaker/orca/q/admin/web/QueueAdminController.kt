@@ -65,8 +65,8 @@ class QueueAdminController(
     )
 
   @PostMapping(value = ["/zombies:kill"])
-  fun killZombies(@QueryParam("minimumActivity") minimumActivity: Duration = Duration.ofMinutes(60)) {
-    getZombieExecutionService().killZombies(minimumActivity)
+  fun killZombies(@QueryParam("minimumActivity") minimumActivity: Long?) {
+    getZombieExecutionService().killZombies(Duration.ofMinutes(minimumActivity ?: 60))
   }
 
   @PostMapping(value = ["/zombies/{executionId}:kill"])
@@ -78,8 +78,8 @@ class QueueAdminController(
   @PostMapping(value = ["/zombies/application/{application}:kill"])
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun killApplicationZombies(@PathVariable application: String,
-                             @QueryParam("minimumActivity") minimumActivity: Duration = Duration.ofMinutes(60)) {
-    getZombieExecutionService().killZombies(application, minimumActivity)
+                             @QueryParam("minimumActivity") minimumActivity: Long?) {
+    getZombieExecutionService().killZombies(application, Duration.ofMinutes(minimumActivity ?: 60))
   }
 
   /**
