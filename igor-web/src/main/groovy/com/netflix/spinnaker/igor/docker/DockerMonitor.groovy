@@ -119,7 +119,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             }
         }
 
-        log.info("Found {} new images for {}", delta.size(), account)
+        log.info("Found {} new images for {}. Images: {}", delta.size(), account, delta.collect {[imageId: it.imageId, sendEvent: it.sendEvent] })
 
         return new DockerPollingDelta(items: delta, cachedImages: cachedImages)
     }
