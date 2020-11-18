@@ -2,19 +2,19 @@ import { module } from 'angular';
 
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
-export interface IFindImageParams {
+export type IFindImageParams = {
   provider: string;
   q?: string;
   region?: string;
   account?: string;
   count?: number;
-}
+};
 
-export interface IFindTagsParams {
+export type IFindTagsParams = {
   provider: string;
   account: string;
   repository: string;
-}
+};
 
 // marker interface
 export interface IImage {}

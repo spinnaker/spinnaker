@@ -1,4 +1,3 @@
-
 import { $log, $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
@@ -36,7 +35,10 @@ export class TaskReader {
         }
         return task;
       })
-      .catch((error: any) => $log.warn('There was an issue retrieving taskId: ', taskId, error));
+      .catch((error: any) => {
+        $log.warn('There was an issue retrieving taskId: ', taskId, error);
+        return undefined;
+      });
   }
 
   public static waitUntilTaskMatches(

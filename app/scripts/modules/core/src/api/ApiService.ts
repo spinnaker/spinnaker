@@ -5,18 +5,21 @@ import { SETTINGS } from 'core/config/settings';
 import { ICache } from 'core/cache';
 import { isNil } from 'lodash';
 
+type IPrimitive = string | boolean | number;
+type IParams = Record<string, IPrimitive | IPrimitive[]>;
+
 export interface IRequestBuilder {
   config?: IRequestConfig;
   one?: (...urls: string[]) => IRequestBuilder;
   all?: (...urls: string[]) => IRequestBuilder;
-  useCache?: (useCache: boolean | ICache) => IRequestBuilder;
-  withParams?: (data: any) => IRequestBuilder;
+  useCache?: (useCache?: boolean | ICache) => IRequestBuilder;
+  withParams?: (params: IParams) => IRequestBuilder;
   data?: (data: any) => IRequestBuilder;
-  get?: (data?: any) => PromiseLike<any>;
-  getList?: (data?: any) => PromiseLike<any>;
-  post?: (data: any) => PromiseLike<any>;
-  remove?: (data: any) => PromiseLike<any>;
-  put?: (data: any) => PromiseLike<any>;
+  get?: <T = any>(params?: IParams) => PromiseLike<T>;
+  getList?: <T = any>(params?: IParams) => PromiseLike<T>;
+  post?: <T = any>(data?: any) => PromiseLike<T>;
+  remove?: <T = any>(params?: IParams) => PromiseLike<T>;
+  put?: <T = any>(data?: any) => PromiseLike<T>;
 }
 
 export class InvalidAPIResponse extends Error {
@@ -97,7 +100,7 @@ export class API {
   }
 
   // HTTP GET operation
-  private static getFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
+  private static getFn(config: IRequestConfig): (params: any) => PromiseLike<any> {
     return (params: any) => {
       config.method = 'get';
       Object.assign(config, this.defaultParams);
@@ -123,7 +126,7 @@ export class API {
   }
 
   // HTTP DELETE operation
-  private static removeFn(config: IRequestConfig): (data: any) => PromiseLike<any> {
+  private static removeFn(config: IRequestConfig): (params: any) => PromiseLike<any> {
     return (params: any) => {
       config.method = 'delete';
       if (params) {
@@ -176,11 +179,11 @@ export class API {
     return this.baseReturn(config);
   }
 
-  public static one(...urls: string[]): any {
+  public static one(...urls: string[]): IRequestBuilder {
     return this.init(urls);
   }
 
-  public static all(...urls: string[]): any {
+  public static all(...urls: string[]): IRequestBuilder {
     return this.init(urls);
   }
 

@@ -98,7 +98,7 @@ export class PluginRegistry {
   public loadPluginManifestFromGate() {
     const source = 'gate';
     const uri = 'plugins/deck/plugin-manifest.json';
-    const loadPromise = API.one(...uri.split('/'))
+    const loadPromise: PromiseLike<IPluginMetaData[]> = API.one(...uri.split('/'))
       .get()
       .catch((error: any) => {
         console.error(`Failed to load ${uri} from ${source}`);
@@ -122,7 +122,7 @@ export class PluginRegistry {
   public async loadPluginManifest(
     source: ISource,
     location: string,
-    pluginsMetaDataPromise: Promise<IPluginMetaData[]>,
+    pluginsMetaDataPromise: PromiseLike<IPluginMetaData[]>,
   ): Promise<IPluginMetaData[]> {
     try {
       const plugins = await pluginsMetaDataPromise;

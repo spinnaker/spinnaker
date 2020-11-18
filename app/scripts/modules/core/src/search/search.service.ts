@@ -30,7 +30,7 @@ export interface ISearchResult {
   type: string;
 }
 
-export const getFallbackResults = (): ISearchResults<ISearchResult> => {
+const getFallbackResults = <T extends ISearchResult>(): ISearchResults<T> => {
   return { results: [] };
 };
 
@@ -58,7 +58,7 @@ export class SearchService {
     return requestBuilder
       .get()
       .then((response: Array<ISearchResults<T>>) => {
-        return response[0] || getFallbackResults();
+        return response[0] || getFallbackResults<T>();
       })
       .catch((response: IHttpPromiseCallbackArg<any>) => {
         $log.error(response.data, response);

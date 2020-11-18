@@ -1,6 +1,7 @@
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
+import { ICache } from '../cache';
 import { API, InvalidAPIResponse } from './ApiService';
 import { SETTINGS } from 'core/config/settings';
 
@@ -293,12 +294,6 @@ describe('API Service', function () {
     });
 
     describe('create config with data', function () {
-      it('should not alter the config if no data object passed', function () {
-        const result = API.one('foo').data();
-        expected.url = `${baseUrl}/foo`;
-        expect(result.config).toEqual(expected);
-      });
-
       it('should add data to the config if data object passed', function () {
         const data = { bar: 'baz' };
         const result = API.one('foo').data(data);
@@ -310,11 +305,6 @@ describe('API Service', function () {
   });
 
   describe('create a config with params', function () {
-    it('when no params are provided do not alter config', function () {
-      const result = API.one('foo').withParams();
-      expect(result.config).toEqual({ method: '', url: `${baseUrl}/foo` });
-    });
-
     it('when params are provided', function () {
       const result = API.one('foo').withParams({ one: 1 });
       expect(result.config).toEqual({ method: '', url: `${baseUrl}/foo`, params: { one: 1 } });
@@ -333,7 +323,7 @@ describe('API Service', function () {
     });
 
     it('should set cache to cache object if explicitly set', function () {
-      const cacheObj = { count: 1 };
+      const cacheObj = ({ count: 1 } as unknown) as ICache;
       const result = API.one('foo').useCache(cacheObj);
       expect(result.config.cache).toBe(cacheObj);
     });

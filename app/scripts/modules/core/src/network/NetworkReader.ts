@@ -10,7 +10,7 @@ export interface INetwork {
 }
 
 export class NetworkReader {
-  public static listNetworks(): INetwork[] {
+  public static listNetworks(): PromiseLike<INetwork[]> {
     return API.one('networks').getList();
   }
 
