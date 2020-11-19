@@ -142,7 +142,7 @@ class ClusterExportHelper(
       ?.let { stage -> stage["context"] }
       ?.let { context -> context as? OrcaExecutionStage }
       ?.let { context ->
-        (context["clusters"] as? List<OrcaExecutionStage>)?.first()
+        (context["clusters"] as? List<OrcaExecutionStage>)?.firstOrNull()
       }
 
   @Suppress("UNCHECKED_CAST")
