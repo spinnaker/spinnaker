@@ -16,12 +16,38 @@
 
 package com.netflix.spinnaker.config
 
+import org.jooq.SQLDialect
 import org.springframework.boot.context.properties.ConfigurationProperties
 
+class SqlConstraints(
+  val maxTableNameLength: Int,
+  val maxIdLength: Int,
+  val maxAgentLength: Int,
+) {
+
+  constructor(defaultConstraints: SqlConstraints, constraintsProperties: SqlConstraintsProperties) : this(
+      constraintsProperties.maxTableNameLength ?: defaultConstraints.maxTableNameLength,
+      constraintsProperties.maxIdLength ?: defaultConstraints.maxIdLength,
+      constraintsProperties.maxAgentLength ?: defaultConstraints.maxAgentLength
+  )
+}
+
 @ConfigurationProperties("sql.constraints")
-class SqlConstraints {
-  var maxTableNameLength: Int = 64
-  // 352 * 2 + 64 (max rel_type length) == 768; 768 * 4 (utf8mb4) == 3072 == Aurora's max index length
-  var maxIdLength: Int = 352
-  var maxAgentLength: Int = 127
+class SqlConstraintsProperties {
+  var maxTableNameLength: Int? = null
+  var maxIdLength: Int? = null
+  var maxAgentLength: Int? = null
+}
+
+object SqlConstraintsInitializer {
+
+  fun getDefaultSqlConstraints(dialect: SQLDialect): SqlConstraints =
+    when(dialect) {
+      SQLDialect.POSTGRES ->
+        // https://www.postgresql.org/docs/current/limits.html
+        SqlConstraints(63, Int.MAX_VALUE, Int.MAX_VALUE)
+      else ->
+        // 352 * 2 + 64 (max rel_type length) == 768; 768 * 4 (utf8mb4) == 3072 == Aurora's max index length
+        SqlConstraints(64, 352, 127)
+    }
 }

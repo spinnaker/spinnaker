@@ -2,12 +2,15 @@ package com.netflix.spinnaker.cats.sql.cache
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 
@@ -41,8 +44,7 @@ class SqlTableMetricsAgent(
       "cats_v${SqlSchemaVersion.current()}_${namespace}_"
     }
 
-    val rs = jooq.fetch("show tables like '$baseName%'").intoResultSet()
-
+    val rs = SqlUtil.getTablesLike(jooq, baseName)
     while (rs.next()) {
       val tableName = rs.getString(1)
       val type = tableName.replace(baseName, "")

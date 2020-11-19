@@ -25,10 +25,14 @@ import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.cats.test.TestProvider
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
+import com.netflix.spinnaker.config.SqlConstraints
+import com.netflix.spinnaker.config.SqlConstraintsInitializer
+import com.netflix.spinnaker.config.SqlConstraintsProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.jooq.SQLDialect
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -107,6 +111,10 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
     }
   }
 
+  fun defaultSqlNames() : SqlNames =
+    SqlNames(sqlConstraints = SqlConstraintsInitializer.getDefaultSqlConstraints(SQLDialect.MYSQL))
+
+
   private inner class Fixture {
     val testDatabase = SqlTestUtil.initTcMysqlDatabase()
     val dslContext = testDatabase.context
@@ -118,10 +126,10 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
     )
     val registry = NoopRegistry()
 
-    val subject = SqlUnknownAgentCleanupAgent(StaticObjectProvider(providerRegistry), dslContext, registry, SqlNames())
+    val subject = SqlUnknownAgentCleanupAgent(StaticObjectProvider(providerRegistry), dslContext, registry, defaultSqlNames())
 
     fun seedDatabase(includeTestAccount: Boolean, includeProdAccount: Boolean) {
-      SqlNames().run {
+      defaultSqlNames().run {
         val resource = resourceTableName("instances")
         val rel = relTableName("instances")
         dslContext.execute("CREATE TABLE IF NOT EXISTS $resource LIKE cats_v1_resource_template")
@@ -255,12 +263,12 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
     fun selectAllResources(): List<String> =
       dslContext.select(field("id"))
-        .from(table(SqlNames().resourceTableName("instances")))
+        .from(table(defaultSqlNames().resourceTableName("instances")))
         .fetch(0, String::class.java)
 
     fun selectAllRels(): List<String> =
       dslContext.select(field("rel_id"))
-        .from(table(SqlNames().relTableName("instances")))
+        .from(table(defaultSqlNames().relTableName("instances")))
         .fetch(0, String::class.java)
   }
 

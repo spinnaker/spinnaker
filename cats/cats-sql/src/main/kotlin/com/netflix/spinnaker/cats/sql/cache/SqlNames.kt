@@ -24,7 +24,7 @@ import com.netflix.spinnaker.kork.annotations.VisibleForTesting
  */
 class SqlNames(
   private val tableNamespace: String? = null,
-  private val sqlConstraints: SqlConstraints = SqlConstraints()
+  private val sqlConstraints: SqlConstraints
 ) {
 
   /**

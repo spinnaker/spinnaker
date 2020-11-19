@@ -61,7 +61,9 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.testcontainers:mysql"
+  testImplementation "org.testcontainers:postgresql"
   testImplementation "mysql:mysql-connector-java"
+  testImplementation "org.postgresql:postgresql"
 }
 
 test {

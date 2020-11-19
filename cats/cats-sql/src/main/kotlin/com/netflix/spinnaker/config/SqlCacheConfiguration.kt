@@ -51,7 +51,7 @@ const val coroutineThreadPrefix = "catsSql"
 @Configuration
 @ConditionalOnProperty("sql.cache.enabled")
 @Import(DefaultSqlConfiguration::class)
-@EnableConfigurationProperties(SqlAgentProperties::class, SqlConstraints::class)
+@EnableConfigurationProperties(SqlAgentProperties::class, SqlConstraintsProperties::class)
 @ComponentScan("com.netflix.spinnaker.cats.sql.controllers")
 class SqlCacheConfiguration {
 
@@ -78,6 +78,10 @@ class SqlCacheConfiguration {
       .instrumentation(executionInstrumentation)
       .build(providers)
   }
+
+  @Bean
+  fun sqlConstraints(jooq: DSLContext, sqlConstraintsProperties: SqlConstraintsProperties): SqlConstraints =
+    SqlConstraints(SqlConstraintsInitializer.getDefaultSqlConstraints(jooq.dialect()), sqlConstraintsProperties)
 
   /**
    * sql.cache.async.poolSize: If set to a positive integer, a fixed thread pool of this size is created

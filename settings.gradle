@@ -70,7 +70,9 @@ include 'cats:cats-core',
   'clouddriver-security',
   'clouddriver-sql',
   'clouddriver-sql-mysql',
+  'clouddriver-sql-postgres',
   'clouddriver-web'
+
 include(*gradle.ext.includedCloudProviderProjects)
 
 def setBuildFile(project) {
@@ -83,3 +85,4 @@ def setBuildFile(project) {
 rootProject.children.each {
   setBuildFile(it)
 }
+
