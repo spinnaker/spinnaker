@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICA
 import com.netflix.spinnaker.keel.services.ApplicationService
 import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -40,7 +41,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
@@ -67,6 +71,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
   companion object {
     const val application = "fnord"
     const val user = "keel@keel.io"
+    val deliveryConfig = deliveryConfig()
   }
 
   val payloadWithLongComment =
@@ -92,6 +97,19 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         every { applicationService.getEnvironmentSummariesFor(application) } returns emptyList()
         every { applicationService.getArtifactSummariesFor(application) } returns emptyList()
         every { applicationService.getArtifactSummariesFor(application, any()) } returns emptyList()
+        every { applicationService.getDeliveryConfig(application) } returns deliveryConfig
+      }
+
+      test("can get delivery config") {
+        val request = get("/application/$application/config")
+          .accept(APPLICATION_JSON_VALUE)
+        val result = mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andDo { print(it.response.contentAsString) }
+          .andReturn()
+        val response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
+        expectThat(response).isNotEmpty()
       }
 
       context("with un-paused application") {

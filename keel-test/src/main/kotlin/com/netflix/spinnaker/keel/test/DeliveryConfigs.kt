@@ -21,7 +21,8 @@ fun deliveryConfig(
     application = "fnord",
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
-    environments = setOf(env)
+    environments = setOf(env),
+    metadata = mapOf("some" to "meta")
   )
 ): DeliveryConfig {
   return deliveryConfig

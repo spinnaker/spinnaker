@@ -30,6 +30,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
@@ -51,7 +52,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     val deliveryConfig: DeliveryConfig = DeliveryConfig(
       name = "keel",
       application = "keel",
-      serviceAccount = "keel@spinnaker"
+      serviceAccount = "keel@spinnaker",
+      metadata = mapOf("some" to "meta")
     )
   ) {
     private val resourceSpecIdentifier: ResourceSpecIdentifier =
@@ -181,14 +183,18 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .and {
             get { name }.isEqualTo(deliveryConfig.name)
             get { application }.isEqualTo(deliveryConfig.application)
+            get { metadata }.isNotEmpty()
           }
       }
 
       test("the config can be retrieved by application") {
         getByApplication()
           .isSuccess()
-          .get(DeliveryConfig::name)
-          .isEqualTo(deliveryConfig.name)
+          .and {
+            get { name }.isEqualTo(deliveryConfig.name)
+            get { application }.isEqualTo(deliveryConfig.application)
+            get { metadata }.isNotEmpty()
+          }
       }
     }
 

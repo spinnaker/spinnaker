@@ -73,12 +73,18 @@ class SqlDeliveryConfigRepository(
           DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
           DELIVERY_CONFIG.APPLICATION,
-          DELIVERY_CONFIG.SERVICE_ACCOUNT
+          DELIVERY_CONFIG.SERVICE_ACCOUNT,
+          DELIVERY_CONFIG.METADATA
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetchOne { (uid, name, application, serviceAccount) ->
-          DeliveryConfig(name = name, application = application, serviceAccount = serviceAccount)
+        .fetchOne { (uid, name, application, serviceAccount, metadata) ->
+          DeliveryConfig(
+            name = name,
+            application = application,
+            serviceAccount = serviceAccount,
+            metadata = metadata?.let { mapper.readValue<Map<String, Any?>>(metadata) } ?: emptyMap()
+          )
             .attachDependents(uid)
         }
     } ?: throw NoDeliveryConfigForApplication(application)
