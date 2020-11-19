@@ -123,6 +123,10 @@ public interface ServerGroup {
   @Empty
   Map<String, Object> getLaunchConfig();
 
+  default String getInstanceType() {
+    return null;
+  }
+
   /**
    * A collection of attributes describing the tags of this server group
    *

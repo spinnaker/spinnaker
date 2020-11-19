@@ -133,6 +133,11 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
+  String getInstanceType() {
+    return launchConfig?.instanceType ?: ((Map<String, String>)launchTemplate?.launchTemplateData)?.instanceType
+  }
+
+  @Override
   ServerGroup.InstanceCounts getInstanceCounts() {
     Collection<Instance> instances = getInstances()
     new ServerGroup.InstanceCounts(
