@@ -7,11 +7,18 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import java.time.Instant
 
 interface VerificationRepository {
+  /**
+   * @return the current state of [verification] as run against [context], or `null` if it has not
+   * yet been run.
+   */
   fun getState(
     context: VerificationContext,
     verification: Verification
-  ) : VerificationState?
+  ): VerificationState?
 
+  /**
+   * Updates the state of [verification] as run against [context].
+   */
   fun updateState(
     context: VerificationContext,
     verification: Verification,

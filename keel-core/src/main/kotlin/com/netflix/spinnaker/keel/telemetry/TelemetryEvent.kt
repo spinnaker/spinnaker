@@ -1,7 +1,10 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 import java.time.Duration
 
 sealed class TelemetryEvent
@@ -61,3 +64,49 @@ data class ArtifactCheckTimedOut(
 data class ArtifactVersionVetoed(
   val application: String,
 ) : TelemetryEvent()
+
+data class VerificationStarted(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String,
+  val verificationType: String
+) : TelemetryEvent() {
+  constructor(context: VerificationContext, verification: Verification) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.name,
+    context.artifact.type,
+    context.version,
+    verification.type
+  )
+}
+
+data class VerificationCompleted(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String,
+  val verificationType: String,
+  val status: VerificationStatus
+) : TelemetryEvent() {
+  constructor(
+    context: VerificationContext,
+    verification: Verification,
+    status: VerificationStatus
+  ) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.name,
+    context.artifact.type,
+    context.version,
+    verification.type,
+    status
+  )
+}

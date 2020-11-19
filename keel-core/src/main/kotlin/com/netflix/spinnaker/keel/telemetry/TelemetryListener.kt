@@ -22,9 +22,12 @@ class TelemetryListener(
   private val spectator: Registry,
   private val clock: Clock
 ) {
-  private val lastResourceCheck: AtomicReference<Instant> = createDriftGauge(RESOURCE_CHECK_DRIFT_GAUGE)
-  private val lastEnvironmentCheck: AtomicReference<Instant> = createDriftGauge(ENVIRONMENT_CHECK_DRIFT_GAUGE)
-  private val lastArtifactCheck: AtomicReference<Instant> = createDriftGauge(ARTIFACT_CHECK_DRIFT_GAUGE)
+  private val lastResourceCheck: AtomicReference<Instant> =
+    createDriftGauge(RESOURCE_CHECK_DRIFT_GAUGE)
+  private val lastEnvironmentCheck: AtomicReference<Instant> =
+    createDriftGauge(ENVIRONMENT_CHECK_DRIFT_GAUGE)
+  private val lastArtifactCheck: AtomicReference<Instant> =
+    createDriftGauge(ARTIFACT_CHECK_DRIFT_GAUGE)
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
@@ -140,15 +143,38 @@ class TelemetryListener(
   }
 
   @EventListener(EnvironmentCheckComplete::class)
-  fun onEnvironmentCheckComplete(event : EnvironmentCheckComplete) {
+  fun onEnvironmentCheckComplete(event: EnvironmentCheckComplete) {
     spectator.timer(
       ENVIRONMENT_CHECK_DURATION_ID,
       listOf(BasicTag("application", event.application))
     ).record(event.duration)
   }
 
-  private fun createDriftGauge(name: String): AtomicReference<Instant> {
-    return PolledMeter
+  @EventListener(VerificationCompleted::class)
+  fun onVerificationCompleted(event: VerificationCompleted) {
+    spectator.counter(
+      VERIFICATION_COMPLETED_COUNTER_ID,
+      listOf(
+        BasicTag("application", event.application),
+        BasicTag("verificationType", event.verificationType),
+        BasicTag("status", event.status.name)
+      )
+    )
+  }
+
+  @EventListener(VerificationStarted::class)
+  fun onVerificationStarted(event: VerificationStarted) {
+    spectator.counter(
+      VERIFICATION_STARTED_COUNTER_ID,
+      listOf(
+        BasicTag("application", event.application),
+        BasicTag("verificationType", event.verificationType)
+      )
+    )
+  }
+
+  private fun createDriftGauge(name: String): AtomicReference<Instant> =
+    PolledMeter
       .using(spectator)
       .withName(name)
       .monitorValue(AtomicReference(clock.instant())) {
@@ -158,7 +184,6 @@ class TelemetryListener(
           .toDouble()
           .div(1000) // convert to seconds
       }
-  }
 
   private fun Counter.safeIncrement() =
     try {
@@ -183,5 +208,7 @@ class TelemetryListener(
     private const val ENVIRONMENT_CHECK_TIMED_OUT_ID = "keel.environment.check.timeout"
     private const val ENVIRONMENT_CHECK_DURATION_ID = "keel.environment.check.duration"
     private const val ARTIFACT_VERSION_VETOED = "keel.artifact.version.vetoed"
+    private const val VERIFICATION_COMPLETED_COUNTER_ID = "keel.verification.completed"
+    private const val VERIFICATION_STARTED_COUNTER_ID = "keel.verification.started"
   }
 }

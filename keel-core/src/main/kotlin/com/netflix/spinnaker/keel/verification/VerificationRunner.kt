@@ -6,13 +6,17 @@ import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
+import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
+import com.netflix.spinnaker.keel.telemetry.VerificationStarted
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class VerificationRunner(
   private val verificationRepository: VerificationRepository,
-  private val evaluators: List<VerificationEvaluator<*>>
+  private val evaluators: List<VerificationEvaluator<*>>,
+  private val eventPublisher: ApplicationEventPublisher
 ) {
   /**
    * Evaluates the state of any currently running verifications and launches the next, against a
@@ -32,10 +36,15 @@ class VerificationRunner(
       }
 
       statuses.firstOutstanding?.let { verification ->
-        evaluators.start(verification)
-        markAsRunning(verification)
+        start(verification)
       } ?: log.debug("Verification complete for {}", environment.name)
     }
+  }
+
+  private fun VerificationContext.start(verification: Verification) {
+    evaluators.start(verification)
+    markAsRunning(verification)
+    eventPublisher.publishEvent(VerificationStarted(this, verification))
   }
 
   private fun VerificationContext.latestStatus(verification: Verification): VerificationStatus? {
@@ -46,6 +55,7 @@ class VerificationRunner(
           if (newStatus.complete) {
             log.debug("Verification {} completed with status {} for {}", verification, newStatus, environment.name)
             markAs(verification, newStatus)
+            eventPublisher.publishEvent(VerificationCompleted(this, verification, newStatus))
           }
         }
     } else {
