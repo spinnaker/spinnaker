@@ -59,6 +59,13 @@ const helpContents: { [key: string]: string } = {
     '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
   'aws.serverGroup.imageName':
     '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
+  'aws.serverGroup.unlimitedCpuCredits': `<p>CPU credits can be configured with 2 modes:</p><br/>
+      <ul>
+        <li><b>Unlimited (i.e. Unlimited On)</b>: Can sustain high CPU utilization for any period of time whenever required.<br/>
+            If the average CPU usage over a rolling 24-hour period exceeds the baseline, charges for surplus credits will apply.</li>
+        <li><b>Standard (i.e. Unlimited Off)</b>: <b>Default mode in Spinnaker.</b> Suited to workloads with an average CPU utilization that is consistently below the baseline CPU utilization of the instance.<br/>
+            To burst above the baseline, the instance spends credits that it has accrued in its CPU credit balance.</li>
+      </ul>`,
   'aws.serverGroup.legacyUdf': `<p>(Optional) <b>User Data Format</b> allows overriding of the format used when generating user data during deployment. The default format used is configured
       in the application's attributes, editable via the 'Config' tab.</p>
       <p><b>Default</b> will use the value from the application's configuration.</p>

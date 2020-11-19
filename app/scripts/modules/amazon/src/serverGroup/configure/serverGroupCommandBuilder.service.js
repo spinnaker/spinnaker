@@ -365,6 +365,9 @@ angular
                 requireIMDSv2: Boolean(
                   launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
                 ),
+                unlimitedCpuCredits: launchTemplateData.creditSpecification
+                  ? launchTemplateData.creditSpecification.cpuCredits === 'unlimited'
+                  : undefined,
               });
 
               command.viewState.imageId = launchTemplateData.imageId;
