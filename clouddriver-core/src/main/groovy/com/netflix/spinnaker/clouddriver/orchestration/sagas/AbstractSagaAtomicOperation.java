@@ -64,7 +64,7 @@ public abstract class AbstractSagaAtomicOperation<T, SR, R>
    * Provides the opportunity to convert a {@link SagaAction.Result} into the expected result type
    * of the AtomicOperation.
    */
-  protected abstract R parseSagaResult(@Nonnull SR result);
+  protected abstract R parseSagaResult(SR result);
 
   @Override
   public R operate(List priorOutputs) {
