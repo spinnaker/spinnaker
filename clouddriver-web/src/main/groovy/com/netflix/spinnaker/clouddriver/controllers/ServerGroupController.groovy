@@ -142,6 +142,9 @@ class ServerGroupController {
         sg.instanceType = serverGroup.launchConfig.instanceType
       }
     }
+    if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData) {
+      instanceType = serverGroup.launchTemplate.launchTemplateData.instanceType
+    }
     sg.account = cluster.accountName
 
     return sg
@@ -304,6 +307,11 @@ class ServerGroupController {
           instanceType = serverGroup.launchConfig.instanceType
         }
       }
+
+      if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData) {
+        instanceType = serverGroup.launchTemplate.launchTemplateData.instanceType
+      }
+
       if (serverGroup.tags) {
         tags = serverGroup.tags
       }
