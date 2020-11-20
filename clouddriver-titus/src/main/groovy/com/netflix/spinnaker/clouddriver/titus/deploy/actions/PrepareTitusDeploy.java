@@ -451,8 +451,7 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
                 }
               });
 
-      if (JobType.SERVICE.isEqual(description.getJobType())
-          && deployDefaults.getAddAppGroupToServerGroup()
+      if (deployDefaults.getAddAppGroupToServerGroup()
           && securityGroups.size() < deployDefaults.getMaxSecurityGroups()
           && useApplicationDefaultSecurityGroup) {
         String applicationSecurityGroup =
