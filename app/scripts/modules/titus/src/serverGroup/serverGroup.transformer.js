@@ -48,6 +48,7 @@ module(TITUS_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('titusServerGroupT
             statistic: 'Average',
             comparisonOperator: 'GreaterThanThreshold',
             evaluationPeriods: 1,
+            disableEditingDimensions: true,
             dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
             period: 60,
           },

@@ -19,6 +19,7 @@
       ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
       ng-model="dimension.name"
       placeholder="name"
+      ng-disabled="$ctrl.alarm.disableEditingDimensions"
     />
   </div>
   <div class="col-md-6" style="padding-left: 10px">
@@ -31,15 +32,16 @@
       ng-change="$ctrl.updateAvailableMetrics()"
       ng-model="dimension.value"
       placeholder="value"
+      ng-disabled="$ctrl.alarm.disableEditingDimensions"
     />
   </div>
-  <div class="col-md-2">
+  <div ng-show="!$ctrl.alarm.disableEditingDimensions" class="col-md-2">
     <a class="form-control-static" href ng-click="$ctrl.removeDimension($index)">
       <span class="glyphicon glyphicon-trash" uib-tooltip="Remove dimension"></span>
     </a>
   </div>
 </div>
-<div class="row">
+<div ng-show="!$ctrl.alarm.disableEditingDimensions" class="row">
   <div class="col-md-10">
     <button class="btn btn-block btn-xs add-new" ng-click="$ctrl.alarm.dimensions.push({})">
       <span class="glyphicon glyphicon-plus-sign"></span>

@@ -47,6 +47,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTRO
           region: serverGroup.region,
           comparisonOperator: alarm.comparisonOperator,
           dimensions: alarm.dimensions,
+          disableEditingDimensions: alarm.disableEditingDimensions,
           evaluationPeriods: alarm.evaluationPeriods,
           period: alarm.period,
           threshold: alarm.threshold,
