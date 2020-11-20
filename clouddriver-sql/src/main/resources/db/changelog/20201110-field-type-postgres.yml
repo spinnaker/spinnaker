@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       preConditions:
-        onFail: CONTINUE
+        onFail: MARK_RAN
         dbms:
           type: postgresql
       id: change-field-types-postgresql
