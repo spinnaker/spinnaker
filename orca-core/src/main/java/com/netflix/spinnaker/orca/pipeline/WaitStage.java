@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitStage implements StageDefinitionBuilder {
-
   public static String STAGE_TYPE = "wait";
 
   @Override

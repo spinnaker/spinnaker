@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent
 import com.netflix.spinnaker.kork.discovery.InstanceStatus
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.SkippableTask
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -124,7 +125,13 @@ abstract class QueueIntegrationTest {
   }
 
   @After
-  fun resetMocks() = reset(dummyTask)
+  fun resetMocks() {
+    reset(dummyTask)
+    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
+    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
+    whenever(dummyTask.isEnabledPropertyName) doReturn SkippableTask.isEnabledPropertyName(dummyTask.javaClass.simpleName)
+  }
+
 
   @Test
   fun `can run a simple pipeline`() {
@@ -137,8 +144,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -158,8 +163,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.RUNNING doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -194,8 +197,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -235,8 +236,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -284,7 +283,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
     whenever(dummyTask.execute(any())) doReturn TaskResult.ofStatus(TERMINAL)
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -330,8 +328,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
@@ -379,8 +375,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
@@ -435,8 +429,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
@@ -481,8 +473,8 @@ abstract class QueueIntegrationTest {
     repository.store(childPipeline)
     repository.store(parentPipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
     whenever(dummyTask.execute(argThat { refId == "1b" })) doReturn TaskResult.ofStatus(CANCELED)
+
     context.runParentToCompletion(parentPipeline, childPipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, parentPipeline.id).apply {
@@ -524,7 +516,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
     whenever(dummyTask.execute(argThat { refId == "2b" })) doReturn TaskResult.ofStatus(TERMINAL)
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -576,8 +567,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -616,8 +605,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -656,8 +643,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.builder(SUCCEEDED).context(mapOf("output" to "foo")).build()
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -708,8 +693,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED // second run succeeds
 
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
@@ -750,8 +733,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
@@ -808,8 +789,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
@@ -846,8 +825,6 @@ abstract class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.extensionClass) doReturn dummyTask::class.java
-    whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
@@ -892,6 +869,7 @@ class TestConfig {
   fun dummyTask(): DummyTask = mock {
     on { extensionClass } doReturn DummyTask::class.java
     on { getDynamicTimeout(any()) } doReturn Duration.ofMinutes(2).toMillis()
+    on { isEnabledPropertyName } doReturn SkippableTask.isEnabledPropertyName(DummyTask::class.java.simpleName)
   }
 
   @Bean

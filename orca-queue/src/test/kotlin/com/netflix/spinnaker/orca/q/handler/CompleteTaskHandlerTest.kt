@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CON
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.REDIRECT
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
@@ -79,7 +80,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
   fun resetMocks() = reset(queue, repository, publisher)
 
-  setOf(SUCCEEDED).forEach { successfulStatus ->
+  setOf(SUCCEEDED, SKIPPED).forEach { successfulStatus ->
     describe("when a task completes with $successfulStatus status") {
       given("the stage contains further tasks") {
         val pipeline = pipeline {
@@ -256,7 +257,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
     }
   }
 
-  setOf(TERMINAL, CANCELED).forEach { status ->
+  setOf(TERMINAL, CANCELED, STOPPED).forEach { status ->
     describe("when a task completes with $status status") {
       val pipeline = pipeline {
         stage {
