@@ -133,7 +133,7 @@ angular
         serverGroup.scalingPolicies = (serverGroup.scalingPolicies || [])
           .map((p) => {
             const { policy } = p;
-            const { stepPolicyDescriptor } = policy;
+            const { stepPolicyDescriptor, targetPolicyDescriptor } = policy;
             const policyType = stepPolicyDescriptor ? 'StepScaling' : 'TargetTrackingScaling';
             if (stepPolicyDescriptor) {
               const alarm = stepPolicyDescriptor.alarmConfig;
@@ -167,6 +167,10 @@ angular
               }
               return policy;
             } else {
+              const { customizedMetricSpecification } = targetPolicyDescriptor;
+              if (customizedMetricSpecification.dimensions === undefined) {
+                customizedMetricSpecification.dimensions = [];
+              }
               policy.id = p.id;
               policy.targetTrackingConfiguration = policy.targetPolicyDescriptor;
               policy.targetTrackingConfiguration.scaleOutCooldown =
