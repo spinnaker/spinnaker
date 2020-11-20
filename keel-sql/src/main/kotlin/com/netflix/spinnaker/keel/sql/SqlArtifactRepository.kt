@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
@@ -247,7 +246,7 @@ class SqlArtifactRepository(
   }
 
   override fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact? {
-   return sqlRetry.withRetry(READ) {
+    return sqlRetry.withRetry(READ) {
       jooq
         .select(
           ARTIFACT_VERSIONS.NAME,
@@ -530,14 +529,14 @@ class SqlArtifactRepository(
         // update any past artifacts that were "APPROVED" to be "SKIPPED"
         // because the new version takes precedence
         val approved = txn.select(
-            ARTIFACT_VERSIONS.NAME,
-            ARTIFACT_VERSIONS.TYPE,
-            ARTIFACT_VERSIONS.VERSION,
-            ARTIFACT_VERSIONS.RELEASE_STATUS,
-            ARTIFACT_VERSIONS.CREATED_AT,
-            ARTIFACT_VERSIONS.GIT_METADATA,
-            ARTIFACT_VERSIONS.BUILD_METADATA
-          )
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA
+        )
           .from(ENVIRONMENT_ARTIFACT_VERSIONS, DELIVERY_ARTIFACT, ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
@@ -556,7 +555,7 @@ class SqlArtifactRepository(
 
         log.debug("markAsSuccessfullyDeployedTo: # of approvedButOld: ${approvedButOld.size}. ${artifact.name}. version: $version. env: $targetEnvironment")
 
-        if(approvedButOld.isNotEmpty()) {
+        if (approvedButOld.isNotEmpty()) {
           val skippedUpdates = txn
             .update(ENVIRONMENT_ARTIFACT_VERSIONS)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
@@ -1015,7 +1014,7 @@ class SqlArtifactRepository(
           .toSet()
 
         val versions = unionedVersions
-          .sortedWith(compareBy( artifact.sortingStrategy.comparator) { (artifactVersion, _) -> artifactVersion })
+          .sortedWith(compareBy(artifact.sortingStrategy.comparator) { (artifactVersion, _) -> artifactVersion })
           .groupBy(
             { (_, promotionStatus) ->
               promotionStatus
@@ -1130,6 +1129,29 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun getPinnedVersion(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String,
+    reference: String
+  ): String? {
+    return sqlRetry.withRetry(READ) {
+      jooq.select(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION)
+        .from(DELIVERY_ARTIFACT)
+        .innerJoin(ENVIRONMENT_ARTIFACT_PIN)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        .innerJoin(ENVIRONMENT)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .where(
+          DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name),
+          DELIVERY_ARTIFACT.REFERENCE.eq(reference),
+          ENVIRONMENT.NAME.eq(targetEnvironment),
+          ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid)
+        )
+        .fetch(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION)
+        .firstOrNull()
+    }
+  }
+
   override fun deletePin(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: String,
@@ -1154,38 +1176,31 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun getGitMetadataByPromotionStatus(
+  override fun getArtifactVersionByPromotionStatus(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     artifact: DeliveryArtifact,
-    promotionStatus: String
-  ): GitMetadata? {
+    promotionStatus: String,
+    version: String?
+  ): PublishedArtifact? {
     //only CURRENT and PREVIOUS are supported, as they can be sorted by deploy_at
     require(promotionStatus in listOf(CURRENT.name, PREVIOUS.name)) { "Invalid promotion status used to query" }
 
     return sqlRetry.withRetry(READ) {
-      val version = jooq
+      val fetchedVersion = jooq
         .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
         .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(promotionStatus))
+        //special case for pinning
+        .apply { if (version != null) and(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY.eq(version)) }
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
         .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
         .firstOrNull()
 
-      if (version != null) {
-        jooq
-          .select(
-            ARTIFACT_VERSIONS.GIT_METADATA
-          )
-          .from(ARTIFACT_VERSIONS)
-          .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-          .and(ARTIFACT_VERSIONS.VERSION.eq(version))
-          .fetchOne { (gitMetadata) ->
-            gitMetadata?.let { objectMapper.readValue(it) }
-          }
+      if (fetchedVersion != null) {
+        getArtifactVersion(artifact, fetchedVersion)
       } else {
         null
       }

@@ -224,14 +224,20 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
 
   /**
-   * Return the git metadata for the last deployed version of the specified artifact that matches the promotion status
+   * Return a specific artifact version if is pinned, from [targetEnvironment], by [reference], if exists.
    */
-  fun getGitMetadataByPromotionStatus(
+  fun getPinnedVersion(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String): String?
+
+  /**
+   * Return the published artifact for the last deployed version that matches the promotion status
+   */
+  fun getArtifactVersionByPromotionStatus(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     artifact: DeliveryArtifact,
-    promotionStatus: String
-  ): GitMetadata?
+    promotionStatus: String,
+    version: String? = null
+  ): PublishedArtifact?
 
   /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be

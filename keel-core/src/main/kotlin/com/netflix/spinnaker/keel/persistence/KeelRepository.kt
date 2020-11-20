@@ -198,14 +198,20 @@ interface KeelRepository : KeelReadOnlyRepository {
   ): ArtifactSummaryInEnvironment?
 
   /**
-   * Given artifact details and promotion status, return its last deployed version git metadata, sorted by deployed_at
+   * Return the published artifact for the last deployed version that matches the promotion status
    */
-  fun getGitMetadataByPromotionStatus(
+  fun getArtifactVersionByPromotionStatus(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     artifact: DeliveryArtifact,
-    promotionStatus: String
-  ): GitMetadata?
+    promotionStatus: String,
+    version: String? = null
+  ): PublishedArtifact?
+
+  /**
+   * Return a specific artifact version if is pinned, from [targetEnvironment], by [reference], if exists.
+   */
+  fun getPinnedVersion(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String): String?
 
   // END ArtifactRepository methods
 }

@@ -25,7 +25,7 @@ class DummyArtifact(
 }
 
 object DummySortingStrategy : SortingStrategy {
-  override val comparator: Comparator<PublishedArtifact> = compareBy { it.version }
+  override val comparator: Comparator<PublishedArtifact> = compareByDescending { it.version }
   override val type = "dummy"
 }
 

@@ -45,6 +45,14 @@ class CreatedAtSortingStrategyTests : JUnit5Minutests {
       )
     }
 
+    val version1 = PublishedArtifact("keeldemo", DEBIAN, "1.0.10", createdAt = clock.instant(),
+      gitMetadata = GitMetadata("commit", branch = "master")
+    )
+
+    val version2 = PublishedArtifact("keeldemo", DEBIAN, "1.0.3", createdAt = clock.instant().plusSeconds(3),
+      gitMetadata = GitMetadata("commit", branch = "master")
+    )
+
     val subject = CreatedAtSortingStrategy
   }
 
@@ -63,6 +71,12 @@ class CreatedAtSortingStrategyTests : JUnit5Minutests {
       test("artifact versions are sorted by descending order of creation timestamp") {
         expectThat(versions.shuffled().sortedWith(subject.comparator))
           .isEqualTo(versions.sortedByDescending { it.createdAt })
+      }
+
+      test("artifact versions are sorted by descending order of creation timestamp with hard coded versions") {
+        expectThat(listOf(version1, version2).sortedWith(subject.comparator))
+          .get { first().version }
+          .isEqualTo(version2.version)
       }
     }
   }

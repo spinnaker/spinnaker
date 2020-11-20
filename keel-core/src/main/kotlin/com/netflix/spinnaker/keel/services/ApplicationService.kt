@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.APPROVED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
@@ -229,8 +230,7 @@ class ApplicationService(
   }
 
   private fun buildArtifactSummaryInEnvironment(deliveryConfig: DeliveryConfig, environmentName: String, artifact: DeliveryArtifact, version: String, status: PromotionStatus): ArtifactSummaryInEnvironment? {
-    val artifactGitMetadata = getArtifactInstance(artifact, version)?.gitMetadata
-    val baseScmUrl = artifactGitMetadata?.commitInfo?.link?.let { getScmBaseLink(it) }
+    val currentArtifact = getArtifactInstance(artifact, version)
 
     // some environments contain relevant info for skipped artifacts, so
     // try and find that summary before defaulting to less information
@@ -242,16 +242,17 @@ class ApplicationService(
         version = version
       )
 
+    val pinnedArtifact = getPinnedArtifact(deliveryConfig, environmentName, artifact, version)
+
     return when (status) {
       PENDING -> {
-        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
-
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
         ArtifactSummaryInEnvironment(
           environment = environmentName,
           version = version,
           state = status.name.toLowerCase(),
           // comparing PENDING (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
+          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
         )
       }
       SKIPPED -> {
@@ -265,29 +266,43 @@ class ApplicationService(
           potentialSummary
         }
       }
-      DEPLOYING -> {
-        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
+
+      DEPLOYING, APPROVED -> {
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
         potentialSummary?.copy(
-          // comparing DEPLOYING (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
+          // comparing DEPLOYING/APPROVED (version in question, new code) vs. CURRENT (old code)
+          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
         )
       }
       PREVIOUS -> {
-        val newerGitMetadata = potentialSummary?.replacedBy?.let { getArtifactInstance(artifact, it)?.gitMetadata }
+        val newerArtifactVersion = potentialSummary?.replacedBy?.let { getArtifactInstance(artifact, it) }
         potentialSummary?.copy(
           //comparing PREVIOUS (version in question, old code) vs. the version which replaced it (new code)
-          compareLink = generateDiffLink(baseScmUrl, newerGitMetadata, artifactGitMetadata)
+          //pinned artifact should not be consider here, as we know exactly which version replace the current one
+          compareLink = getUrl(currentArtifact, newerArtifactVersion, artifact)
         )
       }
       CURRENT -> {
-        val olderGitMetadata = repository.getGitMetadataByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name)
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name)
         potentialSummary?.copy(
           // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
-          compareLink = generateDiffLink(baseScmUrl, artifactGitMetadata, olderGitMetadata)
+          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
         )
       }
       else -> potentialSummary
     }
+  }
+
+  // Pinning is a special case when is coming to creating a compare link between versions.
+  // If there is a pinned version, which is not the same as the current version, we need
+  // to make sure we are creating the comparable link with reference to the pinned version.
+  private fun getPinnedArtifact(deliveryConfig: DeliveryConfig, environmentName: String, artifact: DeliveryArtifact, version: String): PublishedArtifact? {
+    val pinnedVersion = repository.getPinnedVersion(deliveryConfig, environmentName, artifact.reference)
+     return if (pinnedVersion != version)
+      pinnedVersion?.let { getArtifactInstance(artifact, it) }
+    else { //if pinnedVersion == current version, fetch the version which that the pinned version replaced
+       repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name, pinnedVersion)
+     }
   }
 
   /**
@@ -388,15 +403,6 @@ class ApplicationService(
     return repository.getArtifactVersion(artifact, version, releaseStatus)
   }
 
-  // Generating a SCM diff link between source and target versions (the order does matter!)
-  private fun generateDiffLink(baseUrl: String?, newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
-    return if (baseUrl != null && newerGitMetadata != null && olderGitMetadata != null) {
-          "$baseUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
-            "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
-    } else {
-      null
-    }
-  }
 
   // Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
   private fun getScmBaseLink(commitLink: String): String? {
@@ -409,6 +415,31 @@ class ApplicationService(
         return scmInfo["stash"]
       else ->
         throw UnsupportedScmType(message = "Stash is currently the only supported SCM type")
+    }
+  }
+
+  private fun getUrl(version1: PublishedArtifact?, version2: PublishedArtifact?, artifact: DeliveryArtifact): String? {
+    return if (version1 != null && version2 != null) {
+      return if (artifact.sortingStrategy.comparator.compare(version1, version2) > 0) { //these comparators sort in dec order, so condition is flipped
+        //version2 is newer than version1
+        generateCompareLink(version2.gitMetadata, version1.gitMetadata)
+      } else {
+        //version2 is older than version1
+        generateCompareLink(version1.gitMetadata, version2.gitMetadata)
+      }
+    } else {
+      null
+    }
+  }
+
+  // Generating a SCM compare link between source (new version) and target (old version) versions (the order does matter!)
+  private fun generateCompareLink(newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
+    val baseScmUrl = newerGitMetadata?.commitInfo?.link?.let { getScmBaseLink(it) }
+    return if (baseScmUrl != null && olderGitMetadata != null) {
+      "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
+        "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
+    } else {
+      null
     }
   }
 }
