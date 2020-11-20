@@ -13,6 +13,7 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
     ArtifactTypePatterns.CUSTOM_OBJECT,
     ArtifactTypePatterns.EMBEDDED_BASE64,
     ArtifactTypePatterns.GCS_OBJECT,
+    ArtifactTypePatterns.GIT_REPO,
     ArtifactTypePatterns.GITHUB_FILE,
     ArtifactTypePatterns.GITLAB_FILE,
     ArtifactTypePatterns.S3_OBJECT,
