@@ -592,14 +592,12 @@ class SqlCache(
                   .set(field("body_hash"), SqlUtil.excluded(field("body_hash")) as Any)
                   .set(field("body"), SqlUtil.excluded(field("body")) as Any)
                   .set(field("last_updated"), SqlUtil.excluded(field("last_updated")) as Any)
-                  .execute()
               else ->
                 onDuplicateKeyUpdate()
                   .set(field("application"), MySQLDSL.values(field("application")) as Any)
                   .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
                   .set(field("body"), MySQLDSL.values(field("body")) as Any)
                   .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
-                  .execute()
             }
           }
         }
