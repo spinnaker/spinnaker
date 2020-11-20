@@ -27,9 +27,9 @@ abstract class AbstractSpinnakerEvent : SpinnakerEvent {
   /**
    * Not a lateinit to make Java/Lombok & Jackson compatibility a little easier, although behavior is exactly the same.
    */
-  @JsonIgnore
   private var metadata: EventMetadata? = null
 
+  @JsonIgnore
   override fun getMetadata(): EventMetadata {
     return metadata ?: throw UninitializedEventException()
   }
@@ -37,4 +37,6 @@ abstract class AbstractSpinnakerEvent : SpinnakerEvent {
   override fun setMetadata(eventMetadata: EventMetadata) {
     metadata = eventMetadata
   }
+
+  fun hasMetadata() = metadata != null
 }
