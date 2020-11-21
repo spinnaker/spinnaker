@@ -2,7 +2,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.SkippableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -25,14 +27,23 @@ import retrofit.RetrofitError;
 @Component
 @Slf4j
 public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+    implements RetryableTask, SkippableTask {
   private final OortService oortService;
   private final ObjectMapper objectMapper;
+  private final ServerGroupFetcher serverGroupFetcher;
 
   @Autowired
   WaitForDisabledServerGroupTask(OortService oortService, ObjectMapper objectMapper) {
+    this(oortService, objectMapper, null);
+  }
+
+  @VisibleForTesting
+  WaitForDisabledServerGroupTask(
+      OortService oortService, ObjectMapper objectMapper, ServerGroupFetcher serverGroupFetcher) {
     this.oortService = oortService;
     this.objectMapper = objectMapper;
+    this.serverGroupFetcher =
+        serverGroupFetcher == null ? new ServerGroupFetcher() : serverGroupFetcher;
   }
 
   @Override
@@ -51,7 +62,7 @@ public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTa
     try {
       TaskInput input = stage.mapTo(TaskInput.class);
       input.validate();
-      if (!isPartialDisable(input)) {
+      if (isPartialDisable(input)) {
         return TaskResult.builder(ExecutionStatus.SKIPPED).build();
       }
     } catch (IllegalArgumentException e) {
@@ -63,7 +74,7 @@ public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTa
     // is actually disabled
     val serverGroupDescriptor = getServerGroupDescriptor(stage);
     try {
-      var serverGroup = fetchServerGroup(serverGroupDescriptor);
+      var serverGroup = serverGroupFetcher.fetchServerGroup(serverGroupDescriptor);
       return serverGroup.isDisabled() ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
     } catch (RetrofitError e) {
       val retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.getName(), e);
@@ -86,19 +97,6 @@ public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTa
     return input.desiredPercentage != null && input.desiredPercentage < 100;
   }
 
-  private TargetServerGroup fetchServerGroup(ServerGroupDescriptor serverGroupDescriptor)
-      throws IOException {
-    val response =
-        oortService.getServerGroup(
-            serverGroupDescriptor.getAccount(),
-            serverGroupDescriptor.getRegion(),
-            serverGroupDescriptor.getName());
-    var serverGroupData =
-        objectMapper.readValue(
-            response.getBody().in(), new TypeReference<Map<String, Object>>() {});
-    return new TargetServerGroup(serverGroupData);
-  }
-
   private static class TaskInput {
     @Nullable public Integer desiredPercentage;
 
@@ -107,6 +105,22 @@ public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTa
         throw new IllegalArgumentException(
             "desiredPercentage is expected to be in [0, 100] but found " + desiredPercentage);
       }
+    }
+  }
+
+  // separating it out for testing purposes
+  class ServerGroupFetcher {
+    TargetServerGroup fetchServerGroup(ServerGroupDescriptor serverGroupDescriptor)
+        throws IOException {
+      val response =
+          oortService.getServerGroup(
+              serverGroupDescriptor.getAccount(),
+              serverGroupDescriptor.getRegion(),
+              serverGroupDescriptor.getName());
+      var serverGroupData =
+          objectMapper.readValue(
+              response.getBody().in(), new TypeReference<Map<String, Object>>() {});
+      return new TargetServerGroup(serverGroupData);
     }
   }
 }
