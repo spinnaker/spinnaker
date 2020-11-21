@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.github.benmanes.caffeine.cache.AsyncCache
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
@@ -37,7 +38,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.concurrent.CompletableFuture.completedFuture
 
 class ImageService(
   private val cloudDriverService: CloudDriverService,
@@ -128,16 +128,30 @@ class ImageService(
     appVersion: AppVersion,
     account: String,
     region: String
-  ): NamedImage? =
-    namedImageCache
-      .get(NamedImageCacheKey(appVersion, account, region))
-      .await()
+  ): NamedImage? {
+    val key = NamedImageCacheKey(appVersion, account, region)
+    return namedImageCache.get(key).await()
       // prime the cache if the image is also in other regions
       ?.also { image ->
         (image.amis.keys - region).forEach { otherRegion ->
-          namedImageCache.put(NamedImageCacheKey(appVersion, account, otherRegion), completedFuture(image))
+          namedImageCache.putIfMissingOrOlderThan(key.copy(region = otherRegion), image)
         }
       }
+  }
+
+  private fun AsyncCache<NamedImageCacheKey, NamedImage>.putIfMissingOrOlderThan(
+    key: NamedImageCacheKey,
+    image: NamedImage
+  ) {
+    synchronous().apply {
+      val updateCache = getIfPresent(key)
+        ?.let { it.creationDate < image.creationDate }
+        ?: true
+      if (updateCache) {
+        put(key, image)
+      }
+    }
+  }
 
   suspend fun findBaseAmiVersion(baseImageName: String): String {
     return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImageName, "test")
@@ -150,35 +164,6 @@ class ImageService(
           .find { it.containsKey("base_ami_version") }
           ?.getValue("base_ami_version")
       } ?: throw BaseAmiNotFound(baseImageName)
-  }
-
-  private fun getAllTags(image: NamedImage): Map<String, String> {
-    val allTags = HashMap<String, String>()
-    image.tagsByImageId.forEach { (_, tags) ->
-      tags?.forEach { k, v ->
-        if (v != null) {
-          allTags[k] = v
-        }
-      }
-    }
-    return allTags
-  }
-
-  private fun amiMatches(tags: Map<String, String>, buildHost: String, buildName: String, buildNumber: String): Boolean {
-    if (!tags.containsKey("build_host") || !tags.containsKey("appversion") || tags["build_host"] != buildHost) {
-      return false
-    }
-
-    val appversion = tags["appversion"]?.split("/") ?: error("appversion tag is missing")
-
-    if (appversion.size != 3) {
-      return false
-    }
-
-    if (appversion[1] != buildName || appversion[2] != buildNumber) {
-      return false
-    }
-    return true
   }
 
   private fun tagsExistForAllAmis(tagsByImageId: Map<String, Map<String, String?>?>): Boolean {

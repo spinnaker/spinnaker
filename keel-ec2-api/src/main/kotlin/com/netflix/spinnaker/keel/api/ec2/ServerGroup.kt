@@ -69,6 +69,7 @@ data class ServerGroup(
   }
 
   data class ActiveServerGroupImage(
+    @get:ExcludedFromDiff
     val imageId: String,
     val appVersion: String?,
     val baseImageVersion: String?,
