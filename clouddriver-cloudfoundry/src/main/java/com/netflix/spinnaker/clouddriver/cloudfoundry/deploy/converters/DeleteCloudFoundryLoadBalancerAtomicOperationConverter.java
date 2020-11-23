@@ -64,6 +64,8 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperationConverter
                     throw new IllegalArgumentException(
                         "Invalid format or domain for route '" + routePath + "'");
                   }
+                  converted.setRegion(space.getRegion());
+                  converted.setSpace(space);
                   return converted.setLoadBalancer(client.getRoutes().find(routeId, space.getId()));
                 })
             .orElseThrow(
