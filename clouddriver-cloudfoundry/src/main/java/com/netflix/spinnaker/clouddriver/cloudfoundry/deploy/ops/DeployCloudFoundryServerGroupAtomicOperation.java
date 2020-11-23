@@ -328,16 +328,18 @@ public class DeployCloudFoundryServerGroupAtomicOperation
   private File downloadPackageArtifact(DeployCloudFoundryServerGroupDescription description) {
     File file = null;
     try {
-      InputStream artifactInputStream =
-          description.getArtifactCredentials().download(description.getApplicationArtifact());
       file = File.createTempFile(UUID.randomUUID().toString(), null);
-      FileOutputStream fileOutputStream = new FileOutputStream(file);
-      IOUtils.copy(artifactInputStream, fileOutputStream);
-      fileOutputStream.close();
     } catch (IOException e) {
-      if (file != null) {
-        file.delete();
-      }
+      throw new UncheckedIOException(e);
+    } finally {
+      if (file != null) file.delete();
+    }
+
+    try (InputStream artifactInputStream =
+            description.getArtifactCredentials().download(description.getApplicationArtifact());
+        FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+      IOUtils.copy(artifactInputStream, fileOutputStream);
+    } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
     return file;
