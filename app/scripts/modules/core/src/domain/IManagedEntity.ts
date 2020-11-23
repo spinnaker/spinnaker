@@ -105,6 +105,16 @@ export interface IManagedArtifactVersion {
     statelessConstraints?: IStatelessConstraint[];
     compareLink?: string;
   }>;
+  lifecycleSteps?: Array<{
+    // likely more scopes + types later, but hard-coding to avoid premature abstraction for now
+    scope: 'PRE_DEPLOYMENT';
+    type: 'BAKE';
+    id: string;
+    status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+    startedAt?: string;
+    completedAt?: string;
+    link?: string;
+  }>;
   build?: {
     id: number; // deprecated, use number
     number: string;
@@ -139,6 +149,7 @@ export interface IManagedArtifactVersion {
 }
 
 export type IManagedArtifactVersionEnvironment = IManagedArtifactSummary['versions'][0]['environments'][0];
+export type IManagedArtifactVersionLifecycleStep = IManagedArtifactSummary['versions'][0]['lifecycleSteps'][0];
 
 export interface IManagedArtifactSummary {
   name: string;

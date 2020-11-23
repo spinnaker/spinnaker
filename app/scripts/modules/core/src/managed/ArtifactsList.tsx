@@ -162,10 +162,19 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
 };
 
 type ArtifactStatusList = IStatusBubbleStackProps['statuses'];
-function getArtifactStatuses({ environments }: IManagedArtifactVersion): ArtifactStatusList {
+function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactVersion): ArtifactStatusList {
   const statuses: ArtifactStatusList = [];
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
+
+  const bakeStep = lifecycleSteps?.find(
+    ({ scope, type, status }) =>
+      scope === 'PRE_DEPLOYMENT' && type === 'BAKE' && ['RUNNING', 'FAILED'].includes(status),
+  );
+
+  if (bakeStep) {
+    statuses.push({ iconName: 'bake', appearance: bakeStep.status === 'RUNNING' ? 'progress' : 'error' });
+  }
 
   const pendingConstraintIcons = new Set<IconNames>();
   const failedConstraintIcons = new Set<IconNames>();

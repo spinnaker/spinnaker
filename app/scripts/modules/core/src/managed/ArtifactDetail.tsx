@@ -19,6 +19,8 @@ import { AbsoluteTimestamp } from './AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { EnvironmentRow } from './EnvironmentRow';
+import { PreDeploymentRow } from './PreDeploymentRow';
+import { PreDeploymentStepCard } from './PreDeploymentStepCard';
 import { VersionStateCard } from './VersionStateCard';
 import { StatusCard } from './StatusCard';
 import { Button } from './Button';
@@ -230,7 +232,7 @@ export const ArtifactDetail = ({
   resourcesByEnvironment,
   onRequestClose,
 }: IArtifactDetailProps) => {
-  const { environments, git, createdAt } = versionDetails;
+  const { environments, lifecycleSteps, git, createdAt } = versionDetails;
 
   const keydownCallback = ({ keyCode }: KeyboardEvent) => {
     if (keyCode === 27 /* esc */) {
@@ -242,6 +244,7 @@ export const ArtifactDetail = ({
   const isPinnedEverywhere = environments.every(({ pinned }) => pinned);
   const isBadEverywhere = environments.every(({ state }) => state === 'vetoed');
   const createdAtTimestamp = useMemo(() => createdAt && DateTime.fromISO(createdAt), [createdAt]);
+  const preDeploymentSteps = lifecycleSteps?.filter(({ scope }) => scope === 'PRE_DEPLOYMENT');
 
   return (
     <>
@@ -384,6 +387,13 @@ export const ArtifactDetail = ({
             </EnvironmentRow>
           );
         })}
+        {preDeploymentSteps && preDeploymentSteps.length > 0 && (
+          <PreDeploymentRow>
+            {lifecycleSteps.map((step) => (
+              <PreDeploymentStepCard key={step.id} step={step} application={application} reference={reference} />
+            ))}
+          </PreDeploymentRow>
+        )}
       </div>
     </>
   );

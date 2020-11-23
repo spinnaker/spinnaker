@@ -7,6 +7,7 @@ import { ReactComponent as artifactApproved } from './vectors/artifactApproved.s
 import { ReactComponent as artifactBad } from './vectors/artifactBad.svg';
 import { ReactComponent as artifactPending } from './vectors/artifactPending.svg';
 import { ReactComponent as artifactSkipped } from './vectors/artifactSkipped.svg';
+import { ReactComponent as bake } from './vectors/bake.svg';
 import { ReactComponent as build } from './vectors/build.svg';
 import { ReactComponent as buildFail } from './vectors/buildFail.svg';
 import { ReactComponent as buildSuccess } from './vectors/buildSuccess.svg';
@@ -128,6 +129,7 @@ export const iconsByName = {
   artifactBad,
   artifactPending,
   artifactSkipped,
+  bake,
   build,
   buildFail,
   buildSuccess,
