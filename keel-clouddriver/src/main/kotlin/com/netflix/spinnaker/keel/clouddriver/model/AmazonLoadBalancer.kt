@@ -14,7 +14,8 @@ import com.netflix.spinnaker.keel.api.Moniker
 )
 @JsonSubTypes(
   JsonSubTypes.Type(ClassicLoadBalancerModel::class, name = "classic"),
-  JsonSubTypes.Type(ApplicationLoadBalancerModel::class, name = "application")
+  JsonSubTypes.Type(ApplicationLoadBalancerModel::class, name = "application"),
+  JsonSubTypes.Type(NetworkLoadBalancerModel::class, name = "network")
 )
 interface AmazonLoadBalancer {
   val moniker: Moniker?
@@ -24,6 +25,4 @@ interface AmazonLoadBalancer {
   val vpcId: String
   val subnets: Set<String>
   val scheme: String?
-  val idleTimeout: Int
-  val securityGroups: Set<String>
 }

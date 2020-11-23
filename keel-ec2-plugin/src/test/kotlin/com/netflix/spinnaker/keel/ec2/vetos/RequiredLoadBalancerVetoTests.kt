@@ -23,14 +23,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.clouddriver.model.NetworkLoadBalancerModel
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
@@ -38,6 +37,8 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isNotNull
 import strikt.assertions.isNullOrEmpty
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
 
@@ -166,7 +167,28 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
 
         context("the dependencies exist") {
           before {
-            stubLoadBalancers(resourceSpec.allLoadBalancerNames, resourceSpec.allTargetGroupNames)
+            stubLoadBalancers(
+              loadBalancerNames = resourceSpec.allLoadBalancerNames,
+              albTargetGroupNames = resourceSpec.allTargetGroupNames
+            )
+            check()
+          }
+
+          test("the resource is not vetoed") {
+            response.isAllowed()
+          }
+
+          test("there is no message from the veto") {
+            response.message.isNullOrEmpty()
+          }
+        }
+
+        context("the dependencies exist but one of them is an NLB") {
+          before {
+            stubLoadBalancers(
+              loadBalancerNames = resourceSpec.allLoadBalancerNames,
+              nlbTargetGroupNames = resourceSpec.allTargetGroupNames
+            )
             check()
           }
 
@@ -181,7 +203,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
 
         context("the dependencies do not exist") {
           before {
-            stubLoadBalancers(emptyList(), emptyList())
+            stubLoadBalancers()
             check()
           }
 
@@ -209,8 +231,8 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
         context("the dependencies are missing in some regions") {
           before {
             stubLoadBalancers(
-              resourceSpec.allLoadBalancerNames,
-              resourceSpec.allTargetGroupNames,
+              loadBalancerNames = resourceSpec.allLoadBalancerNames,
+              albTargetGroupNames = resourceSpec.allTargetGroupNames,
               regions = resourceSpec.locations.regions.take(1).map(SubnetAwareRegionSpec::name)
             )
             check()
@@ -280,8 +302,9 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
    * [loadBalancerNames] in every region of the fixture.
    */
   private fun Fixture<Locatable<SubnetAwareLocations>>.stubLoadBalancers(
-    loadBalancerNames: Collection<String>,
-    targetGroupNames: Collection<String>,
+    loadBalancerNames: Collection<String> = emptyList(),
+    albTargetGroupNames: Collection<String> = emptyList(),
+    nlbTargetGroupNames: Collection<String> = emptyList(),
     account: String = this.resourceSpec.locations.account,
     regions: Collection<String> = this.resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name)
   ) {
@@ -293,61 +316,101 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
     } answers {
       regions.flatMap { region ->
         loadBalancerNames.map { loadBalancerName ->
-          ClassicLoadBalancerModel(
-            moniker = Moniker("fnord", "elb"), // TODO: parse from name
-            loadBalancerName = loadBalancerName,
-            availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
-            vpcId = vpcIds.getValue(account to region),
-            subnets = setOf(),
-            scheme = "internal",
-            idleTimeout = 0,
-            securityGroups = setOf(),
-            listenerDescriptions = listOf(),
-            healthCheck = ClassicLoadBalancerHealthCheck(
-              target = "",
-              interval = 0,
-              timeout = 0,
-              unhealthyThreshold = 0,
-              healthyThreshold = 0
-            )
-          )
+          classicLoadBalancer(loadBalancerName, account, region)
         }
-      } + regions.map { region ->
-        ApplicationLoadBalancerModel(
-          moniker = Moniker(resourceSpec.application, "stub", "alb"),
-          loadBalancerName = "${resourceSpec.application}-stub-alb",
-          targetGroups = targetGroupNames.map { targetGroupName ->
-            TargetGroup(
-              targetGroupName = targetGroupName,
-              loadBalancerNames = emptyList(),
-              targetType = "whatever-this-is",
-              matcher = TargetGroupMatcher("200"),
-              protocol = "https",
-              port = 8080,
-              healthCheckEnabled = true,
-              healthCheckTimeoutSeconds = 30,
-              healthCheckPort = "8080",
-              healthCheckProtocol = "https",
-              healthCheckPath = "/healthcheck",
-              healthCheckIntervalSeconds = 60,
-              healthyThresholdCount = 10,
-              unhealthyThresholdCount = 5,
-              vpcId = vpcIds.getValue(account to region),
-              attributes = TargetGroupAttributes()
-            )
-          },
-          availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
-          vpcId = vpcIds.getValue(account to region),
-          subnets = emptySet(),
-          scheme = "https",
-          idleTimeout = 60,
-          securityGroups = emptySet(),
-          listeners = emptyList(),
-          ipAddressType = "v4"
-        )
+      } + if (albTargetGroupNames.isNotEmpty()) {
+        regions.map { region ->
+          applicationLoadBalancerModel(albTargetGroupNames, account, region)
+        }
+      } else {
+        emptyList()
+      } + if (nlbTargetGroupNames.isNotEmpty()) {
+        regions.map { region ->
+          networkLoadBalancerModel(nlbTargetGroupNames, account, region)
+        }
+      } else {
+        emptyList()
       }
     }
   }
+
+  private fun Fixture<Locatable<SubnetAwareLocations>>.classicLoadBalancer(
+    loadBalancerName: String,
+    account: String,
+    region: String
+  ) = ClassicLoadBalancerModel(
+    moniker = Moniker("fnord", "elb"), // TODO: parse from name
+    loadBalancerName = loadBalancerName,
+    availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
+    vpcId = vpcIds.getValue(account to region),
+    subnets = setOf(),
+    scheme = "internal",
+    idleTimeout = 0,
+    securityGroups = setOf(),
+    listenerDescriptions = listOf(),
+    healthCheck = ClassicLoadBalancerHealthCheck(
+      target = "",
+      interval = 0,
+      timeout = 0,
+      unhealthyThreshold = 0,
+      healthyThreshold = 0
+    )
+  )
+
+  private fun Fixture<Locatable<SubnetAwareLocations>>.applicationLoadBalancerModel(
+    targetGroupNames: Collection<String>,
+    account: String,
+    region: String
+  ) =
+    ApplicationLoadBalancerModel(
+      moniker = Moniker(resourceSpec.application, "stub", "alb"),
+      loadBalancerName = "${resourceSpec.application}-stub-alb",
+      targetGroups = targetGroupNames.map { targetGroupName ->
+        TargetGroup(
+          targetGroupName = targetGroupName,
+          loadBalancerNames = emptyList(),
+          targetType = "whatever-this-is",
+          matcher = TargetGroupMatcher("200"),
+          protocol = "https",
+          port = 8080,
+          healthCheckEnabled = true,
+          healthCheckTimeoutSeconds = 30,
+          healthCheckPort = "8080",
+          healthCheckProtocol = "https",
+          healthCheckPath = "/healthcheck",
+          healthCheckIntervalSeconds = 60,
+          healthyThresholdCount = 10,
+          unhealthyThresholdCount = 5,
+          vpcId = vpcIds.getValue(account to region),
+          attributes = TargetGroupAttributes()
+        )
+      },
+      availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
+      vpcId = vpcIds.getValue(account to region),
+      subnets = emptySet(),
+      scheme = "https",
+      idleTimeout = 60,
+      securityGroups = emptySet(),
+      listeners = emptyList(),
+      ipAddressType = "v4"
+    )
+
+  private fun Fixture<Locatable<SubnetAwareLocations>>.networkLoadBalancerModel(
+    targetGroupNames: Collection<String>,
+    account: String,
+    region: String
+  ) =
+    NetworkLoadBalancerModel(
+      moniker = Moniker(resourceSpec.application, "stub", "nlb"),
+      loadBalancerName = "${resourceSpec.application}-stub-nlb",
+      vpcId = vpcIds.getValue(account to region),
+      subnets = emptySet(),
+      availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
+      scheme = "https",
+      targetGroups = targetGroupNames.map {
+        NetworkLoadBalancerModel.TargetGroup(targetGroupName = it)
+      }
+    )
 
   /**
    * All the load balancer names used by a [ClusterSpec] regardless of region.

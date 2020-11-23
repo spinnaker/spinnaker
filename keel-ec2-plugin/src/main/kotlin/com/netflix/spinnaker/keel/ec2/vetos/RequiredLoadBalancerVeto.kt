@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.AmazonLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
+import com.netflix.spinnaker.keel.clouddriver.model.NetworkLoadBalancerModel
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.veto.Veto
@@ -73,7 +74,13 @@ class RequiredLoadBalancerVeto(
     }
     spec.targetGroupsByRegion.forEach { (name, account, regions) ->
       val missingRegions = regions.filter { region ->
-        none { lb -> lb is ApplicationLoadBalancerModel && lb.account == account && lb.region == region && lb.targetGroups.any { it.targetGroupName == name } }
+        none { lb ->
+          when (lb) {
+            is ApplicationLoadBalancerModel -> lb.account == account && lb.region == region && lb.targetGroups.any { it.targetGroupName == name }
+            is NetworkLoadBalancerModel -> lb.account == account && lb.region == region && lb.targetGroups.any { it.targetGroupName == name }
+            else -> false
+          }
+        }
       }
       if (missingRegions.isNotEmpty()) {
         missing.add(MissingTargetGroup(name, account, missingRegions.toSet()))
