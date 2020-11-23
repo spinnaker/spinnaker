@@ -105,7 +105,7 @@ public class UpdateLambdaConfigurationAtomicOperation
     }
     updateTaskStatus("Finished Updating of AWS Lambda Function Configuration Operation...");
     if (StringUtils.isEmpty(description.getTargetGroups())) {
-      if (!cache.getTargetGroups().isEmpty()) {
+      if (cache.getTargetGroups() != null && !cache.getTargetGroups().isEmpty()) {
         AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
         for (String groupName : cache.getTargetGroups()) {
           deregisterTarget(
