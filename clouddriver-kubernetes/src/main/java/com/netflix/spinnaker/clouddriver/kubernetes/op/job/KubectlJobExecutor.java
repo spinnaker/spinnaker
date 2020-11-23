@@ -616,7 +616,8 @@ public class KubectlJobExecutor {
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
-      if (status.getError().contains("not available")) {
+      if (status.getError().toLowerCase().contains("not available")
+          || status.getError().toLowerCase().contains("not found")) {
         log.warn(
             String.format(
                 "Error fetching metrics for account %s: %s",
