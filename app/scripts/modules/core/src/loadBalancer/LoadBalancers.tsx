@@ -8,6 +8,7 @@ import { ISortFilter } from 'core/filterModel/IFilterModel';
 import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerState } from 'core/state';
 import { LoadBalancerPod } from './LoadBalancerPod';
+import { BannerContainer } from 'core/banner';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
@@ -188,7 +189,10 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
           <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters} />
         </div>
 
-        <div className="content">{groupings}</div>
+        <div className="content">
+          <BannerContainer app={this.props.app} />
+          {groupings}
+        </div>
       </div>
     );
   }

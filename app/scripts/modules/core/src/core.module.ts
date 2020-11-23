@@ -84,6 +84,7 @@ import { CORE_SECURITYGROUP_SECURITYGROUP_MODULE } from './securityGroup/securit
 import { CORE_TASK_TASK_MODULE } from './task/task.module';
 import { CORE_UTILS_UTILS_MODULE } from './utils/utils.module';
 import { CORE_VALIDATION_VALIDATION_MODULE } from './validation/validation.module';
+import { CORE_BANNER_CONTAINER_MODULE } from './banner/bannerContainer.module';
 import ANGULAR_MESSAGES from 'angular-messages';
 import ANGULAR_SANITIZE from 'angular-sanitize';
 import { angularSpinner } from 'angular-spinner';
@@ -174,6 +175,7 @@ module(CORE_MODULE, [
   WIDGETS_MODULE,
 
   CORE_VALIDATION_VALIDATION_MODULE,
+  CORE_BANNER_CONTAINER_MODULE,
 ]).run(() => {
   // initialize all the stateful services
   State.initialize();

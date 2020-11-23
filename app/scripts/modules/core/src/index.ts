@@ -8,6 +8,8 @@ export * from './application';
 export * from './artifact';
 export * from './authentication';
 
+export * from './banner';
+
 export * from './cache';
 export * from './certificates';
 export * from './ci';

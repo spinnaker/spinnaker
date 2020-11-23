@@ -35,6 +35,7 @@ window.spinnakerSettings = {
   authEndpoint: authEndpoint,
   authTtl: 600000,
   bakeryDetailUrl: bakeryDetailUrl,
+  banners: [],
   canary: {
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     defaultJudge: 'NetflixACAJudge-v1.0',
