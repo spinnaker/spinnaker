@@ -1,6 +1,6 @@
 module github.com/spinnaker/spin
 
-go 1.12
+go 1.15
 
 require (
 	cloud.google.com/go v0.45.1 // indirect
