@@ -39,6 +39,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent {
 
   private EddaApi eddaApi
+  private static final int DESCRIBE_TAG_LIMIT = 20
 
   AmazonLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                  AmazonClientProvider amazonClientProvider,
@@ -46,8 +47,9 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
                                  String region,
                                  EddaApi eddaApi,
                                  ObjectMapper objectMapper,
-                                 Registry registry) {
-    super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry)
+                                 Registry registry,
+                                 AmazonCachingAgentFilter amazonCachingAgentFilter) {
+    super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry, amazonCachingAgentFilter)
     this.eddaApi = eddaApi
   }
 
@@ -151,6 +153,24 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
         request.withMarker(resp.nextMarker)
       } else {
         break
+      }
+    }
+
+    // filter load balancers if there is any filter configuration established
+    if (amazonCachingAgentFilter.hasTagFilter()) {
+
+      def loadBalancerPartitions = allLoadBalancers*.loadBalancerName.collate(DESCRIBE_TAG_LIMIT)
+      Map<String, List<AmazonCachingAgentFilter.ResourceTag>> loadBalancerTags = [:]
+      loadBalancerPartitions.each {loadBalancerPartition ->
+        def tagsRequest = new DescribeTagsRequest().withLoadBalancerNames(loadBalancerPartition)
+        def tagsResponse = loadBalancing.describeTags(tagsRequest)
+        loadBalancerTags.putAll(tagsResponse.tagDescriptions?.collectEntries {
+          [(it.loadBalancerName): it.tags?.collect {new AmazonCachingAgentFilter.ResourceTag(it.key, it.value)} ]
+        })
+      }
+
+      allLoadBalancers = allLoadBalancers.findAll { lb ->
+        return amazonCachingAgentFilter.shouldRetainResource(loadBalancerTags?.get(lb.loadBalancerName))
       }
     }
 

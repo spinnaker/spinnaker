@@ -37,6 +37,10 @@ class AmazonCachingAgentFilterSpec extends Specification {
      resourceTag("Name", "primary"),] | [filterTag("hello")]            | null                            | true
     [resourceTag("hello", "goodbye"),
      resourceTag("Name", "primary"),] | null                            | [filterTag("hello")]            | false
+    null                              | [filterTag("hello")]            | null                            | false
+    null                              | [filterTag("hello")]            | []                              | false
+    null                              | null                            | [filterTag("hello")]            | true
+    null                              | []                              | [filterTag("hello")]            | true
   }
 
   private static def resourceTag(String name = null, String value = null) {

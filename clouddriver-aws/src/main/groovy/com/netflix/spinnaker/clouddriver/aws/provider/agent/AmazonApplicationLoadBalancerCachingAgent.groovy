@@ -59,6 +59,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
   ])
 
   private static final String HEALTH_ID = "aws-load-balancer-v2-target-group-instance-health"
+  private static final int DESCRIBE_TAG_LIMIT = 20
 
   AmazonApplicationLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                             AmazonClientProvider amazonClientProvider,
@@ -67,8 +68,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
                                             EddaApi eddaApi,
                                             ObjectMapper objectMapper,
                                             Registry registry,
-                                            EddaTimeoutConfig eddaTimeoutConfig) {
-    super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry)
+                                            EddaTimeoutConfig eddaTimeoutConfig,
+                                            AmazonCachingAgentFilter amazonCachingAgentFilter) {
+    super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry, amazonCachingAgentFilter)
     this.eddaApi = eddaApi
     this.eddaTimeoutConfig = eddaTimeoutConfig
   }
@@ -325,14 +327,43 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       }
     }
 
+    // filter load balancers if there is any filter configuration established
+    if (amazonCachingAgentFilter.hasTagFilter()) {
+      def loadBalancerPartitions = allLoadBalancers*.loadBalancerArn.collate(DESCRIBE_TAG_LIMIT)
+      Map<String, List<AmazonCachingAgentFilter.ResourceTag>> loadBalancerTags = [:]
+      loadBalancerPartitions.each {loadBalancerPartition ->
+        def tagsRequest = new DescribeTagsRequest().withResourceArns(loadBalancerPartition)
+        def tagsResponse = loadBalancing.describeTags(tagsRequest)
+        loadBalancerTags.putAll(tagsResponse.tagDescriptions?.collectEntries {
+          [(it.resourceArn): it.tags?.collect {new AmazonCachingAgentFilter.ResourceTag(it.key, it.value)} ]
+        })
+      }
+
+      allLoadBalancers = allLoadBalancers.findAll { lb ->
+        return amazonCachingAgentFilter.shouldRetainResource(loadBalancerTags?.get(lb.loadBalancerArn))
+      }
+    }
+
     def loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, allLoadBalancers, useEdda)
 
     // Get all the target groups
     List<TargetGroup> allTargetGroups = []
     DescribeTargetGroupsRequest describeTargetGroupsRequest = new DescribeTargetGroupsRequest()
+    HashSet<String> allLoadBalancerArns = new HashSet(allLoadBalancers*.loadBalancerArn)
     while (true) {
       def resp = loadBalancing.describeTargetGroups(describeTargetGroupsRequest)
-      allTargetGroups.addAll(resp.targetGroups)
+
+      // only keep target groups which are for the set of filtered load balancers
+      def targetGroups = resp.targetGroups
+      if (amazonCachingAgentFilter.hasTagFilter()) {
+        targetGroups?.retainAll{ tg ->
+          tg.loadBalancerArns?.find { tgLB ->
+            allLoadBalancerArns.contains(tgLB)
+          } != null
+        }
+      }
+
+      allTargetGroups.addAll(targetGroups)
       if (resp.nextMarker) {
         describeTargetGroupsRequest.withMarker(resp.nextMarker)
       } else {

@@ -187,7 +187,8 @@ public class ProviderHelpers {
                 region.getName(),
                 eddaApiFactory.createApi(credentials.getEdda(), region.getName()),
                 objectMapper,
-                registry));
+                registry,
+                amazonCachingAgentFilter));
         newlyAddedAgents.add(
             new AmazonApplicationLoadBalancerCachingAgent(
                 amazonCloudProvider,
@@ -197,7 +198,8 @@ public class ProviderHelpers {
                 eddaApiFactory.createApi(credentials.getEdda(), region.getName()),
                 objectMapper,
                 registry,
-                eddaTimeoutConfig));
+                eddaTimeoutConfig,
+                amazonCachingAgentFilter));
         newlyAddedAgents.add(
             new ReservedInstancesCachingAgent(
                 amazonClientProvider, credentials, region.getName(), objectMapper, registry));

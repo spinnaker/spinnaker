@@ -104,6 +104,7 @@ abstract class AbstractAmazonLoadBalancerCachingAgent implements CachingAgent, O
   final String region
   final ObjectMapper objectMapper
   final Registry registry
+  final AmazonCachingAgentFilter amazonCachingAgentFilter
   final OnDemandMetricsSupport metricsSupport
 
   AbstractAmazonLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
@@ -111,13 +112,15 @@ abstract class AbstractAmazonLoadBalancerCachingAgent implements CachingAgent, O
                                          NetflixAmazonCredentials account,
                                          String region,
                                          ObjectMapper objectMapper,
-                                         Registry registry) {
+                                         Registry registry,
+                                         AmazonCachingAgentFilter amazonCachingAgentFilter) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
+    this.amazonCachingAgentFilter = amazonCachingAgentFilter
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + "${amazonCloudProvider.id}:${OnDemandType.LoadBalancer}")
   }
 

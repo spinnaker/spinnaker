@@ -90,6 +90,9 @@ public class AmazonCachingAgentFilter {
 
     // retain the resource by default if there isn't an include filter setup
     boolean retainResource = !this.hasIncludeTagFilter();
+    if (tags == null || tags.size() == 0) {
+      return retainResource;
+    }
 
     if (this.hasIncludeTagFilter()) {
       retainResource =
