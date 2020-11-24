@@ -141,6 +141,15 @@ class ApplicationService(
     )
   }
 
+  fun getSummariesAllEntities(application: String): Map<String, Any> {
+    val summaries: MutableMap<String, Any> = mutableMapOf()
+    summaries["resources"] = getResourceSummariesFor(application)
+    val envSummary = getEnvironmentSummariesFor(application)
+    summaries["environments"] = envSummary
+    summaries["artifacts"] = getArtifactSummariesFor(application, envSummary)
+    return summaries
+  }
+
   /**
    * Returns a list of [ResourceSummary] for the specified application.
    */
@@ -192,29 +201,38 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getArtifactSummariesFor(application: String, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
+    val environmentSummaries = getEnvironmentSummariesFor(application)
+    return getArtifactSummariesFor(application, environmentSummaries, limit)
+  }
+
+  /**
+   * If we've already calculated the env summaries, pass them in so we don't have to query again.
+   * It's non-trivial to pull that data.
+   */
+  fun getArtifactSummariesFor(application: String, envSummaries: List<EnvironmentSummary>, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
     val deliveryConfig = try {
       repository.getDeliveryConfigForApplication(application)
     } catch (e: NoSuchDeliveryConfigException) {
       return emptyList()
     }
 
-    val environmentSummaries = getEnvironmentSummariesFor(application)
-
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
       val artifactVersionSummaries = repository.artifactVersions(artifact, limit).map { artifactVersion ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
-        environmentSummaries.forEach { environmentSummary ->
+        envSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
           environmentSummary.getArtifactPromotionStatus(artifact, artifactVersion.version)
             ?.let { status ->
-              buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, artifactVersion.version, status)
-                ?.also {
-                  artifactSummariesInEnvironments.add(
-                    it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
-                      .addStatelessConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
-                  )
-                }
+              if ( artifact.isUsedIn(environment)) { // only add a summary if the artifact is used in the environment
+                buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, artifactVersion.version, status)
+                  ?.also {
+                    artifactSummariesInEnvironments.add(
+                      it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
+                        .addStatelessConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
+                    )
+                  }
+              }
             }
         }
 

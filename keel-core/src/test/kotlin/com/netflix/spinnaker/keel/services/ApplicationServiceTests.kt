@@ -53,6 +53,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import strikt.api.Assertion
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.first
@@ -840,32 +841,15 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
           }
 
-          test("artifact summary shows correct pending versions in each environment") {
+          test("artifact summary shows no pending versions in each environment when they're not used") {
             val summaries = applicationService.getArtifactSummariesFor(application2)
-            expectThat(summaries) {
-              first { it.reference == releaseArtifact.reference }
-                .withVersionInEnvironment(version4, "pr") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-                .withVersionInEnvironment(version3, "pr") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-                .withVersionInEnvironment(version2, "pr") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-                .withVersionInEnvironment(version1, "pr") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-                .withVersionInEnvironment(version0, "pr") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-              first { it.reference == snapshotArtifact.reference }
-                .withVersionInEnvironment(snapshotVersion2, "test") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
-                .withVersionInEnvironment(snapshotVersion1, "test") {
-                  state.isEqualTo(PENDING.name.toLowerCase())
-                }
+            val releaseVersionsSummary = summaries.first { it.reference == releaseArtifact.reference }.versions
+            val snapshotVersionsSummary = summaries.first { it.reference == snapshotArtifact.reference }.versions
+
+            expect {
+              // each artifact is only summarized in the environment it'll end up in
+              that(releaseVersionsSummary.flatMap { it.environments }.all { it.environment == "test"}).isTrue()
+              that(snapshotVersionsSummary.flatMap { it.environments }.all { it.environment == "pr"}).isTrue()
             }
           }
         }

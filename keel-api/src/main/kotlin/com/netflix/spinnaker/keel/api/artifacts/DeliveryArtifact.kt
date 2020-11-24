@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api.artifacts
 
+import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 import java.time.Instant
 
@@ -92,6 +94,15 @@ abstract class DeliveryArtifact {
         "createdAt" to createdAt
       )
     ).normalized()
+
+  /**
+   * @return `true` if this artifact is used by any resource in [environment], `false` otherwise.
+   */
+  fun isUsedIn(environment: Environment) =
+    environment
+      .resources
+      .map { (it.spec as? ArtifactReferenceProvider)?.artifactReference }
+      .contains(reference)
 
   fun toLifecycleRef() = "$deliveryConfigName:$reference"
 

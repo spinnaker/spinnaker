@@ -120,15 +120,6 @@ class EnvironmentPromotionChecker(
     }
   }
 
-  /**
-   * @return `true` if this artifact is used by any resource in [environment], `false` otherwise.
-   */
-  private fun DeliveryArtifact.isUsedIn(environment: Environment) =
-    environment
-      .resources
-      .map { (it.spec as? ArtifactReferenceProvider)?.artifactReference }
-      .contains(reference)
-
   private fun approveVersion(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

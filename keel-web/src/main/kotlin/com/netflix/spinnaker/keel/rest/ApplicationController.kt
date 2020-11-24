@@ -75,13 +75,17 @@ class ApplicationController(
       if (includeDetails && !entities.contains("resources")) {
         entities.add("resources")
       }
-      entities.forEach { entity ->
-        results[entity] = when (entity) {
-          "resources" -> applicationService.getResourceSummariesFor(application)
-          "environments" -> applicationService.getEnvironmentSummariesFor(application)
-          "artifacts" -> applicationService.getArtifactSummariesFor(application,
-            maxArtifactVersions ?: DEFAULT_MAX_ARTIFACT_VERSIONS)
-          else -> throw InvalidRequestException("Unknown entity type: $entity")
+      if (entities.size == 3) { // requesting everything, can optimize
+        results.putAll(applicationService.getSummariesAllEntities(application))
+      } else {
+        entities.forEach { entity ->
+          results[entity] = when (entity) {
+            "resources" -> applicationService.getResourceSummariesFor(application)
+            "environments" -> applicationService.getEnvironmentSummariesFor(application)
+            "artifacts" -> applicationService.getArtifactSummariesFor(application,
+              maxArtifactVersions ?: DEFAULT_MAX_ARTIFACT_VERSIONS)
+            else -> throw InvalidRequestException("Unknown entity type: $entity")
+          }
         }
       }
     }
