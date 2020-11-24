@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
+import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
@@ -17,6 +18,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -35,6 +37,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isFalse
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNull
 
@@ -54,7 +57,15 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     val artifact = DebianArtifact("mypkg", "test", "deb",
       vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet())
     )
-    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, baseUrl)
+    val scmInfo = mockk<ScmInfo>() {
+      coEvery {
+        getScmInfo()
+      } answers {
+        mapOf("stash" to "https://stash")
+      }
+    }
+
+    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, scmInfo, baseUrl)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -102,7 +113,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         every {
           repository.getArtifact("test", "deb")
         } returns DebianArtifact("mypkg", "test", "deb",
-            vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet()))
+          vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet()))
 
         every {
           repository.getDeliveryConfig("test")
@@ -241,6 +252,73 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
             .contains("*Branch:* master")
           expectThat(notificationBody)
             .contains("*Message:* A test commit")
+        }
+      }
+
+      context("compare links in notification") {
+        before {
+          every {
+            repository.getArtifactVersion(artifact, "v1.0.0", any())
+          } returns PublishedArtifact(
+            name = "mypkg",
+            type = DEBIAN,
+            version = "v2.0.0",
+            gitMetadata = GitMetadata(
+              commit = "a1b2c3d",
+              author = "joesmith",
+              project = "myproj",
+              branch = "master",
+              repo = Repo("myapp"),
+              commitInfo = Commit(message = "A test commit #2", link = "stash", sha = "v2.0.0")
+            )
+          )
+        }
+
+        test("when there is a single artifact in the environment, compare link is unavailable") {
+          subject.constraintStateChanged(event)
+
+          val notification = slot<EchoNotification>()
+
+          coVerify {
+            echoService.sendNotification(capture(notification))
+          }
+
+          val notificationBody = notification.captured.additionalContext!!["body"].toString()
+          expectThat(notificationBody.contains("*See changes*"))
+            .isFalse()
+        }
+
+        context("more artifact in an environment") {
+          before {
+            every {
+              repository.getArtifactVersionByPromotionStatus(any(), any(), artifact, PromotionStatus.CURRENT.name)
+            } returns PublishedArtifact(
+              name = "mypkg",
+              type = DEBIAN,
+              version = "v1.0.0",
+              gitMetadata = GitMetadata(
+                commit = "e5f6g7h",
+                author = "joesmith",
+                project = "myproj",
+                branch = "master",
+                repo = Repo("myapp"),
+                commitInfo = Commit(message = "A test commit", link = "stash", sha = "v1.0.0")
+              )
+            )
+          }
+          test("create the right comparable link") {
+            subject.constraintStateChanged(event)
+
+            val notification = slot<EchoNotification>()
+
+            coVerify {
+              echoService.sendNotification(capture(notification))
+            }
+
+            val notificationBody = notification.captured.additionalContext!!["body"].toString()
+            expectThat(notificationBody)
+              .contains("<https://stash/projects/myproj/repos/myapp/compare/commits?targetBranch=v1.0.0&sourceBranch=v2.0.0|*See changes*>")
+          }
         }
       }
     }

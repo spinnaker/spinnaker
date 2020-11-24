@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
@@ -18,6 +17,7 @@ import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.artifacts.generateCompareLink
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -47,7 +47,6 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -272,7 +271,7 @@ class ApplicationService(
           version = version,
           state = status.name.toLowerCase(),
           // comparing PENDING (version in question, new code) vs. CURRENT (old code)
-          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
         )
       }
       SKIPPED -> {
@@ -291,7 +290,7 @@ class ApplicationService(
         val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
         potentialSummary?.copy(
           // comparing DEPLOYING/APPROVED (version in question, new code) vs. CURRENT (old code)
-          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
         )
       }
       PREVIOUS -> {
@@ -299,14 +298,14 @@ class ApplicationService(
         potentialSummary?.copy(
           //comparing PREVIOUS (version in question, old code) vs. the version which replaced it (new code)
           //pinned artifact should not be consider here, as we know exactly which version replace the current one
-          compareLink = getUrl(currentArtifact, newerArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, newerArtifactVersion, artifact)
         )
       }
       CURRENT -> {
         val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name)
         potentialSummary?.copy(
           // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
-          compareLink = getUrl(currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
         )
       }
       else -> potentialSummary
@@ -424,43 +423,4 @@ class ApplicationService(
     return repository.getArtifactVersion(artifact, version, releaseStatus)
   }
 
-
-  // Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
-  private fun getScmBaseLink(commitLink: String): String? {
-    val scmInfo = runBlocking {
-      scmInfo.getScmInfo()
-    }
-    //TODO[gyardeni]: replace this parsing when rocket will add scm type to gitMetadata
-    when {
-      "stash" in commitLink ->
-        return scmInfo["stash"]
-      else ->
-        throw UnsupportedScmType(message = "Stash is currently the only supported SCM type")
-    }
-  }
-
-  private fun getUrl(version1: PublishedArtifact?, version2: PublishedArtifact?, artifact: DeliveryArtifact): String? {
-    return if (version1 != null && version2 != null) {
-      return if (artifact.sortingStrategy.comparator.compare(version1, version2) > 0) { //these comparators sort in dec order, so condition is flipped
-        //version2 is newer than version1
-        generateCompareLink(version2.gitMetadata, version1.gitMetadata)
-      } else {
-        //version2 is older than version1
-        generateCompareLink(version1.gitMetadata, version2.gitMetadata)
-      }
-    } else {
-      null
-    }
-  }
-
-  // Generating a SCM compare link between source (new version) and target (old version) versions (the order does matter!)
-  private fun generateCompareLink(newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
-    val baseScmUrl = newerGitMetadata?.commitInfo?.link?.let { getScmBaseLink(it) }
-    return if (baseScmUrl != null && olderGitMetadata != null) {
-      "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
-        "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
-    } else {
-      null
-    }
-  }
 }
