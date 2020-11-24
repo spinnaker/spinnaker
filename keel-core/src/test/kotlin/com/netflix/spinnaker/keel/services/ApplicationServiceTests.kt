@@ -35,6 +35,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.DummyArtifact
@@ -156,6 +157,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { parseDefaultGitMetadata(any(), any()) } returns null
     }
 
+    private val lifecycleEventRepository : LifecycleEventRepository = mockk() {
+      every { getSteps(any(), any()) } returns emptyList()
+    }
+
     private val scmInfo = mockk<ScmInfo>() {
       coEvery {
         getScmInfo()
@@ -170,7 +175,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       resourceStatusService,
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
-      scmInfo
+      scmInfo,
+      lifecycleEventRepository
     )
 
     val buildMetadata = BuildMetadata(

@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
+import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitor
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
@@ -23,6 +24,12 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
 
+/**
+ * This class monitors all tasks in flight.
+ *
+ * todo eb: Convert to [LifecycleMonitor] to take advantage of batch sizing and the same
+ *  way of distributing checking across instances.
+ */
 @Component
 class OrcaTaskMonitorAgent(
   private val taskTrackingRepository: TaskTrackingRepository,

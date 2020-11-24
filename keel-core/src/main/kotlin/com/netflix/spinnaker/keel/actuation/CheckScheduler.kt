@@ -167,6 +167,8 @@ class CheckScheduler(
     }
   }
 
+  // todo eb: remove this loop in favor of transitioning the [OrcaTaskMonitoringAgent] to a
+  //  [LifecycleMonitor]
   @Scheduled(fixedDelayString = "\${keel.scheduled.agent.frequency:PT1M}")
   fun invokeAgent() {
     if (enabled.get()) {

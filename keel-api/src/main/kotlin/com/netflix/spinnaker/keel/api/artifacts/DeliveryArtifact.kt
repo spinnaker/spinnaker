@@ -93,5 +93,7 @@ abstract class DeliveryArtifact {
       )
     ).normalized()
 
+  fun toLifecycleRef() = "$deliveryConfigName:$reference"
+
   override fun toString() = "${type.toUpperCase()} artifact $name (ref: $reference)"
 }

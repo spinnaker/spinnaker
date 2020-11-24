@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import java.time.Instant
 
 /**
@@ -31,7 +32,8 @@ data class ArtifactVersionSummary(
   val environments: Set<ArtifactSummaryInEnvironment>,
   val build: BuildMetadata? = null,
   val git: GitMetadata? = null,
-  val createdAt: Instant? = null
+  val createdAt: Instant? = null,
+  val lifecycleSteps: List<LifecycleStep> = emptyList()
 )
 
 @JsonInclude(Include.NON_EMPTY)

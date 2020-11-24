@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Duration
 
 sealed class TelemetryEvent
@@ -23,6 +24,16 @@ data class ResourceCheckTimedOut(
 
 data class ResourceLoadFailed(
   val ex: Throwable
+) : TelemetryEvent()
+
+data class LifecycleMonitorLoadFailed(
+  val ex: Throwable
+) : TelemetryEvent()
+
+data class LifecycleMonitorTimedOut(
+  val type: LifecycleEventType,
+  val link: String,
+  val artifactRef: String
 ) : TelemetryEvent()
 
 data class ArtifactVersionUpdated(

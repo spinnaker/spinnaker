@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummySortingStrategy
@@ -112,13 +113,18 @@ class ComparableLinksTests : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
     }
 
+    val lifecycleEventRepository: LifecycleEventRepository = mockk(relaxed = true) {
+      every { getSteps(any(), any()) } returns emptyList()
+    }
+
     // subject
     val applicationService = ApplicationService(
       repository,
       resourceStatusService,
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
-      scmInfo
+      scmInfo,
+      lifecycleEventRepository
     )
 
     val buildMetadata = BuildMetadata(

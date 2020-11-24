@@ -200,3 +200,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201120-foreign-keys-for-verification-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201016-create-lifecycle-events.yml
+      relativeToChangelogFile: true
