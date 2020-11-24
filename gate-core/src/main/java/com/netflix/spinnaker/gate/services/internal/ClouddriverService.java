@@ -101,6 +101,10 @@ public interface ClouddriverService {
       @Query("validateOldest") Boolean validateOldest);
 
   @Headers("Accept: application/json")
+  @GET("/applications/{name}/rawResources")
+  List<Map<String, Object>> getApplicationRawResources(@Path("name") String appName);
+
+  @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups")
   List getServerGroups(
       @Path("name") String name,
