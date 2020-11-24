@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.clouddriver.kubernetes.converter.manifest.KubernetesDeployManifestConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.io.IOException;
@@ -128,6 +130,45 @@ public class KubernetesDeployManifestConverterTest {
     assertThat(description.getManifests()).hasSize(2);
     assertThat(description.getManifests().get(0).getKindName()).isEqualTo("Deployment");
     assertThat(description.getManifests().get(1).getKindName()).isEqualTo("Custom1");
+  }
+
+  @Test
+  public void splitListManifestWithNamespaceOverride() throws IOException {
+    KubernetesKindProperties prop1 = Mockito.mock(KubernetesKindProperties.class);
+    Mockito.when(prop1.isNamespaced()).thenReturn(true, false, true);
+    KubernetesCredentials credentials = Mockito.mock(KubernetesCredentials.class);
+    Mockito.when(credentials.getKindProperties(Mockito.any())).thenReturn(prop1);
+    KubernetesNamedAccountCredentials accountCredentials =
+        Mockito.mock(KubernetesNamedAccountCredentials.class);
+    Mockito.when(accountCredentials.getCredentials()).thenReturn(credentials);
+
+    CredentialsRepository<KubernetesNamedAccountCredentials> credentialsRepository =
+        Mockito.mock(CredentialsRepository.class);
+    Mockito.when(credentialsRepository.getOne("kubernetes")).thenReturn(accountCredentials);
+    converter = new KubernetesDeployManifestConverter(credentialsRepository, null);
+
+    String listTemplate = getResourceAsString("list-manifest.json");
+    String deploymentJson = getResourceAsString("deployment-manifest.json");
+    String crdJson = getResourceAsString("crd-manifest.json");
+
+    String listJson = String.format(listTemplate, deploymentJson, crdJson);
+    Map<String, Object> listMap = mapper.readValue(listJson, mapType);
+    Map<String, Object> deploymentMap = mapper.readValue(deploymentJson, mapType);
+
+    Map<String, Object> inputMap =
+        new HashMap<>(
+            Map.of(
+                "account",
+                "kubernetes",
+                "manifests",
+                Arrays.asList(listMap, deploymentMap),
+                "namespaceOverride",
+                "testNamespace"));
+    KubernetesDeployManifestDescription description = converter.convertDescription(inputMap);
+    assertThat(description.getManifests()).hasSize(3);
+    assertThat(description.getManifests().get(0).getNamespace()).isEqualTo("testNamespace");
+    assertThat(description.getManifests().get(1).getNamespace()).isEqualTo("");
+    assertThat(description.getManifests().get(2).getNamespace()).isEqualTo("testNamespace");
   }
 
   protected String getResourceAsString(String name) throws IOException {

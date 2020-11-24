@@ -73,6 +73,43 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
+          + "Given a nginx deployment manifest with default namespace set\n"
+          + "  And a namespace override that is not listed in account's namespaces\n"
+          + "When sending deploy manifest request\n"
+          + "Then deployment fails with DescriptionValidationException\n===")
+  @Test
+  public void shouldNotDeployToNamespaceNotListed() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+            .withValue("metadata.namespace", "default")
+            .asList();
+    String overrideNamespace = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + overrideNamespace);
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", "account2")
+            .withValue("deployManifest.namespaceOverride", overrideNamespace)
+            .withValue("deployManifest.moniker.app", APP1_NAME)
+            .withValue("deployManifest.manifests", manifest)
+            .asList();
+    Response resp =
+        given()
+            .log()
+            .uri()
+            .contentType("application/json")
+            .body(body)
+            .post(baseUrl() + "/kubernetes/ops");
+
+    // ------------------------- then --------------------------
+    resp.then().statusCode(400);
+    assertTrue(resp.body().asString().contains("wrongNamespace"));
+  }
+
+  @DisplayName(
+      ".\n===\n"
           + "Given a nginx deployment manifest with no namespace set\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"

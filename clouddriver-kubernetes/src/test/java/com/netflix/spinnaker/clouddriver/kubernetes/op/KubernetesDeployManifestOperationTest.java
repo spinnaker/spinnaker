@@ -97,19 +97,6 @@ final class KubernetesDeployManifestOperationTest {
   }
 
   @Test
-  void replicaSetDeployerUsesOverrideNamespace() {
-    String overrideNamespace = "my-override";
-    KubernetesDeployManifestDescription description =
-        baseDeployDescription("deploy/replicaset-no-namespace.yml")
-            .setNamespaceOverride(overrideNamespace);
-    OperationResult result = deploy(description);
-
-    assertThat(result.getManifestNamesByNamespace()).containsOnlyKeys(overrideNamespace);
-    assertThat(result.getManifestNamesByNamespace().get(overrideNamespace))
-        .containsExactlyInAnyOrder("replicaSet my-name-v000");
-  }
-
-  @Test
   void sendsTrafficWhenEnabledTrafficTrue() {
     KubernetesDeployManifestDescription description =
         baseDeployDescription("deploy/replicaset.yml")

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeployManifestOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -90,9 +92,12 @@ public class KubernetesDeployManifestConverter
             .flatMap(
                 singleManifest -> {
                   if (singleManifest == null
-                      || Strings.isNullOrEmpty(singleManifest.getKindName())
-                      || !singleManifest.getKindName().equalsIgnoreCase(KIND_VALUE_LIST)) {
+                      || Strings.isNullOrEmpty(singleManifest.getKindName())) {
                     return Stream.of(singleManifest);
+                  }
+
+                  if (!singleManifest.getKindName().equalsIgnoreCase(KIND_VALUE_LIST)) {
+                    return Stream.of(updateNamespace(mainDescription, singleManifest));
                   }
 
                   Collection<Object> items =
@@ -103,12 +108,27 @@ public class KubernetesDeployManifestConverter
                   }
 
                   return items.stream()
-                      .map(i -> getObjectMapper().convertValue(i, KubernetesManifest.class));
+                      .map(
+                          i -> {
+                            KubernetesManifest manifest =
+                                getObjectMapper().convertValue(i, KubernetesManifest.class);
+                            return updateNamespace(mainDescription, manifest);
+                          });
                 })
             .collect(Collectors.toList());
 
     mainDescription.setManifests(updatedManifestList);
 
     return mainDescription;
+  }
+
+  private KubernetesManifest updateNamespace(
+      KubernetesDeployManifestDescription description, KubernetesManifest manifest) {
+    KubernetesCredentials credentials = description.getCredentials().getCredentials();
+    if (!StringUtils.isBlank(description.getNamespaceOverride())
+        && credentials.getKindProperties(manifest.getKind()).isNamespaced()) {
+      manifest.setNamespace(description.getNamespaceOverride());
+    }
+    return manifest;
   }
 }

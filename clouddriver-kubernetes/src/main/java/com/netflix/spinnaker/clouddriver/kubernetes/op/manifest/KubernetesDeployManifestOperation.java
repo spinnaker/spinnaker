@@ -105,11 +105,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     Set<Artifact> boundArtifacts = new HashSet<>();
 
     for (KubernetesManifest manifest : inputManifests) {
-      if (credentials.getKindProperties(manifest.getKind()).isNamespaced()
-          && !Strings.isNullOrEmpty(description.getNamespaceOverride())) {
-        manifest.setNamespace(description.getNamespaceOverride());
-      }
-
       KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
           manifest, description.getStrategy());
 
