@@ -35,7 +35,7 @@ export class TaskReader {
         }
         return task;
       })
-      .catch((error: any) => {
+      .catch((error: any): undefined => {
         $log.warn('There was an issue retrieving taskId: ', taskId, error);
         return undefined;
       });

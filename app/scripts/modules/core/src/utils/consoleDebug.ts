@@ -2,7 +2,7 @@ import { module } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 
 import { Application } from 'core/application';
-import { API } from '../api';
+import { REST } from '../api';
 
 declare global {
   // tslint:disable-next-line
@@ -16,7 +16,7 @@ const injectables: string[] = [];
 export class ConsoleDebugWindow {
   public application: Application;
   public $injector: IInjectorService;
-  public api = API;
+  public api = REST;
   public plugins = {
     sharedLibraries: {} as { [libraryName: string]: any },
   };
