@@ -5,6 +5,7 @@ module.exports = {
   extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
   rules: {
     '@spinnaker/api-no-slashes': 2,
+    '@spinnaker/api-no-unused-chaining': 2,
     '@spinnaker/import-from-alias-not-npm': 2,
     '@spinnaker/import-from-npm-not-alias': 2,
     '@spinnaker/import-from-npm-not-relative': 2,
