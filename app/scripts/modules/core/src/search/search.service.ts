@@ -49,10 +49,10 @@ export class SearchService {
 
     const params = { ...searchParams, ...defaultParams };
 
-    const requestBuilder = API.one('search').withParams(params);
+    let requestBuilder = API.one('search').withParams(params);
 
     if (cache) {
-      requestBuilder.useCache(cache);
+      requestBuilder = requestBuilder.useCache(cache);
     }
 
     return requestBuilder

@@ -35,11 +35,11 @@ export class ClusterService {
   public loadServerGroups(application: Application): PromiseLike<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
-      const serverGroupLoader = API.one('applications').one(application.name).all('serverGroups');
+      let serverGroupLoader = API.one('applications').one(application.name).all('serverGroups');
       dataSource.fetchOnDemand = clusters.length > SETTINGS.onDemandClusterThreshold;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
-        serverGroupLoader.withParams({
+        serverGroupLoader = serverGroupLoader.withParams({
           clusters: FilterModelService.getCheckValues(
             ClusterState.filterModel.asFilterModel.sortFilter.clusters,
           ).join(),
