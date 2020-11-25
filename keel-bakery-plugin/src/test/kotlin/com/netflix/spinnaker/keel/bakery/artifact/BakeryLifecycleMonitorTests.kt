@@ -154,13 +154,15 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
         coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } throws
           RuntimeException("this is embarrassing..")
       }
+
       test("failure is marked") {
         runBlocking { subject.monitor(task) }
         verify(exactly = 1) {
           monitorRepository.markFailureGettingStatus(task)
         }
       }
-      test("failure is marked") {
+
+      test("monitoring is ended after max number is hit") {
         val slot = slot<LifecycleEvent>()
         val failingTask = task.copy(numFailures = 4)
         runBlocking { subject.monitor(failingTask) }
@@ -168,7 +170,21 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           publisher.publishEvent(capture(slot))
           monitorRepository.delete(failingTask)
         }
-        expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.FAILED)
+        expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.UNKNOWN)
+      }
+    }
+
+    context("handling intermittent failure") {
+      before {
+        coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          getExecution(PAUSED)
+      }
+      test("failure count is cleared after a success") {
+        val failingTask = task.copy(numFailures = 2)
+        runBlocking { subject.monitor(failingTask) }
+        verify(exactly = 1) {
+          monitorRepository.clearFailuresGettingStatus(failingTask)
+        }
       }
     }
   }

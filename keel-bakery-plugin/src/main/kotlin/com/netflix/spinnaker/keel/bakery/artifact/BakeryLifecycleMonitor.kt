@@ -57,6 +57,11 @@ class BakeryLifecycleMonitor(
           else -> publishUnknownEvent(task, execution)
         }
 
+        if (task.numFailures > 0) {
+          // we only care about consecutive failures, and we just had a success
+          monitorRepository.clearFailuresGettingStatus(task)
+        }
+
         if (execution.status.isComplete()) {
           endMonitoringOf(task)
         }
@@ -64,8 +69,8 @@ class BakeryLifecycleMonitor(
       .onFailure { exception ->
         log.error("Error fetching status for $task: ", exception)
         if (task.numFailures >= lifecycleConfig.numFailuresAllowed - 1) {
-          log.warn("Too many errors (${lifecycleConfig.numFailuresAllowed}) " +
-            "fetching the task status. Giving up.")
+          log.warn("Too many consecutive errors (${lifecycleConfig.numFailuresAllowed}) " +
+            "fetching the task status for $task. Giving up.")
           publishExceptionEvent(task)
           monitorRepository.delete(task)
         } else {
@@ -107,10 +112,10 @@ class BakeryLifecycleMonitor(
 
   private fun publishExceptionEvent(task: MonitoredTask) {
     publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.FAILED,
+      status = LifecycleEventStatus.UNKNOWN,
       link = orcaTaskIdToLink(task),
       text = "Failed to monitor bake of version ${task.triggeringEvent.artifactVersion}" +
-        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times."
+        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown."
     ))
   }
 

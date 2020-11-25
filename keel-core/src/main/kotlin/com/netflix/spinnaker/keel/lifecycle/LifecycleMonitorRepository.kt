@@ -29,6 +29,11 @@ interface LifecycleMonitorRepository {
   fun markFailureGettingStatus(task: MonitoredTask)
 
   /**
+   * Clears the counter for failed get status attempts
+   */
+  fun clearFailuresGettingStatus(task: MonitoredTask)
+
+  /**
    * @return the number of tasks currently being monitored
    */
   fun numTasksMonitoring(): Int

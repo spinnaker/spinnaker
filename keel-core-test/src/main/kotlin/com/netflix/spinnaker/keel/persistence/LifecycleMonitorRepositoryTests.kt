@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Clock
@@ -75,7 +76,23 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
         subject.delete(task)
         expectThat(subject.numTasksMonitoring()).isEqualTo(0)
       }
+    }
 
+    context("clearing failure") {
+      before {
+        eventRepository.saveEvent(event)
+        val failingTask = task.copy(numFailures = 2)
+        subject.save(failingTask)
+        subject.clearFailuresGettingStatus(failingTask)
+      }
+      test("failures reset to 0") {
+        clock.tickMinutes(1)
+        val tasks = subject.tasksDueForCheck(Duration.ofMinutes(1), 1)
+        expect {
+          that(tasks.size).isEqualTo(1)
+          that(tasks.first().numFailures).isEqualTo(0)
+        }
+      }
     }
   }
 }

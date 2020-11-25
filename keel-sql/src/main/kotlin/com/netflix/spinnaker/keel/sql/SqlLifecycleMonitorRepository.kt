@@ -124,6 +124,17 @@ class SqlLifecycleMonitorRepository(
     }
   }
 
+  override fun clearFailuresGettingStatus(task: MonitoredTask) {
+    sqlRetry.withRetry(WRITE) {
+      val triggeringEventUid = task.triggeringEvent.getUid(jooq)
+      jooq.update(LIFECYCLE_MONITOR)
+        .set(LIFECYCLE_MONITOR.NUM_FAILURES, 0)
+        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
+        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(triggeringEventUid))
+        .execute()
+    }
+  }
+
   override fun numTasksMonitoring(): Int =
     sqlRetry.withRetry(READ) {
       jooq.selectCount()
