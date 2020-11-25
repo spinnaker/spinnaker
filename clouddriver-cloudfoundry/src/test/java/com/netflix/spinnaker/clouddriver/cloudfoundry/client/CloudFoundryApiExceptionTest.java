@@ -37,8 +37,8 @@ class CloudFoundryApiExceptionTest {
             new ErrorDescription()
                 .setErrors(
                     Arrays.asList(
-                        new ErrorDescription.Detail().setDetail("Main Error"),
-                        new ErrorDescription.Detail().setDetail("Foo"))),
+                        new ErrorDescription().setDetail("Main Error"),
+                        new ErrorDescription().setDetail("Foo"))),
             retrofitError);
 
     assertThat(e.getMessage()).contains("Main Error and Foo");

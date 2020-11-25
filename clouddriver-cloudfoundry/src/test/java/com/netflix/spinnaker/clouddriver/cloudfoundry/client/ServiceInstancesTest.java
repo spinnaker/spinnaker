@@ -1042,7 +1042,7 @@ class ServiceInstancesTest {
         new Response("someUri", 418, "I'm a teapot", Collections.emptyList(), null);
     when(destroyFailed.getResponse()).thenReturn(notFoundResponse);
     ErrorDescription errorDescription = new ErrorDescription();
-    errorDescription.setCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
+    errorDescription.setErrorCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
     when(destroyFailed.getBodyAs(any())).thenReturn(errorDescription);
 
     when(serviceInstanceService.all(any(), any())).thenReturn(createOsbServiceInstancePage());
@@ -1138,7 +1138,7 @@ class ServiceInstancesTest {
         new Response("someUri", 418, "I'm a teapot", Collections.emptyList(), null);
     when(destroyFailed.getResponse()).thenReturn(notFoundResponse);
     ErrorDescription errorDescription = new ErrorDescription();
-    errorDescription.setCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
+    errorDescription.setErrorCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
     when(destroyFailed.getBodyAs(any())).thenReturn(errorDescription);
 
     when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(new Page<>());

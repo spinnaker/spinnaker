@@ -19,14 +19,66 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
+import java.io.*;
 import org.junit.jupiter.api.Test;
+import retrofit.converter.ConversionException;
+import retrofit.converter.JacksonConverter;
+import retrofit.mime.TypedInput;
 
 class ErrorCodeTest {
+
+  private final JacksonConverter jacksonConverter = new JacksonConverter();
+
   @Test
   void deserialize() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     assertThat(mapper.readValue("\"CF-RouteHostTaken\"", ErrorDescription.Code.class))
         .isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
+  }
+
+  @Test
+  void deserializeV2() throws ConversionException {
+    TestingTypedInput testingTypedInput =
+        new TestingTypedInput(
+            "{\"description\":\"The host is taken: tester\",\"error_code\":\"CF-RouteHostTaken\",\"code\":210003}");
+    ErrorDescription err =
+        (ErrorDescription) jacksonConverter.fromBody(testingTypedInput, ErrorDescription.class);
+    assertThat(err.getCode().equals(ErrorDescription.Code.ROUTE_HOST_TAKEN));
+    assertThat(err.getErrors().contains("The host is taken: tester"));
+  }
+
+  @Test
+  void deserializeV3() throws IOException, ConversionException {
+    TestingTypedInput testingTypedInput =
+        new TestingTypedInput(
+            "{\"errors\":[{\"code\":210003,\"title\":\"CF-RouteHostTaken\",\"detail\":\"The host is taken: tester\"}]}");
+    ErrorDescription err =
+        (ErrorDescription) jacksonConverter.fromBody(testingTypedInput, ErrorDescription.class);
+    assertThat(err.getCode().equals(ErrorDescription.Code.ROUTE_HOST_TAKEN));
+    assertThat(err.getErrors().contains("The host is taken: tester"));
+  }
+
+  class TestingTypedInput implements TypedInput {
+
+    byte[] bytes;
+
+    TestingTypedInput(String json) {
+      this.bytes = json.getBytes();
+    }
+
+    @Override
+    public String mimeType() {
+      return "application/json";
+    }
+
+    @Override
+    public long length() {
+      return bytes.length;
+    }
+
+    @Override
+    public InputStream in() {
+      return new ByteArrayInputStream(bytes);
+    }
   }
 }

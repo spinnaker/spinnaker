@@ -21,47 +21,74 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import lombok.Getter;
 import lombok.Setter;
 
-/** This is a union type of the code/description mechanisms for Cloud Foundry API v2 and v3. */
+/**
+ * This is a union type of the code/description mechanisms for Cloud Foundry API v2 and v3. V3 {
+ * "errors": [ { "code": 10008, "title": "CF-UnprocessableEntity", "detail": "something went wrong"
+ * } ] }
+ *
+ * <p>V2 { "description": "The route is invalid: host is required for shared-domains", "error_code":
+ * "CF-RouteInvalid", "code": 210001 }
+ *
+ * <p>UAA { "error_description":"Password must contain at least 1 special characters.",
+ * "error":"invalid_password", <- no logic for this right now -- not needed "message":"Password must
+ * contain at least 1 special characters." }
+ */
 @Setter
 public class ErrorDescription {
   /** Cloud Foundry API v2. */
   @Nullable private String description;
 
   /** Cloud Foundry API v2. */
-  @Nullable private Code code;
+  @JsonProperty("error_code")
+  @Nullable
+  private Code errorCode;
+
+  /** Cloud Foundry API v2 & v3. */
+  @Nullable private int code;
 
   /** UAA API */
-  @Nullable private String errorDescription;
+  @JsonProperty("error_description")
+  @Nullable
+  private String errorDescription;
 
   /** Cloud Foundry API v3. */
-  @Nullable private List<Detail> errors;
+  @Nullable private List<ErrorDescription> errors;
 
   /** Cloud Foundry API v3. */
-  @Nullable private Code errorCode;
+  @Getter @Nullable private Code title;
 
-  @Setter
-  public static class Detail {
-    private String detail;
-  }
+  /** Cloud Foundry API v3. */
+  @Getter @Nullable private String detail;
 
   @Nullable
   public Code getCode() {
-    return code == null ? errorCode : code;
+    return errors != null && !errors.isEmpty() ? errors.get(0).getTitle() : errorCode;
   }
 
   public List<String> getErrors() {
-    if (description == null) {
-      if (errors == null) {
-        return errorDescription == null ? emptyList() : singletonList(errorDescription);
-      }
-      return errors.stream().map(detail -> detail.detail).collect(Collectors.toList());
+    // v2 error
+    if (description != null) {
+      return singletonList(description);
     }
-    return singletonList(description);
+
+    // v3 error
+    if (errors != null && !errors.isEmpty()) {
+      return errors.stream().map(e -> e.getDetail()).collect(Collectors.toList());
+    }
+
+    // UAA error
+    if (errorDescription != null) {
+      return singletonList(errorDescription);
+    }
+
+    return emptyList();
   }
 
   public enum Code {
