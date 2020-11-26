@@ -11,6 +11,9 @@
     "lodash": "^4.17.20"
   },
   "devDependencies": {
+    "@types/eslint": "^7.2.5",
+    "@types/estree": "^0.0.45",
+    "@types/lodash": "^4.14.165",
     "jest": "^26.6.3"
   },
   "peerDependencies": {
