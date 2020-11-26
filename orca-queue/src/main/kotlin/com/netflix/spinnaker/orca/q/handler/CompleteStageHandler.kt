@@ -151,7 +151,7 @@ class CompleteStageHandler(
         } else {
           queue.push(CancelStage(message))
           if (stage.syntheticStageOwner == null) {
-            log.debug("Stage has no synthetic owner, completing execution (original message: $message)")
+            log.debug("Stage has no synthetic owner and status is '${stage.status}', completing execution (original message: $message)")
             queue.push(CompleteExecution(message))
           } else {
             queue.push(message.copy(stageId = stage.parentStageId!!))
