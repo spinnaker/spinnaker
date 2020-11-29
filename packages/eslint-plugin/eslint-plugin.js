@@ -14,6 +14,7 @@ module.exports = {
     'ng-strictdi': require('./rules/ng-strictdi'),
     'prefer-promise-like': require('./rules/prefer-promise-like'),
     'react2angular-with-error-boundary.spec.js': require('./rules/react2angular-with-error-boundary'),
+    'rest-prefer-static-strings-in-initializer': require('./rules/rest-prefer-static-strings-in-initializer'),
   },
   configs: {
     base: require('./base.config.js'),

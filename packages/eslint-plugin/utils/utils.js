@@ -6,6 +6,9 @@
 
 const _ = require('lodash/fp');
 
+const getNodeType = (obj) => obj && obj.type;
+const isIdentifier = (obj) => getNodeType(obj) === 'Identifier';
+
 /**
  * Recursively grab the callee until an Identifier is found.
  *
@@ -13,15 +16,23 @@ const _ = require('lodash/fp');
  *
  * var calleeOne = ...
  * getCallingIdentifier(calleeOne).name === 'API'
+ * @returns {Identifier}
  */
 function getCallingIdentifier(calleeObject) {
   if (!calleeObject) {
     return undefined;
-  } else if (calleeObject.type && calleeObject.type === 'Identifier') {
+  } else if (isIdentifier(calleeObject)) {
     return calleeObject;
+  } else if (isIdentifier(calleeObject.callee)) {
+    return calleeObject.callee;
   } else if (calleeObject.callee && calleeObject.callee.object) {
     return getCallingIdentifier(calleeObject.callee.object);
   }
+}
+
+function getCallingIdentifierName(calleeObject) {
+  const identifier = getCallingIdentifier(calleeObject);
+  return identifier ? identifier.name : undefined;
 }
 
 /**
@@ -64,9 +75,21 @@ const getCallChain = (node) => {
   }
 };
 
+/**
+ * @param context {RuleContext}
+ * @param args {Argument[]}
+ */
+function getArgsText(context, args) {
+  const sourceCode = context.getSourceCode();
+  return (args || []).map((arg) => sourceCode.getText(arg)).join(', ');
+}
+
 module.exports = {
+  getArgsText,
   getCallingIdentifier,
+  getCallingIdentifierName,
   getCallChain,
+  getNodeType,
   getProgram,
   getVariableInitializer,
   getVariableInScope,

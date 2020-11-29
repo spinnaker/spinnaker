@@ -18,6 +18,7 @@ module.exports = {
     '@spinnaker/ng-strictdi': 2,
     '@spinnaker/prefer-promise-like': 1,
     '@spinnaker/react2angular-with-error-boundary.spec.js': 2,
+    '@spinnaker/rest-prefer-static-strings-in-initializer': 2,
     indent: 'off',
     'member-ordering': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
