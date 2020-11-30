@@ -15,13 +15,11 @@
  */
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Record
-import org.jooq.SelectForUpdateStep
 import org.jooq.Table
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
@@ -95,19 +93,3 @@ internal fun DSLContext.selectExecutionStages(executionType: ExecutionType, exec
     .where(field("execution_id").`in`(*executionIds.toTypedArray()))
     .fetch()
     .intoResultSet()
-
-/**
- * The fields used in a SELECT executions query.
- */
-internal fun selectExecutionFields() =
-  listOf(field("id"), field("body"), field(DSL.name("partition")))
-
-/**
- * Fetch and map executions into [PipelineExecution] objects.
- */
-internal fun SelectForUpdateStep<out Record>.fetchExecutions(
-  mapper: ObjectMapper,
-  stageReadSize: Int,
-  jooq: DSLContext
-) =
-  ExecutionMapper(mapper, stageReadSize).map(fetch().intoResultSet(), jooq)

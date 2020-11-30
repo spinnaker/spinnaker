@@ -16,15 +16,11 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import java.sql.ResultSet
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.name
 import org.slf4j.LoggerFactory
 
 /**
@@ -49,9 +45,6 @@ class ExecutionMapper(
       mapper.readValue<PipelineExecution>(rs.getString("body"))
         .also {
           execution ->
-
-          convertPipelineRefTrigger(execution, context)
-
           results.add(execution)
           execution.partition = rs.getString("partition")
 
@@ -102,32 +95,5 @@ class ExecutionMapper(
             execution = executions.getValue(executionId)
           }
       )
-  }
-
-  private fun convertPipelineRefTrigger(execution: PipelineExecution, context: DSLContext) {
-    val trigger = execution.trigger
-    if (trigger is PipelineRefTrigger) {
-      val parentExecution = context
-        .select(listOf(
-          field("id"),
-          field("body"),
-          field(name("partition"))
-        ))
-        .from(ExecutionType.PIPELINE.tableName)
-        .where(field("id").eq(trigger.parentExecutionId))
-        .fetchExecutions(mapper, 200, context)
-        .firstOrNull()
-
-      if (parentExecution == null) {
-        // If someone deletes the parent execution, we'll be unable to load the full, valid child pipeline. Rather than
-        // throw an exception, we'll continue to load the execution with [PipelineRefTrigger] and let downstream
-        // consumers throw exceptions if they need to. We don't want to throw here as it would break pipeline list
-        // operations, etc.
-        log.warn("Attempted to load parent execution for '${execution.id}', but it no longer exists: ${trigger.parentExecutionId}")
-        return
-      }
-
-      execution.trigger = trigger.toPipelineTrigger(parentExecution)
-    }
   }
 }

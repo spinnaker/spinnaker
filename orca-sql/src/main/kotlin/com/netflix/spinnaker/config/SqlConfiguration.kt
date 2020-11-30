@@ -25,9 +25,7 @@ import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryLi
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
-import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
@@ -140,8 +138,4 @@ class SqlConfiguration {
     clock = clock,
     retryProperties = properties.retries.transactions
   )
-
-  @Bean
-  fun pipelineRefTriggerDeserializer(): CustomTriggerDeserializerSupplier =
-    PipelineRefTriggerDeserializerSupplier()
 }

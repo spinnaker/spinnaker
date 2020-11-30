@@ -166,7 +166,7 @@ class TriggerDeserializer :
         looksLikeCustom() -> {
           // chooses the first custom deserializer to keep behavior consistent
           // with the rest of this conditional
-          customTriggerSuppliers.first { it.predicate.invoke(this) }.deserializer.invoke(this, parser)
+          customTriggerSuppliers.first { it.predicate.invoke(this) }.deserializer.invoke(this)
         }
         else -> DefaultTrigger(
           get("type")?.textValue() ?: "none",
@@ -211,4 +211,17 @@ class TriggerDeserializer :
   private fun JsonNode.looksLikeCustom() =
     customTriggerSuppliers.any { it.predicate.invoke(this) }
 
+  private inline fun <reified E> JsonNode.listValue(parser: JsonParser): MutableList<E> =
+    this.map { parser.codec.treeToValue(it, E::class.java) }.toMutableList()
+
+  private inline fun <reified V> JsonNode.mapValue(parser: JsonParser): MutableMap<String, V> {
+    val m = mutableMapOf<String, V>()
+    this.fields().asSequence().forEach { entry ->
+      m[entry.key] = parser.codec.treeToValue(entry.value, V::class.java)
+    }
+    return m
+  }
+
+  private inline fun <reified T> JsonNode.parseValue(parser: JsonParser): T =
+    parser.codec.treeToValue(this, T::class.java)
 }
