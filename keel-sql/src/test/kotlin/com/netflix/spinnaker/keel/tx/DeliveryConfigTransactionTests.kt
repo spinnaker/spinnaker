@@ -51,7 +51,11 @@ import strikt.assertions.isFalse
   ]
 )
 @DisableSpringScheduling
-internal class DeliveryConfigTransactionTests : JUnit5Minutests {
+internal class DeliveryConfigTransactionTests
+@Autowired constructor(
+  val repository: KeelRepository,
+  val jooq: DSLContext
+) : JUnit5Minutests {
 
   @SpykBean
   lateinit var artifactRepository: ArtifactRepository
@@ -61,12 +65,6 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
 
   @SpykBean
   lateinit var deliveryConfigRepository: DeliveryConfigRepository
-
-  @Autowired
-  lateinit var repository: KeelRepository
-
-  @Autowired
-  lateinit var jooq: DSLContext
 
   private fun KeelRepository.allResourceNames(): List<String> =
     mutableListOf<String>()

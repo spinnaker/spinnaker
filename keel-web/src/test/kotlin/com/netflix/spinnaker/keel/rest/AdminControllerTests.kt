@@ -14,6 +14,7 @@ import io.mockk.every
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -22,23 +23,19 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
-  webEnvironment = SpringBootTest.WebEnvironment.MOCK
+  webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class AdminControllerTests : JUnit5Minutests {
-
-  @Autowired
-  lateinit var mvc: MockMvc
+internal class AdminControllerTests
+@Autowired constructor(
+  val mvc: MockMvc,
+  val combinedRepository: KeelRepository,
+  val actuationPauser: ActuationPauser
+) : JUnit5Minutests {
 
   @MockkBean
   lateinit var adminService: AdminService
-
-  @Autowired
-  lateinit var combinedRepository: KeelRepository
-
-  @Autowired
-  lateinit var actuationPauser: ActuationPauser
 
   companion object {
     const val application1 = "fnord"

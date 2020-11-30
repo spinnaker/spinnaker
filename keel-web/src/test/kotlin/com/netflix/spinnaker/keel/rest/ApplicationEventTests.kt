@@ -23,13 +23,11 @@ import java.util.concurrent.TimeoutException
   webEnvironment = MOCK
 )
 @DisableSpringScheduling
-internal class ApplicationEventTests {
-
-  @Autowired
-  lateinit var publisher: ApplicationEventPublisher
-
-  @Autowired
-  lateinit var listener: ThreadCapturingEventListener
+internal class ApplicationEventTests
+@Autowired constructor(
+  val publisher: ApplicationEventPublisher,
+  val listener: ThreadCapturingEventListener
+) {
 
   @Test
   fun `events are dispatched on a different thread`() {

@@ -28,10 +28,8 @@ import java.util.concurrent.TimeUnit.SECONDS
   webEnvironment = MOCK
 )
 @DisableSpringScheduling
-internal class SchedulingResilienceTests {
-
-  @Autowired
-  lateinit var service: DummyRetrofitService
+internal class SchedulingResilienceTests
+@Autowired constructor(val service: DummyRetrofitService){
 
   @Test
   fun `retrofit call completes even if an interceptor throws an exception`() {

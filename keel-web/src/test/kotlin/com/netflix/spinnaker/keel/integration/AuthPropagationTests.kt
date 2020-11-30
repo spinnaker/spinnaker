@@ -40,15 +40,14 @@ import strikt.assertions.isNotNull
   webEnvironment = MOCK
 )
 @DisableSpringScheduling
-internal class AuthPropagationTests : JUnit5Minutests {
-
-  @Autowired
-  lateinit var cloudDriverService: CloudDriverService
+internal class AuthPropagationTests
+@Autowired constructor(val cloudDriverService: CloudDriverService) : JUnit5Minutests {
 
   @Configuration
   class MockFiat {
     val mockAccount = Account()
     val mockPermission = UserPermission()
+
     init {
       mockAccount.cloudProvider = "aws"
       mockAccount.name = "test"

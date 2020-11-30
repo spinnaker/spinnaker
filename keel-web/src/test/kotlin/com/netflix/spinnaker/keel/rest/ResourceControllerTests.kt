@@ -41,19 +41,17 @@ import strikt.assertions.isNotNull
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class ResourceControllerTests : JUnit5Minutests {
-  @Autowired
-  lateinit var mvc: MockMvc
+internal class ResourceControllerTests
+@Autowired constructor(
+  val mvc: MockMvc,
+  @Qualifier("jsonMapper") val jsonMapper: ObjectMapper
+) : JUnit5Minutests {
 
   @MockkBean
   lateinit var repository: KeelRepository
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
-
-  @Qualifier("jsonMapper")
-  @Autowired
-  lateinit var jsonMapper: ObjectMapper
 
   @MockkBean
   lateinit var adHocDiffer: AdHocDiffer

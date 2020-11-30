@@ -56,9 +56,8 @@ import io.mockk.coEvery as every
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class EventControllerTests : JUnit5Minutests {
-  @Autowired
-  lateinit var mvc: MockMvc
+internal class EventControllerTests
+@Autowired constructor(val mvc: MockMvc) : JUnit5Minutests {
 
   @MockkBean
   lateinit var resourceRepository: ResourceRepository

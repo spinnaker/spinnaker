@@ -19,9 +19,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class ErrorSimulationControllerTests {
-  @Autowired
-  lateinit var mvc: MockMvc
+internal class ErrorSimulationControllerTests
+@Autowired constructor(val mvc: MockMvc) {
 
   @Test
   fun `error endpoint returns a 5xx server error`() {

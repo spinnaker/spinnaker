@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
-import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -43,12 +42,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
 
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
@@ -56,21 +52,20 @@ import strikt.assertions.isNotNull
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class ApplicationControllerTests : JUnit5Minutests {
+internal class ApplicationControllerTests
+@Autowired constructor(
+  val mvc: MockMvc,
+  val jsonMapper: ObjectMapper
+) : JUnit5Minutests {
+
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
-
-  @Autowired
-  lateinit var mvc: MockMvc
 
   @MockkBean
   lateinit var applicationService: ApplicationService
 
   @MockkBean
   lateinit var actuationPauser: ActuationPauser
-
-  @Autowired
-  lateinit var jsonMapper: ObjectMapper
 
   companion object {
     const val application = "fnord"
@@ -100,12 +95,19 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         every { applicationService.getResourceSummariesFor(application) } returns emptyList()
         every { applicationService.getEnvironmentSummariesFor(application) } returns emptyList()
         every { applicationService.getArtifactSummariesFor(application) } returns emptyList()
-        every { applicationService.getArtifactSummariesFor(application, ofType<Int>()) } returns emptyList()
+        every {
+          applicationService.getArtifactSummariesFor(
+            application,
+            ofType<Int>()
+          )
+        } returns emptyList()
         every { applicationService.getDeliveryConfig(application) } returns deliveryConfig
         every { applicationService.getSummariesAllEntities(application) } returns
-          mapOf("environments" to emptyList<EnvironmentSummary>(),
-                "resources" to emptyList<ResourceSummary>(),
-                "artifacts" to emptyList<ArtifactSummary>())
+          mapOf(
+            "environments" to emptyList<EnvironmentSummary>(),
+            "resources" to emptyList<ResourceSummary>(),
+            "artifacts" to emptyList<ArtifactSummary>()
+          )
       }
 
       test("can get delivery config") {
@@ -151,8 +153,9 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         }
 
         test("can get multiple types of summaries by application") {
-          val request = get("/application/$application?entities=resources&entities=environments&entities=artifacts")
-            .accept(APPLICATION_JSON_VALUE)
+          val request =
+            get("/application/$application?entities=resources&entities=environments&entities=artifacts")
+              .accept(APPLICATION_JSON_VALUE)
           val result = mvc
             .perform(request)
             .andExpect(status().isOk)
@@ -198,7 +201,12 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             .andExpect(status().isOk)
             .andDo { println(it.response.contentAsString) }
             .andReturn()
-          verify { applicationService.getArtifactSummariesFor(application, DEFAULT_MAX_ARTIFACT_VERSIONS) }
+          verify {
+            applicationService.getArtifactSummariesFor(
+              application,
+              DEFAULT_MAX_ARTIFACT_VERSIONS
+            )
+          }
         }
 
         test("can limit the number of artifact summaries with query param") {
@@ -295,7 +303,12 @@ internal class ApplicationControllerTests : JUnit5Minutests {
               actuationPauser.applicationIsPaused(application)
             } returns false
 
-            every { applicationService.getArtifactSummariesFor(application, ofType<Int>()) } returns listOf(
+            every {
+              applicationService.getArtifactSummariesFor(
+                application,
+                ofType<Int>()
+              )
+            } returns listOf(
               ArtifactSummary(
                 name = "test",
                 type = DEBIAN,
@@ -329,9 +342,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
               .andDo { println(it.response.contentAsString) }
               .andReturn()
             val response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
-            val artifactSummaries = jsonMapper.convertValue<List<ArtifactSummary>>(response["artifacts"]!!)
+            val artifactSummaries =
+              jsonMapper.convertValue<List<ArtifactSummary>>(response["artifacts"]!!)
             expectThat(artifactSummaries.first().versions.first().git!!.commitInfo!!.message!!)
-              .isEqualTo("""
+              .isEqualTo(
+                """
                 A commit message with [a crazy Slack link](https://bananas.com)
                 And a second line with [another crazy link](http://abacaxi.com)
                 """.trimIndent()

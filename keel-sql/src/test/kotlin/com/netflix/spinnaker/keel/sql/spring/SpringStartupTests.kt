@@ -30,16 +30,12 @@ import strikt.assertions.isA
   ]
 )
 @DisableSpringScheduling
-internal class SpringStartupTests {
-
-  @Autowired
-  lateinit var artifactRepository: ArtifactRepository
-
-  @Autowired
-  lateinit var resourceRepository: ResourceRepository
-
-  @Autowired
-  lateinit var deliveryConfigRepository: DeliveryConfigRepository
+internal class SpringStartupTests
+@Autowired constructor(
+  val artifactRepository: ArtifactRepository,
+  val resourceRepository: ResourceRepository,
+  val deliveryConfigRepository: DeliveryConfigRepository
+) {
 
   @Test
   fun `uses SqlArtifactRepository`() {

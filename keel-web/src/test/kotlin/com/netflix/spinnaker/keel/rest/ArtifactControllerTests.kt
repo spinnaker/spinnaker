@@ -21,15 +21,14 @@ import org.springframework.test.web.servlet.MockMvc
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-internal class ArtifactControllerTests : JUnit5Minutests {
-  @Autowired
-  lateinit var mvc: MockMvc
+internal class ArtifactControllerTests
+@Autowired constructor(
+  val mvc: MockMvc,
+  val jsonMapper: ObjectMapper
+) : JUnit5Minutests {
 
   @MockkBean
   lateinit var repository: KeelRepository
-
-  @Autowired
-  lateinit var jsonMapper: ObjectMapper
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport

@@ -36,9 +36,8 @@ import strikt.api.expectThat
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-class ApiDocCompatibilityTests {
-  @Autowired
-  lateinit var generator: Generator
+class ApiDocCompatibilityTests
+@Autowired constructor(val generator: Generator) {
 
   val schemaFactory: JsonSchemaFactory = JsonSchemaFactory.getInstance(V201909)
   val api by lazy {

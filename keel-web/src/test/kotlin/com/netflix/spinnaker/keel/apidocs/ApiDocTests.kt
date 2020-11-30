@@ -65,13 +65,11 @@ import kotlin.reflect.KClass
 )
 @AutoConfigureMockMvc
 @DisableSpringScheduling
-class ApiDocTests : JUnit5Minutests {
-
-  @Autowired
-  lateinit var generator: Generator
-
-  @Autowired
-  lateinit var extensionRegistry: ExtensionRegistry
+class ApiDocTests
+  @Autowired constructor(
+    val generator: Generator,
+    val extensionRegistry: ExtensionRegistry
+  ): JUnit5Minutests {
 
   val resourceSpecTypes
     get() = extensionRegistry.extensionsOf<ResourceSpec>()
