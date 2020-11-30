@@ -36,6 +36,7 @@ public class BakeManifestContext {
   private final String namespace;
   private final Boolean rawOverrides;
   @Nullable private final String kustomizeFilePath;
+  @Nullable private final String helmChartFilePath;
   // There does not seem to be a way to auto-generate a constructor using our current version of
   // Lombok (1.16.20) that
   // Jackson can use to deserialize.
@@ -50,6 +51,7 @@ public class BakeManifestContext {
       @JsonProperty("namespace") String namespace,
       @Nullable @JsonProperty("inputArtifact") CreateBakeManifestTask.InputArtifact inputArtifact,
       @Nullable @JsonProperty("kustomizeFilePath") String kustomizeFilePath,
+      @Nullable @JsonProperty("helmChartFilePath") String helmChartFilePath,
       @JsonProperty("rawOverrides") Boolean rawOverrides) {
     this.inputArtifacts = Optional.ofNullable(inputArtifacts).orElse(new ArrayList<>());
     // Kustomize stage configs provide a single input artifact
@@ -63,6 +65,7 @@ public class BakeManifestContext {
     this.outputName = outputName;
     this.namespace = namespace;
     this.kustomizeFilePath = kustomizeFilePath;
+    this.helmChartFilePath = helmChartFilePath;
     this.rawOverrides = rawOverrides;
   }
 }
