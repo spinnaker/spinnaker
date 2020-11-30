@@ -634,6 +634,7 @@ public class StageExecutionImpl implements StageExecution, Serializable {
         (List<String>) exceptionDetails.getOrDefault("errors", new ArrayList<String>());
     exceptionDetails.putIfAbsent("errors", errors);
 
+    // Path: exception.details.errors
     errors.add(errorMessage);
 
     // This might be a no-op, but if there wasn't an exception object there, we should add it to the

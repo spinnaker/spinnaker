@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.pipeline.job.model.JobStatus
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -153,5 +154,33 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     true                     | ExecutionStatus.SUCCEEDED
     false                    | ExecutionStatus.TERMINAL
     null                     | ExecutionStatus.TERMINAL
+  }
+
+  @Unroll
+  def 'provides breadcrumb stage error message in failure states'() {
+    given:
+    def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
+
+    and:
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: jobState]
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    if (expectedErrorMessage) {
+      stage.context.exception.details.errors.contains(expectedErrorMessage)
+    } else {
+      stage.context.exception == null
+    }
+
+    where:
+    jobState                                        || expectedErrorMessage
+    MonitorJenkinsJobTask.JenkinsJobStatus.ABORTED  || "Job was aborted (see Jenkins)"
+    MonitorJenkinsJobTask.JenkinsJobStatus.FAILURE  || "Job failed (see Jenkins)"
+    MonitorJenkinsJobTask.JenkinsJobStatus.SUCCESS  || false
+    MonitorJenkinsJobTask.JenkinsJobStatus.UNSTABLE || "Job is unstable"
   }
 }

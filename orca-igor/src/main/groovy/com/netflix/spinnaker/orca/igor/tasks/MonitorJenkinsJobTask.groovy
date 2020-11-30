@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.google.common.base.Enums
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
@@ -42,13 +43,6 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
   @Autowired
   RetrySupport retrySupport
 
-  private static Map<String, ExecutionStatus> statusMap = [
-    'ABORTED' : ExecutionStatus.CANCELED,
-    'FAILURE' : ExecutionStatus.TERMINAL,
-    'SUCCESS' : ExecutionStatus.SUCCEEDED,
-    'UNSTABLE': ExecutionStatus.TERMINAL
-  ]
-
   @Override
   TaskResult execute(StageExecution stage) {
     String master = stage.context.master
@@ -70,15 +64,23 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
       outputs.buildInfo = build
 
-      if (statusMap.containsKey(result)) {
-        ExecutionStatus status = statusMap[result]
-        if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
-          status = ExecutionStatus.SUCCEEDED
-        }
-        return TaskResult.builder(status).context(outputs).outputs(outputs).build()
-      } else {
+      def jobStatus = Optional.ofNullable(result)
+          .map { Enums.getIfPresent(JenkinsJobStatus.class, it).orNull() }
+          .orElse(null)
+      if (jobStatus == null) {
         return TaskResult.builder(ExecutionStatus.RUNNING).context([buildInfo: build]).build()
       }
+
+      ExecutionStatus taskStatus = jobStatus.executionStatusEquivalent
+      if (jobStatus == JenkinsJobStatus.UNSTABLE && stage.context.markUnstableAsSuccessful) {
+        taskStatus = JenkinsJobStatus.SUCCESS.executionStatusEquivalent
+      }
+
+      if (jobStatus.errorBreadcrumb != null) {
+        stage.appendErrorMessage(jobStatus.errorBreadcrumb)
+      }
+
+      return TaskResult.builder(taskStatus).context(outputs).outputs(outputs).build()
     } catch (RetrofitError e) {
       if ([503, 500, 404].contains(e.response?.status)) {
         log.warn("Http ${e.response.status} received from `igor`, retrying...")
@@ -86,6 +88,31 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
       }
 
       throw e
+    }
+  }
+
+  /**
+   * Maps Jenkins job statuses to {@link ExecutionStatus}
+   */
+  static enum JenkinsJobStatus {
+    ABORTED(ExecutionStatus.CANCELED, "Job was aborted (see Jenkins)"),
+    FAILURE(ExecutionStatus.TERMINAL, "Job failed (see Jenkins)"),
+    SUCCESS(ExecutionStatus.SUCCEEDED, null),
+    UNSTABLE(ExecutionStatus.TERMINAL, "Job is unstable")
+
+    /**
+     * Orca's equivalent execution status value.
+     */
+    ExecutionStatus executionStatusEquivalent
+
+    /**
+     * An optional error message breadcrumb that is surfaced to users when the jenkins job fails.
+     */
+    String errorBreadcrumb
+
+    JenkinsJobStatus(ExecutionStatus executionStatusEquivalent, String errorBreadcrumb) {
+      this.executionStatusEquivalent = executionStatusEquivalent
+      this.errorBreadcrumb = errorBreadcrumb
     }
   }
 }
