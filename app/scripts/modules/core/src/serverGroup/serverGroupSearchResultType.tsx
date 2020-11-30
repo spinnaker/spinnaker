@@ -58,8 +58,7 @@ const makeServerGroupTuples = (sgToFetch: IServerGroupSearchResult[], fetched: I
 };
 
 const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> => {
-  const fetchPromise = REST()
-    .path('serverGroups')
+  const fetchPromise = REST('/serverGroups')
     .query({ ids: toFetch.map((sg) => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
     .get()
     .then((fetched: IServerGroup[]) => makeServerGroupTuples(toFetch, fetched));

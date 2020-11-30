@@ -16,8 +16,7 @@ import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
   public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {
-    return REST()
-      .path('tags')
+    return REST('/tags')
       .query({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
       .get()
       .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
@@ -147,8 +146,7 @@ export class EntityTagsReader {
     if (!entityId) {
       return $q.when([]);
     }
-    return REST()
-      .path('tags')
+    return REST('/tags')
       .query({
         entityType: entityType.toLowerCase(),
         entityId,

@@ -83,8 +83,7 @@ export class PipelineTemplateReader {
     executionId?: string,
     pipelineConfigId?: string,
   ): PromiseLike<IPipelineTemplate> {
-    return REST()
-      .path('pipelineTemplates', 'resolve')
+    return REST('/pipelineTemplates/resolve')
       .query({ source, executionId, pipelineConfigId })
       .get()
       .then((template: IPipelineTemplate) => {
@@ -107,7 +106,7 @@ export class PipelineTemplateReader {
   }
 
   public static getPipelineTemplatesByScope = (scope: string): PromiseLike<IPipelineTemplate[]> => {
-    return REST().path('pipelineTemplates').query({ scope }).get();
+    return REST('/pipelineTemplates').query({ scope }).get();
   };
 
   public static getPipelineTemplatesByScopes(scopes: string[]): PromiseLike<IPipelineTemplate[]> {
@@ -142,6 +141,6 @@ export class PipelineTemplateReader {
   }
 
   public static getV2PipelineTemplateList(): PromiseLike<IPipelineTemplateV2Collections> {
-    return REST().path('v2', 'pipelineTemplates', 'versions').get();
+    return REST('/v2/pipelineTemplates/versions').get();
   }
 }

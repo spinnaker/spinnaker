@@ -24,12 +24,12 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
   public static listApplications(): PromiseLike<IApplicationSummary[]> {
-    return REST().path('applications').useCache().get();
+    return REST('/applications').useCache().get();
   }
 
   public static getApplicationAttributes(name: string): PromiseLike<any> {
-    return REST()
-      .path('applications', name)
+    return REST('/applications')
+      .path(name)
       .query({ expand: false })
       .get()
       .then((fromServer: Application) => {
@@ -50,8 +50,8 @@ export class ApplicationReader {
   }
 
   public static getApplication(name: string, expand = true): PromiseLike<Application> {
-    return REST()
-      .path('applications', name)
+    return REST('/applications')
+      .path(name)
       .query({ expand: expand })
       .get()
       .then((fromServer: Application) => {

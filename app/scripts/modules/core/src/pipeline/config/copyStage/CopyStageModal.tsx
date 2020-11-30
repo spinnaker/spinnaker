@@ -45,8 +45,8 @@ export function CopyStageModal(props: ICopyStageModalProps) {
   function getStagesForApplication(applicationName: string): PromiseLike<ICopyStageCardProps[]> {
     const configType = forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
-    return REST()
-      .path('applications', applicationName, configType)
+    return REST('/applications')
+      .path(applicationName, configType)
       .get()
       .then((configs: Array<IPipeline | IStrategy>) => {
         const nestedStageWrappers = configs.map((config) => {

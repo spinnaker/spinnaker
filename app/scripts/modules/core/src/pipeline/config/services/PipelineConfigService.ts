@@ -20,8 +20,8 @@ export class PipelineConfigService {
   }
 
   public static getPipelinesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return REST()
-      .path('applications', applicationName, 'pipelineConfigs')
+    return REST('/applications')
+      .path(applicationName, 'pipelineConfigs')
       .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
@@ -30,8 +30,8 @@ export class PipelineConfigService {
   }
 
   public static getStrategiesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return REST()
-      .path('applications', applicationName, 'strategyConfigs')
+    return REST('/applications')
+      .path(applicationName, 'strategyConfigs')
       .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
@@ -77,7 +77,7 @@ export class PipelineConfigService {
     isStrategy = false,
   ): PromiseLike<void> {
     const type = isStrategy ? 'strategies' : 'pipelines';
-    return REST().path('actions', type, 'reorder').post({
+    return REST('/actions').path(type, 'reorder').post({
       application,
       idsToIndices,
     });
@@ -98,8 +98,8 @@ export class PipelineConfigService {
 
   public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
-    return REST()
-      .path('pipelines', 'v2', applicationName, encodeURIComponent(pipelineName))
+    return REST('/pipelines/v2')
+      .path(applicationName, encodeURIComponent(pipelineName))
       .post(body)
       .then((result: ITriggerPipelineResponse) => {
         return result.ref.split('/').pop();

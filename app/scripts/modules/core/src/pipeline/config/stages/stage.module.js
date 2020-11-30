@@ -342,8 +342,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     '$stateParams',
     function ($scope, $stateParams) {
       const restartStage = function () {
-        return REST()
-          .path('pipelines', $stateParams.executionId, 'stages', $scope.stage.id, 'restart')
+        return REST('/pipelines')
+          .path($stateParams.executionId, 'stages', $scope.stage.id, 'restart')
           .put({ skip: false })
           .then(function () {
             $scope.stage.isRestarting = true;

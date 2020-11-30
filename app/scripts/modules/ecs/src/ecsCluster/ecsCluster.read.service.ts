@@ -5,7 +5,7 @@ import { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EcsClusterReader {
   public listClusters(): PromiseLike<IEcsClusterDescriptor[]> {
-    return REST().path('ecs', 'ecsClusters').get();
+    return REST('/ecs/ecsClusters').get();
   }
 }
 

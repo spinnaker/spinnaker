@@ -36,7 +36,7 @@ export class BakeryReader {
   }
 
   private static getAllBaseOsOptions(): PromiseLike<IBaseOsOptions[]> {
-    return REST().path('bakery', 'options').useCache().get();
+    return REST('/bakery/options').useCache().get();
   }
 
   public static getBaseLabelOptions(): PromiseLike<string[]> {

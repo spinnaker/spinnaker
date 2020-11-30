@@ -11,10 +11,10 @@ export interface INetwork {
 
 export class NetworkReader {
   public static listNetworks(): PromiseLike<INetwork[]> {
-    return REST().path('networks').get();
+    return REST('/networks').get();
   }
 
   public static listNetworksByProvider(cloudProvider: string) {
-    return REST().path('networks', cloudProvider).get();
+    return REST('/networks').path(cloudProvider).get();
   }
 }

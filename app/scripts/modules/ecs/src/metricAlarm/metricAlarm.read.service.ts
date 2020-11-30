@@ -5,7 +5,7 @@ import { IMetricAlarmDescriptor } from './MetricAlarm';
 
 export class MetricAlarmReader {
   public listMetricAlarms(): PromiseLike<IMetricAlarmDescriptor[]> {
-    return REST().path('ecs', 'cloudMetrics', 'alarms').get();
+    return REST('/ecs/cloudMetrics/alarms').get();
   }
 }
 

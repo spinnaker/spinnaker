@@ -51,9 +51,9 @@ export class ExecutionService {
   ): PromiseLike<IExecution[]> {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
-      ? REST().path('executions').query({ limit, pipelineConfigIds, statuses }).get()
-      : REST()
-          .path('applications', applicationName, 'pipelines')
+      ? REST('/executions').query({ limit, pipelineConfigIds, statuses }).get()
+      : REST('/applications')
+          .path(applicationName, 'pipelines')
           .query({ limit, statuses: statusString, pipelineConfigIds, expand })
           .get();
 
@@ -96,16 +96,16 @@ export class ExecutionService {
   }
 
   public getExecution(executionId: string): PromiseLike<IExecution> {
-    return REST()
-      .path('pipelines', executionId)
+    return REST('/pipelines')
+      .path(executionId)
       .get()
       .then((execution: IExecution) => {
         const { application, name } = execution;
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
-          return REST()
-            .path('applications', application, 'pipelineConfigs', encodeURIComponent(name))
+          return REST('/applications')
+            .path(application, 'pipelineConfigs', encodeURIComponent(name))
             .get()
             .then((pipelineConfig: IPipeline) => {
               execution.pipelineConfig = pipelineConfig;
@@ -314,8 +314,8 @@ export class ExecutionService {
   }
 
   public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
-    return REST()
-      .path('projects', project, 'pipelines')
+    return REST('/projects')
+      .path(project, 'pipelines')
       .query({ limit })
       .get()
       .then((executions: IExecution[]) => {
@@ -506,8 +506,7 @@ export class ExecutionService {
     options: { limit?: number; statuses?: string; transform?: boolean; application?: Application } = {},
   ): PromiseLike<IExecution[]> {
     const { limit, statuses, transform, application } = options;
-    return REST()
-      .path('executions')
+    return REST('/executions')
       .query({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
       .get()
       .then((data: IExecution[]) => {

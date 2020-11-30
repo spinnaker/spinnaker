@@ -12,7 +12,7 @@ export enum BuildServiceType {
 
 export class IgorService {
   public static listMasters(buildType: BuildServiceType = null): PromiseLike<string[]> {
-    const allMasters: PromiseLike<string[]> = REST().path('v2', 'builds').query({ type: buildType }).get();
+    const allMasters: PromiseLike<string[]> = REST('/v2/builds').query({ type: buildType }).get();
     if (!allMasters) {
       return $q.reject('An error occurred when retrieving build masters');
     }
@@ -29,30 +29,30 @@ export class IgorService {
   }
 
   public static listJobsForMaster(master: string): PromiseLike<string[]> {
-    return REST().path('v2', 'builds', master, 'jobs').get();
+    return REST('/v2/builds').path(master, 'jobs').get();
   }
 
   public static listBuildsForJob(master: string, job: string): PromiseLike<IBuild[]> {
-    return REST().path('v2', 'builds', master, 'builds', job).get();
+    return REST('/v2/builds').path(master, 'builds', job).get();
   }
 
   public static getJobConfig(master: string, job: string): PromiseLike<IJobConfig> {
-    return REST().path('v2', 'builds', master, 'jobs', job).get();
+    return REST('/v2/builds').path(master, 'jobs', job).get();
   }
 
   public static getGcbAccounts(): PromiseLike<string[]> {
-    return REST().path('gcb', 'accounts').get();
+    return REST('/gcb/accounts').get();
   }
 
   public static getGcbTriggers(account: string): PromiseLike<IGcbTrigger[]> {
-    return REST().path('gcb', 'triggers', account).get();
+    return REST('/gcb/triggers').path(account).get();
   }
 
   public static getCodeBuildAccounts(): PromiseLike<string[]> {
-    return REST().path('codebuild', 'accounts').get();
+    return REST('/codebuild/accounts').get();
   }
 
   public static getCodeBuildProjects(account: string): PromiseLike<string[]> {
-    return REST().path('codebuild', 'projects', account).get();
+    return REST('/codebuild/projects').path(account).get();
   }
 }

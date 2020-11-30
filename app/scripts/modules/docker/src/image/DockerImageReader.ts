@@ -9,8 +9,8 @@ export interface IDockerImage extends IImage {
 
 export class DockerImageReader {
   public static getImage(imageName: string, region: string, credentials: string): PromiseLike<IDockerImage> {
-    return REST()
-      .path('images', credentials, region, imageName)
+    return REST('/images')
+      .path(credentials, region, imageName)
       .query({ provider: 'docker' })
       .get()
       .then((results: IDockerImage[]) => (results && results.length ? results[0] : null))
@@ -19,7 +19,7 @@ export class DockerImageReader {
 
   public static findImages(params: IFindImageParams): PromiseLike<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
-      () => REST().path('images', 'find').query(params).get(),
+      () => REST('/images/find').query(params).get(),
       (results: IDockerImage[]) => results.length > 0,
       10,
       1000,
@@ -30,7 +30,7 @@ export class DockerImageReader {
 
   public static findTags(params: IFindTagsParams): PromiseLike<string[]> {
     return RetryService.buildRetrySequence<string[]>(
-      () => REST().path('images', 'tags').query(params).get(),
+      () => REST('/images/tags').query(params).get(),
       (results: string[]) => results.length > 0,
       10,
       1000,

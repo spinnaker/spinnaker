@@ -8,13 +8,13 @@ export interface IAppNotifications {
 
 export class AppNotificationsService {
   public static getNotificationsForApplication(applicationName: string): PromiseLike<IAppNotifications> {
-    return REST().path('notifications', 'application', applicationName).get();
+    return REST('/notifications/application').path(applicationName).get();
   }
 
   public static saveNotificationsForApplication(
     applicationName: string,
     notifications: IAppNotifications,
   ): PromiseLike<void> {
-    return REST().path('notifications', 'application', applicationName).post(notifications);
+    return REST('/notifications/application').path(applicationName).post(notifications);
   }
 }

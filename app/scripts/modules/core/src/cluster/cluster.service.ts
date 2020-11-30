@@ -35,7 +35,7 @@ export class ClusterService {
   public loadServerGroups(application: Application): PromiseLike<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
-      let serverGroupLoader = REST().path('applications', application.name, 'serverGroups');
+      let serverGroupLoader = REST('/applications').path(application.name, 'serverGroups');
       dataSource.fetchOnDemand = clusters.length > SETTINGS.onDemandClusterThreshold;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
@@ -223,8 +223,8 @@ export class ClusterService {
   }
 
   private getClusters(application: string): PromiseLike<IClusterSummary[]> {
-    return REST()
-      .path('applications', application, 'clusters')
+    return REST('/applications')
+      .path(application, 'clusters')
       .get()
       .then((clustersMap: { [account: string]: string[] }) => {
         const clusters: IClusterSummary[] = [];

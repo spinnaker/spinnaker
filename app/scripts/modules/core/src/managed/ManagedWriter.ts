@@ -32,7 +32,7 @@ export class ManagedWriter {
     version,
     comment,
   }: IArtifactVersionRequest): PromiseLike<void> {
-    return REST().path('managed', 'application', application, 'pin').post({
+    return REST('/managed/application').path(application, 'pin').post({
       targetEnvironment: environment,
       reference,
       version,
@@ -45,7 +45,7 @@ export class ManagedWriter {
     environment,
     reference,
   }: IUnpinArtifactVersionRequest): PromiseLike<void> {
-    return REST().path('managed', 'application', application, 'pin', environment).query({ reference }).delete();
+    return REST('/managed/application').path(application, 'pin', environment).query({ reference }).delete();
   }
 
   public static markArtifactVersionAsBad({
@@ -55,7 +55,7 @@ export class ManagedWriter {
     version,
     comment,
   }: IArtifactVersionRequest): PromiseLike<void> {
-    return REST().path('managed', 'application', application, 'veto').post({
+    return REST('/managed/application').path(application, 'veto').post({
       targetEnvironment: environment,
       reference,
       version,
@@ -71,7 +71,7 @@ export class ManagedWriter {
     version,
     status,
   }: IUpdateConstraintStatusRequest): PromiseLike<void> {
-    return REST().path('managed', 'application', application, 'environment', environment, 'constraint').post({
+    return REST('/managed/application').path(application, 'environment', environment, 'constraint').post({
       type,
       artifactReference: reference,
       artifactVersion: version,
@@ -80,18 +80,18 @@ export class ManagedWriter {
   }
 
   public static pauseApplicationManagement(applicationName: string): PromiseLike<void> {
-    return REST().path('managed', 'application', applicationName, 'pause').post();
+    return REST('/managed/application').path(applicationName, 'pause').post();
   }
 
   public static resumeApplicationManagement(applicationName: string): PromiseLike<void> {
-    return REST().path('managed', 'application', applicationName, 'pause').delete();
+    return REST('/managed/application').path(applicationName, 'pause').delete();
   }
 
   public static pauseResourceManagement(resourceId: string): PromiseLike<void> {
-    return REST().path('managed', 'resources', resourceId, 'pause').post();
+    return REST('/managed/resources').path(resourceId, 'pause').post();
   }
 
   public static resumeResourceManagement(resourceId: string): PromiseLike<void> {
-    return REST().path('managed', 'resources', resourceId, 'pause').delete();
+    return REST('/managed/resources').path(resourceId, 'pause').delete();
   }
 }

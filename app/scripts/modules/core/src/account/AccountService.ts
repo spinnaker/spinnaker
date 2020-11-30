@@ -65,7 +65,7 @@ export class AccountService {
 
   public static initialize(): void {
     this.accounts$ = Observable.defer(() => {
-      const promise = REST().path('credentials').useCache().query({ expand: true }).get();
+      const promise = REST('/credentials').useCache().query({ expand: true }).get();
       return Observable.fromPromise<IAccountDetails[]>(promise);
     })
       .publishReplay(1)
@@ -96,7 +96,7 @@ export class AccountService {
   }
 
   public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
-    return REST().path('artifacts', 'credentials').useCache().get();
+    return REST('/artifacts/credentials').useCache().get();
   }
 
   public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {

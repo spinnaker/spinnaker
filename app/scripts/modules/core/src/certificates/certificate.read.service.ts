@@ -10,10 +10,10 @@ export interface ICertificate {
 
 export class CertificateReader {
   public static listCertificates(): PromiseLike<ICertificate[]> {
-    return REST().path('certificates').get();
+    return REST('/certificates').get();
   }
 
   public static listCertificatesByProvider(cloudProvider: string): PromiseLike<ICertificate[]> {
-    return REST().path('certificates', cloudProvider).get();
+    return REST('/certificates').path(cloudProvider).get();
   }
 }

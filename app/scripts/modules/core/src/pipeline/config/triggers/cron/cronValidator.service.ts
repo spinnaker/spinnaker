@@ -8,6 +8,6 @@ export class CronValidatorService {
       segments.pop();
       expression = segments.join(' ');
     }
-    return REST().path('cron', 'validate').query({ expression: expression }).get();
+    return REST('/cron/validate').query({ expression: expression }).get();
   }
 }

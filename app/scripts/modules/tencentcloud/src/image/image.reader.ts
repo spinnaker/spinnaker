@@ -36,16 +36,15 @@ export class TencentcloudImageReader {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
-    return REST()
-      .path('images', 'find')
+    return REST('/images/find')
       .query({ ...params, provider: 'tencentcloud' })
       .get()
       .catch(() => [] as ITencentcloudImage[]);
   }
 
   public getImage(name: string, region: string, credentials: string): PromiseLike<ITencentcloudImage> {
-    return REST()
-      .path('images', credentials, region, name)
+    return REST('/images')
+      .path(credentials, region, name)
       .query({ provider: 'tencentcloud' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))

@@ -16,6 +16,6 @@ export interface IAuthenticateOidcActionConfig {
 
 export class OidcConfigReader {
   public static getOidcConfigsByApp(app: string): PromiseLike<IAuthenticateOidcActionConfig[]> {
-    return REST().path('oidcConfigs').query({ app }).get();
+    return REST('/oidcConfigs').query({ app }).get();
   }
 }

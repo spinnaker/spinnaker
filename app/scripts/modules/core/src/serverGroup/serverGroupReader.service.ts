@@ -5,9 +5,8 @@ import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
   public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {
-    return REST()
+    return REST('/applications')
       .path(
-        'applications',
         serverGroup.app,
         'clusters',
         serverGroup.account,
@@ -33,8 +32,8 @@ export class ServerGroupReader {
     region: string,
     serverGroupName: string,
   ): PromiseLike<IServerGroup> {
-    return REST()
-      .path('applications', application, 'serverGroups', account, region, serverGroupName)
+    return REST('/applications')
+      .path(application, 'serverGroups', account, region, serverGroupName)
       .query({ includeDetails: 'false' })
       .get();
   }

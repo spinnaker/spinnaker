@@ -12,8 +12,7 @@ export interface ISlackChannel {
 
 export class SlackReader {
   public static getChannels(): PromiseLike<ISlackChannel[]> {
-    return REST()
-      .path('slack', 'channels')
+    return REST('/slack/channels')
       .get()
       .catch(() => [] as ISlackChannel[]);
   }

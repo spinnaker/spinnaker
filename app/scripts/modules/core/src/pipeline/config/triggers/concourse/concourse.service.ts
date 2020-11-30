@@ -2,18 +2,18 @@ import { REST } from 'core/api/ApiService';
 
 export class ConcourseService {
   public static listTeamsForMaster(master: string): PromiseLike<string[]> {
-    return REST().path('concourse', master, 'teams').get();
+    return REST('/concourse').path(master, 'teams').get();
   }
 
   public static listPipelinesForTeam(master: string, team: string): PromiseLike<string[]> {
-    return REST().path('concourse', master, 'teams', team, 'pipelines').get();
+    return REST('/concourse').path(master, 'teams', team, 'pipelines').get();
   }
 
   public static listJobsForPipeline(master: string, team: string, pipeline: string): PromiseLike<string[]> {
-    return REST().path('concourse', master, 'teams', team, 'pipelines', pipeline, 'jobs').get();
+    return REST('/concourse').path(master, 'teams', team, 'pipelines', pipeline, 'jobs').get();
   }
 
   public static listResourcesForPipeline(master: string, team: string, pipeline: string): PromiseLike<string[]> {
-    return REST().path('concourse', master, 'teams', team, 'pipelines', pipeline, 'resources').get();
+    return REST('/concourse').path(master, 'teams', team, 'pipelines', pipeline, 'resources').get();
   }
 }

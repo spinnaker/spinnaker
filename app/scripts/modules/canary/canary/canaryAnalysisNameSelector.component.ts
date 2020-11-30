@@ -8,8 +8,7 @@ class CanaryAnalysisNameSelectorController implements IController {
 
   public $onInit(): void {
     this.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
-    REST()
-      .path('canaryConfig', 'names')
+    REST('/canaryConfig/names')
       .get()
       .then((results: string[]) => (this.nameList = results.sort()))
       .catch(() => {

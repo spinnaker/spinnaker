@@ -23,8 +23,8 @@ export class ExecutionInformationService {
       return this.calledExecutions[executionId];
     }
 
-    return REST()
-      .path('pipelines', executionId)
+    return REST('/pipelines')
+      .path(executionId)
       .get()
       .then((execution: IExecution) => {
         this.calledExecutions[executionId] = execution;
@@ -58,8 +58,8 @@ export class ExecutionInformationService {
       Promise.resolve(pipelineConfig);
     }
 
-    return REST()
-      .path('applications', application, 'pipelineConfigs')
+    return REST('/applications')
+      .path(application, 'pipelineConfigs')
       .get()
       .then((pipelineConfigs: IPipeline[]) => {
         // store for later

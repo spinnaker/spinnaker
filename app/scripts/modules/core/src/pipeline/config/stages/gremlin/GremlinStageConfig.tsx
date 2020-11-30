@@ -43,8 +43,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchCommands = (apiKey: string) => {
     return Observable.fromPromise(
-      REST()
-        .path('integrations', 'gremlin', 'templates', 'command')
+      REST('/integrations/gremlin/templates/command')
         .post({
           apiKey,
         })
@@ -62,8 +61,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchTargets = (apiKey: string) => {
     return Observable.fromPromise(
-      REST()
-        .path('integrations', 'gremlin', 'templates', 'target')
+      REST('/integrations/gremlin/templates/target')
         .post({
           apiKey,
         })

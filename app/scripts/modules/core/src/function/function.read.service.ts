@@ -21,8 +21,8 @@ export class FunctionReader {
   public constructor(private functionTransformer: IFunctionTransformer) {}
 
   public loadFunctions(applicationName: string): PromiseLike<IFunctionSourceData[]> {
-    return REST()
-      .path('applications', applicationName, 'functions')
+    return REST('/applications')
+      .path(applicationName, 'functions')
       .get()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
@@ -36,8 +36,7 @@ export class FunctionReader {
     region: string,
     name: string,
   ): PromiseLike<IFunctionSourceData[]> {
-    return REST()
-      .path('functions')
+    return REST('/functions')
       .query({ provider: cloudProvider, functionName: name, region: region, account: account })
       .get()
       .then((functions: IFunctionSourceData[]) => {
@@ -47,7 +46,7 @@ export class FunctionReader {
   }
 
   public listFunctions(cloudProvider: string): PromiseLike<IFunctionByAccount[]> {
-    return REST().path('functions').query({ provider: cloudProvider }).get();
+    return REST('/functions').query({ provider: cloudProvider }).get();
   }
 
   private normalizeFunction(functionDef: IFunctionSourceData): IFunctionSourceData {

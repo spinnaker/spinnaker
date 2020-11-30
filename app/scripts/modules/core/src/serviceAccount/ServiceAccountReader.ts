@@ -8,7 +8,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return REST().path('auth', 'user', 'serviceAccounts').get();
+      return REST('/auth/user/serviceAccounts').get();
     }
   }
 
@@ -16,7 +16,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return REST().path('auth', 'user', 'serviceAccounts').query({ application: application }).get();
+      return REST('/auth/user/serviceAccounts').query({ application: application }).get();
     }
   }
 }

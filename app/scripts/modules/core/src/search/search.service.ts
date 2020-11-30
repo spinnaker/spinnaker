@@ -49,7 +49,7 @@ export class SearchService {
 
     const params = { ...searchParams, ...defaultParams };
 
-    let requestBuilder = REST().path('search').query(params);
+    let requestBuilder = REST('/search').query(params);
 
     if (cache) {
       requestBuilder = requestBuilder.useCache(cache);

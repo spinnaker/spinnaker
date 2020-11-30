@@ -8,8 +8,7 @@ export const AZURE_IMAGE_IMAGE_READER = 'spinnaker.azure.image.reader';
 export const name = AZURE_IMAGE_IMAGE_READER; // for backwards compatibility
 module(AZURE_IMAGE_IMAGE_READER, []).factory('azureImageReader', function () {
   function findImages(params) {
-    return REST()
-      .path('images', 'find')
+    return REST('/images/find')
       .query(params)
       .get()
       .then(
@@ -23,8 +22,8 @@ module(AZURE_IMAGE_IMAGE_READER, []).factory('azureImageReader', function () {
   }
 
   function getImage(amiName, region, credentials) {
-    return REST()
-      .path('images', credentials, region, amiName)
+    return REST('/images')
+      .path(credentials, region, amiName)
       .query({ provider: 'azure' })
       .get()
       .then(
