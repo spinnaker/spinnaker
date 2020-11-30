@@ -208,6 +208,9 @@ public class PrometheusMetricsService implements MetricsService {
 
       return promQlExpr;
     } else {
+      if (StringUtils.isEmpty(queryConfig.getMetricName())) {
+        throw new IllegalArgumentException("Metric Name is required when query type is Default.");
+      }
       StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
 
       queryBuilder =
