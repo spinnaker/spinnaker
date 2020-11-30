@@ -17,10 +17,14 @@ import {
   PrometheusQueryType,
 } from './domain/IPrometheusCanaryMetricSetQueryConfig';
 import { queryTypeSelector } from 'kayenta/selectors/filterTemplatesSelectors';
+import { ICanaryMetricValidationErrors } from '../../edit/editMetricValidation';
+import { editingMetricSelector } from '../../selectors';
+import { createSelector } from 'reselect';
 
 interface IPrometheusMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;
   queryType: PrometheusQueryType;
+  validationErrors: ICanaryMetricValidationErrors;
 }
 
 interface IPrometheusMetricConfigurerDispatchProps {
@@ -48,6 +52,7 @@ function PrometheusMetricConfigurer({
   updateGroupBy,
   updateFilterQueryType,
   updatePrometheusMetricQueryField,
+  validationErrors,
 }: IPrometheusMetricConfigurerStateProps & IPrometheusMetricConfigurerDispatchProps) {
   return (
     <>
@@ -77,7 +82,7 @@ function PrometheusMetricConfigurer({
               disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
-          <FormRow label="Metric Name" inputOnly={true}>
+          <FormRow label="Metric Name" inputOnly={true} error={get(validationErrors, 'metricName.message', null)}>
             <PrometheusMetricTypeSelector
               value={get(editingMetric, 'query.metricName', '')}
               onChange={(option: Option<string>) => updatePrometheusMetricQueryField('metricName', option)}
@@ -99,6 +104,7 @@ function mapStateToProps(state: ICanaryState): IPrometheusMetricConfigurerStateP
   return {
     editingMetric: state.selectedConfig.editingMetric,
     queryType: queryTypeSelector(state),
+    validationErrors: prometheusMetricValidationSelector(state),
   };
 }
 
@@ -115,6 +121,37 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IPromethe
       dispatch(Creators.editInlineTemplate({ value: '' })); // clear inline template
     },
   };
+}
+
+const prometheusMetricValidationSelector = createSelector(editingMetricSelector, validateMetric);
+
+/**
+ * Validates Prometheus specific fields on the edit metric modal
+ */
+function validateMetric(editingMetric: ICanaryMetricConfig): ICanaryMetricValidationErrors {
+  const errors: ICanaryMetricValidationErrors = {
+    metricName: null,
+  };
+  return [validatePrometheusMetricName].reduce(
+    (reducedErrors, validator) => validator(reducedErrors, editingMetric),
+    errors,
+  );
+}
+
+/**
+ * Validates that the user has supplied a Prometheus metric.
+ */
+function validatePrometheusMetricName(
+  errors: ICanaryMetricValidationErrors,
+  editingMetric: ICanaryMetricConfig,
+): ICanaryMetricValidationErrors {
+  const nextErrors = { ...errors };
+  const metricName = get(editingMetric, 'query.metricName', '');
+  if (!metricName) {
+    nextErrors.metricName = { message: 'The Prometheus metric is required.' };
+    return nextErrors;
+  }
+  return nextErrors;
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PrometheusMetricConfigurer);
