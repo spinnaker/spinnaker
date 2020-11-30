@@ -86,12 +86,15 @@ class QueueProcessor(
       try {
         executor.execute {
           try {
+            QueueContextHolder.set(message)
             handler.invoke(message)
             ack.invoke()
           } catch (e: Throwable) {
             // Something very bad is happening
             log.error("Unhandled throwable from $message", e)
             publisher.publishEvent(HandlerThrewError(message))
+          } finally {
+            QueueContextHolder.clear()
           }
         }
       } catch (e: RejectedExecutionException) {
