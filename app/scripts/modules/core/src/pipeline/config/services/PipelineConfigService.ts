@@ -68,9 +68,7 @@ export class PipelineConfigService {
       pipeline = PipelineTemplateV2Service.filterInheritedConfig(pipeline) as IPipeline;
     }
 
-    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
-      .data(pipeline)
-      .post();
+    return API.path(pipeline.strategy ? 'strategies' : 'pipelines').post(pipeline);
   }
 
   public static reorderPipelines(
@@ -79,12 +77,10 @@ export class PipelineConfigService {
     isStrategy = false,
   ): PromiseLike<void> {
     const type = isStrategy ? 'strategies' : 'pipelines';
-    return API.path('actions', type, 'reorder')
-      .data({
-        application,
-        idsToIndices,
-      })
-      .post();
+    return API.path('actions', type, 'reorder').post({
+      application,
+      idsToIndices,
+    });
   }
 
   public static renamePipeline(
@@ -97,8 +93,7 @@ export class PipelineConfigService {
     pipeline.name = newName.trim();
     return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
       .path(pipeline.id)
-      .data(pipeline)
-      .put();
+      .put(pipeline);
   }
 
   public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {
@@ -107,8 +102,7 @@ export class PipelineConfigService {
       .path('v2')
       .path(applicationName)
       .path(encodeURIComponent(pipelineName))
-      .data(body)
-      .post()
+      .post(body)
       .then((result: ITriggerPipelineResponse) => {
         return result.ref.split('/').pop();
       });

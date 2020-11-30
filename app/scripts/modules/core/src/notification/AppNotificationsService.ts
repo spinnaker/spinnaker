@@ -15,6 +15,6 @@ export class AppNotificationsService {
     applicationName: string,
     notifications: IAppNotifications,
   ): PromiseLike<void> {
-    return API.path('notifications').path('application', applicationName).data(notifications).post();
+    return API.path('notifications').path('application', applicationName).post(notifications);
   }
 }

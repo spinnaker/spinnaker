@@ -346,8 +346,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
           .path($stateParams.executionId)
           .path('stages', $scope.stage.id)
           .path('restart')
-          .data({ skip: false })
-          .put()
+          .put({ skip: false })
           .then(function () {
             $scope.stage.isRestarting = true;
           });
