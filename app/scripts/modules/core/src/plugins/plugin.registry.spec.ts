@@ -1,6 +1,6 @@
 import { IStageTypeConfig } from 'core/domain';
 import { IDeckPlugin } from './deck.plugin';
-import { API } from '../api';
+import { RequestBuilder } from '../api';
 import { IPluginMetaData, PluginRegistry } from './plugin.registry';
 import { Registry } from 'core/registry';
 import { mock } from 'angular';
@@ -42,8 +42,7 @@ describe('PluginRegistry', () => {
   );
 
   it('loadPluginManifestFromGate() should fetch from gate /plugins/deck/plugin-manifest.json', async () => {
-    const spy = jasmine.createSpy('get', () => Promise.resolve([])).and.callThrough();
-    spyOn(API as any, 'getFn').and.callFake(() => spy);
+    const spy = spyOn(RequestBuilder.defaultBackend, 'get').and.callFake(() => Promise.resolve([]));
     await pluginRegistry.loadPluginManifestFromGate();
     expect(spy).toHaveBeenCalled();
   });
