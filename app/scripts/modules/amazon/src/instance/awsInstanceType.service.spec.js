@@ -162,6 +162,9 @@ describe('Service: InstanceType', function () {
         { type: 't2.nano', cat: 'micro' },
         { type: 't2.micro', cat: 'micro' },
         { type: 't2.small', cat: 'micro' },
+        { type: 't3.nano', cat: 'micro' },
+        { type: 't3.micro', cat: 'micro' },
+        { type: 't3.small', cat: 'micro' },
         { type: 'm3.small', cat: 'custom' },
         { type: 'a1.medium', cat: 'custom' },
       ];
@@ -175,8 +178,11 @@ describe('Service: InstanceType', function () {
     it('returns false for instance types NOT in category', function () {
       const input = [
         { type: 't2.nano', cat: 'general' },
+        { type: 't3.nano', cat: 'general' },
         { type: 't2.micro', cat: 'general' },
+        { type: 't3.micro', cat: 'general' },
         { type: 't2.medium', cat: 'micro' },
+        { type: 't3.medium', cat: 'micro' },
       ];
       let service = this.awsInstanceTypeService;
 
@@ -189,9 +195,11 @@ describe('Service: InstanceType', function () {
       const input = [
         { type: 'm5.large', cat: 'memory' },
         { type: 't2.small', cat: 'memory' },
+        { type: 't3.something', cat: 'memory' },
         { type: 'r5.xlarge', cat: 'micro' },
         { type: 'm5.large', cat: 'invalid' },
         { type: 't2.invalid', cat: 'memory' },
+        { type: 't3.invalid', cat: 'memory' },
         { type: 'invalid', cat: 'micro' },
         { type: 'invalid', cat: 'invalid' },
       ];
