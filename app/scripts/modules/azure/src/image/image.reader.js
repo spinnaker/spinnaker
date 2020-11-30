@@ -9,7 +9,8 @@ export const name = AZURE_IMAGE_IMAGE_READER; // for backwards compatibility
 module(AZURE_IMAGE_IMAGE_READER, []).factory('azureImageReader', function () {
   function findImages(params) {
     return API.path('images', 'find')
-      .get(params)
+      .query(params)
+      .get()
       .then(
         function (results) {
           return results;

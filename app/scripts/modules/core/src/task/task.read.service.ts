@@ -11,7 +11,8 @@ export class TaskReader {
   public static getTasks(applicationName: string, statuses: string[] = []): PromiseLike<ITask[]> {
     return API.path('applications', applicationName)
       .path('tasks')
-      .get({ statuses: statuses.join(',') })
+      .query({ statuses: statuses.join(',') })
+      .get()
       .then((tasks: ITask[]) => {
         tasks.forEach((task) => this.setTaskProperties(task));
         return tasks.filter((task) => !task.getValueFor('dryRun'));

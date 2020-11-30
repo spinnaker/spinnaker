@@ -51,10 +51,11 @@ export class ExecutionService {
   ): PromiseLike<IExecution[]> {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
-      ? API.path('executions').get({ limit, pipelineConfigIds, statuses })
+      ? API.path('executions').query({ limit, pipelineConfigIds, statuses }).get()
       : API.path('applications', applicationName)
           .path('pipelines')
-          .get({ limit, statuses: statusString, pipelineConfigIds, expand });
+          .query({ limit, statuses: statusString, pipelineConfigIds, expand })
+          .get();
 
     return call.then((data: IExecution[]) => {
       if (data) {
@@ -313,7 +314,8 @@ export class ExecutionService {
   public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
     return API.path('projects', project)
       .path('pipelines')
-      .get({ limit })
+      .query({ limit })
+      .get()
       .then((executions: IExecution[]) => {
         if (!executions || !executions.length) {
           return [];
@@ -503,7 +505,8 @@ export class ExecutionService {
   ): PromiseLike<IExecution[]> {
     const { limit, statuses, transform, application } = options;
     return API.path('executions')
-      .get({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
+      .query({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
+      .get()
       .then((data: IExecution[]) => {
         if (data) {
           if (transform && application) {
