@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.PatchStageInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.PauseInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.ResumeInterlinkEvent
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
@@ -375,7 +376,7 @@ class SqlExecutionRepository(
     withPool(poolName) {
       val select = jooq.selectExecutions(
         type,
-        fields = selectFields() + field("status"),
+        fields = selectExecutionFields() + field("status"),
         conditions = {
           if (partition.isNullOrEmpty()) {
             it.statusIn(criteria.statuses)
@@ -751,6 +752,7 @@ class SqlExecutionRepository(
   private fun storeExecutionInternal(ctx: DSLContext, execution: PipelineExecution, storeStages: Boolean = false) {
     validateHandledPartitionOrThrow(execution)
 
+    val pipelineTrigger = mutatePipelineTrigger(execution)
     val stages = execution.stages.toMutableList().toList()
     execution.stages.clear()
 
@@ -830,8 +832,37 @@ class SqlExecutionRepository(
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
     } finally {
+      // Restore original object state.
       execution.stages.addAll(stages)
+      pipelineTrigger?.let {
+        execution.trigger = it
+      }
     }
+  }
+
+  /**
+   * Converts a [PipelineTrigger] into a [PipelineRefTrigger] for storage.
+   *
+   * Returns the original [PipelineTrigger], if one exists.
+   */
+  private fun mutatePipelineTrigger(execution: PipelineExecution): PipelineTrigger? {
+    val pipelineTrigger = execution.trigger
+    if (pipelineTrigger !is PipelineTrigger) {
+      return null
+    }
+    execution.trigger = PipelineRefTrigger(
+      correlationId = pipelineTrigger.correlationId,
+      user = pipelineTrigger.user,
+      parameters = pipelineTrigger.parameters,
+      artifacts = pipelineTrigger.artifacts,
+      notifications = pipelineTrigger.notifications,
+      isRebake = pipelineTrigger.isRebake,
+      isDryRun = pipelineTrigger.isDryRun,
+      isStrategy = pipelineTrigger.isStrategy,
+      parentExecutionId = pipelineTrigger.parentExecution.id,
+      parentPipelineStageId = pipelineTrigger.parentPipelineStageId
+    )
+    return pipelineTrigger
   }
 
   private fun storeStageInternal(ctx: DSLContext, stage: StageExecution, executionId: String? = null) {
@@ -1008,7 +1039,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectFields(),
+    fields: List<Field<Any>> = selectExecutionFields(),
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
   ) =
@@ -1019,7 +1050,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectFields(),
+    fields: List<Field<Any>> = selectExecutionFields(),
     usingIndex: String,
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
@@ -1029,15 +1060,12 @@ class SqlExecutionRepository(
       .let { conditions(it) }
       .let { seek(it) }
 
-  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields()) =
+  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectExecutionFields()) =
     select(fields)
       .from(type.tableName)
 
-  private fun selectFields() =
-    listOf(field("id"), field("body"), field(name("partition")))
-
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
-    ExecutionMapper(mapper, stageReadSize).map(fetch().intoResultSet(), jooq)
+    fetchExecutions(mapper, stageReadSize, jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()

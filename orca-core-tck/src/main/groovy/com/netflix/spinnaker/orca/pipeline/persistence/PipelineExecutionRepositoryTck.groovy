@@ -575,8 +575,12 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
 
   def "parses the parent execution of a pipeline trigger"() {
     given:
+    def parent = pipeline()
+    repository().store(parent)
+
+    and:
     def execution = pipeline {
-      trigger = new PipelineTrigger(pipeline())
+      trigger = new PipelineTrigger(parent)
     }
     repository().store(execution)
 

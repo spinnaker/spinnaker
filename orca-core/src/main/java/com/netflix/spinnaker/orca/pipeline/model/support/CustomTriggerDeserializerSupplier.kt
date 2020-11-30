@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.model.support
 
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.JsonNode
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 
@@ -29,5 +30,5 @@ import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
  */
 interface CustomTriggerDeserializerSupplier {
   val predicate: (node: JsonNode) -> Boolean
-  val deserializer: (node: JsonNode) -> Trigger
+  val deserializer: (node: JsonNode, parser: JsonParser) -> Trigger
 }
