@@ -516,7 +516,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       const constantActions = [
         { label: 'Reboot', triggerAction: this.rebootInstance },
         { label: 'Terminate', triggerAction: this.terminateInstance },
-        { label: 'Terminate and Shrink Server Gorup', triggerAction: this.terminateInstanceAndShrinkServerGroup },
+        { label: 'Terminate and Shrink Server Group', triggerAction: this.terminateInstanceAndShrinkServerGroup },
       ];
       const conditionalActions = [];
 

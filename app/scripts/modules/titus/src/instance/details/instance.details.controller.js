@@ -312,7 +312,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     const constructTaskActions = () => {
       const constantActions = [
         { label: 'Terminate', triggerAction: this.terminateInstance },
-        { label: 'Terminate and Shrink Server Gorup', triggerAction: this.terminateInstanceAndShrinkServerGroup },
+        { label: 'Terminate and Shrink Server Group', triggerAction: this.terminateInstanceAndShrinkServerGroup },
       ];
       const conditionalActions = [];
 
