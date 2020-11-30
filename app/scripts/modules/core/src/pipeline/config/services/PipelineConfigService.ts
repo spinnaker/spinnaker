@@ -41,13 +41,12 @@ export class PipelineConfigService {
 
   public static getHistory(id: string, isStrategy: boolean, count = 20): PromiseLike<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
-    return REST().path(endpoint, id, 'history').query({ limit: count }).get();
+    return REST(endpoint).path(id, 'history').query({ limit: count }).get();
   }
 
   public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): PromiseLike<void> {
-    return REST()
-      .path(pipeline.strategy ? 'strategies' : 'pipelines', applicationName, encodeURIComponent(pipelineName.trim()))
-      .delete();
+    const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
+    return REST(endpoint).path(applicationName, encodeURIComponent(pipelineName.trim())).delete();
   }
 
   public static savePipeline(toSave: IPipeline): PromiseLike<void> {
@@ -66,9 +65,8 @@ export class PipelineConfigService {
       pipeline = PipelineTemplateV2Service.filterInheritedConfig(pipeline) as IPipeline;
     }
 
-    return REST()
-      .path(pipeline.strategy ? 'strategies' : 'pipelines')
-      .post(pipeline);
+    const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
+    return REST(endpoint).post(pipeline);
   }
 
   public static reorderPipelines(
@@ -91,9 +89,8 @@ export class PipelineConfigService {
   ): PromiseLike<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName.trim();
-    return REST()
-      .path(pipeline.strategy ? 'strategies' : 'pipelines', pipeline.id)
-      .put(pipeline);
+    const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
+    return REST(endpoint).path(pipeline.id).put(pipeline);
   }
 
   public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {

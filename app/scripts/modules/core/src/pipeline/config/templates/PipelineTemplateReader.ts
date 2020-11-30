@@ -96,13 +96,10 @@ export class PipelineTemplateReader {
     config: IPipelineTemplateConfig | IPipelineTemplateConfigV2,
     executionId?: string,
   ): PromiseLike<IPipeline> {
-    const urls = PipelineTemplateV2Service.isV2PipelineConfig(config)
-      ? ['v2', 'pipelineTemplates', 'plan']
-      : ['pipelines', 'start'];
-
-    return REST()
-      .path(...urls)
-      .post({ ...config, plan: true, executionId });
+    const endpoint = PipelineTemplateV2Service.isV2PipelineConfig(config)
+      ? '/v2/pipelineTemplates/plan'
+      : '/pipelines/start';
+    return REST(endpoint).post({ ...config, plan: true, executionId });
   }
 
   public static getPipelineTemplatesByScope = (scope: string): PromiseLike<IPipelineTemplate[]> => {
