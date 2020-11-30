@@ -99,7 +99,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
     return com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, []),
         "namespace")
   }
 

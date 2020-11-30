@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATIO
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryListener
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.interlink.events.CancelInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
@@ -89,7 +90,8 @@ class SqlExecutionRepository(
   private val batchReadSize: Int = 10,
   private val stageReadSize: Int = 200,
   private val poolName: String = "default",
-  private val interlink: Interlink? = null
+  private val interlink: Interlink? = null,
+  private val executionRepositoryListeners: Collection<ExecutionRepositoryListener> = emptyList()
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -832,6 +834,8 @@ class SqlExecutionRepository(
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
     } finally {
+      withListener { onUpsert(execution) }
+      
       // Restore original object state.
       execution.stages.addAll(stages)
       pipelineTrigger?.let {
@@ -865,7 +869,12 @@ class SqlExecutionRepository(
     return pipelineTrigger
   }
 
-  private fun storeStageInternal(ctx: DSLContext, stage: StageExecution, executionId: String? = null) {
+  private fun storeStageInternal(
+    ctx: DSLContext,
+    stage: StageExecution,
+    executionId: String? = null,
+    notifyListener: Boolean = false
+  ) {
     val stageTable = stage.execution.type.stagesTableName
     val table = stage.execution.type.tableName
     val body = mapper.writeValueAsString(stage)
@@ -890,6 +899,12 @@ class SqlExecutionRepository(
     )
 
     upsert(ctx, stageTable, insertPairs, updatePairs, stage.id)
+
+    // This method is called from [storeInternal] as well. We don't want to notify multiple times for the same
+    // overall persist operation.
+    if (notifyListener) {
+      withListener { onUpsert(stage.execution) }
+    }
   }
 
   private fun storeCorrelationIdInternal(ctx: DSLContext, execution: PipelineExecution) {
@@ -1109,6 +1124,16 @@ class SqlExecutionRepository(
 
   private fun validateHandledPartitionOrThrow(execution: PipelineExecution): Boolean =
     isForeign(execution, true)
+
+  private fun withListener(callback: ExecutionRepositoryListener.() -> Unit) {
+    executionRepositoryListeners.forEach {
+      try {
+        callback(it)
+      } catch (e: Exception) {
+        log.warn("Listener '${it.javaClass.simpleName}' encountered an error", e)
+      }
+    }
+  }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
 }

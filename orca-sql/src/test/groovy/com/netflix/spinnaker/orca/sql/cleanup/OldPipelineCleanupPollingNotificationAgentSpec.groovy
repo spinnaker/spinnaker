@@ -78,7 +78,7 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
 
   def setupSpec() {
     currentDatabase = getDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [])
   }
 
   def cleanup() {
