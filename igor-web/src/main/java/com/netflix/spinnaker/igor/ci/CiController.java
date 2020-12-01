@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.ci;
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,7 +51,7 @@ public class CiController {
   }
 
   @GetMapping("/builds/{buildId}/output")
-  public String getBuildOutput(@PathVariable(value = "buildId") String buildId) {
+  public Map<String, Object> getBuildOutput(@PathVariable(value = "buildId") String buildId) {
     return getCiService().getBuildOutput(buildId);
   }
 
