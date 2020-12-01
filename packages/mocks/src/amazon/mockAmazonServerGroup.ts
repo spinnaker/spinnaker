@@ -1,5 +1,6 @@
 import { IAmazonServerGroup, IAmazonAsg, ISuspendedProcess, IAmazonLaunchTemplate } from '@spinnaker/amazon';
 import { mockLaunchTemplate } from './mockAmazonLaunchTemplate';
+import { mockInstanceCounts } from './../mockInstanceCounts';
 
 export const mockAmazonAsg: IAmazonAsg = {
   minSize: 2,
@@ -10,6 +11,10 @@ export const mockAmazonAsg: IAmazonAsg = {
   vpczoneIdentifier: '',
   enabledMetrics: [],
   suspendedProcesses: [],
+  defaultCooldown: 300,
+  healthCheckType: 'EC2',
+  healthCheckGracePeriod: 0,
+  terminationPolicies: ['Default'],
 };
 
 export const createMockAmazonAsg = (
@@ -46,6 +51,7 @@ export const createMockAmazonServerGroupWithLc = (
   type: 'aws',
   vpcId: 'vpc-1234abcd',
   vpcName: 'test-vpc',
+  instanceCounts: mockInstanceCounts,
 
   image: 'test-image',
   targetGroups: [],
@@ -71,6 +77,7 @@ export const createMockAmazonServerGroupWithLt = (lt?: IAmazonLaunchTemplate): I
   type: 'aws',
   vpcId: 'vpc-1234abcd',
   vpcName: 'test-vpc',
+  instanceCounts: mockInstanceCounts,
 
   image: 'test-image',
   targetGroups: [],
