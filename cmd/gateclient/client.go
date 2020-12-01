@@ -244,53 +244,56 @@ func InitializeHTTPClient(auth *auth.Config) (*http.Client, error) {
 		Transport: http.DefaultTransport.(*http.Transport).Clone(),
 	}
 
-	if auth != nil && auth.Enabled && auth.X509 != nil {
-		X509 := auth.X509
-		client.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: auth.IgnoreCertErrors,
-		}
-
-		if !X509.IsValid() {
-			// Misconfigured.
-			return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
-		}
-
-		if X509.CertPath != "" && X509.KeyPath != "" {
-			certPath, err := util.ExpandHomeDir(X509.CertPath)
-			if err != nil {
-				return nil, err
-			}
-			keyPath, err := util.ExpandHomeDir(X509.KeyPath)
-			if err != nil {
-				return nil, err
-			}
-
-			cert, err := tls.LoadX509KeyPair(certPath, keyPath)
-			if err != nil {
-				return nil, err
-			}
-
-			clientCA, err := ioutil.ReadFile(certPath)
-			if err != nil {
-				return nil, err
-			}
-
-			return initializeX509Config(client, clientCA, cert), nil
-		} else if X509.Cert != "" && X509.Key != "" {
-			certBytes := []byte(X509.Cert)
-			keyBytes := []byte(X509.Key)
-			cert, err := tls.X509KeyPair(certBytes, keyBytes)
-			if err != nil {
-				return nil, err
-			}
-
-			return initializeX509Config(client, certBytes, cert), nil
-		} else {
-			// Misconfigured.
-			return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
-		}
+	if auth == nil || !auth.Enabled || auth.X509 == nil {
+		return &client, nil
 	}
-	return &client, nil
+
+	X509 := auth.X509
+	client.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: auth.IgnoreCertErrors,
+	}
+
+	if !X509.IsValid() {
+		// Misconfigured.
+		return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
+	}
+
+	if X509.CertPath != "" && X509.KeyPath != "" {
+		certPath, err := util.ExpandHomeDir(X509.CertPath)
+		if err != nil {
+			return nil, err
+		}
+		keyPath, err := util.ExpandHomeDir(X509.KeyPath)
+		if err != nil {
+			return nil, err
+		}
+
+		cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+		if err != nil {
+			return nil, err
+		}
+
+		clientCA, err := ioutil.ReadFile(certPath)
+		if err != nil {
+			return nil, err
+		}
+
+		return initializeX509Config(client, clientCA, cert), nil
+	}
+
+	if X509.Cert != "" && X509.Key != "" {
+		certBytes := []byte(X509.Cert)
+		keyBytes := []byte(X509.Key)
+		cert, err := tls.X509KeyPair(certBytes, keyBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		return initializeX509Config(client, certBytes, cert), nil
+	}
+
+	// Misconfigured.
+	return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
 }
 
 // Authenticate is helper function to attempt to authenticate with OAuth2,

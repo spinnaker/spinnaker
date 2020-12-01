@@ -87,24 +87,26 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	pipelineName := pipelineJson["name"].(string)
 
 	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
-	if queryResp.StatusCode == http.StatusOK {
+	switch queryResp.StatusCode {
+	case http.StatusOK:
 		// pipeline found, let's use Spinnaker's known Pipeline ID, otherwise we'll get one created for us
 		if len(foundPipeline) > 0 {
 			pipelineJson["id"] = foundPipeline["id"].(string)
 		}
-	} else if queryResp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		// pipeline doesn't exists, let's create a new one
-	} else {
+	default:
 		b, _ := ioutil.ReadAll(queryResp.Body)
 		return fmt.Errorf("unhandled response %d: %s", queryResp.StatusCode, b)
 	}
 
 	// TODO: support option passing in and remove nil in below call
 	opt := &gate.PipelineControllerApiSavePipelineUsingPOSTOpts{}
-	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson, opt)
-	if saveErr != nil {
-		return saveErr
-	} else if saveResp.StatusCode != http.StatusOK {
+	saveResp, err := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson, opt)
+	if err != nil {
+		return err
+	}
+	if saveResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
 	}
 

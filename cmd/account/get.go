@@ -61,9 +61,12 @@ func getAccount(cmd *cobra.Command, options *getOptions, args []string) error {
 
 	account, resp, err := options.GateClient.CredentialsControllerApi.GetAccountUsingGET(options.GateClient.Context, accountName, &gate.CredentialsControllerApiGetAccountUsingGETOpts{})
 	if resp != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		switch resp.StatusCode {
+		case http.StatusOK:
+			// pass
+		case http.StatusNotFound:
 			return fmt.Errorf("Account '%s' not found\n", accountName)
-		} else if resp.StatusCode != http.StatusOK {
+		default:
 			return fmt.Errorf("Encountered an error getting account, status code: %d\n", resp.StatusCode)
 		}
 	}

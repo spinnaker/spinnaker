@@ -86,11 +86,12 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 
 	// TODO: support option passing in and remove nil in below call
 	opt := &gate.PipelineControllerApiSavePipelineUsingPOSTOpts{}
-	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, foundPipeline, opt)
+	saveResp, err := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, foundPipeline, opt)
+	if err != nil {
+		return err
+	}
 
-	if saveErr != nil {
-		return saveErr
-	} else if saveResp.StatusCode != http.StatusOK {
+	if saveResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
 	}
 

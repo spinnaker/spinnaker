@@ -67,9 +67,12 @@ func getApplication(cmd *cobra.Command, options *getOptions, args []string) erro
 
 	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationUsingGETOpts{Expand: optional.NewBool(options.expand)})
 	if resp != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		switch resp.StatusCode {
+		case http.StatusOK:
+			// pass
+		case http.StatusNotFound:
 			return fmt.Errorf("Application '%s' not found\n", applicationName)
-		} else if resp.StatusCode != http.StatusOK {
+		default:
 			return fmt.Errorf("Encountered an error getting application, status code: %d\n", resp.StatusCode)
 		}
 	}

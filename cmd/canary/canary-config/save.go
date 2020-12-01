@@ -74,13 +74,14 @@ func saveCanaryConfig(cmd *cobra.Command, options *saveOptions) error {
 
 	var saveResp *http.Response
 	var saveErr error
-	if resp.StatusCode == http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusOK:
 		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
 			options.GateClient.Context, templateJson, templateId, &gate.V2CanaryConfigControllerApiUpdateCanaryConfigUsingPUTOpts{})
-	} else if resp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
 			options.GateClient.Context, templateJson, &gate.V2CanaryConfigControllerApiCreateCanaryConfigUsingPOSTOpts{})
-	} else {
+	default:
 		if queryErr != nil {
 			return queryErr
 		}

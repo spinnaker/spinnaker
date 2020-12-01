@@ -186,7 +186,7 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 	complete := canaryResult.(map[string]interface{})["complete"].(bool)
 
 	retries := 0
-	for retries < 10 && complete == false && canaryResultErr == nil {
+	for retries < 10 && !complete && canaryResultErr == nil {
 		canaryResult, canaryResultResp, canaryResultErr = options.GateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
 		complete = canaryResult.(map[string]interface{})["complete"].(bool)
 		time.Sleep(retrySleepCycle)
@@ -195,7 +195,8 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 
 	if canaryResultErr != nil {
 		return canaryResultErr
-	} else if complete == false {
+	}
+	if !complete {
 		return fmt.Errorf(
 			"Canary execution %s incomplete after 60 seconds, aborting", canaryExecutionId)
 	}

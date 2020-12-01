@@ -91,21 +91,23 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	var saveResp *http.Response
 	var saveRet map[string]interface{}
 	var saveErr error
-	if resp.StatusCode == http.StatusOK {
+
+	switch resp.StatusCode {
+	case http.StatusOK:
 		opt := &gate.V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts{}
 		if options.tag != "" {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
 		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, opt)
-	} else if resp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		opt := &gate.V2PipelineTemplatesControllerApiCreateUsingPOST1Opts{}
 		if options.tag != "" {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
 		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, opt)
-	} else {
+	default:
 		if queryErr != nil {
 			return queryErr
 		}
