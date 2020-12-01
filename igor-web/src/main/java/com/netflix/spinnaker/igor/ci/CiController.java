@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +47,11 @@ public class CiController {
       @RequestParam(value = "commitId", required = false) String commitId,
       @RequestParam(value = "completionStatus", required = false) String completionStatus) {
     return getCiService().getBuilds(projectKey, repoSlug, buildNumber, commitId, completionStatus);
+  }
+
+  @GetMapping("/builds/{buildId}/output")
+  public String getBuildOutput(@PathVariable(value = "buildId") String buildId) {
+    return getCiService().getBuildOutput(buildId);
   }
 
   private CiBuildService getCiService() {

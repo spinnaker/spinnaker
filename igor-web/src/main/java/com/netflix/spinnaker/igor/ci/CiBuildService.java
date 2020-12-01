@@ -43,4 +43,13 @@ public interface CiBuildService {
       String buildNumber,
       String commitId,
       String completionStatus);
+
+  /**
+   * Get the build log by providing the build id. The data returned will be used in the CI view, to
+   * present the build's log.
+   *
+   * @param buildId
+   * @return a string represent the build log
+   */
+  String getBuildOutput(String buildId);
 }
