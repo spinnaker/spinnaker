@@ -1,8 +1,4 @@
 shifts:
-- startDate: Mon 09 Nov 2020
-  user: plumpy@google.com
-- startDate: Mon 16 Nov 2020
-  user: robzienert
 - startDate: Mon 30 Nov 2020
   user: cfieber
 - startDate: Mon 07 Dec 2020
@@ -14,5 +10,9 @@ shifts:
 - startDate: Mon 28 Dec 2020
   user: jonsie
 - startDate: Mon 04 Jan 2021
-  stopDate: Sun 10 Jan 2021
   user: mneterval@google.com
+- startDate: Mon 11 Jan 2021
+  user: plumpy@google.com
+- startDate: Mon 18 Jan 2021
+  stopDate: Sun 24 Jan 2021
+  user: robzienert
