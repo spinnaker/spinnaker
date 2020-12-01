@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.DescribeTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.DescribeTaskDefinitionResult;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsRequest;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsResult;
-import com.amazonaws.services.ecs.model.TaskDefinition;
+import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
 import spock.lang.Subject;
@@ -58,10 +56,24 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     taskDefinition.setTaskDefinitionArn(TASK_DEFINITION_ARN_1);
     taskDefinition.setContainerDefinitions(Collections.emptyList());
 
-    when(ecs.listTaskDefinitions(any(ListTaskDefinitionsRequest.class)))
-        .thenReturn(new ListTaskDefinitionsResult().withTaskDefinitionArns(TASK_DEFINITION_ARN_1));
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+
+    DefaultCacheData serviceCache =
+        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
+
     when(ecs.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
         .thenReturn(new DescribeTaskDefinitionResult().withTaskDefinition(taskDefinition));
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(Collections.singletonList("test-service"));
+    when(providerCache.getAll(anyString(), any(Set.class)))
+        .thenReturn(Collections.singletonList(serviceCache));
 
     // When
     CacheResult cacheResult = agent.loadData(providerCache);
@@ -73,18 +85,20 @@ public class TaskDefinitionCacheTest extends CommonCachingAgent {
     // Then
     Collection<CacheData> cacheData =
         cacheResult.getCacheResults().get(TASK_DEFINITIONS.toString());
-    assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
-    assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
+    assertNotNull("Expected CacheData to be returned but null is returned", cacheData);
+    assertEquals("Expected 1 CacheData but returned " + cacheData.size(), 1, cacheData.size());
     String retrievedKey = cacheData.iterator().next().getId();
-    assertTrue(
+    assertEquals(
         "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
-        retrievedKey.equals(key));
+        retrievedKey,
+        key);
 
-    Assert.assertTrue(
+    Assert.assertEquals(
         "Expected the task definition to be "
             + taskDefinition
             + " but got "
             + retrievedTaskDefinition,
-        taskDefinition.equals(retrievedTaskDefinition));
+        taskDefinition,
+        retrievedTaskDefinition);
   }
 }

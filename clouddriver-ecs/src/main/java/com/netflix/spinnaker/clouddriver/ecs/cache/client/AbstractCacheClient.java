@@ -24,8 +24,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class AbstractCacheClient<T> {
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final String keyNamespace;
   protected final Cache cacheView;
@@ -89,6 +92,7 @@ abstract class AbstractCacheClient<T> {
    * @return
    */
   private Collection<CacheData> fetchFromCache(String account, String region) {
+    log.debug("fetching all for account '{}' and region '{}'", account, region);
     String accountFilter = account != null ? account + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     String regionFilter = region != null ? region + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     Set<String> keys = new HashSet<>();

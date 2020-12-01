@@ -16,26 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.ecs.model.DescribeTaskDefinitionRequest;
 import com.amazonaws.services.ecs.model.DescribeTaskDefinitionResult;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsRequest;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsResult;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.junit.Test;
 import spock.lang.Subject;
 
@@ -50,10 +46,21 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   @Test
   public void shouldGetListOfTaskDefinitions() {
     // Given
-    ListTaskDefinitionsResult listTaskDefinitionsResult =
-        new ListTaskDefinitionsResult().withTaskDefinitionArns(TASK_DEFINITION_ARN_1);
-    when(ecs.listTaskDefinitions(any(ListTaskDefinitionsRequest.class)))
-        .thenReturn(listTaskDefinitionsResult);
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+
+    DefaultCacheData serviceCache =
+        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(Collections.singletonList("test-service"));
+    when(providerCache.getAll(anyString(), any(Set.class)))
+        .thenReturn(Collections.singletonList(serviceCache));
 
     DescribeTaskDefinitionResult describeTaskDefinitionResult =
         new DescribeTaskDefinitionResult()
@@ -65,16 +72,66 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
     List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
 
     // Then
-    assertTrue(
+    assertEquals(
         "Expected the list to contain 1 ECS task definition, but got " + returnedTaskDefs.size(),
-        returnedTaskDefs.size() == 1);
+        1,
+        returnedTaskDefs.size());
     for (TaskDefinition taskDef : returnedTaskDefs) {
-      assertTrue(
-          "Expected the task definition to be in  "
-              + taskDef
-              + " list but it was not. The task definition is: "
-              + taskDef,
-          returnedTaskDefs.contains(taskDef));
+      assertEquals(
+          "Expected the task definition ARN to be  "
+              + TASK_DEFINITION_ARN_1
+              + " but it was: "
+              + taskDef.getTaskDefinitionArn(),
+          taskDef.getTaskDefinitionArn(),
+          TASK_DEFINITION_ARN_1);
+    }
+  }
+
+  @Test
+  public void shouldRetainCachedTaskDefinitions() {
+    // Given
+    Map<String, Object> serviceAttr = new HashMap<>();
+    serviceAttr.put("taskDefinition", TASK_DEFINITION_ARN_1);
+    serviceAttr.put("desiredCount", 1);
+    serviceAttr.put("serviceName", SERVICE_NAME_1);
+    serviceAttr.put("maximumPercent", 200);
+    serviceAttr.put("minimumHealthyPercent", 50);
+    serviceAttr.put("createdAt", 8976543L);
+
+    DefaultCacheData serviceCache =
+        new DefaultCacheData("test-service", serviceAttr, Collections.emptyMap());
+    when(providerCache.filterIdentifiers(
+            SERVICES.toString(), "ecs;services;test-account;us-west-2;*"))
+        .thenReturn(Collections.singletonList("test-service"));
+    when(providerCache.getAll(anyString(), any(Set.class)))
+        .thenReturn(Collections.singletonList(serviceCache));
+
+    Map<String, Object> taskDefAttr = new HashMap<>();
+    taskDefAttr.put("taskDefinitionArn", TASK_DEFINITION_ARN_1);
+
+    DefaultCacheData taskDefCache =
+        new DefaultCacheData(TASK_DEFINITION_ARN_1, taskDefAttr, Collections.emptyMap());
+    when(providerCache.get(
+            TASK_DEFINITIONS.toString(),
+            "ecs;taskDefinitions;test-account;us-west-2;" + TASK_DEFINITION_ARN_1))
+        .thenReturn(taskDefCache);
+
+    // When
+    List<TaskDefinition> returnedTaskDefs = agent.getItems(ecs, providerCache);
+
+    // Then
+    assertEquals(
+        "Expected the list to contain 1 ECS task definition, but got " + returnedTaskDefs.size(),
+        1,
+        returnedTaskDefs.size());
+    for (TaskDefinition taskDef : returnedTaskDefs) {
+      assertEquals(
+          "Expected the task definition ARN to be  "
+              + TASK_DEFINITION_ARN_1
+              + " but it was: "
+              + taskDef.getTaskDefinitionArn(),
+          taskDef.getTaskDefinitionArn(),
+          TASK_DEFINITION_ARN_1);
     }
   }
 

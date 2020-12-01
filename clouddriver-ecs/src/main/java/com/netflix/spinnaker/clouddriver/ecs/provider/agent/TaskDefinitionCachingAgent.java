@@ -22,8 +22,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DE
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.DescribeTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsRequest;
-import com.amazonaws.services.ecs.model.ListTaskDefinitionsResult;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -34,17 +32,10 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,71 +81,55 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
 
   @Override
   protected List<TaskDefinition> getItems(AmazonECS ecs, ProviderCache providerCache) {
-    List<TaskDefinition> taskDefinitionList = new LinkedList<>();
-    Set<String> cachedArns =
-        providerCache.getIdentifiers(TASK_DEFINITIONS.toString()).stream()
-            .filter(id -> keyAccountRegionFilter(TASK_DEFINITIONS.toString(), id))
-            .map(
-                id -> {
-                  Map<String, String> keyParts = Keys.parse(id);
-                  return keyParts.get("taskDefinitionArn");
-                })
-            .collect(Collectors.toSet());
+    // get all ECS services in region for account
+    ServiceCacheClient serviceCacheClient = new ServiceCacheClient(providerCache, objectMapper);
+    Collection<Service> services = serviceCacheClient.getAll(accountName, region);
+    log.debug("Found {} ECS services for which to cache task definitions", services.size());
 
-    String nextToken = null;
-    do {
-      ListTaskDefinitionsRequest listTasksRequest = new ListTaskDefinitionsRequest();
-      if (nextToken != null) {
-        listTasksRequest.setNextToken(nextToken);
-      }
-      ListTaskDefinitionsResult listTaskDefinitionsResult =
-          ecs.listTaskDefinitions(listTasksRequest);
-      List<String> taskDefinitionArns = listTaskDefinitionsResult.getTaskDefinitionArns();
+    Set<String> taskDefArns = new HashSet<>();
 
-      if (taskDefinitionArns.size() == 0) {
-        continue;
-      }
+    for (Service service : services) {
+      taskDefArns.add(service.getTaskDefinition());
+    }
 
-      Set<String> newTaskDefArns = new HashSet<>(taskDefinitionArns);
-      newTaskDefArns.removeAll(cachedArns);
+    List<TaskDefinition> taskDefinitions = new ArrayList<>();
 
-      Set<String> existingTaskDefArns = new HashSet<>(taskDefinitionArns);
-      existingTaskDefArns.removeAll(newTaskDefArns);
+    int newTaskDefs = 0;
 
-      if (!existingTaskDefArns.isEmpty()) {
-        // TaskDefinitions are immutable, there's no reason to make a describe call on existing
-        // ones.
-        taskDefinitionList.addAll(retrieveFromCache(existingTaskDefArns, providerCache));
-      }
+    for (String arn : taskDefArns) {
 
-      for (String taskDefinitionArn : newTaskDefArns) {
-        TaskDefinition taskDefinition =
-            ecs.describeTaskDefinition(
-                    new DescribeTaskDefinitionRequest().withTaskDefinition(taskDefinitionArn))
+      // TaskDefinitions are immutable, there's no reason to
+      // make a describe call on existing ones.
+      TaskDefinition cacheEntry = retrieveFromCache(arn, providerCache);
+
+      if (cacheEntry != null) {
+        taskDefinitions.add(cacheEntry);
+      } else {
+        TaskDefinition taskDef =
+            ecs.describeTaskDefinition(new DescribeTaskDefinitionRequest().withTaskDefinition(arn))
                 .getTaskDefinition();
-        taskDefinitionList.add(taskDefinition);
-      }
-
-      nextToken = listTaskDefinitionsResult.getNextToken();
-    } while (nextToken != null && nextToken.length() != 0);
-    return taskDefinitionList;
-  }
-
-  private Set<TaskDefinition> retrieveFromCache(
-      Set<String> taskDefArns, ProviderCache providerCache) {
-    TaskDefinitionCacheClient taskDefinitionCacheClient =
-        new TaskDefinitionCacheClient(providerCache, objectMapper);
-    Set<TaskDefinition> taskDefs = new HashSet<>();
-
-    for (String taskDefArn : taskDefArns) {
-      String key = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
-      TaskDefinition taskDefinition = taskDefinitionCacheClient.get(key);
-      if (taskDefinition != null) {
-        taskDefs.add(taskDefinition);
+        if (taskDef != null) {
+          taskDefinitions.add(taskDef);
+          newTaskDefs++;
+        }
       }
     }
 
-    return taskDefs;
+    log.info(
+        "Described {} new task definitions ({} already cached)",
+        newTaskDefs,
+        taskDefinitions.size() - newTaskDefs);
+
+    return taskDefinitions;
+  }
+
+  private TaskDefinition retrieveFromCache(String taskDefArn, ProviderCache providerCache) {
+    TaskDefinitionCacheClient taskDefinitionCacheClient =
+        new TaskDefinitionCacheClient(providerCache, objectMapper);
+
+    String key = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
+
+    return taskDefinitionCacheClient.get(key);
   }
 
   @Override
