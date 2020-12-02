@@ -64,8 +64,8 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
                         .step(1L)
                         .build()))
             .thresholds(CanaryClassifierThresholdsConfig.builder().marginal(50D).pass(75D).build())
-            .lifetimeDurationMins(3L)
-            .analysisIntervalMins(1L)
+            .lifetimeDurationMins(5L)
+            .analysisIntervalMins(2L)
             .build();
 
     request.setExecutionRequest(executionRequest);

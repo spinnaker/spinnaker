@@ -41,7 +41,7 @@ import org.junit.Test;
 @Slf4j
 public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest {
 
-  public static final int CANARY_WINDOW_IN_MINUTES = 1;
+  public static final int CANARY_WINDOW_IN_MINUTES = 5;
 
   @BeforeClass
   public static void beforeClass() {

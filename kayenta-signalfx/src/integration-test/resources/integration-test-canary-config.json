@@ -26,18 +26,7 @@
     {
       "name": "Bad Request Rate for /v1/some-endpoint",
       "query": {
-        "metricName": "kayenta.integration-test.request.count",
-        "queryPairs": [
-          {
-            "key": "uri",
-            "value": "/v1/some-endpoint"
-          },
-          {
-            "key": "status_code",
-            "value": "4*"
-          }
-        ],
-        "aggregationMethod": "sum",
+        "customInlineTemplate": "data('kayenta.integration-test.request.count', filter=filter('uri', '/v1/some-endpoint') and filter('status_code', '4*') and filter('canary-scope', '${scope}') and filter('location', '${location}')).mean(by=['location', 'canary-scope']).publish()",
         "serviceType": "signalfx",
         "type": "signalfx"
       },
