@@ -112,14 +112,15 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
 
     try (Closeable ignored = () -> FileUtils.deleteDirectory(stagingPath.toFile())) {
       log.info("Cloning git/repo {} into {}", repoReference, stagingPath.toString());
-      Git localRepository = clone(artifact, stagingPath, remoteRef);
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      log.info("Creating archive for git/repo {}", repoReference);
-      archiveToOutputStream(localRepository, outputStream, remoteRef, subPath);
+      try (Git localRepository = clone(artifact, stagingPath, remoteRef)) {
+        log.info("Creating archive for git/repo {}", repoReference);
+        archiveToOutputStream(localRepository, outputStream, remoteRef, subPath);
+      } catch (GitAPIException e) {
+        throw new IOException(
+            "Failed to clone or archive git/repo " + repoReference + ": " + e.getMessage());
+      }
       return new ByteArrayInputStream(outputStream.toByteArray());
-    } catch (GitAPIException e) {
-      throw new IOException(
-          "Failed to clone or archive git/repo " + repoReference + ": " + e.getMessage());
     }
   }
 
