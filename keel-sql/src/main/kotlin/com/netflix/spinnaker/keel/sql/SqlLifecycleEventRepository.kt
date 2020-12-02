@@ -31,6 +31,7 @@ class SqlLifecycleEventRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun saveEvent(event: LifecycleEvent) {
+    val timestamp = event.timestamp?.toTimestamp() ?: clock.timestamp()
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(LIFECYCLE_EVENT)
         .set(LIFECYCLE_EVENT.UID, ULID().nextULID(clock.millis()))
@@ -40,7 +41,7 @@ class SqlLifecycleEventRepository(
         .set(LIFECYCLE_EVENT.TYPE, event.type.name)
         .set(LIFECYCLE_EVENT.ID, event.id)
         .set(LIFECYCLE_EVENT.STATUS, event.status.name)
-        .set(LIFECYCLE_EVENT.TIMESTAMP, clock.timestamp())
+        .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
         .set(LIFECYCLE_EVENT.JSON, objectMapper.writeValueAsString(event))
         .execute()
     }

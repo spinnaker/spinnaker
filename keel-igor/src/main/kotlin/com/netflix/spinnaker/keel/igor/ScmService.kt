@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.igor
+package com.netflix.spinnaker.keel.igor
 
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig

@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.RootSchema
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.validators.applyAll

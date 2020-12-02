@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.api.artifacts
 
+import java.time.Instant
+import java.time.ZonedDateTime
+
 /**
  * The build metadata of an artifact.
  */
@@ -13,7 +16,16 @@ data class BuildMetadata(
   val startedTs: String? = null,
   val completedTs: String? = null,
   val status: String? = null
-)
+) {
+  val startedAtInstant: Instant?
+    get() = startedAt?.let { ZonedDateTime.parse(it).toInstant() }
+
+  val completedAtInstant: Instant?
+    get() = completedAt?.let { ZonedDateTime.parse(it).toInstant() }
+
+  fun isComplete(): Boolean =
+    status in listOf("SUCCESS", "FAILED", "ABORTED", "UNSTABLE")
+}
 
 data class Job(
   val link: String? = null,

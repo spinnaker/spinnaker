@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
-import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.actuation.Task

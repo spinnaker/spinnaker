@@ -15,7 +15,7 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedSortingStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.services.ArtifactMetadataService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import org.springframework.stereotype.Component
 
 /**

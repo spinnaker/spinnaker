@@ -1,7 +1,6 @@
-package com.netflix.spinnaker.keel.services
+package com.netflix.spinnaker.keel.igor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.igor.ScmService
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Component
 /**
  * Provides functionality to import delivery config manifests from source control repositories (via igor).
  */
-@Component
 class DeliveryConfigImporter(
   private val jsonMapper: ObjectMapper,
   private val scmService: ScmService

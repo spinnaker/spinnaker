@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.BaseImageCacheProperties

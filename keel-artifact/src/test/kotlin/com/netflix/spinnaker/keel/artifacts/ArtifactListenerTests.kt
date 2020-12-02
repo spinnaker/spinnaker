@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import dev.minutest.junit.JUnit5Minutests
@@ -34,8 +36,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     name = "fnord",
     version = "0.156.0-h58.f67fe09",
     reference = "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
-    metadata = mapOf("releaseStatus" to FINAL),
-    provenance = "https://my.jenkins.master/jobs/fnord-release/58"
+    metadata = mapOf("releaseStatus" to FINAL, "buildNumber" to "58", "commitId" to "f67fe09"),
+    provenance = "https://my.jenkins.master/jobs/fnord-release/58",
+    buildMetadata = BuildMetadata(
+      id = 58,
+      number = "58",
+      status = "BUILDING",
+      uid = "i-am-a-uid-obviously"
+    )
   ).normalized()
 
   val newerPublishedDeb = PublishedArtifact(
@@ -44,8 +52,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     name = "fnord",
     version = "0.161.0-h61.116f116",
     reference = "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
-    metadata = mapOf("releaseStatus" to FINAL),
-    provenance = "https://my.jenkins.master/jobs/fnord-release/60"
+    metadata = mapOf("releaseStatus" to FINAL, "buildNumber" to "61", "commitId" to "116f116"),
+    provenance = "https://my.jenkins.master/jobs/fnord-release/60",
+    buildMetadata = BuildMetadata(
+      id = 58,
+      number = "58",
+      status = "BUILDING",
+      uid = "just-a-uid-obviously"
+    )
   ).normalized()
 
   val publishedDocker = PublishedArtifact(
@@ -132,12 +146,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("the version was already known") {
         before {
           every { repository.storeArtifactVersion(any()) } returns false
+          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
 
           listener.onArtifactPublished(event)
         }
 
-        test("no telemetry is recorded") {
-          verify { publisher wasNot Called }
+        test("only lifecycle event recorded") {
+          verify(exactly = 1) { publisher.publishEvent(ofType<LifecycleEvent>()) }
+          verify(exactly = 0) { publisher.publishEvent(ofType<ArtifactVersionUpdated>())  }
         }
       }
 
@@ -148,6 +164,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           } returns artifactMetadata
 
           every { repository.storeArtifactVersion(any()) } returns true
+          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
 
           listener.onArtifactPublished(
             event.copy(artifacts = listOf(newerPublishedDeb))
@@ -234,6 +251,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             debianArtifactSupplier.getArtifactMetadata(publishedDeb)
           } returns artifactMetadata
 
+          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
+
           listener.onArtifactRegisteredEvent(event)
         }
 
@@ -318,6 +337,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           every {
             dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
           } returns publishedDocker
+
+          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
+          every { repository.getAllArtifacts(DOCKER, any()) } returns listOf(dockerArtifact)
         }
 
         test("latest versions are stored") {
@@ -382,6 +404,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           every {
             dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
           } returns newerPublishedDocker
+
+          every { repository.getAllArtifacts(DEBIAN, any()) } returns listOf(debianArtifact)
+          every { repository.getAllArtifacts(DOCKER, any()) } returns listOf(dockerArtifact)
         }
 
         test("new versions are stored") {
@@ -409,6 +434,37 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             expectThat(gitMetadata).isEqualTo(artifactMetadata.gitMetadata)
             expectThat(buildMetadata).isEqualTo(artifactMetadata.buildMetadata)
           }
+        }
+      }
+    }
+
+    context("lifecycle events") {
+      context("multiple artifacts") {
+        before {
+          every { repository.getAllArtifacts(DEBIAN, any())} returns
+            listOf(
+              debianArtifact,
+              debianArtifact.copy(reference = "blah-blay", deliveryConfigName = "another-config")
+            )
+          listener.createBuildLifecycleEvent(publishedDeb)
+        }
+
+        test("publishes event for each artifact") {
+          verify(exactly = 2) { publisher.publishEvent(ofType<LifecycleEvent>()) }
+        }
+      }
+
+      context("single artifact") {
+        before {
+          every { repository.getAllArtifacts(DEBIAN, any())} returns
+            listOf(debianArtifact)
+          listener.createBuildLifecycleEvent(publishedDeb)
+        }
+
+        test("publishes event with status NOT STARTED") {
+          val slot = slot<LifecycleEvent>()
+          verify(exactly = 1) { publisher.publishEvent(capture(slot)) }
+          expectThat(slot.captured.status).isEqualTo(NOT_STARTED)
         }
       }
     }

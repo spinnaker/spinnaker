@@ -87,7 +87,7 @@ class AdminService(
     val artifactSupplier = artifactSuppliers.supporting(type)
     log.debug("Starting to back-fill old artifacts versions with artifact metadata...")
     // 1. get all registered artifacts
-    val deliveryArtifacts = repository.getAllArtifacts(type)
+    val deliveryArtifacts = repository.getAllArtifacts(type = type)
     // 2. for each artifact, fetch all versions
     deliveryArtifacts.forEach { artifact ->
       val versions = repository.artifactVersions(artifact, 10)

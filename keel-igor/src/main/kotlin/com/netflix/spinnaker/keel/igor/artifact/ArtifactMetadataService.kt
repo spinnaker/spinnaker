@@ -1,6 +1,6 @@
-package com.netflix.spinnaker.keel.services
+package com.netflix.spinnaker.keel.igor.artifact
 
-import com.netflix.spinnaker.igor.BuildService
+import com.netflix.spinnaker.keel.igor.BuildService
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Commit
@@ -8,8 +8,8 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Job
 import com.netflix.spinnaker.keel.api.artifacts.PullRequest
 import com.netflix.spinnaker.keel.api.artifacts.Repo
-import com.netflix.spinnaker.model.Build
-import com.netflix.spinnaker.model.CompletionStatus
+import com.netflix.spinnaker.keel.igor.model.Build
+import com.netflix.spinnaker.keel.igor.model.CompletionStatus
 import io.github.resilience4j.kotlin.retry.executeSuspendFunction
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.lifecycle
 
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.ABORTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.FAILED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.UNKNOWN
@@ -10,8 +11,8 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.UNKNOWN
  * A [NOT_STARTED] event kicks off monitoring.
  */
 enum class LifecycleEventStatus {
-  NOT_STARTED, RUNNING, SUCCEEDED, FAILED, UNKNOWN;
+  NOT_STARTED, RUNNING, SUCCEEDED, FAILED, ABORTED, UNKNOWN;
 }
 
 fun LifecycleEventStatus.isEndingStatus(): Boolean =
-  this == SUCCEEDED || this == FAILED || this == UNKNOWN
+  this in listOf(SUCCEEDED, FAILED, UNKNOWN, ABORTED)

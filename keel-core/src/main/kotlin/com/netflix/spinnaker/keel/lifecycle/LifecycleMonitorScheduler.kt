@@ -51,6 +51,9 @@ class LifecycleMonitorScheduler(
   /**
    * Listens for a not started event that a subclass can handle, and saves that into
    * the database for monitoring.
+   *
+   * //todo eb: add a 'monitor' flag to lifecycle events so we don't listen for a NOT_STARTED event here,
+   *   it's kind of confusing.
    */
   @EventListener(LifecycleEvent::class)
   fun onLifecycleEvent(event: LifecycleEvent) {

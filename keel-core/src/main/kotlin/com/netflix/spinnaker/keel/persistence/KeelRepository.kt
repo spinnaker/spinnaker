@@ -144,7 +144,7 @@ interface KeelRepository : KeelReadOnlyRepository {
   // START ArtifactRepository methods
   fun register(artifact: DeliveryArtifact)
 
-  fun getAllArtifacts(type: ArtifactType? = null): List<DeliveryArtifact>
+  fun getAllArtifacts(type: ArtifactType? = null, name: String? = null): List<DeliveryArtifact>
 
   fun storeArtifactVersion(artifactVersion: PublishedArtifact): Boolean
 

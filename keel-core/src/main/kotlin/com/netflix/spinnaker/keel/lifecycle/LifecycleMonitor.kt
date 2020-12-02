@@ -1,26 +1,9 @@
 package com.netflix.spinnaker.keel.lifecycle
 
 import com.netflix.spinnaker.config.LifecycleConfig
-import com.netflix.spinnaker.keel.activation.ApplicationDown
-import com.netflix.spinnaker.keel.activation.ApplicationUp
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
-import com.netflix.spinnaker.keel.telemetry.LifecycleMonitorLoadFailed
-import com.netflix.spinnaker.keel.telemetry.LifecycleMonitorTimedOut
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.context.event.EventListener
-import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Abstract lifecycle monitor that coordinates monitoring tasks while the
@@ -28,7 +11,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * Implementations are responsible for doing the monitoring, emitting [LifecycleEvent]s
  * as the task transitions through different stages, updating the text / link to user
- * friendly things (w/in the [LifecycleEvent]s emitted), and calling [endMonitoringOf]
+ * friendly things (w/in the [LifecycleEvent]s emitted), and calling [endMonitoringOfTask]
  * when the monitoring is finished.
  */
 @EnableConfigurationProperties(LifecycleConfig::class)
@@ -39,6 +22,10 @@ abstract class LifecycleMonitor(
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  init {
+    log.debug("Lifecycle monitor ${javaClass.simpleName} enabled")
+  }
 
   /**
    * @return true if this monitor can handle the event type
@@ -57,8 +44,44 @@ abstract class LifecycleMonitor(
    * Should be called from inside the [monitor] function when we are done
    * monitoring the task.
    */
-  fun endMonitoringOf(task: MonitoredTask) {
+  fun endMonitoringOfTask(task: MonitoredTask) {
     log.debug("${this.javaClass.simpleName} has completed monitoring for $task")
     monitorRepository.delete(task)
   }
+
+  /**
+   * Handles persisting failures and publishing exception events.
+   *
+   * Call when there was a failure getting status.
+   */
+  fun handleFailureFetchingStatus(task: MonitoredTask) {
+    if (task.numFailures >= lifecycleConfig.numFailuresAllowed - 1) {
+      log.warn("Too many consecutive errors (${lifecycleConfig.numFailuresAllowed}) " +
+        "fetching the task status for $task. Giving up.")
+      endMonitoringOfTask(task)
+      publishExceptionEvent(task)
+    } else {
+      monitorRepository.markFailureGettingStatus(task)
+    }
+  }
+
+  /**
+   * Handles clearing the failure status if there was one.
+   *
+   * Call when status has successfully been fetched.
+   */
+  fun markSuccessFetchingStatus(task: MonitoredTask) {
+    if (task.numFailures > 0) {
+      // we only care about consecutive failures, and we just had a success
+      monitorRepository.clearFailuresGettingStatus(task)
+    }
+  }
+
+  /**
+   * Called when we end monitoring of a task because we've had too
+   * many exceptions or failures getting the status.
+   *
+   * Should emit a lifecycle event with status UNKNOWN
+   */
+  abstract fun publishExceptionEvent(task: MonitoredTask)
 }

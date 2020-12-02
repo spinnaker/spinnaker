@@ -4,11 +4,13 @@ import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.FAILED
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.UNKNOWN
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitor
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
-import com.netflix.spinnaker.keel.lifecycle.LinkNotFound
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.BUFFERED
@@ -57,25 +59,15 @@ class BakeryLifecycleMonitor(
           else -> publishUnknownEvent(task, execution)
         }
 
-        if (task.numFailures > 0) {
-          // we only care about consecutive failures, and we just had a success
-          monitorRepository.clearFailuresGettingStatus(task)
-        }
-
         if (execution.status.isComplete()) {
-          endMonitoringOf(task)
+          endMonitoringOfTask(task)
+        } else {
+          markSuccessFetchingStatus(task)
         }
       }
       .onFailure { exception ->
         log.error("Error fetching status for $task: ", exception)
-        if (task.numFailures >= lifecycleConfig.numFailuresAllowed - 1) {
-          log.warn("Too many consecutive errors (${lifecycleConfig.numFailuresAllowed}) " +
-            "fetching the task status for $task. Giving up.")
-          publishExceptionEvent(task)
-          monitorRepository.delete(task)
-        } else {
-          monitorRepository.markFailureGettingStatus(task)
-        }
+        handleFailureFetchingStatus(task)
       }
   }
 
@@ -97,22 +89,22 @@ class BakeryLifecycleMonitor(
   }
   private fun publishSucceededEvent(task: MonitoredTask) {
     publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.SUCCEEDED,
+      status = SUCCEEDED,
       link = orcaTaskIdToLink(task),
       text = "Bake succeeded for version ${task.triggeringEvent.artifactVersion}"
     ))
   }
   private fun publishFailedEvent(task: MonitoredTask) {
     publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.FAILED,
+      status = FAILED,
       link = orcaTaskIdToLink(task),
       text = "Bake failed for version ${task.triggeringEvent.artifactVersion}"
     ))
   }
 
-  private fun publishExceptionEvent(task: MonitoredTask) {
+  override fun publishExceptionEvent(task: MonitoredTask) {
     publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.UNKNOWN,
+      status = UNKNOWN,
       link = orcaTaskIdToLink(task),
       text = "Failed to monitor bake of version ${task.triggeringEvent.artifactVersion}" +
         " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown."
@@ -122,7 +114,7 @@ class BakeryLifecycleMonitor(
   private fun publishUnknownEvent(task: MonitoredTask, execution: ExecutionDetailResponse) {
     log.warn("Monitored bake ${task.triggeringEvent} in an unhandled status (${execution.status}")
     publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.UNKNOWN,
+      status = UNKNOWN,
       link = orcaTaskIdToLink(task),
       text = "Bake status unknown for version ${task.triggeringEvent.artifactVersion}"
     ))

@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
-import com.netflix.spinnaker.keel.services.ArtifactMetadataService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import org.slf4j.LoggerFactory
 
 abstract class BaseArtifactSupplier<A : DeliveryArtifact, V : SortingStrategy>(

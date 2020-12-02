@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.test
 
-import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifactSupplier
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
 import com.netflix.spinnaker.keel.artifacts.NpmArtifactSupplier
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.services.ArtifactMetadataService
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
 import io.mockk.mockk
 import org.springframework.core.env.Environment
 

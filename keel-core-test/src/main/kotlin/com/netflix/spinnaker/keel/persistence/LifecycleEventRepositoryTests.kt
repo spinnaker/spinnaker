@@ -14,6 +14,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
@@ -38,7 +39,8 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
     status = NOT_STARTED,
     id = "bake-$version",
     text = "Submitting bake for version $version",
-    link = "www.bake.com/$version"
+    link = "www.bake.com/$version",
+    data = mapOf("hi" to "whatsup")
   )
   val anotherEvent = event.copy(id = "bake-$version-2")
 
@@ -60,6 +62,8 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           that(events.size).isEqualTo(1)
           that(events.first().status).isEqualTo(NOT_STARTED)
           that(events.first().timestamp).isNotNull()
+          that(events.first().data).isNotEmpty()
+          that(events.first().data["hi"]).isEqualTo("whatsup")
         }
       }
     }

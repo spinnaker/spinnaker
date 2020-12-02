@@ -190,12 +190,13 @@ class SqlArtifactRepository(
         .value1()
     } > 0
 
-  override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
+  override fun getAll(type: ArtifactType?, name: String?): List<DeliveryArtifact> =
     sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
         .from(DELIVERY_ARTIFACT)
         .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
+        .apply { if (name != null) where(DELIVERY_ARTIFACT.NAME.eq(name)) }
         .fetch { (name, storedType, details, reference, configName) ->
           mapToArtifact(artifactSuppliers.supporting(storedType), name, storedType.toLowerCase(), details, reference, configName)
         }

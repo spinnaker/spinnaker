@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.model
+package com.netflix.spinnaker.keel.igor.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant

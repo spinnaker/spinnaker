@@ -2,10 +2,10 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.igor.BuildService
-import com.netflix.spinnaker.igor.ScmService
-import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
+import com.netflix.spinnaker.keel.igor.BuildService
+import com.netflix.spinnaker.keel.igor.ScmService
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.springframework.beans.factory.BeanCreationException

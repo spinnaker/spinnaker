@@ -1,5 +1,5 @@
-package com.netflix.spinnaker.igor
-import com.netflix.spinnaker.model.Build
+package com.netflix.spinnaker.keel.igor
+import com.netflix.spinnaker.keel.igor.model.Build
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query

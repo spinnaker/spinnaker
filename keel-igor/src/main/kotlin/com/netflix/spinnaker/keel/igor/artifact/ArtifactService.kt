@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.igor
+package com.netflix.spinnaker.keel.igor.artifact
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact

@@ -33,7 +33,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
-  fun getAll(type: ArtifactType? = null): List<DeliveryArtifact>
+  fun getAll(type: ArtifactType? = null, name: String? = null): List<DeliveryArtifact>
 
   /**
    * Deletes an artifact from a delivery config.

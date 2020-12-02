@@ -6,6 +6,7 @@ plugins {
 dependencies {
   implementation(project(":keel-retrofit"))
   implementation(project(":keel-core"))
+  implementation(project(":keel-front50"))
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
   implementation ("io.github.resilience4j:resilience4j-kotlin")
