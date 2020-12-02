@@ -56,6 +56,7 @@ function checkPackageJson(report) {
   checkPackageJsonField('scripts.lint', 'eslint --ext js,jsx,ts,tsx src');
   checkPackageJsonField('scripts.develop', 'npm run clean && run-p watch proxy');
   checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
+  checkPackageJsonField('scripts.prettier', "prettier --write 'src/**/*.{js,jsx,ts,tsx,html,css,less,json}'");
   checkPackageJsonField('scripts.proxy', 'dev-proxy');
   checkPackageJsonField('scripts.watch', 'rollup -c -w --no-watch.clearScreen');
 }
