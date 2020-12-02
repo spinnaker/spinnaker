@@ -305,6 +305,109 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
   }
 
+  def 'should create a service using VPC and FARGATE Capacity Provider Strategy'() {
+    given:
+    def serviceRegistry = new CreateServerGroupDescription.ServiceDiscoveryAssociation(
+      registry: new CreateServerGroupDescription.ServiceRegistry(arn: 'srv-registry-arn'),
+      containerPort: 9090
+    )
+    def capacityProviderStrategy = new CapacityProviderStrategyItem(
+      capacityProvider: 'FARGATE',
+      weight: 1
+    )
+    def description = new CreateServerGroupDescription(
+      credentials: TestCredential.named('Test', [:]),
+      application: applicationName,
+      stack: stack,
+      freeFormDetails: detail,
+      ecsClusterName: 'test-cluster',
+      iamRole: 'test-role',
+      containerPort: 1337,
+      targetGroup: 'target-group-arn',
+      portProtocol: 'tcp',
+      computeUnits: 9001,
+      reservedMemory: 9002,
+      dockerImageAddress: 'docker-image-url',
+      capacity: new ServerGroup.Capacity(1, 1, 1),
+      availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
+      placementStrategySequence: [],
+      capacityProviderStrategies: [capacityProviderStrategy],
+      platformVersion: '1.0.0',
+      networkMode: 'awsvpc',
+      subnetType: 'public',
+      securityGroupNames: ['helloworld'],
+      associatePublicIpAddress: true,
+      serviceDiscoveryAssociations: [serviceRegistry]
+    )
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    operation.amazonClientProvider = amazonClientProvider
+    operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
+    operation.iamPolicyReader = iamPolicyReader
+    operation.credentialsRepository = credentialsRepository
+    operation.containerInformationService = containerInformationService
+    operation.subnetSelector = subnetSelector
+    operation.securityGroupSelector = securityGroupSelector
+
+    subnetSelector.resolveSubnetsIds(_, _, _, _) >> ['subnet-12345']
+    subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-123']
+    securityGroupSelector.resolveSecurityGroupNames(_, _, _, _) >> ['sg-12345']
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
+
+    ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
+
+    iamClient.getRole(_) >> new GetRoleResult().withRole(role)
+    iamPolicyReader.getTrustedEntities(_) >> trustRelationships
+    loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
+
+    ecs.createService({ CreateServiceRequest request ->
+      request.cluster == 'test-cluster'
+      request.serviceName == 'myapp-kcats-liated-v008'
+      request.taskDefinition == 'task-def-arn'
+      request.loadBalancers.size() == 1
+      request.loadBalancers.get(0).targetGroupArn == 'target-group-arn'
+      request.loadBalancers.get(0).containerName == 'v008'
+      request.loadBalancers.get(0).containerPort == 1337
+      request.serviceRegistries.size() == 1
+      request.serviceRegistries.get(0) == new ServiceRegistry(
+        registryArn: 'srv-registry-arn',
+        containerPort: 9090,
+        containerName: 'v008'
+      )
+      request.desiredCount == 1
+      request.role == null
+      request.placementStrategy == []
+      request.placementConstraints == []
+      request.networkConfiguration.awsvpcConfiguration.subnets == ['subnet-12345']
+      request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
+      request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
+      request.healthCheckGracePeriodSeconds == null
+      request.enableECSManagedTags == null
+      request.propagateTags == null
+      request.tags == []
+      request.capacityProviderStrategy == [capacityProviderStrategy]
+      request.platformVersion == '1.0.0'
+    } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
+
+    result.getServerGroupNames().size() == 1
+    result.getServerGroupNameByRegion().size() == 1
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+    result.getServerGroupNameByRegion().containsKey('us-west-1')
+    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
+  }
+
   def 'should create services without load balancers'() {
     given:
     def description = Mock(CreateServerGroupDescription)
@@ -598,7 +701,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     })
   }
 
-  def 'should set spinnaker role on FARGATE RegisterTaskDefinitionRequest if none in artifact'() {
+  def 'should set spinnaker role on LaunchType FARGATE RegisterTaskDefinitionRequest if none in artifact'() {
     given:
     def resolvedArtifact = Artifact.builder()
       .name("taskdef.json")
@@ -620,6 +723,60 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     description.getEcsClusterName() >> 'test-cluster'
     description.getIamRole() >> 'None (No IAM role)'
     description.getLaunchType() >> 'FARGATE'
+    description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
+    description.getContainerToImageMap() >> [
+      web: "docker-image-url"
+    ]
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "test-role"
+
+    result.getContainerDefinitions().size() == 1
+    def containerDefinition = result.getContainerDefinitions().first()
+    containerDefinition.name == "web"
+    containerDefinition.image == "docker-image-url"
+    containerDefinition.memoryReservation == 512
+  }
+
+  def 'should set spinnaker role on CapacityProvider FARGATE RegisterTaskDefinitionRequest if none in artifact'() {
+    given:
+    def resolvedArtifact = Artifact.builder()
+      .name("taskdef.json")
+      .reference("fake.github.com/repos/org/repo/taskdef.json")
+      .artifactAccount("my-github-acct")
+      .type("github/file")
+      .build()
+    def containerDef =
+      new ContainerDefinition()
+        .withName("web")
+        .withImage("PLACEHOLDER")
+        .withMemoryReservation(512)
+    def capacityProviderStrategy = new CapacityProviderStrategyItem(
+      capacityProvider: 'FARGATE',
+      weight: 1
+    )
+    def registerTaskDefRequest =
+      new RegisterTaskDefinitionRequest().withContainerDefinitions([containerDef])
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'ecs'
+    description.getFreeFormDetails() >> 'test'
+    description.getEcsClusterName() >> 'test-cluster'
+    description.getIamRole() >> 'None (No IAM role)'
+    description.getCapacityProviderStrategies() >> [capacityProviderStrategy]
     description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
     description.getContainerToImageMap() >> [
       web: "docker-image-url"

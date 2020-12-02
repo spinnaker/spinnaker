@@ -26,6 +26,7 @@ import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.applicationautoscaling.model.SuspendedState;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
+import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.CreateServiceRequest;
 import com.amazonaws.services.ecs.model.DeploymentConfiguration;
@@ -95,7 +96,9 @@ public class CreateServerGroupAtomicOperation
   private static final String NECESSARY_TRUSTED_SERVICE = "ecs-tasks.amazonaws.com";
   protected static final String AWSVPC_NETWORK_MODE = "awsvpc";
   protected static final String HOST_NETWORK_MODE = "host";
-  protected static final String FARGATE_LAUNCH_TYPE = "FARGATE";
+  protected static final String EC2 = "EC2";
+  protected static final String FARGATE = "FARGATE";
+  protected static final String FARGATE_SPOT = "FARGATE_SPOT";
   protected static final String NO_IAM_ROLE = "None (No IAM role)";
   protected static final String NO_IMAGE_CREDENTIALS = "None (No registry credentials)";
 
@@ -315,12 +318,26 @@ public class CreateServerGroupAtomicOperation
 
     if (!StringUtils.isEmpty(description.getLaunchType())) {
       request.setRequiresCompatibilities(Arrays.asList(description.getLaunchType()));
+
+      if (FARGATE.equals(description.getLaunchType())) {
+        request.setExecutionRoleArn(ecsServiceRole);
+        request.setCpu(description.getComputeUnits().toString());
+        request.setMemory(description.getReservedMemory().toString());
+      }
     }
 
-    if (FARGATE_LAUNCH_TYPE.equals(description.getLaunchType())) {
-      request.setExecutionRoleArn(ecsServiceRole);
-      request.setCpu(description.getComputeUnits().toString());
-      request.setMemory(description.getReservedMemory().toString());
+    if (description.getCapacityProviderStrategies() != null
+        && !description.getCapacityProviderStrategies().isEmpty()) {
+
+      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategies()) {
+        if (FARGATE.equals(cpStrategy.getCapacityProvider())
+            || FARGATE_SPOT.equals(cpStrategy.getCapacityProvider())) {
+          request.setRequiresCompatibilities(Arrays.asList(FARGATE));
+          request.setExecutionRoleArn(ecsServiceRole);
+          request.setCpu(description.getComputeUnits().toString());
+          request.setMemory(description.getReservedMemory().toString());
+        }
+      }
     }
 
     return request;
@@ -391,14 +408,29 @@ public class CreateServerGroupAtomicOperation
           c.setDockerLabels(updatedLabels);
         });
 
-    if (FARGATE_LAUNCH_TYPE.equals(description.getLaunchType())) {
+    requestTemplate.setFamily(EcsServerGroupNameResolver.getEcsFamilyName(newServerGroupName));
+
+    if (FARGATE.equals(description.getLaunchType())) {
       String templateExecutionRole = requestTemplate.getExecutionRoleArn();
 
       if (templateExecutionRole == null || templateExecutionRole.isEmpty()) {
         requestTemplate.setExecutionRoleArn(ecsServiceRole);
       }
+    } else if (description.getCapacityProviderStrategies() != null
+        && !description.getCapacityProviderStrategies().isEmpty()) {
+      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategies()) {
+        if (FARGATE.equals(cpStrategy.getCapacityProvider())
+            || FARGATE_SPOT.equals(cpStrategy.getCapacityProvider())) {
+          String templateExecutionRole = requestTemplate.getExecutionRoleArn();
+
+          if (templateExecutionRole == null || StringUtils.isBlank(templateExecutionRole)) {
+            requestTemplate.setExecutionRoleArn(ecsServiceRole);
+          }
+
+          return requestTemplate;
+        }
+      }
     }
-    requestTemplate.setFamily(EcsServerGroupNameResolver.getEcsFamilyName(newServerGroupName));
 
     return requestTemplate;
   }
@@ -546,6 +578,9 @@ public class CreateServerGroupAtomicOperation
 
     if (!StringUtils.isEmpty(description.getLaunchType())) {
       request.withLaunchType(description.getLaunchType());
+    } else if (description.getCapacityProviderStrategies() != null
+        && !description.getCapacityProviderStrategies().isEmpty()) {
+      request.withCapacityProviderStrategy(description.getCapacityProviderStrategies());
     }
 
     if (!StringUtils.isEmpty(description.getPlatformVersion())) {

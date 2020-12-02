@@ -119,6 +119,7 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     }
 
     boolean hasTargetGroup = StringUtils.isNotBlank(createServerGroupDescription.getTargetGroup());
+    validateComputeOptions(createServerGroupDescription, errors);
 
     if (!createServerGroupDescription.isUseTaskDefinitionArtifact()) {
       if (createServerGroupDescription.getDockerImageAddress() == null) {
@@ -171,6 +172,25 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
           RESERVED_ENVIRONMENT_VARIABLES)) {
         rejectValue(errors, "environmentVariables", "invalid");
       }
+    }
+  }
+
+  private void validateComputeOptions(
+      CreateServerGroupDescription createServerGroupDescription, ValidationErrors errors) {
+    if (createServerGroupDescription.getCapacityProviderStrategies() != null
+        && !createServerGroupDescription.getCapacityProviderStrategies().isEmpty()) {
+      if (!StringUtils.isBlank(createServerGroupDescription.getLaunchType())) {
+        errors.rejectValue(
+            "launchType",
+            errorKey + "." + "launchType" + "." + "invalid",
+            "LaunchType cannot be specified when CapacityProviderStrategies are specified.");
+      }
+    } else if (createServerGroupDescription.getCapacityProviderStrategies() == null
+        && StringUtils.isBlank(createServerGroupDescription.getLaunchType())) {
+      errors.rejectValue(
+          "launchType",
+          errorKey + "." + "launchType" + "." + "invalid",
+          "LaunchType or CapacityProviderStrategies must be specified.");
     }
   }
 

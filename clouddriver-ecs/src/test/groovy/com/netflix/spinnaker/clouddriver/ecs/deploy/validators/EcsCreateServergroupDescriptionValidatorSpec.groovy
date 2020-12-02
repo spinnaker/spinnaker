@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators
 
+import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem
 import com.amazonaws.services.ecs.model.PlacementStrategy
 import com.amazonaws.services.ecs.model.PlacementStrategyType
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
@@ -180,6 +181,38 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
 
     then:
     1 * errors.rejectValue('targetGroupMappings.containerName', "${getDescriptionName()}.targetGroupMappings.containerName.not.nullable")
+  }
+
+  void 'should fail when launch type and capacity provider strategy are both defined'() {
+    given:
+    def capacityProviderStrategy = new CapacityProviderStrategyItem(
+      capacityProvider: 'FARGATE',
+      weight: 1
+    )
+    def description = getDescription()
+    description.capacityProviderStrategies = [capacityProviderStrategy]
+    description.launchType = 'FARGATE'
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('launchType', 'createServerGroupDescription.launchType.invalid', 'LaunchType cannot be specified when CapacityProviderStrategies are specified.')
+  }
+
+  void 'should fail when neither launch type or capacity provider strategy are defined'() {
+    given:
+    def description = getDescription()
+    description.capacityProviderStrategies = null
+    description.launchType = null
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('launchType', 'createServerGroupDescription.launchType.invalid', 'LaunchType or CapacityProviderStrategies must be specified.')
   }
 
   void 'target group mappings should fail when container name is specified but load balancer is missing'() {

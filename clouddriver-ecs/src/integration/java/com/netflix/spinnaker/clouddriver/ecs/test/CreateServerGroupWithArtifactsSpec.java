@@ -20,6 +20,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -308,6 +309,7 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
         ArgumentCaptor.forClass(CreateServiceRequest.class);
     verify(mockECS).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals(0, seenCreateServRequest.getCapacityProviderStrategy().size());
     assertEquals("FARGATE", seenCreateServRequest.getLaunchType());
     assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
     assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
@@ -315,6 +317,110 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
     assertEquals("application", serviceLB.getContainerName());
     assertEquals(80, serviceLB.getContainerPort().intValue());
     assertEquals("integArtifactsFargateTgMappings-cluster", seenCreateServRequest.getCluster());
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given description w/ task def artifacts and a FARGATE capacity provider strategy "
+          + "successfully submits a createServerGroup operation"
+          + "\n===")
+  @Test
+  public void createServerGroup_ArtifactsFARGATECapacityProviderTest()
+      throws IOException, InterruptedException {
+
+    // given
+    String url = getTestUrl(CREATE_SG_TEST_PATH);
+    String requestBody =
+        generateStringFromTestFile(
+            "/createServerGroup-artifact-FARGATE-capacityProviderStrategy.json");
+    String expectedServerGroupName =
+        "ecs-integArtifactsFargateCapacityProviderStrategyStack-detailTest-v000";
+
+    ByteArrayInputStream byteArrayInputStreamOfArtifactsForFargateType =
+        new ByteArrayInputStream(
+            generateStringFromTestArtifactFile(
+                    "/createServerGroup-artifact-Fargate-targetGroup-artifactFile.json")
+                .getBytes());
+
+    when(mockArtifactDownloader.download(any(Artifact.class)))
+        .thenReturn(byteArrayInputStreamOfArtifactsForFargateType);
+
+    String taskId =
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when()
+            .post(url)
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON)
+            .body("id", notNullValue())
+            .body("resourceUri", containsString("/task/"))
+            .extract()
+            .path("id");
+
+    retryUntilTrue(
+        () -> {
+          List<Object> taskHistory =
+              get(getTestUrl("/task/" + taskId))
+                  .then()
+                  .contentType(ContentType.JSON)
+                  .extract()
+                  .path("history");
+          if (taskHistory
+              .toString()
+              .contains(String.format("Done creating 1 of %s", expectedServerGroupName))) {
+            return true;
+          }
+          return false;
+        },
+        String.format("Failed to detect service creation in %s seconds", TASK_RETRY_SECONDS),
+        TASK_RETRY_SECONDS);
+
+    ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
+        ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
+    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v000");
+    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(
+        "arn:aws:iam:::executionRole/testExecutionRole:1",
+        seenTaskDefRequest.getExecutionRoleArn());
+    assertEquals("arn:aws:iam:::role/testTaskRole:1", seenTaskDefRequest.getTaskRoleArn());
+    assertEquals("application", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+    assertEquals(
+        "awslogs",
+        seenTaskDefRequest.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver());
+    assertEquals(
+        "spinnaker-ecs-demo",
+        seenTaskDefRequest
+            .getContainerDefinitions()
+            .get(0)
+            .getLogConfiguration()
+            .getOptions()
+            .get("awslogs-group"));
+
+    ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
+        ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
+    verify(mockELB).describeTargetGroups(elbArgCaptor.capture());
+
+    ArgumentCaptor<CreateServiceRequest> createServiceArgs =
+        ArgumentCaptor.forClass(CreateServiceRequest.class);
+    verify(mockECS).createService(createServiceArgs.capture());
+    CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
+    assertEquals(1, seenCreateServRequest.getCapacityProviderStrategy().size());
+    assertEquals(
+        "FARGATE",
+        seenCreateServRequest.getCapacityProviderStrategy().get(0).getCapacityProvider());
+    assertNull(seenCreateServRequest.getLaunchType());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
+    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
+    assertEquals("application", serviceLB.getContainerName());
+    assertEquals(80, serviceLB.getContainerPort().intValue());
+    assertEquals(
+        "integArtifactsFargateCapacityProviderStrategy-cluster",
+        seenCreateServRequest.getCluster());
   }
 
   @DisplayName(
