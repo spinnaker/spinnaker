@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,26 @@ public class CiService {
     this.igorService = igorService;
   }
 
-  public List getBuilds(String projectKey, String repoSlug, String completionStatus) {
+  public List<Map<String, Object>> getBuilds(
+      String projectKey,
+      String repoSlug,
+      String completionStatus,
+      String buildNumber,
+      String commitId) {
     if (!igorService.isPresent()) {
       throw new UnsupportedOperationException(
           "Operation not supported because igor service is not configured");
     }
-    return igorService.get().getBuilds(projectKey, repoSlug, completionStatus);
+    return igorService
+        .get()
+        .getBuilds(projectKey, repoSlug, completionStatus, buildNumber, commitId);
+  }
+
+  public Map<String, Object> getBuildOutput(String buildId) {
+    if (!igorService.isPresent()) {
+      throw new UnsupportedOperationException(
+          "Operation not supported because igor service is not configured");
+    }
+    return igorService.get().getBuildOutput(buildId);
   }
 }

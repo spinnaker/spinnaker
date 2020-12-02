@@ -87,10 +87,15 @@ public interface IgorService {
       @Path("pipeline") String pipeline);
 
   @GET("/ci/builds")
-  List<String> getBuilds(
+  List<Map<String, Object>> getBuilds(
       @Query("projectKey") String projectKey,
       @Query("repoSlug") String repoSlug,
-      @Query("completionStatus") String completionStatus);
+      @Query("completionStatus") String completionStatus,
+      @Query("buildNumber") String buildNumber,
+      @Query("commitId") String commitId);
+
+  @GET("/ci/builds/{buildId}/output")
+  Map<String, Object> getBuildOutput(@Path("buildId") String buildId);
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();
