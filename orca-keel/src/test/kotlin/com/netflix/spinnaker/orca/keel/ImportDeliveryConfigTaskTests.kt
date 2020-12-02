@@ -94,7 +94,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
 
     val keelService: KeelService = mockk(relaxUnitFun = true) {
       every {
-        publishDeliveryConfig(any(), any())
+        publishDeliveryConfig(any())
       } returns Response("http://keel", 200, "", emptyList(), null)
     }
 
@@ -164,7 +164,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
           )
         }
         verify(exactly = 1) {
-          keelService.publishDeliveryConfig(manifest, trigger.user!!)
+          keelService.publishDeliveryConfig(manifest)
         }
       }
     }

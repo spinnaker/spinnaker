@@ -61,7 +61,7 @@ constructor(
       )
 
       log.debug("Publishing manifest ${context.manifest} to keel on behalf of $user")
-      keelService.publishDeliveryConfig(deliveryConfig, user)
+      keelService.publishDeliveryConfig(deliveryConfig)
 
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(emptyMap<String, Any?>()).build()
     } catch (e: RetrofitError) {

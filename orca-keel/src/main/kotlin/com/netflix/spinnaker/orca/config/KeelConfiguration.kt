@@ -31,6 +31,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.Endpoints
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 
@@ -51,9 +52,11 @@ class KeelConfiguration {
     keelEndpoint: Endpoint,
     keelObjectMapper: ObjectMapper,
     clientProvider: OkHttpClientProvider,
-    retrofitLogLevel: RestAdapter.LogLevel
+    retrofitLogLevel: RestAdapter.LogLevel,
+    spinnakerRequestInterceptor: RequestInterceptor
   ) =
     RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(keelEndpoint)
       .setClient(Ok3Client(clientProvider.getClient(DefaultServiceEndpoint("keel", keelEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
