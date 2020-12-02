@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription;
 import java.util.List;
@@ -31,9 +30,8 @@ class UpsertTitusScalingPolicyDescriptionValidator
     extends AbstractTitusDescriptionValidatorSupport<UpsertTitusScalingPolicyDescription> {
 
   @Autowired
-  UpsertTitusScalingPolicyDescriptionValidator(
-      AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "upsertTitusScalingPolicyDescription");
+  UpsertTitusScalingPolicyDescriptionValidator() {
+    super("upsertTitusScalingPolicyDescription");
   }
 
   @Override

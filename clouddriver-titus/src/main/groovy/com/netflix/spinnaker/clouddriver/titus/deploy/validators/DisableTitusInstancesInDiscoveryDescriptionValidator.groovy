@@ -30,8 +30,8 @@ class DisableTitusInstancesInDiscoveryDescriptionValidator
   extends AbstractTitusDescriptionValidatorSupport<EnableDisableInstanceDiscoveryDescription> {
 
   @Autowired
-  DisableTitusInstancesInDiscoveryDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "disableInstacesInDiscoveryDescription")
+  DisableTitusInstancesInDiscoveryDescriptionValidator() {
+    super("disableInstacesInDiscoveryDescription")
   }
 
   @Override

@@ -30,8 +30,8 @@ import org.springframework.stereotype.Component
 class ResizeTitusServerGroupDescriptionValidator extends AbstractTitusDescriptionValidatorSupport<ResizeTitusServerGroupDescription> {
 
   @Autowired
-  ResizeTitusServerGroupDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "resizeTitusServerGroupDescription")
+  ResizeTitusServerGroupDescriptionValidator() {
+    super("resizeTitusServerGroupDescription")
   }
 
   @Override
@@ -43,8 +43,7 @@ class ResizeTitusServerGroupDescriptionValidator extends AbstractTitusDescriptio
       errors.rejectValue "region", "resizeTitusServerGroupDescription.region.empty"
     }
 
-    def credentials = getAccountCredentials(description?.credentials?.name)
-    if (credentials && !((NetflixTitusCredentials) credentials).regions.name.contains(description.region)) {
+    if (description?.credentials && !((NetflixTitusCredentials) description?.credentials).regions.name.contains(description.region)) {
       errors.rejectValue "region", "resizeTitusServerGroupDescription.region.not.configured", description.region, "Region not configured"
     }
 

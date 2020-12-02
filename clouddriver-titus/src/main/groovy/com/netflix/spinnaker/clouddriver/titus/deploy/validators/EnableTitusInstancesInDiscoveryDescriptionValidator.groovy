@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component
 class EnableTitusInstancesInDiscoveryDescriptionValidator extends AbstractTitusDescriptionValidatorSupport<EnableDisableInstanceDiscoveryDescription> {
 
   @Autowired
-  EnableTitusInstancesInDiscoveryDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "enableInstacesInDiscoveryDescription")
+  EnableTitusInstancesInDiscoveryDescriptionValidator() {
+    super("enableInstacesInDiscoveryDescription")
   }
 
   void validate(List priorDescriptions, EnableDisableInstanceDiscoveryDescription description, ValidationErrors errors) {

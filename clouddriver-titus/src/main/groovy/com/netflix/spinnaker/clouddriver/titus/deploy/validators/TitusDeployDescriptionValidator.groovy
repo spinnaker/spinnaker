@@ -30,8 +30,8 @@ import org.springframework.stereotype.Component
 class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorSupport<TitusDeployDescription> {
 
   @Autowired
-  TitusDeployDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "titusDeployDescription")
+  TitusDeployDescriptionValidator() {
+    super("titusDeployDescription")
   }
 
   @Override
@@ -43,8 +43,7 @@ class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorS
       errors.rejectValue "region", "titusDeployDescription.region.empty"
     }
 
-    def credentials = getAccountCredentials(description?.credentials?.name)
-    if (credentials && !((NetflixTitusCredentials) credentials).regions.name.contains(description.region)) {
+    if (description?.credentials && !((NetflixTitusCredentials) description?.credentials).regions.name.contains(description.region)) {
       errors.rejectValue "region", "titusDeployDescription.region.not.configured", "Region '${description.region}' not configured"
     }
 

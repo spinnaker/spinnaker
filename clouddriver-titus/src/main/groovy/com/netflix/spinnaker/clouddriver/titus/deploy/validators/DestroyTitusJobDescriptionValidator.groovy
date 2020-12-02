@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component
 @TitusOperation(AtomicOperations.DESTROY_JOB)
 class DestroyTitusJobDescriptionValidator extends AbstractTitusDescriptionValidatorSupport<DestroyTitusJobDescription> {
 
-  DestroyTitusJobDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
-    super(accountCredentialsProvider, "destroyTitusJobDescription")
+  DestroyTitusJobDescriptionValidator() {
+    super("destroyTitusJobDescription")
   }
 
   @Override
@@ -40,9 +40,7 @@ class DestroyTitusJobDescriptionValidator extends AbstractTitusDescriptionValida
     if (!description.region) {
       errors.rejectValue "region", "destroyTitusJobDescription.region.empty"
     }
-
-    def credentials = getAccountCredentials(description?.credentials?.name)
-    if (credentials && !((NetflixTitusCredentials) credentials).regions.name.contains(description.region)) {
+    if (description?.credentials && !((NetflixTitusCredentials) description?.credentials).regions.name.contains(description.region)) {
       errors.rejectValue "region", "destroyTitusJobDescription.region.not.configured", description.region, "Region not configured"
     }
 

@@ -25,11 +25,9 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.description.AbstractTitusC
 
 abstract class AbstractTitusDescriptionValidatorSupport<T extends AbstractTitusCredentialsDescription> extends DescriptionValidator<T> {
 
-  private final AccountCredentialsProvider accountCredentialsProvider
   private final String descriptionName
 
-  AbstractTitusDescriptionValidatorSupport(AccountCredentialsProvider accountCredentialsProvider, String descriptionName) {
-    this.accountCredentialsProvider = accountCredentialsProvider
+  AbstractTitusDescriptionValidatorSupport(String descriptionName) {
     this.descriptionName = descriptionName
   }
 
@@ -38,17 +36,11 @@ abstract class AbstractTitusDescriptionValidatorSupport<T extends AbstractTitusC
     if (!description.credentials) {
       errors.rejectValue "credentials", "${descriptionName}.credentials.empty"
     } else {
-      def credentials = getAccountCredentials(description?.credentials?.name)
-      if (!(credentials instanceof NetflixTitusCredentials)) {
+      if (!(description?.credentials instanceof NetflixTitusCredentials)) {
         errors.rejectValue("credentials", "${descriptionName}.credentials.invalid")
       }
     }
   }
-
-  AccountCredentials getAccountCredentials(String accountName) {
-    accountCredentialsProvider.getCredentials(accountName)
-  }
-
 
   static <T> void validateRegion(T description, String regionName, String errorKey, ValidationErrors errors) {
     validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
