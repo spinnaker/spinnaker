@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -136,12 +137,30 @@ class SecurityGroupLookupFactory {
           try {
             amazonEC2.createTags(createTagRequest)
           } catch (Exception e) {
-            log.info("Unable to tag newly created security group '${description.name}, reason: ${e.getMessage()}")
+            log.warn("Unable to tag newly created security group '${description.name}', reason: ${e.getMessage()}")
+            throw e
           }
+
+          log.info("Succesfully tagged newly created security group '${description.name}'")
+
+          try {
+            def describeSecurityGroupsRequest = new DescribeSecurityGroupsRequest().withFilters(
+              new Filter("group-name", [description.name])
+            )
+            def securityGroups = amazonEC2.describeSecurityGroups(describeSecurityGroupsRequest).securityGroups
+            if (!securityGroups) {
+              throw new IntegrationException("Not Found!").setRetryable(true)
+            }
+          } catch (Exception e) {
+            log.warn("Unable to describe newly created security group '${description.name}', reason: ${e.getMessage()}")
+            throw e
+          }
+
+          log.info("Succesfully described newly created security group '${description.name}'")
         }, 15, 3000, false);
       } catch (Exception e) {
         log.error(
-          "Unable to tag newly created security group (groupName: {}, groupId: {}, accountId: {})",
+          "Unable to tag or describe newly created security group (groupName: {}, groupId: {}, accountId: {})",
           description.name,
           result.groupId,
           credentials.accountId,
