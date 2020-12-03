@@ -342,10 +342,10 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     '$stateParams',
     function ($scope, $stateParams) {
       const restartStage = function () {
-        return API.one('pipelines')
-          .one($stateParams.executionId)
-          .one('stages', $scope.stage.id)
-          .one('restart')
+        return API.path('pipelines')
+          .path($stateParams.executionId)
+          .path('stages', $scope.stage.id)
+          .path('restart')
           .data({ skip: false })
           .put()
           .then(function () {

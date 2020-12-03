@@ -1,5 +1,3 @@
-
-
 import { $log } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -7,18 +5,18 @@ import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
   public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {
-    return API.one('applications')
-      .one(serverGroup.app)
-      .all('clusters')
-      .all(serverGroup.account)
-      .all(serverGroup.cluster)
-      .one('serverGroups', serverGroup.name)
-      .all('scalingActivities')
-      .withParams({
+    return API.path('applications')
+      .path(serverGroup.app)
+      .path('clusters')
+      .path(serverGroup.account)
+      .path(serverGroup.cluster)
+      .path('serverGroups', serverGroup.name)
+      .path('scalingActivities')
+      .query({
         region: serverGroup.region,
         provider: serverGroup.cloudProvider,
       })
-      .getList()
+      .get()
       .catch((error: any): any[] => {
         $log.error(error, 'error retrieving scaling activities');
         return [];
@@ -31,13 +29,13 @@ export class ServerGroupReader {
     region: string,
     serverGroupName: string,
   ): PromiseLike<IServerGroup> {
-    return API.one('applications')
-      .one(application)
-      .all('serverGroups')
-      .all(account)
-      .all(region)
-      .one(serverGroupName)
-      .withParams({ includeDetails: 'false' })
+    return API.path('applications')
+      .path(application)
+      .path('serverGroups')
+      .path(account)
+      .path(region)
+      .path(serverGroupName)
+      .query({ includeDetails: 'false' })
       .get();
   }
 }

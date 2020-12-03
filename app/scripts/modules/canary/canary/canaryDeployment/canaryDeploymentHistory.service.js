@@ -11,7 +11,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE, []).facto
   'canaryDeploymentHistoryService',
   function () {
     function getAnalysisHistory(canaryDeploymentId) {
-      return API.one('canaryDeployments').one(canaryDeploymentId).all('canaryAnalysisHistory').getList();
+      return API.path('canaryDeployments').path(canaryDeploymentId).path('canaryAnalysisHistory').get();
     }
 
     return {

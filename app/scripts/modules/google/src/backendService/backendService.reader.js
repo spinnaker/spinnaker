@@ -17,9 +17,9 @@ module(GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER, []).factory('gceBackendServi
         return [];
       });
     } else {
-      return API.all('search')
+      return API.path('search')
         .useCache(InfrastructureCaches.get('backendServices'))
-        .getList({ q: '', type: 'backendServices', allowShortQuery: 'true' });
+        .get({ q: '', type: 'backendServices', allowShortQuery: 'true' });
     }
   }
 

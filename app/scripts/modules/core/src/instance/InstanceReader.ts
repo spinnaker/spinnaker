@@ -1,4 +1,3 @@
-
 import { API } from 'core/api/ApiService';
 import { IInstance } from 'core/domain';
 
@@ -14,7 +13,7 @@ export interface IInstanceMultiOutputLog {
 
 export class InstanceReader {
   public static getInstanceDetails(account: string, region: string, id: string): PromiseLike<IInstance> {
-    return API.one('instances').one(account).one(region).one(id).get();
+    return API.path('instances').path(account).path(region).path(id).get();
   }
 
   public static getConsoleOutput(
@@ -23,11 +22,11 @@ export class InstanceReader {
     id: string,
     cloudProvider: string,
   ): PromiseLike<IInstanceConsoleOutput> {
-    return API.one('instances')
-      .all(account)
-      .all(region)
-      .one(id, 'console')
-      .withParams({ provider: cloudProvider })
+    return API.path('instances')
+      .path(account)
+      .path(region)
+      .path(id, 'console')
+      .query({ provider: cloudProvider })
       .get();
   }
 }

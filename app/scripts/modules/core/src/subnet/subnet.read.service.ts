@@ -1,4 +1,3 @@
-
 import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
 
@@ -9,8 +8,8 @@ export class SubnetReader {
     if (this.cache) {
       return this.cache;
     }
-    this.cache = API.one('subnets')
-      .getList()
+    this.cache = API.path('subnets')
+      .get()
       .then((subnets: ISubnet[]) => {
         subnets.forEach((subnet: ISubnet) => {
           subnet.label = subnet.purpose;
@@ -25,7 +24,7 @@ export class SubnetReader {
   }
 
   public static listSubnetsByProvider(cloudProvider: string): PromiseLike<ISubnet[]> {
-    return API.one('subnets', cloudProvider).getList();
+    return API.path('subnets', cloudProvider).get();
   }
 
   public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): PromiseLike<ISubnet> {

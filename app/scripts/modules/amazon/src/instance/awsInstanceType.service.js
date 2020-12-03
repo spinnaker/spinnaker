@@ -286,7 +286,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
     }
 
     const getAllTypesByRegion = function getAllTypesByRegion() {
-      return API.one('instanceTypes')
+      return API.path('instanceTypes')
         .get()
         .then(function (types) {
           return _.chain(types)

@@ -210,9 +210,9 @@ module(WEBHOOK_STAGE, [])
     });
   })
   .run(() => {
-    API.one('webhooks')
-      .all('preconfigured')
-      .getList()
+    API.path('webhooks')
+      .path('preconfigured')
+      .get()
       .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
         preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>
           Registry.pipeline.registerStage({

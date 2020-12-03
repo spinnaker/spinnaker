@@ -4,8 +4,8 @@ import { ICloudFoundryCluster } from 'cloudfoundry/domain';
 
 export class CloudFoundryImageReader {
   public static findImages(account: string): PromiseLike<ICloudFoundryCluster[]> {
-    return API.one('images', 'find')
-      .withParams({
+    return API.path('images', 'find')
+      .query({
         account,
         provider: 'cloudfoundry',
       })

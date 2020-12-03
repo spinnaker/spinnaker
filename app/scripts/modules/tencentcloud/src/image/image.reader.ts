@@ -1,4 +1,3 @@
-
 import { $q } from 'ngimport';
 
 import { API } from '@spinnaker/core';
@@ -37,18 +36,18 @@ export class TencentcloudImageReader {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
-    return API.one('images', 'find')
-      .withParams({ ...params, provider: 'tencentcloud' })
+    return API.path('images', 'find')
+      .query({ ...params, provider: 'tencentcloud' })
       .get()
       .catch(() => [] as ITencentcloudImage[]);
   }
 
   public getImage(name: string, region: string, credentials: string): PromiseLike<ITencentcloudImage> {
-    return API.one('images')
-      .one(credentials)
-      .one(region)
-      .one(name)
-      .withParams({ provider: 'tencentcloud' })
+    return API.path('images')
+      .path(credentials)
+      .path(region)
+      .path(name)
+      .query({ provider: 'tencentcloud' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))
       .catch(() => null as ITencentcloudImage);

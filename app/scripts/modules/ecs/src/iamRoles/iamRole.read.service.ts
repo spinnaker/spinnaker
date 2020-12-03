@@ -5,7 +5,7 @@ import { IRoleDescriptor } from './IRole';
 
 export class IamRoleReader {
   public listRoles(provider: string): PromiseLike<IRoleDescriptor[]> {
-    return API.all('roles').all(provider).getList();
+    return API.path('roles').path(provider).get();
   }
 }
 

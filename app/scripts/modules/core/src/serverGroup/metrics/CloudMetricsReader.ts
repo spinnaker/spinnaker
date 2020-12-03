@@ -8,7 +8,7 @@ export class CloudMetricsReader {
     region: string,
     filters: any,
   ): PromiseLike<ICloudMetricDescriptor[]> {
-    return API.all('cloudMetrics').all(provider).all(account).all(region).withParams(filters).getList();
+    return API.path('cloudMetrics').path(provider).path(account).path(region).query(filters).get();
   }
 
   public static getMetricStatistics(
@@ -18,12 +18,12 @@ export class CloudMetricsReader {
     name: string,
     filters: any,
   ): PromiseLike<ICloudMetricStatistics> {
-    return API.all('cloudMetrics')
-      .all(provider)
-      .all(account)
-      .all(region)
-      .one(name, 'statistics')
-      .withParams(filters)
+    return API.path('cloudMetrics')
+      .path(provider)
+      .path(account)
+      .path(region)
+      .path(name, 'statistics')
+      .query(filters)
       .get();
   }
 }

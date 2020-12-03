@@ -1,5 +1,3 @@
-
-
 import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -18,9 +16,9 @@ import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
   public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {
-    return API.one('tags')
-      .withParams({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
-      .getList()
+    return API.path('tags')
+      .query({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
+      .get()
       .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
   }
 
@@ -148,12 +146,12 @@ export class EntityTagsReader {
     if (!entityId) {
       return $q.when([]);
     }
-    return API.one('tags')
-      .withParams({
+    return API.path('tags')
+      .query({
         entityType: entityType.toLowerCase(),
         entityId,
       })
-      .getList()
+      .get()
       .then((entityTagGroups: IEntityTags[]) => {
         return this.flattenTagsAndAddMetadata(entityTagGroups);
       })

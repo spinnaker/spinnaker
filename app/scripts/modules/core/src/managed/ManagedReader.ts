@@ -81,24 +81,24 @@ export class ManagedReader {
   }
 
   public static getApplicationSummary(app: string): PromiseLike<IManagedApplicationSummary<'resources'>> {
-    return API.one('managed')
-      .one('application', app)
-      .withParams({ entities: 'resources' })
+    return API.path('managed')
+      .path('application', app)
+      .query({ entities: 'resources' })
       .get()
       .then(this.decorateResources);
   }
 
   public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationSummary> {
-    return API.one('managed')
-      .one('application', app)
-      .withParams({ entities: ['resources', 'artifacts', 'environments'], maxArtifactVersions: 30 })
+    return API.path('managed')
+      .path('application', app)
+      .query({ entities: ['resources', 'artifacts', 'environments'], maxArtifactVersions: 30 })
       .get()
       .then(this.decorateResources);
   }
 
   public static getResourceHistory(resourceId: string): PromiseLike<IManagedResourceEventHistory> {
-    return API.one('history', resourceId)
-      .withParams({ limit: 100 })
+    return API.path('history', resourceId)
+      .query({ limit: 100 })
       .get()
       .then((response: IManagedResourceEventHistoryResponse) => {
         response.forEach((event) => {

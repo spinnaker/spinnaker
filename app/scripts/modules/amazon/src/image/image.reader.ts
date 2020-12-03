@@ -26,18 +26,18 @@ export class AwsImageReader {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
-    return API.one('images', 'find')
-      .withParams(params)
+    return API.path('images', 'find')
+      .query(params)
       .get()
       .catch(() => [] as IAmazonImage[]);
   }
 
   public getImage(amiName: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
-    return API.one('images')
-      .one(credentials)
-      .one(region)
-      .one(amiName)
-      .withParams({ provider: 'aws' })
+    return API.path('images')
+      .path(credentials)
+      .path(region)
+      .path(amiName)
+      .query({ provider: 'aws' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))
       .catch(() => null as IAmazonImage);

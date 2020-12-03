@@ -1,5 +1,3 @@
-
-
 import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -10,7 +8,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.one('auth').one('user').one('serviceAccounts').get();
+      return API.path('auth').path('user').path('serviceAccounts').get();
     }
   }
 
@@ -18,7 +16,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.one('auth').one('user').one('serviceAccounts').withParams({ application: application }).get();
+      return API.path('auth').path('user').path('serviceAccounts').query({ application: application }).get();
     }
   }
 }

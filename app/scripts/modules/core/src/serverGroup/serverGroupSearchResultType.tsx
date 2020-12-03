@@ -58,8 +58,8 @@ const makeServerGroupTuples = (sgToFetch: IServerGroupSearchResult[], fetched: I
 };
 
 const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> => {
-  const fetchPromise = API.one('serverGroups')
-    .withParams({ ids: toFetch.map((sg) => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
+  const fetchPromise = API.path('serverGroups')
+    .query({ ids: toFetch.map((sg) => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
     .get()
     .then((fetched: IServerGroup[]) => makeServerGroupTuples(toFetch, fetched));
 

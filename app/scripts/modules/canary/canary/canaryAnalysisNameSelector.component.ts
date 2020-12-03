@@ -8,9 +8,9 @@ class CanaryAnalysisNameSelectorController implements IController {
 
   public $onInit(): void {
     this.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
-    API.one('canaryConfig')
-      .all('names')
-      .getList()
+    API.path('canaryConfig')
+      .path('names')
+      .get()
       .then((results: string[]) => (this.nameList = results.sort()))
       .catch(() => {
         this.nameList = [];

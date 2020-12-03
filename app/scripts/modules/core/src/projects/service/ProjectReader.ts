@@ -3,14 +3,14 @@ import { IProject, IProjectCluster } from 'core/domain';
 
 export class ProjectReader {
   public static listProjects(): PromiseLike<IProject[]> {
-    return API.all('projects').getList();
+    return API.path('projects').get();
   }
 
   public static getProjectConfig(projectName: string): PromiseLike<IProject> {
-    return API.one('projects', projectName).get();
+    return API.path('projects', projectName).get();
   }
 
   public static getProjectClusters(projectName: string): PromiseLike<IProjectCluster[]> {
-    return API.one('projects', projectName).all('clusters').getList();
+    return API.path('projects', projectName).path('clusters').get();
   }
 }

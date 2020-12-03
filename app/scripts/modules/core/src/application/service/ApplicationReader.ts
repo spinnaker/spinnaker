@@ -24,12 +24,12 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
   public static listApplications(): PromiseLike<IApplicationSummary[]> {
-    return API.all('applications').useCache().getList();
+    return API.path('applications').useCache().get();
   }
 
   public static getApplicationAttributes(name: string): PromiseLike<any> {
-    return API.one('applications', name)
-      .withParams({ expand: false })
+    return API.path('applications', name)
+      .query({ expand: false })
       .get()
       .then((fromServer: Application) => {
         this.splitAttributes(fromServer.attributes, ['accounts', 'cloudProviders']);
@@ -49,8 +49,8 @@ export class ApplicationReader {
   }
 
   public static getApplication(name: string, expand = true): PromiseLike<Application> {
-    return API.one('applications', name)
-      .withParams({ expand: expand })
+    return API.path('applications', name)
+      .query({ expand: expand })
       .get()
       .then((fromServer: Application) => {
         const configs = ApplicationDataSourceRegistry.getDataSources();

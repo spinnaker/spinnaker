@@ -24,10 +24,10 @@ export interface IOnCall {
 
 export class PagerDutyReader {
   public static listServices(): Observable<IPagerDutyService[]> {
-    return Observable.fromPromise(API.one('pagerDuty', 'services').getList());
+    return Observable.fromPromise(API.path('pagerDuty', 'services').get());
   }
 
   public static listOnCalls(): Observable<{ [id: string]: IOnCall[] }> {
-    return Observable.fromPromise(API.one('pagerDuty', 'oncalls').getList());
+    return Observable.fromPromise(API.path('pagerDuty', 'oncalls').get());
   }
 }

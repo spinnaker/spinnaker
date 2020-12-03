@@ -300,7 +300,7 @@ export class SecurityGroupReader {
     if (cached) {
       return this.$q.resolve(this.decompress(cloneDeep(cached)));
     }
-    return API.one('securityGroups')
+    return API.path('securityGroups')
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
         if (cache) {
@@ -391,11 +391,11 @@ export class SecurityGroupReader {
     vpcId: string,
     id: string,
   ): PromiseLike<ISecurityGroupDetail> {
-    return API.one('securityGroups')
-      .one(account)
-      .one(region)
-      .one(id)
-      .withParams({ provider, vpcId })
+    return API.path('securityGroups')
+      .path(account)
+      .path(region)
+      .path(id)
+      .query({ provider, vpcId })
       .get()
       .then((details: ISecurityGroupDetail) => {
         if (details && details.inboundRules) {

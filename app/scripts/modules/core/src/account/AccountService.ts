@@ -65,7 +65,7 @@ export class AccountService {
 
   public static initialize(): void {
     this.accounts$ = Observable.defer(() => {
-      const promise = API.one('credentials').useCache().withParams({ expand: true }).get();
+      const promise = API.path('credentials').useCache().query({ expand: true }).get();
       return Observable.fromPromise<IAccountDetails[]>(promise);
     })
       .publishReplay(1)
@@ -96,7 +96,7 @@ export class AccountService {
   }
 
   public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
-    return API.one('artifacts').one('credentials').useCache().get();
+    return API.path('artifacts').path('credentials').useCache().get();
   }
 
   public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {
@@ -202,7 +202,11 @@ export class AccountService {
     return $q.when(this.listProviders$(application).toPromise());
   }
 
-  public static getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): PromiseLike<string> {
+  public static getAccountForInstance(
+    cloudProvider: string,
+    instanceId: string,
+    app: Application,
+  ): PromiseLike<string> {
     return app.ready().then(() => {
       const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
       const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];

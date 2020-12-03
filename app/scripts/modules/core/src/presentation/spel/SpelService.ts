@@ -20,11 +20,11 @@ interface IServerSideEvaluatedExpression {
 export class SpelService {
   /** Evaluates a spel expression on the server against a previous executionId and stageId */
   public static evaluateExpression(expression: string, executionId: string, stageId: string) {
-    return API.all('pipelines')
-      .one(executionId)
-      .one(stageId)
-      .one('evaluateExpression')
-      .withParams({ expression })
+    return API.path('pipelines')
+      .path(executionId)
+      .path(stageId)
+      .path('evaluateExpression')
+      .query({ expression })
       .get()
       .then((result: IServerSideEvaluatedExpression) => {
         const errors = result.detail || {};

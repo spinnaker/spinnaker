@@ -1,4 +1,3 @@
-
 import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -13,7 +12,7 @@ export enum BuildServiceType {
 
 export class IgorService {
   public static listMasters(buildType: BuildServiceType = null): PromiseLike<string[]> {
-    const allMasters: PromiseLike<string[]> = API.one('v2').one('builds').withParams({ type: buildType }).get();
+    const allMasters: PromiseLike<string[]> = API.path('v2').path('builds').query({ type: buildType }).get();
     if (!allMasters) {
       return $q.reject('An error occurred when retrieving build masters');
     }
@@ -30,30 +29,30 @@ export class IgorService {
   }
 
   public static listJobsForMaster(master: string): PromiseLike<string[]> {
-    return API.one('v2').one('builds').one(master).one('jobs').get();
+    return API.path('v2').path('builds').path(master).path('jobs').get();
   }
 
   public static listBuildsForJob(master: string, job: string): PromiseLike<IBuild[]> {
-    return API.one('v2').one('builds').one(master).one('builds').one(job).get();
+    return API.path('v2').path('builds').path(master).path('builds').path(job).get();
   }
 
   public static getJobConfig(master: string, job: string): PromiseLike<IJobConfig> {
-    return API.one('v2').one('builds').one(master).one('jobs').one(job).get();
+    return API.path('v2').path('builds').path(master).path('jobs').path(job).get();
   }
 
   public static getGcbAccounts(): PromiseLike<string[]> {
-    return API.one('gcb').one('accounts').get();
+    return API.path('gcb').path('accounts').get();
   }
 
   public static getGcbTriggers(account: string): PromiseLike<IGcbTrigger[]> {
-    return API.one('gcb').one('triggers').one(account).get();
+    return API.path('gcb').path('triggers').path(account).get();
   }
 
   public static getCodeBuildAccounts(): PromiseLike<string[]> {
-    return API.one('codebuild').one('accounts').get();
+    return API.path('codebuild').path('accounts').get();
   }
 
   public static getCodeBuildProjects(account: string): PromiseLike<string[]> {
-    return API.one('codebuild').one('projects').one(account).get();
+    return API.path('codebuild').path('projects').path(account).get();
   }
 }

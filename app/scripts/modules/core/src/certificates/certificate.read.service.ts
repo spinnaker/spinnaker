@@ -1,5 +1,3 @@
-
-
 import { API } from 'core/api/ApiService';
 
 export interface ICertificate {
@@ -12,10 +10,10 @@ export interface ICertificate {
 
 export class CertificateReader {
   public static listCertificates(): PromiseLike<ICertificate[]> {
-    return API.one('certificates').getList();
+    return API.path('certificates').get();
   }
 
   public static listCertificatesByProvider(cloudProvider: string): PromiseLike<ICertificate[]> {
-    return API.one('certificates').one(cloudProvider).getList();
+    return API.path('certificates').path(cloudProvider).get();
   }
 }

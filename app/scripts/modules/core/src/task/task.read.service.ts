@@ -9,9 +9,9 @@ export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
   public static getTasks(applicationName: string, statuses: string[] = []): PromiseLike<ITask[]> {
-    return API.one('applications', applicationName)
-      .all('tasks')
-      .getList({ statuses: statuses.join(',') })
+    return API.path('applications', applicationName)
+      .path('tasks')
+      .get({ statuses: statuses.join(',') })
       .then((tasks: ITask[]) => {
         tasks.forEach((task) => this.setTaskProperties(task));
         return tasks.filter((task) => !task.getValueFor('dryRun'));
@@ -23,7 +23,7 @@ export class TaskReader {
   }
 
   public static getTask(taskId: string): PromiseLike<ITask> {
-    return API.one('tasks', taskId)
+    return API.path('tasks', taskId)
       .get()
       .then((task: ITask) => {
         this.setTaskProperties(task);

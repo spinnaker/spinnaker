@@ -1,5 +1,3 @@
-
-
 import { API } from 'core/api';
 
 export interface IDeploymentMonitorDefinition {
@@ -10,6 +8,6 @@ export interface IDeploymentMonitorDefinition {
 
 export class DeploymentMonitorReader {
   public static getDeploymentMonitors(): PromiseLike<IDeploymentMonitorDefinition[]> {
-    return API.all('capabilities').all('deploymentMonitors').useCache(true).get();
+    return API.path('capabilities').path('deploymentMonitors').useCache(true).get();
   }
 }

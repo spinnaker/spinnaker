@@ -51,10 +51,10 @@ export class ExecutionService {
   ): PromiseLike<IExecution[]> {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
-      ? API.all('executions').getList({ limit, pipelineConfigIds, statuses })
-      : API.one('applications', applicationName)
-          .all('pipelines')
-          .getList({ limit, statuses: statusString, pipelineConfigIds, expand });
+      ? API.path('executions').get({ limit, pipelineConfigIds, statuses })
+      : API.path('applications', applicationName)
+          .path('pipelines')
+          .get({ limit, statuses: statusString, pipelineConfigIds, expand });
 
     return call.then((data: IExecution[]) => {
       if (data) {
@@ -95,14 +95,14 @@ export class ExecutionService {
   }
 
   public getExecution(executionId: string): PromiseLike<IExecution> {
-    return API.one('pipelines', executionId)
+    return API.path('pipelines', executionId)
       .get()
       .then((execution: IExecution) => {
         const { application, name } = execution;
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
-          return API.one('applications', application, 'pipelineConfigs', encodeURIComponent(name))
+          return API.path('applications', application, 'pipelineConfigs', encodeURIComponent(name))
             .get()
             .then((pipelineConfig: IPipeline) => {
               execution.pipelineConfig = pipelineConfig;
@@ -311,9 +311,9 @@ export class ExecutionService {
   }
 
   public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
-    return API.one('projects', project)
-      .all('pipelines')
-      .getList({ limit })
+    return API.path('projects', project)
+      .path('pipelines')
+      .get({ limit })
       .then((executions: IExecution[]) => {
         if (!executions || !executions.length) {
           return [];
@@ -502,8 +502,8 @@ export class ExecutionService {
     options: { limit?: number; statuses?: string; transform?: boolean; application?: Application } = {},
   ): PromiseLike<IExecution[]> {
     const { limit, statuses, transform, application } = options;
-    return API.all('executions')
-      .getList({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
+    return API.path('executions')
+      .get({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
       .then((data: IExecution[]) => {
         if (data) {
           if (transform && application) {

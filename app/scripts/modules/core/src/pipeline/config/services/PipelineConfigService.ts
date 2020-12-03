@@ -1,4 +1,3 @@
-
 import { sortBy, uniq, cloneDeep } from 'lodash';
 import { $q } from 'ngimport';
 
@@ -21,10 +20,10 @@ export class PipelineConfigService {
   }
 
   public static getPipelinesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return API.one('applications')
-      .one(applicationName)
-      .all('pipelineConfigs')
-      .getList()
+    return API.path('applications')
+      .path(applicationName)
+      .path('pipelineConfigs')
+      .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
         return this.sortPipelines(pipelines);
@@ -32,10 +31,10 @@ export class PipelineConfigService {
   }
 
   public static getStrategiesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return API.one('applications')
-      .one(applicationName)
-      .all('strategyConfigs')
-      .getList()
+    return API.path('applications')
+      .path(applicationName)
+      .path('strategyConfigs')
+      .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
         return this.sortPipelines(pipelines);
@@ -44,13 +43,13 @@ export class PipelineConfigService {
 
   public static getHistory(id: string, isStrategy: boolean, count = 20): PromiseLike<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
-    return API.one(endpoint, id).all('history').withParams({ limit: count }).getList();
+    return API.path(endpoint, id).path('history').query({ limit: count }).get();
   }
 
   public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): PromiseLike<void> {
-    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
-      .one(applicationName, encodeURIComponent(pipelineName.trim()))
-      .remove();
+    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
+      .path(applicationName, encodeURIComponent(pipelineName.trim()))
+      .delete();
   }
 
   public static savePipeline(toSave: IPipeline): PromiseLike<void> {
@@ -69,7 +68,7 @@ export class PipelineConfigService {
       pipeline = PipelineTemplateV2Service.filterInheritedConfig(pipeline) as IPipeline;
     }
 
-    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
+    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
       .data(pipeline)
       .post();
   }
@@ -80,7 +79,7 @@ export class PipelineConfigService {
     isStrategy = false,
   ): PromiseLike<void> {
     const type = isStrategy ? 'strategies' : 'pipelines';
-    return API.one('actions', type, 'reorder')
+    return API.path('actions', type, 'reorder')
       .data({
         application,
         idsToIndices,
@@ -96,18 +95,18 @@ export class PipelineConfigService {
   ): PromiseLike<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName.trim();
-    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
-      .one(pipeline.id)
+    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
+      .path(pipeline.id)
       .data(pipeline)
       .put();
   }
 
   public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
-    return API.one('pipelines')
-      .one('v2')
-      .one(applicationName)
-      .one(encodeURIComponent(pipelineName))
+    return API.path('pipelines')
+      .path('v2')
+      .path(applicationName)
+      .path(encodeURIComponent(pipelineName))
       .data(body)
       .post()
       .then((result: ITriggerPipelineResponse) => {
