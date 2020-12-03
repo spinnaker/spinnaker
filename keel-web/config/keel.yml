@@ -1,3 +1,6 @@
+spinnaker:
+  baseUrl: www.spinnaker.com # the user facing url for deck goes her for creating contextual links
+
 eureka:
   enabled: false
 
