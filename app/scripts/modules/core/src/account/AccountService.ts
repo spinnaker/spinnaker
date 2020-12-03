@@ -4,7 +4,7 @@ import { $log, $q } from 'ngimport';
 import { Observable } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from 'core/config/settings';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
@@ -65,7 +65,7 @@ export class AccountService {
 
   public static initialize(): void {
     this.accounts$ = Observable.defer(() => {
-      const promise = API.path('credentials').useCache().query({ expand: true }).get();
+      const promise = REST().path('credentials').useCache().query({ expand: true }).get();
       return Observable.fromPromise<IAccountDetails[]>(promise);
     })
       .publishReplay(1)
@@ -96,7 +96,7 @@ export class AccountService {
   }
 
   public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
-    return API.path('artifacts', 'credentials').useCache().get();
+    return REST().path('artifacts', 'credentials').useCache().get();
   }
 
   public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {

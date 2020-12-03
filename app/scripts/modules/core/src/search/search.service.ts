@@ -1,7 +1,7 @@
 import { IHttpPromiseCallbackArg } from 'angular';
 import { $log } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { ICache } from 'core/cache';
 
 export interface ISearchParams {
@@ -49,7 +49,7 @@ export class SearchService {
 
     const params = { ...searchParams, ...defaultParams };
 
-    let requestBuilder = API.path('search').query(params);
+    let requestBuilder = REST().path('search').query(params);
 
     if (cache) {
       requestBuilder = requestBuilder.useCache(cache);

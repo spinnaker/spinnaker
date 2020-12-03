@@ -3,7 +3,7 @@ import { get, has } from 'lodash';
 import { $q } from 'ngimport';
 
 import { AccountService } from 'core/account/AccountService';
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 export interface IBaseImage {
@@ -36,7 +36,7 @@ export class BakeryReader {
   }
 
   private static getAllBaseOsOptions(): PromiseLike<IBaseOsOptions[]> {
-    return API.path('bakery', 'options').useCache().get();
+    return REST().path('bakery', 'options').useCache().get();
   }
 
   public static getBaseLabelOptions(): PromiseLike<string[]> {

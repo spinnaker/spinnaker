@@ -1,6 +1,6 @@
 import { $q } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 export class ServiceAccountReader {
@@ -8,7 +8,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.path('auth', 'user', 'serviceAccounts').get();
+      return REST().path('auth', 'user', 'serviceAccounts').get();
     }
   }
 
@@ -16,7 +16,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.path('auth', 'user', 'serviceAccounts').query({ application: application }).get();
+      return REST().path('auth', 'user', 'serviceAccounts').query({ application: application }).get();
     }
   }
 }

@@ -1,7 +1,7 @@
 import { filter, forOwn, has, uniq } from 'lodash';
 import { module, ILogService, IQService } from 'angular';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { IComponentName, NameUtils } from 'core/naming';
 import { InfrastructureCaches } from 'core/cache';
 import { Application } from 'core/application/application.model';
@@ -300,7 +300,8 @@ export class SecurityGroupReader {
     if (cached) {
       return this.$q.resolve(this.decompress(cloneDeep(cached)));
     }
-    return API.path('securityGroups')
+    return REST()
+      .path('securityGroups')
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
         if (cache) {
@@ -391,7 +392,8 @@ export class SecurityGroupReader {
     vpcId: string,
     id: string,
   ): PromiseLike<ISecurityGroupDetail> {
-    return API.path('securityGroups', account, region, id)
+    return REST()
+      .path('securityGroups', account, region, id)
       .query({ provider, vpcId })
       .get()
       .then((details: ISecurityGroupDetail) => {

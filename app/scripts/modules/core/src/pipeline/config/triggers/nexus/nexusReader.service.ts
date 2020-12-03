@@ -1,7 +1,7 @@
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 
 export class NexusReaderService {
   public static getNexusNames(): PromiseLike<string[]> {
-    return API.path('nexus', 'names').get();
+    return REST().path('nexus', 'names').get();
   }
 }

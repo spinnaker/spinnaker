@@ -1,7 +1,7 @@
 import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { JsonUtils } from 'core/utils';
 import { Registry } from 'core/registry';
 
@@ -210,7 +210,8 @@ module(WEBHOOK_STAGE, [])
     });
   })
   .run(() => {
-    API.path('webhooks', 'preconfigured')
+    REST()
+      .path('webhooks', 'preconfigured')
       .get()
       .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
         preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>

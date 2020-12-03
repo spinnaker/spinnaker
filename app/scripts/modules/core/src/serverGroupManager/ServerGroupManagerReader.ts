@@ -1,9 +1,9 @@
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 
 import { IServerGroupManager } from 'core/domain/IServerGroupManager';
 
 export class ServerGroupManagerReader {
   public static getServerGroupManagersForApplication(application: string): PromiseLike<IServerGroupManager[]> {
-    return API.path('applications', application, 'serverGroupManagers').get();
+    return REST().path('applications', application, 'serverGroupManagers').get();
   }
 }

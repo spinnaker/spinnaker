@@ -4,7 +4,7 @@ import { Form } from 'formik';
 import { flatten, isEmpty } from 'lodash';
 import { Option } from 'react-select';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { ModalClose } from 'core/modal';
@@ -45,7 +45,8 @@ export function CopyStageModal(props: ICopyStageModalProps) {
   function getStagesForApplication(applicationName: string): PromiseLike<ICopyStageCardProps[]> {
     const configType = forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
-    return API.path('applications', applicationName, configType)
+    return REST()
+      .path('applications', applicationName, configType)
       .get()
       .then((configs: Array<IPipeline | IStrategy>) => {
         const nestedStageWrappers = configs.map((config) => {

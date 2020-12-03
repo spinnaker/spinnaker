@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { IFunctionSourceData } from 'core/domain';
 import { CORE_FUNCTION_FUNCTION_TRANSFORMER, IFunctionTransformer } from './function.transformer';
 
@@ -21,7 +21,8 @@ export class FunctionReader {
   public constructor(private functionTransformer: IFunctionTransformer) {}
 
   public loadFunctions(applicationName: string): PromiseLike<IFunctionSourceData[]> {
-    return API.path('applications', applicationName, 'functions')
+    return REST()
+      .path('applications', applicationName, 'functions')
       .get()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
@@ -35,7 +36,8 @@ export class FunctionReader {
     region: string,
     name: string,
   ): PromiseLike<IFunctionSourceData[]> {
-    return API.path('functions')
+    return REST()
+      .path('functions')
       .query({ provider: cloudProvider, functionName: name, region: region, account: account })
       .get()
       .then((functions: IFunctionSourceData[]) => {
@@ -45,7 +47,7 @@ export class FunctionReader {
   }
 
   public listFunctions(cloudProvider: string): PromiseLike<IFunctionByAccount[]> {
-    return API.path('functions').query({ provider: cloudProvider }).get();
+    return REST().path('functions').query({ provider: cloudProvider }).get();
   }
 
   private normalizeFunction(functionDef: IFunctionSourceData): IFunctionSourceData {

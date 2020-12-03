@@ -1,6 +1,6 @@
 import { $q } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
 import { Application } from 'core/application/application.model';
 import {
@@ -16,7 +16,8 @@ import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
   public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {
-    return API.path('tags')
+    return REST()
+      .path('tags')
       .query({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
       .get()
       .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
@@ -146,7 +147,8 @@ export class EntityTagsReader {
     if (!entityId) {
       return $q.when([]);
     }
-    return API.path('tags')
+    return REST()
+      .path('tags')
       .query({
         entityType: entityType.toLowerCase(),
         entityId,

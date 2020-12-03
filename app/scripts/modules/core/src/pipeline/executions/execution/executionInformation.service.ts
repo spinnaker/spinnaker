@@ -1,4 +1,4 @@
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { ExecutionsTransformer } from '../../service/ExecutionsTransformer';
 import { IExecution, IPipeline } from 'core/domain';
 
@@ -23,7 +23,8 @@ export class ExecutionInformationService {
       return this.calledExecutions[executionId];
     }
 
-    return API.path('pipelines', executionId)
+    return REST()
+      .path('pipelines', executionId)
       .get()
       .then((execution: IExecution) => {
         this.calledExecutions[executionId] = execution;
@@ -57,7 +58,8 @@ export class ExecutionInformationService {
       Promise.resolve(pipelineConfig);
     }
 
-    return API.path('applications', application, 'pipelineConfigs')
+    return REST()
+      .path('applications', application, 'pipelineConfigs')
       .get()
       .then((pipelineConfigs: IPipeline[]) => {
         // store for later

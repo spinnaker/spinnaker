@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { API, InfrastructureCaches } from '@spinnaker/core';
+import { REST, InfrastructureCaches } from '@spinnaker/core';
 
 export const GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER = 'spinnaker.deck.gce.backendService.reader.service';
 export const name = GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER; // for backwards compatibility
@@ -17,7 +17,8 @@ module(GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER, []).factory('gceBackendServi
         return [];
       });
     } else {
-      return API.path('search')
+      return REST()
+        .path('search')
         .useCache(InfrastructureCaches.get('backendServices'))
         .query({ q: '', type: 'backendServices', allowShortQuery: 'true' })
         .get();

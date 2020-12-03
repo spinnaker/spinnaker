@@ -1,11 +1,11 @@
 import { module } from 'angular';
 
-import { API } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 import { IMetricAlarmDescriptor } from './MetricAlarm';
 
 export class MetricAlarmReader {
   public listMetricAlarms(): PromiseLike<IMetricAlarmDescriptor[]> {
-    return API.path('ecs', 'cloudMetrics', 'alarms').get();
+    return REST().path('ecs', 'cloudMetrics', 'alarms').get();
   }
 }
 

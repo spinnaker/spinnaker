@@ -2,7 +2,7 @@ import { IQService, module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keys, values, keyBy } from 'lodash';
 
 import { ArtifactReferenceService } from 'core/artifact';
-import { API } from 'core/api';
+import { REST } from 'core/api';
 import { Application } from 'core/application';
 import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
@@ -35,7 +35,7 @@ export class ClusterService {
   public loadServerGroups(application: Application): PromiseLike<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
-      let serverGroupLoader = API.path('applications', application.name, 'serverGroups');
+      let serverGroupLoader = REST().path('applications', application.name, 'serverGroups');
       dataSource.fetchOnDemand = clusters.length > SETTINGS.onDemandClusterThreshold;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
@@ -223,7 +223,8 @@ export class ClusterService {
   }
 
   private getClusters(application: string): PromiseLike<IClusterSummary[]> {
-    return API.path('applications', application, 'clusters')
+    return REST()
+      .path('applications', application, 'clusters')
       .get()
       .then((clustersMap: { [account: string]: string[] }) => {
         const clusters: IClusterSummary[] = [];

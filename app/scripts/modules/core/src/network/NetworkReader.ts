@@ -1,4 +1,4 @@
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 
 export interface INetwork {
   cloudProvider: string;
@@ -11,10 +11,10 @@ export interface INetwork {
 
 export class NetworkReader {
   public static listNetworks(): PromiseLike<INetwork[]> {
-    return API.path('networks').get();
+    return REST().path('networks').get();
   }
 
   public static listNetworksByProvider(cloudProvider: string) {
-    return API.path('networks', cloudProvider).get();
+    return REST().path('networks', cloudProvider).get();
   }
 }

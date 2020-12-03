@@ -1,6 +1,6 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { API, SETTINGS } from '@spinnaker/core';
+import { REST, SETTINGS } from '@spinnaker/core';
 
 class CanaryAnalysisNameSelectorController implements IController {
   public nameList: string[] = [];
@@ -8,7 +8,8 @@ class CanaryAnalysisNameSelectorController implements IController {
 
   public $onInit(): void {
     this.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
-    API.path('canaryConfig', 'names')
+    REST()
+      .path('canaryConfig', 'names')
       .get()
       .then((results: string[]) => (this.nameList = results.sort()))
       .catch(() => {

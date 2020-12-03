@@ -1,11 +1,11 @@
 import { module } from 'angular';
 
-import { API } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 import { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EcsClusterReader {
   public listClusters(): PromiseLike<IEcsClusterDescriptor[]> {
-    return API.path('ecs', 'ecsClusters').get();
+    return REST().path('ecs', 'ecsClusters').get();
   }
 }
 

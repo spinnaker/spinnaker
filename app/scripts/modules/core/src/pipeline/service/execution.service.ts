@@ -2,7 +2,7 @@ import { IQService, ITimeoutService, module } from 'angular';
 import { get, identity, pickBy } from 'lodash';
 import { StateService } from '@uirouter/core';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
@@ -51,8 +51,9 @@ export class ExecutionService {
   ): PromiseLike<IExecution[]> {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
-      ? API.path('executions').query({ limit, pipelineConfigIds, statuses }).get()
-      : API.path('applications', applicationName, 'pipelines')
+      ? REST().path('executions').query({ limit, pipelineConfigIds, statuses }).get()
+      : REST()
+          .path('applications', applicationName, 'pipelines')
           .query({ limit, statuses: statusString, pipelineConfigIds, expand })
           .get();
 
@@ -95,14 +96,16 @@ export class ExecutionService {
   }
 
   public getExecution(executionId: string): PromiseLike<IExecution> {
-    return API.path('pipelines', executionId)
+    return REST()
+      .path('pipelines', executionId)
       .get()
       .then((execution: IExecution) => {
         const { application, name } = execution;
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
-          return API.path('applications', application, 'pipelineConfigs', encodeURIComponent(name))
+          return REST()
+            .path('applications', application, 'pipelineConfigs', encodeURIComponent(name))
             .get()
             .then((pipelineConfig: IPipeline) => {
               execution.pipelineConfig = pipelineConfig;
@@ -311,7 +314,8 @@ export class ExecutionService {
   }
 
   public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
-    return API.path('projects', project, 'pipelines')
+    return REST()
+      .path('projects', project, 'pipelines')
       .query({ limit })
       .get()
       .then((executions: IExecution[]) => {
@@ -502,7 +506,8 @@ export class ExecutionService {
     options: { limit?: number; statuses?: string; transform?: boolean; application?: Application } = {},
   ): PromiseLike<IExecution[]> {
     const { limit, statuses, transform, application } = options;
-    return API.path('executions')
+    return REST()
+      .path('executions')
       .query({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
       .get()
       .then((data: IExecution[]) => {

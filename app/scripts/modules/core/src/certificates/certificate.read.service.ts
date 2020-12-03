@@ -1,4 +1,4 @@
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 
 export interface ICertificate {
   expiration: number;
@@ -10,10 +10,10 @@ export interface ICertificate {
 
 export class CertificateReader {
   public static listCertificates(): PromiseLike<ICertificate[]> {
-    return API.path('certificates').get();
+    return REST().path('certificates').get();
   }
 
   public static listCertificatesByProvider(cloudProvider: string): PromiseLike<ICertificate[]> {
-    return API.path('certificates', cloudProvider).get();
+    return REST().path('certificates', cloudProvider).get();
   }
 }

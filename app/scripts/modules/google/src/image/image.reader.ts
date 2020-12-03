@@ -1,4 +1,4 @@
-import { API } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 
 export interface IGceImage {
   imageName: string;
@@ -6,7 +6,8 @@ export interface IGceImage {
 
 export class GceImageReader {
   public static findImages(params: { account?: string; provider?: string; q?: string }): PromiseLike<IGceImage[]> {
-    return API.path('images', 'find')
+    return REST()
+      .path('images', 'find')
       .query(params)
       .get()
       .catch(() => [] as IGceImage[]);

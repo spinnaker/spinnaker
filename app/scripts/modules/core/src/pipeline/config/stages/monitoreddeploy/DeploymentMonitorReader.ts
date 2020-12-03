@@ -1,4 +1,4 @@
-import { API } from 'core/api';
+import { REST } from 'core/api';
 
 export interface IDeploymentMonitorDefinition {
   id: string;
@@ -8,6 +8,6 @@ export interface IDeploymentMonitorDefinition {
 
 export class DeploymentMonitorReader {
   public static getDeploymentMonitors(): PromiseLike<IDeploymentMonitorDefinition[]> {
-    return API.path('capabilities', 'deploymentMonitors').useCache(true).get();
+    return REST().path('capabilities', 'deploymentMonitors').useCache(true).get();
   }
 }

@@ -1,7 +1,7 @@
 import { $log, $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
-import { API } from 'core/api/ApiService';
+import { REST } from 'core/api/ApiService';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { ITask } from 'core/domain';
 
@@ -9,7 +9,8 @@ export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
   public static getTasks(applicationName: string, statuses: string[] = []): PromiseLike<ITask[]> {
-    return API.path('applications', applicationName, 'tasks')
+    return REST()
+      .path('applications', applicationName, 'tasks')
       .query({ statuses: statuses.join(',') })
       .get()
       .then((tasks: ITask[]) => {
@@ -23,7 +24,8 @@ export class TaskReader {
   }
 
   public static getTask(taskId: string): PromiseLike<ITask> {
-    return API.path('tasks', taskId)
+    return REST()
+      .path('tasks', taskId)
       .get()
       .then((task: ITask) => {
         this.setTaskProperties(task);

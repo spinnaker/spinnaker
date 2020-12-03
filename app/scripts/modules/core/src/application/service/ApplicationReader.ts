@@ -1,4 +1,4 @@
-import { API } from 'core/api';
+import { REST } from 'core/api';
 import { SchedulerFactory } from 'core/scheduler';
 import { Application } from '../application.model';
 import { ApplicationDataSource } from '../service/applicationDataSource';
@@ -24,11 +24,12 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
   public static listApplications(): PromiseLike<IApplicationSummary[]> {
-    return API.path('applications').useCache().get();
+    return REST().path('applications').useCache().get();
   }
 
   public static getApplicationAttributes(name: string): PromiseLike<any> {
-    return API.path('applications', name)
+    return REST()
+      .path('applications', name)
       .query({ expand: false })
       .get()
       .then((fromServer: Application) => {
@@ -49,7 +50,8 @@ export class ApplicationReader {
   }
 
   public static getApplication(name: string, expand = true): PromiseLike<Application> {
-    return API.path('applications', name)
+    return REST()
+      .path('applications', name)
       .query({ expand: expand })
       .get()
       .then((fromServer: Application) => {

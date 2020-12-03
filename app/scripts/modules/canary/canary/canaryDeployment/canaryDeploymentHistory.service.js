@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { API } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 
 export const CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE =
   'spinnaker.canary.deployment.history.service';
@@ -11,7 +11,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE, []).facto
   'canaryDeploymentHistoryService',
   function () {
     function getAnalysisHistory(canaryDeploymentId) {
-      return API.path('canaryDeployments', canaryDeploymentId, 'canaryAnalysisHistory').get();
+      return REST().path('canaryDeployments', canaryDeploymentId, 'canaryAnalysisHistory').get();
     }
 
     return {
