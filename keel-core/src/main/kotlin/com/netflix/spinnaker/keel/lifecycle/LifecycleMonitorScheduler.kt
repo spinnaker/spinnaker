@@ -49,17 +49,12 @@ class LifecycleMonitorScheduler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   /**
-   * Listens for a not started event that a subclass can handle, and saves that into
+   * Listens for an event with monitor == true that a subclass can handle, and saves that into
    * the database for monitoring.
-   *
-   * //todo eb: add a 'monitor' flag to lifecycle events so we don't listen for a NOT_STARTED event here,
-   *   it's kind of confusing.
    */
   @EventListener(LifecycleEvent::class)
   fun onLifecycleEvent(event: LifecycleEvent) {
-    if (event.status == LifecycleEventStatus.NOT_STARTED
-      && monitors.any { it.handles(event.type) }
-      && event.link != null) {
+    if (event.startMonitoring && monitors.any { it.handles(event.type) } && event.link != null) {
       log.debug("${this.javaClass.simpleName} saving monitor event $event")
       monitorRepository.save(MonitoredTask(event, event.link))
     }

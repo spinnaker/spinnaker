@@ -21,6 +21,8 @@ import java.time.Instant
  *   the user.
  * [timestamp] is nullable so that the repository can insert the timestamp when
  *   the event is stored.
+ * [startMonitoring] true if this event is the first in the chain and needs to be monitored.
+ *    Follow up events should leave it set to false.
  * [data] contains any extra data needed for monitoring the event
  */
 data class LifecycleEvent(
@@ -33,6 +35,7 @@ data class LifecycleEvent(
   val text: String? = null,
   val link: String? = null,
   val timestamp: Instant? = null,
+  val startMonitoring: Boolean = false,
   val data: Map<String, Any?> = emptyMap()
 ) {
   fun toStep(): LifecycleStep =

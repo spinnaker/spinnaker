@@ -5,7 +5,9 @@ import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.FAILED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.UNKNOWN
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
@@ -82,6 +84,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
             publisher.publishEvent(capture(slot))
           }
           expectThat(slot.captured.status).isEqualTo(NOT_STARTED)
+          expectThat(slot.captured.startMonitoring).isEqualTo(false)
         }
       }
 
@@ -98,6 +101,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
             publisher.publishEvent(capture(slot))
           }
           expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.RUNNING)
+          expectThat(slot.captured.startMonitoring).isEqualTo(false)
         }
       }
 
@@ -114,6 +118,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
             publisher.publishEvent(capture(slot))
           }
           expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.SUCCEEDED)
+          expectThat(slot.captured.startMonitoring).isEqualTo(false)
         }
       }
 
@@ -129,7 +134,8 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           verify(exactly = 1) {
             publisher.publishEvent(capture(slot))
           }
-          expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.FAILED)
+          expectThat(slot.captured.status).isEqualTo(FAILED)
+          expectThat(slot.captured.startMonitoring).isEqualTo(false)
         }
       }
       context("unknown") {
@@ -144,7 +150,8 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           verify(exactly = 1) {
             publisher.publishEvent(capture(slot))
           }
-          expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.UNKNOWN)
+          expectThat(slot.captured.status).isEqualTo(UNKNOWN)
+          expectThat(slot.captured.startMonitoring).isEqualTo(false)
         }
       }
     }
@@ -170,7 +177,8 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           publisher.publishEvent(capture(slot))
           monitorRepository.delete(failingTask)
         }
-        expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.UNKNOWN)
+        expectThat(slot.captured.status).isEqualTo(UNKNOWN)
+        expectThat(slot.captured.startMonitoring).isEqualTo(false)
       }
     }
 

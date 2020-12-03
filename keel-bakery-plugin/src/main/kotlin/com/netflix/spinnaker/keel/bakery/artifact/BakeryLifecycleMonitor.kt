@@ -75,48 +75,55 @@ class BakeryLifecycleMonitor(
     "$spinnakerBaseUrl/#/tasks/${task.link}"
 
   private fun publishCorrectLink(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      link = orcaTaskIdToLink(task)
-    ))
+    task.publishEvent(
+      task.triggeringEvent.status,
+      task.triggeringEvent.text,
+    )
   }
 
   private fun publishRunningEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = LifecycleEventStatus.RUNNING,
-      link = orcaTaskIdToLink(task),
-      text = "Bake running for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      LifecycleEventStatus.RUNNING,
+      "Bake running for version ${task.triggeringEvent.artifactVersion}",
+    )
   }
+
   private fun publishSucceededEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = SUCCEEDED,
-      link = orcaTaskIdToLink(task),
-      text = "Bake succeeded for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      SUCCEEDED,
+      "Bake succeeded for version ${task.triggeringEvent.artifactVersion}",
+    )
   }
+
   private fun publishFailedEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = FAILED,
-      link = orcaTaskIdToLink(task),
-      text = "Bake failed for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      FAILED,
+      "Bake failed for version ${task.triggeringEvent.artifactVersion}"
+    )
   }
 
   override fun publishExceptionEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = UNKNOWN,
-      link = orcaTaskIdToLink(task),
-      text = "Failed to monitor bake of version ${task.triggeringEvent.artifactVersion}" +
-        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown."
-    ))
+    task.publishEvent(
+      UNKNOWN,
+      "Failed to monitor bake of version ${task.triggeringEvent.artifactVersion}" +
+        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown.",
+    )
   }
 
   private fun publishUnknownEvent(task: MonitoredTask, execution: ExecutionDetailResponse) {
     log.warn("Monitored bake ${task.triggeringEvent} in an unhandled status (${execution.status}")
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = UNKNOWN,
-      link = orcaTaskIdToLink(task),
-      text = "Bake status unknown for version ${task.triggeringEvent.artifactVersion}"
+    task.publishEvent(
+      UNKNOWN,
+      "Bake status unknown for version ${task.triggeringEvent.artifactVersion}"
+    )
+  }
+
+  fun MonitoredTask.publishEvent(status: LifecycleEventStatus, text: String?) {
+    publisher.publishEvent(triggeringEvent.copy(
+      status = status,
+      link = orcaTaskIdToLink(this),
+      text = text,
+      startMonitoring = false
     ))
   }
 }

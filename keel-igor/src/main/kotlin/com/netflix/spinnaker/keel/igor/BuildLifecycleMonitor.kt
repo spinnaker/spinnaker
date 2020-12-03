@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitor
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactMetadataService
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.ABORTED
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.runBlocking
@@ -24,6 +25,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import retrofit2.HttpException
+import java.time.Instant
 
 /**
  * A monitor for build status that reads artifact metadata from an external system,
@@ -48,9 +50,13 @@ class BuildLifecycleMonitor(
   override suspend fun monitor(task: MonitoredTask) {
     val buildData = parseAndValidate(task) ?: return
     runCatching {
-      artifactMetadataService.getArtifactMetadata(buildData.buildNumber, buildData.commitId)
-    }.onSuccess { metadata ->
-      val buildMetadata = metadata?.buildMetadata
+      if (buildData.buildMetadata == null || !buildData.buildMetadata.isComplete()) {
+        artifactMetadataService.getArtifactMetadata(buildData.buildNumber, buildData.commitId)?.buildMetadata
+      } else {
+        // no need to get fresh info, we're done monitoring.
+        buildData.buildMetadata
+      }
+    }.onSuccess { buildMetadata ->
       if (buildMetadata == null) {
         log.error("Error fetching status for $task, response was null")
         handleFailureFetchingStatus(task)
@@ -60,7 +66,7 @@ class BuildLifecycleMonitor(
           "SUCCESS" -> publishSucceededEvent(task, buildMetadata)
           "FAILURE" -> publishFailedEvent(task, buildMetadata)
           "ABORTED" -> publishAbortedEvent(task, buildMetadata)
-          // UNSTABLE means build passed but tests failed (might need to reevaluate status in the future)
+          // UNSTABLE means build passed but tests failed (might need to reevaluate success status choice in the future)
           "UNSTABLE" -> publishSucceededEvent(task, buildMetadata)
           else -> publishUnknownStatusEvent(task, buildMetadata.status)
         }
@@ -95,64 +101,67 @@ class BuildLifecycleMonitor(
       objectMapper.convertValue(task.triggeringEvent.data)
 
   private fun publishRunningEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = RUNNING,
-      link = chooseLink(task),
-      text = "Build running for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      RUNNING,
+      "Build running for version ${task.triggeringEvent.artifactVersion}",
+    )
   }
 
   private fun publishSucceededEvent(task: MonitoredTask, buildMetadata: BuildMetadata) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = SUCCEEDED,
-      link = chooseLink(task),
-      text = "Build succeeded for version ${task.triggeringEvent.artifactVersion}",
-      timestamp = buildMetadata.startedAtInstant
-    ))
+    task.publishEvent(
+      SUCCEEDED,
+      "Build succeeded for version ${task.triggeringEvent.artifactVersion}",
+      buildMetadata.startedAtInstant
+    )
   }
 
   private fun publishFailedEvent(task: MonitoredTask, buildMetadata: BuildMetadata) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = FAILED,
-      link = chooseLink(task),
-      text = "Build failed for version ${task.triggeringEvent.artifactVersion}",
-      timestamp = buildMetadata.completedAtInstant
-    ))
+    task.publishEvent(
+      FAILED,
+      "Build failed for version ${task.triggeringEvent.artifactVersion}",
+      buildMetadata.completedAtInstant
+    )
   }
 
   private fun publishAbortedEvent(task: MonitoredTask, buildMetadata: BuildMetadata) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = ABORTED,
-      link = chooseLink(task),
-      text = "Build aborted for version ${task.triggeringEvent.artifactVersion}",
-      timestamp = buildMetadata.completedAtInstant
-    ))
+    task.publishEvent(
+      ABORTED,
+      "Build aborted for version ${task.triggeringEvent.artifactVersion}",
+      buildMetadata.completedAtInstant
+    )
   }
 
   private fun publishUnknownStatusEvent(task: MonitoredTask, status: String?) {
     log.warn("Unknown status $status while monitoring ${task.triggeringEvent}")
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = UNKNOWN,
-      link = chooseLink(task),
-      text = "Build status unknown for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      UNKNOWN,
+      "Build status unknown for version ${task.triggeringEvent.artifactVersion}",
+    )
   }
 
   private fun publishUnknownEvent(task: MonitoredTask) {
     log.warn("Unable to monitor build for ${task.triggeringEvent} because at least one required data field is missing")
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = UNKNOWN,
-      link = chooseLink(task),
-      text = "Build status unknown for version ${task.triggeringEvent.artifactVersion}"
-    ))
+    task.publishEvent(
+      UNKNOWN,
+      "Build status unknown for version ${task.triggeringEvent.artifactVersion}",
+    )
   }
 
   override fun publishExceptionEvent(task: MonitoredTask) {
-    publisher.publishEvent(task.triggeringEvent.copy(
-      status = UNKNOWN,
-      link = chooseLink(task),
-      text = "Failed to monitor build of version ${task.triggeringEvent.artifactVersion}" +
-        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown."
+    task.publishEvent(
+      UNKNOWN,
+      "Failed to monitor build of version ${task.triggeringEvent.artifactVersion}" +
+        " because we could not get the status ${lifecycleConfig.numFailuresAllowed} times. Status unknown.",
+    )
+  }
+
+  fun MonitoredTask.publishEvent(status: LifecycleEventStatus, text: String, timestamp: Instant? = null) {
+    publisher.publishEvent(triggeringEvent.copy(
+      status = status,
+      link = chooseLink(this),
+      text = text,
+      timestamp = timestamp,
+      startMonitoring = false
     ))
   }
 
@@ -187,12 +196,13 @@ class BuildLifecycleMonitor(
     "$spinnakerBaseUrl/#/applications/${task.triggeringEvent.data["application"]}/builds/${task.link}/logs"
 
   private fun jenkinsLink(buildData: BuildData): String? =
-    buildData.fallbackLink
+    buildData.buildMetadata?.job?.link ?: buildData.fallbackLink
 
   data class BuildData(
     val buildNumber: String,
     val commitId: String,
     val application: String,
-    val fallbackLink: String? // the jenkins link to use if no ci view is configured
+    val buildMetadata: BuildMetadata?,
+    val fallbackLink: String? // todo eb: for backwards compatibility, remove
   )
 }

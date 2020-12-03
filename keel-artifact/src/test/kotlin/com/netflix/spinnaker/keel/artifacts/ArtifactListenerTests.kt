@@ -15,7 +15,7 @@ import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.RUNNING
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import dev.minutest.junit.JUnit5Minutests
@@ -446,7 +446,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
               debianArtifact,
               debianArtifact.copy(reference = "blah-blay", deliveryConfigName = "another-config")
             )
-          listener.createBuildLifecycleEvent(publishedDeb)
+          listener.publishBuildLifecycleEvent(publishedDeb)
         }
 
         test("publishes event for each artifact") {
@@ -458,13 +458,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         before {
           every { repository.getAllArtifacts(DEBIAN, any())} returns
             listOf(debianArtifact)
-          listener.createBuildLifecycleEvent(publishedDeb)
+          listener.publishBuildLifecycleEvent(publishedDeb)
         }
 
-        test("publishes event with status NOT STARTED") {
+        test("publishes event with monitor = true") {
           val slot = slot<LifecycleEvent>()
           verify(exactly = 1) { publisher.publishEvent(capture(slot)) }
-          expectThat(slot.captured.status).isEqualTo(NOT_STARTED)
+          expectThat(slot.captured.status).isEqualTo(RUNNING)
+          expectThat(slot.captured.startMonitoring).isEqualTo(true)
         }
       }
     }
