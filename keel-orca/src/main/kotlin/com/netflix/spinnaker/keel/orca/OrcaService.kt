@@ -75,6 +75,11 @@ data class TaskRefResponse(
   val taskId by lazy { ref.substringAfterLast("/") }
 }
 
+data class KeyValuePair(
+  val key: String,
+  val value: Any
+)
+
 data class ExecutionDetailResponse(
   val id: String,
   val name: String,
@@ -84,7 +89,8 @@ data class ExecutionDetailResponse(
   val endTime: Instant?,
   val status: OrcaExecutionStatus,
   val execution: OrcaExecutionStages = OrcaExecutionStages(emptyList()),
-  val stages: List<OrcaExecutionStage>? = emptyList() // for pipelines, stages are not encapsulated in `execution`
+  val stages: List<OrcaExecutionStage>? = emptyList(), // for pipelines, stages are not encapsulated in `execution`
+  val variables: List<KeyValuePair>? = null
 )
 
 typealias OrcaExecutionStage = Map<String, Any>
