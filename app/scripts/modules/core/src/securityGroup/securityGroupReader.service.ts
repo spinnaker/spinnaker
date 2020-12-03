@@ -391,10 +391,7 @@ export class SecurityGroupReader {
     vpcId: string,
     id: string,
   ): PromiseLike<ISecurityGroupDetail> {
-    return API.path('securityGroups')
-      .path(account)
-      .path(region)
-      .path(id)
+    return API.path('securityGroups', account, region, id)
       .query({ provider, vpcId })
       .get()
       .then((details: ISecurityGroupDetail) => {

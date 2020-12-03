@@ -14,8 +14,7 @@ export class TaskWriter {
   }
 
   public static cancelTask(taskId: string): PromiseLike<ITask> {
-    return API.path('tasks')
-      .path(taskId, 'cancel')
+    return API.path('tasks', taskId, 'cancel')
       .put()
       .then(() =>
         TaskReader.getTask(taskId).then((task) =>

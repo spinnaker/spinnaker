@@ -8,7 +8,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.path('auth').path('user').path('serviceAccounts').get();
+      return API.path('auth', 'user', 'serviceAccounts').get();
     }
   }
 
@@ -16,7 +16,7 @@ export class ServiceAccountReader {
     if (!SETTINGS.feature.fiatEnabled) {
       return $q.resolve([]);
     } else {
-      return API.path('auth').path('user').path('serviceAccounts').query({ application: application }).get();
+      return API.path('auth', 'user', 'serviceAccounts').query({ application: application }).get();
     }
   }
 }

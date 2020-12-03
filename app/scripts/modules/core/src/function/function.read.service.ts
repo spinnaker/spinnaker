@@ -21,8 +21,7 @@ export class FunctionReader {
   public constructor(private functionTransformer: IFunctionTransformer) {}
 
   public loadFunctions(applicationName: string): PromiseLike<IFunctionSourceData[]> {
-    return API.path('applications', applicationName)
-      .path('functions')
+    return API.path('applications', applicationName, 'functions')
       .get()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);

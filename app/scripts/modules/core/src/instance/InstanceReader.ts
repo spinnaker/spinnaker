@@ -13,7 +13,7 @@ export interface IInstanceMultiOutputLog {
 
 export class InstanceReader {
   public static getInstanceDetails(account: string, region: string, id: string): PromiseLike<IInstance> {
-    return API.path('instances').path(account).path(region).path(id).get();
+    return API.path('instances', account, region, id).get();
   }
 
   public static getConsoleOutput(
@@ -22,11 +22,6 @@ export class InstanceReader {
     id: string,
     cloudProvider: string,
   ): PromiseLike<IInstanceConsoleOutput> {
-    return API.path('instances')
-      .path(account)
-      .path(region)
-      .path(id, 'console')
-      .query({ provider: cloudProvider })
-      .get();
+    return API.path('instances', account, region, id, 'console').query({ provider: cloudProvider }).get();
   }
 }

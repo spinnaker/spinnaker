@@ -15,6 +15,6 @@ export class NetworkReader {
   }
 
   public static listNetworksByProvider(cloudProvider: string) {
-    return API.path('networks').path(cloudProvider).get();
+    return API.path('networks', cloudProvider).get();
   }
 }

@@ -14,6 +14,6 @@ export class CertificateReader {
   }
 
   public static listCertificatesByProvider(cloudProvider: string): PromiseLike<ICertificate[]> {
-    return API.path('certificates').path(cloudProvider).get();
+    return API.path('certificates', cloudProvider).get();
   }
 }

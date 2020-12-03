@@ -11,6 +11,6 @@ export class ProjectReader {
   }
 
   public static getProjectClusters(projectName: string): PromiseLike<IProjectCluster[]> {
-    return API.path('projects', projectName).path('clusters').get();
+    return API.path('projects', projectName, 'clusters').get();
   }
 }

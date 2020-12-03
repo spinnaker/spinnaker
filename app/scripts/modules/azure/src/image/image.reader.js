@@ -22,10 +22,7 @@ module(AZURE_IMAGE_IMAGE_READER, []).factory('azureImageReader', function () {
   }
 
   function getImage(amiName, region, credentials) {
-    return API.path('images')
-      .path(credentials)
-      .path(region)
-      .path(amiName)
+    return API.path('images', credentials, region, amiName)
       .query({ provider: 'azure' })
       .get()
       .then(

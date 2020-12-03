@@ -5,13 +5,16 @@ import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
   public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {
-    return API.path('applications')
-      .path(serverGroup.app)
-      .path('clusters')
-      .path(serverGroup.account)
-      .path(serverGroup.cluster)
-      .path('serverGroups', serverGroup.name)
-      .path('scalingActivities')
+    return API.path(
+      'applications',
+      serverGroup.app,
+      'clusters',
+      serverGroup.account,
+      serverGroup.cluster,
+      'serverGroups',
+      serverGroup.name,
+      'scalingActivities',
+    )
       .query({
         region: serverGroup.region,
         provider: serverGroup.cloudProvider,
@@ -29,12 +32,7 @@ export class ServerGroupReader {
     region: string,
     serverGroupName: string,
   ): PromiseLike<IServerGroup> {
-    return API.path('applications')
-      .path(application)
-      .path('serverGroups')
-      .path(account)
-      .path(region)
-      .path(serverGroupName)
+    return API.path('applications', application, 'serverGroups', account, region, serverGroupName)
       .query({ includeDetails: 'false' })
       .get();
   }

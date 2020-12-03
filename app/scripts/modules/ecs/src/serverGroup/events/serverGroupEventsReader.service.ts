@@ -11,12 +11,7 @@ export interface IEventDescription {
 
 export class ServerGroupEventsReader {
   public static getEvents(serverGroup: IServerGroup): PromiseLike<IEventDescription[]> {
-    return API.path('applications')
-      .path(serverGroup.app)
-      .path('serverGroups')
-      .path(serverGroup.account)
-      .path(serverGroup.name)
-      .path('events')
+    return API.path('applications', serverGroup.app, 'serverGroups', serverGroup.account, serverGroup.name, 'events')
       .query({
         region: serverGroup.region,
         provider: serverGroup.cloudProvider,

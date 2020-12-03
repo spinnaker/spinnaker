@@ -210,8 +210,7 @@ module(WEBHOOK_STAGE, [])
     });
   })
   .run(() => {
-    API.path('webhooks')
-      .path('preconfigured')
+    API.path('webhooks', 'preconfigured')
       .get()
       .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
         preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>

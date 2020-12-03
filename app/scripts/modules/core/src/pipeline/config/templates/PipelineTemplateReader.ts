@@ -83,8 +83,7 @@ export class PipelineTemplateReader {
     executionId?: string,
     pipelineConfigId?: string,
   ): PromiseLike<IPipelineTemplate> {
-    return API.path('pipelineTemplates')
-      .path('resolve')
+    return API.path('pipelineTemplates', 'resolve')
       .query({ source, executionId, pipelineConfigId })
       .get()
       .then((template: IPipelineTemplate) => {

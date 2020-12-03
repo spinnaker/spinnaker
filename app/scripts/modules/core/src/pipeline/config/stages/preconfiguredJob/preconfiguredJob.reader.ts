@@ -21,6 +21,6 @@ export interface IPreconfiguredJob {
 
 export const PreconfiguredJobReader = {
   list(): PromiseLike<IPreconfiguredJob[]> {
-    return API.path('jobs').path('preconfigured').useCache().get();
+    return API.path('jobs', 'preconfigured').useCache().get();
   },
 };

@@ -20,9 +20,7 @@ export class PipelineConfigService {
   }
 
   public static getPipelinesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return API.path('applications')
-      .path(applicationName)
-      .path('pipelineConfigs')
+    return API.path('applications', applicationName, 'pipelineConfigs')
       .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
@@ -31,9 +29,7 @@ export class PipelineConfigService {
   }
 
   public static getStrategiesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
-    return API.path('applications')
-      .path(applicationName)
-      .path('strategyConfigs')
+    return API.path('applications', applicationName, 'strategyConfigs')
       .get()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach((p) => (p.stages = p.stages || []));
@@ -43,13 +39,15 @@ export class PipelineConfigService {
 
   public static getHistory(id: string, isStrategy: boolean, count = 20): PromiseLike<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
-    return API.path(endpoint, id).path('history').query({ limit: count }).get();
+    return API.path(endpoint, id, 'history').query({ limit: count }).get();
   }
 
   public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): PromiseLike<void> {
-    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
-      .path(applicationName, encodeURIComponent(pipelineName.trim()))
-      .delete();
+    return API.path(
+      pipeline.strategy ? 'strategies' : 'pipelines',
+      applicationName,
+      encodeURIComponent(pipelineName.trim()),
+    ).delete();
   }
 
   public static savePipeline(toSave: IPipeline): PromiseLike<void> {
@@ -91,17 +89,12 @@ export class PipelineConfigService {
   ): PromiseLike<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName.trim();
-    return API.path(pipeline.strategy ? 'strategies' : 'pipelines')
-      .path(pipeline.id)
-      .put(pipeline);
+    return API.path(pipeline.strategy ? 'strategies' : 'pipelines', pipeline.id).put(pipeline);
   }
 
   public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
-    return API.path('pipelines')
-      .path('v2')
-      .path(applicationName)
-      .path(encodeURIComponent(pipelineName))
+    return API.path('pipelines', 'v2', applicationName, encodeURIComponent(pipelineName))
       .post(body)
       .then((result: ITriggerPipelineResponse) => {
         return result.ref.split('/').pop();

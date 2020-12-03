@@ -43,10 +43,7 @@ export class TencentcloudImageReader {
   }
 
   public getImage(name: string, region: string, credentials: string): PromiseLike<ITencentcloudImage> {
-    return API.path('images')
-      .path(credentials)
-      .path(region)
-      .path(name)
+    return API.path('images', credentials, region, name)
       .query({ provider: 'tencentcloud' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))

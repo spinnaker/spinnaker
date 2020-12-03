@@ -9,8 +9,7 @@ export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
   public static getTasks(applicationName: string, statuses: string[] = []): PromiseLike<ITask[]> {
-    return API.path('applications', applicationName)
-      .path('tasks')
+    return API.path('applications', applicationName, 'tasks')
       .query({ statuses: statuses.join(',') })
       .get()
       .then((tasks: ITask[]) => {

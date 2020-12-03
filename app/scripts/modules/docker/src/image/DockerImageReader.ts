@@ -9,10 +9,7 @@ export interface IDockerImage extends IImage {
 
 export class DockerImageReader {
   public static getImage(imageName: string, region: string, credentials: string): PromiseLike<IDockerImage> {
-    return API.path('images')
-      .path(credentials)
-      .path(region)
-      .path(imageName)
+    return API.path('images', credentials, region, imageName)
       .query({ provider: 'docker' })
       .get()
       .then((results: IDockerImage[]) => (results && results.length ? results[0] : null))

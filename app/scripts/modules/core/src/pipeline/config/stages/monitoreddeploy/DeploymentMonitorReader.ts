@@ -8,6 +8,6 @@ export interface IDeploymentMonitorDefinition {
 
 export class DeploymentMonitorReader {
   public static getDeploymentMonitors(): PromiseLike<IDeploymentMonitorDefinition[]> {
-    return API.path('capabilities').path('deploymentMonitors').useCache(true).get();
+    return API.path('capabilities', 'deploymentMonitors').useCache(true).get();
   }
 }

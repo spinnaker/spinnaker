@@ -96,7 +96,7 @@ export class AccountService {
   }
 
   public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
-    return API.path('artifacts').path('credentials').useCache().get();
+    return API.path('artifacts', 'credentials').useCache().get();
   }
 
   public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {

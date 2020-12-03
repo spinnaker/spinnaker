@@ -52,8 +52,7 @@ export class ExecutionService {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
       ? API.path('executions').query({ limit, pipelineConfigIds, statuses }).get()
-      : API.path('applications', applicationName)
-          .path('pipelines')
+      : API.path('applications', applicationName, 'pipelines')
           .query({ limit, statuses: statusString, pipelineConfigIds, expand })
           .get();
 
@@ -312,8 +311,7 @@ export class ExecutionService {
   }
 
   public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
-    return API.path('projects', project)
-      .path('pipelines')
+    return API.path('projects', project, 'pipelines')
       .query({ limit })
       .get()
       .then((executions: IExecution[]) => {

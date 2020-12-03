@@ -5,7 +5,7 @@ import { ISecretDescriptor } from './ISecret';
 
 export class SecretReader {
   public listSecrets(): PromiseLike<ISecretDescriptor[]> {
-    return API.path('ecs').path('secrets').get();
+    return API.path('ecs', 'secrets').get();
   }
 }
 

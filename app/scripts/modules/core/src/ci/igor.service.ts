@@ -12,7 +12,7 @@ export enum BuildServiceType {
 
 export class IgorService {
   public static listMasters(buildType: BuildServiceType = null): PromiseLike<string[]> {
-    const allMasters: PromiseLike<string[]> = API.path('v2').path('builds').query({ type: buildType }).get();
+    const allMasters: PromiseLike<string[]> = API.path('v2', 'builds').query({ type: buildType }).get();
     if (!allMasters) {
       return $q.reject('An error occurred when retrieving build masters');
     }
@@ -29,30 +29,30 @@ export class IgorService {
   }
 
   public static listJobsForMaster(master: string): PromiseLike<string[]> {
-    return API.path('v2').path('builds').path(master).path('jobs').get();
+    return API.path('v2', 'builds', master, 'jobs').get();
   }
 
   public static listBuildsForJob(master: string, job: string): PromiseLike<IBuild[]> {
-    return API.path('v2').path('builds').path(master).path('builds').path(job).get();
+    return API.path('v2', 'builds', master, 'builds', job).get();
   }
 
   public static getJobConfig(master: string, job: string): PromiseLike<IJobConfig> {
-    return API.path('v2').path('builds').path(master).path('jobs').path(job).get();
+    return API.path('v2', 'builds', master, 'jobs', job).get();
   }
 
   public static getGcbAccounts(): PromiseLike<string[]> {
-    return API.path('gcb').path('accounts').get();
+    return API.path('gcb', 'accounts').get();
   }
 
   public static getGcbTriggers(account: string): PromiseLike<IGcbTrigger[]> {
-    return API.path('gcb').path('triggers').path(account).get();
+    return API.path('gcb', 'triggers', account).get();
   }
 
   public static getCodeBuildAccounts(): PromiseLike<string[]> {
-    return API.path('codebuild').path('accounts').get();
+    return API.path('codebuild', 'accounts').get();
   }
 
   public static getCodeBuildProjects(account: string): PromiseLike<string[]> {
-    return API.path('codebuild').path('projects').path(account).get();
+    return API.path('codebuild', 'projects', account).get();
   }
 }

@@ -81,16 +81,11 @@ export class ManagedReader {
   }
 
   public static getApplicationSummary(app: string): PromiseLike<IManagedApplicationSummary<'resources'>> {
-    return API.path('managed')
-      .path('application', app)
-      .query({ entities: 'resources' })
-      .get()
-      .then(this.decorateResources);
+    return API.path('managed', 'application', app).query({ entities: 'resources' }).get().then(this.decorateResources);
   }
 
   public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationSummary> {
-    return API.path('managed')
-      .path('application', app)
+    return API.path('managed', 'application', app)
       .query({ entities: ['resources', 'artifacts', 'environments'], maxArtifactVersions: 30 })
       .get()
       .then(this.decorateResources);

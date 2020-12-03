@@ -32,7 +32,7 @@ export class ManagedWriter {
     version,
     comment,
   }: IArtifactVersionRequest): PromiseLike<void> {
-    return API.path('managed').path('application', application).path('pin').post({
+    return API.path('managed', 'application', application, 'pin').post({
       targetEnvironment: environment,
       reference,
       version,
@@ -45,12 +45,7 @@ export class ManagedWriter {
     environment,
     reference,
   }: IUnpinArtifactVersionRequest): PromiseLike<void> {
-    return API.path('managed')
-      .path('application', application)
-      .path('pin')
-      .path(environment)
-      .query({ reference })
-      .delete();
+    return API.path('managed', 'application', application, 'pin', environment).query({ reference }).delete();
   }
 
   public static markArtifactVersionAsBad({
@@ -60,7 +55,7 @@ export class ManagedWriter {
     version,
     comment,
   }: IArtifactVersionRequest): PromiseLike<void> {
-    return API.path('managed').path('application', application).path('veto').post({
+    return API.path('managed', 'application', application, 'veto').post({
       targetEnvironment: environment,
       reference,
       version,
@@ -76,31 +71,27 @@ export class ManagedWriter {
     version,
     status,
   }: IUpdateConstraintStatusRequest): PromiseLike<void> {
-    return API.path('managed')
-      .path('application', application)
-      .path('environment', environment)
-      .path('constraint')
-      .post({
-        type,
-        artifactReference: reference,
-        artifactVersion: version,
-        status,
-      });
+    return API.path('managed', 'application', application, 'environment', environment, 'constraint').post({
+      type,
+      artifactReference: reference,
+      artifactVersion: version,
+      status,
+    });
   }
 
   public static pauseApplicationManagement(applicationName: string): PromiseLike<void> {
-    return API.path('managed').path('application', applicationName).path('pause').post();
+    return API.path('managed', 'application', applicationName, 'pause').post();
   }
 
   public static resumeApplicationManagement(applicationName: string): PromiseLike<void> {
-    return API.path('managed').path('application', applicationName).path('pause').delete();
+    return API.path('managed', 'application', applicationName, 'pause').delete();
   }
 
   public static pauseResourceManagement(resourceId: string): PromiseLike<void> {
-    return API.path('managed').path('resources', resourceId).path('pause').post();
+    return API.path('managed', 'resources', resourceId, 'pause').post();
   }
 
   public static resumeResourceManagement(resourceId: string): PromiseLike<void> {
-    return API.path('managed').path('resources', resourceId).path('pause').delete();
+    return API.path('managed', 'resources', resourceId, 'pause').delete();
   }
 }

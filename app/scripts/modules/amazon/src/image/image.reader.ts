@@ -33,10 +33,7 @@ export class AwsImageReader {
   }
 
   public getImage(amiName: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
-    return API.path('images')
-      .path(credentials)
-      .path(region)
-      .path(amiName)
+    return API.path('images', credentials, region, amiName)
       .query({ provider: 'aws' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))

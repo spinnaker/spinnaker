@@ -16,6 +16,6 @@ export interface INotificationTypeMetadata {
 
 export class NotificationService {
   public static getNotificationTypeMetadata(): PromiseLike<INotificationTypeMetadata[]> {
-    return API.path('notifications').path('metadata').useCache().get();
+    return API.path('notifications', 'metadata').useCache().get();
   }
 }

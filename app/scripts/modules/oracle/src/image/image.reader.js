@@ -17,10 +17,7 @@ module(ORACLE_IMAGE_IMAGE_READER, []).factory('oracleImageReader', function () {
   }
 
   function getImage(imageId, region, credentials) {
-    return API.path('images')
-      .path(credentials)
-      .path(region)
-      .path(imageId)
+    return API.path('images', credentials, region, imageId)
       .query({ provider: 'oracle' })
       .get()
       .then(
