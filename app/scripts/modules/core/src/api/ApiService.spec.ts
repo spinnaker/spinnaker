@@ -1,9 +1,9 @@
-import { IHttpClientBackend } from './ApiService';
+import { IHttpClientImplementation } from './ApiService';
 import { SETTINGS } from '../config/settings';
 import { makeRequestBuilderConfig, RequestBuilder } from './ApiService';
 
 describe('RequestBuilder backend', () => {
-  const createBackend = (): IHttpClientBackend => jasmine.createSpyObj(['get', 'post', 'put', 'delete']);
+  const createBackend = (): IHttpClientImplementation => jasmine.createSpyObj(['get', 'post', 'put', 'delete']);
 
   it('receives a url prefixed with the baseUrl', () => {
     const backend = createBackend();

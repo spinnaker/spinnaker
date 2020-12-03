@@ -35,7 +35,7 @@ export interface IRequestBuilder {
 
 /**
  * Internal interface to encapsulate a request
- * Passed to IHttpClientBackend
+ * Passed to the IHttpClientImplementation
  */
 interface IRequestBuilderConfig {
   url: string;
@@ -76,9 +76,9 @@ export interface IDeprecatedRequestBuilder extends IRequestBuilder {
 
 /**
  * An interface to support pluggable http clients
- * In the future, we should have a TestingHttpBackend and a FetchHttpBackend (or whatever http client we go with)
+ * In the future, we should have a TestingHttpClient and a FetchHttpClient (or whatever http client we go with)
  */
-export interface IHttpClientBackend {
+export interface IHttpClientImplementation {
   get<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
   post<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
   put<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
@@ -99,7 +99,7 @@ export class InvalidAPIResponse extends Error {
  * This client also handles non-data responses from Gate which is used to indicate the user is not authenticated
  * TODO: Can the re-authentication logic be moved somewhere else?
  */
-class AngularJSHttpBackend implements IHttpClientBackend {
+class AngularJSHttpClient implements IHttpClientImplementation {
   delete = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('DELETE', requestConfig);
   get = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('GET', requestConfig);
   post = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('POST', requestConfig);
@@ -140,25 +140,25 @@ function joinPaths(...paths: IPrimitive[]) {
 
 /** The base request builder implementation */
 export class RequestBuilder implements IRequestBuilder {
-  static defaultBackend = new AngularJSHttpBackend();
+  static defaultHttpClient = new AngularJSHttpClient();
 
   public constructor(
     protected config: IRequestBuilderConfig = makeRequestBuilderConfig(),
-    protected _backend?: IHttpClientBackend,
+    protected _httpClient?: IHttpClientImplementation,
     protected _baseUrl?: string,
   ) {}
 
   // Factory function to create a child builder of the appropriate type
   protected builder(newRequest: IRequestBuilderConfig): this {
-    return new RequestBuilder(newRequest, this.backend, this._baseUrl) as this;
+    return new RequestBuilder(newRequest, this.httpClient, this._baseUrl) as this;
   }
 
-  protected get backend(): IHttpClientBackend {
-    return this._backend ?? RequestBuilder.defaultBackend;
+  protected get httpClient(): IHttpClientImplementation {
+    return this._httpClient ?? RequestBuilder.defaultHttpClient;
   }
 
   protected get baseUrl(): string {
-    return (this._baseUrl ?? SETTINGS.gateUrl).replace(/\/+$/, '');
+    return joinPaths(this._baseUrl ?? SETTINGS.gateUrl);
   }
 
   path(...paths: IPrimitive[]) {
@@ -171,28 +171,28 @@ export class RequestBuilder implements IRequestBuilder {
     // Merge with existing params
     const params = { ...this.config.params, ...queryParams };
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.backend.get<T>({ ...this.config, url, params });
+    return this.httpClient.get<T>({ ...this.config, url, params });
   }
 
   post<T>(postData?: any) {
     // Check this.config.data for backwards compat
     const data = postData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.backend.post<T>({ ...this.config, url, data });
+    return this.httpClient.post<T>({ ...this.config, url, data });
   }
 
   put<T>(putData?: any) {
     // Check this.config.data for backwards compat
     const data = putData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.backend.put<T>({ ...this.config, url, data });
+    return this.httpClient.put<T>({ ...this.config, url, data });
   }
 
   // queryParams argument for backwards compat
   delete<T>(queryParams: object = {}) {
     const params = { ...this.config.params, ...queryParams };
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.backend.delete<T>({ ...this.config, url, params });
+    return this.httpClient.delete<T>({ ...this.config, url, params });
   }
 
   useCache(cache = true) {
@@ -211,7 +211,7 @@ export class RequestBuilder implements IRequestBuilder {
  */
 export class DeprecatedRequestBuilder extends RequestBuilder implements IDeprecatedRequestBuilder {
   protected builder = (newRequest: IRequestBuilderConfig): this => {
-    return new DeprecatedRequestBuilder(newRequest, this._backend, this._baseUrl) as this;
+    return new DeprecatedRequestBuilder(newRequest, this._httpClient, this._baseUrl) as this;
   };
   public config: IRequestBuilderConfig;
 

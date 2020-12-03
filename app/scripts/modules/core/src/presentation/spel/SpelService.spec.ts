@@ -3,7 +3,7 @@ import { SpelService } from './SpelService';
 
 describe('SpelService', () => {
   it('extracts "result" from the payload', async (done) => {
-    const spy = spyOn(RequestBuilder.defaultBackend, 'get').and.callFake(() => Promise.resolve({ result: 'data' }));
+    const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => Promise.resolve({ result: 'data' }));
     const result = await SpelService.evaluateExpression('expression', null, null);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(result).toBe('data');
@@ -30,7 +30,7 @@ describe('SpelService', () => {
     const errorDetail = serverExpressionEvaluationFailure.detail['bad expression'][0];
 
     // If expressions fail to evaluate, the server still returns 200 OK
-    const spy = spyOn(RequestBuilder.defaultBackend, 'get').and.callFake(() => {
+    const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => {
       return Promise.resolve(serverExpressionEvaluationFailure);
     });
 
