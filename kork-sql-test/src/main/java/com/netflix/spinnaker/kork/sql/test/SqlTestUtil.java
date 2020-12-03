@@ -18,6 +18,8 @@ package com.netflix.spinnaker.kork.sql.test;
 import static org.jooq.SQLDialect.H2;
 import static org.jooq.conf.RenderNameStyle.AS_IS;
 import static org.jooq.impl.DSL.currentSchema;
+import static org.jooq.impl.DSL.query;
+import static org.jooq.impl.DSL.truncateTable;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -25,7 +27,9 @@ import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import liquibase.ContextExpression;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
@@ -40,6 +44,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.exception.SetupException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.jooq.DSLContext;
+import org.jooq.Query;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
@@ -253,8 +258,9 @@ public class SqlTestUtil {
     GlobalConfiguration configuration =
         LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class);
 
+    List<Query> commands = new ArrayList<>();
     if (context.dialect() == SQLDialect.MYSQL) {
-      context.execute("set foreign_key_checks=0");
+      commands.add(query("set foreign_key_checks=0"));
     }
     context.meta().getTables().stream()
         .filter(
@@ -267,16 +273,17 @@ public class SqlTestUtil {
             table -> {
               switch (context.dialect()) {
                 case POSTGRES:
-                  context.truncateTable(table.getName()).cascade().execute();
+                  commands.add(truncateTable(table).cascade());
                   break;
                 default:
-                  context.truncateTable(table.getName()).execute();
+                  commands.add(truncateTable(table));
                   break;
               }
             });
     if (context.dialect() == SQLDialect.MYSQL) {
-      context.execute("set foreign_key_checks=1");
+      commands.add(query("set foreign_key_checks=1"));
     }
+    context.batch(commands).execute();
   }
 
   public static class TestDatabase implements Closeable {
