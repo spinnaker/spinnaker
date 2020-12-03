@@ -1,5 +1,6 @@
 apply plugin: "java-library"
 apply from: "$rootDir/gradle/kotlin-test.gradle"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
