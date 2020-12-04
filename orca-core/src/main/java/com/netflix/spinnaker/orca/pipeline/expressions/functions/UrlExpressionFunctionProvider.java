@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @SuppressWarnings("unused")
 @Component
@@ -131,7 +132,7 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
    */
   public static Object readYaml(String text) {
     try {
-      return new Yaml().load(text);
+      return new Yaml(new SafeConstructor()).load(text);
     } catch (Exception e) {
       throw new SpelHelperFunctionException(format("#readYaml(%s) failed", text), e);
     }
@@ -147,7 +148,7 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
   public static Object readAllYaml(String text) {
     try {
       List<Object> yamlDocs = new ArrayList<>();
-      Iterable<Object> iterable = new Yaml().loadAll(text);
+      Iterable<Object> iterable = new Yaml(new SafeConstructor()).loadAll(text);
       for (Object o : iterable) {
         yamlDocs.add(o);
       }

@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.orca.pipeline.expressions.functions
 
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException
+import org.yaml.snakeyaml.constructor.ConstructorException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class UrlExpressionFunctionProviderSpec extends Specification {
 
   @Unroll
-  def "test readYaml"() {
+  def "should read yaml"() {
     expect:
     UrlExpressionFunctionProvider.readYaml(currentYaml) == expectedYaml
 
@@ -33,7 +34,7 @@ class UrlExpressionFunctionProviderSpec extends Specification {
     "---\na: 1\nb: 2\n"       || [a: 1, b: 2]
   }
 
-  def "readYaml returns exception on multi-doc YAML"() {
+  def "should raise exception on multi-doc yaml"() {
     when:
     UrlExpressionFunctionProvider.readYaml("a: 1\nb: 2\n---\nc: 3\n")
 
@@ -42,7 +43,7 @@ class UrlExpressionFunctionProviderSpec extends Specification {
   }
 
   @Unroll
-  def "test readAllYaml"() {
+  def "should read multi-doc yaml"() {
     expect:
     UrlExpressionFunctionProvider.readAllYaml(currentYaml) == expectedYaml
 
@@ -51,5 +52,21 @@ class UrlExpressionFunctionProviderSpec extends Specification {
     "a: 1\nb: 2\n"            || [[a: 1, b: 2]]
     "---\na: 1\nb: 2\n"       || [[a: 1, b: 2]]
     "a: 1\nb: 2\n---\nc: 3\n" || [[a: 1, b: 2],[c: 3]]
+  }
+
+  def "should restrict yaml tag usage"() {
+    when:
+    UrlExpressionFunctionProvider.readAllYaml("!!java.io.FileInputStream [/dev/null]")
+
+    then:
+    SpelHelperFunctionException e1 = thrown()
+    e1.cause.message.startsWith('could not determine a constructor for the tag tag:yaml.org,2002:java.io.FileInputStream')
+
+    when:
+    UrlExpressionFunctionProvider.readYaml("!!java.io.FileInputStream [/dev/null]")
+
+    then:
+    SpelHelperFunctionException e2 = thrown()
+    e2.cause.message.startsWith('could not determine a constructor for the tag tag:yaml.org,2002:java.io.FileInputStream')
   }
 }
