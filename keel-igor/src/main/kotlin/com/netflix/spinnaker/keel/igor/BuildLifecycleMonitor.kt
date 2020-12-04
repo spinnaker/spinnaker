@@ -111,7 +111,7 @@ class BuildLifecycleMonitor(
     task.publishEvent(
       SUCCEEDED,
       "Build succeeded for version ${task.triggeringEvent.artifactVersion}",
-      buildMetadata.startedAtInstant
+      buildMetadata.completedAtInstant
     )
   }
 
