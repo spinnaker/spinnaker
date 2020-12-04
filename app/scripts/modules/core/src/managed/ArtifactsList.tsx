@@ -167,13 +167,19 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
 
-  const bakeStep = lifecycleSteps?.find(
+  const preDeploymentSteps = lifecycleSteps?.filter(
     ({ scope, type, status }) =>
-      scope === 'PRE_DEPLOYMENT' && type === 'BAKE' && ['RUNNING', 'FAILED'].includes(status),
+      scope === 'PRE_DEPLOYMENT' && ['BUILD', 'BAKE'].includes(type) && ['RUNNING', 'FAILED'].includes(status),
   );
 
-  if (bakeStep) {
-    statuses.push({ iconName: 'bake', appearance: bakeStep.status === 'RUNNING' ? 'progress' : 'error' });
+  if (preDeploymentSteps?.length > 0) {
+    // These steps come in with chronological ordering, but we need reverse-chronological orddering for display
+    preDeploymentSteps.reverse().forEach(({ type, status }) => {
+      statuses.push({
+        iconName: type === 'BUILD' ? 'build' : 'bake',
+        appearance: status === 'RUNNING' ? 'progress' : 'error',
+      });
+    });
   }
 
   const pendingConstraintIcons = new Set<IconNames>();

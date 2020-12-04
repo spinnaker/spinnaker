@@ -108,9 +108,9 @@ export interface IManagedArtifactVersion {
   lifecycleSteps?: Array<{
     // likely more scopes + types later, but hard-coding to avoid premature abstraction for now
     scope: 'PRE_DEPLOYMENT';
-    type: 'BAKE';
+    type: 'BUILD' | 'BAKE';
     id: string;
-    status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+    status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'ABORTED' | 'UNKNOWN';
     startedAt?: string;
     completedAt?: string;
     link?: string;

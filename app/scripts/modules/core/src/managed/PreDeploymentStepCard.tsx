@@ -9,17 +9,42 @@ import { Application } from '../application';
 import { StatusCard } from './StatusCard';
 import { Button } from './Button';
 
-const SUPPORTED_TYPES = ['BAKE'];
+const SUPPORTED_TYPES = ['BUILD', 'BAKE'];
+
+const cardAppearanceByStatus = {
+  NOT_STARTED: 'future',
+  RUNNING: 'info',
+  SUCCEEDED: 'neutral',
+  FAILED: 'error',
+  ABORTED: 'neutral',
+  UNKNOWN: 'warning',
+} as const;
 
 const cardConfigurationByType = {
+  BUILD: {
+    iconName: 'build',
+    title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
+      const startedAtDate = startedAt ? DateTime.fromISO(startedAt).toJSDate() : null;
+      const completedAtDate = completedAt ? DateTime.fromISO(completedAt).toJSDate() : null;
+
+      switch (status) {
+        case 'NOT_STARTED':
+          return 'A build will run before deployment';
+        case 'RUNNING':
+          return 'Building';
+        case 'SUCCEEDED':
+          return `Built in ${distanceInWords(startedAtDate, completedAtDate)}`;
+        case 'FAILED':
+          return `Build failed after ${distanceInWords(startedAtDate, completedAtDate)}`;
+        case 'ABORTED':
+          return `Build aborted after ${distanceInWords(startedAtDate, completedAtDate)}`;
+        case 'UNKNOWN':
+          return 'Unable to find the status of this build';
+      }
+    },
+  },
   BAKE: {
     iconName: 'bake',
-    appearance: {
-      NOT_STARTED: 'future',
-      RUNNING: 'info',
-      SUCCEEDED: 'neutral',
-      FAILED: 'error',
-    },
     title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
       const startedAtDate = startedAt ? DateTime.fromISO(startedAt).toJSDate() : null;
       const completedAtDate = completedAt ? DateTime.fromISO(completedAt).toJSDate() : null;
@@ -33,8 +58,10 @@ const cardConfigurationByType = {
           return `Baked in ${distanceInWords(startedAtDate, completedAtDate)}`;
         case 'FAILED':
           return `Baking failed after ${distanceInWords(startedAtDate, completedAtDate)}`;
-        default:
-          return null;
+        case 'ABORTED':
+          return `Baking aborted after ${distanceInWords(startedAtDate, completedAtDate)}`;
+        case 'UNKNOWN':
+          return 'Unable to find the status of this bake';
       }
     },
   },
@@ -70,25 +97,27 @@ export const PreDeploymentStepCard = memo(({ step, application, reference }: Pre
     return null;
   }
 
-  const { iconName, appearance, title } = cardConfigurationByType[type];
+  const { iconName, title } = cardConfigurationByType[type];
 
   return (
     <StatusCard
-      appearance={appearance[status]}
+      appearance={cardAppearanceByStatus[status]}
       active={status !== 'NOT_STARTED'}
       iconName={iconName}
       timestamp={getTimestamp(startedAt, completedAt)}
       title={title(step)}
       actions={
         link && (
-          <Button
+          <a
+            className="nostyle"
+            href={link}
+            rel="noopener noreferrer"
             onClick={() => {
-              window.open(link, '_blank', 'noopener noreferrer');
               logEvent('Pre-deployment details link clicked', application.name, reference, type, status);
             }}
           >
-            See {status === 'RUNNING' ? 'progress' : 'details'}
-          </Button>
+            <Button>See {status === 'RUNNING' ? 'progress' : 'details'}</Button>
+          </a>
         )
       }
     />

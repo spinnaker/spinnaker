@@ -138,14 +138,17 @@ export const VersionStateCard = memo(
         description={cardAppearanceByState[state].description?.(cardMetadata)}
         actions={
           compareLink && (
-            <Button
+            <a
+              className="nostyle"
+              href={compareLink}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => {
-                window.open(compareLink, '_blank', 'noopener noreferrer');
                 logClick('See changes clicked');
               }}
             >
-              See changes
-            </Button>
+              <Button>See changes</Button>
+            </a>
           )
         }
       />
