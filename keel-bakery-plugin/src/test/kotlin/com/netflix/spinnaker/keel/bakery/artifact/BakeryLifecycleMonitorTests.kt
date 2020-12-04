@@ -102,6 +102,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           }
           expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.RUNNING)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
+          expectThat(slot.captured.timestamp).isEqualTo(null)
         }
       }
 
@@ -119,6 +120,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           }
           expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.SUCCEEDED)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
+          expectThat(slot.captured.timestamp).isEqualTo(null)
         }
       }
 
@@ -136,6 +138,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           }
           expectThat(slot.captured.status).isEqualTo(FAILED)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
+          expectThat(slot.captured.timestamp).isEqualTo(null)
         }
       }
       context("unknown") {
@@ -152,6 +155,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           }
           expectThat(slot.captured.status).isEqualTo(UNKNOWN)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
+          expectThat(slot.captured.timestamp).isEqualTo(null)
         }
       }
     }

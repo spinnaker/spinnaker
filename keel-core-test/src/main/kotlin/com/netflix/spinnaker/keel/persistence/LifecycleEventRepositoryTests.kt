@@ -18,6 +18,7 @@ import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
+import java.time.Instant
 
 abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -128,6 +129,28 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.last().text).isEqualTo("Bake succeeded")
             that(steps.last().link).isEqualTo("www.bake.com/$version")
           }
+        }
+      }
+    }
+
+    context("time") {
+      var startTime: Instant? = null
+      var endTime: Instant? = null
+      before {
+        startTime = clock.instant()
+        subject.saveEvent(event)
+        clock.tickMinutes(1)
+        subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+        clock.tickMinutes(1)
+        subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake succeeded", link = null))
+        endTime = clock.instant()
+      }
+      test("time is correct") {
+        val steps = subject.getSteps(artifact, version)
+        expect {
+          that(steps.size).isEqualTo(1)
+          that(steps.first().startedAt).isEqualTo(startTime)
+          that(steps.first().completedAt).isEqualTo(endTime)
         }
       }
     }

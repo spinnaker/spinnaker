@@ -123,7 +123,8 @@ class BakeryLifecycleMonitor(
       status = status,
       link = orcaTaskIdToLink(this),
       text = text,
-      startMonitoring = false
+      startMonitoring = false,
+      timestamp = null // let repository record the current time
     ))
   }
 }
