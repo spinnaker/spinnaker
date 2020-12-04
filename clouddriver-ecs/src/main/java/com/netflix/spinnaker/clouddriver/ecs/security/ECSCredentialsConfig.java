@@ -22,12 +22,14 @@ import lombok.Data;
 
 @Data
 public class ECSCredentialsConfig {
+  String defaultNamingStrategy = "default";
   List<Account> accounts;
 
   @Data
   public static class Account implements CredentialsDefinition {
     private String name;
     private String awsAccount;
+    private String namingStrategy;
 
     @Override
     public boolean equals(Object o) {

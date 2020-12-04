@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsApplication
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -62,8 +63,8 @@ class EcsApplicationProviderSpec extends Specification {
       desiredCount: 1,
       createdAt: new Date()
     )
-    def attributes = ServiceCachingAgent.convertServiceToAttributes(credentials.getName(),
-      credentials.getRegions()[0].getName(), service)
+    def attributes = TestServiceCachingAgentFactory.create(credentials,
+      credentials.getRegions()[0].getName()).convertServiceToAttributes(service)
 
     credentialsRepository.getAll() >> [credentials]
     cache.filterIdentifiers(_, _) >> []

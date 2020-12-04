@@ -70,6 +70,9 @@ public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
   public void setup() {
 
     // mocking calls
+    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(new ListAccountSettingsResult());
+
     when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
 
     when(mockECS.describeServices(any(DescribeServicesRequest.class)))

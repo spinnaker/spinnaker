@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.AbstractECSDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.moniker.Moniker
 
 class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec {
 
@@ -297,12 +298,87 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     0 * errors.rejectValue(_, _)
   }
 
+  void 'application must be set if moniker is null'() {
+    given:
+    def description = getDescription()
+    description.application = null
+    description.moniker = null
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('application', "${getDescriptionName()}.application.not.nullable")
+  }
+
+  void 'moniker application cannot be null'() {
+    given:
+    def description = getDescription()
+    description.application = "foo"
+    description.moniker.app = null
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('moniker.app', "${getDescriptionName()}.moniker.app.not.nullable")
+  }
+
+  void 'application can be null if moniker is set'() {
+    given:
+    def description = getDescription()
+    description.application = null
+    description.moniker.app = "foo"
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
+  void 'moniker can be null if application is set'() {
+    given:
+    def description = getDescription()
+    description.application = "foo"
+    description.moniker = null
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
+  void 'both app and moniker should match if both are set'() {
+    given:
+    def description = getDescription()
+    description.application = "foo"
+    description.freeFormDetails = "detail"
+    description.stack = "stack"
+    description.moniker.app = "bar"
+    description.moniker.detail = "wrongdetail"
+    description.moniker.stack = "wrongstack"
+    def errors = Mock(ValidationErrors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('moniker.app', "${getDescriptionName()}.moniker.app.invalid")
+    1 * errors.rejectValue('moniker.detail', "${getDescriptionName()}.moniker.detail.invalid")
+    1 * errors.rejectValue('moniker.stack', "${getDescriptionName()}.moniker.stack.invalid")
+  }
+
   @Override
   AbstractECSDescription getNulledDescription() {
     def description = (CreateServerGroupDescription) getDescription()
     description.placementStrategySequence = null
     description.availabilityZones = null
-    description.application = null
     description.ecsClusterName = null
     description.dockerImageAddress = null
     description.credentials = null
@@ -312,12 +388,13 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.capacity.setDesired(null)
     description.capacity.setMin(null)
     description.capacity.setMax(null)
+    description.moniker.app = null;
     return description
   }
 
   @Override
   Set<String> notNullableProperties() {
-    ['placementStrategySequence', 'availabilityZones', 'application',
+    ['placementStrategySequence', 'availabilityZones', 'moniker.app',
      'ecsClusterName', 'dockerImageAddress', 'credentials', 'containerPort', 'computeUnits',
      'reservedMemory', 'capacity.desired', 'capacity.min', 'capacity.max']
   }
@@ -362,7 +439,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.credentials = TestCredential.named('test')
     description.region = 'us-west-1'
 
-    description.application = 'my-app'
+    description.moniker = Moniker.builder().app('my-app').build();
     description.ecsClusterName = 'mycluster'
     description.iamRole = 'iam-role-arn'
     description.containerPort = 1337

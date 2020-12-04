@@ -29,14 +29,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsDefaultNamer
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsServerGroupName
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsTagNamer
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship
 import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService
 import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_SERVERGROUP
@@ -129,6 +135,10 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled"),
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -161,7 +171,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.networkConfiguration == null
       request.healthCheckGracePeriodSeconds == null
       request.enableECSManagedTags == true
-      request.propagateTags == 'SERVICE'
+      request.propagateTags == PropagateTags.SERVICE.toString()
       request.tags.size() == 2
       request.tags.get(0).key == 'label1'
       request.tags.get(0).value == 'value1'
@@ -255,10 +265,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult()
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
       request.services == ["${serviceName}-v007"]
+      request.include == ["TAGS"]
     }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
     ecs.describeServices(_) >> new DescribeServicesResult()
@@ -358,6 +370,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult()
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -421,8 +434,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     when:
     def request = operation.makeServiceRequest('task-def-arn',
-      'mygreatapp-stack1-details2-v0011',
-      1)
+            new EcsServerGroupName('mygreatapp-stack1-details2-v011'),
+            1, new EcsDefaultNamer(), false)
 
     then:
     request.getLoadBalancers() == []
@@ -441,11 +454,11 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
-    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v0011'
+    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v011'
     labels.get(CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_STACK) == 'stack1'
     labels.get(CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_DETAIL) == 'details2'
   }
@@ -462,7 +475,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
@@ -485,11 +498,11 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
-    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v0011'
+    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v011'
     labels.get(DOCKER_LABEL_KEY_SERVERGROUP) != 'some-value-we-dont-want-to-see'
   }
 
@@ -501,7 +514,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver() == 'some-log-driver'
@@ -514,7 +527,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == null
@@ -530,7 +543,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
@@ -543,7 +556,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getPortMappings().isEmpty()
@@ -557,7 +570,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getRepositoryCredentials().getCredentialsParameter() == 'my-secret'
@@ -570,7 +583,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     request.getContainerDefinitions().get(0).getRepositoryCredentials() == null
@@ -597,7 +610,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1-kcats-liated-v001")
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", new EcsServerGroupName('v1-kcats-liated-v001'))
 
     then:
     result.getTaskRoleArn() == null
@@ -669,7 +682,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     when:
     RegisterTaskDefinitionRequest result =
-      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", new EcsServerGroupName("v1-ecs-test-v001"))
 
     then:
     result.getTaskRoleArn() == null
@@ -737,7 +750,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     when:
     RegisterTaskDefinitionRequest result =
-      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", new EcsServerGroupName('v1-ecs-test-v001'))
 
     then:
     result.getTaskRoleArn() == null
@@ -791,7 +804,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     when:
     RegisterTaskDefinitionRequest result =
-      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", new EcsServerGroupName('v1-ecs-test-v001'))
 
     then:
     result.getTaskRoleArn() == null
@@ -834,7 +847,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     objectMapper.readValue(_,_) >> registerTaskDefRequest
 
     when:
-    operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+    operation.makeTaskDefinitionRequestFromArtifact("test-role", new EcsServerGroupName('v1-ecs-test-v001'))
 
     then:
     IllegalArgumentException exception = thrown()
@@ -852,7 +865,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1-kcats-liated-v001")
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", new EcsServerGroupName('v1-kcats-liated-v001'))
 
     then:
     result.getContainerDefinitions().size() == 1
@@ -878,7 +891,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', new EcsServerGroupName('mygreatapp-stack1-details2-v011'))
 
     then:
     def portMapping = request.getContainerDefinitions().get(0).getPortMappings().get(0)
@@ -933,6 +946,10 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled"),
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -1056,6 +1073,10 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled"),
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -1180,6 +1201,10 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled"),
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -1312,6 +1337,10 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def result = operation.operate([])
 
     then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled"),
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
     ecs.describeServices({DescribeServicesRequest request ->
       request.cluster == 'test-cluster'
@@ -1391,4 +1420,245 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       "test-cluster"
     )
   }
+
+  def 'should create no tags by default'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> null
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1,  new EcsDefaultNamer(), false)
+
+    then:
+    assert request.enableECSManagedTags == null
+    assert request.propagateTags == null
+    def tags = request.getTags()
+    assert tags.isEmpty()
+  }
+
+  def 'should create moniker tags if enabled and no other tags'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> null
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1, new EcsTagNamer(), true)
+
+    then:
+    assert request.enableECSManagedTags == true
+    assert request.propagateTags == PropagateTags.SERVICE.toString()
+    def tags = request.getTags()
+    assert tags.size() == 5
+    tags.contains(new Tag(key: EcsTagNamer.APPLICATION, value: 'mygreatapp'))
+    tags.contains(new Tag(key: EcsTagNamer.CLUSTER, value: 'mygreatapp-stack1-details2'))
+    tags.contains(new Tag(key: EcsTagNamer.STACK, value: 'stack1'))
+    tags.contains(new Tag(key: EcsTagNamer.DETAIL, value: 'details2'))
+    tags.contains(new Tag(key: EcsTagNamer.SEQUENCE, value: '11'))
+  }
+
+  def 'should create custom tags if moniker not enabled'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> ['label1': 'value1', 'fruit':'tomato']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1,  new EcsDefaultNamer(), true)
+
+    then:
+    assert request.enableECSManagedTags == true
+    assert request.propagateTags == 'SERVICE'
+    def tags = request.getTags()
+    assert tags.size() == 2
+    tags.contains(new Tag(key: 'label1', value: 'value1'))
+    tags.contains(new Tag(key: 'fruit', value: 'tomato'))
+  }
+
+  def 'should create custom tags and moniker tags if moniker enabled'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> ['label1': 'value1', 'fruit':'tomato']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1, new EcsTagNamer(), true)
+
+    then:
+    assert request.enableECSManagedTags == true
+    assert request.propagateTags == 'SERVICE'
+    def tags = request.getTags()
+    assert tags.size() == 7
+    tags.contains(new Tag(key: 'label1', value: 'value1'))
+    tags.contains(new Tag(key: 'fruit', value: 'tomato'))
+    tags.contains(new Tag(key: EcsTagNamer.APPLICATION, value: 'mygreatapp'))
+    tags.contains(new Tag(key: EcsTagNamer.CLUSTER, value: 'mygreatapp-stack1-details2'))
+    tags.contains(new Tag(key: EcsTagNamer.STACK, value: 'stack1'))
+    tags.contains(new Tag(key: EcsTagNamer.DETAIL, value: 'details2'))
+    tags.contains(new Tag(key: EcsTagNamer.SEQUENCE, value: '11'))
+  }
+
+  def 'should fail to create service with custom tags and moniker tags if tags disabled'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> ['label1': 'value1', 'fruit':'tomato']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1, new EcsTagNamer(), false)
+
+    then:
+    IllegalArgumentException ex = thrown()
+    ex.message == "ECS account settings for account null do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled."
+  }
+
+  def 'should fail to create service with custom tags and no moniker tags if tags disabled'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTags() >> ['label1': 'value1', 'fruit':'tomato']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-stack1-details2-v011'), 1, new EcsDefaultNamer(), false)
+
+    then:
+    IllegalArgumentException ex = thrown()
+    ex.message == "ECS account settings for account null do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled."
+  }
+
+  def 'should not create tags with duplicate keys'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getTags() >> ['label1': 'value2', 'label1': 'value1']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest("taskDefArn", new EcsServerGroupName('mygreatapp-v011'), 1, new EcsDefaultNamer(), true)
+
+    then:
+    assert request.enableECSManagedTags == true
+    assert request.propagateTags == 'SERVICE'
+    def tags = request.getTags()
+    assert tags.size() == 1
+    tags.contains(new Tag(key: 'label1', value: 'value1'))
+  }
+
+  def 'should fail to create service with tags if task ARN format is not updated '() {
+    given:
+    def description = new CreateServerGroupDescription(
+      credentials: TestCredential.named('Test', [:]),
+      application: applicationName,
+      stack: stack,
+      freeFormDetails: detail,
+      ecsClusterName: 'test-cluster',
+      tags: ['label1': 'value1', 'fruit': 'tomato'],
+      dockerImageAddress: 'docker-image-url',
+      capacity: new ServerGroup.Capacity(1, 1, 1),
+      availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
+    )
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    operation.amazonClientProvider = amazonClientProvider
+    operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
+    operation.iamPolicyReader = iamPolicyReader
+    operation.credentialsRepository = credentialsRepository
+    operation.containerInformationService = containerInformationService
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.ServiceLongArnFormat, value: "enabled")
+    )
+    ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
+    ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
+
+    IllegalArgumentException ex = thrown()
+    ex.message == "ECS account settings for account Test do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled."
+  }
+
+  def 'should fail to create service with tags if service ARN format is not updated '() {
+    given:
+    def description = new CreateServerGroupDescription(
+      credentials: TestCredential.named('Test', [:]),
+      application: applicationName,
+      stack: stack,
+      freeFormDetails: detail,
+      ecsClusterName: 'test-cluster',
+      tags: ['label1': 'value1', 'fruit': 'tomato'],
+      dockerImageAddress: 'docker-image-url',
+      capacity: new ServerGroup.Capacity(1, 1, 1),
+      availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
+    )
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    operation.amazonClientProvider = amazonClientProvider
+    operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
+    operation.iamPolicyReader = iamPolicyReader
+    operation.credentialsRepository = credentialsRepository
+    operation.containerInformationService = containerInformationService
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult().withSettings(
+      new Setting(name: SettingName.TaskLongArnFormat, value: "enabled")
+    )
+    ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
+    ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
+
+    IllegalArgumentException ex = thrown()
+    ex.message == "ECS account settings for account Test do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled."
+  }
+
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.model;
 
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
 import java.util.Set;
 import lombok.Data;
@@ -49,6 +50,7 @@ public class EcsServerGroup implements ServerGroup {
   String vpcId;
   AutoScalingGroup asg;
   Set<String> metricAlarms;
+  Moniker moniker;
 
   @Override
   public Boolean isDisabled() {

@@ -24,10 +24,16 @@ aws:
 ecs:
   enabled: true
   primaryAccount: ecs-account
+  defaultNamingStrategy: tags
   accounts:
     - name: ecs-account
       providerVersion: V1
       awsAccount: aws-account
+      namingStrategy: default
+    - name: ecs-moniker-account
+      providerVersion: V1
+      awsAccount: aws-account
+
 sql:
   enabled: true
   taskRepository:

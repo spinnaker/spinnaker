@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,6 +79,10 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
     }
 
     service.setCreatedAt((Long) attributes.get("createdAt"));
+
+    if (attributes.containsKey("moniker")) {
+      service.setMoniker(objectMapper.convertValue(attributes.get("moniker"), Moniker.class));
+    }
 
     return service;
   }

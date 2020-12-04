@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,10 +117,12 @@ public class EcsApplicationProvider implements ApplicationProvider {
       HashMap<String, Application> applicationHashMap, Service service, boolean expand) {
 
     HashMap<String, String> attributes = new HashMap<>();
-    String appName = service.getApplicationName();
+    Moniker moniker = service.getMoniker();
+
+    String appName = moniker.getApp();
     String serviceName = service.getServiceName();
     String accountName = service.getAccount();
-    attributes.put("name", service.getApplicationName());
+    attributes.put("name", appName);
 
     HashMap<String, Set<String>> clusterNames = new HashMap<>();
     if (expand) {

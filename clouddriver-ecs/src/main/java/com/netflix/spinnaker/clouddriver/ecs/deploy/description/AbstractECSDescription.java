@@ -17,14 +17,22 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription;
+import com.netflix.spinnaker.moniker.Moniker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class AbstractECSDescription extends AbstractAmazonCredentialsDescription {
-  String application;
+  /** @deprecated This field is deprecated in favour of [moniker.app] */
+  @Deprecated String application;
+
+  /** @deprecated This field is deprecated in favour of [moniker.stack] */
+  @Deprecated String stack;
+
+  /** @deprecated This field is deprecated in favour of [moniker.detail] */
+  @Deprecated String freeFormDetails;
+
   String region;
-  String stack;
-  String freeFormDetails;
+  Moniker moniker;
 }

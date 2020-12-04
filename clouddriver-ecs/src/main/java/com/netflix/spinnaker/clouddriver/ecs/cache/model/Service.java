@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
 import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;
 import lombok.Data;
 
@@ -38,4 +39,5 @@ public class Service {
   List<String> subnets;
   List<String> securityGroups;
   long createdAt;
+  Moniker moniker;
 }

@@ -25,25 +25,7 @@ import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.applicationautoscaling.model.SuspendedState;
 import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
-import com.amazonaws.services.ecs.model.CapacityProviderStrategyItem;
-import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.CreateServiceRequest;
-import com.amazonaws.services.ecs.model.DeploymentConfiguration;
-import com.amazonaws.services.ecs.model.DescribeServicesRequest;
-import com.amazonaws.services.ecs.model.DescribeServicesResult;
-import com.amazonaws.services.ecs.model.KeyValuePair;
-import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.LogConfiguration;
-import com.amazonaws.services.ecs.model.NetworkConfiguration;
-import com.amazonaws.services.ecs.model.PortMapping;
-import com.amazonaws.services.ecs.model.RegisterTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.RegisterTaskDefinitionResult;
-import com.amazonaws.services.ecs.model.RepositoryCredentials;
-import com.amazonaws.services.ecs.model.Service;
-import com.amazonaws.services.ecs.model.ServiceRegistry;
-import com.amazonaws.services.ecs.model.Tag;
-import com.amazonaws.services.ecs.model.TaskDefinition;
+import com.amazonaws.services.ecs.model.*;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
@@ -59,8 +41,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredential
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
-import com.netflix.spinnaker.clouddriver.ecs.deploy.EcsServerGroupNameResolver;
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
+import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription.ServiceDiscoveryAssociation;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsServerGroupName;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials;
@@ -68,21 +54,16 @@ import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService;
 import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.Namer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -132,14 +113,13 @@ public class CreateServerGroupAtomicOperation
 
     AmazonECS ecs = getAmazonEcsClient();
 
-    EcsServerGroupNameResolver serverGroupNameResolver =
-        new EcsServerGroupNameResolver(description.getEcsClusterName(), ecs, getRegion());
-    String newServerGroupName =
-        serverGroupNameResolver.resolveNextServerGroupName(
-            description.getApplication(),
-            description.getStack(),
-            description.getFreeFormDetails(),
-            false);
+    Namer<EcsResource> namer =
+        NamerRegistry.lookup()
+            .withProvider(EcsCloudProvider.ID)
+            .withAccount(credentials.getName())
+            .withResource(EcsResource.class);
+
+    EcsServerGroupName newServerGroup = buildEcsServerGroupName(ecs, namer);
 
     ScalableTarget sourceTarget = getSourceScalableTarget();
     Service sourceService = getSourceService();
@@ -147,10 +127,10 @@ public class CreateServerGroupAtomicOperation
     String ecsServiceRole = inferAssumedRoleArn(credentials);
 
     updateTaskStatus("Creating Amazon ECS Task Definition...");
-    TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, newServerGroupName);
+    TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, newServerGroup);
     updateTaskStatus("Done creating Amazon ECS Task Definition...");
 
-    Service service = createService(ecs, taskDefinition, newServerGroupName, sourceService);
+    Service service = createService(ecs, taskDefinition, newServerGroup, sourceService, namer);
 
     String resourceId = registerAutoScalingGroup(credentials, service, sourceTarget);
 
@@ -172,8 +152,20 @@ public class CreateServerGroupAtomicOperation
     return makeDeploymentResult(service);
   }
 
+  private EcsServerGroupName buildEcsServerGroupName(AmazonECS ecs, Namer<EcsResource> namer) {
+    EcsServerGroupNameResolver serverGroupNameResolver =
+        new EcsServerGroupNameResolver(description.getEcsClusterName(), ecs, getRegion(), namer);
+
+    if (description.getMoniker() != null) {
+      return serverGroupNameResolver.resolveNextName(description.getMoniker());
+    }
+
+    return serverGroupNameResolver.resolveNextName(
+        description.getApplication(), description.getStack(), description.getFreeFormDetails());
+  }
+
   protected TaskDefinition registerTaskDefinition(
-      AmazonECS ecs, String ecsServiceRole, String newServerGroupName) {
+      AmazonECS ecs, String ecsServiceRole, EcsServerGroupName newServerGroupName) {
 
     RegisterTaskDefinitionRequest request;
 
@@ -189,7 +181,7 @@ public class CreateServerGroupAtomicOperation
   }
 
   protected RegisterTaskDefinitionRequest makeTaskDefinitionRequest(
-      String ecsServiceRole, String newServerGroupName) {
+      String ecsServiceRole, EcsServerGroupName newServerGroupName) {
     Collection<KeyValuePair> containerEnvironment = new LinkedList<>();
 
     // Set all user defined environment variables
@@ -205,7 +197,7 @@ public class CreateServerGroupAtomicOperation
 
     ContainerDefinition containerDefinition =
         new ContainerDefinition()
-            .withName(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName))
+            .withName(newServerGroupName.getContainerName())
             .withEnvironment(containerEnvironment)
             .withCpu(description.getComputeUnits())
             .withMemoryReservation(description.getReservedMemory())
@@ -254,8 +246,7 @@ public class CreateServerGroupAtomicOperation
     }
 
     if (description.getServiceDiscoveryAssociations() != null) {
-      for (CreateServerGroupDescription.ServiceDiscoveryAssociation config :
-          description.getServiceDiscoveryAssociations()) {
+      for (ServiceDiscoveryAssociation config : description.getServiceDiscoveryAssociations()) {
         if (config.getContainerPort() != null
             && config.getContainerPort() != 0
             && config.getContainerPort() != description.getContainerPort()) {
@@ -307,7 +298,7 @@ public class CreateServerGroupAtomicOperation
     RegisterTaskDefinitionRequest request =
         new RegisterTaskDefinitionRequest()
             .withContainerDefinitions(containerDefinitions)
-            .withFamily(EcsServerGroupNameResolver.getEcsFamilyName(newServerGroupName));
+            .withFamily(newServerGroupName.getFamilyName());
     if (description.getNetworkMode() != null && !description.getNetworkMode().equals("default")) {
       request.withNetworkMode(description.getNetworkMode());
     }
@@ -344,7 +335,7 @@ public class CreateServerGroupAtomicOperation
   }
 
   protected RegisterTaskDefinitionRequest makeTaskDefinitionRequestFromArtifact(
-      String ecsServiceRole, String newServerGroupName) {
+      String ecsServiceRole, EcsServerGroupName newServerGroupName) {
 
     File artifactFile =
         downloadTaskDefinitionArtifact(description.getResolvedTaskDefinitionArtifact());
@@ -408,7 +399,7 @@ public class CreateServerGroupAtomicOperation
           c.setDockerLabels(updatedLabels);
         });
 
-    requestTemplate.setFamily(EcsServerGroupNameResolver.getEcsFamilyName(newServerGroupName));
+    requestTemplate.setFamily(newServerGroupName.getFamilyName());
 
     if (FARGATE.equals(description.getLaunchType())) {
       String templateExecutionRole = requestTemplate.getExecutionRoleArn();
@@ -464,8 +455,9 @@ public class CreateServerGroupAtomicOperation
   private Service createService(
       AmazonECS ecs,
       TaskDefinition taskDefinition,
-      String newServerGroupName,
-      Service sourceService) {
+      EcsServerGroupName newServerGroupName,
+      Service sourceService,
+      Namer<EcsResource> namer) {
 
     String taskDefinitionArn = taskDefinition.getTaskDefinitionArn();
 
@@ -478,7 +470,8 @@ public class CreateServerGroupAtomicOperation
     }
 
     CreateServiceRequest request =
-        makeServiceRequest(taskDefinitionArn, newServerGroupName, desiredCount);
+        makeServiceRequest(
+            taskDefinitionArn, newServerGroupName, desiredCount, namer, isTaggingEnabled(ecs));
 
     updateTaskStatus(
         String.format(
@@ -498,14 +491,14 @@ public class CreateServerGroupAtomicOperation
   }
 
   protected CreateServiceRequest makeServiceRequest(
-      String taskDefinitionArn, String newServerGroupName, Integer desiredCount) {
-    Collection<LoadBalancer> loadBalancers =
-        retrieveLoadBalancers(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
-
+      String taskDefinitionArn,
+      EcsServerGroupName newServerGroupName,
+      Integer desiredCount,
+      Namer<EcsResource> namer,
+      boolean taggingEnabled) {
     Collection<ServiceRegistry> serviceRegistries = new LinkedList<>();
     if (description.getServiceDiscoveryAssociations() != null) {
-      for (CreateServerGroupDescription.ServiceDiscoveryAssociation config :
-          description.getServiceDiscoveryAssociations()) {
+      for (ServiceDiscoveryAssociation config : description.getServiceDiscoveryAssociations()) {
         ServiceRegistry registryEntry =
             new ServiceRegistry().withRegistryArn(config.getRegistry().getArn());
 
@@ -513,8 +506,7 @@ public class CreateServerGroupAtomicOperation
           registryEntry.setContainerPort(config.getContainerPort());
 
           if (StringUtils.isEmpty(config.getContainerName())) {
-            registryEntry.setContainerName(
-                EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
+            registryEntry.setContainerName(newServerGroupName.getContainerName());
           } else {
             registryEntry.setContainerName(config.getContainerName());
           }
@@ -529,23 +521,58 @@ public class CreateServerGroupAtomicOperation
 
     CreateServiceRequest request =
         new CreateServiceRequest()
-            .withServiceName(newServerGroupName)
+            .withServiceName(newServerGroupName.getServiceName())
             .withDesiredCount(desiredCount)
             .withCluster(description.getEcsClusterName())
-            .withLoadBalancers(loadBalancers)
             .withTaskDefinition(taskDefinitionArn)
             .withPlacementConstraints(description.getPlacementConstraints())
             .withPlacementStrategy(description.getPlacementStrategySequence())
             .withServiceRegistries(serviceRegistries)
             .withDeploymentConfiguration(deploymentConfiguration);
 
+    List<Tag> taskDefTags = new LinkedList<>();
     if (description.getTags() != null && !description.getTags().isEmpty()) {
-      Collection<Tag> taskDefTags = new LinkedList<>();
       for (Map.Entry<String, String> entry : description.getTags().entrySet()) {
         taskDefTags.add(new Tag().withKey(entry.getKey()).withValue(entry.getValue()));
       }
-      request.withTags(taskDefTags).withEnableECSManagedTags(true).withPropagateTags("SERVICE");
     }
+
+    // Apply moniker strategy which may add tags
+    namer.applyMoniker(
+        new EcsResource() {
+          @Override
+          public String getName() {
+            return request.getServiceName();
+          }
+
+          // Used by Frigga when moniker support is disabled
+          public void setName(String name) {
+            request.setServiceName(name);
+          }
+
+          @Override
+          public List<Tag> getResourceTags() {
+            return taskDefTags;
+          }
+        },
+        newServerGroupName.getMoniker());
+
+    // Only add tags if they're set as it's an optional feature for ECS
+    if (taggingEnabled) {
+      request
+          .withTags(taskDefTags)
+          .withEnableECSManagedTags(true)
+          .withPropagateTags(PropagateTags.SERVICE.toString());
+    } else {
+      if (!taskDefTags.isEmpty()) {
+        throw new IllegalArgumentException(
+            "ECS account settings for account "
+                + description.getAccount()
+                + " do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled.");
+      }
+    }
+
+    request.withLoadBalancers(retrieveLoadBalancers(newServerGroupName.getContainerName()));
 
     if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
       Collection<String> subnetIds =
@@ -592,6 +619,21 @@ public class CreateServerGroupAtomicOperation
     }
 
     return request;
+  }
+
+  private boolean isTaggingEnabled(AmazonECS ecs) {
+    Set<String> enabledSettings =
+        ecs
+            .listAccountSettings(new ListAccountSettingsRequest().withEffectiveSettings(true))
+            .getSettings()
+            .stream()
+            .filter(e -> Objects.equals("enabled", e.getValue()))
+            .map(Setting::getName)
+            .collect(Collectors.toSet());
+
+    return enabledSettings.containsAll(
+        Set.of(
+            SettingName.ServiceLongArnFormat.toString(), SettingName.TaskLongArnFormat.toString()));
   }
 
   private String registerAutoScalingGroup(
@@ -839,33 +881,37 @@ public class CreateServerGroupAtomicOperation
   }
 
   private Collection<KeyValuePair> setSpinnakerEnvVars(
-      Collection<KeyValuePair> targetEnv, String newServerGroupName) {
+      Collection<KeyValuePair> targetEnv, EcsServerGroupName newServerGroupName) {
 
-    targetEnv.add(new KeyValuePair().withName("SERVER_GROUP").withValue(newServerGroupName));
-    targetEnv.add(new KeyValuePair().withName("CLOUD_STACK").withValue(description.getStack()));
+    Moniker moniker = newServerGroupName.getMoniker();
+
     targetEnv.add(
-        new KeyValuePair().withName("CLOUD_DETAIL").withValue(description.getFreeFormDetails()));
+        new KeyValuePair().withName("SERVER_GROUP").withValue(newServerGroupName.getServiceName()));
+    targetEnv.add(new KeyValuePair().withName("CLOUD_STACK").withValue(moniker.getStack()));
+    targetEnv.add(new KeyValuePair().withName("CLOUD_DETAIL").withValue(moniker.getDetail()));
 
     return targetEnv;
   }
 
   private Map<String, String> setSpinnakerDockerLabels(
-      Map<String, String> targetMap, String newServerGroupName) {
+      Map<String, String> targetMap, EcsServerGroupName newServerGroupName) {
 
     Map<String, String> newLabels = new HashMap<>();
     if (targetMap != null) {
       newLabels.putAll(targetMap);
     }
 
-    if (description.getStack() != null) {
-      newLabels.put(DOCKER_LABEL_KEY_STACK, description.getStack());
+    Moniker moniker = newServerGroupName.getMoniker();
+
+    if (StringUtils.isNotBlank(moniker.getStack())) {
+      newLabels.put(DOCKER_LABEL_KEY_STACK, moniker.getStack());
     }
 
-    if (description.getFreeFormDetails() != null) {
-      newLabels.put(DOCKER_LABEL_KEY_DETAIL, description.getFreeFormDetails());
+    if (StringUtils.isNotBlank(moniker.getDetail())) {
+      newLabels.put(DOCKER_LABEL_KEY_DETAIL, moniker.getDetail());
     }
 
-    newLabels.put(DOCKER_LABEL_KEY_SERVERGROUP, newServerGroupName);
+    newLabels.put(DOCKER_LABEL_KEY_SERVERGROUP, newServerGroupName.getServiceName());
 
     return newLabels;
   }

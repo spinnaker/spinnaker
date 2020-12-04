@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -101,8 +102,31 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       rejectValue(errors, "placementStrategySequence", "not.nullable");
     }
 
-    if (createServerGroupDescription.getApplication() == null) {
-      rejectValue(errors, "application", "not.nullable");
+    Moniker moniker = createServerGroupDescription.getMoniker();
+    if (moniker == null) {
+      if (createServerGroupDescription.getApplication() == null) {
+        rejectValue(errors, "application", "not.nullable");
+      }
+    } else {
+      if (moniker.getApp() == null) {
+        rejectValue(errors, "moniker.app", "not.nullable");
+      }
+
+      if (StringUtils.isNotBlank(createServerGroupDescription.getApplication())
+          && !StringUtils.equals(createServerGroupDescription.getApplication(), moniker.getApp())) {
+        rejectValue(errors, "moniker.app", "invalid");
+      }
+
+      if (StringUtils.isNotBlank(createServerGroupDescription.getFreeFormDetails())
+          && !StringUtils.equals(
+              createServerGroupDescription.getFreeFormDetails(), moniker.getDetail())) {
+        rejectValue(errors, "moniker.detail", "invalid");
+      }
+
+      if (StringUtils.isNotBlank(createServerGroupDescription.getStack())
+          && !StringUtils.equals(createServerGroupDescription.getStack(), moniker.getStack())) {
+        rejectValue(errors, "moniker.stack", "invalid");
+      }
     }
 
     if (createServerGroupDescription.getEcsClusterName() == null) {

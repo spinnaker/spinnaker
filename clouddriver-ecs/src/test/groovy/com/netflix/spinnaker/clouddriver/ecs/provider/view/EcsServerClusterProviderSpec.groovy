@@ -23,9 +23,11 @@ import com.amazonaws.services.ec2.model.Placement
 import com.amazonaws.services.ecs.model.*
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.*
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsLoadBalancerCache
@@ -35,10 +37,13 @@ import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -168,8 +173,8 @@ class EcsServerClusterProviderSpec extends Specification {
     expectedCluster2.setServerGroups(new LinkedHashSet([ecsServerGroupEast, ecsServerGroupWest]))
     expectedCluster2.setLoadBalancers(Collections.singleton(loadbalancer))
 
-    def serviceAttributes = ServiceCachingAgent.convertServiceToAttributes(creds.getName(), creds.getRegions()[0].getName(), cachedService)
-    def serviceAttributes2 = ServiceCachingAgent.convertServiceToAttributes(creds2.getName(), creds.getRegions()[0].getName(), cachedService)
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
+    def serviceAttributes2 = TestServiceCachingAgentFactory.create(creds2, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
     def taskAttributes = TaskCachingAgent.convertTaskToAttributes(task)
 
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
@@ -205,13 +210,20 @@ class EcsServerClusterProviderSpec extends Specification {
 
   def 'should produce an ecs cluster with VPC network configuration'() {
     given:
+    def creds = Mock(NetflixECSCredentials)
+    creds.getCloudProvider() >> 'ecs'
+    creds.getName() >> CREDS_NAME
+    creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
+                           new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
+
     cachedService.networkConfiguration = new NetworkConfiguration(
       awsvpcConfiguration: new AwsVpcConfiguration(
         subnets: ['subnet-1234'],
         securityGroups: ['sg-1234']
       )
     )
-    def serviceAttributes = ServiceCachingAgent.convertServiceToAttributes(CREDS_NAME, 'us-east-1', cachedService)
+
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
 
     ec2Instance.vpcId = 'vpc-wrong'
@@ -227,13 +239,19 @@ class EcsServerClusterProviderSpec extends Specification {
 
   def 'should produce an ecs cluster using Fargate'() {
     given:
+    def creds = Mock(NetflixECSCredentials)
+    creds.getCloudProvider() >> 'ecs'
+    creds.getName() >> CREDS_NAME
+    creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
+                           new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
+
     cachedService.networkConfiguration = new NetworkConfiguration(
       awsvpcConfiguration: new AwsVpcConfiguration(
         subnets: ['subnet-1234'],
         securityGroups: ['sg-1234']
       )
     )
-    def serviceAttributes = ServiceCachingAgent.convertServiceToAttributes(CREDS_NAME, 'us-east-1', cachedService)
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
 
     when:
@@ -365,6 +383,7 @@ class EcsServerClusterProviderSpec extends Specification {
   }
 
   def makeEcsServerGroup(String serviceName, String region, long startTime, String taskId, Map healthStatus, String ip) {
+    Names name = Names.parseName(serviceName)
     new EcsServerGroup(
       name: serviceName,
       type: 'ecs',
@@ -403,6 +422,13 @@ class EcsServerClusterProviderSpec extends Specification {
         name: 'my-image'
       ),
       metricAlarms: [],
+      moniker: Moniker.builder()
+        .app(name.app)
+        .stack(name.stack)
+        .detail(name.detail)
+        .sequence(name.sequence)
+        .cluster(name.cluster)
+        .build()
     )
   }
 }

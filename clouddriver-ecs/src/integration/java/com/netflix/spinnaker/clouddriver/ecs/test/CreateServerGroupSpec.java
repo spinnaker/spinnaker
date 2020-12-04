@@ -49,6 +49,8 @@ public class CreateServerGroupSpec extends EcsSpec {
   @BeforeEach
   public void setup() {
     // mock ECS responses
+    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(new ListAccountSettingsResult());
     when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
     when(mockECS.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(new DescribeServicesResult());
@@ -160,6 +162,7 @@ public class CreateServerGroupSpec extends EcsSpec {
     assertEquals("v000", serviceLB.getContainerName());
     assertEquals(80, serviceLB.getContainerPort().intValue());
     assertEquals("integInputsEc2LegacyTargetGroup-cluster", seenCreateServRequest.getCluster());
+    assertEquals(0, seenCreateServRequest.getTags().size());
   }
 
   @DisplayName(
@@ -234,6 +237,7 @@ public class CreateServerGroupSpec extends EcsSpec {
     assertEquals("v000", serviceLB.getContainerName());
     assertEquals(80, serviceLB.getContainerPort().intValue());
     assertEquals("integInputsFargateLegacyTargetGroup-cluster", seenCreateServRequest.getCluster());
+    assertEquals(0, seenCreateServRequest.getTags().size());
   }
 
   @DisplayName(
@@ -309,6 +313,7 @@ public class CreateServerGroupSpec extends EcsSpec {
     assertEquals("main", serviceLB.getContainerName());
     assertEquals(80, serviceLB.getContainerPort().intValue());
     assertEquals("integInputsFargateTgMappings-cluster", seenCreateServRequest.getCluster());
+    assertEquals(0, seenCreateServRequest.getTags().size());
   }
 
   @DisplayName(
@@ -420,6 +425,7 @@ public class CreateServerGroupSpec extends EcsSpec {
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
     assertEquals("EC2", seenCreateServRequest.getLaunchType());
     assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
+    assertEquals(0, seenCreateServRequest.getTags().size());
   }
 
   @DisplayName(
@@ -492,5 +498,6 @@ public class CreateServerGroupSpec extends EcsSpec {
     assertEquals(
         true,
         seenCreateServRequest.getServiceRegistries().get(0).getContainerName().contains("v000"));
+    assertEquals(0, seenCreateServRequest.getTags().size());
   }
 }

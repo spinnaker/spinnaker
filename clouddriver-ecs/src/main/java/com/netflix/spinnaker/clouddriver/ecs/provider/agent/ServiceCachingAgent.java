@@ -23,10 +23,8 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.DescribeServicesRequest;
-import com.amazonaws.services.ecs.model.ListServicesRequest;
-import com.amazonaws.services.ecs.model.ListServicesResult;
-import com.amazonaws.services.ecs.model.Service;
+import com.amazonaws.services.ecs.model.*;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -34,7 +32,13 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResourceService;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.Namer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,22 +59,44 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
               INFORMATIVE.forType(ECS_CLUSTERS.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  private final Namer<EcsResource> naming;
+
   public ServiceCachingAgent(
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
       AWSCredentialsProvider awsCredentialsProvider,
       Registry registry) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
+    this(
+        account,
+        region,
+        amazonClientProvider,
+        awsCredentialsProvider,
+        registry,
+        NamerRegistry.lookup()
+            .withProvider(EcsCloudProvider.ID)
+            .withAccount(account.getName())
+            .withResource(EcsResource.class));
   }
 
-  public static Map<String, Object> convertServiceToAttributes(
-      String accountName, String region, Service service) {
+  @VisibleForTesting
+  public ServiceCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      Registry registry,
+      Namer naming) {
+    super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
+    this.naming = naming;
+  }
+
+  public Map<String, Object> convertServiceToAttributes(Service service) {
     Map<String, Object> attributes = new HashMap<>();
-    String applicationName =
-        service.getServiceName().contains("-")
-            ? StringUtils.substringBefore(service.getServiceName(), "-")
-            : service.getServiceName();
+
+    Moniker moniker = naming.deriveMoniker(new EcsResourceService(service));
+
+    String applicationName = moniker.getApp();
     String clusterName = StringUtils.substringAfterLast(service.getClusterArn(), "/");
 
     attributes.put("account", accountName);
@@ -98,6 +124,7 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     }
 
     attributes.put("createdAt", service.getCreatedAt().getTime());
+    attributes.put("moniker", moniker);
 
     return attributes;
   }
@@ -132,7 +159,10 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
 
         List<Service> services =
             ecs.describeServices(
-                    new DescribeServicesRequest().withCluster(cluster).withServices(serviceArns))
+                    new DescribeServicesRequest()
+                        .withCluster(cluster)
+                        .withServices(serviceArns)
+                        .withInclude("TAGS"))
                 .getServices();
         serviceList.addAll(services);
 
@@ -148,7 +178,7 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     Map<String, CacheData> clusterDataPoints = new HashMap<>();
 
     for (Service service : services) {
-      Map<String, Object> attributes = convertServiceToAttributes(accountName, region, service);
+      Map<String, Object> attributes = convertServiceToAttributes(service);
 
       String key = Keys.getServiceKey(accountName, region, service.getServiceName());
       dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));

@@ -53,7 +53,14 @@ public class EcsSpec {
   protected static final String TEST_ARTIFACTS_LOCATION = "src/integration/resources/testartifacts";
 
   @Value("${ecs.primaryAccount}")
-  protected String ECS_ACCOUNT_NAME;
+  protected String ACTUAL_ECS_ACCOUNT_NAME;
+
+  protected static final String ECS_ACCOUNT_NAME = "ecs-account";
+
+  @Value("${ecs.accounts[1].name}")
+  protected String ACTUAL_ECS_MONIKER_ACCOUNT_NAME;
+
+  protected static final String ECS_MONIKER_ACCOUNT_NAME = "ecs-moniker-account";
 
   protected final String TEST_REGION = "us-west-2";
   protected final int TASK_RETRY_SECONDS = 3;
@@ -74,7 +81,8 @@ public class EcsSpec {
   public void configTest() {
     assertTrue(awsEnabled);
     assertTrue(ecsEnabled);
-    assertEquals("ecs-account", ECS_ACCOUNT_NAME);
+    assertEquals(ECS_ACCOUNT_NAME, ACTUAL_ECS_ACCOUNT_NAME);
+    assertEquals(ECS_MONIKER_ACCOUNT_NAME, ACTUAL_ECS_MONIKER_ACCOUNT_NAME);
   }
 
   protected String generateStringFromTestFile(String path) throws IOException {

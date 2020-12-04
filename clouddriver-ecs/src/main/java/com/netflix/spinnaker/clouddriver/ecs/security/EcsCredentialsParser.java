@@ -19,11 +19,16 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
+import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
+import com.netflix.spinnaker.clouddriver.ecs.names.EcsResource;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
+import com.netflix.spinnaker.moniker.Namer;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -31,11 +36,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class EcsCredentialsParser<T extends NetflixECSCredentials>
     implements CredentialsParser<ECSCredentialsConfig.Account, NetflixECSCredentials> {
 
+  private final ECSCredentialsConfig ecsCredentialsConfig;
+
   private final CompositeCredentialsRepository<AccountCredentials> compositeCredentialsRepository;
 
   @Qualifier("amazonCredentialsParser")
   private final CredentialsParser<CredentialsConfig.Account, NetflixAmazonCredentials>
       amazonCredentialsParser;
+
+  private final NamerRegistry namerRegistry;
 
   @Override
   public NetflixECSCredentials parse(ECSCredentialsConfig.@NotNull Account accountDefinition) {
@@ -51,6 +60,19 @@ public class EcsCredentialsParser<T extends NetflixECSCredentials>
         new NetflixAssumeRoleEcsCredentials(
             (NetflixAssumeRoleAmazonCredentials) amazonCredentialsParser.parse(account),
             accountDefinition.getAwsAccount());
+
+    // If no naming strategy is set at the account or provider
+    // level then the NamerRegistry will fallback to Frigga
+    String namingStrategy =
+        StringUtils.firstNonBlank(
+            accountDefinition.getNamingStrategy(), ecsCredentialsConfig.getDefaultNamingStrategy());
+
+    Namer<EcsResource> namer = namerRegistry.getNamingStrategy(namingStrategy);
+    NamerRegistry.lookup()
+        .withProvider(EcsCloudProvider.ID)
+        .withAccount(account.getName())
+        .setNamer(EcsResource.class, namer);
+
     return netflixECSCredentials;
   }
 }

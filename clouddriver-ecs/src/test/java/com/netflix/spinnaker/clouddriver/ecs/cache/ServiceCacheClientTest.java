@@ -20,15 +20,14 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
-import com.amazonaws.services.ecs.model.DeploymentConfiguration;
-import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.NetworkConfiguration;
+import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.ecs.TestCredential;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent;
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -37,12 +36,15 @@ import spock.lang.Subject;
 
 public class ServiceCacheClientTest extends CommonCacheClient {
   private final ObjectMapper mapper = new ObjectMapper();
+
   @Subject private final ServiceCacheClient client = new ServiceCacheClient(cacheView, mapper);
 
   @Test
   public void shouldConvert() {
     // Given
-    ObjectMapper mapper = new ObjectMapper();
+    ServiceCachingAgent agent =
+        TestServiceCachingAgentFactory.create(TestCredential.named(ACCOUNT), REGION);
+
     String applicationName = "test";
     String serviceName = applicationName + "-stack-detail-v1";
     String key = Keys.getServiceKey(ACCOUNT, REGION, serviceName);
@@ -73,8 +75,7 @@ public class ServiceCacheClientTest extends CommonCacheClient {
     service.setLoadBalancers(Collections.singleton(loadBalancer));
     service.setDesiredCount(9001);
     service.setCreatedAt(new Date());
-    Map<String, Object> attributes =
-        ServiceCachingAgent.convertServiceToAttributes(ACCOUNT, REGION, service);
+    Map<String, Object> attributes = agent.convertServiceToAttributes(service);
     attributes.put(
         "loadBalancers", Collections.singletonList(mapper.convertValue(loadBalancer, Map.class)));
 
