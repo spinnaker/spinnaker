@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent
-import com.netflix.spinnaker.keel.events.PersistentEvent.Scope
+import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.pause.PauseScope
@@ -162,7 +162,7 @@ open class SqlResourceRepository(
       jooq
         .select(EVENT.JSON)
         .from(EVENT)
-        .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
+        .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
         .and(EVENT.REF.eq(application))
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -178,7 +178,7 @@ open class SqlResourceRepository(
       jooq
         .select(EVENT.JSON)
         .from(EVENT)
-        .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
+        .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
         .and(EVENT.REF.eq(application))
         .and(EVENT.TIMESTAMP.greaterOrEqual(LocalDateTime.ofInstant(after, ZoneOffset.UTC)))
         .orderBy(EVENT.TIMESTAMP.desc())
@@ -200,12 +200,12 @@ open class SqlResourceRepository(
         .from(EVENT)
         // look for resource events that match the resource...
         .where(
-          EVENT.SCOPE.eq(Scope.RESOURCE.name)
+          EVENT.SCOPE.eq(EventScope.RESOURCE.name)
             .and(EVENT.REF.eq(resource.uid))
         )
         // ...or application events that match the application as they apply to all resources
         .or(
-          EVENT.SCOPE.eq(Scope.APPLICATION.name)
+          EVENT.SCOPE.eq(EventScope.APPLICATION.name)
             .and(EVENT.APPLICATION.eq(resource.application))
         )
         .orderBy(EVENT.TIMESTAMP.desc())
@@ -241,12 +241,12 @@ open class SqlResourceRepository(
           .from(EVENT)
           // look for resource events that match the resource...
           .where(
-            EVENT.SCOPE.eq(Scope.RESOURCE.name)
+            EVENT.SCOPE.eq(EventScope.RESOURCE.name)
               .and(EVENT.REF.eq(ref))
           )
           // ...or application events that match the application as they apply to all resources
           .or(
-            EVENT.SCOPE.eq(Scope.APPLICATION.name)
+            EVENT.SCOPE.eq(EventScope.APPLICATION.name)
               .and(EVENT.APPLICATION.eq(event.application))
           )
           .orderBy(EVENT.TIMESTAMP.desc())
@@ -287,7 +287,7 @@ open class SqlResourceRepository(
     }
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(EVENT)
-        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
+        .where(EVENT.SCOPE.eq(EventScope.RESOURCE.name))
         .and(EVENT.REF.eq(uid.toString()))
         .execute()
     }

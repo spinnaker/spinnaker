@@ -16,6 +16,8 @@ import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
+import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
@@ -31,6 +33,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
@@ -41,6 +44,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
+import org.jooq.SelectConditionStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
@@ -134,13 +138,31 @@ class SqlDeliveryConfigRepository(
 
   override fun deleteByApplication(application: String) {
     val configUid = getUIDByApplication(application)
-    val envUids = getEnvironmentUIDs(listOf(configUid))
-    val resourceUids = getResourceUIDs(envUids)
+    val resourceUids = getResourceUIDs(application)
+    val resourceIds = getResourceIDs(application)
     val artifactUids = getArtifactUIDs(configUid)
 
     sqlRetry.withRetry(WRITE) {
       jooq.transaction { config ->
         val txn = DSL.using(config)
+        // delete events
+        txn.deleteFrom(EVENT)
+          .where(EVENT.SCOPE.eq(EventScope.RESOURCE.name))
+          .and(EVENT.REF.`in`(resourceUids))
+          .execute()
+        txn.deleteFrom(EVENT)
+          .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
+          .and(EVENT.REF.eq(application))
+          .execute()
+        // delete pause records
+        txn.deleteFrom(PAUSED)
+          .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE.name))
+          .and(PAUSED.NAME.`in`(resourceIds))
+          .execute()
+        txn.deleteFrom(PAUSED)
+          .where(PAUSED.SCOPE.eq(PauseScope.APPLICATION.name))
+          .and(PAUSED.NAME.eq(application))
+          .execute()
         // delete resources
         txn.deleteFrom(RESOURCE)
           .where(RESOURCE.UID.`in`(resourceUids))
@@ -166,32 +188,23 @@ class SqlDeliveryConfigRepository(
         .fetchOne(DELIVERY_CONFIG.UID)
     } ?: throw NoDeliveryConfigForApplication(application)
 
-  private fun getEnvironmentUIDs(deliveryConfigUIDs: List<String>): List<String> =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(ENVIRONMENT.UID)
-        .from(ENVIRONMENT)
-        .where(ENVIRONMENT.DELIVERY_CONFIG_UID.`in`(deliveryConfigUIDs))
-        .fetch(ENVIRONMENT.UID)
-    }
+  private fun getResourceUIDs(application: String): SelectConditionStep<Record1<String>>? =
+    jooq
+      .select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.APPLICATION.eq(application))
 
-  private fun getResourceUIDs(environmentUids: List<String>): List<String> =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
-        .from(ENVIRONMENT_RESOURCE)
-        .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.`in`(environmentUids))
-        .fetch(ENVIRONMENT_RESOURCE.RESOURCE_UID)
-    }
+  private fun getResourceIDs(application: String): SelectConditionStep<Record1<String>>? =
+    jooq
+      .select(RESOURCE.ID)
+      .from(RESOURCE)
+      .where(RESOURCE.APPLICATION.eq(application))
 
-  private fun getArtifactUIDs(deliveryConfigUid: String): List<String> =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
-        .from(DELIVERY_CONFIG_ARTIFACT)
-        .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
-        .fetch(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
-    }
+  private fun getArtifactUIDs(deliveryConfigUid: String): SelectConditionStep<Record1<String>>? =
+    jooq
+      .select(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
+      .from(DELIVERY_CONFIG_ARTIFACT)
+      .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
 
   // todo: queries in this function aren't inherently retryable because of the cross-repository interactions
   // from where this is called: https://github.com/spinnaker/keel/issues/740

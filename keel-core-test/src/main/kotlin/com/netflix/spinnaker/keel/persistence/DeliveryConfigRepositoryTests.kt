@@ -16,6 +16,9 @@ import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -28,6 +31,7 @@ import strikt.api.expectThrows
 import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotEmpty
@@ -36,22 +40,25 @@ import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.none
 
-abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
+abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository> :
   JUnit5Minutests {
 
   abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): T
   abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
   abstract fun createArtifactRepository(): A
+  abstract fun createPausedRepository(): P
 
   open fun flush() {}
 
-  data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository>(
+  data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository>(
     val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> T,
     val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
     val artifactRepositoryProvider: () -> A,
+    val pausedRepositoryProvider: () -> P,
+
     val deliveryConfig: DeliveryConfig = DeliveryConfig(
-      name = "keel",
-      application = "keel",
+      name = "fnord",
+      application = "fnord",
       serviceAccount = "keel@spinnaker",
       metadata = mapOf("some" to "meta")
     )
@@ -63,17 +70,18 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       )
 
     internal val repository: T = deliveryConfigRepositoryProvider(resourceSpecIdentifier)
-    private val resourceRepository: R = resourceRepositoryProvider(resourceSpecIdentifier)
+    val resourceRepository: R = resourceRepositoryProvider(resourceSpecIdentifier)
+    val pausedRepository: P = pausedRepositoryProvider()
     internal val artifactRepository: A = artifactRepositoryProvider()
     internal val clock = MutableClock()
 
-    val artifact =  DebianArtifact(
+    val artifact: DebianArtifact =  DebianArtifact(
       name = "keel",
       deliveryConfigName = deliveryConfig.name,
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
     )
 
-    val artifactFromBranch = artifact.copy(
+    val artifactFromBranch: DebianArtifact = artifact.copy(
       name = "frombranch",
       reference = "frombranch",
       from = ArtifactOriginFilterSpec(branch = BranchFilterSpec(name = "main"))
@@ -145,12 +153,13 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     }
   }
 
-  fun tests() = rootContext<Fixture<T, R, A>>() {
+  fun tests() = rootContext<Fixture<T, R, A, P>>() {
     fixture {
       Fixture(
         deliveryConfigRepositoryProvider = this@DeliveryConfigRepositoryTests::createDeliveryConfigRepository,
         resourceRepositoryProvider = this@DeliveryConfigRepositoryTests::createResourceRepository,
-        artifactRepositoryProvider = this@DeliveryConfigRepositoryTests::createArtifactRepository
+        artifactRepositoryProvider = this@DeliveryConfigRepositoryTests::createArtifactRepository,
+        pausedRepositoryProvider = this@DeliveryConfigRepositoryTests::createPausedRepository
       )
     }
 
@@ -445,6 +454,13 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       context("deleting a delivery config") {
         before {
           store()
+          storeResources()
+          resourceRepository.appendHistory(ApplicationActuationPaused(deliveryConfig.application, "test"))
+          pausedRepository.pauseApplication(deliveryConfig.application, "test")
+          deliveryConfig.resources.forEach { resource ->
+            resourceRepository.appendHistory(ResourceCreated(resource))
+            pausedRepository.pauseResource(resource.id, "test")
+          }
         }
 
         context("by application name") {
@@ -457,6 +473,30 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           test("throws exception for unknown application") {
             expectThrows<NoSuchDeliveryConfigException> {
               repository.deleteByApplication("notfound")
+            }
+          }
+
+          test("deletes related application events") {
+            repository.deleteByApplication(deliveryConfig.application)
+            expectThat(resourceRepository.applicationEventHistory(deliveryConfig.application)).isEmpty()
+          }
+
+          test("deletes related application pause records") {
+            repository.deleteByApplication(deliveryConfig.application)
+            expectThat(pausedRepository.getPause(PauseScope.APPLICATION, deliveryConfig.application)).isNull()
+          }
+
+          test("deletes related resource events") {
+            repository.deleteByApplication(deliveryConfig.application)
+            // FIXME: can't check resource event history because it tries to read the resource record first.
+            //  We should break out the event stuff into its own repository.
+            // expectThat(resourceRepository.eventHistory(firstResource.id)).isEmpty()
+          }
+
+          test("deletes related resource pause records") {
+            repository.deleteByApplication(deliveryConfig.application)
+            deliveryConfig.resources.forEach { resource ->
+              expectThat(pausedRepository.getPause(PauseScope.RESOURCE, resource.id)).isNull()
             }
           }
         }

@@ -1,0 +1,25 @@
+databaseChangeLog:
+- changeSet:
+    id: cleanup-event-and-paused-orphans
+    author: lpollo
+    changes:
+    - sql:
+        sql: >
+          delete from event
+            where scope = 'APPLICATION'
+            and not exists (select 1 from delivery_config where application = event.ref)
+    - sql:
+        sql: >
+          delete from event
+            where scope = 'RESOURCE'
+            and not exists (select 1 from resource where uid = event.ref)
+    - sql:
+        sql: >
+          delete from paused
+            where scope = 'APPLICATION'
+            and not exists (select 1 from delivery_config where application = paused.name)
+    - sql:
+        sql: >
+          delete from paused
+            where scope = 'RESOURCE'
+            and not exists (select 1 from resource where id = paused.name)

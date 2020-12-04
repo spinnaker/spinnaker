@@ -68,7 +68,7 @@ abstract class ResourceEvent(
   open val message: String? = null,
   override val triggeredBy: String? = null
 ) : PersistentEvent(), ResourceHistoryEvent {
-  override val scope = Scope.RESOURCE
+  override val scope = EventScope.RESOURCE
   abstract val kind: ResourceKind
   abstract val id: String
 

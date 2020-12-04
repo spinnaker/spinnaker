@@ -14,7 +14,7 @@ import java.time.Clock
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 
-internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
+internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlPausedRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
@@ -29,6 +29,9 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
 
   override fun createArtifactRepository(): SqlArtifactRepository =
     SqlArtifactRepository(jooq, Clock.systemUTC(), objectMapper, sqlRetry, defaultArtifactSuppliers())
+
+  override fun createPausedRepository(): SqlPausedRepository =
+    SqlPausedRepository(jooq, sqlRetry, Clock.systemUTC())
 
   override fun flush() {
     cleanupDb(jooq)

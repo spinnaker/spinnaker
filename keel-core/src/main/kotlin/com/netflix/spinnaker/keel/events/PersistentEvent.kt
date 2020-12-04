@@ -17,7 +17,7 @@ import java.time.Instant
   JsonSubTypes.Type(value = ResourceEvent::class)
 )
 abstract class PersistentEvent {
-  abstract val scope: Scope
+  abstract val scope: EventScope
   abstract val application: String
   abstract val ref: String // The unique ID of the thing associated with the scope. Defined in sub-classes.
   abstract val timestamp: Instant
@@ -29,7 +29,7 @@ abstract class PersistentEvent {
     val clock: Clock = Clock.systemUTC()
   }
 
-  enum class Scope {
+  enum class EventScope {
     @JsonProperty("resource") RESOURCE,
     @JsonProperty("application") APPLICATION
   }
@@ -50,7 +50,7 @@ abstract class PersistentEvent {
   JsonSubTypes.Type(value = ApplicationActuationResumed::class)
 )
 interface ResourceHistoryEvent {
-  val scope: PersistentEvent.Scope
+  val scope: PersistentEvent.EventScope
   val ref: String // the resource ID or application name
   val ignoreRepeatedInHistory: Boolean
   val timestamp: Instant

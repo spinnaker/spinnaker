@@ -203,3 +203,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201016-create-lifecycle-events.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201203-cleanup-event-and-paused-orhpans.yml
+      relativeToChangelogFile: true

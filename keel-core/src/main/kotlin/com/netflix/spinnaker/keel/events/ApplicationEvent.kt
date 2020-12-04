@@ -18,7 +18,7 @@ import java.time.Instant
 abstract class ApplicationEvent(
   override val triggeredBy: String? = null
 ) : PersistentEvent() {
-  override val scope = Scope.APPLICATION
+  override val scope = EventScope.APPLICATION
 
   override val ref: String
     get() = application
