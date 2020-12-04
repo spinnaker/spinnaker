@@ -45,7 +45,8 @@ public class PrometheusStandaloneCanaryAnalysisTest extends BaseIntegrationTest 
         .body("canaryAnalysisExecutionResult.didPassThresholds", is(true))
         .body(
             "canaryAnalysisExecutionResult.canaryScoreMessage",
-            is("Final canary score 100.0 met or exceeded the pass score threshold."));
+            is("Final canary score 100.0 met or exceeded the pass score threshold."))
+        .body(metricResultPath("CPU usage for service") + ".classification", is("Pass"));
   }
 
   @Test
@@ -66,6 +67,33 @@ public class PrometheusStandaloneCanaryAnalysisTest extends BaseIntegrationTest 
         .body("canaryAnalysisExecutionResult.didPassThresholds", is(false))
         .body(
             "canaryAnalysisExecutionResult.canaryScoreMessage",
-            is("Final canary score 0.0 is not above the marginal score threshold."));
+            is("Final canary score 0.0 is not above the marginal score threshold."))
+        .body(metricResultPath("CPU usage for service") + ".classification", is("High"));
+  }
+
+  @Test
+  public void mutedMetricsAreNotTakenIntoFinalScore() {
+    String canaryAnalysisExecutionId =
+        steps.createCanaryAnalysis(
+            "muted-metric-analysis-case",
+            "prometheus-account",
+            "minio-store-account",
+            "canary-configs/prometheus/muted-metric.json");
+
+    ValidatableResponse response =
+        steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
+
+    response
+        .body("executionStatus", is("SUCCEEDED"))
+        .body("canaryAnalysisExecutionResult.hasWarnings", is(false))
+        .body("canaryAnalysisExecutionResult.didPassThresholds", is(true))
+        .body(metricResultPath("Failing metric") + ".classification", is("High"))
+        .body(metricResultPath("Successful metric") + ".classification", is("Pass"));
+  }
+
+  private String metricResultPath(String metricName) {
+    return "canaryAnalysisExecutionResult.canaryExecutionResults[0].result.judgeResult.results.find { it.name == '"
+        + metricName
+        + "' }";
   }
 }

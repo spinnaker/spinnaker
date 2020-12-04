@@ -35,6 +35,7 @@ class ScoringHelper(judgeName: String) {
   def score(canaryConfig: CanaryConfig,
             scoreThresholds: CanaryClassifierThresholdsConfig,
             metricResults: List[CanaryAnalysisResult]): CanaryJudgeResult = {
+    val notMutedMetricResults = metricResults.filter(!_.isMuted)
     //Get the group weights from the canary configuration
     val groupWeights = Option(canaryConfig.getClassifier.getGroupWeights) match {
       case Some(groups) => groups.asScala.mapValues(_.toDouble).toMap
@@ -43,7 +44,7 @@ class ScoringHelper(judgeName: String) {
 
     //Calculate the summary and group scores based on the metric results
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
-    val scores = weightedSumScorer.score(metricResults)
+    val scores = weightedSumScorer.score(notMutedMetricResults)
 
     //Classify the summary score
     val scoreClassifier = new ThresholdScoreClassifier(scoreThresholds.getPass, scoreThresholds.getMarginal)

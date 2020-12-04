@@ -32,6 +32,9 @@ public class RandomProvider {
   }
 
   private int getRandom(int lowerBound, int upperBound) {
+    if (lowerBound == upperBound) {
+      return lowerBound;
+    }
     return random.nextInt(upperBound - lowerBound) + lowerBound;
   }
 }

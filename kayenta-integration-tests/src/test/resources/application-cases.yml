@@ -37,3 +37,30 @@ canary-analysis.cases:
           lower-bound: 20
           upper-bound: 23
           type: gauge
+
+  muted-metric-analysis-case:
+    lifetime-duration-minutes: 1
+    analysis-interval-minutes: 1
+    namespace: 'prod-namespace-3'
+    control:
+      scope: 'myapp-prod-control-3'
+      metrics:
+        - name: 'integration.failing.metric'
+          lower-bound: 40
+          upper-bound: 45
+          type: gauge
+        - name: 'integration.successful.metric'
+          lower-bound: 40
+          upper-bound: 45
+          type: gauge
+    experiment:
+      scope: 'myapp-prod-canary-3'
+      metrics:
+        - name: 'integration.failing.metric'
+          lower-bound: 1000
+          upper-bound: 1000
+          type: gauge
+        - name: 'integration.successful.metric'
+          lower-bound: 40
+          upper-bound: 45
+          type: gauge

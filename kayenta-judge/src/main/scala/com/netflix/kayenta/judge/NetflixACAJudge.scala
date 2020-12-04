@@ -113,6 +113,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
 
     val isCriticalMetric = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "critical")
     val isDataRequired = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "mustHaveData")
+    val isMutedMetric = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "muted")
 
     //Effect Size Parameters
     val effectSizeMeasure = MapUtils.getAsStringWithDefault("meanRatio", metricConfig.getAnalysisConfigurations, "canary", "effectSize", "measure")
@@ -149,6 +150,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .id(metric.getId)
       .tags(metric.getTags)
       .groups(metricConfig.getGroups)
+      .muted(isMutedMetric)
       .experimentMetadata(Map("stats" -> experimentStats.toMap.asJava.asInstanceOf[Object]).asJava)
       .controlMetadata(Map("stats" -> controlStats.toMap.asJava.asInstanceOf[Object]).asJava)
 

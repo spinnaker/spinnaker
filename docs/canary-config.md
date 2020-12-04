@@ -77,8 +77,9 @@ Describes how to judge a metric, see the [Netflix Automated Canary Analysis Judg
 - `nanStrategy` (enum[string], optional) - How to handle NaN values which can occur if the metric does not return data for a particular time interval.
   - `remove` (default) - Use when you expect a metric to always have data and you want the NaNs removed from your data set (usage metrics).
   - `replace` - Use when you expect a metric to return no data in certain use cases and you want the NaNs replaced with zeros (for example: count metrics, if no errors happened, then metric will return no data for that time interval).
-- `critical` **true** (boolean, optional) - Use to fail the entire canary if this metric fails (recommended for important metrics that signal service outages or severe problems).
-- `mustHaveData` **true** (boolean, optional) - Use to fail a metric if data is missing.
+- `critical` **false** (boolean, optional) - Use to fail the entire canary if this metric fails (recommended for important metrics that signal service outages or severe problems).
+- `muted` **false** (boolean, optional) - Use to mute metric result in a total score computation.
+- `mustHaveData` **false** (boolean, optional) - Use to fail a metric if data is missing.
 - `effectSize` ([EffectSize](#effectsize), optional) - Controls how much different the metric needs to be to fail or fail critically.
 - `outliers` ([Outliers](#outliers), optional) - Controls how to classify and handle outliers.
 
@@ -90,10 +91,27 @@ See the [Netflix Automated Canary Analysis Judge] and [Mann Whitney Classifier] 
 
 ### Properties
 
+- `measure` **meanRatio** (enum[string], optional) - Specifies how effect size is measured.
+  - `cles` - [Common Language Effect Size](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Common_language_effect_size)
+  - `meanRatio` - Ratio of means
+
+For `meanRatio` measure:
+
 - `allowedIncrease` **1.1** (number, optional) - Defaults to 1. The multiplier increase that must be met for the metric to fail. This example makes the metric fail when the metric has increased 10% from the baseline.
 - `allowedDecrease` **0.90** (number, optional) - Defaults to 1. The multiplier decrease that must be met for the metric to fail. This example makes the metric fail when the metric has decreased 10% from the baseline.
 - `criticalIncrease` **5.0** (number, optional) - Defaults to 1. The multiplier increase that must be met for the metric to be a critical failure and fail the entire analysis with a score of 0. This example make the canary fail critically if there is a 5x increase.
 - `criticalDecrease` **0.5** (number, optional) - Defaults to 1. The multiplier decrease that must be met for the metric to be a critical failure and fail the entire analysis with a score of 0. This example make the canary fail critically if there is a 50% decrease.
+
+For `cles` measure:
+
+- `allowedIncrease` (number, optional) - Defaults to 0.5. 
+- `allowedDecrease` (number, optional) - Defaults to 0.5.
+- `criticalIncrease` (number, optional) - Defaults to 0.5.
+- `criticalDecrease` (number, optional) - Defaults to 0.5.
+
+The CLES reports the probability that a value from one group will be greater than a value from the other group. 
+A value of 0.50 indicates that the two groups are stochastically equal. 
+A value of 1 indicates that the first group shows complete stochastic domination over the other group, and a value of 0 indicates the complete stochastic domination by the second group.
 
 ## Outliers
 
