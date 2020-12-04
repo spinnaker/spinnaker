@@ -73,6 +73,15 @@ const helpContents: { [key: string]: string } = {
     '<p>The port to be used for your service discovery service. Required only for services using bridge or host network mode, and for services using awsvpc network mode and a type SRV DNS record',
   'ecs.serviceDiscoveryContainerName':
     '<p>The container name value, already specified in the task definition, to be used for your service discovery service.</p>',
+  'ecs.computeOptions':
+    '<p>Specify either a <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html" target="_blank">launch type</a> (default) or <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-capacity-providers.html" target="_blank">capacity providers</a> for running your ECS service.</p>',
+  'ecs.capacityProviderStrategies':
+    '<p>A capacity provider strategy gives you control over how your tasks use one or more capacity providers. See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-capacity-providers.html#capacity-providers-concepts" target="_blank">AWS documentation</a> for more details. </p>',
+  'ecs.capacityProviderName': '<p>The short name of the capacity provider.</p>',
+  'ecs.capacityProviderBase':
+    '<p>Designates how many tasks, at a minimum, to run on the specified capacity provider. Only one capacity provider in a capacity provider strategy can have a <em>base</em> defined.</p>',
+  'ecs.capacityProviderWeight':
+    '<p>Designates the relative percentage of the total number of tasks launched that should use the specified capacity provider.</p>',
 };
 
 Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

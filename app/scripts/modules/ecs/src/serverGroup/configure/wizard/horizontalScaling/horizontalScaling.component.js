@@ -11,6 +11,7 @@ module(ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMP
     bindings: {
       command: '=',
       application: '=',
+      capacityProviderState: '=',
     },
     templateUrl: require('./horizontalScaling.component.html'),
   },

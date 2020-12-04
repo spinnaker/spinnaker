@@ -153,4 +153,31 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
   });
+
+  it('edit an existing server group to use capacity providers', () => {
+    cy.visit('#/applications/ecsapp/executions');
+
+    cy.get('a:contains("Configure")').click();
+    cy.get('a:contains("Deploy")').click();
+    cy.get('.glyphicon-edit').click();
+
+    cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
+    cy.get('[data-test-id="ServerGroup.details"]').clear().type('computeOptions');
+
+    cy.get('[data-test-id="ServerGroup.computeOptionsCapacityProviders"]').click();
+    cy.get('[data-test-id="ServerGroup.addCapacityProvider"]').click();
+    cy.get('[data-test-id="capacityProvider.name.0"]').type('FARGATE');
+    cy.get('[data-test-id="capacityProvider.base.0"]').type(1);
+    cy.get('[data-test-id="capacityProvider.weight.0"]').type(2);
+
+    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    cy.get('.glyphicon-edit').click();
+
+    cy.get('[data-test-id="capacityProvider.name.0"]').should('have.value', 'FARGATE');
+    cy.get('[data-test-id="capacityProvider.base.0"]').should('have.value', '1');
+    cy.get('[data-test-id="capacityProvider.weight.0"]').should('have.value', '2');
+
+    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    cy.get('[data-test-id="Pipeline.revertChanges"]').click();
+  });
 });
