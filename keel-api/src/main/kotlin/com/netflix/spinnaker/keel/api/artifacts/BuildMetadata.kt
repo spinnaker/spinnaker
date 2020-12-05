@@ -24,7 +24,7 @@ data class BuildMetadata(
     get() = completedAt?.let { ZonedDateTime.parse(it).toInstant() }
 
   fun isComplete(): Boolean =
-    status in listOf("SUCCESS", "FAILED", "ABORTED", "UNSTABLE")
+    status in listOf("SUCCESS", "FAILURE", "ABORTED", "UNSTABLE")
 }
 
 data class Job(
