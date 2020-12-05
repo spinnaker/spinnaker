@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.config
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.clouddriver.core.Front50ConfigurationProperties
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
-import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties

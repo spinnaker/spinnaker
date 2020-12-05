@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
-import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerHttpException
-import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerNetworkException
-import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerServerException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
