@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +59,7 @@ public class ServiceConfig {
         .setClient(ok3Client)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(ClouddriverService.class);
   }

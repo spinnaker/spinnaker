@@ -8,6 +8,7 @@ dependencies {
 
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "com.netflix.spinnaker.kork:kork-retrofit"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:converter-jackson"
