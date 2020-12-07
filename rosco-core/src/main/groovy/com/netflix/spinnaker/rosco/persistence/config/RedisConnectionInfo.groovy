@@ -27,6 +27,7 @@ class RedisConnectionInfo {
   int port
   int database
   String password
+  boolean isSSL
 
   boolean hasPassword() {
     password?.length() > 0
@@ -43,11 +44,14 @@ class RedisConnectionInfo {
 
     String password = JedisURIHelper.getPassword(redisConnection)
 
+    boolean isSSL = JedisURIHelper.isRedisSSLScheme(redisConnection)
+
     new RedisConnectionInfo([
         host: host,
         port: port,
         database: database,
-        password: password
+        password: password,
+        isSSL: isSSL
     ])
   }
 

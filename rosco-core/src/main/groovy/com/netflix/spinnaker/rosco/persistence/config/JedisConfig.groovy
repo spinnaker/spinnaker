@@ -36,7 +36,7 @@ class JedisConfig {
     poolConfig.setMaxTotal(100)
     poolConfig.setMinIdle(25)
     poolConfig.setMaxIdle(100)
-    new JedisPool(poolConfig, connectionInfo.host, connectionInfo.port, timeout, connectionInfo.password)
+    new JedisPool(poolConfig, connectionInfo.host, connectionInfo.port, timeout, connectionInfo.password, connectionInfo.isSSL)
   }
 
   @Bean
