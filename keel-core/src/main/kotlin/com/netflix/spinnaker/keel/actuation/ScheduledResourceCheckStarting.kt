@@ -4,4 +4,6 @@ object ResourceCheckCompleted
 
 object ScheduledEnvironmentCheckStarting
 
+object ScheduledEnvironmentVerificationStarting
+
 object ScheduledArtifactCheckStarting

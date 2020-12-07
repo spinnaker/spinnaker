@@ -38,7 +38,7 @@ internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
       jooq = jooq,
       clock = clock,
       resourceSpecIdentifier = DummyResourceSpecIdentifier,
-      mapper = objectMapper,
+      objectMapper = objectMapper,
       sqlRetry = sqlRetry,
       artifactSuppliers = defaultArtifactSuppliers()
     )
@@ -134,7 +134,7 @@ internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
           jooq = jooq,
           clock = clock,
           resourceSpecIdentifier = multipleVersionsResourceSpecIdentifier,
-          mapper = objectMapper,
+          objectMapper = objectMapper,
           sqlRetry = sqlRetry,
           artifactSuppliers = defaultArtifactSuppliers(),
           specMigrators = listOf(migrator)

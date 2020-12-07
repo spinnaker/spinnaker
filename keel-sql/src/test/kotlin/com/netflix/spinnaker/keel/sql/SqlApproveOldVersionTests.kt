@@ -24,10 +24,12 @@ class SqlApproveOldVersionTests : ApproveOldVersionTests<CombinedRepository>() {
     val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, defaultArtifactSuppliers())
     val resourceRepository = SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), mapper, sqlRetry)
     val artifactRepository = SqlArtifactRepository(jooq, clock, mapper, sqlRetry, defaultArtifactSuppliers())
+    val verificationRepository = SqlVerificationRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry)
     return CombinedRepository(
       deliveryConfigRepository,
       artifactRepository,
       resourceRepository,
+      verificationRepository,
       clock,
       mockk(relaxed = true),
       configuredTestObjectMapper()

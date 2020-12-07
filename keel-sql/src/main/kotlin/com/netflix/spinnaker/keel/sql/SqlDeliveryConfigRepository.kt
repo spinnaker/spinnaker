@@ -10,7 +10,6 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.allPass
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
-import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.statefulCount
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
@@ -36,11 +35,13 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOU
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
+import com.netflix.spinnaker.keel.sql.deliveryconfigs.resourcesForEnvironment
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -48,7 +49,7 @@ import org.jooq.SelectConditionStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
-import org.jooq.util.mysql.MySQLDSL
+import org.jooq.util.mysql.MySQLDSL.values
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Clock
@@ -58,17 +59,23 @@ import java.time.Instant.EPOCH
 import java.time.ZoneOffset.UTC
 
 class SqlDeliveryConfigRepository(
-  private val jooq: DSLContext,
-  private val clock: Clock,
-  private val resourceSpecIdentifier: ResourceSpecIdentifier,
-  private val mapper: ObjectMapper,
-  private val sqlRetry: SqlRetry,
-  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  private val specMigrators: List<SpecMigrator<*, *>> = emptyList()
-) : DeliveryConfigRepository {
+  jooq: DSLContext,
+  clock: Clock,
+  resourceSpecIdentifier: ResourceSpecIdentifier,
+  objectMapper: ObjectMapper,
+  sqlRetry: SqlRetry,
+  artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
+  specMigrators: List<SpecMigrator<*, *>> = emptyList()
+) : SqlStorageContext(
+  jooq,
+  clock,
+  sqlRetry,
+  objectMapper,
+  resourceSpecIdentifier,
+  artifactSuppliers,
+  specMigrators
+), DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
-  private val resourceFactory = ResourceFactory(mapper, resourceSpecIdentifier, specMigrators)
 
   override fun getByApplication(application: String): DeliveryConfig =
     sqlRetry.withRetry(READ) {
@@ -87,13 +94,19 @@ class SqlDeliveryConfigRepository(
             name = name,
             application = application,
             serviceAccount = serviceAccount,
-            metadata = metadata?.let { mapper.readValue<Map<String, Any?>>(metadata) } ?: emptyMap()
-          )
-            .attachDependents(uid)
+            metadata = metadata?.let { objectMapper.readValue<Map<String, Any?>>(metadata) }
+              ?: emptyMap()
+          ).let {
+            attachDependents(it)
+          }
         }
     } ?: throw NoDeliveryConfigForApplication(application)
 
-  override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String) {
+  override fun deleteResourceFromEnv(
+    deliveryConfigName: String,
+    environmentName: String,
+    resourceId: String
+  ) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(ENVIRONMENT_RESOURCE)
         .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid(deliveryConfigName, environmentName)))
@@ -221,10 +234,10 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.NAME, name)
         .set(DELIVERY_CONFIG.APPLICATION, application)
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
-        .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
+        .set(DELIVERY_CONFIG.METADATA, objectMapper.writeValueAsString(metadata))
         .onDuplicateKeyUpdate()
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
-        .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
+        .set(DELIVERY_CONFIG.METADATA, objectMapper.writeValueAsString(metadata))
         .execute()
       artifacts.forEach { artifact ->
         jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)
@@ -257,24 +270,43 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT.UID, it)
               .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
               .set(ENVIRONMENT.NAME, environment.name)
-              .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
-              .set(ENVIRONMENT.NOTIFICATIONS, mapper.writeValueAsString(environment.notifications))
+              .set(
+                ENVIRONMENT.CONSTRAINTS,
+                objectMapper.writeValueAsString(environment.constraints)
+              )
+              .set(
+                ENVIRONMENT.NOTIFICATIONS,
+                objectMapper.writeValueAsString(environment.notifications)
+              )
               .onDuplicateKeyUpdate()
-              .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
-              .set(ENVIRONMENT.NOTIFICATIONS, mapper.writeValueAsString(environment.notifications))
+              .set(
+                ENVIRONMENT.CONSTRAINTS,
+                objectMapper.writeValueAsString(environment.constraints)
+              )
+              .set(
+                ENVIRONMENT.NOTIFICATIONS,
+                objectMapper.writeValueAsString(environment.notifications)
+              )
               .execute()
           }
         environment.resources.forEach { resource ->
           jooq.insertInto(ENVIRONMENT_RESOURCE)
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
-            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id)))
+            .set(
+              ENVIRONMENT_RESOURCE.RESOURCE_UID,
+              select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))
+            )
             .onDuplicateKeyIgnore()
             .execute()
           // delete any other environment's link to this same resource (in case we are moving it
           // from one environment to another)
           jooq.deleteFrom(ENVIRONMENT_RESOURCE)
             .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.notEqual(environmentUID))
-            .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.equal(select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))))
+            .and(
+              ENVIRONMENT_RESOURCE.RESOURCE_UID.equal(
+                select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))
+              )
+            )
             .execute()
         }
       }
@@ -288,70 +320,17 @@ class SqlDeliveryConfigRepository(
   }
 
   override fun get(name: String): DeliveryConfig =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(
-          DELIVERY_CONFIG.UID,
-          DELIVERY_CONFIG.NAME,
-          DELIVERY_CONFIG.APPLICATION,
-          DELIVERY_CONFIG.SERVICE_ACCOUNT,
-          DELIVERY_CONFIG.METADATA
-        )
-        .from(DELIVERY_CONFIG)
-        .where(DELIVERY_CONFIG.NAME.eq(name))
-        .fetchOne { (uid, name, application, serviceAccount, metadata) ->
-          uid to DeliveryConfig(
-            name = name,
-            application = application,
-            serviceAccount = serviceAccount,
-            metadata = metadata?.let { mapper.readValue<Map<String, Any?>>(metadata) } ?: emptyMap()
-          )
-        }
-    }
-      ?.let { (uid, deliveryConfig) ->
-        deliveryConfig.attachDependents(uid)
-      }
-      ?: throw NoSuchDeliveryConfigName(name)
-
-  private fun DeliveryConfig.attachDependents(uid: String): DeliveryConfig =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
-        .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
-        .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
-        .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
-        .fetch { (name, type, details, reference, configName) ->
-          mapToArtifact(artifactSuppliers.supporting(type), name, type.toLowerCase(), details, reference, configName)
-        }
-    }
-      .toSet()
-      .let { artifacts ->
-        sqlRetry.withRetry(READ) {
-          jooq
-            .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
-            .from(ENVIRONMENT)
-            .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
-            .fetch { (environmentUid, name, constraintsJson, notificationsJson) ->
-              Environment(
-                name = name,
-                resources = resourcesForEnvironment(environmentUid),
-                constraints = mapper.readValue(constraintsJson),
-                notifications = mapper.readValue(notificationsJson ?: "[]")
-              )
-            }
-            .let { environments ->
-              copy(
-                artifacts = artifacts,
-                environments = environments.toSet()
-              )
-            }
-        }
-      }
+    deliveryConfigByName(name)
 
   override fun environmentFor(resourceId: String): Environment =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
+        .select(
+          ENVIRONMENT.UID,
+          ENVIRONMENT.NAME,
+          ENVIRONMENT.CONSTRAINTS,
+          ENVIRONMENT.NOTIFICATIONS
+        )
         .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
@@ -360,8 +339,8 @@ class SqlDeliveryConfigRepository(
           Environment(
             name = name,
             resources = resourcesForEnvironment(uid),
-            constraints = mapper.readValue(constraintsJson),
-            notifications = mapper.readValue(notificationsJson ?: "[]")
+            constraints = objectMapper.readValue(constraintsJson),
+            notifications = objectMapper.readValue(notificationsJson ?: "[]")
           )
         }
     } ?: throw OrphanedResourceException(resourceId)
@@ -424,14 +403,32 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toTimestamp())
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, mapper.writeValueAsString(state.attributes))
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES,
+                objectMapper.writeValueAsString(state.attributes)
+              )
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .onDuplicateKeyUpdate()
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS))
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY))
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT))
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT))
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES))
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
+                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS)
+              )
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
+                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY)
+              )
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
+                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT)
+              )
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
+                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT)
+              )
+              .set(
+                ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES,
+                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES)
+              )
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .execute()
 
@@ -442,20 +439,31 @@ class SqlDeliveryConfigRepository(
               .set(CURRENT_CONSTRAINT.TYPE, state.type)
               .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, uid)
               .onDuplicateKeyUpdate()
-              .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, MySQLDSL.values(CURRENT_CONSTRAINT.CONSTRAINT_UID))
+              .set(
+                CURRENT_CONSTRAINT.CONSTRAINT_UID,
+                values(CURRENT_CONSTRAINT.CONSTRAINT_UID)
+              )
               .execute()
 
             /**
              * Passing the transaction here since [constraintStateForWithTransaction] is querying [ENVIRONMENT_ARTIFACT_CONSTRAINT]
              * table, and we need to make sure the new state was persisted prior to checking all states for a given artifact version.
              */
-            val allStates = constraintStateForWithTransaction(state.deliveryConfigName, state.environmentName, state.artifactVersion, txn)
+            val allStates = constraintStateForWithTransaction(
+              state.deliveryConfigName,
+              state.environmentName,
+              state.artifactVersion,
+              txn
+            )
             if (allStates.allPass && allStates.size >= environment.constraints.statefulCount) {
               txn.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
-                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE, state.artifactReference)
+                .set(
+                  ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE,
+                  state.artifactReference
+                )
                 .onDuplicateKeyIgnore()
                 .execute()
             }
@@ -535,7 +543,7 @@ class SqlDeliveryConfigRepository(
               else -> judgedAt.toInstant(UTC)
             },
             comment,
-            mapper.readValue(attributes)
+            objectMapper.readValue(attributes)
           )
         }
     }
@@ -588,13 +596,17 @@ class SqlDeliveryConfigRepository(
               else -> judgedAt.toInstant(UTC)
             },
             comment,
-            mapper.readValue(attributes)
+            objectMapper.readValue(attributes)
           )
         }
     }
   }
 
-  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String) {
+  override fun deleteConstraintState(
+    deliveryConfigName: String,
+    environmentName: String,
+    type: String
+  ) {
     val envUidSelect = envUid(deliveryConfigName, environmentName)
     sqlRetry.withRetry(WRITE) {
       jooq.select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.ENVIRONMENT_UID)
@@ -705,7 +717,7 @@ class SqlDeliveryConfigRepository(
             else -> judgedAt.toInstant(UTC)
           },
           comment,
-          mapper.readValue(attributes)
+          objectMapper.readValue(attributes)
         )
       } else {
         log.warn(
@@ -773,7 +785,7 @@ class SqlDeliveryConfigRepository(
               else -> judgedAt.toInstant(UTC)
             },
             comment,
-            mapper.readValue(attributes)
+            objectMapper.readValue(attributes)
           )
         }
     }
@@ -843,13 +855,17 @@ class SqlDeliveryConfigRepository(
               else -> judgedAt.toInstant(UTC)
             },
             comment,
-            mapper.readValue(attributes)
+            objectMapper.readValue(attributes)
           )
         }
     }
   }
 
-  override fun getPendingArtifactVersions(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> {
+  override fun getPendingArtifactVersions(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<PublishedArtifact> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptyList()
 
@@ -876,7 +892,11 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  override fun getArtifactVersionsQueuedForApproval(deliveryConfigName: String, environmentName: String, artifact: DeliveryArtifact): List<PublishedArtifact> {
+  override fun getArtifactVersionsQueuedForApproval(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<PublishedArtifact> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptyList()
 
@@ -949,24 +969,10 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  private fun resourcesForEnvironment(uid: String) =
-    sqlRetry.withRetry(READ) {
-      jooq
-        .select(
-          RESOURCE_WITH_METADATA.KIND,
-          RESOURCE_WITH_METADATA.METADATA,
-          RESOURCE_WITH_METADATA.SPEC
-        )
-        .from(RESOURCE_WITH_METADATA, ENVIRONMENT_RESOURCE)
-        .where(RESOURCE_WITH_METADATA.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
-        .fetch { (kind, metadata, spec) ->
-          resourceFactory.invoke(kind, metadata, spec)
-        }
-    }
-      .toSet()
-
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
+  override fun itemsDueForCheck(
+    minTimeSinceLastCheck: Duration,
+    limit: Int
+  ): Collection<DeliveryConfig> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
     return sqlRetry.withRetry(WRITE) {
@@ -1018,11 +1024,13 @@ class SqlDeliveryConfigRepository(
         // clear the lease to allow other instances to check this item
         .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY)
         .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT)
-        .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(
-          select(DELIVERY_CONFIG.UID)
-            .from(DELIVERY_CONFIG)
-            .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-        ))
+        .where(
+          DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(
+            select(DELIVERY_CONFIG.UID)
+              .from(DELIVERY_CONFIG)
+              .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+          )
+        )
         .execute()
     }
   }
@@ -1080,11 +1088,25 @@ class SqlDeliveryConfigRepository(
   override fun getApplicationSummaries(): Collection<ApplicationSummary> =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(DELIVERY_CONFIG.NAME, DELIVERY_CONFIG.APPLICATION, DELIVERY_CONFIG.SERVICE_ACCOUNT, DELIVERY_CONFIG.API_VERSION, PAUSED.NAME)
+        .select(
+          DELIVERY_CONFIG.NAME,
+          DELIVERY_CONFIG.APPLICATION,
+          DELIVERY_CONFIG.SERVICE_ACCOUNT,
+          DELIVERY_CONFIG.API_VERSION,
+          PAUSED.NAME
+        )
         .from(DELIVERY_CONFIG)
-        .leftOuterJoin(PAUSED).on(PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION.toString())))
+        .leftOuterJoin(PAUSED).on(
+          PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION.toString()))
+        )
         .fetch { (name, application, serviceAccount, apiVersion, paused) ->
-          ApplicationSummary(deliveryConfigName = name, application = application, serviceAccount = serviceAccount, apiVersion = apiVersion, isPaused = paused != null)
+          ApplicationSummary(
+            deliveryConfigName = name,
+            application = application,
+            serviceAccount = serviceAccount,
+            apiVersion = apiVersion,
+            isPaused = paused != null
+          )
         }
     }
 

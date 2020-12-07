@@ -13,6 +13,8 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -50,6 +52,7 @@ class CombinedRepository(
   val deliveryConfigRepository: DeliveryConfigRepository,
   val artifactRepository: ArtifactRepository,
   val resourceRepository: ResourceRepository,
+  val verificationRepository: VerificationRepository,
   override val clock: Clock,
   override val publisher: ApplicationEventPublisher,
   val objectMapper: ObjectMapper
@@ -415,4 +418,12 @@ class CombinedRepository(
     = artifactRepository.getPinnedVersion(deliveryConfig, targetEnvironment, reference)
 
   // END ArtifactRepository methods
+
+  // START VerificationRepository methods
+  override fun nextEnvironmentsForVerification(
+    minTimeSinceLastCheck: Duration,
+    limit: Int
+  ) : Collection<VerificationContext> =
+    verificationRepository.nextEnvironmentsForVerification(minTimeSinceLastCheck, limit)
+  // END VerificationRepository methods
 }

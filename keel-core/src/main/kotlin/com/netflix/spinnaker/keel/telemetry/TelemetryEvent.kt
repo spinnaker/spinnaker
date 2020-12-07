@@ -121,3 +121,21 @@ data class VerificationCompleted(
     status
   )
 }
+
+data class VerificationTimedOut(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String
+) {
+  constructor(context: VerificationContext) : this(
+    context.deliveryConfig.application,
+    context.deliveryConfig.name,
+    context.environmentName,
+    context.artifact.name,
+    context.artifact.type,
+    context.version
+  )
+}

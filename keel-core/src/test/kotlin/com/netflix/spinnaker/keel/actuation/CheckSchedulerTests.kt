@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.verification.VerificationRunner
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -18,8 +19,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Duration
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Duration
 
 internal object CheckSchedulerTests : JUnit5Minutests {
 
@@ -43,6 +44,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private var agentLockRepository = mockk<AgentLockRepository>(relaxUnitFun = true) {
     every { agents } returns listOf(dummyAgent)
   }
+
+  private val verificationRunner = mockk<VerificationRunner>()
 
   private val resources = listOf(
     resource(
@@ -77,11 +80,14 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
         artifactHandlers = listOf(artifactHandler),
-        resourceCheckMinAgeDuration = Duration.ofMinutes(5),
+        resourceCheckMinAge = Duration.ofMinutes(5),
         resourceCheckBatchSize = 2,
+        environmentVerificationMinAge = Duration.ofMinutes(5),
+        environmentVerificationBatchSize = 2,
         checkTimeout = Duration.ofMinutes(2),
         publisher = publisher,
-        agentLockRepository = agentLockRepository
+        agentLockRepository = agentLockRepository,
+        verificationRunner = verificationRunner
       )
     }
 

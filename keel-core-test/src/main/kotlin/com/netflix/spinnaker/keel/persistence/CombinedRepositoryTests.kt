@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.core.api.normalize
@@ -22,7 +23,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Duration
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -35,18 +35,20 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import java.time.Duration
 
 /**
  * Tests that involve creating, updating, or deleting things from two or more of the three repositories present.
  *
  * Tests that only apply to one repository should live in the repository-specific test classes.
  */
-abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
+abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : VerificationRepository> :
   JUnit5Minutests {
 
   abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): D
   abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
   abstract fun createArtifactRepository(): A
+  abstract fun createVerificationRepository(resourceSpecIdentifier: ResourceSpecIdentifier): V
 
   open fun flush() {}
 
@@ -91,22 +93,27 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     environments = setOf(firstEnv)
   )
 
-  data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository>(
+  data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, V : VerificationRepository>(
     val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> D,
     val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
-    val artifactRepositoryProvider: () -> A
+    val artifactRepositoryProvider: () -> A,
+    val verificationRepositoryProvider: (ResourceSpecIdentifier) -> V
   ) {
     internal val clock = MutableClock()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
-    internal val deliveryConfigRepository: D = deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
+    internal val deliveryConfigRepository: D =
+      deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
     internal val resourceRepository: R = resourceRepositoryProvider(DummyResourceSpecIdentifier)
     internal val artifactRepository: A = artifactRepositoryProvider()
+    internal val verificationRepository: V =
+      verificationRepositoryProvider(DummyResourceSpecIdentifier)
 
     val subject = CombinedRepository(
       deliveryConfigRepository,
       artifactRepository,
       resourceRepository,
+      verificationRepository,
       clock,
       publisher,
       configuredTestObjectMapper()
@@ -122,12 +129,13 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         }
   }
 
-  fun tests() = rootContext<Fixture<D, R, A>> {
+  fun tests() = rootContext<Fixture<D, R, A, V>> {
     fixture {
       Fixture(
         deliveryConfigRepositoryProvider = this@CombinedRepositoryTests::createDeliveryConfigRepository,
         resourceRepositoryProvider = this@CombinedRepositoryTests::createResourceRepository,
-        artifactRepositoryProvider = this@CombinedRepositoryTests::createArtifactRepository
+        artifactRepositoryProvider = this@CombinedRepositoryTests::createArtifactRepository,
+        verificationRepositoryProvider = this@CombinedRepositoryTests::createVerificationRepository
       )
     }
 
@@ -148,7 +156,16 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
         test("artifacts are persisted") {
           expectThat(subject.isRegistered("org/image", DOCKER)).isTrue()
-          verify { publisher.publishEvent(ArtifactRegisteredEvent(DockerArtifact(name = "org/image", deliveryConfigName = configName))) }
+          verify {
+            publisher.publishEvent(
+              ArtifactRegisteredEvent(
+                DockerArtifact(
+                  name = "org/image",
+                  deliveryConfigName = configName
+                )
+              )
+            )
+          }
         }
 
         test("individual resources are persisted") {
@@ -184,14 +201,24 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           test("no longer present dependents are removed") {
             expectThrows<NoSuchResourceException> { resourceRepository.get(firstResource.id) }
             expectThrows<ArtifactNotFoundException> {
-              artifactRepository.get(name = artifact.name, type = artifact.type, reference = "org/image", deliveryConfigName = configName)
+              artifactRepository.get(
+                name = artifact.name,
+                type = artifact.type,
+                reference = "org/image",
+                deliveryConfigName = configName
+              )
             }
           }
 
           test("correct resources still exist") {
             expectCatching { resourceRepository.get(secondResource.id) }.isSuccess()
             expectCatching {
-              artifactRepository.get(name = newArtifact.name, type = newArtifact.type, reference = "myart", deliveryConfigName = configName)
+              artifactRepository.get(
+                name = newArtifact.name,
+                type = newArtifact.type,
+                reference = "myart",
+                deliveryConfigName = configName
+              )
             }.isSuccess()
           }
         }
@@ -206,7 +233,12 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
           test("artifact is updated but still present") {
             expectCatching {
-              artifactRepository.get(name = artifact.name, type = artifact.type, reference = artifact.reference, deliveryConfigName = configName)
+              artifactRepository.get(
+                name = artifact.name,
+                type = artifact.type,
+                reference = artifact.reference,
+                deliveryConfigName = configName
+              )
             }.isSuccess()
               .isA<DockerArtifact>()
               .get { tagVersionStrategy }.isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
@@ -277,7 +309,14 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           context("after an update") {
             before {
               resourcesDueForCheck()
-              subject.upsertResource(resource.copy(spec = DummyResourceSpec(id = resource.spec.id, data = "kthxbye")), deliveryConfig.name)
+              subject.upsertResource(
+                resource.copy(
+                  spec = DummyResourceSpec(
+                    id = resource.spec.id,
+                    data = "kthxbye"
+                  )
+                ), deliveryConfig.name
+              )
             }
 
             test("stores the updated resource") {
@@ -331,7 +370,11 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         subject.upsertDeliveryConfig(deliveryConfig)
       }
       test("trying to persist another config with the same resource") {
-        expectThrows<DuplicateManagedResourceException> { subject.upsertDeliveryConfig(secondDeliveryConfig) }
+        expectThrows<DuplicateManagedResourceException> {
+          subject.upsertDeliveryConfig(
+            secondDeliveryConfig
+          )
+        }
         expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(secondConfigName) }
         expectCatching { resourceRepository.get(firstResource.id) }.isSuccess()
       }
@@ -342,12 +385,20 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         subject.upsertDeliveryConfig(deliveryConfig)
       }
       test("second config fails with exception, first config didn't change") {
-        expectThrows<ConflictingDeliveryConfigsException> { subject.upsertDeliveryConfig(anotherDeliveryConfigWithSameName) }
+        expectThrows<ConflictingDeliveryConfigsException> {
+          subject.upsertDeliveryConfig(
+            anotherDeliveryConfigWithSameName
+          )
+        }
         expectThat(deliveryConfigRepository.get(configName))
           .get { application }
           .isEqualTo(deliveryConfig.application)
 
-        expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.getByApplication(anotherDeliveryConfigWithSameName.application) }
+        expectThrows<NoSuchDeliveryConfigException> {
+          deliveryConfigRepository.getByApplication(
+            anotherDeliveryConfigWithSameName.application
+          )
+        }
       }
     }
 
@@ -356,12 +407,20 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         subject.upsertDeliveryConfig(deliveryConfig)
       }
       test("second config fails with exception, first config didn't change") {
-        expectThrows<TooManyDeliveryConfigsException> { subject.upsertDeliveryConfig(anotherDeliveryConfigWithSameApp) }
+        expectThrows<TooManyDeliveryConfigsException> {
+          subject.upsertDeliveryConfig(
+            anotherDeliveryConfigWithSameApp
+          )
+        }
         expectThat(deliveryConfigRepository.get(configName))
           .get { application }
           .isEqualTo(deliveryConfig.application)
 
-        expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(anotherDeliveryConfigWithSameApp.name) }
+        expectThrows<NoSuchDeliveryConfigException> {
+          deliveryConfigRepository.get(
+            anotherDeliveryConfigWithSameApp.name
+          )
+        }
       }
     }
   }
