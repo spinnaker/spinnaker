@@ -39,6 +39,9 @@ export interface IExecutionsState {
   reloadingForFilters: boolean;
 }
 
+// This Set ensures we only forward once from .executions to .executionDetails for an aged out execution
+const forwardedExecutions = new Set();
+
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
@@ -173,6 +176,21 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     ReactInjector.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
+  private handleAgedOutExecutions(executionId: string): void {
+    const { $state, executionService } = ReactInjector;
+    if (executionId && !forwardedExecutions.has(executionId)) {
+      executionService.getExecution(executionId).then(() => {
+        const detailsState = $state.current.name.replace('executions.execution', 'executionDetails.execution');
+        const { stage, step, details } = $state.params;
+        forwardedExecutions.add(executionId);
+        $state.go(detailsState, { executionId, stage, step, details });
+      });
+    } else {
+      // Handles the case where we already forwarded once and user navigated back, so do not forward again.
+      $state.go('.^');
+    }
+  }
+
   public componentDidMount(): void {
     const { app } = this.props;
     if (ExecutionState.filterModel.mostRecentApplication !== app.name) {
@@ -203,7 +221,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         if ($state.params.executionId) {
           const executions: IExecution[] = app.executions.data;
           if (executions.every((e) => e.id !== $state.params.executionId)) {
-            $state.go('.^');
+            this.handleAgedOutExecutions($state.params.executionId);
           }
         }
       },
