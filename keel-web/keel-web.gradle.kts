@@ -40,6 +40,7 @@ dependencies {
     exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-secrets-aws"))
     exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-secrets-gcp"))
   }
+  runtimeOnly("io.springfox:springfox-boot-starter:3.0.0")
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-test"))
