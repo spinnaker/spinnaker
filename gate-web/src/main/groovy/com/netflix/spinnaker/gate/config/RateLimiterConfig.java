@@ -22,7 +22,8 @@ import com.netflix.spinnaker.gate.ratelimit.RateLimitingFilter;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.StaticRateLimitPrincipalProvider;
-import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService;
+import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -62,14 +63,14 @@ public class RateLimiterConfig {
       RateLimiter rateLimiter,
       Registry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
-      Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService) {
+      Optional<List<RequestIdentityExtractor>> requestIdentityExtractors) {
     FilterRegistrationBean frb =
         new FilterRegistrationBean(
             new RateLimitingFilter(
                 rateLimiter,
                 registry,
                 rateLimitPrincipalProvider,
-                x509AuthenticationUserDetailsService));
+                requestIdentityExtractors.orElse(null)));
 
     frb.setOrder(rateLimiterConfiguration.getFilterOrder());
     return frb;

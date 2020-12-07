@@ -25,12 +25,12 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.histogram.PercentileTimer;
-import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService;
-import com.netflix.spinnaker.security.User;
+import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.FilterChain;
@@ -42,20 +42,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /** Rate limit requests per the configured {@link RateLimiter} and authenticated principal. */
 public class RateLimitingFilter extends HttpFilter {
 
-  private static Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
+  private static final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
 
-  private static String UNKNOWN_PRINCIPAL = "unknown";
+  private static final String UNKNOWN_PRINCIPAL = "unknown";
 
-  private RateLimiter rateLimiter;
-  private Registry registry;
-  private RateLimitPrincipalProvider rateLimitPrincipalProvider;
-  private Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService;
+  private final RateLimiter rateLimiter;
+  private final Registry registry;
+  private final RateLimitPrincipalProvider rateLimitPrincipalProvider;
+  private final List<RequestIdentityExtractor> requestIdentityExtractors;
 
   private final Counter throttlingCounter;
   private final Counter learningThrottlingCounter;
@@ -65,10 +65,11 @@ public class RateLimitingFilter extends HttpFilter {
       RateLimiter rateLimiter,
       Registry registry,
       RateLimitPrincipalProvider rateLimitPrincipalProvider,
-      Optional<X509AuthenticationUserDetailsService> x509AuthenticationUserDetailsService) {
+      List<RequestIdentityExtractor> requestIdentityExtractors) {
     this.rateLimiter = rateLimiter;
     this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
-    this.x509AuthenticationUserDetailsService = x509AuthenticationUserDetailsService;
+    this.requestIdentityExtractors =
+        Objects.requireNonNullElseGet(requestIdentityExtractors, Collections::emptyList);
     this.registry = registry;
 
     throttlingCounter = registry.counter("rateLimit.throttling");
@@ -175,32 +176,33 @@ public class RateLimitingFilter extends HttpFilter {
   }
 
   private Object getPrincipal(HttpServletRequest request) {
-    SecurityContext context = SecurityContextHolder.getContext();
-    Authentication authentication = context.getAuthentication();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication == null) {
-      // in the event that this filter is running prior to the spring security filter chain, we need
-      // to manually extract identity from an x509 certificate (if available!).
-      X509Certificate[] certificates =
-          (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
-      if (certificates != null && certificates.length > 0) {
-        String identityFromCertificate =
-            x509AuthenticationUserDetailsService
-                // anything beyond [0] represents an intermediate cert which does not provide an
-                // identity
-                .map(s -> s.identityFromCertificate(certificates[0]))
-                .orElse(null);
-
-        if (identityFromCertificate != null) {
-          return identityFromCertificate;
+      String requestIdentity = null;
+      for (int i = 0; i < requestIdentityExtractors.size() && requestIdentity == null; i++) {
+        RequestIdentityExtractor extractor = requestIdentityExtractors.get(i);
+        if (extractor.supports(request)) {
+          try {
+            requestIdentity = extractor.extractIdentity(request);
+          } catch (Throwable t) {
+            log.warn(
+                "Failure extracting identity from RequestIdentityExtractor {}",
+                extractor.getClass().getSimpleName(),
+                t);
+          }
         }
+      }
+
+      if (requestIdentity != null) {
+        return requestIdentity;
       }
 
       return UNKNOWN_PRINCIPAL;
     }
 
-    if (authentication.getPrincipal() instanceof User) {
-      String principal = ((User) authentication.getPrincipal()).getEmail();
+    if (authentication.getPrincipal() instanceof UserDetails) {
+      String principal = ((UserDetails) authentication.getPrincipal()).getUsername();
 
       if ("anonymous".equals(principal)) {
         String rateLimitApp = request.getHeader("X-RateLimit-App");

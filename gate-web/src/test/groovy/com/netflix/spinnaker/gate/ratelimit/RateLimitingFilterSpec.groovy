@@ -18,11 +18,11 @@ package com.netflix.spinnaker.gate.ratelimit
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
-import com.netflix.spinnaker.gate.security.x509.X509AuthenticationUserDetailsService
-import com.netflix.spinnaker.security.User
+import com.netflix.spinnaker.gate.security.RequestIdentityExtractor
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -38,7 +38,7 @@ class RateLimitingFilterSpec extends Specification {
 
   Authentication authentication = Mock()
 
-  X509AuthenticationUserDetailsService x509AuthenticationUserDetailsService = Mock()
+  RequestIdentityExtractor requestIdentityExtractor = Mock()
 
   SecurityContext securityContext = Mock() {
     getAuthentication() >> authentication
@@ -49,6 +49,49 @@ class RateLimitingFilterSpec extends Specification {
   }
 
   def cleanup() {
+    SecurityContextHolder.clearContext()
+  }
+
+  def 'should use supplied identity extractor if there is no Authentication present'() {
+    given:
+    SecurityContext securityContext = Stub() {
+      getAuthentication() >> null
+    }
+    SecurityContextHolder.context = securityContext
+
+    and:
+    def config = new RateLimiterConfiguration()
+
+    def subject = new RateLimitingFilter(
+      rateLimiter,
+      registry,
+      new StaticRateLimitPrincipalProvider(config),
+      [requestIdentityExtractor]
+    )
+
+    and:
+    def request = Mock(HttpServletRequest)
+
+    when:
+    subject.doFilter(request, Stub(HttpServletResponse), Stub(FilterChain))
+
+    then:
+    1 * request.getHeader('X-RateLimit-App') >> null
+    1 * requestIdentityExtractor.supports(request) >> true
+    1 * requestIdentityExtractor.extractIdentity(request) >> 'foo@example.com'
+    1 * rateLimiter.incrementAndGetRate(_) >> { RateLimitPrincipal rlp ->
+      assert rlp.name == 'foo@example.com'
+      return new Rate().with {
+        it.capacity = -1
+        it.rateSeconds = -1
+        it.remaining = -1
+        it.reset = -1
+        it.throttled = true
+        return it
+      }
+    }
+
+    cleanup:
     SecurityContextHolder.clearContext()
   }
 
@@ -65,7 +108,7 @@ class RateLimitingFilterSpec extends Specification {
       rateLimiter,
       registry,
       new StaticRateLimitPrincipalProvider(config),
-      Optional.of(x509AuthenticationUserDetailsService)
+      [requestIdentityExtractor]
     )
 
     and:
@@ -78,7 +121,7 @@ class RateLimitingFilterSpec extends Specification {
 
     then:
     noExceptionThrown()
-    2 * authentication.getPrincipal() >> new User(email: principal)
+    2 * authentication.getPrincipal() >> User.withUsername(principal).password("").authorities().build();
     1 * rateLimiter.incrementAndGetRate(_) >> {
       new Rate().with {
         it.capacity = -1
@@ -109,7 +152,7 @@ class RateLimitingFilterSpec extends Specification {
       rateLimiter,
       registry,
       new StaticRateLimitPrincipalProvider(new RateLimiterConfiguration()),
-      Optional.of(x509AuthenticationUserDetailsService)
+      [requestIdentityExtractor]
     )
 
     and:

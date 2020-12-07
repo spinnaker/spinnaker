@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -68,5 +69,10 @@ class X509Config extends WebSecurityConfigurerAdapter {
   @Override
   void configure(WebSecurity web) throws Exception {
     authConfig.configure(web)
+  }
+
+  @Bean
+  X509IdentityExtractor x509IdentityExtractor() {
+    return new X509IdentityExtractor(x509AuthenticationUserDetailsService)
   }
 }
