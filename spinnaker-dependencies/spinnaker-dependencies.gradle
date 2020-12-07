@@ -114,6 +114,8 @@ dependencies {
     api("com.vdurmont:semver4j:3.1.0")
     api("commons-configuration:commons-configuration:1.8")
     api("commons-io:commons-io:2.5")
+    // CVE's in 3.2.1
+    api("commons-collections:commons-collections:[3.2.2,3.3)")
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.11.0")
