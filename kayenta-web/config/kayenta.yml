@@ -97,6 +97,10 @@ kayenta:
 #      - name: my-prometheus-account
 #        endpoint:
 #          baseUrl: http://localhost:9090
+#        username: xxxx # Optional, for use when protecting prometheus with basic auth
+#        password: xxxx # Optional, for use when protecting prometheus with basic auth
+#        usernamePasswordFile: xxxx # Optional, for use when protecting prometheus with basic auth
+#        bearerToken: xxxx # Optional, for use when protecting prometheus with bearer token
 #        supportedTypes:
 #          - METRICS_STORE
 

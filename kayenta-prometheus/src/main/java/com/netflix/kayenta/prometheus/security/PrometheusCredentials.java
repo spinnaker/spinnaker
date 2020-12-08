@@ -35,4 +35,6 @@ public class PrometheusCredentials {
   private String password;
 
   private String usernamePasswordFile;
+
+  private String bearerToken;
 }

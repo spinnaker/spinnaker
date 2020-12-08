@@ -92,6 +92,7 @@ public class PrometheusConfiguration {
                 .username(prometheusManagedAccount.getUsername())
                 .password(prometheusManagedAccount.getPassword())
                 .usernamePasswordFile(prometheusManagedAccount.getUsernamePasswordFile())
+                .bearerToken(prometheusManagedAccount.getBearerToken())
                 .build();
         PrometheusNamedAccountCredentials.PrometheusNamedAccountCredentialsBuilder
             prometheusNamedAccountCredentialsBuilder =
@@ -110,7 +111,8 @@ public class PrometheusConfiguration {
                     okHttpClient,
                     prometheusManagedAccount.getUsername(),
                     prometheusManagedAccount.getPassword(),
-                    prometheusManagedAccount.getUsernamePasswordFile());
+                    prometheusManagedAccount.getUsernamePasswordFile(),
+                    prometheusManagedAccount.getBearerToken());
 
             prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(
                 prometheusRemoteService);

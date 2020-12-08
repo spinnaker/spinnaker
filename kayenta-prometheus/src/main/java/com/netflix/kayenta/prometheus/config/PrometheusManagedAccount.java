@@ -44,4 +44,7 @@ public class PrometheusManagedAccount {
 
   private List<AccountCredentials.Type> supportedTypes =
       Collections.singletonList(AccountCredentials.Type.METRICS_STORE);
+
+  // Optional parameter for use when protecting prometheus with bearer token.
+  private String bearerToken;
 }
