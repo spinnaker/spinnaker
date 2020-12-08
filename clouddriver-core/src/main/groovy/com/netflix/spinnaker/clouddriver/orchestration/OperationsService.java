@@ -59,7 +59,7 @@ public class OperationsService {
   private final Splitter COMMA_SPLITTER = Splitter.on(",");
 
   private final AtomicOperationsRegistry atomicOperationsRegistry;
-  private final DescriptionAuthorizer descriptionAuthorizer;
+  private final List<DescriptionAuthorizer> descriptionAuthorizers;
   private final Collection<AllowedAccountsValidator> allowedAccountValidators;
   private final List<AtomicOperationDescriptionPreProcessor>
       atomicOperationDescriptionPreProcessors;
@@ -73,7 +73,7 @@ public class OperationsService {
 
   public OperationsService(
       AtomicOperationsRegistry atomicOperationsRegistry,
-      DescriptionAuthorizer descriptionAuthorizer,
+      List<DescriptionAuthorizer> descriptionAuthorizers,
       Optional<Collection<AllowedAccountsValidator>> allowedAccountValidators,
       Optional<List<AtomicOperationDescriptionPreProcessor>>
           atomicOperationDescriptionPreProcessors,
@@ -83,7 +83,7 @@ public class OperationsService {
       ObjectMapper objectMapper,
       ExceptionMessageDecorator exceptionMessageDecorator) {
     this.atomicOperationsRegistry = atomicOperationsRegistry;
-    this.descriptionAuthorizer = descriptionAuthorizer;
+    this.descriptionAuthorizers = descriptionAuthorizers;
     this.allowedAccountValidators = allowedAccountValidators.orElse(Collections.emptyList());
     this.atomicOperationDescriptionPreProcessors =
         atomicOperationDescriptionPreProcessors.orElse(Collections.emptyList());
@@ -180,8 +180,19 @@ public class OperationsService {
                           allowedAccountValidators.forEach(
                               it -> it.validate(username, allowedAccounts, description, errors));
 
-                          // TODO(rz): Assert `description` is T
-                          descriptionAuthorizer.authorize(description, errors);
+                          if (description != null) {
+                            DescriptionAuthorizer descriptionAuthorizer =
+                                descriptionAuthorizers.stream()
+                                    .filter(it -> it.supports(description))
+                                    .findFirst()
+                                    .orElseThrow(
+                                        () ->
+                                            new SystemException(
+                                                "Unable to find supporting description authorizer for {}",
+                                                description.getClass().getSimpleName()));
+
+                            descriptionAuthorizer.authorize(description, errors);
+                          }
 
                           // TODO(rz): This is so bad. We convert the description input twice (once
                           // above) and then once inside of this convertOperation procedure. This

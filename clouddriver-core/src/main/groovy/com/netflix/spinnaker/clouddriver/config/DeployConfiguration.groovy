@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DefaultDeployHandlerRegistry
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandlerRegistry
+import com.netflix.spinnaker.clouddriver.deploy.DefaultDescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.deploy.NullOpDeployHandler
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry
@@ -98,7 +99,7 @@ class DeployConfiguration {
   @Bean
   OperationsService operationsService(
     AtomicOperationsRegistry atomicOperationsRegistry,
-    DescriptionAuthorizer descriptionAuthorizer,
+    List<DescriptionAuthorizer> descriptionAuthorizers,
     Optional<Collection<AllowedAccountsValidator>> allowedAccountsValidators,
     Optional<List<AtomicOperationDescriptionPreProcessor>> atomicOperationDescriptionPreProcessors,
     AccountCredentialsRepository accountCredentialsRepository,
@@ -109,7 +110,7 @@ class DeployConfiguration {
   ) {
     return new OperationsService(
       atomicOperationsRegistry,
-      descriptionAuthorizer,
+      descriptionAuthorizers,
       allowedAccountsValidators,
       atomicOperationDescriptionPreProcessors,
       accountCredentialsRepository,

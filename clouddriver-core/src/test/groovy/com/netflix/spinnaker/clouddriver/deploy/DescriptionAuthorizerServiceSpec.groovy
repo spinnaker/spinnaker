@@ -16,31 +16,31 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
+
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class DescriptionAuthorizerSpec extends Specification {
+class DescriptionAuthorizerServiceSpec extends Specification {
   def registry = new NoopRegistry()
   def evaluator = Mock(FiatPermissionEvaluator)
   def opsSecurityConfigProps
 
   @Subject
-  DescriptionAuthorizer authorizer
+  DescriptionAuthorizerService service
 
   def setup() {
     opsSecurityConfigProps = new SecurityConfig.OperationsSecurityConfigurationProperties()
-    authorizer = new DescriptionAuthorizer(registry, Optional.of(evaluator), opsSecurityConfigProps)
+    service = new DescriptionAuthorizerService(registry, Optional.of(evaluator), opsSecurityConfigProps)
   }
 
   def "should authorize passed description"() {
@@ -58,7 +58,7 @@ class DescriptionAuthorizerSpec extends Specification {
     def errors = new DescriptionValidationErrors(description)
 
     when:
-    authorizer.authorize(description, errors)
+    service.authorize(description, errors)
 
     then:
     4 * evaluator.hasPermission(*_) >> false
@@ -76,7 +76,7 @@ class DescriptionAuthorizerSpec extends Specification {
     opsSecurityConfigProps.allowUnauthenticatedImageTaggingInAccounts = allowUnauthenticatedImageTaggingInAccounts
 
     when:
-    authorizer.authorize(description, errors)
+    service.authorize(description, errors)
 
     then:
     expectedNumberOfInvocations * evaluator.hasPermission(*_) >> false
@@ -88,6 +88,34 @@ class DescriptionAuthorizerSpec extends Specification {
     ["testAccount"]                            || 0                           | 0
     ["anotherAccount"]                         || 1                           | 1
     []                                         || 1                           | 1
+  }
+
+  @Unroll
+  def "should only authz specified resource type"() {
+    given:
+    def auth = new TestingAuthenticationToken(null, null)
+
+    def ctx = SecurityContextHolder.createEmptyContext()
+    ctx.setAuthentication(auth)
+    SecurityContextHolder.setContext(ctx)
+
+    def description = new TestDescription(
+      "testAccount", ["testApplication", null], ["testResource1", "testResource2", null]
+    )
+
+    def errors = new DescriptionValidationErrors(description)
+
+    when:
+    service.authorize(description, errors, List.of(resourceType))
+
+    then:
+    expectedNumberOfAuthChecks * evaluator.hasPermission(*_) >> false
+    errors.allErrors.size() == expectedNumberOfErrors
+
+    where:
+    resourceType              || expectedNumberOfAuthChecks | expectedNumberOfErrors
+    ResourceType.APPLICATION  || 3                          | 3
+    ResourceType.ACCOUNT      || 1                          | 1
   }
 
   class TestDescription implements AccountNameable, ApplicationNameable, ResourcesNameable {

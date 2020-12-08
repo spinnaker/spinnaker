@@ -40,7 +40,9 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.deploy.DefaultDescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizerService
 import com.netflix.spinnaker.clouddriver.jackson.ClouddriverApiModule
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.CloudMetricProvider
@@ -108,6 +110,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.PropertySource
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.core.env.Environment
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.client.RestTemplate
@@ -366,14 +370,20 @@ class CloudDriverConfig {
   }
 
   @Bean
-  DescriptionAuthorizer descriptionAuthorizer(Registry registry,
-                                              Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
-    return new DescriptionAuthorizer(
+  DescriptionAuthorizerService descriptionAuthorizerService(Registry registry,
+                                                            Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+                                                            SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+    return new DescriptionAuthorizerService(
       registry,
       fiatPermissionEvaluator,
       opsSecurityConfigProps
     )
+  }
+
+  @Bean
+  @Order(Ordered.LOWEST_PRECEDENCE)
+  DescriptionAuthorizer descriptionAuthorizer(DescriptionAuthorizerService descriptionAuthorizerService) {
+    return new DefaultDescriptionAuthorizer(descriptionAuthorizerService)
   }
 
   @Bean
