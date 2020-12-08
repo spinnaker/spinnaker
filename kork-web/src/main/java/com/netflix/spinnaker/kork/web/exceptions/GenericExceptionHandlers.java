@@ -119,6 +119,7 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
   @ExceptionHandler(Exception.class)
   public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request)
       throws IOException {
+    logger.warn("Handled error in generic exception handler", e);
     storeException(request, response, e);
 
     ResponseStatus responseStatus =
@@ -149,7 +150,6 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
       HttpServletRequest request, HttpServletResponse response, Exception ex) {
     // store exception as an attribute of HttpServletRequest such that it can be referenced by
     // GenericErrorController
-    logger.warn("Handled error in generic exception handler", ex);
     defaultErrorAttributes.resolveException(request, response, null, ex);
   }
 
