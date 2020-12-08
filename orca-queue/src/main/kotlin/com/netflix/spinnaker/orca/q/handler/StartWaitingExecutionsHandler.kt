@@ -51,7 +51,7 @@ class StartWaitingExecutionsHandler(
                 queue.push(CancelExecution(
                   source = purgedMessage,
                   user = "spinnaker",
-                  reason = "Keep waiting pipelines configuration is disabled"
+                  reason = "This execution was queued but then canceled because a newer queued execution superceded it. This pipeline is configured to automatically cancel waiting executions." 
                 ))
               }
               is RestartStage -> {
