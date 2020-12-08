@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthzGroupsUtil
+import com.netflix.spinnaker.orca.front50.Front50Service
 import groovy.util.logging.Slf4j
 
 import javax.servlet.Filter
@@ -52,6 +54,11 @@ class WebConfiguration {
   @Bean
   MetricsInterceptor metricsInterceptor(Registry registry) {
     return  new MetricsInterceptor(registry, "controller.invocations", ["application"], ["BasicErrorController"])
+  }
+
+  @Bean
+  ManualJudgmentAuthzGroupsUtil manualJudgmentAuthzGroupsUtil(Optional<Front50Service> front50Service) {
+    return new ManualJudgmentAuthzGroupsUtil(front50Service)
   }
 
   @Bean
