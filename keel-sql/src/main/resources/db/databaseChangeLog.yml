@@ -209,3 +209,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201130-environment-last-verified.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201208-fix-environment-last-verified-cascade.yml
+      relativeToChangelogFile: true
