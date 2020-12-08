@@ -16,9 +16,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class HelmTemplateUtils {
   private static final String MANIFEST_SEPARATOR = "---\n";
   private static final Pattern REGEX_TESTS_MANIFESTS =
@@ -51,6 +53,8 @@ public class HelmTemplateUtils {
     if ("git/repo".equals(artifactType)) {
       env.downloadArtifactTarballAndExtract(artifactDownloader, helmTemplateArtifact);
 
+      log.info("helmChartFilePath: '{}'", request.getHelmChartFilePath());
+
       // If there's no helm chart path specified, assume it lives in the root of
       // the git/repo artifact.
       templatePath =
@@ -62,6 +66,8 @@ public class HelmTemplateUtils {
         throw new IllegalStateException("Failed to fetch helm template: " + e.getMessage(), e);
       }
     }
+
+    log.info("path to Chart.yaml: {}", templatePath);
 
     try {
       // not a stream to keep exception handling cleaner
