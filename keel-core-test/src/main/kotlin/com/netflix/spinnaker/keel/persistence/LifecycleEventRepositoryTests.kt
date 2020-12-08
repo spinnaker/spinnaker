@@ -15,6 +15,7 @@ import dev.minutest.rootContext
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
@@ -67,6 +68,17 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           that(events.first().data["hi"]).isEqualTo("whatsup")
         }
       }
+
+      test("updates timestamp if duplicate event") {
+        clock.tickMinutes(1)
+        val now = clock.instant()
+        subject.saveEvent(event.copy(timestamp = now))
+        val events = subject.getEvents(artifact, version)
+        expect {
+          that(events.size).isEqualTo(1)
+          that(events.first().timestamp).isEqualTo(now)
+        }
+      }
     }
 
     context("turning events into steps") {
@@ -91,6 +103,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           clock.tickMinutes(1)
           subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
         }
+
         test("can transform multiple events to step") {
           val steps = subject.getSteps(artifact, version)
           expect {
@@ -100,6 +113,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.first().link).isEqualTo("www.bake.com/$version")
             that(steps.first().startedAt).isNotNull()
             that(steps.first().completedAt).isNotNull()
+            that(steps.first().startedAt).isNotEqualTo(steps.first().completedAt)
           }
         }
       }
@@ -129,6 +143,26 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.last().text).isEqualTo("Bake succeeded")
             that(steps.last().link).isEqualTo("www.bake.com/$version")
           }
+        }
+      }
+    }
+
+    context("don't need a NOT_STARTED event to calculate steps") {
+      before {
+        subject.saveEvent(event.copy(status = RUNNING))
+        clock.tickMinutes(1)
+        subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
+      }
+
+      test("successful step generated") {
+        val steps = subject.getSteps(artifact, version)
+        expect {
+          that(steps.size).isEqualTo(1)
+          that(steps.first().status).isEqualTo(SUCCEEDED)
+          that(steps.first().text).isEqualTo("Bake finished! Here's your cake")
+          that(steps.first().link).isEqualTo("www.bake.com/$version")
+          that(steps.first().startedAt).isNotNull()
+          that(steps.first().completedAt).isNotNull()
         }
       }
     }

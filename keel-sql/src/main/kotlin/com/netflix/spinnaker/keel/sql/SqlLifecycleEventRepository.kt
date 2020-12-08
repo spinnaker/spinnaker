@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
@@ -30,20 +31,58 @@ class SqlLifecycleEventRepository(
 ) : LifecycleEventRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  /**
+   * Only saves event if a field other than the timestamp changes.
+   * If only the timestamp changed, update the timestamp on the existing row.
+   */
   override fun saveEvent(event: LifecycleEvent) {
     val timestamp = event.timestamp?.toTimestamp() ?: clock.timestamp()
     sqlRetry.withRetry(WRITE) {
-      jooq.insertInto(LIFECYCLE_EVENT)
-        .set(LIFECYCLE_EVENT.UID, ULID().nextULID(clock.millis()))
-        .set(LIFECYCLE_EVENT.SCOPE, event.scope.name)
-        .set(LIFECYCLE_EVENT.REF, event.artifactRef)
-        .set(LIFECYCLE_EVENT.ARTIFACT_VERSION, event.artifactVersion)
-        .set(LIFECYCLE_EVENT.TYPE, event.type.name)
-        .set(LIFECYCLE_EVENT.ID, event.id)
-        .set(LIFECYCLE_EVENT.STATUS, event.status.name)
-        .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
-        .set(LIFECYCLE_EVENT.JSON, objectMapper.writeValueAsString(event))
-        .execute()
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        // if event exists, only update timestamp
+        var eventExists = false
+        txn.select(LIFECYCLE_EVENT.UID, LIFECYCLE_EVENT.JSON)
+          .from(LIFECYCLE_EVENT)
+          .where(LIFECYCLE_EVENT.SCOPE.eq(event.scope.name))
+          .and(LIFECYCLE_EVENT.REF.eq(event.artifactRef))
+          .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(event.artifactVersion))
+          .and(LIFECYCLE_EVENT.TYPE.eq(event.type.name))
+          .and(LIFECYCLE_EVENT.ID.eq(event.id))
+          .and(LIFECYCLE_EVENT.STATUS.eq(event.status.name))
+          .limit(1)
+          .fetch()
+          .firstOrNull()
+          ?.let { (uid, savedEvent) ->
+            eventExists = true
+            try {
+              val existingEvent = objectMapper.readValue<LifecycleEvent>(savedEvent)
+              if (event == existingEvent.copy(timestamp = event.timestamp)) {
+                // events are the same except time
+                txn.update(LIFECYCLE_EVENT)
+                  .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
+                  .where(LIFECYCLE_EVENT.UID.eq(uid))
+                  .execute()
+              }
+            } catch (e: JsonMappingException) {
+              // ignore existing event with incorrect serialization, just store a new one.
+            }
+          }
+
+        if (!eventExists) {
+          txn.insertInto(LIFECYCLE_EVENT)
+            .set(LIFECYCLE_EVENT.UID, ULID().nextULID(clock.millis()))
+            .set(LIFECYCLE_EVENT.SCOPE, event.scope.name)
+            .set(LIFECYCLE_EVENT.REF, event.artifactRef)
+            .set(LIFECYCLE_EVENT.ARTIFACT_VERSION, event.artifactVersion)
+            .set(LIFECYCLE_EVENT.TYPE, event.type.name)
+            .set(LIFECYCLE_EVENT.ID, event.id)
+            .set(LIFECYCLE_EVENT.STATUS, event.status.name)
+            .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
+            .set(LIFECYCLE_EVENT.JSON, objectMapper.writeValueAsString(event))
+            .execute()
+        }
+      }
     }
   }
 
@@ -85,14 +124,10 @@ class SqlLifecycleEventRepository(
     val events = getEvents(artifact, artifactVersion)
     val steps: MutableList<LifecycleStep> = mutableListOf()
 
-    val firstEventById = events.filter { it.status == NOT_STARTED }.associateBy { it.id }
+    // associateBy overwrites values when presented with duplicate keys
+    // get first and last event by sorting both ways
+    val firstEventById = events.sortedByDescending { it.timestamp }.associateBy { it.id }
     val lastEventById = events.associateBy { it.id }
-
-    if (firstEventById.size != lastEventById.size) {
-      log.error("Missing a NOT_STARTED event for artifact ${artifact.toLifecycleRef()} with version $artifactVersion. " +
-        "This may lead to some wonky steps or no monitoring. " +
-        "firstEvents: $firstEventById, lastEvents: $lastEventById")
-    }
 
     firstEventById.forEach { (id, event) ->
       var step = event.toStep()
@@ -109,7 +144,7 @@ class SqlLifecycleEventRepository(
         }
         step = step.copy(status = lastEvent.status)
       } else {
-        log.error("Somehow we have a NOT_STARTED event but no last event for $event. Not sure how this could happen.")
+        log.error("Somehow we have a starting event but no last event for $event. Not sure how this could happen.")
       }
       steps.add(step)
     }
