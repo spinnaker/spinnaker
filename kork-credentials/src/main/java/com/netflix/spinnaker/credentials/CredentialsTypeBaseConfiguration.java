@@ -22,15 +22,15 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
-import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -45,19 +45,21 @@ import org.springframework.core.ResolvableType;
  * otherwise.
  */
 @RequiredArgsConstructor
-public class CredentialsTypeBaseConfiguration implements ApplicationContextAware {
-  protected final List<CredentialsTypeProperties<?, ?>> credentialsTypeProperties;
+public class CredentialsTypeBaseConfiguration<
+        T extends Credentials, U extends CredentialsDefinition>
+    implements InitializingBean {
+  private final ApplicationContext applicationContext;
+  private final CredentialsTypeProperties<T, U> properties;
+  @Nullable @Getter private CredentialsRepository<T> credentialsRepository;
+  @Nullable @Getter private AbstractCredentialsLoader<T> credentialsLoader;
 
   @Override
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    credentialsTypeProperties.forEach(
-        prop -> initializeCredentialsRepository(prop, applicationContext));
+  public void afterPropertiesSet() {
+    registerCredentialsProperties();
   }
 
   @SuppressWarnings("unchecked")
-  protected <T extends Credentials, U extends CredentialsDefinition>
-      void initializeCredentialsRepository(
-          CredentialsTypeProperties<T, U> properties, ApplicationContext applicationContext) {
+  private void registerCredentialsProperties() {
     // Get or build lifecycle handler
     CredentialsLifecycleHandler<?> lifecycleHandler =
         getParameterizedBean(
@@ -67,7 +69,7 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
             .orElseGet(NoopCredentialsLifecycleHandler::new);
 
     // Get or build credentials repository
-    CredentialsRepository<T> credentialsRepository =
+    credentialsRepository =
         getParameterizedBean(
                 applicationContext, CredentialsRepository.class, properties.getCredentialsClass())
             .orElseGet(
@@ -93,7 +95,7 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
             .orElse(properties.getCredentialsParser());
 
     // Get or build credentials loader
-    AbstractCredentialsLoader<T> credentialsLoader =
+    credentialsLoader =
         getParameterizedBean(
                 applicationContext,
                 AbstractCredentialsLoader.class,
@@ -106,9 +108,6 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
                         credentialsDefinitionSource,
                         credentialsParser,
                         credentialsRepository));
-
-    // Get or build poller
-    credentialsLoader.load();
   }
 
   /**
@@ -121,7 +120,7 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
    * @return Credentials repository registered in Spring
    */
   @SuppressWarnings("unchecked")
-  protected <T extends Credentials> CredentialsRepository<T> registerCredentialsRepository(
+  protected CredentialsRepository<T> registerCredentialsRepository(
       ApplicationContext context,
       CredentialsTypeProperties<T, ?> properties,
       CredentialsLifecycleHandler<?> lifecycleHandler) {
@@ -143,13 +142,12 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
   }
 
   @SuppressWarnings("unchecked")
-  protected <T extends Credentials, U extends CredentialsDefinition>
-      AbstractCredentialsLoader<T> registerCredentialsLoader(
-          ApplicationContext context,
-          CredentialsTypeProperties<T, U> properties,
-          CredentialsDefinitionSource<U> credentialsDefinitionSource,
-          CredentialsParser<U, T> credentialsParser,
-          CredentialsRepository<T> credentialsRepository) {
+  protected AbstractCredentialsLoader<T> registerCredentialsLoader(
+      ApplicationContext context,
+      CredentialsTypeProperties<T, U> properties,
+      CredentialsDefinitionSource<U> credentialsDefinitionSource,
+      CredentialsParser<U, T> credentialsParser,
+      CredentialsRepository<T> credentialsRepository) {
 
     RootBeanDefinition bd = new RootBeanDefinition();
     bd.setTargetType(
@@ -160,6 +158,7 @@ public class CredentialsTypeBaseConfiguration implements ApplicationContextAware
     values.addGenericArgumentValue(credentialsDefinitionSource);
     values.addGenericArgumentValue(credentialsParser);
     values.addGenericArgumentValue(credentialsRepository);
+    values.addGenericArgumentValue(properties.isParallel());
     bd.setConstructorArgumentValues(values);
 
     String beanName = "credentialsLoader." + properties.getType();

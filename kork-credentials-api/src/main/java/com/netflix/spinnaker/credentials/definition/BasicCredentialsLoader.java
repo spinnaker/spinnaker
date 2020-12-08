@@ -49,9 +49,18 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
       CredentialsDefinitionSource<T> definitionSource,
       CredentialsParser<T, U> parser,
       CredentialsRepository<U> credentialsRepository) {
+    this(definitionSource, parser, credentialsRepository, false);
+  }
+
+  public BasicCredentialsLoader(
+      CredentialsDefinitionSource<T> definitionSource,
+      CredentialsParser<T, U> parser,
+      CredentialsRepository<U> credentialsRepository,
+      boolean parallel) {
     super(credentialsRepository);
     this.parser = parser;
     this.definitionSource = definitionSource;
+    this.parallel = parallel;
   }
 
   @Override

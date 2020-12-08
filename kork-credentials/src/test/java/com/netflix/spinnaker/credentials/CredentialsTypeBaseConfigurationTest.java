@@ -19,10 +19,7 @@ package com.netflix.spinnaker.credentials;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
-import com.netflix.spinnaker.credentials.definition.CredentialsParser;
-import java.util.Collections;
+import com.netflix.spinnaker.credentials.definition.*;
 import java.util.List;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,13 +30,14 @@ import org.springframework.context.support.StaticApplicationContext;
 public class CredentialsTypeBaseConfigurationTest {
   private static final String CREDENTIALS_TYPE = "test";
   private StaticApplicationContext context;
-  private CredentialsTypeBaseConfiguration config;
+  private CredentialsTypeBaseConfiguration<TestCredentials, TestAccount> config;
+  private CredentialsTypeProperties<TestCredentials, TestAccount> props;
 
   @BeforeEach
   public void setup() {
     CredentialsDefinitionSource<TestAccount> source =
         () -> List.of(new TestAccount("account1"), new TestAccount("account2"));
-    CredentialsTypeProperties<TestCredentials, TestAccount> props =
+    props =
         CredentialsTypeProperties.<TestCredentials, TestAccount>builder()
             .type(CREDENTIALS_TYPE)
             .credentialsClass(TestCredentials.class)
@@ -48,12 +46,14 @@ public class CredentialsTypeBaseConfigurationTest {
             .credentialsParser(TestCredentials::new)
             .build();
     context = new StaticApplicationContext();
-    config = new CredentialsTypeBaseConfiguration(Collections.singletonList(props));
+    config = new CredentialsTypeBaseConfiguration<>(context, props);
   }
 
   @Test
   public void testCreateCredentials() {
-    config.setApplicationContext(context);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
     CredentialsRepository<TestCredentials> repository =
         context.getBean(CredentialsRepository.class);
     assertThat(repository).isNotNull();
@@ -63,7 +63,10 @@ public class CredentialsTypeBaseConfigurationTest {
   @Test
   public void testOverrideParser() {
     context.registerBean("customParser", TestCustomParser.class);
-    config.setApplicationContext(context);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
+    context.getBean(AbstractCredentialsLoader.class);
 
     CredentialsRepository<TestCredentials> repository =
         context.getBean(CredentialsRepository.class);
@@ -77,7 +80,9 @@ public class CredentialsTypeBaseConfigurationTest {
   public void testOverrideLifecycleHandler() {
     TestLifecycleHandler handler = Mockito.mock(TestLifecycleHandler.class);
     context.getBeanFactory().registerSingleton("customLifecycleHandler", handler);
-    config.setApplicationContext(context);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
 
     CredentialsRepository<TestCredentials> repository =
         context.getBean(CredentialsRepository.class);
@@ -91,7 +96,9 @@ public class CredentialsTypeBaseConfigurationTest {
     CredentialsDefinitionSource<TestAccount> source =
         new TestSource(List.of(new TestAccount("account3"), new TestAccount("account4")));
     context.getBeanFactory().registerSingleton("customSource", source);
-    config.setApplicationContext(context);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
 
     CredentialsRepository<TestCredentials> repository =
         context.getBean(CredentialsRepository.class);
@@ -105,11 +112,40 @@ public class CredentialsTypeBaseConfigurationTest {
     TestCredentialsRepository repository =
         new TestCredentialsRepository(CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
     context.getBeanFactory().registerSingleton("customRepository", repository);
-    config.setApplicationContext(context);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
 
     String[] beanNames = context.getBeanNamesForType(CredentialsRepository.class);
     assertThat(beanNames).hasSize(1);
     assertThat(beanNames[0]).isEqualTo("customRepository");
+  }
+
+  @Test
+  public void testParallel() {
+    CredentialsDefinitionSource<TestAccount> source = () -> List.of(new TestAccount("account1"));
+    props =
+        CredentialsTypeProperties.<TestCredentials, TestAccount>builder()
+            .type(CREDENTIALS_TYPE)
+            .credentialsClass(TestCredentials.class)
+            .credentialsDefinitionClass(TestAccount.class)
+            .defaultCredentialsSource(source)
+            .credentialsParser(TestCredentials::new)
+            .parallel(true)
+            .build();
+    context = new StaticApplicationContext();
+    config = new CredentialsTypeBaseConfiguration<>(context, props);
+    TestCredentialsRepository repository =
+        new TestCredentialsRepository(CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
+    context.getBeanFactory().registerSingleton("customRepository", repository);
+    config.afterPropertiesSet();
+    // This test runner ignores PostConstruct annotations
+    config.getCredentialsLoader().load();
+
+    BasicCredentialsLoader<?, TestCredentials> loader =
+        context.getBean(BasicCredentialsLoader.class);
+    assertThat(loader).isNotNull();
+    assertThat(loader.isParallel()).isTrue();
   }
 
   private static class TestCredentialsRepository

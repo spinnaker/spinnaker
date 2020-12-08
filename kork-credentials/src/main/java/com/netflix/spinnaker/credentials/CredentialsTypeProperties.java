@@ -31,4 +31,5 @@ public class CredentialsTypeProperties<T extends Credentials, U extends Credenti
   private final Class<U> credentialsDefinitionClass;
   private final CredentialsDefinitionSource<U> defaultCredentialsSource;
   private final CredentialsParser<U, T> credentialsParser;
+  private final boolean parallel;
 }
