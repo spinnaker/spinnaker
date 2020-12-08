@@ -7,7 +7,7 @@ import { StageConfigField } from '../../../stages/common';
 import { SpelText } from 'core/widgets';
 import { CheckboxInput } from 'core/presentation';
 
-export const TYPE = 'git/repo';
+const TYPE = 'git/repo';
 
 interface IGitRepoArtifactEditorState {
   includesSubPath: boolean;

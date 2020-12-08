@@ -6,7 +6,6 @@ import { MapEditor } from 'core/forms';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
-import { TYPE } from '../../../triggers/artifacts/gitrepo/GitRepoArtifactEditor';
 
 export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps> {
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
@@ -138,16 +137,6 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
           pipeline={this.props.pipeline}
           stage={stage}
         />
-        {this.getInputArtifact(stage, 0).artifact.type == TYPE && (
-          <StageConfigField label=" File" helpKey="pipeline.config.bake.manifest.helm.chartFilePath">
-            <TextInput
-              onChange={(e: React.ChangeEvent<any>) => {
-                this.props.formik.setFieldValue('helmChartFilePath', e.target.value);
-              }}
-              value={stage.helmChartFilePath}
-            />
-          </StageConfigField>
-        )}
         <h4>Overrides</h4>
         {stage.inputArtifacts && stage.inputArtifacts.length > 1 && (
           <div className="row form-group">

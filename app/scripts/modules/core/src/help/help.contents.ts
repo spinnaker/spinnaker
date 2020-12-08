@@ -283,9 +283,6 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.bake.manifest.overrideExpressionEvaluation':
     '<p>Explicitly evaluate SpEL expressions in overrides just prior to manifest baking. Can be paired with the "Skip SpEL evaluation" option in the Deploy Manifest stage when baking a third-party manifest artifact with expressions not meant for Spinnaker to evaluate as SpEL.</p>',
   'pipeline.config.bake.manifest.templateRenderer': '<p>This is the engine used for rendering your manifest.</p>',
-  'pipeline.config.bake.manifest.helm.chartFilePath': `
-    <p>This is the relative path to the Chart.yaml file within your Git repo.</p>
-    <p>e.g.: <b>helm/my-chart/Chart.yaml</b></p>`,
   'pipeline.config.bake.manifest.helm.rawOverrides':
     'Use <i>--set</i> instead of <i>--set-string</i> when injecting override values. Values injected using <i>--set</i> will be converted to primitive types by Helm.',
   'pipeline.config.bake.manifest.kustomize.filePath': `
