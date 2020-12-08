@@ -19,30 +19,22 @@ package com.netflix.spinnaker.orca.echo.pipeline
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Strings
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
-import com.netflix.spinnaker.orca.AuthenticatedStage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+
+import javax.annotation.Nonnull
+import java.util.concurrent.TimeUnit
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthzGroupsUtil
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import javax.annotation.Nonnull
-import java.util.concurrent.TimeUnit
 
 @Component
 class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage {
@@ -80,52 +72,21 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     final long backoffPeriod = 15000
     final long timeout = TimeUnit.DAYS.toMillis(3)
 
-    private final EchoService echoService
-
-    private final FiatPermissionEvaluator fiatPermissionEvaluator
-
-    private FiatStatus fiatStatus
-
-    private ManualJudgmentAuthzGroupsUtil manualJudgmentAuthzGroupsUtil
-
-    private ObjectMapper objectMapper
-
-    @Autowired
-    WaitForManualJudgmentTask(Optional<EchoService> echoService, Optional<FiatPermissionEvaluator> fpe,
-                              Optional<FiatStatus> fiatStatus, Optional<ObjectMapper> objectMapper,
-                              Optional<ManualJudgmentAuthzGroupsUtil> manualJudgmentAuthzGroupsUtil) {
-      this.echoService = echoService.orElse(null)
-      this.fiatPermissionEvaluator = fpe.orElse(null)
-      this.fiatStatus = fiatStatus.orElse(null)
-      this.objectMapper = objectMapper.orElse(null)
-      this.manualJudgmentAuthzGroupsUtil = manualJudgmentAuthzGroupsUtil.orElse(null)
-    }
+    @Autowired(required = false)
+    EchoService echoService
 
     @Override
     TaskResult execute(StageExecution stage) {
       StageData stageData = stage.mapTo(StageData)
-      def username = AuthenticatedRequest.getSpinnakerUser().orElse(stage.lastModified ? stage.lastModified.user : "")
-      boolean fiatEnabled = fiatStatus ? fiatStatus.isEnabled() : false
-      boolean isAuthorized = false
-      def appPermissions
-      def stageRoles
-      if (fiatEnabled) {
-        stageRoles = stage.context.selectedStageRoles
-        if (stageRoles) {
-          appPermissions = getApplicationPermissions(stage)
-        }
-      }
       String notificationState
       ExecutionStatus executionStatus
 
       switch (stageData.state) {
         case StageData.State.CONTINUE:
-          isAuthorized = !fiatEnabled || checkManualJudgmentAuthorizedGroups(stageRoles, appPermissions, username)
           notificationState = "manualJudgmentContinue"
           executionStatus = ExecutionStatus.SUCCEEDED
           break
         case StageData.State.STOP:
-          isAuthorized = !fiatEnabled || checkManualJudgmentAuthorizedGroups(stageRoles, appPermissions, username)
           notificationState = "manualJudgmentStop"
           executionStatus = ExecutionStatus.TERMINAL
           break
@@ -134,45 +95,10 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
           executionStatus = ExecutionStatus.RUNNING
           break
       }
-      if (!isAuthorized) {
-        notificationState = "manualJudgment"
-        executionStatus = ExecutionStatus.RUNNING
-        stage.context.put("judgmentStatus", "")
-      }
+
       Map outputs = processNotifications(stage, stageData, notificationState)
 
       return TaskResult.builder(executionStatus).context(outputs).build()
-    }
-
-    private Map<String, Object> getApplicationPermissions(StageExecution stage) {
-
-      def applicationName = stage.execution.application
-      def permissions
-      if (applicationName) {
-        manualJudgmentAuthzGroupsUtil.getApplication(applicationName).ifPresent({ application ->
-          if (application.getPermission().permissions && application.getPermission().permissions.permissions) {
-            permissions = objectMapper.convertValue(application.getPermission().permissions.permissions,
-                new TypeReference<Map<String, Object>>() {})
-          }
-        });
-      }
-      return permissions
-    }
-
-    boolean checkManualJudgmentAuthorizedGroups(List<String> stageRoles, Map<String, Object> permissions, String username) {
-
-      if (!Strings.isNullOrEmpty(username)) {
-        UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
-        if (permission == null) { // Should never happen?
-          log.warn("Attempted to get user permission for '$username' but none were found.")
-          return false;
-        }
-        // User has to have all the pipeline roles.
-        def userRoles = permission.getRoles().collect { it.getName().trim() }
-        return ManualJudgmentAuthzGroupsUtil.checkAuthorizedGroups(userRoles, stageRoles, permissions)
-      } else {
-        return false
-      }
     }
 
     Map processNotifications(StageExecution stage, StageData stageData, String notificationState) {

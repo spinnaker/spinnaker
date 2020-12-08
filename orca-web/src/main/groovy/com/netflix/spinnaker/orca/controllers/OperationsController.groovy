@@ -23,8 +23,8 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
-import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
@@ -43,15 +44,19 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
 import retrofit.http.Query
 
 import javax.servlet.http.HttpServletResponse
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 import static net.logstash.logback.argument.StructuredArguments.value
 
 @RestController
@@ -168,6 +173,7 @@ class OperationsController {
   private Map<String, Object> orchestratePipeline(Map pipeline) {
     long startTime = System.currentTimeMillis()
     def request = objectMapper.writeValueAsString(pipeline)
+
     Exception pipelineError = null
     try {
       pipeline = parseAndValidatePipeline(pipeline)
