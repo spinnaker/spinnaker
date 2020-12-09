@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { AccountService, IArtifactAccount } from 'core/account';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { CheckboxInput, TextInput } from 'core/presentation';
 import { MapEditor } from 'core/forms';
@@ -7,7 +8,16 @@ import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 
-export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps> {
+export interface IBakeHelmConfigFormState {
+  gitRepoArtifactAccounts: IArtifactAccount[];
+}
+
+export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps, IBakeHelmConfigFormState> {
+  constructor(props: IFormikStageConfigInjectedProps) {
+    super(props);
+    this.state = { gitRepoArtifactAccounts: [] };
+  }
+
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
     ArtifactTypePatterns.BITBUCKET_FILE,
     ArtifactTypePatterns.CUSTOM_OBJECT,
@@ -31,6 +41,13 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
         },
       ]);
     }
+    AccountService.getArtifactAccounts().then((artifactAccounts) => {
+      this.setState({
+        gitRepoArtifactAccounts: artifactAccounts.filter((account) =>
+          account.types.some((type) => ArtifactTypePatterns.GIT_REPO.test(type)),
+        ),
+      });
+    });
   }
 
   private onTemplateArtifactEdited = (artifact: IArtifact, index: number) => {
@@ -137,6 +154,16 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
           pipeline={this.props.pipeline}
           stage={stage}
         />
+        {this.state.gitRepoArtifactAccounts.includes(this.getInputArtifact(stage, 0).account) && (
+          <StageConfigField label="File" helpKey="pipeline.config.bake.manifest.helm.chartFilePath">
+            <TextInput
+              onChange={(e: React.ChangeEvent<any>) => {
+                this.props.formik.setFieldValue('helmChartFilePath', e.target.value);
+              }}
+              value={stage.helmChartFilePath}
+            />
+          </StageConfigField>
+        )}
         <h4>Overrides</h4>
         {stage.inputArtifacts && stage.inputArtifacts.length > 1 && (
           <div className="row form-group">
