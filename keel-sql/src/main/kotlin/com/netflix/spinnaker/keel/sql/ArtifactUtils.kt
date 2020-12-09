@@ -35,8 +35,7 @@ import org.jooq.Record7
 import org.jooq.ResultQuery
 import org.jooq.SelectConditionStep
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.Instant
 
 private val objectMapper: ObjectMapper = configuredObjectMapper()
 private val log by lazy { LoggerFactory.getLogger("ArtifactUtils") }
@@ -75,8 +74,8 @@ fun mapToArtifact(
   }
 }
 
-typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, String, LocalDateTime, String, String>>
-typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, String, LocalDateTime, String, String>>
+typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, String, Instant, String, String>>
+typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, String, Instant, String, String>>
 
 /**
  * Encapsulates the fetching of a row from the ARTIFACT_VERSIONS table into a [PublishedArtifact].
@@ -88,7 +87,7 @@ internal fun ArtifactVersionRow.fetchArtifactVersions() =
       type = type,
       version = version,
       status = status?.let { ArtifactStatus.valueOf(it) },
-      createdAt = createdAt?.toInstant(ZoneOffset.UTC),
+      createdAt = createdAt,
       gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
       buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
     )

@@ -41,13 +41,13 @@ class SqlUnhappyVetoRepository(
         .set(UNHAPPY_VETO.RESOURCE_UID, resource.uid)
         .run {
           recheckTime
-            ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime.toTimestamp()) }
+            ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime) }
             ?: setNull(UNHAPPY_VETO.RECHECK_TIME)
         }
         .onDuplicateKeyUpdate()
         .run {
           recheckTime
-            ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime.toTimestamp()) }
+            ?.let { expiryTime -> set(UNHAPPY_VETO.RECHECK_TIME, expiryTime) }
             ?: setNull(UNHAPPY_VETO.RECHECK_TIME)
         }
         .execute()
@@ -62,41 +62,35 @@ class SqlUnhappyVetoRepository(
     }
   }
 
-  override fun getRecheckTime(resource: Resource<*>): Instant? {
-    return sqlRetry.withRetry(READ) {
+  override fun getRecheckTime(resource: Resource<*>): Instant? =
+    sqlRetry.withRetry(READ) {
       jooq
         .select(UNHAPPY_VETO.RECHECK_TIME)
         .from(UNHAPPY_VETO)
         .where(UNHAPPY_VETO.RESOURCE_UID.eq(resource.uid))
         .fetchOne(UNHAPPY_VETO.RECHECK_TIME)
-        ?.toInstant()
     }
-  }
 
-  override fun getAll(): Set<String> {
-    val now = clock.timestamp()
-    return sqlRetry.withRetry(READ) {
+  override fun getAll(): Set<String> =
+    sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.ID)
         .from(UNHAPPY_VETO, RESOURCE)
-        .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(now)))
+        .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(clock.instant())))
         .and(UNHAPPY_VETO.RESOURCE_UID.eq(RESOURCE.UID))
         .fetch(RESOURCE.ID)
         .toSet()
     }
-  }
 
-  override fun getAllForApp(application: String): Set<String> {
-    val now = clock.timestamp()
-    return sqlRetry.withRetry(READ) {
+  override fun getAllForApp(application: String): Set<String> =
+    sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.ID)
         .from(UNHAPPY_VETO, RESOURCE)
-        .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(now)))
+        .where(UNHAPPY_VETO.RECHECK_TIME.isNull.or(UNHAPPY_VETO.RECHECK_TIME.greaterThan(clock.instant())))
         .and(UNHAPPY_VETO.RESOURCE_UID.eq(RESOURCE.UID))
         .and(RESOURCE.APPLICATION.eq(application))
         .fetch(RESOURCE.ID)
         .toSet()
     }
-  }
 
   private val Resource<*>.uid: Select<Record1<String>>
     get() = jooq.select(RESOURCE.UID)

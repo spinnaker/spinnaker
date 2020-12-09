@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.AGENT_LOCK
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import java.time.Clock
 import org.jooq.DSLContext
+import java.time.Clock
 
 class SqlAgentLockRepository(
   private val jooq: DSLContext,
@@ -21,7 +21,7 @@ class SqlAgentLockRepository(
     var changed = sqlRetry.withRetry(WRITE) {
       jooq.insertInto(AGENT_LOCK)
         .set(AGENT_LOCK.LOCK_NAME, agentName)
-        .set(AGENT_LOCK.EXPIRY, now.plusSeconds(lockTimeoutSeconds).toTimestamp())
+        .set(AGENT_LOCK.EXPIRY, now.plusSeconds(lockTimeoutSeconds))
         .onDuplicateKeyIgnore()
         .execute()
     }
@@ -29,10 +29,10 @@ class SqlAgentLockRepository(
     if (changed == 0) {
       changed = sqlRetry.withRetry(WRITE) {
         jooq.update(AGENT_LOCK)
-          .set(AGENT_LOCK.EXPIRY, now.plusSeconds(lockTimeoutSeconds).toTimestamp())
+          .set(AGENT_LOCK.EXPIRY, now.plusSeconds(lockTimeoutSeconds))
           .where(
             AGENT_LOCK.LOCK_NAME.eq(agentName),
-            AGENT_LOCK.EXPIRY.lt(now.toTimestamp())
+            AGENT_LOCK.EXPIRY.lt(now)
           )
           .execute()
       }

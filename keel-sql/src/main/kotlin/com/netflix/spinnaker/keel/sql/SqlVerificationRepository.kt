@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.Record1
 import org.jooq.ResultQuery
 import org.jooq.Select
@@ -31,8 +30,6 @@ import org.jooq.impl.DSL.select
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
 
 class SqlVerificationRepository(
   jooq: DSLContext,
@@ -57,7 +54,7 @@ class SqlVerificationRepository(
     limit: Int
   ): Collection<VerificationContext> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
+    val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(
@@ -93,9 +90,9 @@ class SqlVerificationRepository(
           .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION))
           // has not been checked recently (or has never been checked)
-          .where(ENVIRONMENT_LAST_VERIFIED.AT.orEpoch().lessOrEqual(cutoff))
+          .where(isnull(ENVIRONMENT_LAST_VERIFIED.AT, EPOCH).lessOrEqual(cutoff))
           // order by last time checked with things never checked coming first
-          .orderBy(ENVIRONMENT_LAST_VERIFIED.AT.orEpoch())
+          .orderBy(isnull(ENVIRONMENT_LAST_VERIFIED.AT, EPOCH))
           .limit(limit)
           .fetch()
           .onEach { (_, _, environmentUid, _, artifactUid, _, artifactVersion) ->
@@ -103,9 +100,9 @@ class SqlVerificationRepository(
               .set(ENVIRONMENT_LAST_VERIFIED.ENVIRONMENT_UID, environmentUid)
               .set(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_UID, artifactUid)
               .set(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION, artifactVersion)
-              .set(ENVIRONMENT_LAST_VERIFIED.AT, now.toTimestamp())
+              .set(ENVIRONMENT_LAST_VERIFIED.AT, now)
               .onDuplicateKeyUpdate()
-              .set(ENVIRONMENT_LAST_VERIFIED.AT, now.toTimestamp())
+              .set(ENVIRONMENT_LAST_VERIFIED.AT, now)
               .execute()
           }
           .map { (_, deliveryConfigName, _, environmentName, _, artifactReference, artifactVersion) ->
@@ -163,13 +160,7 @@ class SqlVerificationRepository(
   private inline fun <reified RESULT> ResultQuery<*>.fetchOneInto() =
     fetchOneInto(RESULT::class.java)
 
-  /**
-   * Defaults a timestamp field to [EPOCH] if it is null.
-   */
-  private fun Field<LocalDateTime>.orEpoch(): Field<LocalDateTime> =
-    isnull(this, EPOCH.atZone(UTC).toLocalDateTime())
-
-  private fun currentTimestamp() = clock.instant().toTimestamp()
+  private fun currentTimestamp() = clock.instant()
 
   private val VerificationStatus.timestampColumn
     get() = if (complete) VERIFICATION_STATE.ENDED_AT else VERIFICATION_STATE.STARTED_AT

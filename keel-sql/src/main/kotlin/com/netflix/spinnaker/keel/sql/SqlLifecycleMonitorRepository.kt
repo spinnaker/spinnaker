@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneOffset
 
 class SqlLifecycleMonitorRepository(
   private val jooq: DSLContext,
@@ -30,7 +28,7 @@ class SqlLifecycleMonitorRepository(
 
   override fun tasksDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<MonitoredTask> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
+    val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(LIFECYCLE_MONITOR.UID, LIFECYCLE_MONITOR.TYPE, LIFECYCLE_MONITOR.LINK, LIFECYCLE_MONITOR.NUM_FAILURES, LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID)
@@ -43,7 +41,7 @@ class SqlLifecycleMonitorRepository(
           .fetch()
           .onEach { (uid, _, _, _, _) ->
             update(LIFECYCLE_MONITOR)
-              .set(LIFECYCLE_MONITOR.LAST_CHECKED, now.toTimestamp())
+              .set(LIFECYCLE_MONITOR.LAST_CHECKED, now)
               .where(LIFECYCLE_MONITOR.UID.eq(uid))
               .execute()
           }
@@ -76,7 +74,7 @@ class SqlLifecycleMonitorRepository(
         .where(LIFECYCLE_EVENT.UID.eq(uid))
         .fetchOne { (timestamp, json) ->
           val event = objectMapper.readValue<LifecycleEvent>(json)
-          event.copy(timestamp = timestamp.toInstant(ZoneOffset.UTC))
+          event.copy(timestamp = timestamp)
         }
     }
 
@@ -86,7 +84,7 @@ class SqlLifecycleMonitorRepository(
         .set(LIFECYCLE_MONITOR.UID, ULID().nextULID(clock.millis()))
         .set(LIFECYCLE_MONITOR.TYPE, event.triggeringEvent.type.name)
         .set(LIFECYCLE_MONITOR.LINK, event.triggeringEvent.link)
-        .set(LIFECYCLE_MONITOR.LAST_CHECKED, Instant.EPOCH.plusSeconds(1).toTimestamp())
+        .set(LIFECYCLE_MONITOR.LAST_CHECKED, Instant.EPOCH.plusSeconds(1))
         .set(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID, event.triggeringEventUid)
         .execute()
     }

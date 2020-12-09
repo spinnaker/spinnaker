@@ -33,8 +33,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -149,9 +147,9 @@ open class SqlResourceRepository(
       .execute()
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
-      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
       .onDuplicateKeyUpdate()
-      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
       .set(RESOURCE_LAST_CHECKED.IGNORE, false)
       .execute()
   }
@@ -180,7 +178,7 @@ open class SqlResourceRepository(
         .from(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
         .and(EVENT.REF.eq(application))
-        .and(EVENT.TIMESTAMP.greaterOrEqual(LocalDateTime.ofInstant(after, ZoneOffset.UTC)))
+        .and(EVENT.TIMESTAMP.greaterOrEqual(after))
         .orderBy(EVENT.TIMESTAMP.desc())
         .fetch()
         .map { (json) ->
@@ -264,7 +262,7 @@ open class SqlResourceRepository(
         .set(EVENT.UID, ULID().nextULID(event.timestamp.toEpochMilli()))
         .set(EVENT.SCOPE, event.scope.name)
         .set(EVENT.REF, ref)
-        .set(EVENT.TIMESTAMP, event.timestamp.toTimestamp())
+        .set(EVENT.TIMESTAMP, event.timestamp)
         .set(EVENT.JSON, objectMapper.writeValueAsString(event))
         .execute()
     }
@@ -306,7 +304,7 @@ open class SqlResourceRepository(
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
+    val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(RESOURCE_WITH_METADATA.UID, RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
@@ -322,9 +320,9 @@ open class SqlResourceRepository(
             it.forEach { (uid, _, _, _) ->
               insertInto(RESOURCE_LAST_CHECKED)
                 .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
-                .set(RESOURCE_LAST_CHECKED.AT, now.toTimestamp())
+                .set(RESOURCE_LAST_CHECKED.AT, now)
                 .onDuplicateKeyUpdate()
-                .set(RESOURCE_LAST_CHECKED.AT, now.toTimestamp())
+                .set(RESOURCE_LAST_CHECKED.AT, now)
                 .execute()
             }
           }

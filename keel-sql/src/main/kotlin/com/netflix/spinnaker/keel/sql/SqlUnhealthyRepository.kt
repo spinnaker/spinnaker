@@ -21,7 +21,7 @@ class SqlUnhealthyRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(UNHEALTHY)
         .set(UNHEALTHY.RESOURCE_UID, resource.uid)
-        .set(UNHEALTHY.TIME_DETECTED, clock.timestamp())
+        .set(UNHEALTHY.TIME_DETECTED, clock.instant())
         .onDuplicateKeyIgnore()
         .execute()
     }
@@ -43,7 +43,7 @@ class SqlUnhealthyRepository(
         .fetchOne(UNHEALTHY.TIME_DETECTED)
     } ?: return Duration.ZERO
 
-    return Duration.between(detectedTime, clock.timestamp())
+    return Duration.between(detectedTime, clock.instant())
   }
 
   private val Resource<*>.uid: Select<Record1<String>>

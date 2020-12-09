@@ -56,7 +56,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
-import java.time.ZoneOffset.UTC
 
 class SqlDeliveryConfigRepository(
   jooq: DSLContext,
@@ -312,9 +311,9 @@ class SqlDeliveryConfigRepository(
       }
       jooq.insertInto(DELIVERY_CONFIG_LAST_CHECKED)
         .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
-        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .onDuplicateKeyUpdate()
-        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .execute()
     }
   }
@@ -398,10 +397,10 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID, envUid)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE, state.type)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt.toTimestamp())
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status.toString())
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toTimestamp())
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES,
@@ -459,7 +458,7 @@ class SqlDeliveryConfigRepository(
               txn.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
-                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
+                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant())
                 .set(
                   ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE,
                   state.artifactReference
@@ -536,12 +535,9 @@ class SqlDeliveryConfigRepository(
             artifactReference,
             constraintType,
             ConstraintStatus.valueOf(status),
-            createdAt.toInstant(UTC),
+            createdAt,
             judgedBy,
-            when (judgedAt) {
-              null -> null
-              else -> judgedAt.toInstant(UTC)
-            },
+            judgedAt,
             comment,
             objectMapper.readValue(attributes)
           )
@@ -589,12 +585,9 @@ class SqlDeliveryConfigRepository(
             artifactReference,
             constraintType,
             ConstraintStatus.valueOf(status),
-            createdAt.toInstant(UTC),
+            createdAt,
             judgedBy,
-            when (judgedAt) {
-              null -> null
-              else -> judgedAt.toInstant(UTC)
-            },
+            judgedAt,
             comment,
             objectMapper.readValue(attributes)
           )
@@ -710,12 +703,9 @@ class SqlDeliveryConfigRepository(
           artifactReference,
           type,
           ConstraintStatus.valueOf(status),
-          createdAt.toInstant(UTC),
+          createdAt,
           judgedBy,
-          when (judgedAt) {
-            null -> null
-            else -> judgedAt.toInstant(UTC)
-          },
+          judgedAt,
           comment,
           objectMapper.readValue(attributes)
         )
@@ -778,12 +768,9 @@ class SqlDeliveryConfigRepository(
             artifactReference,
             constraintType,
             ConstraintStatus.valueOf(status),
-            createdAt.toInstant(UTC),
+            createdAt,
             judgedBy,
-            when (judgedAt) {
-              null -> null
-              else -> judgedAt.toInstant(UTC)
-            },
+            judgedAt,
             comment,
             objectMapper.readValue(attributes)
           )
@@ -848,12 +835,9 @@ class SqlDeliveryConfigRepository(
             artifactReference,
             constraintType,
             ConstraintStatus.valueOf(status),
-            createdAt.toInstant(UTC),
+            createdAt,
             judgedBy,
-            when (judgedAt) {
-              null -> null
-              else -> judgedAt.toInstant(UTC)
-            },
+            judgedAt,
             comment,
             objectMapper.readValue(attributes)
           )
@@ -941,7 +925,7 @@ class SqlDeliveryConfigRepository(
           jooq.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, artifactVersion)
-            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant())
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_REFERENCE, artifact.reference)
             .onDuplicateKeyIgnore()
             .execute()
@@ -974,7 +958,7 @@ class SqlDeliveryConfigRepository(
     limit: Int
   ): Collection<DeliveryConfig> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
+    val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(DELIVERY_CONFIG.UID, DELIVERY_CONFIG.NAME)
@@ -1003,7 +987,7 @@ class SqlDeliveryConfigRepository(
             it.forEach { (uid, _) ->
               update(DELIVERY_CONFIG_LAST_CHECKED)
                 .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY, InetAddress.getLocalHost().hostName)
-                .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT, now.toTimestamp())
+                .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT, now)
                 .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
                 .execute()
             }
@@ -1020,7 +1004,7 @@ class SqlDeliveryConfigRepository(
       jooq
         .update(DELIVERY_CONFIG_LAST_CHECKED)
         // set last check time to now
-        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, clock.instant().toTimestamp())
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, clock.instant())
         // clear the lease to allow other instances to check this item
         .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY)
         .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT)
@@ -1110,17 +1094,15 @@ class SqlDeliveryConfigRepository(
         }
     }
 
-  override fun deliveryConfigLastChecked(deliveryConfig: DeliveryConfig): Instant {
-    return sqlRetry.withRetry(READ) {
+  override fun deliveryConfigLastChecked(deliveryConfig: DeliveryConfig): Instant =
+    sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_CONFIG_LAST_CHECKED.AT)
         .from(DELIVERY_CONFIG_LAST_CHECKED, DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
         .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
         .fetchOne(DELIVERY_CONFIG_LAST_CHECKED.AT)
-        .toInstant(UTC)
     }
-  }
 
   companion object {
     private const val DELETE_CHUNK_SIZE = 20

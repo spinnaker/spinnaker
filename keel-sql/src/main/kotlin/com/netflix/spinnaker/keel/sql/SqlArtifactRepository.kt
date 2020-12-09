@@ -58,7 +58,6 @@ import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
-import java.time.ZoneOffset.UTC
 import javax.xml.bind.DatatypeConverter
 
 class SqlArtifactRepository(
@@ -101,9 +100,9 @@ class SqlArtifactRepository(
         .execute()
       jooq.insertInto(ARTIFACT_LAST_CHECKED)
         .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, id)
-        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .onDuplicateKeyUpdate()
-        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
+        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .execute()
     }
   }
@@ -237,7 +236,7 @@ class SqlArtifactRepository(
           .set(ARTIFACT_VERSIONS.TYPE, type)
           .set(ARTIFACT_VERSIONS.VERSION, version)
           .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
-          .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt?.toTimestamp())
+          .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt)
           .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata?.let { objectMapper.writeValueAsString(it) })
           .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata?.let { objectMapper.writeValueAsString(it) })
           .onDuplicateKeyIgnore()
@@ -269,7 +268,7 @@ class SqlArtifactRepository(
             type = type,
             version = version,
             status = status?.let { ArtifactStatus.valueOf(it) },
-            createdAt = createdAt?.toInstant(UTC),
+            createdAt = createdAt,
             gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
             buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
           )
@@ -375,7 +374,7 @@ class SqlArtifactRepository(
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, clock.timestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, clock.instant())
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
         .onDuplicateKeyIgnore()
         .execute()
@@ -465,7 +464,7 @@ class SqlArtifactRepository(
           txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
-            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, now.toTimestamp())
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, now)
             .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING.name))
@@ -505,10 +504,10 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.timestamp())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
           .onDuplicateKeyUpdate()
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.timestamp())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
           .execute()
 
@@ -519,7 +518,7 @@ class SqlArtifactRepository(
           .update(ENVIRONMENT_ARTIFACT_VERSIONS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
@@ -561,7 +560,7 @@ class SqlArtifactRepository(
             .update(ENVIRONMENT_ARTIFACT_VERSIONS)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
-            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
             .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
@@ -736,11 +735,11 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID, envUid)
       .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_UID, artUid)
       .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_VERSION, veto.version)
-      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.instant())
       .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
       .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
       .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.instant())
       .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
       .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
       .execute()
@@ -900,11 +899,11 @@ class SqlArtifactRepository(
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
         .onDuplicateKeyUpdate()
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.timestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
         .execute()
     }
   }
@@ -993,7 +992,7 @@ class SqlArtifactRepository(
                 type = type,
                 version = version,
                 status = status?.let { ArtifactStatus.valueOf(it) },
-                createdAt = createdAt?.toInstant(UTC),
+                createdAt = createdAt,
                 gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
                 buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
               ) to PromotionStatus.valueOf(promotionStatus)
@@ -1059,12 +1058,12 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.timestamp())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.instant())
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
           .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, comment)
           .onDuplicateKeyUpdate()
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.timestamp())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.instant())
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
           .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_PIN.COMMENT))
           .execute()
@@ -1106,7 +1105,7 @@ class SqlArtifactRepository(
               deliveryConfig.name
             ),
             version = version,
-            pinnedAt = pinnedAt.toInstant(UTC),
+            pinnedAt = pinnedAt,
             pinnedBy = pinnedBy,
             comment = comment
           )
@@ -1241,7 +1240,7 @@ class SqlArtifactRepository(
             .and(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_VERSION.eq(version))
             .fetchOne { (vetoedAt, vetoedBy, comment) ->
-              ActionMetadata(at = vetoedAt.toInstant(UTC), by = vetoedBy, comment = comment)
+              ActionMetadata(at = vetoedAt, by = vetoedBy, comment = comment)
             }
           var pinned: ActionMetadata? = null
           if (vetoed == null) {
@@ -1253,7 +1252,7 @@ class SqlArtifactRepository(
               .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artifact.uid))
               .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION.eq(version))
               .fetchOne { (pinnedBy, pinnedAt, comment) ->
-                ActionMetadata(at = pinnedAt.toInstant(UTC), by = pinnedBy, comment = comment)
+                ActionMetadata(at = pinnedAt, by = pinnedBy, comment = comment)
               }
           }
 
@@ -1261,8 +1260,8 @@ class SqlArtifactRepository(
             environment = environmentName,
             version = version,
             state = promotionStatus.toLowerCase(),
-            deployedAt = deployedAt?.toInstant(UTC),
-            replacedAt = replacedAt?.toInstant(UTC),
+            deployedAt = deployedAt,
+            replacedAt = replacedAt,
             replacedBy = replacedBy,
             pinned = pinned,
             vetoed = vetoed
@@ -1291,7 +1290,7 @@ class SqlArtifactRepository(
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
+    val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(DELIVERY_ARTIFACT.UID, DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
@@ -1306,9 +1305,9 @@ class SqlArtifactRepository(
             it.forEach { (uid, _, _, _, _, _) ->
               insertInto(ARTIFACT_LAST_CHECKED)
                 .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, uid)
-                .set(ARTIFACT_LAST_CHECKED.AT, now.toTimestamp())
+                .set(ARTIFACT_LAST_CHECKED.AT, now)
                 .onDuplicateKeyUpdate()
-                .set(ARTIFACT_LAST_CHECKED.AT, now.toTimestamp())
+                .set(ARTIFACT_LAST_CHECKED.AT, now)
                 .execute()
             }
           }

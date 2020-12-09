@@ -20,6 +20,11 @@
           <name>LONGVARCHAR</name>
           <includeTypes>JSON</includeTypes>
         </forcedType>
+        <forcedType>
+          <userType>java.time.Instant</userType>
+          <includeTypes>TIMESTAMP</includeTypes>
+          <converter>com.netflix.spinnaker.jooq.LocalDateTimeToInstantConverter</converter>
+        </forcedType>
       </forcedTypes>
     </database>
     <target>

@@ -8,7 +8,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import com.netflix.spinnaker.keel.lifecycle.isEndingStatus
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LIFECYCLE_EVENT
@@ -20,7 +19,6 @@ import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
-import java.time.ZoneOffset.UTC
 
 class SqlLifecycleEventRepository(
   private val clock: Clock,
@@ -32,7 +30,7 @@ class SqlLifecycleEventRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun saveEvent(event: LifecycleEvent): String {
-    val timestamp = event.timestamp?.toTimestamp() ?: clock.timestamp()
+    val timestamp = event.timestamp ?: clock.instant()
     var eventUid = ULID().nextULID(clock.millis())
     sqlRetry.withRetry(WRITE) {
       jooq.transaction { config ->
@@ -96,7 +94,7 @@ class SqlLifecycleEventRepository(
         .map { (json, timestamp) ->
           try {
             val event = objectMapper.readValue<LifecycleEvent>(json)
-            event.copy(timestamp = timestamp.toInstant(UTC))
+            event.copy(timestamp = timestamp)
           } catch (e: JsonMappingException) {
             log.error("Exception encountered parsing lifecycle event $json", e)
             // returning null here so bad serialization doesn't break the whole view,

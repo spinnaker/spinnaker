@@ -22,9 +22,9 @@ import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import java.time.Clock
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.selectFrom
+import java.time.Clock
 
 class SqlDiffFingerprintRepository(
   private val jooq: DSLContext,
@@ -42,7 +42,7 @@ class SqlDiffFingerprintRepository(
     }
     record?.let { (count, firstDetectionTime, existingHash, countActionsTaken) ->
       var newCount = 1
-      var newTime = clock.timestamp()
+      var newTime = clock.instant()
       var newCountActionsTaken = 0
       if (hash == existingHash) {
         newCount = count + 1
@@ -69,7 +69,7 @@ class SqlDiffFingerprintRepository(
         .set(DIFF_FINGERPRINT.HASH, hash)
         .set(DIFF_FINGERPRINT.COUNT, 1)
         .set(DIFF_FINGERPRINT.COUNT_ACTIONS_TAKEN, 0)
-        .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.timestamp())
+        .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.instant())
         .execute()
     }
   }

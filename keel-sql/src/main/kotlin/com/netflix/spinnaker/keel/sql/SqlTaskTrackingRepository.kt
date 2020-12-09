@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.sql
 import com.netflix.spinnaker.keel.persistence.TaskRecord
 import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.TASK_TRACKING
-import java.time.Clock
 import org.jooq.DSLContext
+import java.time.Clock
 
 class SqlTaskTrackingRepository(
   private val jooq: DSLContext,
@@ -18,7 +18,7 @@ class SqlTaskTrackingRepository(
         .set(TASK_TRACKING.SUBJECT, task.subject)
         .set(TASK_TRACKING.TASK_ID, task.id)
         .set(TASK_TRACKING.TASK_NAME, task.name)
-        .set(TASK_TRACKING.TIMESTAMP, clock.timestamp())
+        .set(TASK_TRACKING.TIMESTAMP, clock.instant())
         .onDuplicateKeyIgnore()
         .execute()
     }
