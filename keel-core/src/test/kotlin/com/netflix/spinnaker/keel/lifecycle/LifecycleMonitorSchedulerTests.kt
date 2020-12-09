@@ -32,13 +32,17 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
       link = link
     )
 
+    val startMonitoringEvent = StartMonitoringEvent("im-a-uid", event)
+
     val task1 = MonitoredTask(
       triggeringEvent = event,
-      link = link + "-1"
+      link = "$link-1",
+      triggeringEventUid = "uid-1"
     )
     val task2 = MonitoredTask(
       triggeringEvent = event.copy(id = event.id + "-2"),
-      link = link + "-2"
+      link = "$link-2",
+      triggeringEventUid = "uid-2"
     )
 
     val subject = LifecycleMonitorScheduler(
@@ -72,14 +76,9 @@ class LifecycleMonitorSchedulerTests : JUnit5Minutests {
       }
 
       context("storing events for monitoring") {
-        test("monitoring enabled") {
-          subject.onLifecycleEvent(event.copy(startMonitoring = true))
+        test("saves event") {
+          subject.onStartMonitoringEvent(startMonitoringEvent)
           verify(exactly = 1) { monitorRepository.save(any()) }
-        }
-
-        test("monitoring disabled") {
-          subject.onLifecycleEvent(event)
-          verify(exactly = 0) { monitorRepository.save(any()) }
         }
       }
 

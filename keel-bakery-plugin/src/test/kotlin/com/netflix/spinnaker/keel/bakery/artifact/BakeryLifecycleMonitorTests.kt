@@ -57,11 +57,14 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
     val task = MonitoredTask(
       link = id,
-      triggeringEvent = event
+      triggeringEvent = event,
+      triggeringEventUid = "uid-i-am"
     )
 
     val subject = BakeryLifecycleMonitor(monitorRepository, publisher, lifecycleConfig, orcaService, spinnakerBaseUrl)
   }
+
+
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }

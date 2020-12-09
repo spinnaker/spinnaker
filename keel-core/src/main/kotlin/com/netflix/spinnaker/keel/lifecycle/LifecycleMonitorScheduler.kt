@@ -52,12 +52,10 @@ class LifecycleMonitorScheduler(
    * Listens for an event with monitor == true that a subclass can handle, and saves that into
    * the database for monitoring.
    */
-  @EventListener(LifecycleEvent::class)
-  fun onLifecycleEvent(event: LifecycleEvent) {
-    if (event.startMonitoring && monitors.any { it.handles(event.type) } && event.link != null) {
-      log.debug("${this.javaClass.simpleName} saving monitor event $event")
-      monitorRepository.save(MonitoredTask(event, event.link))
-    }
+  @EventListener(StartMonitoringEvent::class)
+  fun onStartMonitoringEvent(event: StartMonitoringEvent) {
+    log.debug("${this.javaClass.simpleName} saving monitor for event $event")
+    monitorRepository.save(event)
   }
 
   @Scheduled(fixedDelayString = "\${keel.lifecycle-monitor.frequency:PT1S}")

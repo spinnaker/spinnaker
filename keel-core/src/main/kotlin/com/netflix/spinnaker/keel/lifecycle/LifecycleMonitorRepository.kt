@@ -14,9 +14,9 @@ interface LifecycleMonitorRepository {
   fun tasksDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<MonitoredTask>
 
   /**
-   * Saves task to be monitored
+   * Saves a task to be monitored using the triggering event information
    */
-  fun save(task: MonitoredTask)
+  fun save(event: StartMonitoringEvent)
 
   /**
    * Removes task from list of things to be monitored

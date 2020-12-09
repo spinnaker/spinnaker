@@ -15,6 +15,7 @@ package com.netflix.spinnaker.keel.lifecycle
 data class MonitoredTask(
   val triggeringEvent: LifecycleEvent,
   val link: String,
+  val triggeringEventUid: String,
   val type: LifecycleEventType = triggeringEvent.type,
   val numFailures: Int = 0
 )

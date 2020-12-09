@@ -94,7 +94,8 @@ class BuildLifecycleMonitorTests : JUnit5Minutests {
 
     val task = MonitoredTask(
       link = uid,
-      triggeringEvent = event
+      triggeringEvent = event,
+      triggeringEventUid = "uid-i-am"
     )
 
     val subject = BuildLifecycleMonitor(

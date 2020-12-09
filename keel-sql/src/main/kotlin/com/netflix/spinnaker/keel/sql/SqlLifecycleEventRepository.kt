@@ -31,12 +31,9 @@ class SqlLifecycleEventRepository(
 ) : LifecycleEventRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  /**
-   * Only saves event if a field other than the timestamp changes.
-   * If only the timestamp changed, update the timestamp on the existing row.
-   */
-  override fun saveEvent(event: LifecycleEvent) {
+  override fun saveEvent(event: LifecycleEvent): String {
     val timestamp = event.timestamp?.toTimestamp() ?: clock.timestamp()
+    var eventUid = ULID().nextULID(clock.millis())
     sqlRetry.withRetry(WRITE) {
       jooq.transaction { config ->
         val txn = DSL.using(config)
@@ -55,6 +52,7 @@ class SqlLifecycleEventRepository(
           .firstOrNull()
           ?.let { (uid, savedEvent) ->
             eventExists = true
+            eventUid = uid
             try {
               val existingEvent = objectMapper.readValue<LifecycleEvent>(savedEvent)
               if (event == existingEvent.copy(timestamp = event.timestamp)) {
@@ -71,7 +69,7 @@ class SqlLifecycleEventRepository(
 
         if (!eventExists) {
           txn.insertInto(LIFECYCLE_EVENT)
-            .set(LIFECYCLE_EVENT.UID, ULID().nextULID(clock.millis()))
+            .set(LIFECYCLE_EVENT.UID, eventUid)
             .set(LIFECYCLE_EVENT.SCOPE, event.scope.name)
             .set(LIFECYCLE_EVENT.REF, event.artifactRef)
             .set(LIFECYCLE_EVENT.ARTIFACT_VERSION, event.artifactVersion)
@@ -84,6 +82,7 @@ class SqlLifecycleEventRepository(
         }
       }
     }
+    return eventUid
   }
 
   override fun getEvents(artifact: DeliveryArtifact, artifactVersion: String): List<LifecycleEvent> {

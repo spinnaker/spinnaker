@@ -8,11 +8,13 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
+import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.time.Clock
 import java.time.Duration
@@ -42,7 +44,9 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
     text = "Submitting bake for version $version",
     link = "www.bake.com/$version"
   )
-  val task = MonitoredTask(type = BAKE, link = "www.bake.com/$version", triggeringEvent = event)
+
+  private fun createTask(uid: String): MonitoredTask =
+    MonitoredTask(type = BAKE, link = "www.bake.com/$version", triggeringEvent = event, triggeringEventUid = uid)
 
   fun tests() = rootContext<Fixture<T, EVENT>> {
     fixture {
@@ -56,8 +60,8 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
 
     context("adding task") {
       before {
-        eventRepository.saveEvent(event)
-        subject.save(task)
+        val uid = eventRepository.saveEvent(event)
+        subject.save(StartMonitoringEvent(uid, event))
       }
       test("immediately due for check") {
         val tasks = subject.tasksDueForCheck(Duration.ofMinutes(1), 1)
@@ -73,25 +77,27 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
 
       test("can delete") {
         expectThat(subject.numTasksMonitoring()).isEqualTo(1)
-        subject.delete(task)
+        val tasks = subject.tasksDueForCheck(Duration.ofMinutes(1), 1)
+        subject.delete(tasks.first())
         expectThat(subject.numTasksMonitoring()).isEqualTo(0)
       }
     }
 
     context("clearing failure") {
       before {
-        eventRepository.saveEvent(event)
-        val failingTask = task.copy(numFailures = 2)
-        subject.save(failingTask)
-        subject.clearFailuresGettingStatus(failingTask)
+        val uid = eventRepository.saveEvent(event)
+        subject.save(StartMonitoringEvent(uid, event))
+        subject.markFailureGettingStatus(createTask(uid))
+        subject.markFailureGettingStatus(createTask(uid))
+        subject.clearFailuresGettingStatus(createTask(uid))
       }
       test("failures reset to 0") {
-        clock.tickMinutes(1)
+        clock.tickMinutes(5)
         val tasks = subject.tasksDueForCheck(Duration.ofMinutes(1), 1)
-        expect {
-          that(tasks.size).isEqualTo(1)
-          that(tasks.first().numFailures).isEqualTo(0)
-        }
+        expectThat(tasks)
+          .hasSize(1)
+          .get { tasks.first().numFailures }.isEqualTo(0)
+
       }
     }
   }

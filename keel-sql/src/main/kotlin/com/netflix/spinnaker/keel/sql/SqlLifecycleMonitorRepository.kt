@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
+import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.tables.LifecycleMonitor.LIFECYCLE_MONITOR
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -52,7 +54,8 @@ class SqlLifecycleMonitorRepository(
               type = LifecycleEventType.valueOf(type),
               triggeringEvent = fetchEvent(triggeringEventUid),
               numFailures = numFailures,
-              link = link
+              link = link,
+              triggeringEventUid = triggeringEventUid
             )
           } catch (e: Exception) {
             // if we can't serialize the event, ignore it so it doesn't block future things
@@ -77,62 +80,43 @@ class SqlLifecycleMonitorRepository(
         }
     }
 
-  fun LifecycleEvent.getUid(): String {
-    return sqlRetry.withRetry(READ) {
-      jooq.select(LIFECYCLE_EVENT.UID)
-        .from(LIFECYCLE_EVENT)
-        .where(LIFECYCLE_EVENT.SCOPE.eq(scope.name))
-        .and(LIFECYCLE_EVENT.TYPE.eq(type.name))
-        .and(LIFECYCLE_EVENT.REF.eq(artifactRef))
-        .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(artifactVersion))
-        .and(LIFECYCLE_EVENT.ID.eq(id))
-        .and(LIFECYCLE_EVENT.STATUS.eq(status.name))
-        .fetch(LIFECYCLE_EVENT.UID)
-        .first()
-    }
-  }
-
-  override fun save(task: MonitoredTask) {
+  override fun save(event: StartMonitoringEvent) {
     sqlRetry.withRetry(WRITE) {
-      val triggeringEventUid = task.triggeringEvent.getUid()
       jooq.insertInto(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.UID, ULID().nextULID(clock.millis()))
-        .set(LIFECYCLE_MONITOR.TYPE, task.type.name)
-        .set(LIFECYCLE_MONITOR.LINK, task.link)
+        .set(LIFECYCLE_MONITOR.TYPE, event.triggeringEvent.type.name)
+        .set(LIFECYCLE_MONITOR.LINK, event.triggeringEvent.link)
         .set(LIFECYCLE_MONITOR.LAST_CHECKED, Instant.EPOCH.plusSeconds(1).toTimestamp())
-        .set(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID, triggeringEventUid)
+        .set(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID, event.triggeringEventUid)
         .execute()
     }
   }
 
   override fun delete(task: MonitoredTask) {
     sqlRetry.withRetry(WRITE) {
-      val triggeringEventUid = task.triggeringEvent.getUid()
       jooq.deleteFrom(LIFECYCLE_MONITOR)
         .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
-        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(triggeringEventUid))
+        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }
   }
 
   override fun markFailureGettingStatus(task: MonitoredTask) {
     sqlRetry.withRetry(WRITE) {
-      val triggeringEventUid = task.triggeringEvent.getUid()
       jooq.update(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.NUM_FAILURES,LIFECYCLE_MONITOR.NUM_FAILURES.plus(1))
         .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
-        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(triggeringEventUid))
+        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }
   }
 
   override fun clearFailuresGettingStatus(task: MonitoredTask) {
     sqlRetry.withRetry(WRITE) {
-      val triggeringEventUid = task.triggeringEvent.getUid()
       jooq.update(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.NUM_FAILURES, 0)
         .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
-        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(triggeringEventUid))
+        .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }
   }
