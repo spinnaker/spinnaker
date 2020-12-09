@@ -127,10 +127,12 @@ class SqlLifecycleEventRepository(
     // get first and last event by sorting both ways
     val firstEventById = events.sortedByDescending { it.timestamp }.associateBy { it.id }
     val lastEventById = events.associateBy { it.id }
+    // sometimes an ending event will be out of order, so we need to grab those events
+    val endingEventsById = events.filter { it.status.isEndingStatus() }.associateBy { it.id }
 
     firstEventById.forEach { (id, event) ->
       var step = event.toStep()
-      val lastEvent = lastEventById[id]
+      val lastEvent = endingEventsById[id] ?: lastEventById[id] // if there's an ending status, use that as the last event
       if (lastEvent != null) {
         if (lastEvent.status.isEndingStatus()) {
           step = step.copy(completedAt = lastEvent.timestamp)
@@ -142,8 +144,6 @@ class SqlLifecycleEventRepository(
           step = step.copy(link = it)
         }
         step = step.copy(status = lastEvent.status)
-      } else {
-        log.error("Somehow we have a starting event but no last event for $event. Not sure how this could happen.")
       }
       steps.add(step)
     }

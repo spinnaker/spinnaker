@@ -13,6 +13,7 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
@@ -114,6 +115,28 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.first().startedAt).isNotNull()
             that(steps.first().completedAt).isNotNull()
             that(steps.first().startedAt).isNotEqualTo(steps.first().completedAt)
+          }
+        }
+      }
+
+      context("timestamps are a bit out of order") {
+        before {
+          clock.tickMinutes(1)
+          subject.saveEvent(event.copy(status = SUCCEEDED, text = "Bake finished! Here's your cake", link = null))
+          clock.tickMinutes(1)
+          subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
+        }
+
+        test("step still shows completed event") {
+          val steps = subject.getSteps(artifact, version)
+          expectThat(steps.size).isEqualTo(1)
+          expectThat(steps.first()){
+            get { status }.isEqualTo(SUCCEEDED)
+            get { text }.isEqualTo("Bake finished! Here's your cake")
+            get { link }.isEqualTo("www.bake.com/$version")
+            get { startedAt }.isNotNull()
+            get { completedAt }.isNotNull()
+            get { startedAt }.isNotEqualTo(steps.first().completedAt)
           }
         }
       }
