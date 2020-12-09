@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.validators
 
+import com.netflix.frigga.NameValidation
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.id
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.InvalidAppNameException
 import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import org.slf4j.LoggerFactory
@@ -22,6 +24,7 @@ class DeliveryConfigValidator {
   /**
    * Run validation checks against delivery config to ensure:
    *
+   * - app name is valid
    * - resources have unique ids
    * - artifacts have unique references
    * - depends on environments are unique
@@ -31,19 +34,19 @@ class DeliveryConfigValidator {
    */
   fun validate(config: SubmittedDeliveryConfig) {
 
-    // helper function to get duplicates in a list
-    fun duplicates(ids: List<String>): List<String> =
-      ids.groupingBy { it }
-        .eachCount()
-        .filter { it.value > 1 }
-        .keys
-        .toList()
+    /**
+     * check: app name is valid Spinnaker app name
+     */
+    if(!NameValidation.checkName(config.application)) {
+      log.warn("Validation failed for ${config.name}, invalid app name: ${config.application}")
+      throw InvalidAppNameException(config.application)
+    }
 
     /**
      * check: resources have unique ids
      */
     val resources = config.environments.map { it.resources }.flatten().map { it.id }
-    val duplicateResources = duplicates(resources)
+    val duplicateResources = resources.duplicates()
 
     if (duplicateResources.isNotEmpty()) {
       val envToResources: Map<String, MutableList<String>> = config.environments
@@ -55,7 +58,7 @@ class DeliveryConfigValidator {
           // if there are resources left that we care about, leave it in the map
           rs.isNotEmpty()
         }
-      log.error("Validation failed for ${config.name}, duplicates resource ids found: $envsAndDuplicateResources")
+      log.warn("Validation failed for ${config.name}, duplicates resource ids found: $envsAndDuplicateResources")
       throw DuplicateResourceIdException(duplicateResources, envsAndDuplicateResources)
     }
 
@@ -63,14 +66,14 @@ class DeliveryConfigValidator {
      * check: artifacts have unique references
      */
     val refs = config.artifacts.map { it.reference }
-    val duplicateRefs = duplicates(refs)
+    val duplicateRefs = refs.duplicates()
 
     if (duplicateRefs.isNotEmpty()) {
       val duplicatesArtifactNameToRef: Map<String, String> = config.artifacts
         .filter { duplicateRefs.contains(it.reference) }
         .associate { art -> art.name to art.reference }
 
-      log.error("Validation failed for ${config.name}, duplicate artifact references found: $duplicatesArtifactNameToRef")
+      log.warn("Validation failed for ${config.name}, duplicate artifact references found: $duplicatesArtifactNameToRef")
       throw DuplicateArtifactReferenceException(duplicatesArtifactNameToRef)
     }
 
@@ -102,4 +105,14 @@ class DeliveryConfigValidator {
       }
     }
   }
+
+  /**
+   * Return the duplicates in a list
+   */
+  private fun List<String>.duplicates(): List<String> =
+    groupingBy { it }
+      .eachCount()
+      .filter { it.value > 1 }
+      .keys
+      .toList()
 }

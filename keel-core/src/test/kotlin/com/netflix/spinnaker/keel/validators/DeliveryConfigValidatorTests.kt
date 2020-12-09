@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.InvalidAppNameException
 import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
@@ -28,6 +29,33 @@ internal class DeliveryConfigValidatorTests : JUnit5Minutests {
   fun deliveryConfigValidatorTests() = rootContext<DeliveryConfigValidator> {
     fixture {
       DeliveryConfigValidator()
+    }
+
+    context("application name is not valid") {
+      val submittedConfig = SubmittedDeliveryConfig(
+        name = configName,
+        application = "{{application.name}}",
+        serviceAccount = "keel@spinnaker",
+        artifacts = setOf(artifact),
+        environments = setOf(
+          SubmittedEnvironment(
+            name = "test",
+            resources = setOf(
+              SubmittedResource(
+                kind = TEST_API_V1.qualify("whatever"),
+                spec = DummyResourceSpec("test", "im a twin", "keel")
+              )
+            ),
+            constraints = emptySet()
+          )
+        )
+      )
+      test("an error is thrown") {
+        expectCatching {
+          subject.validate(submittedConfig)
+        }.isFailure()
+         .isA<InvalidAppNameException>()
+      }
     }
 
     context("a delivery config with non-unique resource ids fails validation") {
