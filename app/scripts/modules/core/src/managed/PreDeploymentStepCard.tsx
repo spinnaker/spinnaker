@@ -9,8 +9,6 @@ import { Application } from '../application';
 import { StatusCard } from './StatusCard';
 import { Button } from './Button';
 
-const SUPPORTED_TYPES = ['BUILD', 'BAKE'];
-
 const cardAppearanceByStatus = {
   NOT_STARTED: 'future',
   RUNNING: 'info',
@@ -92,10 +90,6 @@ export interface PreDeploymentStepCardProps {
 
 export const PreDeploymentStepCard = memo(({ step, application, reference }: PreDeploymentStepCardProps) => {
   const { type, status, startedAt, completedAt, link } = step;
-
-  if (!SUPPORTED_TYPES.includes(type)) {
-    return null;
-  }
 
   const { iconName, title } = cardConfigurationByType[type];
 

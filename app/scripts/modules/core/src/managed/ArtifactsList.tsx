@@ -169,7 +169,13 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
 
   const preDeploymentSteps = lifecycleSteps?.filter(
     ({ scope, type, status }) =>
-      scope === 'PRE_DEPLOYMENT' && ['BUILD', 'BAKE'].includes(type) && ['RUNNING', 'FAILED'].includes(status),
+      scope === 'PRE_DEPLOYMENT' &&
+      [
+        // KLUDGE WARNING: disabling build events temporarily while we get the API in shape
+        // 'BUILD',
+        'BAKE',
+      ].includes(type) &&
+      ['RUNNING', 'FAILED'].includes(status),
   );
 
   if (preDeploymentSteps?.length > 0) {
