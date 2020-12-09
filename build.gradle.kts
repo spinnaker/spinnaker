@@ -17,8 +17,8 @@ buildscript {
 }
 
 plugins {
-  kotlin("jvm") version "1.4.10" apply false
-  id("org.jetbrains.kotlin.plugin.allopen") version "1.4.10" apply false
+  kotlin("jvm") version "1.4.21" apply false
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.4.21" apply false
   id("com.adarshr.test-logger") version "2.1.0" apply false
   id("com.github.ben-manes.versions") version "0.28.0"
   jacoco
