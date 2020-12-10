@@ -72,7 +72,11 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
         HttpStatus.NOT_FOUND.value(), exceptionMessageDecorator.decorate(e, e.getMessage()));
   }
 
-  @ExceptionHandler({InvalidRequestException.class, UserException.class})
+  @ExceptionHandler({
+    InvalidRequestException.class,
+    UserException.class,
+    IllegalArgumentException.class
+  })
   public void handleInvalidRequestException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
