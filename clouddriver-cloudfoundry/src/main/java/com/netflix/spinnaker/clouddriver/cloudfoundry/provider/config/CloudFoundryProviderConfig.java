@@ -21,16 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigu
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
-import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
-import com.netflix.spinnaker.credentials.CredentialsRepository;
-import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.*;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
-import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import java.util.concurrent.ForkJoinPool;
-import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -49,48 +46,38 @@ public class CloudFoundryProviderConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(
-      value = CloudFoundryCredentials.class,
-      parameterizedContainer = AbstractCredentialsLoader.class)
-  public AbstractCredentialsLoader<CloudFoundryCredentials> cloudFoundryCredentialsLoader(
-      @Nullable
-          CredentialsDefinitionSource<CloudFoundryConfigurationProperties.ManagedAccount>
-              cloudFoundryCredentialSource,
-      CloudFoundryConfigurationProperties configurationProperties,
-      CacheRepository cacheRepository,
-      CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository,
-      ForkJoinPool cloudFoundryThreadPool) {
-
-    if (cloudFoundryCredentialSource == null) {
-      cloudFoundryCredentialSource = configurationProperties::getAccounts;
-    }
-    return new BasicCredentialsLoader<>(
-        cloudFoundryCredentialSource,
-        a ->
-            new CloudFoundryCredentials(
-                a.getName(),
-                a.getAppsManagerUri(),
-                a.getMetricsUri(),
-                a.getApi(),
-                a.getUser(),
-                a.getPassword(),
-                a.getEnvironment(),
-                a.isSkipSslValidation(),
-                a.getResultsPerPage(),
-                cacheRepository,
-                a.getPermissions().build(),
-                cloudFoundryThreadPool,
-                a.getSpaceFilter()),
-        cloudFoundryCredentialsRepository);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(
-      value = CloudFoundryCredentials.class,
-      parameterizedContainer = CredentialsRepository.class)
-  public CredentialsRepository<CloudFoundryCredentials> cloudFoundryCredentialsRepository(
-      CredentialsLifecycleHandler<CloudFoundryCredentials> eventHandler) {
-    return new MapBackedCredentialsRepository<>(CloudFoundryProvider.PROVIDER_ID, eventHandler);
+  public CredentialsTypeBaseConfiguration<
+          CloudFoundryCredentials, CloudFoundryConfigurationProperties.ManagedAccount>
+      cloudfoundryCredentials(
+          ApplicationContext applicationContext,
+          CloudFoundryConfigurationProperties configurationProperties,
+          CacheRepository cacheRepository,
+          ForkJoinPool cloudFoundryThreadPool) {
+    return new CredentialsTypeBaseConfiguration<>(
+        applicationContext,
+        CredentialsTypeProperties
+            .<CloudFoundryCredentials, CloudFoundryConfigurationProperties.ManagedAccount>builder()
+            .type(CloudFoundryProvider.PROVIDER_ID)
+            .credentialsClass(CloudFoundryCredentials.class)
+            .credentialsDefinitionClass(CloudFoundryConfigurationProperties.ManagedAccount.class)
+            .defaultCredentialsSource(configurationProperties::getAccounts)
+            .credentialsParser(
+                a ->
+                    new CloudFoundryCredentials(
+                        a.getName(),
+                        a.getAppsManagerUri(),
+                        a.getMetricsUri(),
+                        a.getApi(),
+                        a.getUser(),
+                        a.getPassword(),
+                        a.getEnvironment(),
+                        a.isSkipSslValidation(),
+                        a.getResultsPerPage(),
+                        cacheRepository,
+                        a.getPermissions().build(),
+                        cloudFoundryThreadPool,
+                        a.getSpaceFilter()))
+            .build());
   }
 
   @Bean

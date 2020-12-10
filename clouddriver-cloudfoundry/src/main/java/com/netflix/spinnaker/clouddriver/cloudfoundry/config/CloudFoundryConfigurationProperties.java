@@ -19,10 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -54,6 +51,7 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
   @Getter
   @Setter
   @ToString(exclude = "password")
+  @EqualsAndHashCode
   public static class ManagedAccount implements CredentialsDefinition {
     private String name;
     private String api;
