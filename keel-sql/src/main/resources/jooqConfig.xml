@@ -29,52 +29,52 @@
         <!-- Enums -->
         <forcedType>
           <userType>com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus</userType>
-          <converter>com.netflix.spinnaker.jooq.ArtifactStatusConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>ARTIFACT_VERSIONS\\.RELEASE_STATUS</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.api.constraints.ConstraintStatus</userType>
-          <converter>com.netflix.spinnaker.jooq.ConstraintStatusConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>ENVIRONMENT_ARTIFACT_CONSTRAINT\\.STATUS</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.core.api.PromotionStatus</userType>
-          <converter>com.netflix.spinnaker.jooq.PromotionStatusConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>ENVIRONMENT_ARTIFACT_VERSIONS\\.PROMOTION_STATUS</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.events.PersistentEvent.EventScope</userType>
-          <converter>com.netflix.spinnaker.jooq.EventScopeConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>EVENT\\.SCOPE</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.lifecycle.LifecycleEventType</userType>
-          <converter>com.netflix.spinnaker.jooq.LifecycleEventTypeConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>(LIFECYCLE_EVENT|LIFECYCLE_MONITOR)\\.TYPE</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus</userType>
-          <converter>com.netflix.spinnaker.jooq.LifecycleEventStatusConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>LIFECYCLE_EVENT\\.STATUS</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.notifications.NotificationScope</userType>
-          <converter>com.netflix.spinnaker.jooq.NotificationScopeConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>NOTIFICATION\\.SCOPE</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.notifications.NotificationType</userType>
-          <converter>com.netflix.spinnaker.jooq.NotificationTypeConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>NOTIFICATION\\.TYPE</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.pause.PauseScope</userType>
-          <converter>com.netflix.spinnaker.jooq.PauseScopeConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>PAUSED\\.SCOPE</includeExpression>
         </forcedType>
         <forcedType>
           <userType>com.netflix.spinnaker.keel.api.verification.VerificationStatus</userType>
-          <converter>com.netflix.spinnaker.jooq.VerificationStatusConverter</converter>
+          <enumConverter>true</enumConverter>
           <includeExpression>VERIFICATION_STATE\\.STATUS</includeExpression>
         </forcedType>
       </forcedTypes>
