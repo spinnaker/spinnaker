@@ -75,7 +75,7 @@ public class ArtifactControllerSpec {
 
     mvc.perform(asyncDispatch(result))
         .andDo(print())
-        .andExpect(status().isInternalServerError())
+        .andExpect(status().isBadRequest())
         .andExpect(content().string(is(emptyString())));
   }
 }
