@@ -28,6 +28,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -174,9 +175,10 @@ class SqlConfiguration {
     clock: Clock,
     properties: SqlProperties,
     objectMapper: ObjectMapper,
-    spectator: Registry
+    spectator: Registry,
+    publisher: ApplicationEventPublisher
   ) =
-    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), objectMapper, spectator)
+    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), objectMapper, spectator, publisher)
 
   @Bean
   fun lifecycleMonitorRepository(

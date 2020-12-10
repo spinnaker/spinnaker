@@ -12,6 +12,8 @@ import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.hasSize
@@ -21,12 +23,13 @@ import java.time.Duration
 
 abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, EVENT : LifecycleEventRepository> : JUnit5Minutests {
   abstract fun monitorFactory(clock: Clock): T
-  abstract fun eventFactory(clock: Clock): EVENT
+  abstract fun eventFactory(clock: Clock, publisher: ApplicationEventPublisher): EVENT
 
   open fun T.flush() {}
   open fun EVENT.flush() {}
 
   val clock = MutableClock()
+  val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
   data class Fixture<T : LifecycleMonitorRepository, EVENT : LifecycleEventRepository>(
     val subject: T,
@@ -50,7 +53,7 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
 
   fun tests() = rootContext<Fixture<T, EVENT>> {
     fixture {
-      Fixture(subject = monitorFactory(clock), eventRepository = eventFactory(clock))
+      Fixture(subject = monitorFactory(clock), eventRepository = eventFactory(clock, publisher))
     }
 
     after {

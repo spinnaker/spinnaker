@@ -9,9 +9,15 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.RUNNING
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
+import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Called
+import io.mockk.clearAllMocks
+import io.mockk.mockk
+import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -23,11 +29,12 @@ import java.time.Clock
 import java.time.Instant
 
 abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUnit5Minutests {
-  abstract fun factory(clock: Clock): T
+  abstract fun factory(clock: Clock, publisher: ApplicationEventPublisher): T
 
   open fun T.flush() {}
 
   val clock = MutableClock()
+  val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
   data class Fixture<T : LifecycleEventRepository>(
     val subject: T
@@ -43,16 +50,20 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
     id = "bake-$version",
     text = "Submitting bake for version $version",
     link = "www.bake.com/$version",
-    data = mapOf("hi" to "whatsup")
+    data = mapOf("hi" to "whatsup"),
+    startMonitoring = true
   )
   val anotherEvent = event.copy(id = "bake-$version-2")
 
   fun tests() = rootContext<Fixture<T>> {
     fixture {
-      Fixture(subject = factory(clock))
+      Fixture(subject = factory(clock, publisher))
     }
 
-    after { subject.flush() }
+    after {
+      subject.flush()
+      clearAllMocks()
+    }
 
     context("saving events") {
       before {
@@ -186,6 +197,52 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           that(steps.first().link).isEqualTo("www.bake.com/$version")
           that(steps.first().startedAt).isNotNull()
           that(steps.first().completedAt).isNotNull()
+        }
+      }
+    }
+
+    context("backfilling monitoring") {
+      context("single event does not have an ending status") {
+        before {
+          subject.saveEvent(event)
+          clock.tickMinutes(1)
+        }
+
+        test("one minute old event does not trigger re-monitoring") {
+          subject.getSteps(artifact, version)
+          verify { publisher wasNot Called }
+        }
+
+        test("ten minute old event does trigger re-monitoring") {
+          clock.tickMinutes(10)
+          subject.getSteps(artifact, version)
+          verify(exactly = 1) { publisher.publishEvent(ofType<StartMonitoringEvent>())}
+        }
+      }
+
+      context("single event has ending status") {
+        before {
+          subject.saveEvent(event.copy(status = SUCCEEDED))
+          clock.tickMinutes(10)
+        }
+
+        test("succeeded event does not trigger re-monitoring") {
+          subject.getSteps(artifact, version)
+          verify { publisher wasNot Called }
+        }
+      }
+
+      context("more than one event") {
+        before {
+          subject.saveEvent(event)
+          clock.tickMinutes(1)
+          subject.saveEvent(event.copy(status = SUCCEEDED))
+          clock.tickMinutes(10)
+        }
+
+        test("several events do not trigger a re-monitoring") {
+          subject.getSteps(artifact, version)
+          verify { publisher wasNot Called }
         }
       }
     }

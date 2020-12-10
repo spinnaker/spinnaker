@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
+import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
 import com.netflix.spinnaker.keel.lifecycle.isEndingStatus
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -17,6 +18,7 @@ import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.Duration
 
@@ -25,7 +27,8 @@ class SqlLifecycleEventRepository(
   private val jooq: DSLContext,
   private val sqlRetry: SqlRetry,
   private val objectMapper: ObjectMapper,
-  private val spectator: Registry
+  private val spectator: Registry,
+  private val publisher: ApplicationEventPublisher
 ) : LifecycleEventRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -129,6 +132,9 @@ class SqlLifecycleEventRepository(
     val endingEventsById = events.filter { it.status.isEndingStatus() }.associateBy { it.id }
 
     firstEventById.forEach { (id, event) ->
+      // call this for each event id in case we missed monitoring the initial event.
+      retriggerMonitoring(events.filter { it.id == id })
+
       var step = event.toStep()
       val lastEvent = endingEventsById[id] ?: lastEventById[id] // if there's an ending status, use that as the last event
       if (lastEvent != null) {
@@ -152,6 +158,48 @@ class SqlLifecycleEventRepository(
     ).record(Duration.between(startTime, clock.instant()))
 
     return steps.toList().sortedBy { it.startedAt }
+  }
+
+  /**
+   * Publishes a [StartMonitoringEvent] if we only have one event for
+   * an id and if the event is older than 5 minutes
+   * because we dropped a fair amount of monitoring of events.
+   *
+   * todo eb: remove once we backfill the events.
+   */
+  private fun retriggerMonitoring(events: List<LifecycleEvent>) {
+    if (events.size != 1) {
+      // we don't need to kick start monitoring if there's more than one event
+      // this is just for the case that we never started monitoring.
+      return
+    }
+    val event = events.first()
+    val now = clock.instant()
+    val eventTimestamp = event.timestamp ?: return
+    val age = Duration.between(eventTimestamp, now)
+
+    if (event.startMonitoring && !event.status.isEndingStatus() && age > Duration.ofMinutes(5)) {
+      // since there is only one event and it's older than 5 minutes,
+      // recheck it in case we missed monitoring it.
+      log.info("Re-triggering monitoring for event $event")
+      val uid = event.getUid()
+      publisher.publishEvent(StartMonitoringEvent(uid, event))
+    }
+  }
+
+  private fun LifecycleEvent.getUid(): String {
+    return sqlRetry.withRetry(READ) {
+      jooq.select(LIFECYCLE_EVENT.UID)
+        .from(LIFECYCLE_EVENT)
+        .where(LIFECYCLE_EVENT.SCOPE.eq(scope.name))
+        .and(LIFECYCLE_EVENT.TYPE.eq(type.name))
+        .and(LIFECYCLE_EVENT.REF.eq(artifactRef))
+        .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(artifactVersion))
+        .and(LIFECYCLE_EVENT.ID.eq(id))
+        .and(LIFECYCLE_EVENT.STATUS.eq(status.name))
+        .fetch(LIFECYCLE_EVENT.UID)
+        .first()
+    }
   }
 
   private val LIFECYCLE_STEP_CALCULATION_DURATION_ID = "keel.lifecycle.step.calculation.duration"

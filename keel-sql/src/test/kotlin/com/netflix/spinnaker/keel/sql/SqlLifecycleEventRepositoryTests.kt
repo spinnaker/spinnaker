@@ -7,6 +7,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.junit.jupiter.api.AfterAll
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
 internal object SqlLifecycleEventRepositoryTests : LifecycleEventRepositoryTests<SqlLifecycleEventRepository>() {
@@ -15,13 +16,14 @@ internal object SqlLifecycleEventRepositoryTests : LifecycleEventRepositoryTests
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
-  override fun factory(clock: Clock): SqlLifecycleEventRepository {
+  override fun factory(clock: Clock, publisher: ApplicationEventPublisher): SqlLifecycleEventRepository {
     return SqlLifecycleEventRepository(
       clock,
       jooq,
       sqlRetry,
       configuredTestObjectMapper(),
-      NoopRegistry()
+      NoopRegistry(),
+      publisher
     )
   }
 
