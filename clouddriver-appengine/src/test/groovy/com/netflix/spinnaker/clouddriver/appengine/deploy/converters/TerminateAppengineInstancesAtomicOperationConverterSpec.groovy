@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.TerminateAppengineInstancesDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.TerminateAppengineInstancesAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -29,17 +28,14 @@ class TerminateAppengineInstancesAtomicOperationConverterSpec extends Specificat
   private static final INSTANCE_IDS = ["instance-1", "instance-2"]
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   TerminateAppengineInstancesAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new TerminateAppengineInstancesAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new TerminateAppengineInstancesAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "terminateAppengineInstancesDescription type returns TerminateAppengineInstancesDescription and TerminateAppengineInstancesAtomicOperation"() {

@@ -19,10 +19,11 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineConfigDescription;
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component;
 public class DeployAppengineConfigDescriptionValidator
     extends DescriptionValidator<DeployAppengineConfigDescription> {
 
-  @Autowired private AccountCredentialsProvider accountCredentialsProvider;
+  @Autowired private CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository;
 
   @Override
   public void validate(
@@ -42,6 +43,6 @@ public class DeployAppengineConfigDescriptionValidator
     StandardAppengineAttributeValidator helper =
         new StandardAppengineAttributeValidator(
             "deployAppengineConfigAtomicOperationDescription", errors);
-    helper.validateCredentials(description.getAccountName(), accountCredentialsProvider);
+    helper.validateCredentials(description.getAccountName(), credentialsRepository);
   }
 }

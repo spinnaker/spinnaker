@@ -18,6 +18,7 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.kork:kork-annotations"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-credentials"
   implementation "com.netflix.spinnaker.kork:kork-config"
   implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
   implementation "com.netflix.spinnaker.kork:kork-moniker"
@@ -33,6 +34,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
 
+  testImplementation "org.assertj:assertj-core"
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"

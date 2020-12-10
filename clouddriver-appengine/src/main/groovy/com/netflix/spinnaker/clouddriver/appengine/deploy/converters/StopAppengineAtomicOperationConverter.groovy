@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.StopAppengineAtomicOperation
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @AppengineOperation(AtomicOperations.STOP_SERVER_GROUP)
 @Component
-class StopAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class StopAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<AppengineNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     new StopAppengineAtomicOperation(convertDescription(input))
   }

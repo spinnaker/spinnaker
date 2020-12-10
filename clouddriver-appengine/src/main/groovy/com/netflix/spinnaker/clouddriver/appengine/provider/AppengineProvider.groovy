@@ -16,18 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.provider
 
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.security.BaseProvider
 
-class AppengineProvider extends AgentSchedulerAware implements SearchableProvider {
+class AppengineProvider extends BaseProvider implements SearchableProvider {
   public static final String PROVIDER_NAME = AppengineProvider.name
 
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
   final Map<SearchableProvider.SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
-  final Collection<Agent> agents
   final AppengineCloudProvider cloudProvider
   final Set<String> defaultCaches = [
     Keys.Namespace.APPLICATIONS.ns,
@@ -37,9 +35,8 @@ class AppengineProvider extends AgentSchedulerAware implements SearchableProvide
     Keys.Namespace.LOAD_BALANCERS.ns,
   ].asImmutable()
 
-  AppengineProvider(AppengineCloudProvider cloudProvider, Collection<Agent> agents) {
+  AppengineProvider(AppengineCloudProvider cloudProvider) {
     this.cloudProvider = cloudProvider
-    this.agents = agents
   }
 
   @Override

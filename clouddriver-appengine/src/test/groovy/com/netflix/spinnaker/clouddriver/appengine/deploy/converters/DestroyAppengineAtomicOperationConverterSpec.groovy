@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DestroyAppengineAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -29,17 +28,14 @@ class DestroyAppengineAtomicOperationConverterSpec extends Specification {
   private static final SERVER_GROUP_NAME = 'app-stack-detail-v000'
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   DestroyAppengineAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new DestroyAppengineAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new DestroyAppengineAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "destroyAppengineDescription type returns DestroyAppengineDescription and DestroyAppengineAtomicOperation"() {

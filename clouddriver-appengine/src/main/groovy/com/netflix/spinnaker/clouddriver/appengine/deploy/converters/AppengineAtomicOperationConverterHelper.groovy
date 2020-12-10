@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.netflix.spinnaker.clouddriver.appengine.deploy.description.AbstractAppengineCredentialsDescription
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 
 class AppengineAtomicOperationConverterHelper {
-  static Object convertDescription(Map input,
-                                   AbstractAtomicOperationsCredentialsSupport credentialsSupport,
-                                   Class targetDescriptionType) {
+  static <T extends AbstractAppengineCredentialsDescription> T convertDescription(Map input,
+                                   AbstractAtomicOperationsCredentialsConverter<AppengineNamedAccountCredentials> credentialsSupport,
+                                   Class<T> targetDescriptionType) {
     input.accountName = input.accountName ?: input.account ?: input.credentials
 
     if (input.accountName) {
@@ -40,7 +41,7 @@ class AppengineAtomicOperationConverterHelper {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(input, targetDescriptionType)
 
-    converted.credentials = credentials in AppengineNamedAccountCredentials ? credentials : null
+    converted.credentials = credentials as AppengineNamedAccountCredentials
     converted
   }
 }

@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineAutoscalingPolicyAtomicOperation
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @AppengineOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 @Component
-class UpsertAppengineAutoscalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class UpsertAppengineAutoscalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<AppengineNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     new UpsertAppengineAutoscalingPolicyAtomicOperation(convertDescription(input))
   }

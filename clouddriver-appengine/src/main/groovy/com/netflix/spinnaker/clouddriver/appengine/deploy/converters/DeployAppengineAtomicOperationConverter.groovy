@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineDescriptionConversionException
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DeployAppengineAtomicOperation
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +34,7 @@ import groovy.util.logging.Slf4j
 @AppengineOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
 @Slf4j
-class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<AppengineNamedAccountCredentials> {
   @Autowired
   ObjectMapper objectMapper
 

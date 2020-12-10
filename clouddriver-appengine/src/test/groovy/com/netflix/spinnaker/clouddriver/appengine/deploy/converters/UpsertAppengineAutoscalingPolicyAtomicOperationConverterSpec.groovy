@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -31,17 +30,14 @@ class UpsertAppengineAutoscalingPolicyAtomicOperationConverterSpec extends Speci
   private static final MAX_IDLE_INSTANCES = 20
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   UpsertAppengineAutoscalingPolicyAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new UpsertAppengineAutoscalingPolicyAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new UpsertAppengineAutoscalingPolicyAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "upsertAppengineAutoscalingPolicyDescription type returns UpsertAppengineAutoscalingPolicyDescription and UpsertAppengineAutoscalingPolicyAtomicOperation"() {

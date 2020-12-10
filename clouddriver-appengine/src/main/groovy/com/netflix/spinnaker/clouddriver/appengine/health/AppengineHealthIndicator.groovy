@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.health
 
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,7 +36,7 @@ class AppengineHealthIndicator implements HealthIndicator {
   private static final Logger LOG = LoggerFactory.getLogger(AppengineHealthIndicator)
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsTypeBaseConfiguration<AppengineNamedAccountCredentials, ?> credentialsTypeBaseConfiguration
 
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
 
@@ -54,23 +54,18 @@ class AppengineHealthIndicator implements HealthIndicator {
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
     try {
-      Set<AppengineNamedAccountCredentials> appengineCredentialsSet = accountCredentialsProvider.all.findAll {
-        it instanceof AppengineNamedAccountCredentials
-      } as Set<AppengineNamedAccountCredentials>
-
-      for (AppengineNamedAccountCredentials accountCredentials in appengineCredentialsSet) {
+      credentialsTypeBaseConfiguration.credentialsRepository?.all?.forEach({
         try {
           /*
             Location is the only App Engine resource guaranteed to exist.
             The API only accepts '-' here, rather than project name. To paraphrase the provided error,
             the list of locations is static and not a property of an individual project.
           */
-          accountCredentials.appengine.apps().locations().list('-').execute()
+          it.appengine.apps().locations().list('-').execute()
         } catch (IOException e) {
           throw new AppengineIOException(e)
         }
-      }
-
+      })
       lastException.set(null)
     } catch (Exception ex) {
       LOG.warn "Unhealthy", ex

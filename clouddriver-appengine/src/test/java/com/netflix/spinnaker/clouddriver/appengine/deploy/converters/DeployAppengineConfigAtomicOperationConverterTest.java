@@ -22,11 +22,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineConfigDescription;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -35,19 +34,15 @@ import org.junit.Test;
 public class DeployAppengineConfigAtomicOperationConverterTest {
 
   DeployAppengineConfigAtomicOperationConverter converter;
-  AccountCredentialsProvider accountCredentialsProvider;
+  CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository;
   AppengineNamedAccountCredentials mockCredentials;
-  ObjectMapper mapper;
 
   @Before
   public void init() {
     converter = new DeployAppengineConfigAtomicOperationConverter();
-    accountCredentialsProvider = mock(AccountCredentialsProvider.class);
+    credentialsRepository = mock(CredentialsRepository.class);
     mockCredentials = mock(AppengineNamedAccountCredentials.class);
-    mapper = new ObjectMapper();
-
-    converter.setAccountCredentialsProvider(accountCredentialsProvider);
-    converter.setObjectMapper(mapper);
+    converter.setCredentialsRepository(credentialsRepository);
   }
 
   @Test
@@ -62,7 +57,7 @@ public class DeployAppengineConfigAtomicOperationConverterTest {
             "artifactAccount", "httpacc"));
     stage.put("account", "appengineacc");
 
-    when(accountCredentialsProvider.getCredentials(any())).thenReturn(mockCredentials);
+    when(credentialsRepository.getOne(any())).thenReturn(mockCredentials);
     DeployAppengineConfigDescription description = converter.convertDescription(stage);
     assertTrue(description.getAccountName().equals("appengineacc"));
     assertTrue(description.getCronArtifact() != null);

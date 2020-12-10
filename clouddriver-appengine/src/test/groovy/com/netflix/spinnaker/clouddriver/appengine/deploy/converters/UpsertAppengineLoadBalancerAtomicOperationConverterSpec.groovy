@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -42,17 +41,14 @@ class UpsertAppengineLoadBalancerAtomicOperationConverterSpec extends Specificat
   private static final MIGRATE_TRAFFIC = false
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   UpsertAppengineLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new UpsertAppengineLoadBalancerAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new UpsertAppengineLoadBalancerAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "upsertAppengineLoadBalancerDescription type returns UpsertAppengineLoadBalancerDescription and UpsertAppengineLoadBalancerAtomicOperation"() {

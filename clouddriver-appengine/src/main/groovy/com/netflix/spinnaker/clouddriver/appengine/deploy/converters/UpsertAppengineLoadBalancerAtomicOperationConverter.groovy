@@ -20,14 +20,15 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineModelUtil
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.stereotype.Component
 
 @AppengineOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component
-class UpsertAppengineLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class UpsertAppengineLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<AppengineNamedAccountCredentials> {
   AtomicOperation convertOperation(Map input) {
     new UpsertAppengineLoadBalancerAtomicOperation(convertDescription(input))
   }

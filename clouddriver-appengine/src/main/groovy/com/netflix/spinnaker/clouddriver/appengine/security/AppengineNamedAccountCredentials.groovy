@@ -31,6 +31,7 @@ import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfig
 
 @TupleConstructor
 class AppengineNamedAccountCredentials extends AbstractAccountCredentials<AppengineCredentials> {
+  public final static String CREDENTIALS_TYPE = "appengine";
   final String name
   final String environment
   final String accountType

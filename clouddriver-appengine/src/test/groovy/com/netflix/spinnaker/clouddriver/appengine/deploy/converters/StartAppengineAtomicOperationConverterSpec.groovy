@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.StartAppengineAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -29,17 +28,14 @@ class StartAppengineAtomicOperationConverterSpec extends Specification {
   private static final SERVER_GROUP_NAME = 'app-stack-detail-v000'
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   StartAppengineAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new StartAppengineAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new StartAppengineAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "startAppengineDescription type returns StartStopAppengineDescription and StartAppengineAtomicOperation"() {

@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentialType
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentials
-import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -37,14 +37,14 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
   private static final REGION = "us-central"
 
   @Shared
-  DefaultAccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository
 
   @Shared
   AppengineGitCredentials gitCredentials
 
   void setupSpec() {
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
-    accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    credentialsRepository = new MapBackedCredentialsRepository<>(AppengineNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
 
     def mockCredentials = Mock(AppengineCredentials)
     def namedAccountCredentials = new AppengineNamedAccountCredentials.Builder()
@@ -54,7 +54,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
       .credentials(mockCredentials)
       .build()
 
-    credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
+    credentialsRepository.save(namedAccountCredentials)
 
     gitCredentials = new AppengineGitCredentials(
       httpsUsernamePasswordCredentialsProvider: Mock(UsernamePasswordCredentialsProvider)
@@ -141,13 +141,13 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
-      validator.validateCredentials(null, accountCredentialsProvider)
+      validator.validateCredentials(null, credentialsRepository)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.empty")
       0 * errorsMock._
 
     when:
-      validator.validateCredentials("", accountCredentialsProvider)
+      validator.validateCredentials("", credentialsRepository)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.empty")
       0 * errorsMock._
@@ -159,7 +159,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
-      validator.validateCredentials("You-don't-know-me", accountCredentialsProvider)
+      validator.validateCredentials("You-don't-know-me", credentialsRepository)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.notFound")
       0 * errorsMock._
@@ -171,7 +171,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
-      validator.validateCredentials(ACCOUNT_NAME, accountCredentialsProvider)
+      validator.validateCredentials(ACCOUNT_NAME, credentialsRepository)
     then:
       0 * errorsMock._
   }

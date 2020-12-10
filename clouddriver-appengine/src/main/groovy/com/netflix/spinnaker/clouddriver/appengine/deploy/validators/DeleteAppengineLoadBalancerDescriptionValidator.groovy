@@ -18,10 +18,11 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeleteAppengineLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -29,13 +30,13 @@ import org.springframework.stereotype.Component
 @Component("deleteAppengineLoadBalancerDescriptionValidator")
 class DeleteAppengineLoadBalancerDescriptionValidator extends DescriptionValidator<DeleteAppengineLoadBalancerDescription> {
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository
 
   @Override
   void validate(List priorDescriptions, DeleteAppengineLoadBalancerDescription description, ValidationErrors errors) {
     def helper = new StandardAppengineAttributeValidator("deleteAppengineLoadBalancerAtomicOperationDescription", errors)
 
-    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateCredentials(description.accountName, credentialsRepository)
     helper.validateNotEmpty(description.loadBalancerName, "loadBalancerName")
     helper.validateLoadBalancerCanBeDeleted(description.loadBalancerName, "loadBalancerName")
   }

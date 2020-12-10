@@ -22,8 +22,8 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineInstan
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -50,7 +50,8 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
   void setupSpec() {
     validator = new TerminateAppengineInstancesDescriptionValidator()
 
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
+    def credentialsRepo = new MapBackedCredentialsRepository(AppengineNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
     def mockCredentials = Mock(AppengineCredentials)
     credentials = new AppengineNamedAccountCredentials.Builder()
       .name(ACCOUNT_NAME)
@@ -58,9 +59,9 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
       .applicationName(APPLICATION_NAME)
       .credentials(mockCredentials)
       .build()
-    credentialsRepo.save(ACCOUNT_NAME, credentials)
+    credentialsRepo.save(credentials)
 
-    validator.accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    validator.credentialsRepository = credentialsRepo
     validator.appengineInstanceProvider = Mock(AppengineInstanceProvider)
 
     validator.appengineInstanceProvider.getInstance(ACCOUNT_NAME, REGION, "instance-1") >> INSTANCE

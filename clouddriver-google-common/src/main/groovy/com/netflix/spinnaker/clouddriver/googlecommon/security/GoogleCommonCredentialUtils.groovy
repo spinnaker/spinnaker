@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.googlecommon.security
 
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.auth.oauth2.GoogleCredentials
 import groovy.transform.CompileStatic
 

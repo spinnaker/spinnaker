@@ -25,8 +25,9 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineLoadBa
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -45,10 +46,11 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
   AppengineNamedAccountCredentials credentials
 
   @Shared
-  DefaultAccountCredentialsProvider accountCredentialsProvider
+  CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository
 
   void setupSpec() {
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
+    credentialsRepository = new MapBackedCredentialsRepository(AppengineNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
     def mockCredentials = Mock(AppengineCredentials)
     credentials = new AppengineNamedAccountCredentials.Builder()
       .name(ACCOUNT_NAME)
@@ -56,14 +58,13 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
       .applicationName(APPLICATION_NAME)
       .credentials(mockCredentials)
       .build()
-    credentialsRepo.save(ACCOUNT_NAME, credentials)
-    accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    credentialsRepository.save(credentials)
   }
 
   void "passes validation if server group to be disabled does not have allocation of 1"() {
     setup:
       def validator = new DisableAppengineDescriptionValidator()
-      validator.accountCredentialsProvider = accountCredentialsProvider
+      validator.credentialsRepository = credentialsRepository
       validator.appengineLoadBalancerProvider = Mock(AppengineLoadBalancerProvider)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
 
@@ -92,7 +93,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
   void "fails validation if server group to be disabled has allocation of 1"() {
     setup:
       def validator = new DisableAppengineDescriptionValidator()
-      validator.accountCredentialsProvider = accountCredentialsProvider
+      validator.credentialsRepository = credentialsRepository
       validator.appengineLoadBalancerProvider = Mock(AppengineLoadBalancerProvider)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
 
@@ -124,7 +125,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
   void "fails validation if server group cannot be found"() {
     setup:
       def validator = new DisableAppengineDescriptionValidator()
-      validator.accountCredentialsProvider = accountCredentialsProvider
+      validator.credentialsRepository = credentialsRepository
       validator.appengineLoadBalancerProvider = Mock(AppengineLoadBalancerProvider)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
 
@@ -150,7 +151,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
   void "fails validation if parent load balancer cannot be found"() {
     setup:
       def validator = new DisableAppengineDescriptionValidator()
-      validator.accountCredentialsProvider = accountCredentialsProvider
+      validator.credentialsRepository = credentialsRepository
       validator.appengineLoadBalancerProvider = Mock(AppengineLoadBalancerProvider)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
 

@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeleteAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.DeleteAppengineLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -29,17 +28,14 @@ class DeleteAppengineLoadBalancerAtomicOperationConverterSpec extends Specificat
   private static final LOAD_BALANCER_NAME = "mobile"
 
   @Shared
-  ObjectMapper mapper = new ObjectMapper()
-
-  @Shared
   DeleteAppengineLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    converter = new DeleteAppengineLoadBalancerAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    converter = new DeleteAppengineLoadBalancerAtomicOperationConverter()
+    def credentialsRepository = Mock(CredentialsRepository)
     def mockCredentials = Mock(AppengineNamedAccountCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    credentialsRepository.getOne(_) >> mockCredentials
+    converter.credentialsRepository = credentialsRepository
   }
 
   void "deleteAppengineLoadBalancerDescription type returns DeleteAppengineLoadBalancerDescription and DeleteAppengineLoadBalancerAtomicOperation"() {

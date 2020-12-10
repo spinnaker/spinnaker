@@ -20,8 +20,8 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyApp
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -37,7 +37,6 @@ class DestroyAppengineDescriptionValidatorSpec extends Specification {
   void setupSpec() {
     validator = new DestroyAppengineDescriptionValidator()
 
-    def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def mockCredentials = Mock(AppengineCredentials)
     def namedAccountCredentials = new AppengineNamedAccountCredentials.Builder()
       .name(ACCOUNT_NAME)
@@ -45,9 +44,12 @@ class DestroyAppengineDescriptionValidatorSpec extends Specification {
       .applicationName(APPLICATION_NAME)
       .credentials(mockCredentials)
       .build()
-    credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
 
-    validator.accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    def credentialsRepo = new MapBackedCredentialsRepository<>(AppengineNamedAccountCredentials.CREDENTIALS_TYPE,
+      new NoopCredentialsLifecycleHandler<>())
+    credentialsRepo.save(namedAccountCredentials)
+    validator.credentialsRepository = credentialsRepo
+
   }
 
   void "pass validation with proper description inputs"() {
