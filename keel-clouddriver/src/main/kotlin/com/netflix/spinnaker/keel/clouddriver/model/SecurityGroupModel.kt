@@ -41,7 +41,8 @@ data class SecurityGroupModel(
   )
 
   data class SecurityGroupRuleReference(
-    val name: String,
+    val id: String?,
+    val name: String?,
     val accountName: String?,
     val region: String?,
     val vpcId: String?

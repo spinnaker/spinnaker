@@ -276,21 +276,21 @@ class SecurityGroupHandler(
         val ingressRange = rule.range
         val protocol = rule.protocol!!.clouddriverProtocolToKeel()
         when {
-          ingressGroup != null ->
+          ingressGroup?.name != null ->
             rule.portRanges
               ?.map { it.toPortRange() }
               ?.map { portRange ->
                 when {
                   ingressGroup.accountName != accountName || ingressGroup.vpcId != vpcId -> CrossAccountReferenceRule(
                     protocol,
-                    ingressGroup.name,
+                    ingressGroup.name!!,
                     ingressGroup.accountName!!,
                     cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
                     portRange
                   )
                   else -> ReferenceRule(
                     protocol,
-                    ingressGroup.name,
+                    ingressGroup.name!!,
                     portRange
                   )
                 }
@@ -305,6 +305,15 @@ class SecurityGroupHandler(
                   ingressRange.ip + ingressRange.cidr
                 )
               } ?: emptyList()
+          ingressGroup != null && ingressGroup.name == null -> {
+            /**
+             * Due to edge cases in AWS, it is possible for an inbound rule to reference a security group
+             * that no longer exists. When this happens, the clouddriver response won't have a [name]
+             * field. We silently ignore an inbound rule with a dangling ref, since it has no effect.
+             */
+            log.warn("security group $name ($accountName, $region) has inbound rule that references non-existent security group ${ingressGroup.id} (${ingressGroup.accountName}, ${ingressGroup.region}, ${ingressGroup.vpcId})")
+            emptyList()
+          }
           else -> emptyList()
         }
       }
