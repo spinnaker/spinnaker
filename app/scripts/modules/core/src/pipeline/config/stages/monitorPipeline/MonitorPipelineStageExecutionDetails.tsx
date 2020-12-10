@@ -47,7 +47,7 @@ export function MonitorPipelineStageExecutionDetails(props: IExecutionDetailsSec
           {statuses.map((status) => {
             return (
               <div key={status.executionId}>
-                <span className={'label label-default label-' + status.status.toLowerCase()}>{status.status}</span>
+                <span className={'label label-default label-' + status.status.toLowerCase()}>{status.status}</span>{' '}
                 <UISref
                   key={status.executionId}
                   to="home.applications.application.pipelines.executionDetails.execution"
@@ -58,9 +58,7 @@ export function MonitorPipelineStageExecutionDetails(props: IExecutionDetailsSec
                   }}
                   options={{ inherit: false, reload: 'home.applications.application.pipelines.executionDetails' }}
                 >
-                  <span>
-                    &nbsp;<a target="_self">{status.executionId}</a>
-                  </span>
+                  <a>{status.executionId}</a>
                 </UISref>{' '}
                 ({status.application})
                 {status.failureMessage && <StageFailureMessage stage={stage} message={status.failureMessage} />}
