@@ -16,14 +16,20 @@ export interface IMetricResultStatsStateProps {
 }
 
 const buildAtlasGraphUrl = (metricSetPair: IMetricSetPair) => {
-  const { attributes, scopes, values } = metricSetPair;
+  const { attributes, scopes, values, tags } = metricSetPair;
   const { atlasGraphBaseUrl } = CanarySettings;
+  let legendTags = '';
+  if (Object.keys(tags).length) {
+    legendTags = ` (${Object.keys(tags)
+      .map((tag) => `$${tag}`)
+      .join('|')})`;
+  }
 
   // TODO: If the control and experiment have different baseURLs, generate two links instead of a combined one.
   const backend = encodeURIComponent(attributes.control.baseURL);
   const experimentQuery = encodeURIComponent(attributes.experiment.query);
   const controlQuery = encodeURIComponent(attributes.control.query);
-  const query = `${experimentQuery},Canary,:legend,:freeze,${controlQuery},Baseline,:legend`;
+  const query = `${experimentQuery},Canary${legendTags},:legend,:freeze,${controlQuery},Baseline${legendTags},:legend`;
 
   const startTime = Math.min(scopes.control.startTimeMillis, scopes.experiment.startTimeMillis);
   const controlEndTime = scopes.control.startTimeMillis + values.control.length * scopes.control.stepMillis;
