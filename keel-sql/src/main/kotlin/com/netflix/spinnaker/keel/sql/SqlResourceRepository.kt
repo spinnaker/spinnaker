@@ -160,7 +160,7 @@ open class SqlResourceRepository(
       jooq
         .select(EVENT.JSON)
         .from(EVENT)
-        .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
+        .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
         .and(EVENT.REF.eq(application))
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -176,7 +176,7 @@ open class SqlResourceRepository(
       jooq
         .select(EVENT.JSON)
         .from(EVENT)
-        .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
+        .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
         .and(EVENT.REF.eq(application))
         .and(EVENT.TIMESTAMP.greaterOrEqual(after))
         .orderBy(EVENT.TIMESTAMP.desc())
@@ -198,12 +198,12 @@ open class SqlResourceRepository(
         .from(EVENT)
         // look for resource events that match the resource...
         .where(
-          EVENT.SCOPE.eq(EventScope.RESOURCE.name)
+          EVENT.SCOPE.eq(EventScope.RESOURCE)
             .and(EVENT.REF.eq(resource.uid))
         )
         // ...or application events that match the application as they apply to all resources
         .or(
-          EVENT.SCOPE.eq(EventScope.APPLICATION.name)
+          EVENT.SCOPE.eq(EventScope.APPLICATION)
             .and(EVENT.APPLICATION.eq(resource.application))
         )
         .orderBy(EVENT.TIMESTAMP.desc())
@@ -239,12 +239,12 @@ open class SqlResourceRepository(
           .from(EVENT)
           // look for resource events that match the resource...
           .where(
-            EVENT.SCOPE.eq(EventScope.RESOURCE.name)
+            EVENT.SCOPE.eq(EventScope.RESOURCE)
               .and(EVENT.REF.eq(ref))
           )
           // ...or application events that match the application as they apply to all resources
           .or(
-            EVENT.SCOPE.eq(EventScope.APPLICATION.name)
+            EVENT.SCOPE.eq(EventScope.APPLICATION)
               .and(EVENT.APPLICATION.eq(event.application))
           )
           .orderBy(EVENT.TIMESTAMP.desc())
@@ -260,7 +260,7 @@ open class SqlResourceRepository(
       txn
         .insertInto(EVENT)
         .set(EVENT.UID, ULID().nextULID(event.timestamp.toEpochMilli()))
-        .set(EVENT.SCOPE, event.scope.name)
+        .set(EVENT.SCOPE, event.scope)
         .set(EVENT.REF, ref)
         .set(EVENT.TIMESTAMP, event.timestamp)
         .set(EVENT.JSON, objectMapper.writeValueAsString(event))
@@ -285,7 +285,7 @@ open class SqlResourceRepository(
     }
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(EVENT)
-        .where(EVENT.SCOPE.eq(EventScope.RESOURCE.name))
+        .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
         .and(EVENT.REF.eq(uid.toString()))
         .execute()
     }
@@ -296,7 +296,7 @@ open class SqlResourceRepository(
     }
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(PAUSED)
-        .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE.name))
+        .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
         .and(PAUSED.NAME.eq(id))
         .execute()
     }

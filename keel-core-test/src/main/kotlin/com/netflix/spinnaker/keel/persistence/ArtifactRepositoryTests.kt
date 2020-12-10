@@ -50,7 +50,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -1102,30 +1101,30 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
 
       test ("no vertsions for version which is not persisted") {
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS.name))
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS))
           .isNull()
       }
 
       test ("get artifact versions for deploying status") {
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT.name)?.gitMetadata)
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT)?.gitMetadata)
           .isEqualTo(artifactMetadata.gitMetadata)
         }
 
       test ("get a single results (and newest) data per status") {
         subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version2, testEnvironment.name)
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT.name)?.gitMetadata)
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.CURRENT)?.gitMetadata)
           .get { this?.commit }.isEqualTo("12345")
       }
 
       test ("get artifact version by promotion status and the version it replaced") {
         subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version2, testEnvironment.name)
-        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS.name, version2))
+        expectThat(subject.getArtifactVersionByPromotionStatus(manifest,testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS, version2))
           .get { this?.version }.isEqualTo("keeldemo-0.0.1~dev.8-h8.41595c4")
       }
 
       test ("unsupported promotion status throws exception") {
         expectThrows<IllegalArgumentException> {
-          subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.DEPLOYING.name)
+          subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.DEPLOYING)
         }
       }
     }

@@ -235,7 +235,7 @@ class SqlArtifactRepository(
           .set(ARTIFACT_VERSIONS.NAME, name)
           .set(ARTIFACT_VERSIONS.TYPE, type)
           .set(ARTIFACT_VERSIONS.VERSION, version)
-          .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
+          .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status)
           .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt)
           .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata?.let { objectMapper.writeValueAsString(it) })
           .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata?.let { objectMapper.writeValueAsString(it) })
@@ -261,13 +261,13 @@ class SqlArtifactRepository(
         .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
         .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
         .and(ARTIFACT_VERSIONS.VERSION.eq(version))
-        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
+        .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status)) }
         .fetchOne { (name, type, version, status, createdAt, gitMetadata, buildMetadata) ->
           PublishedArtifact(
             name = name,
             type = type,
             version = version,
-            status = status?.let { ArtifactStatus.valueOf(it) },
+            status = status,
             createdAt = createdAt,
             gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
             buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
@@ -290,7 +290,7 @@ class SqlArtifactRepository(
             ARTIFACT_VERSIONS.NAME.eq(name),
             ARTIFACT_VERSIONS.TYPE.eq(type),
             ARTIFACT_VERSIONS.VERSION.eq(version).or(ARTIFACT_VERSIONS.VERSION.eq("$name-$version")))
-          .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
+          .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status)) }
           .execute()
       }
     }
@@ -306,8 +306,6 @@ class SqlArtifactRepository(
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
           .and(ARTIFACT_VERSIONS.VERSION.eq(version))
           .fetchOne(ARTIFACT_VERSIONS.RELEASE_STATUS)
-      }?.let {
-        ArtifactStatus.valueOf(it)
       }
     } else {
       throw NoSuchArtifactException(artifact)
@@ -353,7 +351,7 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.isNotNull)
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
         .limit(20)
         .fetchArtifactVersions()
@@ -375,7 +373,7 @@ class SqlArtifactRepository(
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, clock.instant())
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED)
         .onDuplicateKeyIgnore()
         .execute()
     } > 0
@@ -395,7 +393,7 @@ class SqlArtifactRepository(
           ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED))
         )
     }
   }
@@ -415,7 +413,7 @@ class SqlArtifactRepository(
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.`in`(listOf(CURRENT.name, PREVIOUS.name)))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.`in`(listOf(CURRENT, PREVIOUS)))
         )
     }
   }
@@ -435,7 +433,7 @@ class SqlArtifactRepository(
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
         )
     }
   }
@@ -456,18 +454,18 @@ class SqlArtifactRepository(
           .from(ENVIRONMENT_ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
           .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
         if (stuckVersions.isNotEmpty()) {
           log.error("Stuck deploying versions ${stuckVersions.joinToString()} for artifact '${artifact.reference}' in delivery config ${deliveryConfig.name} found when deploying version $version")
           txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
-            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, now)
             .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING.name))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING))
             .execute()
         }
 
@@ -476,9 +474,9 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING)
           .onDuplicateKeyUpdate()
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING)
           .execute()
       }
     }
@@ -505,10 +503,10 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT)
           .onDuplicateKeyUpdate()
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, clock.instant())
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT)
           .execute()
 
         log.debug("markAsSuccessfullyDeployedTo: # of records marked CURRENT: $currentUpdates. name: ${artifact.name}. version: $version. env: $targetEnvironment")
@@ -516,12 +514,12 @@ class SqlArtifactRepository(
         // update old "CURRENT" to "PREVIOUS
         val previousUpdates = txn
           .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
           .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
           .execute()
 
@@ -540,7 +538,7 @@ class SqlArtifactRepository(
           .from(ENVIRONMENT_ARTIFACT_VERSIONS, DELIVERY_ARTIFACT, ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED))
           .and(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
           .and(ARTIFACT_VERSIONS.NAME.eq(DELIVERY_ARTIFACT.NAME))
           .and(ARTIFACT_VERSIONS.TYPE.eq(DELIVERY_ARTIFACT.TYPE))
@@ -558,12 +556,12 @@ class SqlArtifactRepository(
         if (approvedButOld.isNotEmpty()) {
           val skippedUpdates = txn
             .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
             .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
             .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(*approvedButOld))
             .execute()
 
@@ -591,7 +589,7 @@ class SqlArtifactRepository(
       .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
       .where(
         ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid),
-        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(VETOED.name)
+        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(VETOED)
       )
       .fetch { (envName, artifactId, version) ->
         if (artifactsById.containsKey(artifactId)) {
@@ -755,10 +753,10 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, envUid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artUid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, veto.version)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
       .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
       .execute()
   }
@@ -853,7 +851,7 @@ class SqlArtifactRepository(
         val txn = DSL.using(config)
 
         txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED)
           .setNull(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
           .where(
             ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
@@ -897,11 +895,11 @@ class SqlArtifactRepository(
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
         .onDuplicateKeyUpdate()
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
         .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, clock.instant())
         .execute()
@@ -944,7 +942,7 @@ class SqlArtifactRepository(
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
           .apply {
             if (artifact.statuses.isNotEmpty()) {
-              and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray()))
+              and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray()))
             }
           }
 
@@ -957,7 +955,7 @@ class SqlArtifactRepository(
             ARTIFACT_VERSIONS.CREATED_AT,
             ARTIFACT_VERSIONS.GIT_METADATA,
             ARTIFACT_VERSIONS.BUILD_METADATA,
-            DSL.`val`(PENDING.name)
+            DSL.`val`(PENDING)
           )
           .from(
             ARTIFACT_VERSIONS,
@@ -974,7 +972,7 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT.NAME.eq(environment.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
-          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
+          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray())) }
           .andNotExists(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -991,11 +989,11 @@ class SqlArtifactRepository(
                 name = name,
                 type = type,
                 version = version,
-                status = status?.let { ArtifactStatus.valueOf(it) },
+                status = status,
                 createdAt = createdAt,
                 gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
                 buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
-              ) to PromotionStatus.valueOf(promotionStatus)
+              ) to promotionStatus
             }
         }
           .filter { (artifactVersion, _) ->
@@ -1180,11 +1178,11 @@ class SqlArtifactRepository(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     artifact: DeliveryArtifact,
-    promotionStatus: String,
+    promotionStatus: PromotionStatus,
     version: String?
   ): PublishedArtifact? {
     //only CURRENT and PREVIOUS are supported, as they can be sorted by deploy_at
-    require(promotionStatus in listOf(CURRENT.name, PREVIOUS.name)) { "Invalid promotion status used to query" }
+    require(promotionStatus in listOf(CURRENT, PREVIOUS)) { "Invalid promotion status used to query" }
 
     return sqlRetry.withRetry(READ) {
       val fetchedVersion = jooq
@@ -1259,7 +1257,7 @@ class SqlArtifactRepository(
           ArtifactSummaryInEnvironment(
             environment = environmentName,
             version = version,
-            state = promotionStatus.toLowerCase(),
+            state = promotionStatus.name.toLowerCase(),
             deployedAt = deployedAt,
             replacedAt = replacedAt,
             replacedBy = replacedBy,
@@ -1284,7 +1282,6 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
         .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS)
-        ?.let { PromotionStatus.valueOf(it) }
     }
   }
 
@@ -1331,7 +1328,7 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(currentVersion))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
         .limit(1)
         .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)

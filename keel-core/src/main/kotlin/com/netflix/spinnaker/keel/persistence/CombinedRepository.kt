@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.normalize
@@ -408,7 +409,7 @@ class CombinedRepository(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
     artifact: DeliveryArtifact,
-    promotionStatus: String,
+    promotionStatus: PromotionStatus,
     version: String?
   ) = artifactRepository.getArtifactVersionByPromotionStatus(
     deliveryConfig, environmentName, artifact, promotionStatus, version

@@ -74,8 +74,8 @@ fun mapToArtifact(
   }
 }
 
-typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, String, Instant, String, String>>
-typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, String, Instant, String, String>>
+typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, ArtifactStatus, Instant, String, String>>
+typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, ArtifactStatus, Instant, String, String>>
 
 /**
  * Encapsulates the fetching of a row from the ARTIFACT_VERSIONS table into a [PublishedArtifact].
@@ -86,7 +86,7 @@ internal fun ArtifactVersionRow.fetchArtifactVersions() =
       name = name,
       type = type,
       version = version,
-      status = status?.let { ArtifactStatus.valueOf(it) },
+      status = status,
       createdAt = createdAt,
       gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
       buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
@@ -141,7 +141,7 @@ private fun ArtifactVersionSelectStep.fetchArtifactVersionsSortedWithComparator(
   limit: Int? = null
 ): List<PublishedArtifact> {
   if (artifact.statuses.isNotEmpty()) {
-    and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray()))
+    and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray()))
   }
 
   // fallback for when we can't delegate sorting and limiting to the database

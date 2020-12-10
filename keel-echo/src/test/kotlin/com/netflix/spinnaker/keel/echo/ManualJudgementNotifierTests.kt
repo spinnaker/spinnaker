@@ -291,7 +291,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         context("more artifact in an environment") {
           before {
             every {
-              repository.getArtifactVersionByPromotionStatus(any(), any(), artifact, PromotionStatus.CURRENT.name)
+              repository.getArtifactVersionByPromotionStatus(any(), any(), artifact, PromotionStatus.CURRENT)
             } returns PublishedArtifact(
               name = "mypkg",
               type = DEBIAN,

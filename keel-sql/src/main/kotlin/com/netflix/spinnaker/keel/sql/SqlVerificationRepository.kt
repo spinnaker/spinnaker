@@ -75,12 +75,12 @@ class SqlVerificationRepository(
             selectOne()
               .from(PAUSED)
               .where(PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION))
-              .and(PAUSED.SCOPE.eq(APPLICATION.name))
+              .and(PAUSED.SCOPE.eq(APPLICATION))
           )
           // join currently deployed artifact version
           .join(ENVIRONMENT_ARTIFACT_VERSIONS)
           .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
           // join artifact
           .join(DELIVERY_ARTIFACT)
           .on(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
@@ -144,14 +144,14 @@ class SqlVerificationRepository(
     with(context) {
       jooq
         .insertInto(VERIFICATION_STATE)
-        .set(VERIFICATION_STATE.STATUS, status.name)
+        .set(VERIFICATION_STATE.STATUS, status)
         .set(status.timestampColumn, currentTimestamp())
         .set(VERIFICATION_STATE.ENVIRONMENT_UID, environmentUid)
         .set(VERIFICATION_STATE.ARTIFACT_UID, artifact.uid)
         .set(VERIFICATION_STATE.ARTIFACT_VERSION, version)
         .set(VERIFICATION_STATE.VERIFICATION_ID, verification.id)
         .onDuplicateKeyUpdate()
-        .set(VERIFICATION_STATE.STATUS, status.name)
+        .set(VERIFICATION_STATE.STATUS, status)
         .set(status.timestampColumn, currentTimestamp())
         .execute()
     }

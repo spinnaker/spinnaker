@@ -42,7 +42,6 @@ import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
-import com.netflix.spinnaker.keel.exceptions.UnsupportedScmType
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -265,7 +264,7 @@ class ApplicationService(
 
     return when (status) {
       PENDING -> {
-        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT)
         ArtifactSummaryInEnvironment(
           environment = environmentName,
           version = version,
@@ -287,7 +286,7 @@ class ApplicationService(
       }
 
       DEPLOYING, APPROVED -> {
-        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT.name)
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, CURRENT)
         potentialSummary?.copy(
           // comparing DEPLOYING/APPROVED (version in question, new code) vs. CURRENT (old code)
           compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
@@ -302,7 +301,7 @@ class ApplicationService(
         )
       }
       CURRENT -> {
-        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name)
+        val olderArtifactVersion = pinnedArtifact?: repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS)
         potentialSummary?.copy(
           // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
           compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
@@ -320,7 +319,7 @@ class ApplicationService(
      return if (pinnedVersion != version)
       pinnedVersion?.let { getArtifactInstance(artifact, it) }
     else { //if pinnedVersion == current version, fetch the version which that the pinned version replaced
-       repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS.name, pinnedVersion)
+       repository.getArtifactVersionByPromotionStatus(deliveryConfig, environmentName, artifact, PREVIOUS, pinnedVersion)
      }
   }
 

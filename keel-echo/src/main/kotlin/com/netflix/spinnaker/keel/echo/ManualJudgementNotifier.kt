@@ -17,9 +17,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
-import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
-import java.lang.Exception
 
 @Component
 @Configuration
@@ -72,7 +70,7 @@ class ManualJudgementNotifier(
     val currentDeployableArtifact = repository.getArtifactVersion(artifact, currentState.artifactVersion, null)
     val gitMetadata = currentDeployableArtifact
       ?.gitMetadata
-    val currentArtifactInEnvironment = repository.getArtifactVersionByPromotionStatus(deliveryConfig, currentState.environmentName , artifact, PromotionStatus.CURRENT.name)
+    val currentArtifactInEnvironment = repository.getArtifactVersionByPromotionStatus(deliveryConfig, currentState.environmentName , artifact, PromotionStatus.CURRENT)
 
     var details = ""
 

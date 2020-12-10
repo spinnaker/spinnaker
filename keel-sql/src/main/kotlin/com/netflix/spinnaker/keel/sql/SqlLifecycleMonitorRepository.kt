@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.lifecycle.StartMonitoringEvent
@@ -49,7 +48,7 @@ class SqlLifecycleMonitorRepository(
         .map { (uid, type, link, numFailures, triggeringEventUid ) ->
           try {
             MonitoredTask(
-              type = LifecycleEventType.valueOf(type),
+              type = type,
               triggeringEvent = fetchEvent(triggeringEventUid),
               numFailures = numFailures,
               link = link,
@@ -82,7 +81,7 @@ class SqlLifecycleMonitorRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.UID, ULID().nextULID(clock.millis()))
-        .set(LIFECYCLE_MONITOR.TYPE, event.triggeringEvent.type.name)
+        .set(LIFECYCLE_MONITOR.TYPE, event.triggeringEvent.type)
         .set(LIFECYCLE_MONITOR.LINK, event.triggeringEvent.link)
         .set(LIFECYCLE_MONITOR.LAST_CHECKED, Instant.EPOCH.plusSeconds(1))
         .set(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID, event.triggeringEventUid)
@@ -93,7 +92,7 @@ class SqlLifecycleMonitorRepository(
   override fun delete(task: MonitoredTask) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(LIFECYCLE_MONITOR)
-        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
+        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type))
         .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }
@@ -103,7 +102,7 @@ class SqlLifecycleMonitorRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.update(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.NUM_FAILURES,LIFECYCLE_MONITOR.NUM_FAILURES.plus(1))
-        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
+        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type))
         .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }
@@ -113,7 +112,7 @@ class SqlLifecycleMonitorRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.update(LIFECYCLE_MONITOR)
         .set(LIFECYCLE_MONITOR.NUM_FAILURES, 0)
-        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type.name))
+        .where(LIFECYCLE_MONITOR.TYPE.eq(task.type))
         .and(LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID.eq(task.triggeringEventUid))
         .execute()
     }

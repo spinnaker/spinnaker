@@ -242,7 +242,7 @@ class ComparableLinksTests : JUnit5Minutests {
         }
 
         every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS.name, any())
+            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS, any())
           } answers {
             PublishedArtifact(
               name = arg<DeliveryArtifact>(2).name,
@@ -254,7 +254,7 @@ class ComparableLinksTests : JUnit5Minutests {
           }
 
         every {
-          repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.CURRENT.name)
+          repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.CURRENT)
         } answers {
           PublishedArtifact(
             name = arg<DeliveryArtifact>(2).name,
@@ -320,7 +320,7 @@ class ComparableLinksTests : JUnit5Minutests {
           } returns version3
 
           every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS.name, version0)
+            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS, version0)
           } answers {
             PublishedArtifact(
               name = arg<DeliveryArtifact>(2).name,

@@ -19,9 +19,9 @@ class SqlNotificationRepository(
     sqlRetry.withRetry(READ) {
       jooq.select(NOTIFICATION.NOTIFY_AT)
         .from(NOTIFICATION)
-        .where(NOTIFICATION.SCOPE.eq(scope.name))
+        .where(NOTIFICATION.SCOPE.eq(scope))
         .and(NOTIFICATION.REF.eq(ref))
-        .and(NOTIFICATION.TYPE.eq(type.name))
+        .and(NOTIFICATION.TYPE.eq(type))
         .fetchOne(NOTIFICATION.NOTIFY_AT)
     }?.let { notificationTime ->
       // if record exists already, return whether or not to notify
@@ -30,9 +30,9 @@ class SqlNotificationRepository(
 
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(NOTIFICATION)
-        .set(NOTIFICATION.SCOPE, scope.name)
+        .set(NOTIFICATION.SCOPE, scope)
         .set(NOTIFICATION.REF, ref)
-        .set(NOTIFICATION.TYPE, type.name)
+        .set(NOTIFICATION.TYPE, type)
         .set(NOTIFICATION.TIME_DETECTED, clock.millis())
         .set(NOTIFICATION.NOTIFY_AT, clock.millis())
         .onDuplicateKeyIgnore()
@@ -44,9 +44,9 @@ class SqlNotificationRepository(
   override fun clearNotification(scope: NotificationScope, ref: String, type: NotificationType) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(NOTIFICATION)
-        .where(NOTIFICATION.SCOPE.eq(scope.name))
+        .where(NOTIFICATION.SCOPE.eq(scope))
         .and(NOTIFICATION.REF.eq(ref))
-        .and(NOTIFICATION.TYPE.eq(type.name))
+        .and(NOTIFICATION.TYPE.eq(type))
         .execute()
     }
   }
@@ -55,9 +55,9 @@ class SqlNotificationRepository(
     sqlRetry.withRetry(READ) {
       jooq.select(NOTIFICATION.NOTIFY_AT)
         .from(NOTIFICATION)
-        .where(NOTIFICATION.SCOPE.eq(scope.name))
+        .where(NOTIFICATION.SCOPE.eq(scope))
         .and(NOTIFICATION.REF.eq(ref))
-        .and(NOTIFICATION.TYPE.eq(type.name))
+        .and(NOTIFICATION.TYPE.eq(type))
         .fetchOne(NOTIFICATION.NOTIFY_AT)
     }?.let { notificationTime ->
       return notificationTime < clock.millis()
@@ -72,9 +72,9 @@ class SqlNotificationRepository(
       jooq.update(NOTIFICATION)
         .set(NOTIFICATION.NOTIFY_AT, clock.millis().plus(waitingMillis))
         .where(
-          NOTIFICATION.SCOPE.eq(scope.name),
+          NOTIFICATION.SCOPE.eq(scope),
           NOTIFICATION.REF.eq(ref),
-          NOTIFICATION.TYPE.eq(type.name)
+          NOTIFICATION.TYPE.eq(type)
         )
         .execute()
     }

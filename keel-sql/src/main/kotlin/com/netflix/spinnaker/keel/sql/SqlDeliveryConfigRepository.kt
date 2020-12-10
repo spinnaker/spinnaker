@@ -159,20 +159,20 @@ class SqlDeliveryConfigRepository(
         val txn = DSL.using(config)
         // delete events
         txn.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.RESOURCE.name))
+          .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
           .and(EVENT.REF.`in`(resourceUids))
           .execute()
         txn.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.APPLICATION.name))
+          .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
           .and(EVENT.REF.eq(application))
           .execute()
         // delete pause records
         txn.deleteFrom(PAUSED)
-          .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE.name))
+          .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
           .and(PAUSED.NAME.`in`(resourceIds))
           .execute()
         txn.deleteFrom(PAUSED)
-          .where(PAUSED.SCOPE.eq(PauseScope.APPLICATION.name))
+          .where(PAUSED.SCOPE.eq(PauseScope.APPLICATION))
           .and(PAUSED.NAME.eq(application))
           .execute()
         // delete resources
@@ -398,7 +398,7 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE, state.type)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status.toString())
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
@@ -534,7 +534,7 @@ class SqlDeliveryConfigRepository(
             artifactVersion,
             artifactReference,
             constraintType,
-            ConstraintStatus.valueOf(status),
+            status,
             createdAt,
             judgedBy,
             judgedAt,
@@ -584,7 +584,7 @@ class SqlDeliveryConfigRepository(
             artifactVersion,
             artifactReference,
             constraintType,
-            ConstraintStatus.valueOf(status),
+            status,
             createdAt,
             judgedBy,
             judgedAt,
@@ -702,7 +702,7 @@ class SqlDeliveryConfigRepository(
           artifactVersion,
           artifactReference,
           type,
-          ConstraintStatus.valueOf(status),
+          status,
           createdAt,
           judgedBy,
           judgedAt,
@@ -767,7 +767,7 @@ class SqlDeliveryConfigRepository(
             artifactVersion,
             artifactReference,
             constraintType,
-            ConstraintStatus.valueOf(status),
+            status,
             createdAt,
             judgedBy,
             judgedAt,
@@ -834,7 +834,7 @@ class SqlDeliveryConfigRepository(
             artifactVersion,
             artifactReference,
             constraintType,
-            ConstraintStatus.valueOf(status),
+            status,
             createdAt,
             judgedBy,
             judgedAt,
@@ -867,7 +867,7 @@ class SqlDeliveryConfigRepository(
         .from(ENVIRONMENT_ARTIFACT_CONSTRAINT, ARTIFACT_VERSIONS)
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
-          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(ConstraintStatus.PENDING.toString())
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(ConstraintStatus.PENDING)
         )
         .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
         .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
@@ -977,7 +977,7 @@ class SqlDeliveryConfigRepository(
             selectOne()
               .from(PAUSED)
               .where(PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION))
-              .and(PAUSED.SCOPE.eq(APPLICATION.name))
+              .and(PAUSED.SCOPE.eq(APPLICATION))
           )
           .orderBy(DELIVERY_CONFIG_LAST_CHECKED.AT)
           .limit(limit)
@@ -1081,7 +1081,7 @@ class SqlDeliveryConfigRepository(
         )
         .from(DELIVERY_CONFIG)
         .leftOuterJoin(PAUSED).on(
-          PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION.toString()))
+          PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION))
         )
         .fetch { (name, application, serviceAccount, apiVersion, paused) ->
           ApplicationSummary(
