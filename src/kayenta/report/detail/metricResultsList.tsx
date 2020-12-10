@@ -10,6 +10,8 @@ import { metricResultsColumns } from './metricResultsColumns';
 import MultipleResultsTable from './multipleResultsTable';
 
 import './metricResultsList.less';
+import { MetricClassificationLabel } from '../../domain';
+import MetricFilters from './metricResultsClassificationFilters';
 
 export interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];
@@ -21,6 +23,7 @@ interface IResultsListDispatchProps {
 
 interface IResultsListStateProps {
   selectedMetric: string;
+  metricFilters: MetricClassificationLabel[];
 }
 
 export interface IMetricResultsTableRow {
@@ -28,14 +31,19 @@ export interface IMetricResultsTableRow {
   results: ICanaryAnalysisResult[];
 }
 
-const buildTableRows = (results: ICanaryAnalysisResult[]): IMetricResultsTableRow[] => {
-  const tableRowsByMetricName = results.reduce(
-    (map, result) =>
-      map.has(result.name)
-        ? map.set(result.name, { metricName: result.name, results: map.get(result.name).results.concat(result) })
-        : map.set(result.name, { metricName: result.name, results: [result] }),
-    new Map<string, IMetricResultsTableRow>(),
-  );
+const buildTableRows = (
+  results: ICanaryAnalysisResult[],
+  metricFilters: MetricClassificationLabel[],
+): IMetricResultsTableRow[] => {
+  const tableRowsByMetricName = results
+    .filter((result) => !metricFilters.length || metricFilters.includes(result.classification))
+    .reduce(
+      (map, result) =>
+        map.has(result.name)
+          ? map.set(result.name, { metricName: result.name, results: map.get(result.name).results.concat(result) })
+          : map.set(result.name, { metricName: result.name, results: [result] }),
+      new Map<string, IMetricResultsTableRow>(),
+    );
 
   return Array.from(tableRowsByMetricName.values());
 };
@@ -59,10 +67,12 @@ const ResultsList = ({
   results,
   select,
   selectedMetric,
+  metricFilters,
 }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => {
-  const rows = buildTableRows(results);
+  const rows = buildTableRows(results, metricFilters);
   return (
     <section className="vertical metric-results-list flex-1">
+      <MetricFilters results={results} />
       <Table
         rowKey={(r) => r.metricName}
         tableBodyClassName="list-unstyled tabs-vertical flex-1 sp-padding-xl-bottom"
@@ -79,6 +89,7 @@ const ResultsList = ({
 
 const mapStateToProps = (state: ICanaryState): IResultsListStateProps => ({
   selectedMetric: state.selectedRun.selectedMetric,
+  metricFilters: state.selectedRun.metricFilters,
 });
 
 const mapDispatchToProps = (

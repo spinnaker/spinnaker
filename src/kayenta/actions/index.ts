@@ -60,6 +60,7 @@ export const CHANGE_METRIC_GROUP_CONFIRM = 'change_metric_group_confirm';
 export const LOAD_RUN_REQUEST = 'load_run_request';
 export const LOAD_RUN_SUCCESS = 'load_run_success';
 export const LOAD_RUN_FAILURE = 'load_run_failure';
+export const TOGGLE_METRIC_CLASSIFICATION_FILTER = 'toggle_metric_classification_filter';
 export const SELECT_REPORT_METRIC_GROUP = 'select_result_metric_group';
 export const SELECT_REPORT_METRIC = 'select_result_metric';
 export const LOAD_METRIC_SET_PAIR_REQUEST = 'load_metric_set_pair_request';

@@ -15,6 +15,7 @@ import {
   ICanaryConfig,
   ICanaryMetricConfig,
   ICanaryMetricEffectSizeConfig,
+  MetricClassificationLabel,
 } from 'kayenta/domain';
 import { IUpdateKeyValueListPayload } from '../layout/keyValueList';
 import { IStackdriverCanaryMetricSetQueryConfig } from '../metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
@@ -24,6 +25,9 @@ export interface IKayentaAction<T> extends Action {
   payload: T;
 }
 
+export const toggleMetricClassificationFilter = createAction<{ classification: MetricClassificationLabel }>(
+  Actions.TOGGLE_METRIC_CLASSIFICATION_FILTER,
+);
 export const setExecutionsCount = createAction<{ count: number }>(Actions.SET_EXECUTIONS_COUNT);
 export const openDeleteConfigModal = createAction(Actions.DELETE_CONFIG_MODAL_OPEN);
 export const closeDeleteConfigModal = createAction(Actions.DELETE_CONFIG_MODAL_CLOSE);
