@@ -15,4 +15,4 @@ enum class LifecycleEventStatus {
 }
 
 fun LifecycleEventStatus.isEndingStatus(): Boolean =
-  this in listOf(SUCCEEDED, FAILED, UNKNOWN, ABORTED)
+  this in listOf(SUCCEEDED, FAILED, ABORTED)
