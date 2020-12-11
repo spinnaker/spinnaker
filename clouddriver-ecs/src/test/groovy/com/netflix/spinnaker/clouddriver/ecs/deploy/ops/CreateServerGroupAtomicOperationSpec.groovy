@@ -343,7 +343,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       capacity: new ServerGroup.Capacity(1, 1, 1),
       availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
       placementStrategySequence: [],
-      capacityProviderStrategies: [capacityProviderStrategy],
+      capacityProviderStrategy: [capacityProviderStrategy],
       platformVersion: '1.0.0',
       networkMode: 'awsvpc',
       subnetType: 'public',
@@ -789,7 +789,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     description.getFreeFormDetails() >> 'test'
     description.getEcsClusterName() >> 'test-cluster'
     description.getIamRole() >> 'None (No IAM role)'
-    description.getCapacityProviderStrategies() >> [capacityProviderStrategy]
+    description.getCapacityProviderStrategy() >> [capacityProviderStrategy]
     description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
     description.getContainerToImageMap() >> [
       web: "docker-image-url"

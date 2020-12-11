@@ -17,7 +17,7 @@
   "credentials": "ecs-account",
   "dockerImageAddress": "nginx",
   "ecsClusterName": "integArtifactsFargateCapacityProviderStrategy-cluster",
-  "capacityProviderStrategies": [
+  "capacityProviderStrategy": [
     {
       "capacityProvider": "FARGATE",
       "weight": 1

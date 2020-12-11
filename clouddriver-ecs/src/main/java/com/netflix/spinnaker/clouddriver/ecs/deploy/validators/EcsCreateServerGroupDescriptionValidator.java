@@ -201,20 +201,20 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
 
   private void validateComputeOptions(
       CreateServerGroupDescription createServerGroupDescription, ValidationErrors errors) {
-    if (createServerGroupDescription.getCapacityProviderStrategies() != null
-        && !createServerGroupDescription.getCapacityProviderStrategies().isEmpty()) {
+    if (createServerGroupDescription.getCapacityProviderStrategy() != null
+        && !createServerGroupDescription.getCapacityProviderStrategy().isEmpty()) {
       if (!StringUtils.isBlank(createServerGroupDescription.getLaunchType())) {
         errors.rejectValue(
             "launchType",
             errorKey + "." + "launchType" + "." + "invalid",
-            "LaunchType cannot be specified when CapacityProviderStrategies are specified.");
+            "LaunchType cannot be specified when CapacityProviderStrategy are specified.");
       }
-    } else if (createServerGroupDescription.getCapacityProviderStrategies() == null
+    } else if (createServerGroupDescription.getCapacityProviderStrategy() == null
         && StringUtils.isBlank(createServerGroupDescription.getLaunchType())) {
       errors.rejectValue(
           "launchType",
           errorKey + "." + "launchType" + "." + "invalid",
-          "LaunchType or CapacityProviderStrategies must be specified.");
+          "LaunchType or CapacityProviderStrategy must be specified.");
     }
   }
 

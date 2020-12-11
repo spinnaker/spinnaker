@@ -317,10 +317,10 @@ public class CreateServerGroupAtomicOperation
       }
     }
 
-    if (description.getCapacityProviderStrategies() != null
-        && !description.getCapacityProviderStrategies().isEmpty()) {
+    if (description.getCapacityProviderStrategy() != null
+        && !description.getCapacityProviderStrategy().isEmpty()) {
 
-      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategies()) {
+      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategy()) {
         if (FARGATE.equals(cpStrategy.getCapacityProvider())
             || FARGATE_SPOT.equals(cpStrategy.getCapacityProvider())) {
           request.setRequiresCompatibilities(Arrays.asList(FARGATE));
@@ -407,9 +407,9 @@ public class CreateServerGroupAtomicOperation
       if (templateExecutionRole == null || templateExecutionRole.isEmpty()) {
         requestTemplate.setExecutionRoleArn(ecsServiceRole);
       }
-    } else if (description.getCapacityProviderStrategies() != null
-        && !description.getCapacityProviderStrategies().isEmpty()) {
-      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategies()) {
+    } else if (description.getCapacityProviderStrategy() != null
+        && !description.getCapacityProviderStrategy().isEmpty()) {
+      for (CapacityProviderStrategyItem cpStrategy : description.getCapacityProviderStrategy()) {
         if (FARGATE.equals(cpStrategy.getCapacityProvider())
             || FARGATE_SPOT.equals(cpStrategy.getCapacityProvider())) {
           String templateExecutionRole = requestTemplate.getExecutionRoleArn();
@@ -605,9 +605,9 @@ public class CreateServerGroupAtomicOperation
 
     if (!StringUtils.isEmpty(description.getLaunchType())) {
       request.withLaunchType(description.getLaunchType());
-    } else if (description.getCapacityProviderStrategies() != null
-        && !description.getCapacityProviderStrategies().isEmpty()) {
-      request.withCapacityProviderStrategy(description.getCapacityProviderStrategies());
+    } else if (description.getCapacityProviderStrategy() != null
+        && !description.getCapacityProviderStrategy().isEmpty()) {
+      request.withCapacityProviderStrategy(description.getCapacityProviderStrategy());
     }
 
     if (!StringUtils.isEmpty(description.getPlatformVersion())) {

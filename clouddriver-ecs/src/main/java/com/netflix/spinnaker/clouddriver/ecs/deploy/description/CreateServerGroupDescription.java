@@ -98,7 +98,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
 
   Set<TargetGroupProperties> targetGroupMappings;
 
-  List<CapacityProviderStrategyItem> capacityProviderStrategies;
+  List<CapacityProviderStrategyItem> capacityProviderStrategy;
 
   @Override
   public String getRegion() {
