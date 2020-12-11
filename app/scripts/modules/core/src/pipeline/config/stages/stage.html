@@ -64,6 +64,33 @@
           </ui-select-choices>
         </ui-select>
       </stage-config-field>
+      <render-if-feature feature="fiatEnabled">
+        <stage-config-field
+          label="Authorized Groups"
+          help-key="pipeline.config.trigger.authorizedUser"
+          ng-if="stage.type === 'manualJudgment'"
+          style="margin-bottom: 10px"
+        >
+          <ui-select
+            ng-model="stage.selectedStageRoles"
+            multiple
+            class="form-control input-sm"
+            on-select="updateAvailableStageRoles()"
+            on-remove="updateAvailableStageRoles()"
+          >
+            <ui-select-match>{{$item.name}}</ui-select-match>
+            <ui-select-choices
+              repeat="option.roleId as option in options.stageRoles | anyFieldFilter: {name: $select.search}"
+              ui-disable-choice="!option.available"
+            >
+              <span
+                ng-if="!stage.selectedStageRoles.includes(option.roleId)"
+                ng-bind-html="option.name | highlight: $select.search"
+              ></span>
+            </ui-select-choices>
+          </ui-select>
+        </stage-config-field>
+      </render-if-feature>
     </div>
     <div class="col-md-2 text-right">
       <button
