@@ -33,5 +33,6 @@ func NewApplicationCmd(rootOptions *cmd.RootOptions) *cobra.Command {
 	cmd.AddCommand(NewListCmd(options))
 	cmd.AddCommand(NewDeleteCmd(options))
 	cmd.AddCommand(NewSaveCmd(options))
+	cmd.AddCommand(NewPipelineCmd(options))
 	return cmd
 }
