@@ -2521,10 +2521,10 @@
   dependencies:
     lodash "^4.17.15"
 
-"@spinnaker/kayenta@^0.0.105":
-  version "0.0.105"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.105.tgz#45db738274794c50a3d7e29a91868fde3f9bd82c"
-  integrity sha512-YmXcc/8FnNfH2OxSPnH1XreAl/DfmG2Z9TwLDBCO73EwVP7YnoorzYlCmwVspVq334oOSegcB9qqwJtI3fnHEg==
+"@spinnaker/kayenta@^0.0.106":
+  version "0.0.106"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.106.tgz#7a27e4a67f22d4ffac4c91b47cc668d12f6881df"
+  integrity sha512-w+qpuycdhG/fcUxR+eBKn0BNzw9PSIpw2EaebTeI1HUjxdk+Fh97cMOZCVLVzlfu0kllui4i1av+nsJVFcw5Aw==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "1.0.26"
