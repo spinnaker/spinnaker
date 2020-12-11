@@ -52,7 +52,7 @@ https://www.spinnaker.io/[Spinnaker site] and https://www.spinnaker.io/setup/[In
 
 For more information on how Spinnaker is designed, see the https://www.spinnaker.io/concepts/[Concepts] topic in the documentation Overview.
 
-If you're interested in a detailed walkthrough of the Spinnaker systems, check the https://spinnaker.io/guides/[User Guides] or the https://www.spinnaker.io/reference/[Reference Material].
+If you're interested in a detailed walkthrough of the Spinnaker systems, check the https://spinnaker.io/guides/[Spinnaker How-to guides, videos, and codelabs].
 
 = Setting Up Spinnaker For Development
 
