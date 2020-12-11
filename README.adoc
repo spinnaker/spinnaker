@@ -26,7 +26,7 @@ Facilitate GitOps, and grant developers control of provisioning infrastructure f
 
 = Why Do I Need Spinnaker?
 
-With Spinnaker, create a *paved road* for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
+With Spinnaker, create a *paved road* for application delivery with guardrails that ensure only valid infrastructure and configuration reach production.
 Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation
 strategies such as canary deployments provide the safety necessary to capture value from quick innovation, while protecting against business and end-user
  impact.
