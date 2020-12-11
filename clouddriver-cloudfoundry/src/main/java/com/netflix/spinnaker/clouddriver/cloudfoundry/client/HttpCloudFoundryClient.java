@@ -224,7 +224,6 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
         new ServiceInstances(
             createService(ServiceInstanceService.class),
             createService(ConfigService.class),
-            organizations,
             spaces);
     this.routes =
         new Routes(

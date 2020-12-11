@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
@@ -92,17 +93,14 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       }
     }
 
+    createServiceBindings(serverGroup, description);
+
     buildDroplet(packageId, serverGroup.getId(), description);
     scaleApplication(serverGroup.getId(), description);
     if (description.getApplicationAttributes().getHealthCheckType() != null
         || description.getApplicationAttributes().getCommand() != null) {
       updateProcess(serverGroup.getId(), description);
     }
-
-    client
-        .getServiceInstances()
-        .createServiceBindingsByName(
-            serverGroup, description.getApplicationAttributes().getServices());
 
     if (!mapRoutes(
         description,
@@ -141,6 +139,53 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     getTask().updateStatus(PHASE, "Deployed '" + description.getApplication() + "'");
 
     return deploymentResult();
+  }
+
+  private void createServiceBindings(
+      CloudFoundryServerGroup serverGroup, DeployCloudFoundryServerGroupDescription description) {
+    List<String> serviceNames = description.getApplicationAttributes().getServices();
+    if (serviceNames == null || serviceNames.isEmpty()) return;
+    getTask()
+        .updateStatus(
+            PHASE,
+            "Creating Cloud Foundry service bindings between application '"
+                + description.getServerGroupName()
+                + "' and services: "
+                + description.getApplicationAttributes().getServices());
+
+    List<CreateServiceBinding> bindings =
+        description
+            .getClient()
+            .getServiceInstances()
+            .findAllServicesBySpaceAndNames(
+                serverGroup.getSpace(), description.getApplicationAttributes().getServices())
+            .stream()
+            .map(
+                s ->
+                    new CreateServiceBinding(
+                        s.getMetadata().getGuid(), serverGroup.getId(), Collections.emptyMap()))
+            .collect(toList());
+
+    if (bindings.size() != description.getApplicationAttributes().getServices().size()) {
+      getTask()
+          .updateStatus(
+              PHASE,
+              "Failed to create Cloud Foundry service bindings between application '"
+                  + description.getServerGroupName()
+                  + "' and services: "
+                  + description.getApplicationAttributes().getServices());
+      throw new CloudFoundryApiException(
+          "Number of service instances does not match the number of service names");
+    }
+
+    bindings.forEach(b -> description.getClient().getServiceInstances().createServiceBinding(b));
+    getTask()
+        .updateStatus(
+            PHASE,
+            "Created Cloud Foundry service bindings between application '"
+                + description.getServerGroupName()
+                + "' and services: "
+                + description.getApplicationAttributes().getServices());
   }
 
   private DeploymentResult deploymentResult() {

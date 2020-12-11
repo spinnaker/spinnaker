@@ -23,6 +23,7 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Las
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.MANAGED_SERVICE_INSTANCE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -57,7 +58,7 @@ class ServiceInstancesTest {
   private Organizations orgs = mock(Organizations.class);
   private Spaces spaces = mock(Spaces.class);
   private ServiceInstances serviceInstances =
-      new ServiceInstances(serviceInstanceService, configService, orgs, spaces);
+      new ServiceInstances(serviceInstanceService, configService, spaces);
 
   {
     when(serviceInstanceService.findService(any(), any()))
@@ -65,13 +66,6 @@ class ServiceInstancesTest {
 
     when(serviceInstanceService.findServicePlans(any(), any()))
         .thenReturn(Page.singleton(new ServicePlan().setName("ServicePlan1"), "plan-guid"));
-  }
-
-  @Test
-  void shouldNotMakeAPICallWhenNoServiceNamesAreProvided() {
-    CloudFoundryServerGroup cloudFoundryServerGroup = CloudFoundryServerGroup.builder().build();
-    serviceInstances.createServiceBindingsByName(cloudFoundryServerGroup, Collections.emptyList());
-    verify(serviceInstanceService, never()).all(any(), any());
   }
 
   @Test
@@ -84,6 +78,9 @@ class ServiceInstancesTest {
             .build();
 
     Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
+    CreateServiceBinding binding =
+        new CreateServiceBinding(
+            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
     serviceMappingPageOne.setTotalResults(0);
     serviceMappingPageOne.setTotalPages(0);
     when(serviceInstanceService.all(eq(null), any())).thenReturn(serviceMappingPageOne);
@@ -95,10 +92,10 @@ class ServiceInstancesTest {
         .thenReturn(userProvidedServiceMappingPageOne);
     when(serviceInstanceService.allUserProvided(eq(1), any()))
         .thenReturn(userProvidedServiceMappingPageOne);
+    when(serviceInstanceService.createServiceBinding(binding))
+        .thenReturn(createServiceBindingResource());
 
-    serviceInstances.createServiceBindingsByName(
-        cloudFoundryServerGroup, Collections.singletonList("service-instance"));
-
+    serviceInstances.createServiceBinding(binding);
     verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
   }
 
@@ -112,6 +109,9 @@ class ServiceInstancesTest {
             .build();
 
     Page<ServiceInstance> serviceMappingPageOne = createEmptyOsbServiceInstancePage();
+    CreateServiceBinding binding =
+        new CreateServiceBinding(
+            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
     when(serviceInstanceService.all(eq(null), any())).thenReturn(serviceMappingPageOne);
     when(serviceInstanceService.all(eq(1), any())).thenReturn(serviceMappingPageOne);
 
@@ -123,15 +123,18 @@ class ServiceInstancesTest {
         .thenReturn(userProvidedServiceMappingPageOne);
     when(serviceInstanceService.allUserProvided(eq(1), any()))
         .thenReturn(userProvidedServiceMappingPageOne);
+    when(serviceInstanceService.createServiceBinding(binding))
+        .thenReturn(createServiceBindingResource());
 
-    serviceInstances.createServiceBindingsByName(
-        cloudFoundryServerGroup, Collections.singletonList("service-instance"));
+    serviceInstances.createServiceBinding(binding);
 
     verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
   }
 
   @Test
-  void shouldThrowAnErrorIfServiceNotFound() {
+  void shouldSucceedServiceBindingWhenServiceBindingExists() {
+    RetrofitError retrofitError = mock(RetrofitError.class);
+
     CloudFoundryServerGroup cloudFoundryServerGroup =
         CloudFoundryServerGroup.builder()
             .account("some-account")
@@ -139,7 +142,14 @@ class ServiceInstancesTest {
             .space(cloudFoundrySpace)
             .build();
 
-    when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
+    Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
+    CreateServiceBinding binding =
+        new CreateServiceBinding(
+            "service-instance-guid", cloudFoundryServerGroup.getId(), emptyMap());
+    serviceMappingPageOne.setTotalResults(0);
+    serviceMappingPageOne.setTotalPages(0);
+    when(serviceInstanceService.all(eq(null), any())).thenReturn(serviceMappingPageOne);
+    when(serviceInstanceService.all(eq(1), any())).thenReturn(serviceMappingPageOne);
 
     Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne =
         createEmptyUserProvidedServiceInstancePage();
@@ -147,12 +157,12 @@ class ServiceInstancesTest {
         .thenReturn(userProvidedServiceMappingPageOne);
     when(serviceInstanceService.allUserProvided(eq(1), any()))
         .thenReturn(userProvidedServiceMappingPageOne);
-    assertThrows(
-        () ->
-            serviceInstances.createServiceBindingsByName(
-                cloudFoundryServerGroup, Collections.singletonList("service-instance")),
-        CloudFoundryApiException.class,
-        "Cloud Foundry API returned with error(s): Number of service instances does not match the number of service names");
+    when(serviceInstanceService.createServiceBinding(binding)).thenThrow(retrofitError);
+    when(retrofitError.getBodyAs(ErrorDescription.class))
+        .thenReturn(createServiceAlreadyBoundErrorDescription());
+
+    serviceInstances.createServiceBinding(binding);
+    verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
   }
 
   @Test
@@ -1188,6 +1198,25 @@ class ServiceInstancesTest {
     serviceInstanceResource.setMetadata(new Resource.Metadata().setGuid("service-instance-guid"));
     serviceInstanceResource.setEntity(serviceInstance);
     return serviceInstanceResource;
+  }
+
+  private Resource<ServiceBinding> createServiceBindingResource() {
+    ServiceBinding serviceBinding = new ServiceBinding();
+    serviceBinding.setAppGuid("servergroup-id");
+    serviceBinding.setName("");
+    serviceBinding.setServiceInstanceGuid("service-instance-guid");
+    Resource<ServiceBinding> serviceBindingResource = new Resource<>();
+    serviceBindingResource.setEntity(serviceBinding);
+    serviceBindingResource.setMetadata(new Resource.Metadata().setGuid("service-binding-guid"));
+    return serviceBindingResource;
+  }
+
+  private ErrorDescription createServiceAlreadyBoundErrorDescription() {
+    ErrorDescription errorDescription = new ErrorDescription();
+    errorDescription.setCode(99999);
+    errorDescription.setErrorCode(ErrorDescription.Code.SERVICE_INSTANCE_ALREADY_BOUND);
+    errorDescription.setDescription("already bound");
+    return errorDescription;
   }
 
   private Resource<UserProvidedServiceInstance> createUserProvidedServiceInstanceResource() {

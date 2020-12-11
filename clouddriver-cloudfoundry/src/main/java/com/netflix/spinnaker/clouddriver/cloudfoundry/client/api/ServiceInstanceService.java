@@ -31,7 +31,7 @@ public interface ServiceInstanceService {
       @Query("page") Integer page, @Query("q") List<String> queryParam);
 
   @POST("/v2/service_bindings?accepts_incomplete=true")
-  Response createServiceBinding(@Body CreateServiceBinding body);
+  Resource<ServiceBinding> createServiceBinding(@Body CreateServiceBinding body);
 
   @GET("/v2/services")
   Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);

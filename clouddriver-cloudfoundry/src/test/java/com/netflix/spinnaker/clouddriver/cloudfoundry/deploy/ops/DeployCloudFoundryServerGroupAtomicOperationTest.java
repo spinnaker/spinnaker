@@ -24,10 +24,10 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
@@ -39,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.vavr.collection.HashMap;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
@@ -80,12 +81,13 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
         new DeployCloudFoundryServerGroupAtomicOperation(
             new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
+    final ServiceInstances serviceInstances = getServiceInstances();
 
     // When
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, () -> atLeastOnce());
+    verifyInOrder(apps, serviceInstances, () -> atLeastOnce());
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -106,6 +108,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     Exception exception = null;
     // When
     try {
+      when(description
+              .getClient()
+              .getServiceInstances()
+              .findAllServicesBySpaceAndNames(any(), any()))
+          .thenReturn(createServiceInstanceResource());
       operation.operate(Lists.emptyList());
     } catch (CloudFoundryApiException cloudFoundryApiException) {
       exception = cloudFoundryApiException;
@@ -128,20 +135,24 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
         new DeployCloudFoundryServerGroupAtomicOperation(
             new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
+    final ServiceInstances serviceInstances = getServiceInstances();
 
     // When
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, () -> never());
+    verifyInOrder(apps, serviceInstances, () -> never());
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
         .isEqualTo(Collections.singletonList("region1:app1-stack1-detail1-v000"));
   }
 
-  private void verifyInOrder(final Applications apps, Supplier<VerificationMode> calls) {
-    final InOrder inOrder = Mockito.inOrder(apps, cloudFoundryClient.getServiceInstances());
+  private void verifyInOrder(
+      final Applications apps,
+      ServiceInstances serviceInstances,
+      Supplier<VerificationMode> calls) {
+    InOrder inOrder = Mockito.inOrder(apps, serviceInstances);
     DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
         new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
     applicationAttributes.setBuildpacks(
@@ -154,13 +165,27 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
             getDeployCloudFoundryServerGroupDescription(true).getApplicationAttributes(),
             HashMap.of("token", "ASDF").toJavaMap());
     inOrder.verify(apps).uploadPackageBits(eq("serverGroupId_package"), any());
+    inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
     inOrder.verify(apps).createBuild("serverGroupId_package");
     inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
     inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
-    inOrder
-        .verify(cloudFoundryClient.getServiceInstances())
-        .createServiceBindingsByName(any(), eq(Collections.singletonList("service1")));
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
+  }
+
+  private ServiceInstances getServiceInstances() {
+    final ServiceInstances serviceInstances = cloudFoundryClient.getServiceInstances();
+    when(serviceInstances.findAllServicesBySpaceAndNames(any(), any()))
+        .thenReturn(createServiceInstanceResource());
+    return serviceInstances;
+  }
+
+  private List<Resource<? extends AbstractServiceInstance>> createServiceInstanceResource() {
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance.setServicePlanGuid("plan-guid").setName("service1");
+    Resource<ServiceInstance> serviceInstanceResource = new Resource<>();
+    serviceInstanceResource.setMetadata(new Resource.Metadata().setGuid("service-instance-guid"));
+    serviceInstanceResource.setEntity(serviceInstance);
+    return List.of(serviceInstanceResource);
   }
 
   private Applications getApplications(
@@ -205,7 +230,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                     .setHealthCheckType("http")
                     .setHealthCheckHttpEndpoint("/health")
                     .setBuildpacks(io.vavr.collection.List.of("buildpack1", "buildpack2").asJava())
-                    .setServices(io.vavr.collection.List.of("service1").asJava())
+                    .setServices(List.of("service1"))
                     .setEnv(HashMap.of("token", "ASDF").toJavaMap()));
     description.setClient(cloudFoundryClient);
     description.setRegion("region1");
