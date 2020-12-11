@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
@@ -29,7 +28,6 @@ import strikt.assertions.isA
     "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
   ]
 )
-@DisableSpringScheduling
 internal class SpringStartupTests
 @Autowired constructor(
   val artifactRepository: ArtifactRepository,

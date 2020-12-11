@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
@@ -64,7 +63,6 @@ import kotlin.reflect.KClass
   webEnvironment = NONE
 )
 @AutoConfigureMockMvc
-@DisableSpringScheduling
 class ApiDocTests
   @Autowired constructor(
     val generator: Generator,

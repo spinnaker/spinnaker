@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import org.junit.jupiter.api.Test
@@ -14,7 +13,6 @@ import org.springframework.context.ApplicationListener
   classes = [KeelApplication::class],
   webEnvironment = MOCK
 )
-@DisableSpringScheduling
 internal class SpringStartupTests {
 
   @MockkBean(relaxUnitFun = true)

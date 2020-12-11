@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import org.jooq.DSLContext
@@ -24,16 +23,8 @@ import strikt.assertions.isEmpty
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, TestConfiguration::class],
-  webEnvironment = MOCK,
-  properties = [
-    "spinnaker.baseUrl=http://spinnaker",
-    "sql.enabled=true",
-    "sql.connection-pools.default.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    "sql.migration.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
-  ]
+  webEnvironment = MOCK
 )
-@DisableSpringScheduling
 internal class DeliveryConfigDeletionTests
 @Autowired constructor(
   private val repository: KeelRepository,

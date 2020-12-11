@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
@@ -27,7 +26,6 @@ import java.util.concurrent.TimeUnit.SECONDS
   classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
 )
-@DisableSpringScheduling
 internal class SchedulingResilienceTests
 @Autowired constructor(val service: DummyRetrofitService){
 

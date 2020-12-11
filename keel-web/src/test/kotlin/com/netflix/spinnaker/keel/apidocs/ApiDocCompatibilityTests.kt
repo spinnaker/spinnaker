@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
@@ -35,7 +34,6 @@ import strikt.api.expectThat
   webEnvironment = NONE
 )
 @AutoConfigureMockMvc
-@DisableSpringScheduling
 class ApiDocCompatibilityTests
 @Autowired constructor(val generator: Generator) {
 

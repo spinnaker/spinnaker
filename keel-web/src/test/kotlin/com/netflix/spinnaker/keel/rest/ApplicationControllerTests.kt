@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.services.ApplicationService
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.ninjasquad.springmockk.MockkBean
@@ -51,7 +50,6 @@ import strikt.assertions.isNotEmpty
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@DisableSpringScheduling
 internal class ApplicationControllerTests
 @Autowired constructor(
   val mvc: MockMvc,

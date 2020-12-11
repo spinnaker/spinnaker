@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -55,7 +54,6 @@ import io.mockk.coEvery as every
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
-@DisableSpringScheduling
 internal class EventControllerTests
 @Autowired constructor(val mvc: MockMvc) : JUnit5Minutests {
 

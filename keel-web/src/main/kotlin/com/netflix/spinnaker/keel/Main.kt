@@ -21,7 +21,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
-import org.springframework.scheduling.annotation.EnableScheduling
 
 private val DEFAULT_PROPS = mapOf(
   "netflix.environment" to "test",
@@ -47,7 +46,6 @@ private val DEFAULT_PROPS = mapOf(
   PluginsAutoConfiguration::class
 )
 @EnableAsync
-@EnableScheduling
 class KeelApplication
 
 fun main(vararg args: String) {

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.spring.test.DisableSpringScheduling
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -22,7 +21,6 @@ import java.util.concurrent.TimeoutException
   classes = [KeelApplication::class, ThreadCapturingEventListener::class],
   webEnvironment = MOCK
 )
-@DisableSpringScheduling
 internal class ApplicationEventTests
 @Autowired constructor(
   val publisher: ApplicationEventPublisher,
