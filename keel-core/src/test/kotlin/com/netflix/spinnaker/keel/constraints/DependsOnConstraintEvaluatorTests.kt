@@ -3,6 +3,9 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.verification.VerificationState
+import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -42,11 +45,19 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
     val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
 
-    val subject = DependsOnConstraintEvaluator(artifactRepository, mockk())
+    val verificationRepository : VerificationRepository = mockk()
+
+    val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk())
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
+
+    before {
+      every {
+        verificationRepository.getStates(any())
+      } returns emptyMap()
+    }
 
     test("an invalid environment name causes an exception") {
       expectCatching {

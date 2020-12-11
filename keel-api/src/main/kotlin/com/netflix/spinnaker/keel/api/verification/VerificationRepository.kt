@@ -18,6 +18,14 @@ interface VerificationRepository {
   ): VerificationState?
 
   /**
+   * @return a map of the current states of all verifications as run against [context]. The key of the map
+   * is the id of the Verification object
+   */
+  fun getStates(
+    context: VerificationContext,
+  ) : Map<String, VerificationState>
+
+  /**
    * Updates the state of [verification] as run against [context].
    */
   fun updateState(
@@ -50,4 +58,6 @@ data class VerificationContext(
 
   val artifact: DeliveryArtifact =
     deliveryConfig.artifacts.first { it.reference == artifactReference }
+
+  val verifications: Collection<Verification> = environment.verifyWith
 }

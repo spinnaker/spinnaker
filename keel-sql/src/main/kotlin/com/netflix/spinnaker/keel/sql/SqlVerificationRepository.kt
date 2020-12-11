@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
@@ -135,6 +136,25 @@ class SqlVerificationRepository(
         .and(VERIFICATION_STATE.VERIFICATION_ID.eq(verification.id))
         .fetchOneInto<VerificationState>()
     }
+
+  override fun getStates(context: VerificationContext): Map<String, VerificationState>
+    = with(context) {
+    when {
+      verifications.isEmpty() -> emptyMap() // Optimization: don't hit the db if we know there are no entries
+      else -> jooq.select(
+        VERIFICATION_STATE.VERIFICATION_ID,
+        VERIFICATION_STATE.STATUS,
+        VERIFICATION_STATE.STARTED_AT,
+        VERIFICATION_STATE.ENDED_AT
+      )
+        .from(VERIFICATION_STATE)
+        .where(VERIFICATION_STATE.ENVIRONMENT_UID.eq(environmentUid))
+        .and(VERIFICATION_STATE.ARTIFACT_UID.eq(artifact.uid))
+        .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(version))
+        .fetch()
+        .associate { (id, status, started_at, ended_at) -> Pair(id, VerificationState(status, started_at, ended_at)) }
+    }
+  }
 
   override fun updateState(
     context: VerificationContext,
