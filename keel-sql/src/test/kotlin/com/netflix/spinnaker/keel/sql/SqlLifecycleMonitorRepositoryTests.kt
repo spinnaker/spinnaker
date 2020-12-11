@@ -31,7 +31,6 @@ internal object SqlLifecycleMonitorRepositoryTests
       clock,
       jooq,
       sqlRetry,
-      configuredTestObjectMapper(),
       NoopRegistry(),
       publisher
     )

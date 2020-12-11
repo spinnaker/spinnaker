@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
@@ -71,8 +70,7 @@ class SqlLifecycleMonitorRepository(
       jooq.select(LIFECYCLE_EVENT.TIMESTAMP, LIFECYCLE_EVENT.JSON)
         .from(LIFECYCLE_EVENT)
         .where(LIFECYCLE_EVENT.UID.eq(uid))
-        .fetchOne { (timestamp, json) ->
-          val event = objectMapper.readValue<LifecycleEvent>(json)
+        .fetchOne { (timestamp, event) ->
           event.copy(timestamp = timestamp)
         }
     }

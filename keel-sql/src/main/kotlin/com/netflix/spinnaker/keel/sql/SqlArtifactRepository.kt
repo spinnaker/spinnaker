@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
@@ -237,8 +236,8 @@ class SqlArtifactRepository(
           .set(ARTIFACT_VERSIONS.VERSION, version)
           .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status)
           .set(ARTIFACT_VERSIONS.CREATED_AT, createdAt)
-          .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata?.let { objectMapper.writeValueAsString(it) })
-          .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata?.let { objectMapper.writeValueAsString(it) })
+          .set(ARTIFACT_VERSIONS.GIT_METADATA, gitMetadata)
+          .set(ARTIFACT_VERSIONS.BUILD_METADATA, buildMetadata)
           .onDuplicateKeyIgnore()
           .execute()
       } == 1
@@ -269,8 +268,8 @@ class SqlArtifactRepository(
             version = version,
             status = status,
             createdAt = createdAt,
-            gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
-            buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
+            gitMetadata = gitMetadata,
+            buildMetadata = buildMetadata,
           )
         }
     }
@@ -284,8 +283,8 @@ class SqlArtifactRepository(
 
       sqlRetry.withRetry(WRITE) {
         jooq.update(ARTIFACT_VERSIONS)
-          .set(ARTIFACT_VERSIONS.BUILD_METADATA, objectMapper.writeValueAsString(artifactMetadata.buildMetadata))
-          .set(ARTIFACT_VERSIONS.GIT_METADATA, objectMapper.writeValueAsString(artifactMetadata.gitMetadata))
+          .set(ARTIFACT_VERSIONS.BUILD_METADATA, artifactMetadata.buildMetadata)
+          .set(ARTIFACT_VERSIONS.GIT_METADATA, artifactMetadata.gitMetadata)
           .where(
             ARTIFACT_VERSIONS.NAME.eq(name),
             ARTIFACT_VERSIONS.TYPE.eq(type),
@@ -991,8 +990,8 @@ class SqlArtifactRepository(
                 version = version,
                 status = status,
                 createdAt = createdAt,
-                gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
-                buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
+                gitMetadata = gitMetadata,
+                buildMetadata = buildMetadata,
               ) to promotionStatus
             }
         }

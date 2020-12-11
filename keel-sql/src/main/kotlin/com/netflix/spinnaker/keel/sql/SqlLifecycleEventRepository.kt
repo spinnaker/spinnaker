@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -26,7 +24,6 @@ class SqlLifecycleEventRepository(
   private val clock: Clock,
   private val jooq: DSLContext,
   private val sqlRetry: SqlRetry,
-  private val objectMapper: ObjectMapper,
   private val spectator: Registry,
   private val publisher: ApplicationEventPublisher
 ) : LifecycleEventRepository {
@@ -55,8 +52,7 @@ class SqlLifecycleEventRepository(
             eventExists = true
             eventUid = uid
             try {
-              val existingEvent = objectMapper.readValue<LifecycleEvent>(savedEvent)
-              if (event == existingEvent.copy(timestamp = event.timestamp)) {
+              if (event == savedEvent.copy(timestamp = event.timestamp)) {
                 // events are the same except time
                 txn.update(LIFECYCLE_EVENT)
                   .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
@@ -78,7 +74,7 @@ class SqlLifecycleEventRepository(
             .set(LIFECYCLE_EVENT.ID, event.id)
             .set(LIFECYCLE_EVENT.STATUS, event.status)
             .set(LIFECYCLE_EVENT.TIMESTAMP, timestamp)
-            .set(LIFECYCLE_EVENT.JSON, objectMapper.writeValueAsString(event))
+            .set(LIFECYCLE_EVENT.JSON, event)
             .execute()
         }
       }
@@ -86,7 +82,10 @@ class SqlLifecycleEventRepository(
     return eventUid
   }
 
-  override fun getEvents(artifact: DeliveryArtifact, artifactVersion: String): List<LifecycleEvent> {
+  override fun getEvents(
+    artifact: DeliveryArtifact,
+    artifactVersion: String
+  ): List<LifecycleEvent> {
     return sqlRetry.withRetry(READ) {
       jooq.select(LIFECYCLE_EVENT.JSON, LIFECYCLE_EVENT.TIMESTAMP)
         .from(LIFECYCLE_EVENT)
@@ -94,16 +93,8 @@ class SqlLifecycleEventRepository(
         .and(LIFECYCLE_EVENT.ARTIFACT_VERSION.eq(artifactVersion))
         .orderBy(LIFECYCLE_EVENT.TIMESTAMP.asc()) // oldest first
         .fetch()
-        .map { (json, timestamp) ->
-          try {
-            val event = objectMapper.readValue<LifecycleEvent>(json)
-            event.copy(timestamp = timestamp)
-          } catch (e: JsonMappingException) {
-            log.error("Exception encountered parsing lifecycle event $json", e)
-            // returning null here so bad serialization doesn't break the whole view,
-            // it just removes the events
-            null
-          }
+        .map { (event, timestamp) ->
+          event.copy(timestamp = timestamp)
         }.filterNotNull()
     }
   }
@@ -136,7 +127,8 @@ class SqlLifecycleEventRepository(
       retriggerMonitoring(events.filter { it.id == id })
 
       var step = event.toStep()
-      val lastEvent = endingEventsById[id] ?: lastEventById[id] // if there's an ending status, use that as the last event
+      val lastEvent = endingEventsById[id]
+        ?: lastEventById[id] // if there's an ending status, use that as the last event
       if (lastEvent != null) {
         if (lastEvent.status.isEndingStatus()) {
           step = step.copy(completedAt = lastEvent.timestamp)

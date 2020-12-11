@@ -34,11 +34,10 @@ internal fun SqlStorageContext.deliveryConfigByName(name: String): DeliveryConfi
           name = name,
           application = application,
           serviceAccount = serviceAccount,
-          metadata = metadata?.let { objectMapper.readValue<Map<String, Any?>>(metadata) }
-            ?: emptyMap()
+          metadata = metadata as Map<String, Any?>? ?: emptyMap()
         )
       }
-      ?.let { (uid, deliveryConfig) ->
+      ?.let { (_, deliveryConfig) ->
         attachDependents(deliveryConfig)
       }
       ?: throw NoSuchDeliveryConfigName(name)

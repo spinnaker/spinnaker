@@ -178,7 +178,7 @@ class SqlConfiguration {
     spectator: Registry,
     publisher: ApplicationEventPublisher
   ) =
-    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), objectMapper, spectator, publisher)
+    SqlLifecycleEventRepository(clock, jooq, SqlRetry(sqlRetryProperties), spectator, publisher)
 
   @Bean
   fun lifecycleMonitorRepository(

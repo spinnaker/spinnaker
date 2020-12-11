@@ -23,7 +23,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.exceptions.ArtifactParsingException
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
@@ -74,8 +76,8 @@ fun mapToArtifact(
   }
 }
 
-typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, ArtifactStatus, Instant, String, String>>
-typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, ArtifactStatus, Instant, String, String>>
+typealias ArtifactVersionSelectStep = SelectConditionStep<Record7<String, String, String, ArtifactStatus, Instant, GitMetadata, BuildMetadata>>
+typealias ArtifactVersionRow = ResultQuery<Record7<String, String, String, ArtifactStatus, Instant, GitMetadata, BuildMetadata>>
 
 /**
  * Encapsulates the fetching of a row from the ARTIFACT_VERSIONS table into a [PublishedArtifact].
@@ -88,8 +90,8 @@ internal fun ArtifactVersionRow.fetchArtifactVersions() =
       version = version,
       status = status,
       createdAt = createdAt,
-      gitMetadata = gitMetadata?.let { objectMapper.readValue(it) },
-      buildMetadata = buildMetadata?.let { objectMapper.readValue(it) },
+      gitMetadata = gitMetadata,
+      buildMetadata = buildMetadata,
     )
   }
 

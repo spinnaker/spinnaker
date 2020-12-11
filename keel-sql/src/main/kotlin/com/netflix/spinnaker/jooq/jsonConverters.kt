@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.jooq
 
-import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.events.PersistentEvent
@@ -22,10 +21,9 @@ abstract class JsonConverter<U : Any>(toType: Class<U>) : AbstractConverter<JSON
     userObject?.let { JSON.valueOf(mapper.writeValueAsString(it)) }
 }
 
-class Metadata(delegate: Map<String, Any>) : Map<String, Any?> by delegate
-
 @Suppress("UNCHECKED_CAST")
 class JsonToMapConverter : JsonConverter<Map<String, Any?>>(Map::class.java as Class<Map<String, Any?>>)
+
 class GitMetadataConverter : JsonConverter<GitMetadata>(GitMetadata::class.java)
 class BuildMetadataConverter : JsonConverter<BuildMetadata>(BuildMetadata::class.java)
 class LifecycleEventConverter : JsonConverter<LifecycleEvent>(LifecycleEvent::class.java)

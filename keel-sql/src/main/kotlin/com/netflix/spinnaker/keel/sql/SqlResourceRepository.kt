@@ -164,10 +164,8 @@ open class SqlResourceRepository(
         .and(EVENT.REF.eq(application))
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
-        .fetch()
-        .map { (json) ->
-          objectMapper.readValue<ApplicationEvent>(json)
-        }
+        .fetch(EVENT.JSON)
+        .filterIsInstance<ApplicationEvent>()
     }
   }
 
@@ -180,10 +178,8 @@ open class SqlResourceRepository(
         .and(EVENT.REF.eq(application))
         .and(EVENT.TIMESTAMP.greaterOrEqual(after))
         .orderBy(EVENT.TIMESTAMP.desc())
-        .fetch()
-        .map { (json) ->
-          objectMapper.readValue<ApplicationEvent>(json)
-        }
+        .fetch(EVENT.JSON)
+        .filterIsInstance<ApplicationEvent>()
     }
   }
 
@@ -208,10 +204,7 @@ open class SqlResourceRepository(
         )
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
-        .fetch()
-        .map { (json) ->
-          objectMapper.readValue<PersistentEvent>(json)
-        }
+        .fetch(EVENT.JSON)
         // filter out application events that don't affect resource history
         .filterIsInstance<ResourceHistoryEvent>()
     }
@@ -249,10 +242,7 @@ open class SqlResourceRepository(
           )
           .orderBy(EVENT.TIMESTAMP.desc())
           .limit(1)
-          .fetchOne()
-          ?.let { (json) ->
-            objectMapper.readValue<PersistentEvent>(json) as? ResourceHistoryEvent
-          }
+          .fetchOne(EVENT.JSON)
 
         if (event.javaClass == previousEvent?.javaClass) return@transaction
       }
@@ -263,7 +253,7 @@ open class SqlResourceRepository(
         .set(EVENT.SCOPE, event.scope)
         .set(EVENT.REF, ref)
         .set(EVENT.TIMESTAMP, event.timestamp)
-        .set(EVENT.JSON, objectMapper.writeValueAsString(event))
+        .set(EVENT.JSON, event)
         .execute()
     }
   }

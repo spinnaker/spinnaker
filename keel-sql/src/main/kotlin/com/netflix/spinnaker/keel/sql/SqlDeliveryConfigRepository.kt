@@ -93,8 +93,7 @@ class SqlDeliveryConfigRepository(
             name = name,
             application = application,
             serviceAccount = serviceAccount,
-            metadata = metadata?.let { objectMapper.readValue<Map<String, Any?>>(metadata) }
-              ?: emptyMap()
+            metadata = metadata ?: emptyMap()
           ).let {
             attachDependents(it)
           }
@@ -233,10 +232,10 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.NAME, name)
         .set(DELIVERY_CONFIG.APPLICATION, application)
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
-        .set(DELIVERY_CONFIG.METADATA, objectMapper.writeValueAsString(metadata))
+        .set(DELIVERY_CONFIG.METADATA, metadata)
         .onDuplicateKeyUpdate()
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
-        .set(DELIVERY_CONFIG.METADATA, objectMapper.writeValueAsString(metadata))
+        .set(DELIVERY_CONFIG.METADATA, metadata)
         .execute()
       artifacts.forEach { artifact ->
         jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)

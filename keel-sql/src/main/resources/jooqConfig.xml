@@ -15,7 +15,33 @@
         | DATABASECHANGELOGLOCK
       </excludes>
       <forcedTypes>
-        <!-- Automatically convert JSON columns to String -->
+        <!-- JSON columns -->
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.api.artifacts.GitMetadata</userType>
+          <converter>com.netflix.spinnaker.jooq.GitMetadataConverter</converter>
+          <includeExpression>ARTIFACT_VERSIONS\\.GIT_METADATA</includeExpression>
+        </forcedType>
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.api.artifacts.BuildMetadata</userType>
+          <converter>com.netflix.spinnaker.jooq.BuildMetadataConverter</converter>
+          <includeExpression>ARTIFACT_VERSIONS\\.BUILD_METADATA</includeExpression>
+        </forcedType>
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.lifecycle.LifecycleEvent</userType>
+          <converter>com.netflix.spinnaker.jooq.LifecycleEventConverter</converter>
+          <includeExpression>LIFECYCLE_EVENT\\.JSON</includeExpression>
+        </forcedType>
+        <forcedType>
+          <userType>com.netflix.spinnaker.keel.events.PersistentEvent</userType>
+          <converter>com.netflix.spinnaker.jooq.PersistentEventConverter</converter>
+          <includeExpression>EVENT\\.JSON</includeExpression>
+        </forcedType>
+        <forcedType>
+          <userType><![CDATA[java.util.Map<String, ?>]]></userType>
+          <converter>com.netflix.spinnaker.jooq.JsonToMapConverter</converter>
+          <includeExpression>DELIVERY_CONFIG\\.METADATA</includeExpression>
+        </forcedType>
+        <!-- Automatically convert remaining JSON columns to String -->
         <forcedType>
           <name>LONGVARCHAR</name>
           <includeTypes>JSON</includeTypes>
@@ -94,7 +120,6 @@
       <nullableAnnotationType>javax.annotation.Nullable</nullableAnnotationType>
       <nonnullAnnotation>true</nonnullAnnotation>
       <nonnullAnnotationType>javax.annotation.Nonnull</nonnullAnnotationType>
-
     </generate>
   </generator>
 </configuration>

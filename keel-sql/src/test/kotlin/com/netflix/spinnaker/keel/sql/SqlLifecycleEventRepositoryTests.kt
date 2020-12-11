@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.persistence.LifecycleEventRepositoryTests
-import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -21,7 +20,6 @@ internal object SqlLifecycleEventRepositoryTests : LifecycleEventRepositoryTests
       clock,
       jooq,
       sqlRetry,
-      configuredTestObjectMapper(),
       NoopRegistry(),
       publisher
     )
