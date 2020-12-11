@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AccountService, IArtifactAccount } from 'core/account';
+import { AccountService } from 'core/account';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { CheckboxInput, TextInput } from 'core/presentation';
 import { MapEditor } from 'core/forms';
@@ -9,13 +9,13 @@ import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDeleg
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 
 export interface IBakeHelmConfigFormState {
-  gitRepoArtifactAccounts: IArtifactAccount[];
+  gitRepoArtifactAccountNames: string[];
 }
 
 export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps, IBakeHelmConfigFormState> {
   constructor(props: IFormikStageConfigInjectedProps) {
     super(props);
-    this.state = { gitRepoArtifactAccounts: [] };
+    this.state = { gitRepoArtifactAccountNames: [] };
   }
 
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
@@ -43,9 +43,9 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
     }
     AccountService.getArtifactAccounts().then((artifactAccounts) => {
       this.setState({
-        gitRepoArtifactAccounts: artifactAccounts.filter((account) =>
-          account.types.some((type) => ArtifactTypePatterns.GIT_REPO.test(type)),
-        ),
+        gitRepoArtifactAccountNames: artifactAccounts
+          .filter((account) => account.types.some((type) => ArtifactTypePatterns.GIT_REPO.test(type)))
+          .map((account) => account.name),
       });
     });
   }
@@ -154,8 +154,8 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
           pipeline={this.props.pipeline}
           stage={stage}
         />
-        {this.state.gitRepoArtifactAccounts.includes(this.getInputArtifact(stage, 0).account) && (
-          <StageConfigField label="File" helpKey="pipeline.config.bake.manifest.helm.chartFilePath">
+        {this.state.gitRepoArtifactAccountNames.includes(this.getInputArtifact(stage, 0).account) && (
+          <StageConfigField label="Helm Chart File Path" helpKey="pipeline.config.bake.manifest.helm.chartFilePath">
             <TextInput
               onChange={(e: React.ChangeEvent<any>) => {
                 this.props.formik.setFieldValue('helmChartFilePath', e.target.value);
