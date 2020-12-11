@@ -91,13 +91,4 @@ public class WebConfig extends WebMvcConfigurerAdapter {
       .favorPathExtension(false)
       .ignoreAcceptHeader(true)
   }
-
-  @ControllerAdvice
-  @Order(Ordered.HIGHEST_PRECEDENCE)
-  static class IllegalArgumentExceptionHandler {
-    @ExceptionHandler(IllegalArgumentException)
-    public void handle(HttpServletResponse response, IllegalArgumentException ex) {
-      response.sendError(HttpStatus.BAD_REQUEST.value(), ex.getMessage())
-    }
-  }
 }
