@@ -34,8 +34,8 @@
 
   <div class="form-group" ng-if="$ctrl.capacityProviderState.useCapacityProviders">
     <div class="sm-label-left">
-      <b>Capacity Provider Strategies</b>
-      <help-field key="ecs.capacityProviderStrategies"></help-field>
+      <b>Capacity Provider Strategy</b>
+      <help-field key="ecs.capacityProviderStrategy"></help-field>
     </div>
     <div>
       <table class="table table-condensed packed tags">
@@ -45,7 +45,7 @@
           <th style="width: 25%">Weight <help-field key="ecs.capacityProviderWeight"></help-field></th>
         </thead>
         <tbody>
-          <tr ng-repeat="cp in $ctrl.command.capacityProviderStrategies">
+          <tr ng-repeat="cp in $ctrl.command.capacityProviderStrategy">
             <td>
               <input
                 type="text"
@@ -72,7 +72,7 @@
             </td>
             <td>
               <div class="form-control-static">
-                <a class="btn-link sm-label" ng-click="$ctrl.command.capacityProviderStrategies.splice($index, 1)">
+                <a class="btn-link sm-label" ng-click="$ctrl.command.capacityProviderStrategy.splice($index, 1)">
                   <span class="glyphicon glyphicon-trash"></span>
                   <span class="sr-only">Remove</span>
                 </a>
@@ -85,7 +85,7 @@
             <td colspan="3">
               <button
                 class="btn btn-block btn-sm add-new"
-                ng-click="$ctrl.command.capacityProviderStrategies.push({})"
+                ng-click="$ctrl.command.capacityProviderStrategy.push({})"
                 data-test-id="ServerGroup.addCapacityProvider"
               >
                 <span class="glyphicon glyphicon-plus-sign"></span>
