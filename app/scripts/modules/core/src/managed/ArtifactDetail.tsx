@@ -34,11 +34,7 @@ import { isResourceKindSupported } from './resources/resourceRegistry';
 
 import './ArtifactDetail.less';
 
-const SUPPORTED_PRE_DEPLOYMENT_TYPES = [
-  // KLUDGE WARNING: disabling build events temporarily while we get the API in shape
-  // 'BUILD',
-  'BAKE',
-];
+const SUPPORTED_PRE_DEPLOYMENT_TYPES = ['BUILD', 'BAKE'];
 
 function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
   return isResourceKindSupported(resource.kind) && reference === resource.artifact?.reference;
