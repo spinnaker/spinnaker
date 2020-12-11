@@ -106,8 +106,8 @@
             <li ng-repeat="zone in ctrl.serverGroup.zones">{{zone}}</li>
           </ul>
         </dd>
-        <dt ng-if="ctrl.serverGroup.regional && ctrl.isAlphaListed()">Target Shape</dt>
-        <dd ng-if="ctrl.serverGroup.regional && ctrl.isAlphaListed()">
+        <dt ng-if="ctrl.serverGroup.regional">Target Shape</dt>
+        <dd ng-if="ctrl.serverGroup.regional">
           {{ctrl.serverGroup.distributionPolicy.targetShape}}
         </dd>
       </dl>

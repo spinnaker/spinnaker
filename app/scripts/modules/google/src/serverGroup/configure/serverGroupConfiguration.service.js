@@ -175,7 +175,7 @@ angular
 
       function configureDistributionPolicyTargetShape(command) {
         const accountDetails = command.backingData.credentialsKeyedByAccount[command.credentials];
-        if (accountDetails.computeVersion === 'ALPHA' && !command.distributionPolicy.targetShape) {
+        if (!command.distributionPolicy.targetShape) {
           command.distributionPolicy.targetShape = 'EVEN';
         }
       }

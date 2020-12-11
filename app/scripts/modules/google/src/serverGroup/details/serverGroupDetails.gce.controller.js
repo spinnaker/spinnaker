@@ -157,7 +157,6 @@ angular
             augmentTagsWithHelp();
             configureEntityTagTargets();
             processLabels();
-            retrieveComputeVersion(details.account);
           } else {
             autoClose();
           }
@@ -273,12 +272,6 @@ angular
 
           this.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
         }
-      };
-
-      const retrieveComputeVersion = (accountId) => {
-        AccountService.getAccountDetails(accountId).then((accountDetails) => {
-          this.serverGroup.computeVersion = accountDetails.computeVersion;
-        });
       };
 
       const processLabels = () => {
@@ -509,10 +502,6 @@ angular
           return this.serverGroup.buildInfo.commit.substring(0, 8);
         }
         return null;
-      };
-
-      this.isAlphaListed = () => {
-        return this.serverGroup.computeVersion === 'ALPHA';
       };
 
       const configureEntityTagTargets = () => {
