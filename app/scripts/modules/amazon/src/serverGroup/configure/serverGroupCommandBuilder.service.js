@@ -117,7 +117,7 @@ angular
                * Older SDKs do not support IMDSv2. A timestamp can be optionally configured at which any apps created after can safely default to using IMDSv2.
                */
               const appAgeRequirement = AWSProviderSettings.serverGroups.defaultIMDSv2AppAgeLimit;
-              const creationDate = application.attributes.createTs;
+              const creationDate = application.attributes && application.attributes.createTs;
 
               command.requireIMDSv2 =
                 appAgeRequirement && creationDate && Number(creationDate) > appAgeRequirement ? true : false;

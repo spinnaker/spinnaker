@@ -46,6 +46,9 @@ export interface IMetadataOptions {
 export interface INetworkInterface {
   deviceIndex: number;
   groups: string[];
+  ipv6AddressCount?: number;
+  associatePublicIpAddress?: boolean;
+  ipv6Addresses?: string[];
 }
 
 export interface ITagSpecification {

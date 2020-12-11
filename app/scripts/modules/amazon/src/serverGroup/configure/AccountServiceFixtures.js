@@ -29,6 +29,7 @@ AccountServiceFixture.credentialsKeyedByAccount = {
 AccountServiceFixture.preferredZonesByAccount = {
   test: {
     'us-east-1': ['a', 'b', 'c'],
+    'us-west-2': ['a', 'b', 'c'],
     'us-west-1': ['c', 'd'],
   },
   prod: {
