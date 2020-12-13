@@ -46,11 +46,4 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     expect(this.$scope.existingLoadBalancerNames).toEqual(undefined);
     expect(lb.providerType).toEqual(undefined);
   });
-
-  it('makes the expected REST calls for data for a new loadbalancer', function () {
-    $httpBackend.when('GET', API.baseUrl + '/networks').respond([]);
-    $httpBackend.when('GET', API.baseUrl + '/securityGroups').respond({});
-    $httpBackend.when('GET', API.baseUrl + '/credentials?expand=true').respond([]);
-    $httpBackend.when('GET', API.baseUrl + '/subnets').respond([]);
-  });
 });
