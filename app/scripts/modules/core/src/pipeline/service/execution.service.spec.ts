@@ -1,4 +1,5 @@
 import { IHttpBackendService, IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
+import { REACT_MODULE } from 'core/reactShims';
 
 import { EXECUTION_SERVICE, ExecutionService } from './execution.service';
 import { IExecution } from 'core/domain';
@@ -12,7 +13,7 @@ describe('Service: executionService', () => {
   let timeout: ITimeoutService;
   let $q: IQService;
 
-  beforeEach(mock.module(EXECUTION_SERVICE, 'ui.router'));
+  beforeEach(mock.module(REACT_MODULE, EXECUTION_SERVICE, 'ui.router'));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(

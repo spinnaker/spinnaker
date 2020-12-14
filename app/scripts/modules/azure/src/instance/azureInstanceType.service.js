@@ -6,9 +6,8 @@ import _ from 'lodash';
 export const AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE = 'spinnaker.azure.instanceType.service';
 export const name = AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE; // for backwards compatibility
 module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeService', [
-  '$http',
   '$q',
-  function ($http, $q) {
+  function ($q) {
     const B = {
       type: 'B-series',
       description:

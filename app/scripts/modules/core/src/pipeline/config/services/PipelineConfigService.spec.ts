@@ -6,7 +6,7 @@ import { IPipeline } from 'core/domain/IPipeline';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('PipelineConfigService', () => {
-  let $http: ng.IHttpBackendService, $scope: ng.IScope;
+  let $httpBackend: ng.IHttpBackendService, $scope: ng.IScope;
 
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
@@ -46,8 +46,8 @@ describe('PipelineConfigService', () => {
   };
 
   beforeEach(
-    mock.inject(($httpBackend: ng.IHttpBackendService, $rootScope: ng.IRootScopeService) => {
-      $http = $httpBackend;
+    mock.inject((_$httpBackend_: ng.IHttpBackendService, $rootScope: ng.IRootScopeService) => {
+      $httpBackend = _$httpBackend_;
       $scope = $rootScope.$new();
     }),
   );
@@ -62,7 +62,7 @@ describe('PipelineConfigService', () => {
         ],
       });
 
-      $http
+      $httpBackend
         .expectPOST(API.baseUrl + '/pipelines', (requestString: string) => {
           const request = JSON.parse(requestString) as IPipeline;
           return (
@@ -76,8 +76,8 @@ describe('PipelineConfigService', () => {
 
       PipelineConfigService.savePipeline(pipeline);
       $scope.$digest();
-      $http.flush();
-      $http.verifyNoOutstandingRequest();
+      $httpBackend.flush();
+      $httpBackend.verifyNoOutstandingRequest();
     });
   });
 
@@ -85,12 +85,12 @@ describe('PipelineConfigService', () => {
     it('escapes special characters in pipeline name', () => {
       const pipeline: IPipeline = buildPipeline({});
 
-      $http.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
+      $httpBackend.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
 
       PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
 
       $scope.$digest();
-      $http.flush();
+      $httpBackend.flush();
     });
   });
 
@@ -103,13 +103,13 @@ describe('PipelineConfigService', () => {
         buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: [] }),
         buildPipeline({ id: 'd', name: 'third', application: 'app', index: 2, stages: [] }),
       ];
-      $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      $httpBackend.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
       PipelineConfigService.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
         result = pipelines;
       });
       $scope.$digest();
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.map((r) => r.name)).toEqual(['first', 'second', 'third', 'last']);
     });
@@ -123,8 +123,8 @@ describe('PipelineConfigService', () => {
       ];
 
       const posted: any[] = [];
-      $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
-      $http
+      $httpBackend.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      $httpBackend
         .whenPOST(API.baseUrl + '/pipelines', (data: string) => {
           const json: any = JSON.parse(data);
           posted.push({ index: json.index, name: json.name });
@@ -134,7 +134,7 @@ describe('PipelineConfigService', () => {
 
       PipelineConfigService.getPipelinesForApplication('app');
       $scope.$digest();
-      $http.flush();
+      $httpBackend.flush();
 
       expect(posted).toEqual([
         { name: 'first', index: 0 },

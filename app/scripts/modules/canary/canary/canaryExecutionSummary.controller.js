@@ -15,9 +15,8 @@ module(CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER, [
   CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER,
 ]).controller('CanaryExecutionSummaryCtrl', [
   '$scope',
-  '$http',
   '$uibModal',
-  function ($scope, $http, $uibModal) {
+  function ($scope, $uibModal) {
     this.generateCanaryScore = function () {
       $uibModal.open({
         templateUrl: require('./actions/generateScore.modal.html'),

@@ -3,7 +3,7 @@
 import { API, ApplicationModelBuilder } from '@spinnaker/core';
 
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
-  var $http;
+  var $httpBackend;
 
   // load the controller's module
   beforeEach(window.module(require('./createLoadBalancer.controller').name));
@@ -29,9 +29,9 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   );
 
   beforeEach(
-    window.inject(function ($httpBackend) {
+    window.inject(function (_$httpBackend_) {
       // Set up the mock http service responses
-      $http = $httpBackend;
+      $httpBackend = _$httpBackend_;
     }),
   );
 
@@ -48,9 +48,9 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   });
 
   it('makes the expected REST calls for data for a new loadbalancer', function () {
-    $http.when('GET', API.baseUrl + '/networks').respond([]);
-    $http.when('GET', API.baseUrl + '/securityGroups').respond({});
-    $http.when('GET', API.baseUrl + '/credentials?expand=true').respond([]);
-    $http.when('GET', API.baseUrl + '/subnets').respond([]);
+    $httpBackend.when('GET', API.baseUrl + '/networks').respond([]);
+    $httpBackend.when('GET', API.baseUrl + '/securityGroups').respond({});
+    $httpBackend.when('GET', API.baseUrl + '/credentials?expand=true').respond([]);
+    $httpBackend.when('GET', API.baseUrl + '/subnets').respond([]);
   });
 });

@@ -10,10 +10,9 @@ import { GCE_INSTANCE_TYPE_DISK_DEFAULTS } from './gceInstanceTypeDisks';
 export const GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE = 'spinnaker.gce.instanceType.service';
 export const name = GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE; // for backwards compatibility
 module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeService', [
-  '$http',
   '$q',
   '$log',
-  function ($http, $q, $log) {
+  function ($q, $log) {
     const cachedResult = null;
 
     const n1standard = {

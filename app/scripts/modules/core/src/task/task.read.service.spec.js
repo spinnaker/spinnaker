@@ -4,25 +4,25 @@ import { API } from 'core/api/ApiService';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {
-  var $http, scope, timeout, task;
+  var $httpBackend, scope, timeout, task;
 
   beforeEach(
-    window.inject(function ($httpBackend, $rootScope, $timeout) {
-      $http = $httpBackend;
+    window.inject(function (_$httpBackend_, $rootScope, $timeout) {
+      $httpBackend = _$httpBackend_;
       timeout = $timeout;
       scope = $rootScope.$new();
     }),
   );
 
   beforeEach(function () {
-    $http.verifyNoOutstandingExpectation();
-    $http.verifyNoOutstandingRequest();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   });
 
   describe('waitUntilTaskMatches', function () {
     function cycle() {
       timeout.flush();
-      $http.flush();
+      $httpBackend.flush();
     }
 
     beforeEach(function () {
@@ -30,7 +30,7 @@ describe('Service: taskReader', function () {
     });
 
     it('resolves immediately if task already matches', function () {
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 1,
         foo: 3,
         status: 'SUCCEEDED',
@@ -38,7 +38,7 @@ describe('Service: taskReader', function () {
 
       var completed = false;
 
-      $http.flush();
+      $httpBackend.flush();
 
       TaskReader.waitUntilTaskMatches(task, (task) => task.foo === 3).then(() => (completed = true));
       scope.$digest();
@@ -47,7 +47,7 @@ describe('Service: taskReader', function () {
     });
 
     it('fails immediate if failure closure provided and task matches it', function () {
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 1,
         foo: 3,
         status: 'SUCCEEDED',
@@ -56,7 +56,7 @@ describe('Service: taskReader', function () {
       var completed = false,
         failed = false;
 
-      $http.flush();
+      $httpBackend.flush();
 
       TaskReader.waitUntilTaskMatches(
         task,
@@ -73,12 +73,12 @@ describe('Service: taskReader', function () {
     });
 
     it('polls task and resolves when it matches', function () {
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
 
       var completed = false,
         failed = false;
 
-      $http.flush();
+      $httpBackend.flush();
 
       TaskReader.waitUntilTaskMatches(
         task,
@@ -95,25 +95,25 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // still running
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
       cycle();
       expect(completed).toBe(false);
       expect(failed).toBe(false);
 
       // succeeds
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
       cycle();
       expect(completed).toBe(true);
       expect(failed).toBe(false);
     });
 
     it('polls task and rejects when it matches failure closure', function () {
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
 
       var completed = false,
         failed = false;
 
-      $http.flush();
+      $httpBackend.flush();
 
       TaskReader.waitUntilTaskMatches(
         task,
@@ -130,25 +130,25 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // still running
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
       cycle();
       expect(completed).toBe(false);
       expect(failed).toBe(false);
 
       // succeeds
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
       cycle();
       expect(completed).toBe(false);
       expect(failed).toBe(true);
     });
 
     it('polls task and rejects if task is not returned from getTask call', function () {
-      $http.expectGET(API.baseUrl + '/tasks/1').respond(500, {});
+      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond(500, {});
 
       var completed = false,
         failed = false;
 
-      $http.flush();
+      $httpBackend.flush();
 
       TaskReader.waitUntilTaskMatches(
         task,
@@ -171,12 +171,12 @@ describe('Service: taskReader', function () {
         task = resolved;
       });
 
-      $http.flush();
+      $httpBackend.flush();
       scope.$digest();
     }
 
     it('uses start time to calculate running time if endTime is zero', function () {
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
         startTime: Date.now(),
@@ -189,7 +189,7 @@ describe('Service: taskReader', function () {
     });
 
     it('uses start time to calculate running time if endTime is not present', function () {
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
         startTime: Date.now(),
@@ -203,7 +203,7 @@ describe('Service: taskReader', function () {
     it('calculates running time based on start and end times', function () {
       var start = Date.now(),
         end = start + 120 * 1000;
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
         startTime: start,
@@ -218,7 +218,7 @@ describe('Service: taskReader', function () {
     it('handles offset between server and client by taking the max value of current time and start time', function () {
       let now = Date.now(),
         offset = 200000;
-      $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
+      $httpBackend.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
         startTime: now + offset,

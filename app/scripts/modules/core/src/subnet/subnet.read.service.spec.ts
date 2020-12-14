@@ -5,17 +5,17 @@ import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
 describe('SubnetReader', function () {
-  let $http: IHttpBackendService, $scope: IScope;
+  let $httpBackend: IHttpBackendService, $scope: IScope;
 
   beforeEach(
-    mock.inject(function ($httpBackend: IHttpBackendService, $rootScope: IRootScopeService) {
-      $http = $httpBackend;
+    mock.inject(function (_$httpBackend_: IHttpBackendService, $rootScope: IRootScopeService) {
+      $httpBackend = _$httpBackend_;
       $scope = $rootScope.$new();
     }),
   );
 
   it('adds label to subnet, including (deprecated) if deprecated field is true', function () {
-    $http
+    $httpBackend
       .whenGET(API.baseUrl + '/subnets')
       .respond(200, [
         { purpose: 'internal', deprecated: true },
@@ -29,7 +29,7 @@ describe('SubnetReader', function () {
       result = subnets;
     });
 
-    $http.flush();
+    $httpBackend.flush();
     $scope.$digest();
 
     expect(result[0].label).toBe('internal (deprecated)');

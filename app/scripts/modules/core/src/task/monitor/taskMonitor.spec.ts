@@ -10,12 +10,12 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 
 describe('TaskMonitor', () => {
-  let $scope: ng.IScope, $http: ng.IHttpBackendService;
+  let $scope: ng.IScope, $httpBackend: ng.IHttpBackendService;
 
   beforeEach(
-    mock.inject(($rootScope: ng.IRootScopeService, $httpBackend: ng.IHttpBackendService) => {
+    mock.inject(($rootScope: ng.IRootScopeService, _$httpBackend_: ng.IHttpBackendService) => {
       $scope = $rootScope.$new();
-      $http = $httpBackend;
+      $httpBackend = _$httpBackend_;
     }),
   );
 
@@ -45,15 +45,15 @@ describe('TaskMonitor', () => {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $httpBackend.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
-      $http.flush();
+      $httpBackend.flush();
       expect(monitor.task.isCompleted).toBe(false);
       expect((monitor.application.getDataSource('runningTasks').refresh as Spy).calls.count()).toBe(1);
 
-      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
+      $httpBackend.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
-      $http.flush();
+      $httpBackend.flush();
 
       expect(completeCalled).toBe(true);
       expect(monitor.task.isCompleted).toBe(true);
@@ -109,14 +109,14 @@ describe('TaskMonitor', () => {
 
       $timeout.flush(); // still running first time
 
-      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      $httpBackend.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
       $timeout.flush();
-      $http.flush();
+      $httpBackend.flush();
       expect(monitor.task.isCompleted).toBe(false);
 
-      $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
+      $httpBackend.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
       $timeout.flush(); // complete second time
-      $http.flush();
+      $httpBackend.flush();
 
       expect(monitor.submitting).toBe(false);
       expect(monitor.error).toBe(true);

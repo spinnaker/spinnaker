@@ -5,19 +5,19 @@ import { API } from '@spinnaker/core';
 import { AwsImageReader } from './image.reader';
 
 describe('Service: aws Image Reader', function () {
-  var service, $http, scope;
+  var service, $httpBackend, scope;
 
   beforeEach(
-    window.inject(function ($httpBackend, $rootScope) {
+    window.inject(function (_$httpBackend_, $rootScope) {
       service = new AwsImageReader();
-      $http = $httpBackend;
+      $httpBackend = _$httpBackend_;
       scope = $rootScope.$new();
     }),
   );
 
   afterEach(function () {
-    $http.verifyNoOutstandingRequest();
-    $http.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+    $httpBackend.verifyNoOutstandingExpectation();
   });
 
   describe('findImages', function () {
@@ -31,13 +31,13 @@ describe('Service: aws Image Reader', function () {
     it('queries gate when 3 characters are supplied', function () {
       var result = null;
 
-      $http.when('GET', buildQueryString()).respond(200, [{ success: true }]);
+      $httpBackend.when('GET', buildQueryString()).respond(200, [{ success: true }]);
 
       service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(1);
       expect(result[0].success).toBe(true);
@@ -48,7 +48,7 @@ describe('Service: aws Image Reader', function () {
 
       query = 'abcd';
 
-      $http.when('GET', buildQueryString()).respond(200, [{ success: true }]);
+      $httpBackend.when('GET', buildQueryString()).respond(200, [{ success: true }]);
 
       var promise = service.findImages({ provider: 'aws', q: query, region: region });
 
@@ -56,7 +56,7 @@ describe('Service: aws Image Reader', function () {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(1);
       expect(result[0].success).toBe(true);
@@ -81,13 +81,13 @@ describe('Service: aws Image Reader', function () {
       query = 'abc';
       var result = null;
 
-      $http.when('GET', buildQueryString()).respond(404, {});
+      $httpBackend.when('GET', buildQueryString()).respond(404, {});
 
       service.findImages({ provider: 'aws', q: query, region: region }).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(0);
     });
@@ -105,25 +105,25 @@ describe('Service: aws Image Reader', function () {
     it('returns null if server returns 404 or an empty list', function () {
       var result = 'not null';
 
-      $http.when('GET', buildQueryString()).respond(404, {});
+      $httpBackend.when('GET', buildQueryString()).respond(404, {});
 
       service.getImage(imageName, region, credentials).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result).toBe(null);
 
       result = 'not null';
 
-      $http.when('GET', buildQueryString()).respond(200, []);
+      $httpBackend.when('GET', buildQueryString()).respond(200, []);
 
       service.getImage(imageName, region, credentials).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result).toBe(null);
     });

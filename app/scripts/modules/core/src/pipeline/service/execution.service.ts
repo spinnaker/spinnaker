@@ -1,4 +1,4 @@
-import { IHttpService, IQService, ITimeoutService, module } from 'angular';
+import { IQService, ITimeoutService, module } from 'angular';
 import { get, identity, pickBy } from 'lodash';
 import { StateService } from '@uirouter/core';
 
@@ -36,12 +36,7 @@ export class ExecutionService {
     '$$hashKey',
   ];
 
-  constructor(
-    private $http: IHttpService,
-    private $q: IQService,
-    private $state: StateService,
-    private $timeout: ITimeoutService,
-  ) {}
+  constructor(private $q: IQService, private $state: StateService, private $timeout: ITimeoutService) {}
 
   public getRunningExecutions(applicationName: string): PromiseLike<IExecution[]> {
     return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit, null, true);
@@ -259,80 +254,55 @@ export class ExecutionService {
     force?: boolean,
     reason?: string,
   ): PromiseLike<any> {
-    const deferred = this.$q.defer();
-    this.$http({
-      method: 'PUT',
-      url: [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/'),
-      params: {
-        force,
-        reason,
-      },
-    }).then(
-      () => this.waitUntilPipelineIsCancelled(application, executionId).then(deferred.resolve),
-      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
-    );
-    return deferred.promise;
+    return API.one('pipelines', executionId, 'cancel')
+      .withParams({ force, reason })
+      .put()
+      .then(() => this.waitUntilPipelineIsCancelled(application, executionId))
+      .catch((exception) => {
+        throw exception && exception.data ? exception.message : null;
+      });
   }
 
   public pauseExecution(application: Application, executionId: string): PromiseLike<any> {
-    const deferred = this.$q.defer();
-    const matcher = (execution: IExecution) => {
-      return execution.status === 'PAUSED';
-    };
-
-    this.$http({
-      method: 'PUT',
-      url: [SETTINGS.gateUrl, 'pipelines', executionId, 'pause'].join('/'),
-    }).then(
-      () =>
-        this.waitUntilExecutionMatches(executionId, matcher)
-          .then(() => application.executions.refresh())
-          .then(deferred.resolve),
-      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
-    );
-    return deferred.promise;
+    return API.one('pipelines', executionId, 'pause')
+      .put()
+      .then(() => this.waitUntilExecutionMatches(executionId, (execution) => execution.status === 'PAUSED'))
+      .then(() => application.executions.refresh())
+      .catch((exception) => {
+        throw exception && exception.data ? exception.message : null;
+      });
   }
 
   public resumeExecution(application: Application, executionId: string): PromiseLike<any> {
-    const deferred = this.$q.defer();
-    const matcher = (execution: IExecution) => {
-      return execution.status === 'RUNNING';
-    };
-
-    this.$http({
-      method: 'PUT',
-      url: [SETTINGS.gateUrl, 'pipelines', executionId, 'resume'].join('/'),
-    }).then(
-      () =>
-        this.waitUntilExecutionMatches(executionId, matcher)
-          .then(() => application.executions.refresh())
-          .then(deferred.resolve),
-      (exception) => deferred.reject(exception && exception.data ? exception.message : null),
-    );
-    return deferred.promise;
+    return API.one('pipelines', executionId, 'resume')
+      .put()
+      .then(() => this.waitUntilExecutionMatches(executionId, (execution) => execution.status === 'RUNNING'))
+      .then(() => application.executions.refresh())
+      .catch((exception) => {
+        throw exception && exception.data ? exception.message : null;
+      });
   }
 
   public deleteExecution(application: Application, executionId: string): PromiseLike<any> {
-    const deferred = this.$q.defer();
-    this.$http({
-      method: 'DELETE',
-      url: [SETTINGS.gateUrl, 'pipelines', executionId].join('/'),
-    }).then(
-      () => this.waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve),
-      (exception) => deferred.reject(exception && exception.data ? exception.data.message : null),
-    );
-    return deferred.promise;
+    const promiseLike = API.one('pipelines', executionId)
+      .delete()
+      .then(() => this.waitUntilPipelineIsDeleted(application, executionId))
+      .then(() => application.executions.refresh())
+      .catch((exception) => {
+        throw exception && exception.data ? exception.message : null;
+      });
+    return promiseLike;
   }
 
   public waitUntilExecutionMatches(
     executionId: string,
-    closure: (execution: IExecution) => boolean,
+    matchPredicate: (execution: IExecution) => boolean,
   ): PromiseLike<IExecution> {
     return this.getExecution(executionId).then((execution) => {
-      if (closure(execution)) {
+      if (matchPredicate(execution)) {
         return execution;
       }
-      return this.$timeout(() => this.waitUntilExecutionMatches(executionId, closure), 1000);
+      return this.$timeout(() => this.waitUntilExecutionMatches(executionId, matchPredicate), 1000);
     });
   }
 
@@ -547,14 +517,7 @@ export class ExecutionService {
   }
 
   public patchExecution(executionId: string, stageId: string, data: any): PromiseLike<any> {
-    const targetUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'stages', stageId].join('/');
-    const request = {
-      method: 'PATCH',
-      url: targetUrl,
-      data,
-      timeout: (SETTINGS.pollSchedule || 30000) * 2 + 5000,
-    };
-    return this.$http(request).then((resp) => resp.data);
+    return API.one('pipelines', executionId, 'stages', stageId).patch(data);
   }
 
   private stringifyExecution(execution: IExecution): string {
@@ -570,12 +533,10 @@ export class ExecutionService {
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
 module(EXECUTION_SERVICE, [UIROUTER_ANGULARJS]).factory('executionService', [
-  '$http',
   '$q',
   '$state',
   '$timeout',
-  ($http: IHttpService, $q: IQService, $state: StateService, $timeout: ITimeoutService) =>
-    new ExecutionService($http, $q, $state, $timeout),
+  ($q: IQService, $state: StateService, $timeout: ITimeoutService) => new ExecutionService($q, $state, $timeout),
 ]);
 
 DebugWindow.addInjectable('executionService');

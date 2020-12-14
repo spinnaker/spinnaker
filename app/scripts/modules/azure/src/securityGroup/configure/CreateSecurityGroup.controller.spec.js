@@ -3,7 +3,7 @@
 import { AccountService, API, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 describe('Controller: Azure.CreateSecurityGroup', function () {
-  var $http;
+  var $httpBackend;
 
   beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl').name));
 
@@ -70,14 +70,14 @@ describe('Controller: Azure.CreateSecurityGroup', function () {
     );
 
     beforeEach(
-      window.inject(function ($httpBackend) {
+      window.inject(function (_$httpBackend_) {
         // Set up the mock http service responses
-        $http = $httpBackend;
+        $httpBackend = _$httpBackend_;
       }),
     );
 
     it('initializes with no firewalls available for ingress permissions', function () {
-      $http.when('GET', API.baseUrl + '/networks').respond([]);
+      $httpBackend.when('GET', API.baseUrl + '/networks').respond([]);
       this.initializeCtrl();
       expect(this.$scope.securityGroup.securityRules.length).toBe(0);
     });

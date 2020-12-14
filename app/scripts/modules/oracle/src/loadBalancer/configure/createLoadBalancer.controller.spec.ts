@@ -12,7 +12,7 @@ import {
 import { OracleProviderSettings } from 'oracle/oracle.settings';
 
 describe('Controller: oracleCreateLoadBalancerCtrl', function () {
-  let $http: ng.IHttpBackendService;
+  let $httpBackend: ng.IHttpBackendService;
   let controller: OracleLoadBalancerController;
   const loadBalancer: IOracleLoadBalancer = null;
   let $scope: IScope;
@@ -49,9 +49,9 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function () {
   );
 
   beforeEach(
-    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
+    mock.inject(function (_$httpBackend_: ng.IHttpBackendService) {
       // Set up the mock http service responses
-      $http = $httpBackend;
+      $httpBackend = _$httpBackend_;
     }),
   );
 
@@ -182,10 +182,10 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function () {
   });
 
   it('makes the expected REST calls for data for a new loadbalancer', function () {
-    $http.expect('GET', API.baseUrl + '/networks/oracle').respond([]);
-    $http.expect('GET', API.baseUrl + '/subnets/oracle').respond([]);
-    $http.flush();
-    $http.verifyNoOutstandingExpectation();
-    $http.verifyNoOutstandingRequest();
+    $httpBackend.expect('GET', API.baseUrl + '/networks/oracle').respond([]);
+    $httpBackend.expect('GET', API.baseUrl + '/subnets/oracle').respond([]);
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   });
 });

@@ -7,10 +7,10 @@ import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 
 describe('<ConfigFileArtifactList/>', () => {
-  let $http: ng.IHttpBackendService;
+  let $httpBackend: ng.IHttpBackendService;
   beforeEach(
-    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
-      $http = $httpBackend;
+    mock.inject(function (_$httpBackend_: ng.IHttpBackendService) {
+      $httpBackend = _$httpBackend_;
     }),
   );
 
@@ -34,7 +34,7 @@ describe('<ConfigFileArtifactList/>', () => {
         types: ['http'],
       },
     ];
-    $http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    $httpBackend.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
 
     const configArtifacts = [
       {
@@ -62,7 +62,7 @@ describe('<ConfigFileArtifactList/>', () => {
       />,
     );
     expect(wrapper.find(StageArtifactSelector).length).toBe(2);
-    $http.flush();
+    $httpBackend.flush();
   });
 
   it('renders 1 children of StageArtifactSelector when 1 expectedArtifacts are passed in', () => {
@@ -72,7 +72,7 @@ describe('<ConfigFileArtifactList/>', () => {
         types: ['http'],
       },
     ];
-    $http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    $httpBackend.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
 
     // artifact intentionally left null indicating an expected artifact
     const configArtifacts = [
@@ -91,6 +91,6 @@ describe('<ConfigFileArtifactList/>', () => {
       />,
     );
     expect(wrapper.find(StageArtifactSelector).length).toBe(1);
-    $http.flush();
+    $httpBackend.flush();
   });
 });

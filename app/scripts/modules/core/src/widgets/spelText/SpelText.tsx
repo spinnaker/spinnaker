@@ -5,7 +5,7 @@ import './spel.less';
 
 import classNames from 'classnames';
 import $ from 'jquery';
-import { $q, $http, $timeout } from 'ngimport';
+import { $q, $timeout } from 'ngimport';
 import { SpelAutocompleteService } from './SpelAutocompleteService';
 import { ExecutionService } from '../../pipeline/service/execution.service';
 import { StateService } from '@uirouter/core';
@@ -37,10 +37,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   constructor(props: ISpelTextProps) {
     super(props);
     this.state = { textcompleteConfig: [] };
-    this.autocompleteService = new SpelAutocompleteService(
-      $q,
-      new ExecutionService($http, $q, {} as StateService, $timeout),
-    );
+    this.autocompleteService = new SpelAutocompleteService($q, new ExecutionService($q, {} as StateService, $timeout));
     Observable.fromPromise(this.autocompleteService.addPipelineInfo(this.props.pipeline))
       .takeUntil(this.destroy$)
       .subscribe((textcompleteConfig) => {

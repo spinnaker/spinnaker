@@ -7,7 +7,7 @@ import { ExecutionService } from 'core/pipeline/service/execution.service';
 describe('Service: manualJudgment', () => {
   let $scope: IScope,
     service: ManualJudgmentService,
-    $http: IHttpBackendService,
+    $httpBackend: IHttpBackendService,
     $q: IQService,
     executionService: ExecutionService;
 
@@ -18,13 +18,13 @@ describe('Service: manualJudgment', () => {
       (
         $rootScope: IRootScopeService,
         manualJudgmentService: ManualJudgmentService,
-        $httpBackend: IHttpBackendService,
+        _$httpBackend_: IHttpBackendService,
         _$q_: IQService,
         _executionService_: ExecutionService,
       ) => {
         $scope = $rootScope.$new();
         service = manualJudgmentService;
-        $http = $httpBackend;
+        $httpBackend = _$httpBackend_;
         $q = _$q_;
         executionService = _executionService_;
       },
@@ -43,13 +43,13 @@ describe('Service: manualJudgment', () => {
       const deferred: IDeferred<boolean> = $q.defer();
       let succeeded = false;
 
-      $http.expectPATCH(requestUrl).respond(200, '');
+      $httpBackend.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
       spyOn(executionService, 'updateExecution').and.stub();
 
       service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true));
 
-      $http.flush();
+      $httpBackend.flush();
       expect(succeeded).toBe(false);
 
       // waitForExecutionMatches...
@@ -64,7 +64,7 @@ describe('Service: manualJudgment', () => {
       let succeeded = false,
         failed = false;
 
-      $http.expectPATCH(requestUrl).respond(200, '');
+      $httpBackend.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
 
       service.provideJudgment(null, execution, stage, 'continue').then(
@@ -72,7 +72,7 @@ describe('Service: manualJudgment', () => {
         () => (failed = true),
       );
 
-      $http.flush();
+      $httpBackend.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
 
@@ -88,14 +88,14 @@ describe('Service: manualJudgment', () => {
       let succeeded = false,
         failed = false;
 
-      $http.expectPATCH(requestUrl).respond(503, '');
+      $httpBackend.expectPATCH(requestUrl).respond(503, '');
 
       service.provideJudgment(null, execution, stage, 'continue').then(
         () => (succeeded = true),
         () => (failed = true),
       );
 
-      $http.flush();
+      $httpBackend.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
     });

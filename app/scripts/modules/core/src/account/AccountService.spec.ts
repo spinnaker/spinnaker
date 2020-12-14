@@ -8,11 +8,11 @@ import { AccountService, IAccount } from './AccountService';
 import { CloudProviderRegistry } from '../cloudProvider';
 
 describe('Service: AccountService', () => {
-  let $http: ng.IHttpBackendService;
+  let $httpBackend: ng.IHttpBackendService;
 
   beforeEach(
-    mock.inject(function ($httpBackend: ng.IHttpBackendService) {
-      $http = $httpBackend;
+    mock.inject(function (_$httpBackend_: ng.IHttpBackendService) {
+      $httpBackend = _$httpBackend_;
     }),
   );
   beforeEach(() => AccountService.initialize());
@@ -20,7 +20,7 @@ describe('Service: AccountService', () => {
   afterEach(SETTINGS.resetToOriginal);
 
   it('should filter the list of accounts by provider when supplied', (done) => {
-    $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
+    $httpBackend.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
       { name: 'test', type: 'aws' },
       { name: 'prod', type: 'aws' },
       { name: 'prod', type: 'gce' },
@@ -32,13 +32,13 @@ describe('Service: AccountService', () => {
       expect(accounts.map((account: IAccount) => account.name)).toEqual(['test', 'prod']);
       done();
     });
-    $http.flush();
+    $httpBackend.flush();
     setTimeout(() => $rootScope.$digest());
   });
 
   describe('getAllAccountDetailsForProvider', () => {
     it('should return details for each account', (done) => {
-      $http.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
+      $httpBackend.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
         { name: 'test', type: 'aws' },
         { name: 'prod', type: 'aws' },
       ]);
@@ -49,18 +49,18 @@ describe('Service: AccountService', () => {
         expect(details[1].name).toBe('prod');
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
     it('should fall back to an empty array if an exception occurs when listing accounts', (done) => {
-      $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(429, null);
+      $httpBackend.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(429, null);
 
       AccountService.getAllAccountDetailsForProvider('aws').then((details: any[]) => {
         expect(details).toEqual([]);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
   });
@@ -69,7 +69,7 @@ describe('Service: AccountService', () => {
     let registeredProviders: string[];
     beforeEach(() => {
       registeredProviders = ['aws', 'gce', 'cf'];
-      $http
+      $httpBackend
         .whenGET(`${API.baseUrl}/credentials?expand=true`)
         .respond(200, [{ type: 'aws' }, { type: 'gce' }, { type: 'cf' }]);
       spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
@@ -80,7 +80,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual(['aws', 'cf', 'gce']);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
@@ -90,7 +90,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual(['aws', 'gce']);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
@@ -101,7 +101,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual(['cf', 'gce']);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
@@ -112,7 +112,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual(['cf', 'gce']);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
@@ -123,7 +123,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual([]);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
 
@@ -134,7 +134,7 @@ describe('Service: AccountService', () => {
         expect(result).toEqual(['aws', 'cf', 'gce']);
         done();
       });
-      $http.flush();
+      $httpBackend.flush();
       setTimeout(() => $rootScope.$digest());
     });
   });

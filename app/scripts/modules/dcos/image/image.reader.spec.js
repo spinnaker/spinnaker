@@ -3,20 +3,20 @@
 import { API } from '@spinnaker/core';
 
 describe('Service: DCOS Image Reader', function () {
-  var service, $http;
+  var service, $httpBackend;
 
   beforeEach(window.module(require('./image.reader').name));
 
   beforeEach(
-    window.inject(function (dcosImageReader, $httpBackend) {
+    window.inject(function (dcosImageReader, _$httpBackend_) {
       service = dcosImageReader;
-      $http = $httpBackend;
+      $httpBackend = _$httpBackend_;
     }),
   );
 
   afterEach(function () {
-    $http.verifyNoOutstandingRequest();
-    $http.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+    $httpBackend.verifyNoOutstandingExpectation();
   });
 
   describe('findImages', function () {
@@ -30,13 +30,13 @@ describe('Service: DCOS Image Reader', function () {
     it('queries gate when 3 characters are supplied', function () {
       var result = null;
 
-      $http.when('GET', buildQueryString()).respond(200, [{ success: true }]);
+      $httpBackend.when('GET', buildQueryString()).respond(200, [{ success: true }]);
 
       service.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(1);
       expect(result[0].success).toBe(true);
@@ -47,7 +47,7 @@ describe('Service: DCOS Image Reader', function () {
 
       query = 'abcd';
 
-      $http.when('GET', buildQueryString()).respond(200, [{ success: true }]);
+      $httpBackend.when('GET', buildQueryString()).respond(200, [{ success: true }]);
 
       var promise = service.findImages({ provider: 'dcos', q: query, region: region });
 
@@ -55,7 +55,7 @@ describe('Service: DCOS Image Reader', function () {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(1);
       expect(result[0].success).toBe(true);
@@ -65,13 +65,13 @@ describe('Service: DCOS Image Reader', function () {
       query = 'abc';
       var result = null;
 
-      $http.when('GET', buildQueryString()).respond(404, {});
+      $httpBackend.when('GET', buildQueryString()).respond(404, {});
 
       service.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
         result = results;
       });
 
-      $http.flush();
+      $httpBackend.flush();
 
       expect(result.length).toBe(0);
     });

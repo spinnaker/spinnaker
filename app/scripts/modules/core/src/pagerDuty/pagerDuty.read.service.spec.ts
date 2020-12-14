@@ -5,23 +5,23 @@ import { API } from 'core/api/ApiService';
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
-  let $http: IHttpBackendService;
+  let $httpBackend: IHttpBackendService;
 
   beforeEach(mock.module());
   beforeEach(
     mock.inject((_$httpBackend_: IHttpBackendService) => {
-      $http = _$httpBackend_;
+      $httpBackend = _$httpBackend_;
     }),
   );
 
   afterEach(function () {
-    $http.verifyNoOutstandingExpectation();
-    $http.verifyNoOutstandingRequest();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   });
 
   it('should return an empty array when configured to do so and invoked', () => {
     const services: IPagerDutyService[] = [];
-    $http.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    $httpBackend.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
@@ -30,7 +30,7 @@ describe('PagerDutyReader', () => {
       executed = true; // can't use done() function b/c $digest is already in progress
     });
 
-    $http.flush();
+    $httpBackend.flush();
     expect(executed).toBeTruthy();
   });
 
@@ -53,7 +53,7 @@ describe('PagerDutyReader', () => {
         status: 'active',
       },
     ];
-    $http.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    $httpBackend.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
@@ -62,7 +62,7 @@ describe('PagerDutyReader', () => {
       executed = true; // can't use done() function b/c $digest is already in progress
     });
 
-    $http.flush();
+    $httpBackend.flush();
     expect(executed).toBeTruthy();
   });
 });
