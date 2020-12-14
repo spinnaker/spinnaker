@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock, IHttpBackendService, IRootScopeService, IScope } from 'angular';
 
 import { API } from 'core/api/ApiService';
@@ -14,8 +15,9 @@ describe('SubnetReader', function () {
     }),
   );
 
-  it('adds label to subnet, including (deprecated) if deprecated field is true', function () {
-    $httpBackend
+  it('adds label to subnet, including (deprecated) if deprecated field is true', async function () {
+    const http = mockHttpClient();
+    http
       .whenGET(API.baseUrl + '/subnets')
       .respond(200, [
         { purpose: 'internal', deprecated: true },
@@ -29,7 +31,7 @@ describe('SubnetReader', function () {
       result = subnets;
     });
 
-    $httpBackend.flush();
+    await http.flush();
     $scope.$digest();
 
     expect(result[0].label).toBe('internal (deprecated)');

@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IHttpBackendService, IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
 import { REACT_MODULE } from 'core/reactShims';
 
@@ -46,130 +47,137 @@ describe('Service: executionService', () => {
   });
 
   describe('cancelling pipeline', () => {
-    it('should wait until pipeline is not running, then resolve', () => {
+    it('should wait until pipeline is not running, then resolve', async () => {
+      const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
       const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
       const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectPUT(cancelUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId, status: 'RUNNING' });
+      http.expectPUT(cancelUrl).respond(200, []);
+      http.expectGET(checkUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
       executionService.cancelExecution(application, executionId).then(() => (completed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId, status: 'CANCELED' });
+      http.expectGET(checkUrl).respond(200, { id: executionId, status: 'CANCELED' });
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(true);
     });
 
-    it('should propagate rejection from failed cancel', () => {
+    it('should propagate rejection from failed cancel', async () => {
+      const http = mockHttpClient();
       let failed = false;
       const executionId = 'abc';
       const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectPUT(cancelUrl).respond(500, []);
+      http.expectPUT(cancelUrl).respond(500, []);
 
       executionService.cancelExecution(application, executionId).then(noop, () => (failed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(failed).toBe(true);
     });
   });
 
   describe('deleting pipeline', () => {
-    it('should wait until pipeline is missing, then resolve', () => {
+    it('should wait until pipeline is missing, then resolve', async () => {
+      const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
       const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectDELETE(deleteUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, { id: executionId });
+      http.expectDELETE(deleteUrl).respond(200, []);
+      http.expectGET(checkUrl).respond(200, { id: executionId });
 
       executionService.deleteExecution(application, executionId).then(() => (completed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(checkUrl).respond(404, null);
+      http.expectGET(checkUrl).respond(404, null);
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(true);
     });
 
-    it('should propagate rejection from failed delete', () => {
+    it('should propagate rejection from failed delete', async () => {
+      const http = mockHttpClient();
       let failed = false;
       const executionId = 'abc';
       const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectDELETE(deleteUrl).respond(500, []);
+      http.expectDELETE(deleteUrl).respond(500, []);
 
       executionService.deleteExecution(application, executionId).then(noop, () => (failed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(failed).toBe(true);
     });
   });
 
   describe('pausing pipeline', () => {
-    it('should wait until pipeline is PAUSED, then resolve', () => {
+    it('should wait until pipeline is PAUSED, then resolve', async () => {
+      const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
       const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'pause'].join('/');
       const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectPUT(pauseUrl).respond(200, []);
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
+      http.expectPUT(pauseUrl).respond(200, []);
+      http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
       executionService.pauseExecution(application, executionId).then(() => (completed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
+      http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(completed).toBe(true);
     });
   });
 
   describe('resuming pipeline', () => {
-    it('should wait until pipeline is RUNNING, then resolve', () => {
+    it('should wait until pipeline is RUNNING, then resolve', async () => {
+      const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
       const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'resume'].join('/');
       const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      $httpBackend.expectPUT(pauseUrl).respond(200, []);
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
+      http.expectPUT(pauseUrl).respond(200, []);
+      http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
 
       executionService.resumeExecution(application, executionId).then(() => (completed = true));
-      $httpBackend.flush();
+      await http.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
+      http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(completed).toBe(true);
     });
   });
 
   describe('when fetching pipelines', () => {
-    it('should resolve the promise if a 200 response is received with empty array', () => {
+    it('should resolve the promise if a 200 response is received with empty array', async () => {
+      const http = mockHttpClient();
       const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
 
-      $httpBackend.expectGET(url).respond(200, []);
+      http.expectGET(url).respond(200, []);
 
       const responsePromise = executionService.getExecutions('deck');
 
-      $httpBackend.flush();
+      await http.flush();
 
       responsePromise
         .then((result) => {
@@ -181,14 +189,15 @@ describe('Service: executionService', () => {
         });
     });
 
-    it('should reject the promise if a 429 response is received', () => {
+    it('should reject the promise if a 429 response is received', async () => {
+      const http = mockHttpClient();
       const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
 
-      $httpBackend.expectGET(url).respond(429, []);
+      http.expectGET(url).respond(429, []);
 
       const responsePromise = executionService.getExecutions('deck');
 
-      $httpBackend.flush();
+      await http.flush();
 
       responsePromise
         .then((result) => {
@@ -201,12 +210,13 @@ describe('Service: executionService', () => {
   });
 
   describe('waitUntilExecutionMatches', () => {
-    it('resolves when the execution matches the closure', () => {
+    it('resolves when the execution matches the closure', async () => {
+      const http = mockHttpClient();
       const executionId = 'abc';
       const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
+      http.expectGET(url).respond(200, { thingToMatch: true });
 
       executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
@@ -214,16 +224,17 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(true);
     });
 
-    it('polls until the execution matches, then resolves', () => {
+    it('polls until the execution matches, then resolves', async () => {
+      const http = mockHttpClient();
       const executionId = 'abc';
       const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+      http.expectGET(url).respond(200, { thingToMatch: false });
 
       executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
@@ -231,31 +242,32 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
 
       // no match, retrying
-      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+      http.expectGET(url).respond(200, { thingToMatch: false });
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(succeeded).toBe(false);
 
       // still no match, retrying again
-      $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
+      http.expectGET(url).respond(200, { thingToMatch: true });
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(succeeded).toBe(true);
     });
 
-    it('rejects if execution retrieval fails', () => {
+    it('rejects if execution retrieval fails', async () => {
+      const http = mockHttpClient();
       const executionId = 'abc';
       const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       let succeeded = false;
       let failed = false;
 
-      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+      http.expectGET(url).respond(200, { thingToMatch: false });
 
       executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
@@ -267,14 +279,14 @@ describe('Service: executionService', () => {
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
 
       // no match, retrying
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
-      $httpBackend.expectGET(url).respond(500, '');
+      http.expectGET(url).respond(500, '');
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
     });
@@ -454,10 +466,11 @@ describe('Service: executionService', () => {
     const url = [SETTINGS.gateUrl, 'pipelines', pipelineId].join('/');
     const execution: any = {}; // Stub execution
 
-    it('resolves when the pipeline exists', () => {
+    it('resolves when the pipeline exists', async () => {
+      const http = mockHttpClient();
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, execution);
+      http.expectGET(url).respond(200, execution);
 
       executionService
         .waitUntilTriggeredPipelineAppears(application, pipelineId)
@@ -465,14 +478,15 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(true);
     });
 
-    it('does not resolve when the pipeline does not exist', () => {
+    it('does not resolve when the pipeline does not exist', async () => {
+      const http = mockHttpClient();
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(404, null);
+      http.expectGET(url).respond(404, null);
 
       executionService
         .waitUntilTriggeredPipelineAppears(application, pipelineId)
@@ -480,14 +494,15 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
     });
 
-    it('resolves when the pipeline exists on a later poll', () => {
+    it('resolves when the pipeline exists on a later poll', async () => {
+      const http = mockHttpClient();
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(404, null);
+      http.expectGET(url).respond(404, null);
 
       executionService
         .waitUntilTriggeredPipelineAppears(application, pipelineId)
@@ -495,14 +510,14 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(false);
 
-      $httpBackend.flush();
+      await http.flush();
 
       expect(succeeded).toBe(false);
 
       // return success on the second GET request
-      $httpBackend.expectGET(url).respond(200, execution);
+      http.expectGET(url).respond(200, execution);
       timeout.flush();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(succeeded).toBe(true);
     });

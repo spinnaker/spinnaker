@@ -1,4 +1,5 @@
 'use strict';
+import { mockHttpClient } from 'core/api/mock/jasmine';
 
 import { API } from '@spinnaker/core';
 
@@ -36,23 +37,25 @@ describe('Service: InstanceType', function () {
   });
 
   describe('getAllTypesByRegion', function () {
-    it('returns types, indexed by region', function () {
-      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+    it('returns types, indexed by region', async function () {
+      const http = mockHttpClient();
+      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       let results = null;
       this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
         results = result;
       });
 
-      this.$httpBackend.flush();
+      await http.flush();
       expect(results['us-west-2'].length).toBe(2);
       expect(_.map(results['us-west-2'], 'name').sort()).toEqual(['m1.small', 'm2.xlarge']);
     });
   });
 
   describe('getAvailableTypesForRegions', function () {
-    it('returns results for a single region', function () {
-      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+    it('returns results for a single region', async function () {
+      const http = mockHttpClient();
+      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -61,12 +64,13 @@ describe('Service: InstanceType', function () {
         results = service.getAvailableTypesForRegions(result, ['us-west-2']);
       });
 
-      this.$httpBackend.flush();
+      await http.flush();
       expect(results).toEqual(['m1.small', 'm2.xlarge']);
     });
 
-    it('returns empty list for region with no instance types', function () {
-      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+    it('returns empty list for region with no instance types', async function () {
+      const http = mockHttpClient();
+      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -75,12 +79,13 @@ describe('Service: InstanceType', function () {
         results = service.getAvailableTypesForRegions(result, ['us-west-3']);
       });
 
-      this.$httpBackend.flush();
+      await http.flush();
       expect(results).toEqual([]);
     });
 
-    it('returns an intersection when multiple regions are provided', function () {
-      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+    it('returns an intersection when multiple regions are provided', async function () {
+      const http = mockHttpClient();
+      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -89,7 +94,7 @@ describe('Service: InstanceType', function () {
         results = service.getAvailableTypesForRegions(result, ['us-west-2', 'eu-west-1']);
       });
 
-      this.$httpBackend.flush();
+      await http.flush();
       expect(results).toEqual(['m2.xlarge']);
     });
 
@@ -108,8 +113,9 @@ describe('Service: InstanceType', function () {
       expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c400.a', 'c300.a', 'c3.a']);
     });
 
-    it('sorts instance types by family then class size', function () {
-      this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+    it('sorts instance types by family then class size', async function () {
+      const http = mockHttpClient();
+      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -118,7 +124,7 @@ describe('Service: InstanceType', function () {
         results = service.getAvailableTypesForRegions(result, ['us-east-1']);
       });
 
-      this.$httpBackend.flush();
+      await http.flush();
       expect(results).toEqual([
         'm4.large',
         'm4.xlarge',

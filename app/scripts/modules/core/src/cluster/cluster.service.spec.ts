@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IHttpBackendService, mock } from 'angular';
 import { find } from 'lodash';
 
@@ -53,37 +54,40 @@ describe('Service: Cluster', function () {
   beforeEach(() => State.initialize());
 
   describe('lazy cluster fetching', () => {
-    it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', () => {
+    it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', async () => {
+      const http = mockHttpClient();
       const clusters = Array(SETTINGS.onDemandClusterThreshold + 1);
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
+      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
-      $httpBackend.flush();
+      await http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(true);
       expect(serverGroups).toEqual([]);
     });
 
-    it('does boring regular fetching when there are less than the on demand threshold for clusters', () => {
+    it('does boring regular fetching when there are less than the on demand threshold for clusters', async () => {
+      const http = mockHttpClient();
       const clusters = Array(SETTINGS.onDemandClusterThreshold);
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
+      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
-      $httpBackend.flush();
+      await http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(false);
       expect(serverGroups).toEqual([]);
     });
 
-    it('converts clusters parameter to q and account params when there are fewer than 251 clusters', () => {
+    it('converts clusters parameter to q and account params when there are fewer than 251 clusters', async () => {
+      const http = mockHttpClient();
       spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       const clusters = Array(250);
       ClusterState.filterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
+      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
-      $httpBackend.flush();
+      await http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(false);
       expect(ClusterState.filterModel.asFilterModel.sortFilter.filter).toEqual('clusters:myapp');
       expect(ClusterState.filterModel.asFilterModel.sortFilter.account.test).toBe(true);

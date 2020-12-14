@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import React from 'react';
 import { mock } from 'angular';
 import { mount } from 'enzyme';
@@ -27,14 +28,15 @@ describe('<ConfigFileArtifactList/>', () => {
     expect(wrapper.find(StageArtifactSelector).length).toBe(0);
   });
 
-  it('renders 2 children of StageArtifactSelector when 2 artifacts are passed in', () => {
+  it('renders 2 children of StageArtifactSelector when 2 artifacts are passed in', async () => {
+    const http = mockHttpClient();
     const body: IArtifactAccount[] = [
       {
         name: 'http-acc',
         types: ['http'],
       },
     ];
-    $httpBackend.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
 
     const configArtifacts = [
       {
@@ -62,17 +64,18 @@ describe('<ConfigFileArtifactList/>', () => {
       />,
     );
     expect(wrapper.find(StageArtifactSelector).length).toBe(2);
-    $httpBackend.flush();
+    await http.flush();
   });
 
-  it('renders 1 children of StageArtifactSelector when 1 expectedArtifacts are passed in', () => {
+  it('renders 1 children of StageArtifactSelector when 1 expectedArtifacts are passed in', async () => {
+    const http = mockHttpClient();
     const body: IArtifactAccount[] = [
       {
         name: 'http-acc',
         types: ['http'],
       },
     ];
-    $httpBackend.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
 
     // artifact intentionally left null indicating an expected artifact
     const configArtifacts = [
@@ -91,6 +94,6 @@ describe('<ConfigFileArtifactList/>', () => {
       />,
     );
     expect(wrapper.find(StageArtifactSelector).length).toBe(1);
-    $httpBackend.flush();
+    await http.flush();
   });
 });

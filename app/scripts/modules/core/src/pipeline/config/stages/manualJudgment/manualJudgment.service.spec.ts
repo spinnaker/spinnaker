@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IDeferred, IHttpBackendService, IQService, IRootScopeService, IScope, mock } from 'angular';
 
 import { SETTINGS } from 'core/config/settings';
@@ -39,17 +40,18 @@ describe('Service: manualJudgment', () => {
       requestUrl = [SETTINGS.gateUrl, 'pipelines', execution.id, 'stages', stage.id].join('/');
     });
 
-    it('should resolve when execution status matches request', () => {
+    it('should resolve when execution status matches request', async () => {
+      const http = mockHttpClient();
       const deferred: IDeferred<boolean> = $q.defer();
       let succeeded = false;
 
-      $httpBackend.expectPATCH(requestUrl).respond(200, '');
+      http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
       spyOn(executionService, 'updateExecution').and.stub();
 
       service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true));
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
 
       // waitForExecutionMatches...
@@ -59,12 +61,13 @@ describe('Service: manualJudgment', () => {
       expect(succeeded).toBe(true);
     });
 
-    it('should fail when waitUntilExecutionMatches fails', () => {
+    it('should fail when waitUntilExecutionMatches fails', async () => {
+      const http = mockHttpClient();
       const deferred: IDeferred<boolean> = $q.defer();
       let succeeded = false,
         failed = false;
 
-      $httpBackend.expectPATCH(requestUrl).respond(200, '');
+      http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
 
       service.provideJudgment(null, execution, stage, 'continue').then(
@@ -72,7 +75,7 @@ describe('Service: manualJudgment', () => {
         () => (failed = true),
       );
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
 
@@ -84,18 +87,19 @@ describe('Service: manualJudgment', () => {
       expect(failed).toBe(true);
     });
 
-    it('should fail when patch call fails', () => {
+    it('should fail when patch call fails', async () => {
+      const http = mockHttpClient();
       let succeeded = false,
         failed = false;
 
-      $httpBackend.expectPATCH(requestUrl).respond(503, '');
+      http.expectPATCH(requestUrl).respond(503, '');
 
       service.provideJudgment(null, execution, stage, 'continue').then(
         () => (succeeded = true),
         () => (failed = true),
       );
 
-      $httpBackend.flush();
+      await http.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
     });

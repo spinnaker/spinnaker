@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
 
 import { API } from 'core/api/ApiService';
@@ -53,7 +54,8 @@ describe('PipelineConfigService', () => {
   );
 
   describe('savePipeline', () => {
-    it('clears isNew flags, stage name if not present', () => {
+    it('clears isNew flags, stage name if not present', async () => {
+      const http = mockHttpClient();
       const pipeline: IPipeline = buildPipeline({
         stages: [
           { name: 'explicit name', type: 'bake', isNew: true },
@@ -62,7 +64,7 @@ describe('PipelineConfigService', () => {
         ],
       });
 
-      $httpBackend
+      http
         .expectPOST(API.baseUrl + '/pipelines', (requestString: string) => {
           const request = JSON.parse(requestString) as IPipeline;
           return (
@@ -76,26 +78,28 @@ describe('PipelineConfigService', () => {
 
       PipelineConfigService.savePipeline(pipeline);
       $scope.$digest();
-      $httpBackend.flush();
-      $httpBackend.verifyNoOutstandingRequest();
+      await http.flush();
+      http.verifyNoOutstandingRequest();
     });
   });
 
   describe('deletePipeline', () => {
-    it('escapes special characters in pipeline name', () => {
+    it('escapes special characters in pipeline name', async () => {
+      const http = mockHttpClient();
       const pipeline: IPipeline = buildPipeline({});
 
-      $httpBackend.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
+      http.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
 
       PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
 
       $scope.$digest();
-      $httpBackend.flush();
+      await http.flush();
     });
   });
 
   describe('getPipelines', () => {
-    it('should return pipelines sorted by index', () => {
+    it('should return pipelines sorted by index', async () => {
+      const http = mockHttpClient();
       let result: IPipeline[] = null;
       const fromServer: IPipeline[] = [
         buildPipeline({ id: 'a', name: 'second', application: 'app', index: 1, stages: [], triggers: [] }),
@@ -103,18 +107,19 @@ describe('PipelineConfigService', () => {
         buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: [] }),
         buildPipeline({ id: 'd', name: 'third', application: 'app', index: 2, stages: [] }),
       ];
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
       PipelineConfigService.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
         result = pipelines;
       });
       $scope.$digest();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(result.map((r) => r.name)).toEqual(['first', 'second', 'third', 'last']);
     });
 
-    it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', () => {
+    it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', async () => {
+      const http = mockHttpClient();
       const fromServer: IPipeline[] = [
         buildPipeline({ name: 'second', index: 1, stages: [] }),
         buildPipeline({ name: 'last', index: 5, stages: [] }),
@@ -123,8 +128,8 @@ describe('PipelineConfigService', () => {
       ];
 
       const posted: any[] = [];
-      $httpBackend.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
-      $httpBackend
+      http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      http
         .whenPOST(API.baseUrl + '/pipelines', (data: string) => {
           const json: any = JSON.parse(data);
           posted.push({ index: json.index, name: json.name });
@@ -134,7 +139,7 @@ describe('PipelineConfigService', () => {
 
       PipelineConfigService.getPipelinesForApplication('app');
       $scope.$digest();
-      $httpBackend.flush();
+      await http.flush();
 
       expect(posted).toEqual([
         { name: 'first', index: 0 },

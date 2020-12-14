@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import React from 'react';
 import { mock, IHttpBackendService } from 'angular';
 import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
@@ -41,59 +42,63 @@ describe('<AmazonImageSelectInput/>', () => {
   };
 
   describe('fetches package images when mounted', () => {
-    it('using application name when no amiId is present in the initial value', () => {
-      $httpBackend.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, []);
+    it('using application name when no amiId is present in the initial value', async () => {
+      const http = mockHttpClient();
+      http.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, []);
       shallowComponent = shallow(<AmazonImageSelectInput {...baseProps} />);
-      $httpBackend.flush();
+      await http.flush();
     });
 
-    it('and updates isLoadingPackageImages', () => {
-      $httpBackend.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, []);
+    it('and updates isLoadingPackageImages', async () => {
+      const http = mockHttpClient();
+      http.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, []);
       shallowComponent = shallow(<AmazonImageSelectInput {...baseProps} />);
       expect(shallowComponent.state().isLoadingPackageImages).toBe(true);
-      $httpBackend.flush();
+      await http.flush();
       expect(shallowComponent.state().isLoadingPackageImages).toBe(false);
     });
 
-    it('using fetching image by amiId and looking up via the imageName', () => {
+    it('using fetching image by amiId and looking up via the imageName', async () => {
+      const http = mockHttpClient();
       const value = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
-      $httpBackend.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, [value]);
-      $httpBackend.expectGET(`${baseUrl}/images/find?q=fancypackage-*`).respond(200, []);
+      http.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, [value]);
+      http.expectGET(`${baseUrl}/images/find?q=fancypackage-*`).respond(200, []);
       shallowComponent = shallow(<AmazonImageSelectInput {...baseProps} value={value} />);
-      $httpBackend.flush();
+      await http.flush();
     });
 
-    it('using application name when an amiId is present in the initial value, but the image was not found', () => {
+    it('using application name when an amiId is present in the initial value, but the image was not found', async () => {
+      const http = mockHttpClient();
       const value = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
-      $httpBackend.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, null);
-      $httpBackend.expectGET(`${baseUrl}/images/find?q=${application.name}*`).respond([]);
+      http.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, null);
+      http.expectGET(`${baseUrl}/images/find?q=${application.name}*`).respond([]);
       shallowComponent = shallow(<AmazonImageSelectInput {...baseProps} value={value} />);
-      $httpBackend.flush();
+      await http.flush();
     });
   });
 
-  it('calls onChange with the backend image when the package images are loaded', () => {
+  it('calls onChange with the backend image when the package images are loaded', async () => {
+    const http = mockHttpClient();
     const value = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
     const backendValue = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
     const onChange = jasmine.createSpy('onChange');
-    $httpBackend
-      .expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`)
-      .respond(200, [backendValue]);
-    $httpBackend.expectGET(`${baseUrl}/images/find?q=fancypackage-*`).respond(200, [backendValue]);
+    http.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, [backendValue]);
+    http.expectGET(`${baseUrl}/images/find?q=fancypackage-*`).respond(200, [backendValue]);
     mountedComponent = mount(<AmazonImageSelectInput {...baseProps} onChange={onChange} value={value} />);
-    $httpBackend.flush();
+    await http.flush();
 
     expect(onChange).toHaveBeenCalledWith(backendValue);
   });
 
-  it('calls onChange with null image when the image is not found in the package images', () => {
+  it('calls onChange with null image when the image is not found in the package images', async () => {
+    const http = mockHttpClient();
     const value = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
     const noResults = [] as IAmazonImage[];
-    $httpBackend.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, noResults);
-    $httpBackend.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, noResults);
+    http.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, noResults);
+    http.expectGET(`${baseUrl}/images/find?q=testapp*`).respond(200, noResults);
     const onChange = jasmine.createSpy('onChange');
     mountedComponent = mount(<AmazonImageSelectInput {...baseProps} onChange={onChange} value={value} />);
-    $httpBackend.flush();
+    await http.flush();
 
     expect(onChange).toHaveBeenCalledWith(undefined);
   });

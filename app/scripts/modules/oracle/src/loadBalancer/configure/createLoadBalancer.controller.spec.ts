@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IControllerService, IRootScopeService, IScope, mock, noop } from 'angular';
 import { StateService } from '@uirouter/core';
 
@@ -181,11 +182,12 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function () {
     expect(controller.listeners[0].sslConfiguration.certificateName).not.toBeDefined();
   });
 
-  it('makes the expected REST calls for data for a new loadbalancer', function () {
-    $httpBackend.expect('GET', API.baseUrl + '/networks/oracle').respond([]);
-    $httpBackend.expect('GET', API.baseUrl + '/subnets/oracle').respond([]);
-    $httpBackend.flush();
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
+  it('makes the expected REST calls for data for a new loadbalancer', async function () {
+    const http = mockHttpClient();
+    http.expect('GET', API.baseUrl + '/networks/oracle').respond([]);
+    http.expect('GET', API.baseUrl + '/subnets/oracle').respond([]);
+    await http.flush();
+    http.verifyNoOutstandingExpectation();
+    http.verifyNoOutstandingRequest();
   });
 });

@@ -1,3 +1,4 @@
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IHttpBackendService, mock } from 'angular';
 
 import { API } from 'core/api/ApiService';
@@ -19,9 +20,10 @@ describe('PagerDutyReader', () => {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('should return an empty array when configured to do so and invoked', () => {
+  it('should return an empty array when configured to do so and invoked', async () => {
+    const http = mockHttpClient();
     const services: IPagerDutyService[] = [];
-    $httpBackend.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    http.expectGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
@@ -30,11 +32,12 @@ describe('PagerDutyReader', () => {
       executed = true; // can't use done() function b/c $digest is already in progress
     });
 
-    $httpBackend.flush();
+    await http.flush();
     expect(executed).toBeTruthy();
   });
 
-  it('should return a non-empty array when configured to do so and invoked', () => {
+  it('should return a non-empty array when configured to do so and invoked', async () => {
+    const http = mockHttpClient();
     const services: IPagerDutyService[] = [
       {
         name: 'one',
@@ -53,7 +56,7 @@ describe('PagerDutyReader', () => {
         status: 'active',
       },
     ];
-    $httpBackend.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    http.expectGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
@@ -62,7 +65,7 @@ describe('PagerDutyReader', () => {
       executed = true; // can't use done() function b/c $digest is already in progress
     });
 
-    $httpBackend.flush();
+    await http.flush();
     expect(executed).toBeTruthy();
   });
 });

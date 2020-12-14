@@ -1,4 +1,5 @@
 'use strict';
+import { mockHttpClient } from 'core/api/mock/jasmine';
 
 import { API } from '@spinnaker/core';
 
@@ -26,14 +27,15 @@ describe('VpcReader', function () {
     ]);
   });
 
-  it('adds label to vpc, including (deprecated) if deprecated field is true', function () {
+  it('adds label to vpc, including (deprecated) if deprecated field is true', async function () {
+    const http = mockHttpClient();
     var result = null;
 
     VpcReader.listVpcs().then(function (vpcs) {
       result = vpcs;
     });
 
-    $httpBackend.flush();
+    await http.flush();
     $scope.$digest();
 
     expect(result[0].label).toBe('vpc1 (deprecated)');
@@ -44,14 +46,15 @@ describe('VpcReader', function () {
     expect(result[2].deprecated).toBe(false);
   });
 
-  it('retrieves vpc name - not label - from id', function () {
+  it('retrieves vpc name - not label - from id', async function () {
+    const http = mockHttpClient();
     var result = null;
 
     VpcReader.getVpcName('vpc-1').then(function (name) {
       result = name;
     });
 
-    $httpBackend.flush();
+    await http.flush();
     $scope.$digest();
 
     expect(result).toBe('vpc1');
