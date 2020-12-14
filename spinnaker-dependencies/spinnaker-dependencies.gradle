@@ -10,6 +10,7 @@ ext {
     bouncycastle     : "1.64", // 1.64 removes CVE-2019-17359
     brave            : "5.12.3",
     groovy           : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
+    jooq             : "3.14.4",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
     protobuf         : "3.9.1",
@@ -146,7 +147,8 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.jooq:jooq:3.13.2")
+    api("org.jooq:jooq:${versions.jooq}")
+    api("org.jooq:jooq-kotlin:${versions.jooq}")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
     api("org.pf4j:pf4j-update:2.3.0")
