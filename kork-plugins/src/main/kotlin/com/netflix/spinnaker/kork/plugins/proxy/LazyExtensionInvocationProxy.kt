@@ -44,6 +44,8 @@ class LazyExtensionInvocationProxy(
 
   override fun getTargetClass(): Class<out SpinnakerExtensionPoint> = targetClass
 
+  override fun getPluginId(): String = descriptor.pluginId
+
   override fun invoke(proxy: Any, method: Method, args: Array<out Any>?) = delegate.invoke(proxy, method, args)
 
   companion object {

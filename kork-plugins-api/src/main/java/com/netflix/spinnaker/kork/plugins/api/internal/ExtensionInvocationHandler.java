@@ -27,4 +27,7 @@ public interface ExtensionInvocationHandler extends InvocationHandler {
 
   /** Get the proxy target class. */
   Class<? extends SpinnakerExtensionPoint> getTargetClass();
+
+  /** Get the plugin ID of the proxied extension point. */
+  String getPluginId();
 }

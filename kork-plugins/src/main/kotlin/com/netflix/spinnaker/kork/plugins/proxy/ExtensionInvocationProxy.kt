@@ -44,6 +44,8 @@ class ExtensionInvocationProxy(
     return target.javaClass
   }
 
+  override fun getPluginId(): String = pluginDescriptor.pluginId
+
   override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
     val invocationStates: MutableSet<InvocationState> = mutableSetOf()
     invocationStates.before(proxy, method, args)
