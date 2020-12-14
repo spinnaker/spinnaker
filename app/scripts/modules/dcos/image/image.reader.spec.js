@@ -4,21 +4,15 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { API } from '@spinnaker/core';
 
 describe('Service: DCOS Image Reader', function () {
-  var service, $httpBackend;
+  var service;
 
   beforeEach(window.module(require('./image.reader').name));
 
   beforeEach(
-    window.inject(function (dcosImageReader, _$httpBackend_) {
+    window.inject(function (dcosImageReader) {
       service = dcosImageReader;
-      $httpBackend = _$httpBackend_;
     }),
   );
-
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingRequest();
-    $httpBackend.verifyNoOutstandingExpectation();
-  });
 
   describe('findImages', function () {
     var query = 'abc',

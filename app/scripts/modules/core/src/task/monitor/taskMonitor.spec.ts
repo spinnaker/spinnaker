@@ -11,12 +11,11 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 
 describe('TaskMonitor', () => {
-  let $scope: ng.IScope, $httpBackend: ng.IHttpBackendService;
+  let $scope: ng.IScope;
 
   beforeEach(
-    mock.inject(($rootScope: ng.IRootScopeService, _$httpBackend_: ng.IHttpBackendService) => {
+    mock.inject(($rootScope: ng.IRootScopeService) => {
       $scope = $rootScope.$new();
-      $httpBackend = _$httpBackend_;
     }),
   );
 

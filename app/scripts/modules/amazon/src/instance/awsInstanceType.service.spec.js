@@ -9,9 +9,8 @@ describe('Service: InstanceType', function () {
   });
 
   beforeEach(
-    window.inject(function (_awsInstanceTypeService_, _$httpBackend_) {
+    window.inject(function (_awsInstanceTypeService_) {
       this.awsInstanceTypeService = _awsInstanceTypeService_;
-      this.$httpBackend = _$httpBackend_;
 
       this.allTypes = [
         { account: 'test', region: 'us-west-2', name: 'm1.small', availabilityZone: 'us-west-2a' },
@@ -31,10 +30,6 @@ describe('Service: InstanceType', function () {
       ];
     }),
   );
-
-  afterEach(function () {
-    this.$httpBackend.verifyNoOutstandingRequest();
-  });
 
   describe('getAllTypesByRegion', function () {
     it('returns types, indexed by region', async function () {

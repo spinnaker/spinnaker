@@ -8,8 +8,7 @@ describe('Service: awsServerGroup', function () {
   beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
 
   beforeEach(
-    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {
-      this.$httpBackend = _$httpBackend_;
+    window.inject(function (awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {
       this.service = awsServerGroupCommandBuilder;
       this.$q = _$q_;
       this.$scope = $rootScope;

@@ -1,16 +1,15 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { mock, IHttpBackendService, IRootScopeService, IScope } from 'angular';
+import { mock, IRootScopeService, IScope } from 'angular';
 
 import { API } from 'core/api/ApiService';
 import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
 describe('SubnetReader', function () {
-  let $httpBackend: IHttpBackendService, $scope: IScope;
+  let $scope: IScope;
 
   beforeEach(
-    mock.inject(function (_$httpBackend_: IHttpBackendService, $rootScope: IRootScopeService) {
-      $httpBackend = _$httpBackend_;
+    mock.inject(function ($rootScope: IRootScopeService) {
       $scope = $rootScope.$new();
     }),
   );

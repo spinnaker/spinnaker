@@ -5,20 +5,13 @@ import { API } from 'core/api/ApiService';
 import { TaskWriter } from './task.write.service';
 
 describe('Service: TaskWriter', () => {
-  let $httpBackend: IHttpBackendService;
   let timeout: ITimeoutService;
 
   beforeEach(
-    mock.inject((_$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService) => {
-      $httpBackend = _$httpBackend_;
+    mock.inject((_$timeout_: ITimeoutService) => {
       timeout = _$timeout_;
     }),
   );
-
-  afterEach(() => {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
 
   describe('cancelling task', () => {
     it('should wait until task is canceled, then resolve', async () => {

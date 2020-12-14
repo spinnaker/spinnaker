@@ -1,6 +1,6 @@
 import React from 'react';
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { mock, IHttpBackendService } from 'angular';
+import { mock } from 'angular';
 import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
 
 import { IAmazonImage } from 'amazon/image';
@@ -19,16 +19,13 @@ const imageName = 'fancypackage-1.0.0-h005.6c8b5fe-x86_64-20181206030728-xenial-
 const amiId = 'fake-abcd123';
 
 describe('<AmazonImageSelectInput/>', () => {
-  let $httpBackend: IHttpBackendService;
   let shallowComponent: ShallowWrapper<IAmazonImageSelectorProps, IAmazonImageSelectorState>;
   let mountedComponent: ReactWrapper<IAmazonImageSelectorProps, IAmazonImageSelectorState>;
 
   beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject((_$httpBackend_: IHttpBackendService) => ($httpBackend = _$httpBackend_)));
+  beforeEach(mock.inject());
 
   afterEach(() => {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
     shallowComponent && shallowComponent.unmount();
     mountedComponent && mountedComponent.unmount();
   });

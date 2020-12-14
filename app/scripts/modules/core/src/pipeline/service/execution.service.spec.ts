@@ -1,5 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { IHttpBackendService, IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
+import { IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
 import { REACT_MODULE } from 'core/reactShims';
 
 import { EXECUTION_SERVICE, ExecutionService } from './execution.service';
@@ -10,7 +10,6 @@ import * as State from 'core/state';
 
 describe('Service: executionService', () => {
   let executionService: ExecutionService;
-  let $httpBackend: IHttpBackendService;
   let timeout: ITimeoutService;
   let $q: IQService;
 
@@ -24,27 +23,14 @@ describe('Service: executionService', () => {
   );
 
   beforeEach(
-    mock.inject(
-      (
-        _executionService_: ExecutionService,
-        _$httpBackend_: IHttpBackendService,
-        _$timeout_: ITimeoutService,
-        _$q_: IQService,
-      ) => {
-        executionService = _executionService_;
-        $httpBackend = _$httpBackend_;
-        timeout = _$timeout_;
-        $q = _$q_;
-        State.initialize();
-        State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
-      },
-    ),
+    mock.inject((_executionService_: ExecutionService, _$timeout_: ITimeoutService, _$q_: IQService) => {
+      executionService = _executionService_;
+      timeout = _$timeout_;
+      $q = _$q_;
+      State.initialize();
+      State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
+    }),
   );
-
-  afterEach(() => {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
 
   describe('cancelling pipeline', () => {
     it('should wait until pipeline is not running, then resolve', async () => {

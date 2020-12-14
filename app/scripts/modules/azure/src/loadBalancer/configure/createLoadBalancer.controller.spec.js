@@ -1,10 +1,7 @@
 'use strict';
-
-import { API, ApplicationModelBuilder } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
 
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
-  var $httpBackend;
-
   // load the controller's module
   beforeEach(window.module(require('./createLoadBalancer.controller').name));
 
@@ -25,13 +22,6 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
         isNew: true,
         loadBalancerType: 'Azure Load Balancer',
       });
-    }),
-  );
-
-  beforeEach(
-    window.inject(function (_$httpBackend_) {
-      // Set up the mock http service responses
-      $httpBackend = _$httpBackend_;
     }),
   );
 

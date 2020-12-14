@@ -6,20 +6,14 @@ import { API } from '@spinnaker/core';
 import { AwsImageReader } from './image.reader';
 
 describe('Service: aws Image Reader', function () {
-  var service, $httpBackend, scope;
+  var service, scope;
 
   beforeEach(
-    window.inject(function (_$httpBackend_, $rootScope) {
+    window.inject(function ($rootScope) {
       service = new AwsImageReader();
-      $httpBackend = _$httpBackend_;
       scope = $rootScope.$new();
     }),
   );
-
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingRequest();
-    $httpBackend.verifyNoOutstandingExpectation();
-  });
 
   describe('findImages', function () {
     var query = 'abc',

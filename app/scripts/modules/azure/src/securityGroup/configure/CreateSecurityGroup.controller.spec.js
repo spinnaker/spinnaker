@@ -3,8 +3,6 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { AccountService, API, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 describe('Controller: Azure.CreateSecurityGroup', function () {
-  var $httpBackend;
-
   beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl').name));
 
   describe('filtering', function () {
@@ -66,13 +64,6 @@ describe('Controller: Azure.CreateSecurityGroup', function () {
 
           this.$scope.$digest();
         };
-      }),
-    );
-
-    beforeEach(
-      window.inject(function (_$httpBackend_) {
-        // Set up the mock http service responses
-        $httpBackend = _$httpBackend_;
       }),
     );
 

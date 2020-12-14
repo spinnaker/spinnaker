@@ -1,24 +1,13 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { IHttpBackendService, mock } from 'angular';
+import { mock } from 'angular';
 
 import { API } from 'core/api/ApiService';
 
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
-  let $httpBackend: IHttpBackendService;
-
   beforeEach(mock.module());
-  beforeEach(
-    mock.inject((_$httpBackend_: IHttpBackendService) => {
-      $httpBackend = _$httpBackend_;
-    }),
-  );
-
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
+  beforeEach(mock.inject());
 
   it('should return an empty array when configured to do so and invoked', async () => {
     const http = mockHttpClient();

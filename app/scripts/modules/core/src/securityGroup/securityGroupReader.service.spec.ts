@@ -13,20 +13,18 @@ import {
 } from './securityGroupTransformer.service';
 
 describe('Service: securityGroupReader', function () {
-  let $q: ng.IQService, $httpBackend: ng.IHttpBackendService, $scope: ng.IRootScopeService, reader: SecurityGroupReader;
+  let $q: ng.IQService, $scope: ng.IRootScopeService, reader: SecurityGroupReader;
 
   beforeEach(mock.module(SECURITY_GROUP_TRANSFORMER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
     mock.inject(function (
       _$q_: ng.IQService,
-      _$httpBackend_: ng.IHttpBackendService,
       $rootScope: ng.IRootScopeService,
       _providerServiceDelegate_: any,
       securityGroupTransformer: SecurityGroupTransformerService,
       _securityGroupReader_: SecurityGroupReader,
     ) {
       reader = _securityGroupReader_;
-      $httpBackend = _$httpBackend_;
       $q = _$q_;
       $scope = $rootScope.$new();
 

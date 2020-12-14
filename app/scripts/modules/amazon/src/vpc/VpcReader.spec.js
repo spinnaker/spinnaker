@@ -6,25 +6,16 @@ import { API } from '@spinnaker/core';
 import { VpcReader } from '../vpc/VpcReader';
 
 describe('VpcReader', function () {
-  var $httpBackend, $scope;
+  var $scope;
 
   beforeEach(
-    window.inject(function (_$httpBackend_, $rootScope) {
-      $httpBackend = _$httpBackend_;
+    window.inject(function ($rootScope) {
       $scope = $rootScope.$new();
     }),
   );
 
   afterEach(function () {
     VpcReader.resetCache();
-  });
-
-  beforeEach(function () {
-    $httpBackend.whenGET(API.baseUrl + '/networks/aws').respond(200, [
-      { name: 'vpc1', id: 'vpc-1', deprecated: true },
-      { name: 'vpc2', id: 'vpc-2', deprecated: false },
-      { name: 'vpc3', id: 'vpc-3' },
-    ]);
   });
 
   it('adds label to vpc, including (deprecated) if deprecated field is true', async function () {
