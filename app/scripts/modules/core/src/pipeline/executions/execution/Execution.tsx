@@ -12,7 +12,7 @@ import { StageExecutionDetails } from '../../details/StageExecutionDetails';
 import { ExecutionStatus } from '../../status/ExecutionStatus';
 import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
 import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
-import { IExecution, IRestartDetails, IPipeline } from 'core/domain';
+import type { IExecution, IRestartDetails, IPipeline } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';

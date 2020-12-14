@@ -6,7 +6,7 @@ import { Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Subscription } from 'rxjs';
 
-import { IExecution, IPipeline } from 'core/domain';
+import type { IExecution, IPipeline } from 'core/domain';
 import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
