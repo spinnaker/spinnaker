@@ -67,7 +67,15 @@ public class PluginsConfigurationProperties {
    * Whether or not to add the plugin repositories from https://github.com/spinnaker/plugins by
    * default.
    */
-  public boolean enableDefaultRepositories = true;
+  private boolean enableDefaultRepositories = true;
+
+  public boolean isEnableDefaultRepositories() {
+    return enableDefaultRepositories;
+  }
+
+  public void setEnableDefaultRepositories(boolean enableDefaultRepositories) {
+    this.enableDefaultRepositories = enableDefaultRepositories;
+  }
 
   /** Definition of a single {@link org.pf4j.update.UpdateRepository}. */
   public static class PluginRepositoryProperties {

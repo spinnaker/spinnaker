@@ -288,7 +288,7 @@ public class PluginsAutoConfiguration {
                         new CompoundVerifier()))
             .collect(Collectors.toList());
 
-    if (properties.enableDefaultRepositories) {
+    if (properties.isEnableDefaultRepositories()) {
       log.info("Enabling spinnaker-official and spinnaker-community plugin repositories");
 
       repositories.add(
