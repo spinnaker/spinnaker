@@ -44,6 +44,7 @@ import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -112,8 +113,8 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   public ProjectsList getProjects() {
     return circuitBreaker.executeSupplier(
         () -> {
-          ProjectsList projectsList = jenkinsClient.getProjects();
-
+          ProjectsList projectsList =
+              AuthenticatedRequest.allowAnonymous(() -> jenkinsClient.getProjects());
           if (projectsList == null || projectsList.getList() == null) {
             return new ProjectsList();
           }
@@ -160,7 +161,10 @@ public class JenkinsService implements BuildOperations, BuildProperties {
 
   @Override
   public List<Build> getBuilds(String jobName) {
-    return circuitBreaker.executeSupplier(() -> jenkinsClient.getBuilds(encode(jobName)).getList());
+    return circuitBreaker.executeSupplier(
+        () ->
+            AuthenticatedRequest.allowAnonymous(() -> jenkinsClient.getBuilds(encode(jobName)))
+                .getList());
   }
 
   public BuildDependencies getDependencies(String jobName) {
