@@ -43,12 +43,13 @@ import liquibase.exception.DatabaseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.exception.SetupException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.jooq.CloseableDSLContext;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
+import org.jooq.impl.DefaultCloseableDSLContext;
 import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultDSLContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -209,7 +210,9 @@ public class SqlTestUtil {
       config.settings().withRenderNameStyle(AS_IS);
     }
 
-    DSLContext context = new DefaultDSLContext(config);
+    CloseableDSLContext context =
+        new DefaultCloseableDSLContext(
+            config.connectionProvider(), config.dialect(), config.settings());
 
     Liquibase migrate;
     try {
@@ -289,12 +292,12 @@ public class SqlTestUtil {
   public static class TestDatabase implements Closeable {
     public final HikariDataSource dataSource;
     public final HikariDataSource previousDataSource;
-    public final DSLContext context;
-    public final DSLContext previousContext;
+    public final CloseableDSLContext context;
+    public final CloseableDSLContext previousContext;
     public final Liquibase liquibase;
     public final Liquibase previousLiquibase;
 
-    TestDatabase(HikariDataSource dataSource, DSLContext context, Liquibase liquibase) {
+    TestDatabase(HikariDataSource dataSource, CloseableDSLContext context, Liquibase liquibase) {
       this.dataSource = dataSource;
       this.context = context;
       this.liquibase = liquibase;
@@ -305,10 +308,10 @@ public class SqlTestUtil {
 
     TestDatabase(
         HikariDataSource dataSource,
-        DSLContext context,
+        CloseableDSLContext context,
         Liquibase liquibase,
         HikariDataSource previousDataSource,
-        DSLContext previousContext,
+        CloseableDSLContext previousContext,
         Liquibase previousLiquibase) {
       this.dataSource = dataSource;
       this.context = context;
