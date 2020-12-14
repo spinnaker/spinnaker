@@ -18,7 +18,7 @@ describe('SubnetReader', function () {
   it('adds label to subnet, including (deprecated) if deprecated field is true', async function () {
     const http = mockHttpClient();
     http
-      .whenGET(API.baseUrl + '/subnets')
+      .expectGET(API.baseUrl + '/subnets')
       .respond(200, [
         { purpose: 'internal', deprecated: true },
         { purpose: 'external', deprecated: false },

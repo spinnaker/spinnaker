@@ -49,20 +49,19 @@ describe('Service: executionService', () => {
   describe('cancelling pipeline', () => {
     it('should wait until pipeline is not running, then resolve', async () => {
       const http = mockHttpClient();
-      let completed = false;
       const executionId = 'abc';
-      const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
-      const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      http.expectPUT(cancelUrl).respond(200, []);
-      http.expectGET(checkUrl).respond(200, { id: executionId, status: 'RUNNING' });
+      let completed = false;
+
+      http.expectPUT(`/pipelines/${executionId}/cancel`).respond(200, []);
+      http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId, status: 'RUNNING' });
 
       executionService.cancelExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
-      http.expectGET(checkUrl).respond(200, { id: executionId, status: 'CANCELED' });
+      http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId, status: 'CANCELED' });
       timeout.flush();
       await http.flush();
       expect(completed).toBe(true);
@@ -72,10 +71,9 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let failed = false;
       const executionId = 'abc';
-      const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      http.expectPUT(cancelUrl).respond(500, []);
+      http.expectPUT(`/pipelines/${executionId}/cancel`).respond(500, []);
 
       executionService.cancelExecution(application, executionId).then(noop, () => (failed = true));
       await http.flush();
@@ -88,18 +86,16 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
-      const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
-      const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
-      http.expectDELETE(deleteUrl).respond(200, []);
-      http.expectGET(checkUrl).respond(200, { id: executionId });
+      http.expectDELETE(`/pipelines/${executionId}`).respond(200, []);
+      http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId });
 
       executionService.deleteExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
-      http.expectGET(checkUrl).respond(404, null);
+      http.expectGET(`/pipelines/${executionId}`).respond(404, null);
       timeout.flush();
       await http.flush();
       expect(completed).toBe(true);
@@ -171,41 +167,25 @@ describe('Service: executionService', () => {
   describe('when fetching pipelines', () => {
     it('should resolve the promise if a 200 response is received with empty array', async () => {
       const http = mockHttpClient();
-      const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
-
-      http.expectGET(url).respond(200, []);
+      http.expectGET(`/applications/deck/pipelines`).withParams({ limit: 3, expand: false }).respond(200, []);
 
       const responsePromise = executionService.getExecutions('deck');
-
       await http.flush();
+      const response = await responsePromise;
 
-      responsePromise
-        .then((result) => {
-          expect(result).toBeDefined(); // only success should be called
-          expect(result).toEqual([]);
-        })
-        .catch((reject) => {
-          expect(reject).toBeUndefined();
-        });
+      expect(response).toEqual([]);
     });
 
     it('should reject the promise if a 429 response is received', async () => {
       const http = mockHttpClient();
-      const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
-
-      http.expectGET(url).respond(429, []);
+      http.expectGET(`/applications/deck/pipelines`).withParams({ limit: 3, expand: false }).respond(429, []);
 
       const responsePromise = executionService.getExecutions('deck');
-
       await http.flush();
 
-      responsePromise
-        .then((result) => {
-          expect(result).toBeUndefined();
-        })
-        .catch((result) => {
-          expect(result).toBeDefined(); // only reject should be called
-        });
+      let error;
+      await responsePromise.catch((result) => (error = result));
+      expect(error).toBeDefined();
     });
   });
 

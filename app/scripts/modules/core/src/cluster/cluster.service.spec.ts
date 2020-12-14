@@ -1,5 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { IHttpBackendService, mock } from 'angular';
+import { mock } from 'angular';
 import { find } from 'lodash';
 
 import { REACT_MODULE } from 'core/reactShims';
@@ -18,7 +18,6 @@ describe('Service: Cluster', function () {
   beforeEach(mock.module(CLUSTER_SERVICE, REACT_MODULE));
 
   let clusterService: ClusterService;
-  let $httpBackend: IHttpBackendService;
   let application: Application;
 
   function buildTask(config: { status: string; variables: { [key: string]: any } }) {
@@ -31,8 +30,7 @@ describe('Service: Cluster', function () {
   }
 
   beforeEach(
-    mock.inject((_$httpBackend_: IHttpBackendService, _clusterService_: ClusterService) => {
-      $httpBackend = _$httpBackend_;
+    mock.inject((_clusterService_: ClusterService) => {
       clusterService = _clusterService_;
 
       application = ApplicationModelBuilder.createApplicationForTests(
@@ -56,14 +54,14 @@ describe('Service: Cluster', function () {
   describe('lazy cluster fetching', () => {
     it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', async () => {
       const http = mockHttpClient();
-      const clusters = Array(SETTINGS.onDemandClusterThreshold + 1);
+      const clusters = [...Array(SETTINGS.onDemandClusterThreshold + 1)];
       http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
       await http.flush();
-      expect(application.serverGroups.fetchOnDemand).toBe(true);
       expect(serverGroups).toEqual([]);
+      expect(application.serverGroups.fetchOnDemand).toBe(true);
     });
 
     it('does boring regular fetching when there are less than the on demand threshold for clusters', async () => {

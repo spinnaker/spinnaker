@@ -2,6 +2,7 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock, noop } from 'angular';
 
 import { API } from 'core/api/ApiService';
+import { MockHttpClient } from 'core/api/mock/mockHttpClient';
 import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
 import {
   IServerGroupCommand,
@@ -21,18 +22,13 @@ class TestApplication extends Application {
 }
 
 describe('serverGroupWriter', function () {
-  let $httpBackend: ng.IHttpBackendService, serverGroupTransformer: any, serverGroupWriter: ServerGroupWriter;
+  let serverGroupTransformer: any, serverGroupWriter: ServerGroupWriter;
 
   beforeEach(mock.module(SERVER_GROUP_WRITER));
 
   beforeEach(function () {
-    mock.inject(function (
-      _serverGroupWriter_: ServerGroupWriter,
-      _$httpBackend_: ng.IHttpBackendService,
-      _serverGroupTransformer_: any,
-    ) {
+    mock.inject(function (_serverGroupWriter_: ServerGroupWriter, _serverGroupTransformer_: any) {
       serverGroupWriter = _serverGroupWriter_;
-      $httpBackend = _$httpBackend_;
       serverGroupTransformer = _serverGroupTransformer_;
     });
   });
@@ -52,14 +48,12 @@ describe('serverGroupWriter', function () {
   });
 
   describe('clone server group submit', function () {
-    function postTask(serverGroupCommand: IServerGroupCommand): ITaskCommand {
+    async function postTask(http: MockHttpClient, serverGroupCommand: IServerGroupCommand): Promise<ITaskCommand> {
       let submitted: ITaskCommand = {};
-      $httpBackend
-        .expectPOST(`${API.baseUrl}/tasks`, (body: string) => {
-          submitted = JSON.parse(body) as ITaskCommand;
-          return true;
-        })
-        .respond(200, { ref: '/1' });
+      http
+        .expectPOST(`${API.baseUrl}/tasks`)
+        .respond(200, { ref: '/1' })
+        .onRequestReceived((resp) => (submitted = resp.data));
 
       const application: TestApplication = ApplicationModelBuilder.createApplicationForTests(
         'app',
@@ -69,9 +63,9 @@ describe('serverGroupWriter', function () {
         refresh: noop,
       };
 
-      $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond({});
+      http.expectGET(API.baseUrl + '/tasks/1').respond(200, {});
       serverGroupWriter.cloneServerGroup(serverGroupCommand, application);
-      $httpBackend.flush();
+      await http.flush();
 
       return submitted;
     }
@@ -90,32 +84,37 @@ describe('serverGroupWriter', function () {
       } as IServerGroupCommand;
     });
 
-    it('sets action type and description appropriately when creating new', function () {
-      const submitted: ITaskCommand = postTask(command);
+    it('sets action type and description appropriately when creating new', async function () {
+      const http = mockHttpClient();
+      const submitted: ITaskCommand = await postTask(http, command);
       expect(submitted.job[0].type).toBe('createServerGroup');
       expect(submitted.description).toBe('Create New Server Group in cluster app');
     });
 
-    it('sets action type and description appropriately when creating new', function () {
+    it('sets action type and description appropriately when creating new', async function () {
+      const http = mockHttpClient();
       command.stack = 'main';
-      const submitted: ITaskCommand = postTask(command);
+      const submitted: ITaskCommand = await postTask(http, command);
       expect(submitted.description).toBe('Create New Server Group in cluster app-main');
     });
 
-    it('sets action type and description appropriately when creating new', function () {
+    it('sets action type and description appropriately when creating new', async function () {
+      const http = mockHttpClient();
       command.stack = 'main';
       command.freeFormDetails = 'details';
-      const submitted: ITaskCommand = postTask(command);
+      const submitted: ITaskCommand = await postTask(http, command);
       expect(submitted.description).toBe('Create New Server Group in cluster app-main-details');
     });
 
-    it('sets action type and description appropriately when creating new', function () {
+    it('sets action type and description appropriately when creating new', async function () {
+      const http = mockHttpClient();
       command.freeFormDetails = 'details';
-      const submitted: ITaskCommand = postTask(command);
+      const submitted: ITaskCommand = await postTask(http, command);
       expect(submitted.description).toBe('Create New Server Group in cluster app--details');
     });
 
-    it('sets action type and description appropriately when cloning, preserving source', function () {
+    it('sets action type and description appropriately when cloning, preserving source', async function () {
+      const http = mockHttpClient();
       command.source = {
         asgName: 'app-v002',
       };
@@ -123,7 +122,7 @@ describe('serverGroupWriter', function () {
         mode: 'clone',
       } as IServerGroupCommandViewState;
 
-      const submitted: ITaskCommand = postTask(command);
+      const submitted: ITaskCommand = await postTask(http, command);
       expect(submitted.job[0].type).toBe('cloneServerGroup');
       expect(submitted.description).toBe('Create Cloned Server Group from app-v002');
       expect(submitted.job[0].source).toEqual(command.source);

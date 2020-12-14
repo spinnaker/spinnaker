@@ -1,5 +1,5 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
 import React from 'react';
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock, IHttpBackendService } from 'angular';
 import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
 
@@ -71,7 +71,7 @@ describe('<AmazonImageSelectInput/>', () => {
       const http = mockHttpClient();
       const value = AmazonImageSelectInput.makeFakeImage(imageName, amiId, region);
       http.expectGET(`${baseUrl}/images/${credentials}/${region}/${amiId}?provider=aws`).respond(200, null);
-      http.expectGET(`${baseUrl}/images/find?q=${application.name}*`).respond([]);
+      http.expectGET(`${baseUrl}/images/find?q=${application.name}*`).respond(200, []);
       shallowComponent = shallow(<AmazonImageSelectInput {...baseProps} value={value} />);
       await http.flush();
     });

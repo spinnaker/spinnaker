@@ -1,6 +1,5 @@
-import { mockHttpClient } from 'core/api/mock/jasmine';
 import React from 'react';
-import { mock } from 'angular';
+import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mount } from 'enzyme';
 
 import { API, IArtifactAccount, IArtifactAccountPair, StageArtifactSelector } from '@spinnaker/core';
@@ -8,13 +7,6 @@ import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 
 describe('<ConfigFileArtifactList/>', () => {
-  let $httpBackend: ng.IHttpBackendService;
-  beforeEach(
-    mock.inject(function (_$httpBackend_: ng.IHttpBackendService) {
-      $httpBackend = _$httpBackend_;
-    }),
-  );
-
   it('renders empty children when null/empty artifacts are passed in', () => {
     const configArtifacts: IArtifactAccountPair[] = [];
     const wrapper = mount(
@@ -30,29 +22,13 @@ describe('<ConfigFileArtifactList/>', () => {
 
   it('renders 2 children of StageArtifactSelector when 2 artifacts are passed in', async () => {
     const http = mockHttpClient();
-    const body: IArtifactAccount[] = [
-      {
-        name: 'http-acc',
-        types: ['http'],
-      },
-    ];
-    http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    const body: IArtifactAccount[] = [{ name: 'http-acc', types: ['http'] }];
+    http.expectGET(`/artifacts/credentials`).respond(200, body);
+    http.expectGET(`/artifacts/credentials`).respond(200, body);
 
     const configArtifacts = [
-      {
-        account: 'http-acc',
-        id: '123abc',
-        artifact: {
-          id: '123abc',
-        },
-      },
-      {
-        account: 'http-acc',
-        id: '1234abcd',
-        artifact: {
-          id: '1234abcd',
-        },
-      },
+      { account: 'http-acc', id: '123abc', artifact: { id: '123abc' } },
+      { account: 'http-acc', id: '1234abcd', artifact: { id: '1234abcd' } },
     ];
 
     const wrapper = mount(

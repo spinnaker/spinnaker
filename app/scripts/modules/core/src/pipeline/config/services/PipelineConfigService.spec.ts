@@ -7,7 +7,7 @@ import { IPipeline } from 'core/domain/IPipeline';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('PipelineConfigService', () => {
-  let $httpBackend: ng.IHttpBackendService, $scope: ng.IScope;
+  let $scope: ng.IScope;
 
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
@@ -47,8 +47,7 @@ describe('PipelineConfigService', () => {
   };
 
   beforeEach(
-    mock.inject((_$httpBackend_: ng.IHttpBackendService, $rootScope: ng.IRootScopeService) => {
-      $httpBackend = _$httpBackend_;
+    mock.inject(($rootScope: ng.IRootScopeService) => {
       $scope = $rootScope.$new();
     }),
   );
@@ -64,22 +63,22 @@ describe('PipelineConfigService', () => {
         ],
       });
 
-      http
-        .expectPOST(API.baseUrl + '/pipelines', (requestString: string) => {
-          const request = JSON.parse(requestString) as IPipeline;
-          return (
-            request.stages[0].name === 'explicit name' &&
-            !request.stages[1].name &&
-            !request.stages[2].name &&
-            request.stages.every((s) => !s.isNew)
-          );
-        })
-        .respond(200, '');
+      const postSpy = spyOn(http, 'post');
 
-      PipelineConfigService.savePipeline(pipeline);
-      $scope.$digest();
-      await http.flush();
-      http.verifyNoOutstandingRequest();
+      await PipelineConfigService.savePipeline(pipeline);
+      expect(postSpy).toHaveBeenCalled();
+
+      const payload = postSpy.calls.first().args[0].data;
+      expect(payload).toBeDefined();
+
+      expect(payload.stages[0].name).toBe('explicit name');
+      expect(payload.stages[0].isNew).toBeFalsy();
+
+      expect(payload.stages[1].name).toBeUndefined();
+      expect(payload.stages[1].isNew).toBeFalsy();
+
+      expect(payload.stages[2].name).toBeUndefined();
+      expect(payload.stages[2].isNew).toBeFalsy();
     });
   });
 
@@ -128,24 +127,19 @@ describe('PipelineConfigService', () => {
       ];
 
       const posted: any[] = [];
-      http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
-      http
-        .whenPOST(API.baseUrl + '/pipelines', (data: string) => {
-          const json: any = JSON.parse(data);
-          posted.push({ index: json.index, name: json.name });
-          return true;
-        })
-        .respond(200, {});
+      http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
+      spyOn(http, 'post').and.callFake((request: any) => {
+        posted.push(request.data);
+        return Promise.resolve();
+      });
 
       PipelineConfigService.getPipelinesForApplication('app');
-      $scope.$digest();
       await http.flush();
 
-      expect(posted).toEqual([
-        { name: 'first', index: 0 },
-        { name: 'duplicateIndex', index: 2 },
-        { name: 'last', index: 3 },
-      ]);
+      expect(posted.length).toEqual(3);
+      expect(posted[0]).toEqual(jasmine.objectContaining({ name: 'first', index: 0 }));
+      expect(posted[1]).toEqual(jasmine.objectContaining({ name: 'duplicateIndex', index: 2 }));
+      expect(posted[2]).toEqual(jasmine.objectContaining({ name: 'last', index: 3 }));
     });
   });
 
