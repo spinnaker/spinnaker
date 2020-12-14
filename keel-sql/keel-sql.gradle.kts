@@ -6,7 +6,7 @@ val buildingInDocker = project.properties["buildingInDocker"]?.toString().let { 
 plugins {
   `java-library`
   id("kotlin-spring")
-  id("nu.studer.jooq") version "5.0.1"
+  id("nu.studer.jooq") version "5.2"
   id("org.liquibase.gradle") version "2.0.4"
 }
 
@@ -35,6 +35,7 @@ dependencies {
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
   implementation("org.jooq:jooq")
+  implementation("org.jooq:jooq-kotlin")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
   implementation("com.netflix.spinnaker.kork:kork-sql")
@@ -118,6 +119,10 @@ afterEvaluate {
       targetExclude(fileTree("$projectDir/src/generated/java"))
     }
   }
+}
+
+jooq {
+  version.set("3.14.4")
 }
 
 liquibase {

@@ -70,7 +70,7 @@ class SqlLifecycleMonitorRepository(
       jooq.select(LIFECYCLE_EVENT.TIMESTAMP, LIFECYCLE_EVENT.JSON)
         .from(LIFECYCLE_EVENT)
         .where(LIFECYCLE_EVENT.UID.eq(uid))
-        .fetchOne { (timestamp, event) ->
+        .fetchSingle { (timestamp, event) ->
           event.copy(timestamp = timestamp)
         }
     }
@@ -120,7 +120,7 @@ class SqlLifecycleMonitorRepository(
     sqlRetry.withRetry(READ) {
       jooq.selectCount()
         .from(LIFECYCLE_MONITOR)
-        .fetchOne()
+        .fetchSingle()
         .value1()
     }
 }

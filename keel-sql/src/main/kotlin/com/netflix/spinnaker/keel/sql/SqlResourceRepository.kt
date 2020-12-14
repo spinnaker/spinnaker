@@ -101,16 +101,15 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun hasManagedResources(application: String): Boolean {
-    return sqlRetry.withRetry(READ) {
+  override fun hasManagedResources(application: String): Boolean =
+    sqlRetry.withRetry(READ) {
       jooq
         .selectCount()
         .from(RESOURCE)
         .where(RESOURCE.APPLICATION.eq(application))
-        .fetchOne()
+        .fetchSingle()
         .value1() > 0
     }
-  }
 
   override fun getResourceIdsByApplication(application: String): List<String> {
     return sqlRetry.withRetry(READ) {

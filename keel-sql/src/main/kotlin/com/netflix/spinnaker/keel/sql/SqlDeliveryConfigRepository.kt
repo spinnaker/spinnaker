@@ -1100,7 +1100,7 @@ class SqlDeliveryConfigRepository(
         .from(DELIVERY_CONFIG_LAST_CHECKED, DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
         .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-        .fetchOne(DELIVERY_CONFIG_LAST_CHECKED.AT)
+        .fetchSingle(DELIVERY_CONFIG_LAST_CHECKED.AT) ?: EPOCH
     }
 
   companion object {
