@@ -1,6 +1,6 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { AccountService, API, SECURITY_GROUP_READER } from '@spinnaker/core';
+import { AccountService, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 describe('Controller: Azure.CreateSecurityGroup', function () {
   beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl').name));
@@ -69,7 +69,7 @@ describe('Controller: Azure.CreateSecurityGroup', function () {
 
     it('initializes with no firewalls available for ingress permissions', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/networks').respond([]);
+      http.expectGET('/networks').respond([]);
       this.initializeCtrl();
       await http.flush();
       expect(this.$scope.securityGroup.securityRules.length).toBe(0);

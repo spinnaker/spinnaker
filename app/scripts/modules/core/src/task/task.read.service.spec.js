@@ -1,7 +1,5 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
-
-import { API } from 'core/api/ApiService';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {
@@ -75,7 +73,7 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // still running
-      http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
       timeout.flush();
       await http.flush();
 
@@ -83,7 +81,7 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // succeeds
-      http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
       timeout.flush();
       await http.flush();
 
@@ -113,14 +111,14 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // still running
-      http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
       timeout.flush();
       await http.flush();
       expect(completed).toBe(false);
       expect(failed).toBe(false);
 
       // succeeds
-      http.expectGET(API.baseUrl + '/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
       timeout.flush();
       await http.flush();
       expect(completed).toBe(false);
@@ -129,7 +127,7 @@ describe('Service: taskReader', function () {
 
     it('polls task and rejects if task is not returned from getTask call', async function () {
       const http = mockHttpClient({ autoFlush: true });
-      http.expectGET(API.baseUrl + '/tasks/1').respond(500, {});
+      http.expectGET('/tasks/1').respond(500, {});
       const task = await TaskReader.getTask(1);
 
       let completed = false,

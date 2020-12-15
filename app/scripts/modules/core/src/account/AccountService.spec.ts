@@ -2,7 +2,6 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
 import { $rootScope } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 import { AccountService, IAccount } from './AccountService';
@@ -16,7 +15,7 @@ describe('Service: AccountService', () => {
   it('should filter the list of accounts by provider when supplied', async (done) => {
     const http = mockHttpClient();
     http
-      .expectGET(`${API.baseUrl}/credentials`)
+      .expectGET(`/credentials`)
       .withParams({ expand: true })
       .respond(200, [
         { name: 'test', type: 'aws' },

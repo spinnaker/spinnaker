@@ -1,7 +1,6 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock, IRootScopeService, IScope } from 'angular';
 
-import { API } from 'core/api/ApiService';
 import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
@@ -17,7 +16,7 @@ describe('SubnetReader', function () {
   it('adds label to subnet, including (deprecated) if deprecated field is true', async function () {
     const http = mockHttpClient();
     http
-      .expectGET(API.baseUrl + '/subnets')
+      .expectGET('/subnets')
       .respond(200, [
         { purpose: 'internal', deprecated: true },
         { purpose: 'external', deprecated: false },

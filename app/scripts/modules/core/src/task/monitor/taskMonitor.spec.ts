@@ -4,7 +4,6 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q, $timeout } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { API } from 'core/api/ApiService';
 import { ITask } from 'core/domain';
 import { TaskMonitor } from './TaskMonitor';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
@@ -46,13 +45,13 @@ describe('TaskMonitor', () => {
 
       $timeout.flush(); // still running first time
 
-      http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      http.expectGET('/tasks/a').respond(200, { status: 'RUNNING' });
       $timeout.flush();
       await http.flush();
       expect(monitor.task.isCompleted).toBe(false);
       expect((monitor.application.getDataSource('runningTasks').refresh as Spy).calls.count()).toBe(1);
 
-      http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
+      http.expectGET('/tasks/a').respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
       await http.flush();
 
@@ -111,12 +110,12 @@ describe('TaskMonitor', () => {
 
       $timeout.flush(); // still running first time
 
-      http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'RUNNING' });
+      http.expectGET('/tasks/a').respond(200, { status: 'RUNNING' });
       $timeout.flush();
       await http.flush();
       expect(monitor.task.isCompleted).toBe(false);
 
-      http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'TERMINAL' });
+      http.expectGET('/tasks/a').respond(200, { status: 'TERMINAL' });
       $timeout.flush(); // complete second time
       await http.flush();
 

@@ -5,7 +5,6 @@ import { REACT_MODULE } from 'core/reactShims';
 import { EXECUTION_SERVICE, ExecutionService } from './execution.service';
 import { IExecution } from 'core/domain';
 import { Application } from 'core/application';
-import { SETTINGS } from 'core/config/settings';
 import * as State from 'core/state';
 
 describe('Service: executionService', () => {
@@ -91,7 +90,7 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let failed = false;
       const executionId = 'abc';
-      const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const deleteUrl = `/pipelines/${executionId}`;
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       http.expectDELETE(deleteUrl).respond(500, []);
@@ -107,8 +106,8 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
-      const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'pause'].join('/');
-      const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const pauseUrl = `/pipelines/${executionId}/pause`;
+      const singleExecutionUrl = `/pipelines/${executionId}`;
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       http.expectPUT(pauseUrl).respond(200, []);
@@ -131,8 +130,8 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
-      const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'resume'].join('/');
-      const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const pauseUrl = `/pipelines/${executionId}/resume`;
+      const singleExecutionUrl = `/pipelines/${executionId}`;
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       http.expectPUT(pauseUrl).respond(200, []);
@@ -179,7 +178,7 @@ describe('Service: executionService', () => {
     it('resolves when the execution matches the closure', async () => {
       const http = mockHttpClient();
       const executionId = 'abc';
-      const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const url = `/pipelines/${executionId}`;
       let succeeded = false;
 
       http.expectGET(url).respond(200, { thingToMatch: true });
@@ -197,7 +196,7 @@ describe('Service: executionService', () => {
     it('polls until the execution matches, then resolves', async () => {
       const http = mockHttpClient();
       const executionId = 'abc';
-      const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const url = `/pipelines/${executionId}`;
       let succeeded = false;
 
       http.expectGET(url).respond(200, { thingToMatch: false });
@@ -229,7 +228,7 @@ describe('Service: executionService', () => {
     it('rejects if execution retrieval fails', async () => {
       const http = mockHttpClient();
       const executionId = 'abc';
-      const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const url = `/pipelines/${executionId}`;
       let succeeded = false;
       let failed = false;
 
@@ -429,7 +428,7 @@ describe('Service: executionService', () => {
     const applicationName = 'deck';
     const application: Application = { name: applicationName, executions: { refresh: () => $q.when(null) } } as any;
     const pipelineId = '01DC2VMFBZ5PFW5G6SMKWW5CZC';
-    const url = [SETTINGS.gateUrl, 'pipelines', pipelineId].join('/');
+    const url = `/pipelines/${pipelineId}`;
     const execution: any = {}; // Stub execution
 
     it('resolves when the pipeline exists', async () => {

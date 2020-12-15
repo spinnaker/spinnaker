@@ -2,7 +2,6 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { tick } from 'core/api/mock/mockHttpUtils';
 import { IDeferred, IQService, IRootScopeService, IScope, mock } from 'angular';
 
-import { SETTINGS } from 'core/config/settings';
 import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment.service';
 import { ExecutionService } from 'core/pipeline/service/execution.service';
 
@@ -32,7 +31,7 @@ describe('Service: manualJudgment', () => {
     beforeEach(() => {
       execution = { id: 'ex-id' };
       stage = { id: 'stage-id' };
-      requestUrl = [SETTINGS.gateUrl, 'pipelines', execution.id, 'stages', stage.id].join('/');
+      requestUrl = `/pipelines/${execution.id}/stages/${stage.id}`;
     });
 
     it('should resolve when execution status matches request', async () => {

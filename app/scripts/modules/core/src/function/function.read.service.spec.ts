@@ -1,5 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { API, FunctionReader, IFunctionSourceData } from 'core';
+import { FunctionReader, IFunctionSourceData } from 'core';
 import { IFunctionTransformer } from 'core/function/function.transformer';
 
 describe('FunctionReadService', () => {
@@ -17,7 +17,7 @@ describe('FunctionReadService', () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
-      http.expectGET(`${API.baseUrl}/applications/app1/functions`).respond(200, [
+      http.expectGET(`/applications/app1/functions`).respond(200, [
         { name: 'account1', provider: 'aws', type: 'aws' },
         { name: 'account1', provider: 'aws', type: 'aws' },
       ]);
@@ -38,7 +38,7 @@ describe('FunctionReadService', () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
-      http.expectGET(`${API.baseUrl}/applications/app1/functions`).respond(200, [
+      http.expectGET(`/applications/app1/functions`).respond(200, [
         { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
         { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
       ]);

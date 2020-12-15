@@ -1,8 +1,6 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 
-import { API } from '@spinnaker/core';
-
 describe('Service: InstanceType', function () {
   beforeEach(function () {
     window.module(require('./awsInstanceType.service').name);
@@ -34,7 +32,7 @@ describe('Service: InstanceType', function () {
   describe('getAllTypesByRegion', function () {
     it('returns types, indexed by region', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, this.allTypes);
 
       let results = null;
       this.awsInstanceTypeService.getAllTypesByRegion().then(function (result) {
@@ -50,7 +48,7 @@ describe('Service: InstanceType', function () {
   describe('getAvailableTypesForRegions', function () {
     it('returns results for a single region', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -65,7 +63,7 @@ describe('Service: InstanceType', function () {
 
     it('returns empty list for region with no instance types', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -80,7 +78,7 @@ describe('Service: InstanceType', function () {
 
     it('returns an intersection when multiple regions are provided', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;
@@ -110,7 +108,7 @@ describe('Service: InstanceType', function () {
 
     it('sorts instance types by family then class size', async function () {
       const http = mockHttpClient();
-      http.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
+      http.expectGET('/instanceTypes').respond(200, this.allTypes);
 
       let results = null,
         service = this.awsInstanceTypeService;

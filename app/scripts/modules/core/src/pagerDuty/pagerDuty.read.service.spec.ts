@@ -1,8 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
-
-import { API } from 'core/api/ApiService';
-
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
@@ -12,7 +9,7 @@ describe('PagerDutyReader', () => {
   it('should return an empty array when configured to do so and invoked', async () => {
     const http = mockHttpClient();
     const services: IPagerDutyService[] = [];
-    http.expectGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    http.expectGET(`/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
@@ -45,7 +42,7 @@ describe('PagerDutyReader', () => {
         status: 'active',
       },
     ];
-    http.expectGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
+    http.expectGET(`/pagerDuty/services`).respond(200, services);
 
     let executed = false;
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {

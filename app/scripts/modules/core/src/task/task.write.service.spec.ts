@@ -1,7 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
-import { mock, IHttpBackendService, ITimeoutService } from 'angular';
-
-import { API } from 'core/api/ApiService';
+import { mock, ITimeoutService } from 'angular';
 import { TaskWriter } from './task.write.service';
 
 describe('Service: TaskWriter', () => {
@@ -17,8 +15,8 @@ describe('Service: TaskWriter', () => {
     it('should wait until task is canceled, then resolve', async () => {
       const http = mockHttpClient();
       const taskId = 'abc';
-      const cancelUrl = [API.baseUrl, 'tasks', taskId, 'cancel'].join('/');
-      const checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
+      const cancelUrl = `/tasks/${taskId}/cancel`;
+      const checkUrl = `/tasks/${taskId}`;
       let completed = false;
 
       http.expectPUT(cancelUrl).respond(200, []);

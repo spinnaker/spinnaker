@@ -2,7 +2,7 @@ import React from 'react';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mount } from 'enzyme';
 
-import { API, IArtifactAccount, IArtifactAccountPair, StageArtifactSelector } from '@spinnaker/core';
+import { IArtifactAccount, IArtifactAccountPair, StageArtifactSelector } from '@spinnaker/core';
 import { mockDeployStage, mockPipeline } from '@spinnaker/mocks';
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 
@@ -51,7 +51,7 @@ describe('<ConfigFileArtifactList/>', () => {
         types: ['http'],
       },
     ];
-    http.expectGET(`${API.baseUrl}/artifacts/credentials`).respond(200, body);
+    http.expectGET(`/artifacts/credentials`).respond(200, body);
 
     // artifact intentionally left null indicating an expected artifact
     const configArtifacts = [

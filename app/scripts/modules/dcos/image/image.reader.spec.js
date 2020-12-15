@@ -1,8 +1,6 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 
-import { API } from '@spinnaker/core';
-
 describe('Service: DCOS Image Reader', function () {
   var service;
 
@@ -18,9 +16,7 @@ describe('Service: DCOS Image Reader', function () {
     var query = 'abc',
       region = 'usw';
 
-    function buildQueryString() {
-      return API.baseUrl + '/images/find?provider=dcos&q=' + query + '&region=' + region;
-    }
+    const buildQueryString = () => `/images/find?provider=dcos&q=${query}&region=${region}`;
 
     it('queries gate when 3 characters are supplied', async function () {
       const http = mockHttpClient();

@@ -9,7 +9,6 @@ import { IInstanceCounts, IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
 
 import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
-import { API } from '../api/ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 const ClusterState = State.ClusterState;
@@ -55,8 +54,8 @@ describe('Service: Cluster', function () {
     it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', async () => {
       const http = mockHttpClient();
       const clusters = [...Array(SETTINGS.onDemandClusterThreshold + 1)];
-      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
+      http.expectGET('/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET('/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
       await http.flush();
@@ -67,8 +66,8 @@ describe('Service: Cluster', function () {
     it('does boring regular fetching when there are less than the on demand threshold for clusters', async () => {
       const http = mockHttpClient();
       const clusters = Array(SETTINGS.onDemandClusterThreshold);
-      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
+      http.expectGET('/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET('/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
       await http.flush();
@@ -81,8 +80,8 @@ describe('Service: Cluster', function () {
       spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       const clusters = Array(250);
       ClusterState.filterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
-      http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
-      http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
+      http.expectGET('/applications/app/clusters').respond(200, { test: clusters });
+      http.expectGET('/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
       await http.flush();

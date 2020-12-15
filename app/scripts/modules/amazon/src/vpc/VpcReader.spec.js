@@ -1,8 +1,5 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
-
-import { API } from '@spinnaker/core';
-
 import { VpcReader } from '../vpc/VpcReader';
 
 describe('VpcReader', function () {
@@ -20,7 +17,7 @@ describe('VpcReader', function () {
 
   it('adds label to vpc, including (deprecated) if deprecated field is true', async function () {
     const http = mockHttpClient({ autoFlush: true });
-    http.expectGET(API.baseUrl + '/networks/aws').respond(200, [
+    http.expectGET('/networks/aws').respond(200, [
       { name: 'vpc1', id: 'vpc-1', deprecated: true },
       { name: 'vpc2', id: 'vpc-2', deprecated: false },
       { name: 'vpc3', id: 'vpc-3' },
@@ -38,7 +35,7 @@ describe('VpcReader', function () {
 
   it('retrieves vpc name - not label - from id', async function () {
     const http = mockHttpClient({ autoFlush: true });
-    http.expectGET(API.baseUrl + '/networks/aws').respond(200, [
+    http.expectGET('/networks/aws').respond(200, [
       { name: 'vpc1', id: 'vpc-1', deprecated: true },
       { name: 'vpc2', id: 'vpc-2', deprecated: false },
       { name: 'vpc3', id: 'vpc-3' },

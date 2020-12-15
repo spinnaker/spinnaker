@@ -51,7 +51,7 @@ describe('serverGroupWriter', function () {
     async function postTask(http: MockHttpClient, serverGroupCommand: IServerGroupCommand): Promise<ITaskCommand> {
       let submitted: ITaskCommand = {};
       http
-        .expectPOST(`${API.baseUrl}/tasks`)
+        .expectPOST(`/tasks`)
         .respond(200, { ref: '/1' })
         .onRequestReceived((resp) => (submitted = resp.data));
 
@@ -63,7 +63,7 @@ describe('serverGroupWriter', function () {
         refresh: noop,
       };
 
-      http.expectGET(API.baseUrl + '/tasks/1').respond(200, {});
+      http.expectGET('/tasks/1').respond(200, {});
       serverGroupWriter.cloneServerGroup(serverGroupCommand, application);
       await http.flush();
 

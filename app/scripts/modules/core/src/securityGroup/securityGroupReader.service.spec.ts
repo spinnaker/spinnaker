@@ -1,7 +1,6 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
 
-import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { InfrastructureCaches } from 'core/cache';
@@ -83,7 +82,7 @@ describe('Service: securityGroupReader', function () {
     application.loadBalancers.refresh();
     $scope.$digest();
 
-    http.expectGET(`${API.baseUrl}/securityGroups`).respond(200, {
+    http.expectGET(`/securityGroups`).respond(200, {
       test: {
         aws: {
           'us-east-1': [{ name: 'not-cached' }],
@@ -107,7 +106,7 @@ describe('Service: securityGroupReader', function () {
       prod: { 'us-east-1': { 'sg-2': { name: 'matched-prod' } } },
     };
 
-    http.expectGET(`${API.baseUrl}/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1`).respond(200, {
+    http.expectGET(`/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1`).respond(200, {
       inboundRules: [
         { securityGroup: { accountName: 'test', id: 'sg-345' } },
         { securityGroup: { accountName: 'test', id: 'sg-2' } },
@@ -166,7 +165,7 @@ describe('Service: securityGroupReader', function () {
     application.getDataSource('loadBalancers').refresh();
     $scope.$digest();
 
-    http.expectGET(API.baseUrl + '/securityGroups').respond(200, {
+    http.expectGET('/securityGroups').respond(200, {
       test: {
         aws: {
           'us-east-1': [{ name: 'not-cached', id: 'not-cached-id', vpcId: null }],

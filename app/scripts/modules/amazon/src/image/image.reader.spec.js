@@ -1,8 +1,5 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
-
-import { API } from '@spinnaker/core';
-
 import { AwsImageReader } from './image.reader';
 
 describe('Service: aws Image Reader', function () {
@@ -19,9 +16,7 @@ describe('Service: aws Image Reader', function () {
     var query = 'abc',
       region = 'us-west-1';
 
-    function buildQueryString() {
-      return API.baseUrl + '/images/find?provider=aws&q=' + query + '&region=' + region;
-    }
+    const buildQueryString = () => `/images/find?provider=aws&q=${query}&region=${region}`;
 
     it('queries gate when 3 characters are supplied', async function () {
       const http = mockHttpClient();
@@ -96,9 +91,7 @@ describe('Service: aws Image Reader', function () {
       region = 'us-west-1',
       credentials = 'test';
 
-    function buildQueryString() {
-      return [API.baseUrl, 'images', credentials, region, imageName].join('/') + '?provider=aws';
-    }
+    const buildQueryString = () => `/images/${credentials}/${region}/${imageName}?provider=aws`;
 
     it('returns null if server returns 404 or an empty list', async function () {
       const http = mockHttpClient();

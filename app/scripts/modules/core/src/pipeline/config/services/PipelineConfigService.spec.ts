@@ -1,7 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock } from 'angular';
-
-import { API } from 'core/api/ApiService';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -87,7 +85,7 @@ describe('PipelineConfigService', () => {
       const http = mockHttpClient();
       const pipeline: IPipeline = buildPipeline({});
 
-      http.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
+      http.expectDELETE('/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
 
       PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
 
@@ -106,7 +104,7 @@ describe('PipelineConfigService', () => {
         buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: [] }),
         buildPipeline({ id: 'd', name: 'third', application: 'app', index: 2, stages: [] }),
       ];
-      http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
+      http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
 
       PipelineConfigService.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
         result = pipelines;

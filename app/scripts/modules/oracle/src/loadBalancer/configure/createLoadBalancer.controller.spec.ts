@@ -2,7 +2,7 @@ import { mockHttpClient } from 'core/api/mock/jasmine';
 import { IControllerService, IRootScopeService, IScope, mock, noop } from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { API, ApplicationModelBuilder } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
 
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, OracleLoadBalancerController } from './createLoadBalancer.controller';
 import {
@@ -193,8 +193,8 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function () {
 
   it('makes the expected REST calls for data for a new loadbalancer', async function () {
     const http = mockHttpClient();
-    http.expect('GET', API.baseUrl + '/networks/oracle').respond(200, []);
-    http.expect('GET', API.baseUrl + '/subnets/oracle').respond(200, []);
+    http.expectGET('/networks/oracle').respond(200, []);
+    http.expectGET('/subnets/oracle').respond(200, []);
     initController();
 
     await http.flush();

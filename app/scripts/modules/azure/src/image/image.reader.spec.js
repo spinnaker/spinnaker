@@ -1,8 +1,6 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 
-import { API } from '@spinnaker/core';
-
 describe('Service: Azure Image Reader', function () {
   var service;
 
@@ -18,9 +16,7 @@ describe('Service: Azure Image Reader', function () {
     var query = 'abc',
       region = 'usw';
 
-    function buildQueryString() {
-      return API.baseUrl + '/images/find?provider=azure&q=' + query + '&region=' + region;
-    }
+    const buildQueryString = () => `/images/find?provider=azure&q=${query}&region=${region}`;
 
     it('queries gate when 3 characters are supplied', async function () {
       const http = mockHttpClient();
@@ -80,9 +76,7 @@ describe('Service: Azure Image Reader', function () {
       region = 'usw',
       credentials = 'test';
 
-    function buildQueryString() {
-      return [API.baseUrl, 'images', credentials, region, imageName].join('/') + '?provider=azure';
-    }
+    const buildQueryString = () => `/images/${credentials}/${region}/${imageName}?provider=azure`;
 
     it('returns null if server returns 404 or an empty list', async function () {
       const http = mockHttpClient();
