@@ -1,5 +1,5 @@
-clouddriver-kubernetes/    @maggieneterval @ezimanyi @ethanfrogers @german-muzquiz
-clouddriver-google/        @maggieneterval @ezimanyi @plumpy
+clouddriver-kubernetes/    @maggieneterval @ethanfrogers @german-muzquiz
+clouddriver-google/        @maggieneterval @plumpy
 
 clouddriver-saga/          @robzienert @cfieber
 clouddriver-core/          @robzienert @cfieber
