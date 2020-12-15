@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 
 /**
@@ -10,12 +11,19 @@ interface VerificationEvaluator<VERIFICATION: Verification> {
   val supportedVerification: Pair<String, Class<VERIFICATION>>
 
   /**
+   * @param metadata as returned by [start].
    * @return the current status of the verification.
    */
-  fun evaluate() : VerificationStatus
+  fun evaluate(
+    context: VerificationContext,
+    verification: Verification,
+    metadata: Map<String, Any?>
+  ): VerificationStatus
 
   /**
    * Start running [verification].
+   *
+   * @return any metadata needed to [evaluate] the verification in future.
    */
-  fun start(verification: Verification)
+  fun start(context: VerificationContext, verification: Verification): Map<String, Any?>
 }

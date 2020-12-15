@@ -39,7 +39,7 @@
         <forcedType>
           <userType><![CDATA[java.util.Map<String, ?>]]></userType>
           <converter>com.netflix.spinnaker.jooq.JsonToMapConverter</converter>
-          <includeExpression>DELIVERY_CONFIG\\.METADATA</includeExpression>
+          <includeExpression>(DELIVERY_CONFIG|VERIFICATION_STATE)\\.METADATA</includeExpression>
         </forcedType>
         <!-- Automatically convert remaining JSON columns to String -->
         <forcedType>

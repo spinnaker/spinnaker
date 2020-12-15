@@ -4,6 +4,7 @@ import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record
+import org.jooq.ResultQuery
 import org.jooq.impl.DSL
 
 internal fun <R> DSLContext.inTransaction(fn: DSLContext.() -> R): R =
@@ -17,3 +18,6 @@ internal inline fun <reified T> field(sql: String): Field<T> = DSL.field(sql, T:
 
 internal fun Map<String, Any?>.asResourceMetadata(): Map<String, Any?> =
   mapValues { if (it.key == "uid") ULID.parseULID(it.value.toString()) else it.value }
+
+internal inline fun <reified RESULT> ResultQuery<*>.fetchOneInto() =
+  fetchOneInto(RESULT::class.java)

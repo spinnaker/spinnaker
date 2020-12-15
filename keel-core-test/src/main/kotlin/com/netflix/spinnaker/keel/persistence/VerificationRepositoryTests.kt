@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationStatus.PASSED
 import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.time.MutableClock
+import de.huxhorn.sulky.ulid.ULID
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -110,14 +111,16 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     context.setup()
 
-    subject.updateState(context, verification, status)
+    val metadata = mapOf("taskId" to ULID().nextULID())
+    subject.updateState(context, verification, status, metadata)
 
     expectCatching {
       subject.getState(context, verification)
     }
       .isSuccess()
       .isNotNull()
-      .get(VerificationState::status) isEqualTo status
+      .with(VerificationState::status) { isEqualTo(status) }
+      .with(VerificationState::metadata) { isEqualTo(metadata) }
   }
 
   @Test
@@ -150,22 +153,27 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     context.setup()
 
-    subject.updateState(context, verification1, PASSED)
-    subject.updateState(context, verification2, RUNNING)
+    val metadata1 = mapOf("taskId" to ULID().nextULID())
+    val metadata2 = mapOf("taskId" to ULID().nextULID())
+
+    subject.updateState(context, verification1, PASSED, metadata1)
+    subject.updateState(context, verification2, RUNNING, metadata2)
 
     expectCatching {
       subject.getState(context, verification1)
     }
       .isSuccess()
       .isNotNull()
-      .get(VerificationState::status) isEqualTo PASSED
+      .with(VerificationState::status) { isEqualTo(PASSED) }
+      .with(VerificationState::metadata) { isEqualTo(metadata1) }
 
     expectCatching {
       subject.getState(context, verification2)
     }
       .isSuccess()
       .isNotNull()
-      .get(VerificationState::status) isEqualTo RUNNING
+      .with(VerificationState::status) { isEqualTo(RUNNING) }
+      .with(VerificationState::metadata) { isEqualTo(metadata2) }
   }
 
   @DisplayName("selecting verifications to check")
@@ -300,7 +308,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       val context2 = context.copy(
         deliveryConfig = deliveryConfig,
         artifactReference = artifact2.reference,
-          version = "artifact2-0.390.0-h584.93a3040"
+        version = "artifact2-0.390.0-h584.93a3040"
       )
       with(context1) {
         setup()
@@ -347,7 +355,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       val context2 = context.copy(
         deliveryConfig = deliveryConfig,
         artifactReference = artifact2.reference,
-          version = "artifact2-0.390.0-h584.93a3040"
+        version = "artifact2-0.390.0-h584.93a3040"
       )
       with(context1) {
         setup()

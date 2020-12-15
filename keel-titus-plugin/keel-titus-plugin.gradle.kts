@@ -18,6 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
 
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation(project(":keel-test"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")

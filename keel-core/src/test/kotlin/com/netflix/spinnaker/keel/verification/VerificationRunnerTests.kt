@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
+import de.huxhorn.sulky.ulid.ULID
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -61,7 +62,7 @@ internal class VerificationRunnerTests {
 
     subject.runVerificationsFor(context)
 
-    verify(exactly = 0) { evaluator.start(any()) }
+    verify(exactly = 0) { evaluator.start(any(), any()) }
     verify(exactly = 0) { publisher.publishEvent(any()) }
   }
 
@@ -86,13 +87,15 @@ internal class VerificationRunnerTests {
       artifactReference = "fnord-docker",
       version = "fnord-0.190.0-h378.eacb135"
     )
+    val metadata = mapOf("taskId" to ULID().nextULID())
 
     every { repository.getState(any(), any()) } returns null
+    every { evaluator.start(any(), any()) } returns metadata
 
     subject.runVerificationsFor(context)
 
-    verify { evaluator.start(DummyVerification("1")) }
-    verify { repository.updateState(any(), DummyVerification("1"), RUNNING) }
+    verify { evaluator.start(context, DummyVerification("1")) }
+    verify { repository.updateState(any(), DummyVerification("1"), RUNNING, metadata) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
@@ -121,12 +124,12 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns RUNNING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate() } returns RUNNING
+    every { evaluator.evaluate(context, DummyVerification("1"), emptyMap()) } returns RUNNING
 
     subject.runVerificationsFor(context)
 
-    verify { evaluator.evaluate() }
-    verify(exactly = 0) { evaluator.start(any()) }
+    verify { evaluator.evaluate(context, DummyVerification("1"), any()) }
+    verify(exactly = 0) { evaluator.start(any(), any()) }
     verify(exactly = 0) { publisher.publishEvent(any()) }
   }
 
@@ -161,15 +164,17 @@ internal class VerificationRunnerTests {
     every { repository.getState(any(), DummyVerification("1")) } returns RUNNING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate() } returns status
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns status
+
+    every { evaluator.start(any(), any()) } returns emptyMap()
 
     subject.runVerificationsFor(context)
 
-    verify { repository.updateState(any(), DummyVerification("1"), status) }
+    verify { repository.updateState(any(), DummyVerification("1"), status, null) }
     verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
 
-    verify { evaluator.start(DummyVerification("2")) }
-    verify { repository.updateState(any(), DummyVerification("2"), RUNNING) }
+    verify { evaluator.start(context, DummyVerification("2")) }
+    verify { repository.updateState(any(), DummyVerification("2"), RUNNING, emptyMap()) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
@@ -211,7 +216,7 @@ internal class VerificationRunnerTests {
     subject.runVerificationsFor(context)
 
     verify(exactly = 0) {
-      evaluator.start(any())
+      evaluator.start(any(), any())
     }
   }
 

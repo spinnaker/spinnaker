@@ -27,11 +27,14 @@ interface VerificationRepository {
 
   /**
    * Updates the state of [verification] as run against [context].
+   *
+   * @param metadata `null` means "do not update the metadata".
    */
   fun updateState(
     context: VerificationContext,
     verification: Verification,
-    status: VerificationStatus
+    status: VerificationStatus,
+    metadata: Map<String, Any?>? = null
   )
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<VerificationContext>
@@ -40,7 +43,11 @@ interface VerificationRepository {
 data class VerificationState(
   val status: VerificationStatus,
   val startedAt: Instant,
-  val endedAt: Instant?
+  val endedAt: Instant?,
+  /**
+   * Used for storing any contextual information (such as task ids).
+   */
+  val metadata: Map<String, Any?> = emptyMap()
 )
 
 enum class VerificationStatus(val complete: Boolean) {

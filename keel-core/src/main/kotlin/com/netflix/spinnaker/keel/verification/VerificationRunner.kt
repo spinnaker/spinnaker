@@ -42,15 +42,15 @@ class VerificationRunner(
   }
 
   private fun VerificationContext.start(verification: Verification) {
-    evaluators.start(verification)
-    markAsRunning(verification)
+    val metadata = evaluators.start(this, verification)
+    markAsRunning(verification, metadata)
     eventPublisher.publishEvent(VerificationStarted(this, verification))
   }
 
   private fun VerificationContext.latestStatus(verification: Verification): VerificationStatus? {
-    val status = previousStatus(verification)
-    return if (status == RUNNING) {
-      evaluators.evaluate(verification)
+    val state = previousState(verification)
+    return if (state?.status == RUNNING) {
+      evaluators.evaluate(this, verification, state.metadata)
         .also { newStatus ->
           if (newStatus.complete) {
             log.debug("Verification {} completed with status {} for {}", verification, newStatus, environment.name)
@@ -59,7 +59,7 @@ class VerificationRunner(
           }
         }
     } else {
-      status
+      state?.status
     }
   }
 
@@ -69,13 +69,15 @@ class VerificationRunner(
   private val Collection<Pair<Verification, VerificationStatus?>>.firstOutstanding: Verification?
     get() = firstOrNull { (_, status) -> status == null }?.first
 
-  private fun VerificationContext.previousStatus(verification: Verification) =
+  private fun VerificationContext.previousState(verification: Verification) =
     verificationRepository
       .getState(this, verification)
-      ?.status
 
-  private fun VerificationContext.markAsRunning(verification: Verification) {
-    markAs(verification, RUNNING)
+  private fun VerificationContext.markAsRunning(
+    verification: Verification,
+    metadata: Map<String, Any?>
+  ) {
+    verificationRepository.updateState(this, verification, RUNNING, metadata)
   }
 
   private fun VerificationContext.markAs(verification: Verification, status: VerificationStatus) {
@@ -85,11 +87,15 @@ class VerificationRunner(
   private fun List<VerificationEvaluator<*>>.evaluatorFor(verification: Verification) =
     first { it.supportedVerification.first == verification.type }
 
-  private fun List<VerificationEvaluator<*>>.evaluate(verification: Verification) =
-    evaluatorFor(verification).evaluate()
+  private fun List<VerificationEvaluator<*>>.evaluate(
+    context: VerificationContext,
+    verification: Verification,
+    metadata: Map<String, Any?>
+  ) =
+    evaluatorFor(verification).evaluate(context, verification, metadata)
 
-  private fun List<VerificationEvaluator<*>>.start(verification: Verification) =
-    evaluatorFor(verification).start(verification)
+  private fun List<VerificationEvaluator<*>>.start(context: VerificationContext, verification: Verification) =
+    evaluatorFor(verification).start(context, verification)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
