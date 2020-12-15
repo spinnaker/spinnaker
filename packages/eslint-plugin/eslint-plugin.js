@@ -7,6 +7,7 @@ module.exports = {
     'import-from-npm-not-alias': require('./rules/import-from-npm-not-alias'),
     'import-from-npm-not-relative': require('./rules/import-from-npm-not-relative'),
     'import-relative-within-subpackage': require('./rules/import-relative-within-subpackage'),
+    'migrate-to-mock-http-client': require('./rules/migrate-to-mock-http-client'),
     'ng-no-component-class': require('./rules/ng-no-component-class'),
     'ng-no-module-export': require('./rules/ng-no-module-export'),
     'ng-no-require-angularjs': require('./rules/ng-no-require-angularjs'),
