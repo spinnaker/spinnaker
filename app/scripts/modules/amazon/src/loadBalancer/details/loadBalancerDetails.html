@@ -79,6 +79,8 @@
         </dd>
         <dt>Subnet</dt>
         <dd>{{ctrl.getFirstSubnetPurpose(ctrl.loadBalancer.subnetDetails)}}</dd>
+        <dt>Scheme</dt>
+        <dd>{{ ctrl.loadBalancer.scheme }}</dd>
         <dt ng-if="ctrl.loadBalancer.loadBalancerType">Type</dt>
         <dd ng-if="ctrl.loadBalancer.loadBalancerType">{{ctrl.loadBalancer.loadBalancerType}}</dd>
         <dt ng-if="ctrl.ipAddressTypeDescription">IP Type</dt>
