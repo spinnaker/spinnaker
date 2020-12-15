@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.echo.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+
 import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
-import com.netflix.spinnaker.echo.scm.BitbucketWehbookEventHandler
+import com.netflix.spinnaker.echo.scm.BitbucketWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.GithubWebhookEventHandler
-import com.netflix.spinnaker.echo.scm.GitlabWehbookEventHandler
+import com.netflix.spinnaker.echo.scm.GitlabWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
 import com.netflix.spinnaker.echo.scm.StashWebhookEventHandler
 import org.springframework.http.HttpHeaders
@@ -32,8 +32,8 @@ class WebhooksControllerSpec extends Specification {
 
   ScmWebhookHandler scmWebhookHandler = new ScmWebhookHandler(
     [
-      new BitbucketWehbookEventHandler(),
-      new GitlabWehbookEventHandler(),
+      new BitbucketWebhookEventHandler(),
+      new GitlabWebhookEventHandler(),
       new GithubWebhookEventHandler(),
       new StashWebhookEventHandler()]
   )

@@ -25,11 +25,11 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GitlabWehbookEventHandler implements GitWebhookHandler {
+public class GitlabWebhookEventHandler implements GitWebhookHandler {
 
   private ObjectMapper objectMapper;
 
-  public GitlabWehbookEventHandler() {
+  public GitlabWebhookEventHandler() {
     this.objectMapper = EchoObjectMapper.getInstance();
   }
 

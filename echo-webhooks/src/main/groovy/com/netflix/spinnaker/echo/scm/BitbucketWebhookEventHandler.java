@@ -30,11 +30,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class BitbucketWehbookEventHandler implements GitWebhookHandler {
+public class BitbucketWebhookEventHandler implements GitWebhookHandler {
 
   private ObjectMapper objectMapper;
 
-  public BitbucketWehbookEventHandler() {
+  public BitbucketWebhookEventHandler() {
     this.objectMapper = EchoObjectMapper.getInstance();
   }
 
@@ -244,7 +244,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
   }
 
   private String emptyOrDefault(String test, String def) {
-    return !test.isEmpty() ? test : def;
+    return (test != null && !test.isEmpty()) ? test : def;
   }
 
   @Data
