@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.config
 
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
@@ -35,6 +36,8 @@ import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
 import retrofit.converter.JacksonConverter
+import com.netflix.spinnaker.orca.kayenta.pipeline.functions.KayentaConfigExpressionFunctionProvider
+
 
 @Configuration
 @Import(RetrofitConfiguration::class)
@@ -76,5 +79,10 @@ class KayentaConfiguration {
       .setConverter(JacksonConverter(mapper))
       .build()
       .create(KayentaService::class.java)
+  }
+
+  @Bean
+  fun kayentaExpressionFunctionProvider(kayentaService: KayentaService): ExpressionFunctionProvider {
+    return KayentaConfigExpressionFunctionProvider(kayentaService)
   }
 }
