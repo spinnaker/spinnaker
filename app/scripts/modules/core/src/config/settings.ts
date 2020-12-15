@@ -27,6 +27,7 @@ export interface IFeatures {
   [key: string]: any;
   canary?: boolean;
   chaosMonkey?: boolean;
+  ci?: boolean;
   displayTimestampsInUserLocalTime?: boolean;
   dockerBake?: boolean;
   entityTags?: boolean;
