@@ -51,7 +51,8 @@ class SqlTableMetricsAgent(
 
       val count = jooq.selectCount()
         .from(table(tableName))
-        .fetchOne(0, Int::class.java)
+        .fetchSingle()
+        .value1()
 
       registry.gauge(countId.withTag("type", type)).set(count.toDouble())
       tableCount++

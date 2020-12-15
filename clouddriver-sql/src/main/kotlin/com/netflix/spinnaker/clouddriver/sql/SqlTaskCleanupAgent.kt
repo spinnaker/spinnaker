@@ -61,7 +61,7 @@ class SqlTaskCleanupAgent(
           )
           .fetch()
 
-        val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r).toString() }
+        val candidateTaskIds = candidates.map { r -> r.field("task_id")?.getValue(r)?.toString() }
           .filterNotNull()
           .toList()
 

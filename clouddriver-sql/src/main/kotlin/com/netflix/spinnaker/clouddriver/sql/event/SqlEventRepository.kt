@@ -249,7 +249,8 @@ class SqlEventRepository(
 
       val remaining = jooq.selectCount().from(AGGREGATES_TABLE)
         .withConditions(conditions)
-        .fetchOne(0, Int::class.java) - perPage
+        .fetchSingle()
+        .value1() - perPage
 
       EventRepository.ListAggregatesResult(
         aggregates = aggregates.map { it.model },
