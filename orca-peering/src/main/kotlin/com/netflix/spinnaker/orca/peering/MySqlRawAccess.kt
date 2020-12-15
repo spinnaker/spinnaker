@@ -29,7 +29,7 @@ open class MySqlRawAccess(
     maxPacketSize = withPool(poolName) {
       jooq
         .resultQuery("SHOW VARIABLES WHERE Variable_name='max_allowed_packet'")
-        .fetchOne(field("Value"), Long::class.java)
+        .fetchSingle(field("Value"), Long::class.java) ?: 0L
     }
 
     log.info("Initialized MySqlRawAccess with pool=$poolName and maxPacketSize=$maxPacketSize")

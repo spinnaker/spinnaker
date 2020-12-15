@@ -630,7 +630,7 @@ class SqlExecutionRepository(
         .and(partitionPredicate)
         .asField<Int>("pipelines")
 
-      val record = jooq.select(orchestrationsQuery, pipelinesQuery).fetchOne()
+      val record = jooq.select(orchestrationsQuery, pipelinesQuery).fetchSingle()
 
       return ActiveExecutionsReport(
         record.get(0, Int::class.java),
@@ -712,7 +712,7 @@ class SqlExecutionRepository(
       return jooq.selectCount()
         .from(type.tableName)
         .where(id.toWhereCondition())
-        .fetchOne(count()) > 0
+        .fetchSingle(count()) ?: 0 > 0
     }
   }
 

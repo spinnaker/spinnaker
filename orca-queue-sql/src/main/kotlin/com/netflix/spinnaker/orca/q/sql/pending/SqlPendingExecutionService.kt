@@ -187,7 +187,7 @@ class SqlPendingExecutionService(
           configField.eq(pipelineConfigId),
           shardCondition
         )
-        .fetchOne(0, Int::class.java)
+        .fetchSingle(0, Int::class.java) ?: 0
     }
 
   override fun pendingIds(): List<String> {
