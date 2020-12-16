@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/ecs",
   "license": "Apache-2.0",
-  "version": "0.0.273",
+  "version": "0.0.274",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
