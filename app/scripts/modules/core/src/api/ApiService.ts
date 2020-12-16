@@ -147,7 +147,7 @@ function joinPaths(...paths: IPrimitive[]) {
 
 /** The base request builder implementation */
 export class RequestBuilder implements IRequestBuilder {
-  static defaultHttpClient = new AngularJSHttpClient();
+  static defaultHttpClient: IHttpClientImplementation = new AngularJSHttpClient();
 
   public constructor(
     protected config: IRequestBuilderConfig = makeRequestBuilderConfig(),

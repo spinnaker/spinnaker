@@ -10,13 +10,15 @@ global.$ = global.jQuery = require('jquery');
 
 import './settings';
 import './app/scripts/app';
+import './test/helpers/customMatchers';
+import { jasmineMockHttpSupport } from 'core/api/mock/jasmine';
 
-// angular 1 test harnesss
+// angular 1 test harness
 import 'angular';
 import 'angular-mocks';
 beforeEach(angular.mock.module('bcherny/ngimport'));
 
-import './test/helpers/customMatchers';
+jasmineMockHttpSupport();
 
 const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
