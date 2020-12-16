@@ -1,7 +1,5 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { mock, noop } from 'angular';
-
-import { API } from 'core/api/ApiService';
 import { MockHttpClient } from 'core/api/mock/mockHttpClient';
 import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
 import {
@@ -40,9 +38,6 @@ describe('serverGroupWriter', function () {
   });
 
   it('should inject defined objects', async function () {
-    const http = mockHttpClient();
-    expect(API).toBeDefined();
-    expect(http).toBeDefined();
     expect(serverGroupTransformer).toBeDefined();
     expect(serverGroupWriter).toBeDefined();
   });
