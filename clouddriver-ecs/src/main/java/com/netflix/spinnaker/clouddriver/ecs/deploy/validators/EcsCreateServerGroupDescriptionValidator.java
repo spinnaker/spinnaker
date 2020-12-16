@@ -58,6 +58,16 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     validateCredentials(createServerGroupDescription, errors, "credentials");
     validateCapacity(errors, createServerGroupDescription.getCapacity());
 
+    if (createServerGroupDescription.getSubnetTypes() != null
+        && createServerGroupDescription.getSubnetTypes().size() > 0) {
+      if (StringUtils.isNotBlank(createServerGroupDescription.getSubnetType())) {
+        errors.rejectValue(
+            "subnetTypes",
+            errorKey + "." + "subnetTypes" + "." + "invalid",
+            "SubnetType (string) cannot be specified when SubnetTypes (list) is specified. Please use SubnetTypes (list)");
+      }
+    }
+
     if (createServerGroupDescription.getAvailabilityZones() != null) {
       if (createServerGroupDescription.getAvailabilityZones().size() != 1) {
         rejectValue(errors, "availabilityZones", "must.have.only.one");

@@ -257,7 +257,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.subnetSelector = subnetSelector
     operation.securityGroupSelector = securityGroupSelector
 
-    subnetSelector.resolveSubnetsIds(_, _, _, _) >> ['subnet-12345']
+    subnetSelector.resolveSubnetsIdsForMultipleSubnetTypes(_, _, _, _) >> ['subnet-12345']
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-123']
     securityGroupSelector.resolveSecurityGroupNames(_, _, _, _) >> ['sg-12345']
 
@@ -362,7 +362,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.subnetSelector = subnetSelector
     operation.securityGroupSelector = securityGroupSelector
 
-    subnetSelector.resolveSubnetsIds(_, _, _, _) >> ['subnet-12345']
+    subnetSelector.resolveSubnetsIdsForMultipleSubnetTypes(_, _, _, _) >> ['subnet-12345']
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-123']
     securityGroupSelector.resolveSecurityGroupNames(_, _, _, _) >> ['sg-12345']
 
@@ -411,6 +411,106 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.propagateTags == null
       request.tags == []
       request.capacityProviderStrategy == [capacityProviderStrategy]
+      request.platformVersion == '1.0.0'
+    } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
+
+    result.getServerGroupNames().size() == 1
+    result.getServerGroupNameByRegion().size() == 1
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
+    result.getServerGroupNameByRegion().containsKey('us-west-1')
+    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
+  }
+
+  def 'should create a service using multiple subnet types'() {
+    given:
+    def serviceRegistry = new CreateServerGroupDescription.ServiceDiscoveryAssociation(
+      registry: new CreateServerGroupDescription.ServiceRegistry(arn: 'srv-registry-arn'),
+      containerPort: 9090
+    )
+    def description = new CreateServerGroupDescription(
+      credentials: TestCredential.named('Test', [:]),
+      application: applicationName,
+      stack: stack,
+      freeFormDetails: detail,
+      ecsClusterName: 'test-cluster',
+      iamRole: 'test-role',
+      containerPort: 1337,
+      targetGroup: 'target-group-arn',
+      portProtocol: 'tcp',
+      computeUnits: 9001,
+      reservedMemory: 9002,
+      dockerImageAddress: 'docker-image-url',
+      capacity: new ServerGroup.Capacity(1, 1, 1),
+      availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
+      placementStrategySequence: [],
+      launchType: 'FARGATE',
+      platformVersion: '1.0.0',
+      networkMode: 'awsvpc',
+      subnetTypes: ['public-az1', 'public-az2'],
+      securityGroupNames: ['helloworld'],
+      associatePublicIpAddress: true,
+      serviceDiscoveryAssociations: [serviceRegistry]
+    )
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    operation.amazonClientProvider = amazonClientProvider
+    operation.ecsCloudMetricService = Mock(EcsCloudMetricService)
+    operation.iamPolicyReader = iamPolicyReader
+    operation.credentialsRepository = credentialsRepository
+    operation.containerInformationService = containerInformationService
+    operation.subnetSelector = subnetSelector
+    operation.securityGroupSelector = securityGroupSelector
+
+    subnetSelector.resolveSubnetsIdsForMultipleSubnetTypes(_, _, _, _) >> ['subnet-12345', 'subnet-23456']
+    subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-123']
+    securityGroupSelector.resolveSecurityGroupNames(_, _, _, _) >> ['sg-12345']
+
+    when:
+    def result = operation.operate([])
+
+    then:
+    ecs.listAccountSettings(_) >> new ListAccountSettingsResult()
+    ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
+
+    ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
+
+    iamClient.getRole(_) >> new GetRoleResult().withRole(role)
+    iamPolicyReader.getTrustedEntities(_) >> trustRelationships
+    loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
+
+    ecs.createService({ CreateServiceRequest request ->
+      request.cluster == 'test-cluster'
+      request.serviceName == 'myapp-kcats-liated-v008'
+      request.taskDefinition == 'task-def-arn'
+      request.loadBalancers.size() == 1
+      request.loadBalancers.get(0).targetGroupArn == 'target-group-arn'
+      request.loadBalancers.get(0).containerName == 'v008'
+      request.loadBalancers.get(0).containerPort == 1337
+      request.serviceRegistries.size() == 1
+      request.serviceRegistries.get(0) == new ServiceRegistry(
+        registryArn: 'srv-registry-arn',
+        containerPort: 9090,
+        containerName: 'v008'
+      )
+      request.desiredCount == 1
+      request.role == null
+      request.placementStrategy == []
+      request.placementConstraints == []
+      request.networkConfiguration.awsvpcConfiguration.subnets == ['subnet-12345', 'subnet-23456']
+      request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
+      request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
+      request.healthCheckGracePeriodSeconds == null
+      request.enableECSManagedTags == null
+      request.propagateTags == null
+      request.tags == []
+      request.launchType == 'FARGATE'
       request.platformVersion == '1.0.0'
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
@@ -505,7 +605,6 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v011'
     labels.get(DOCKER_LABEL_KEY_SERVERGROUP) != 'some-value-we-dont-want-to-see'
   }
-
 
   def 'should allow selecting the logDriver'() {
     given:

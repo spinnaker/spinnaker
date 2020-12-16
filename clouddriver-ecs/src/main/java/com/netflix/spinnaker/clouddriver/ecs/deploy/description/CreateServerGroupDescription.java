@@ -71,7 +71,15 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   List<PlacementStrategy> placementStrategySequence;
   List<PlacementConstraint> placementConstraints;
   String networkMode;
-  String subnetType;
+
+  /**
+   * @deprecated this field only allows for one subnetType where as ECS supports the ability to
+   *     deploy to multiple subnets.
+   */
+  @Deprecated String subnetType;
+
+  Set<String> subnetTypes;
+
   Boolean associatePublicIpAddress;
   Integer healthCheckGracePeriodSeconds;
 

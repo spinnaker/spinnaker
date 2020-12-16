@@ -576,11 +576,11 @@ public class CreateServerGroupAtomicOperation
 
     if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
       Collection<String> subnetIds =
-          subnetSelector.resolveSubnetsIds(
+          subnetSelector.resolveSubnetsIdsForMultipleSubnetTypes(
               description.getAccount(),
               description.getRegion(),
               description.getAvailabilityZones().get(description.getRegion()),
-              description.getSubnetType());
+              getSubnetTypes());
       Collection<String> vpcIds =
           subnetSelector.getSubnetVpcIds(
               description.getAccount(), description.getRegion(), subnetIds);
@@ -770,6 +770,19 @@ public class CreateServerGroupAtomicOperation
               + " role does not have a trust relationship to ecs-tasks.amazonaws.com.");
     }
     return response;
+  }
+
+  private Set<String> getSubnetTypes() {
+    Set<String> subnetTypes = new HashSet<>();
+
+    if (description.getSubnetTypes() != null && !description.getSubnetTypes().isEmpty()) {
+      subnetTypes.addAll(description.getSubnetTypes());
+    }
+
+    if (StringUtils.isNotBlank(description.getSubnetType())) {
+      subnetTypes.add(description.getSubnetType());
+    }
+    return subnetTypes;
   }
 
   private DeploymentResult makeDeploymentResult(Service service) {
