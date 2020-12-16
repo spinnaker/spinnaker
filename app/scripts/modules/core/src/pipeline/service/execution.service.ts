@@ -257,8 +257,9 @@ export class ExecutionService {
     force?: boolean,
     reason?: string,
   ): PromiseLike<any> {
-    return API.one('pipelines', executionId, 'cancel')
-      .withParams({ force, reason })
+    return REST('/pipelines')
+      .path(executionId, 'cancel')
+      .query({ force, reason })
       .put()
       .then(() => this.waitUntilPipelineIsCancelled(application, executionId))
       .catch((exception) => {
@@ -267,7 +268,8 @@ export class ExecutionService {
   }
 
   public pauseExecution(application: Application, executionId: string): PromiseLike<any> {
-    return API.one('pipelines', executionId, 'pause')
+    return REST('/pipelines')
+      .path(executionId, 'pause')
       .put()
       .then(() => this.waitUntilExecutionMatches(executionId, (execution) => execution.status === 'PAUSED'))
       .then(() => application.executions.refresh())
@@ -277,7 +279,8 @@ export class ExecutionService {
   }
 
   public resumeExecution(application: Application, executionId: string): PromiseLike<any> {
-    return API.one('pipelines', executionId, 'resume')
+    return REST('/pipelines')
+      .path(executionId, 'resume')
       .put()
       .then(() => this.waitUntilExecutionMatches(executionId, (execution) => execution.status === 'RUNNING'))
       .then(() => application.executions.refresh())
@@ -287,7 +290,8 @@ export class ExecutionService {
   }
 
   public deleteExecution(application: Application, executionId: string): PromiseLike<any> {
-    const promiseLike = API.one('pipelines', executionId)
+    const promiseLike = REST('/pipelines')
+      .path(executionId)
       .delete()
       .then(() => this.waitUntilPipelineIsDeleted(application, executionId))
       .then(() => application.executions.refresh())
@@ -522,7 +526,7 @@ export class ExecutionService {
   }
 
   public patchExecution(executionId: string, stageId: string, data: any): PromiseLike<any> {
-    return API.one('pipelines', executionId, 'stages', stageId).patch(data);
+    return REST('/pipelines').path(executionId, 'stages', stageId).patch(data);
   }
 
   private stringifyExecution(execution: IExecution): string {

@@ -7,7 +7,7 @@ import { InferredApplicationWarningService } from './InferredApplicationWarningS
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
-  disabled: string[];
+  disabled: string[]; ///./app/scripts/modules/core/src/pipeline/service/execution.service.ts;
 }
 
 export interface IApplicationSummary {
@@ -38,15 +38,16 @@ export class ApplicationReader {
       });
   }
 
-  public static getApplicationPermissions(applicationName: string): PromiseLike < any > {
-      return API.one('applications', applicationName)
-          .withParams({
-              expand: false,
-          })
-          .get()
-          .then((application: Application) => {
-              return application.attributes.permissions;
-          });
+  public static getApplicationPermissions(applicationName: string): PromiseLike<any> {
+    return REST('/applications')
+      .path(applicationName)
+      .query({
+        expand: false,
+      })
+      .get()
+      .then((application: Application) => {
+        return application.attributes.permissions;
+      });
   }
 
   public static getApplication(name: string, expand = true): PromiseLike<Application> {
