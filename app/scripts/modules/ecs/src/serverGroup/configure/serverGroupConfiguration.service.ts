@@ -71,7 +71,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   iamRoles: string[];
   ecsClusters: string[];
   metricAlarms: IMetricAlarmDescriptor[];
-  subnetTypes: string[];
+  subnetTypes: ISubnet[];
   securityGroupNames: string[];
   secrets: string[];
   serviceDiscoveryRegistries: IServiceDiscoveryRegistryDescriptor[];
@@ -126,6 +126,7 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   imageDescription: IEcsDockerImage;
   networkMode: string;
   subnetType: string;
+  subnetTypes: string[];
   securityGroups: string[];
   viewState: IEcsServerGroupCommandViewState;
   taskDefinitionArtifact: IEcsTaskDefinitionArtifact;
@@ -327,7 +328,7 @@ export class EcsServerGroupConfigurationService {
   }
 
   public configureAvailableSecurityGroups(command: IEcsServerGroupCommand): void {
-    if (command.subnetType == null) {
+    if (command.subnetType == null && (command.subnetTypes == null || command.subnetTypes.length == 0)) {
       command.backingData.filtered.securityGroups = [];
       return;
     }
@@ -336,7 +337,7 @@ export class EcsServerGroupConfigurationService {
       .filter({
         account: command.credentials,
         region: command.region,
-        purpose: command.subnetType,
+        purpose: command.subnetTypes ? command.subnetTypes[0] : command.subnetType,
       })
       .compact()
       .uniqBy('purpose')
@@ -364,10 +365,9 @@ export class EcsServerGroupConfigurationService {
       })
       .compact()
       .uniqBy('purpose')
-      .map('purpose')
       .value()
-      .filter(function(e: string) {
-        return e && e.length > 0;
+      .filter(function (e: ISubnet) {
+        return e.purpose && e.purpose.length > 0;
       });
   }
 
@@ -445,10 +445,19 @@ export class EcsServerGroupConfigurationService {
       .uniqBy('purpose')
       .value();
 
-    if (!chain(filteredData.subnetPurposes).some({ purpose: command.subnetType }).value()) {
-      command.subnetType = null;
+    if (command.subnetTypes) {
+      result.dirty.subnetType = !command.subnetTypes.every((subnetType) =>
+        chain(filteredData.subnetPurposes).some({ purpose: subnetType }).value(),
+      );
+    } else if (!chain(filteredData.subnetPurposes).some({ purpose: command.subnetType }).value()) {
       result.dirty.subnetType = true;
     }
+
+    if (result.dirty.subnetType) {
+      command.subnetTypes = null;
+      command.subnetType = null;
+    }
+
     return result;
   }
 
@@ -524,9 +533,18 @@ export class EcsServerGroupConfigurationService {
 
   public configureVpcId(command: IEcsServerGroupCommand): IEcsServerGroupCommandResult {
     const result: IEcsServerGroupCommandResult = { dirty: {} };
-    if (!command.subnetType) {
+    if (command.subnetType == null && (command.subnetTypes == null || command.subnetTypes.length == 0)) {
       command.vpcId = null;
       result.dirty.vpcId = true;
+    } else if (command.subnetTypes != null && command.subnetTypes.length > 0) {
+      command.subnetTypes.forEach(function (subnetType) {
+        const subnet = find<ISubnet>(command.backingData.subnets, {
+          purpose: subnetType,
+          account: command.credentials,
+          region: command.region,
+        });
+        command.vpcId = subnet ? subnet.vpcId : null;
+      });
     } else {
       const subnet = find<ISubnet>(command.backingData.subnets, {
         purpose: command.subnetType,

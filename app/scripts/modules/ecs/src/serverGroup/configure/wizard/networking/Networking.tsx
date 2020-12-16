@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { module } from 'angular';
+import { uniqWith, isEqual } from 'lodash';
 import { react2angular } from 'react2angular';
 import { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, ISubnet, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
 
@@ -18,14 +19,26 @@ interface IEcsNetworkingState {
   networkModesAvailable: string[];
   securityGroups: string[];
   securityGroupsAvailable: string[];
-  subnetType: string;
-  subnetTypesAvailable: string[];
+  subnetTypes: string[];
+  subnetTypesAvailable: ISubnet[];
 }
 
 export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetworkingState> {
   constructor(props: IEcsNetworkingProps) {
     super(props);
     const cmd = this.props.command;
+
+    let defaultSubnetTypes: string[] = [];
+    if (cmd.subnetTypes && cmd.subnetTypes.length > 0) {
+      defaultSubnetTypes = cmd.subnetTypes;
+    }
+
+    if (cmd.subnetType && cmd.subnetType.length > 0) {
+      defaultSubnetTypes.push(cmd.subnetType);
+      cmd.subnetType = '';
+    }
+
+    cmd.subnetTypes = uniqWith(defaultSubnetTypes, isEqual);
 
     this.state = {
       associatePublicIpAddress: cmd.associatePublicIpAddress,
@@ -36,7 +49,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
         cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.securityGroupNames
           ? cmd.backingData.filtered.securityGroupNames
           : [],
-      subnetType: cmd.subnetType,
+      subnetTypes: cmd.subnetTypes,
       subnetTypesAvailable:
         cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.subnetTypes
           ? cmd.backingData.filtered.subnetTypes
@@ -76,10 +89,12 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     this.setState({ securityGroups: updatedSecurityGroups });
   };
 
-  private updateSubnetType = (newSubnetType: Option<string>) => {
-    const updatedSubnetType = newSubnetType.value;
-    this.props.notifyAngular('subnetType', updatedSubnetType);
-    this.setState({ subnetType: updatedSubnetType });
+  private updateSubnetTypes = (newSubnetTypes: Option<string>) => {
+    const updatedSubnetTypes = Array.isArray(newSubnetTypes)
+      ? newSubnetTypes.map((subnetType) => subnetType.value)
+      : [];
+    this.props.notifyAngular('subnetTypes', updatedSubnetTypes);
+    this.setState({ subnetTypes: updatedSubnetTypes });
   };
 
   private updateAssociatePublicIpAddress = (usePublicIp: boolean) => {
@@ -91,7 +106,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     const updateAssociatePublicIpAddress = this.updateAssociatePublicIpAddress;
     const updateNetworkMode = this.updateNetworkMode;
     const updateSecurityGroups = this.updateSecurityGroups;
-    const updateSubnetType = this.updateSubnetType;
+    const updateSubnetTypes = this.updateSubnetTypes;
 
     const networkModesAvailable = this.state.networkModesAvailable.map(function (networkMode) {
       return { label: `${networkMode}`, value: networkMode };
@@ -102,15 +117,16 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     });
 
     const subnetTypesAvailable = this.state.subnetTypesAvailable.map(function (subnetType) {
-      return { label: `${subnetType}`, value: subnetType };
+      return { label: `${subnetType.purpose} (${subnetType.vpcId})`, value: subnetType.purpose };
     });
 
     const subnetTypeOptions = this.state.subnetTypesAvailable.length ? (
       <TetheredSelect
+        multi={true}
         options={subnetTypesAvailable}
-        value={this.state.subnetType}
+        value={this.state.subnetTypes}
         onChange={(e: Option) => {
-          updateSubnetType(e as Option<string>);
+          updateSubnetTypes(e as Option<string>);
         }}
       />
     ) : (
