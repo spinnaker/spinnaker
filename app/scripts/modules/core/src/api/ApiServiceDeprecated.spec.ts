@@ -446,7 +446,7 @@ describe('API Service', function () {
       const params = { bar: 7 };
       $httpBackend.expectDELETE(`${baseUrl}/foo?bar=7`).respond(200);
 
-      API.one('foo').remove(params);
+      API.one('foo').query(params).remove();
 
       $httpBackend.flush();
     });
