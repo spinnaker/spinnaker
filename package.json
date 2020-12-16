@@ -109,7 +109,7 @@
     "@babel/preset-env": "^7.9.6",
     "@babel/preset-react": "^7.10.4",
     "@mdx-js/loader": "^1.6.18",
-    "@spinnaker/eslint-plugin": "1.0.8",
+    "@spinnaker/eslint-plugin": "1.0.10",
     "@spinnaker/mocks": "1.0.7",
     "@storybook/addon-console": "^1.2.2",
     "@storybook/addon-essentials": "^6.0.21",
