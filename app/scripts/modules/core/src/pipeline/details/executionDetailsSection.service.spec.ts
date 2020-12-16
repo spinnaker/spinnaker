@@ -56,7 +56,7 @@ describe('executionDetailsSectionService', function () {
       $stateParams.details = 'c';
 
       service.synchronizeSection(['a', 'b']);
-
+      $timeout.flush();
       expect($state.includes).toHaveBeenCalledWith('**.execution');
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
@@ -68,7 +68,7 @@ describe('executionDetailsSectionService', function () {
       $stateParams.details = undefined;
 
       service.synchronizeSection(['a', 'b']);
-
+      $timeout.flush();
       expect($state.includes).toHaveBeenCalledWith('**.execution');
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
