@@ -1,8 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-
-import { API } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER = 'spinnaker.canary.actions.override.result.controller';
@@ -21,7 +20,8 @@ module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).control
 
     this.endCanary = function () {
       $scope.state = 'submitting';
-      API.one('canaries', canaryId, 'end')
+      REST('/canaries')
+        .path(canaryId, 'end')
         .put($scope.command)
         .then(function onSuccess() {
           $scope.state = 'success';

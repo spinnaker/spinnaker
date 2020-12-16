@@ -1,8 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-
-import { API, SETTINGS } from '@spinnaker/core';
+import { REST } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER = 'spinnaker.canary.actions.generate.score.controller';
@@ -21,7 +20,8 @@ module(CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER, [UIROUTER_ANGULARJS]).con
 
     this.generateCanaryScore = function () {
       $scope.state = 'submitting';
-      API.one('canaries', canaryId, 'generateCanaryResult')
+      REST('/canaries')
+        .path(canaryId, 'generateCanaryResult')
         .post($scope.command)
         .then(function onSuccess() {
           $scope.state = 'success';
