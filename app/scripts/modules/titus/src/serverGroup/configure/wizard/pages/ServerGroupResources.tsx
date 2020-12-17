@@ -1,7 +1,7 @@
 import React from 'react';
 import Select, { Option } from 'react-select';
 
-import { HelpField, IWizardPageComponent } from '@spinnaker/core';
+import { HelpField, IWizardPageComponent, SpelNumberInput } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 import { FormikProps } from 'formik';
@@ -22,16 +22,16 @@ export class ServerGroupResources
   public validate(values: ITitusServerGroupCommand) {
     const errors = {} as any;
 
-    if (!values.resources || typeof values.resources.cpu === 'string') {
+    if (!values.resources) {
       errors.resources = 'CPU is required.';
     }
-    if (!values.resources || typeof values.resources.memory === 'string') {
+    if (!values.resources) {
       errors.resources = 'Memory is required.';
     }
-    if (!values.resources || typeof values.resources.disk === 'string') {
+    if (!values.resources) {
       errors.resources = 'Disk is required.';
     }
-    if (!values.resources || typeof values.resources.networkMbps === 'string') {
+    if (!values.resources) {
       errors.resources = 'Network is required.';
     }
 
@@ -46,15 +46,13 @@ export class ServerGroupResources
           <div className="col-md-3 sm-label-right">
             <b>CPU(s)</b>
           </div>
-          <div className="col-md-3">
-            <input
-              type="number"
-              className="form-control input-sm"
+          <div className="col-md-8">
+            <SpelNumberInput
               value={values.resources.cpu}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFieldValue('resources', {
                   ...values.resources,
-                  ...{ cpu: Number.parseInt(e.target.value, 10) || e.target.value },
+                  ...{ cpu: value },
                 })
               }
               required={true}
@@ -65,15 +63,13 @@ export class ServerGroupResources
           <div className="col-md-3 sm-label-right">
             <b>Memory (MB)</b>
           </div>
-          <div className="col-md-3">
-            <input
-              type="number"
-              className="form-control input-sm"
+          <div className="col-md-8">
+            <SpelNumberInput
               value={values.resources.memory}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFieldValue('resources', {
                   ...values.resources,
-                  ...{ memory: Number.parseInt(e.target.value, 10) || e.target.value },
+                  ...{ memory: value },
                 })
               }
               required={true}
@@ -84,15 +80,13 @@ export class ServerGroupResources
           <div className="col-md-3 sm-label-right">
             <b>Disk (MB)</b>
           </div>
-          <div className="col-md-3">
-            <input
-              type="number"
-              className="form-control input-sm"
+          <div className="col-md-8">
+            <SpelNumberInput
               value={values.resources.disk}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFieldValue('resources', {
                   ...values.resources,
-                  ...{ disk: Number.parseInt(e.target.value, 10) || e.target.value },
+                  ...{ disk: value },
                 })
               }
               required={true}
@@ -104,15 +98,13 @@ export class ServerGroupResources
             <b>Network (Mbps)</b>
             <HelpField id="titus.deploy.network" />
           </div>
-          <div className="col-md-3">
-            <input
-              type="number"
-              className="form-control input-sm"
+          <div className="col-md-8">
+            <SpelNumberInput
               value={values.resources.networkMbps}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFieldValue('resources', {
                   ...values.resources,
-                  ...{ networkMbps: Number.parseInt(e.target.value, 10) || e.target.value },
+                  ...{ networkMbps: value },
                 })
               }
               required={true}
@@ -124,15 +116,13 @@ export class ServerGroupResources
             <b>Gpu</b>
             <HelpField id="titus.deploy.gpu" />
           </div>
-          <div className="col-md-3">
-            <input
-              type="number"
-              className="form-control input-sm"
+          <div className="col-md-8">
+            <SpelNumberInput
               value={values.resources.gpu}
-              onChange={(e) =>
+              onChange={(value) =>
                 setFieldValue('resources', {
                   ...values.resources,
-                  ...{ gpu: Number.parseInt(e.target.value, 10) || e.target.value },
+                  ...{ gpu: value },
                 })
               }
             />
