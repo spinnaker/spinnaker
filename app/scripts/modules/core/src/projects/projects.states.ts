@@ -73,6 +73,7 @@ module(PROJECTS_STATES_CONFIG, [
         },
         history: {
           type: 'projects',
+          keyParams: ['project'],
         },
       },
       children: [dashboard],
