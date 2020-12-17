@@ -36,10 +36,10 @@ class PreferredPluginInfoReleaseSource : PluginInfoReleaseSource {
   private fun pluginInfoRelease(pluginInfo: SpinnakerPluginInfo): PluginInfoRelease? {
     val release = pluginInfo.getReleases().find { it.preferred }
     return if (release != null) {
-      log.info("Preferred release version '{}' for plugin '{}'", release.version, pluginInfo.id)
+      log.debug("Preferred release version '{}' for plugin '{}'", release.version, pluginInfo.id)
       PluginInfoRelease(pluginInfo.id, release)
     } else {
-      log.info("No preferred release version found for '{}'", pluginInfo.id)
+      log.debug("No preferred release version found for '{}'", pluginInfo.id)
       null
     }
   }

@@ -44,13 +44,13 @@ class LatestPluginInfoReleaseSource(
       updateManager.getLastPluginRelease(pluginInfo.id, serviceName)
 
     return if (latestRelease != null) {
-      log.info("Latest release version '{}' for plugin '{}'", latestRelease.version, pluginInfo.id)
+      log.debug("Latest release version '{}' for plugin '{}'", latestRelease.version, pluginInfo.id)
       PluginInfoRelease(
         pluginInfo.id,
         objectMapper.convertValue(latestRelease, SpinnakerPluginInfo.SpinnakerPluginRelease::class.java)
       )
     } else {
-      log.info("Latest release version not found for plugin '{}'", pluginInfo.id)
+      log.debug("Latest release version not found for plugin '{}'", pluginInfo.id)
       null
     }
   }
