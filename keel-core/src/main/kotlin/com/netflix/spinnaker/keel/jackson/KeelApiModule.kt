@@ -29,10 +29,11 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.SortingStrategy
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.jackson.mixins.ClusterDeployStrategyMixin
@@ -47,6 +48,7 @@ import com.netflix.spinnaker.keel.jackson.mixins.ResourceMixin
 import com.netflix.spinnaker.keel.jackson.mixins.ResourceSpecMixin
 import com.netflix.spinnaker.keel.jackson.mixins.StaggeredRegionMixin
 import com.netflix.spinnaker.keel.jackson.mixins.SubnetAwareRegionSpecMixin
+import com.netflix.spinnaker.keel.jackson.mixins.VerificationMixin
 
 fun ObjectMapper.registerKeelApiModule(): ObjectMapper = registerModule(KeelApiModule)
 
@@ -69,6 +71,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<Resource<*>, ResourceMixin>()
       setMixInAnnotations<ResourceSpec, ResourceSpecMixin>()
       setMixInAnnotations<Commit, CommitMixin>()
+      setMixInAnnotations<Verification, VerificationMixin>()
       insertAnnotationIntrospector(FactoryAnnotationIntrospector())
     }
   }
@@ -95,7 +98,8 @@ internal object KeelApiAnnotationIntrospector : NopAnnotationIntrospector() {
     Constraint::class.java,
     ConstraintStateAttributes::class.java,
     DeliveryArtifact::class.java,
-    SortingStrategy::class.java
+    SortingStrategy::class.java,
+    Verification::class.java
   )
 
   override fun findTypeResolver(config: MapperConfig<*>, ac: AnnotatedClass, baseType: JavaType): TypeResolverBuilder<*>? =

@@ -7,12 +7,14 @@ import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.api.support.register
@@ -20,9 +22,9 @@ import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
-import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 /**
  * Component that wraps up keel configuration once all other beans have been instantiated.
@@ -33,6 +35,7 @@ class KeelConfigurationFinalizer(
   private val resourceHandlers: List<ResourceHandler<*, *>> = emptyList(),
   private val specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
+  private val verificationEvaluators: List<VerificationEvaluator<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val objectMappers: List<ObjectMapper>,
@@ -67,6 +70,16 @@ class KeelConfigurationFinalizer(
       .forEach { constraintType ->
         log.info("Registering Constraint sub-type {}: {}", constraintType.name, constraintType.type.simpleName)
         extensionRegistry.register(constraintType.type, constraintType.name)
+      }
+  }
+
+  @PostConstruct
+  fun registerVerificationSubtypes() {
+    verificationEvaluators
+      .map { it.supportedVerification }
+      .forEach { (type, implementingClass) ->
+        log.info("Registering Verification sub-type {}: {}", type, implementingClass.simpleName)
+        extensionRegistry.register<Verification>(implementingClass, type)
       }
   }
 

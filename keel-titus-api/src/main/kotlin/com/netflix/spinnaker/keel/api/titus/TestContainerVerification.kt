@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.titus.verification
+package com.netflix.spinnaker.keel.api.titus
 
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
@@ -8,8 +8,8 @@ data class TestContainerVerification(
   val tag: String = "latest",
   val location: Location
 ) : Verification {
-  override val type: String = TYPE
-  override val id: String = "$repository/$tag"
+  override val type = TYPE
+  override val id = "$repository/$tag"
 
   companion object {
     const val TYPE = "test-container"
