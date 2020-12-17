@@ -13,6 +13,7 @@ import {
   FirewallLabels,
   MapEditor,
   AccountSelectInput,
+  SpelNumberInput,
 } from '@spinnaker/core';
 
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
@@ -220,50 +221,40 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
         />
 
         <StageConfigField label="CPU(s)">
-          <input
-            type="number"
-            className="form-control input-sm"
+          <SpelNumberInput
             value={stage.cluster.resources.cpu}
-            onChange={(e) => this.stageFieldChanged('cluster.resources.cpu', e.target.value)}
+            onChange={(value) => this.stageFieldChanged('cluster.resources.cpu', value)}
             required={true}
           />
         </StageConfigField>
 
         <StageConfigField label="Memory (MB)">
-          <input
-            type="number"
-            className="form-control input-sm"
-            onChange={(e) => this.stageFieldChanged('cluster.resources.memory', e.target.value)}
+          <SpelNumberInput
+            onChange={(value) => this.stageFieldChanged('cluster.resources.memory', value)}
             value={stage.cluster.resources.memory}
             required={true}
           />
         </StageConfigField>
 
         <StageConfigField label="Disk (MB)">
-          <input
-            type="number"
-            className="form-control input-sm"
-            onChange={(e) => this.stageFieldChanged('cluster.resources.disk', e.target.value)}
+          <SpelNumberInput
+            onChange={(value) => this.stageFieldChanged('cluster.resources.disk', value)}
             value={stage.cluster.resources.disk}
             required={true}
           />
         </StageConfigField>
 
         <StageConfigField label="Network (Mbps)" helpKey="titus.deploy.network">
-          <input
-            type="number"
-            className="form-control input-sm"
-            onChange={(e) => this.stageFieldChanged('cluster.resources.networkMbps', e.target.value)}
+          <SpelNumberInput
+            onChange={(value) => this.stageFieldChanged('cluster.resources.networkMbps', value)}
             value={stage.cluster.resources.networkMbps}
             required={true}
           />
         </StageConfigField>
 
         <StageConfigField label="GPU(s)" helpKey="titus.deploy.gpu">
-          <input
-            type="number"
-            className="form-control input-sm"
-            onChange={(e) => this.stageFieldChanged('cluster.resources.gpu', e.target.value)}
+          <SpelNumberInput
+            onChange={(value) => this.stageFieldChanged('cluster.resources.gpu', value)}
             value={stage.cluster.resources.gpu}
             required={true}
           />
@@ -279,23 +270,19 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
         </StageConfigField>
 
         <StageConfigField label="Runtime Limit (Seconds)" helpKey="titus.deploy.runtimeLimitSecs">
-          <input
-            type="number"
-            className="form-control input-sm"
+          <SpelNumberInput
             value={stage.cluster.runtimeLimitSecs}
-            onChange={(e) => this.stageFieldChanged('cluster.runtimeLimitSecs', e.target.value)}
-            min="1"
+            onChange={(value) => this.stageFieldChanged('cluster.runtimeLimitSecs', value)}
+            min={1}
             required={true}
           />
         </StageConfigField>
 
         <StageConfigField label="Retries" helpKey="titus.deploy.retries">
-          <input
-            type="number"
-            className="form-control input-sm"
-            onChange={(e) => this.stageFieldChanged('cluster.retries', e.target.value)}
+          <SpelNumberInput
+            onChange={(value) => this.stageFieldChanged('cluster.retries', value)}
             value={stage.cluster.retries}
-            min="0"
+            min={0}
             required={true}
           />
         </StageConfigField>
