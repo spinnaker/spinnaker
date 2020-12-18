@@ -52,9 +52,7 @@ import kotlin.reflect.KClass
 
 @SpringBootTest(
   properties = [
-    "keel.plugins.bakery.enabled=true",
-    "keel.plugins.ec2.enabled=true",
-    "keel.plugins.titus.enabled=true"
+    "keel.plugins.bakery.enabled=true"
   ],
   webEnvironment = NONE
 )
