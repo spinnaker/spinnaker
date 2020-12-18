@@ -101,6 +101,14 @@
   vertical-align: middle;
 }
 
+.migration-tag {
+  background-color: var(--color-warning);
+  border-radius: 8px;
+  color: var(--color-white);
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
 .execution-group-actions {
   background-color: var(--color-accent-g2);
   flex: 0 0 auto;
@@ -109,6 +117,9 @@
     @media (min-width: 1200px) {
       margin-left: 40px;
     }
+  }
+  &.in-migration {
+    background-color: var(--color-status-warning-light);
   }
 }
 
