@@ -14,7 +14,7 @@ databaseChangeLog:
         columns:
         - column:
             name: verifications
-            value: []
+            value: '[]'
     - addNotNullConstraint:
         tableName: environment
         columnName: verifications
