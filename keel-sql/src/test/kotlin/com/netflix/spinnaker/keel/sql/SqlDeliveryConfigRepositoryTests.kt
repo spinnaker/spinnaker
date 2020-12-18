@@ -10,9 +10,9 @@ import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import java.time.Clock
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import java.time.Clock
 
 internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlPausedRepository>() {
   private val testDatabase = initTestDatabase()
@@ -43,6 +43,7 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
     with(objectMapper) {
       registerSubtypes(NamedType(DependsOnConstraint::class.java, "depends-on"))
       registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
+      registerSubtypes(NamedType(DummyVerification::class.java, "verification"))
     }
   }
 

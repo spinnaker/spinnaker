@@ -41,8 +41,9 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   open fun VerificationContext.setupCurrentArtifactVersion() {}
   open fun VerificationContext.pauseApplication() {}
 
-  private data class DummyVerification(override val id: String) : Verification {
+  protected data class DummyVerification(val value: String) : Verification {
     override val type = "dummy"
+    override val id: String = "$type:$value"
   }
 
   @Test

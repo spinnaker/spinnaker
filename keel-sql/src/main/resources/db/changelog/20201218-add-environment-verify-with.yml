@@ -1,0 +1,21 @@
+databaseChangeLog:
+- changeSet:
+    id: add-environment-verify-with
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: environment
+        columns:
+        - column:
+            name: verifications
+            type: json
+    - update:
+        tableName: environment
+        columns:
+        - column:
+            name: verifications
+            value: []
+    - addNotNullConstraint:
+        tableName: environment
+        columnName: verifications
+        columnDataType: json

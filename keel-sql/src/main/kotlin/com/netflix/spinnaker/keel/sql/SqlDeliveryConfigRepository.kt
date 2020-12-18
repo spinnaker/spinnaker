@@ -276,6 +276,10 @@ class SqlDeliveryConfigRepository(
                 ENVIRONMENT.NOTIFICATIONS,
                 objectMapper.writeValueAsString(environment.notifications)
               )
+              .set(
+                ENVIRONMENT.VERIFICATIONS,
+                objectMapper.writeValueAsString(environment.verifyWith)
+              )
               .onDuplicateKeyUpdate()
               .set(
                 ENVIRONMENT.CONSTRAINTS,
@@ -284,6 +288,10 @@ class SqlDeliveryConfigRepository(
               .set(
                 ENVIRONMENT.NOTIFICATIONS,
                 objectMapper.writeValueAsString(environment.notifications)
+              )
+              .set(
+                ENVIRONMENT.VERIFICATIONS,
+                objectMapper.writeValueAsString(environment.verifyWith)
               )
               .execute()
           }
@@ -327,18 +335,20 @@ class SqlDeliveryConfigRepository(
           ENVIRONMENT.UID,
           ENVIRONMENT.NAME,
           ENVIRONMENT.CONSTRAINTS,
-          ENVIRONMENT.NOTIFICATIONS
+          ENVIRONMENT.NOTIFICATIONS,
+          ENVIRONMENT.VERIFICATIONS
         )
         .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
-        .fetchOne { (uid, name, constraintsJson, notificationsJson) ->
+        .fetchOne { (uid, name, constraintsJson, notificationsJson, verifyWithJson) ->
           Environment(
             name = name,
             resources = resourcesForEnvironment(uid),
             constraints = objectMapper.readValue(constraintsJson),
-            notifications = objectMapper.readValue(notificationsJson ?: "[]")
+            notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
+            verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptySet()
           )
         }
     } ?: throw OrphanedResourceException(resourceId)

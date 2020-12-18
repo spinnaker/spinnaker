@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
+import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import com.netflix.spinnaker.keel.persistence.VerificationRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -21,18 +23,24 @@ internal class SqlVerificationRepositoryTests :
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
   private val artifactSuppliers = listOf(DockerArtifactSupplier(mockk(), mockk(), mockk()))
 
+  private val mapper = configuredObjectMapper()
+    .registerKeelApiModule()
+    .apply {
+      registerSubtypes(NamedType(DummyVerification::class.java, "dummy"))
+    }
+
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq = jooq,
     clock = clock,
     resourceSpecIdentifier = ResourceSpecIdentifier(),
-    objectMapper = configuredObjectMapper(),
+    objectMapper = mapper,
     sqlRetry = sqlRetry,
     artifactSuppliers = artifactSuppliers
   )
   private val artifactRepository = SqlArtifactRepository(
     jooq = jooq,
     clock = clock,
-    objectMapper = configuredObjectMapper(),
+    objectMapper = mapper,
     sqlRetry = sqlRetry,
     artifactSuppliers = artifactSuppliers
   )
@@ -48,7 +56,7 @@ internal class SqlVerificationRepositoryTests :
       jooq = jooq,
       clock = clock,
       resourceSpecIdentifier = mockk(),
-      objectMapper = configuredObjectMapper(),
+      objectMapper = mapper,
       sqlRetry = sqlRetry,
       artifactSuppliers = artifactSuppliers
     )

@@ -215,3 +215,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201208-add-verification-state-metadata.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201218-add-environment-verify-with.yml
+      relativeToChangelogFile: true

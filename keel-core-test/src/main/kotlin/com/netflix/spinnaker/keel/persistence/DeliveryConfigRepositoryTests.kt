@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
 import com.netflix.spinnaker.keel.api.artifacts.BranchFilterSpec
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -50,6 +51,12 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
   open fun flush() {}
 
+  data class DummyVerification(
+    override val id: String = "whatever"
+  ) : Verification {
+    override val type = "verification"
+  }
+
   data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository>(
     val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> T,
     val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
@@ -75,7 +82,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     internal val artifactRepository: A = artifactRepositoryProvider()
     internal val clock = MutableClock()
 
-    val artifact: DebianArtifact =  DebianArtifact(
+    val artifact: DebianArtifact = DebianArtifact(
       name = "keel",
       deliveryConfigName = deliveryConfig.name,
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
@@ -229,6 +236,9 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                     environment = "test"
                   ),
                   ManualJudgementConstraint()
+                ),
+                verifyWith = setOf(
+                  DummyVerification()
                 ),
                 resources = setOf(
                   resource(kind = parseKind("ec2/cluster@v1")),
@@ -526,7 +536,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             .resources
             .filter { it.kind == parseKind("ec2/security-group@v1") }
             .toSet()
-          val newEnvironments= deliveryConfig
+          val newEnvironments = deliveryConfig
             .environments
             .map {
               it.copy(resources = it.resources - movedResources)
