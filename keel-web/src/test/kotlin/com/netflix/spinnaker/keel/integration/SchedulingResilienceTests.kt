@@ -10,7 +10,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.context.annotation.Bean
 import retrofit2.Retrofit
 import retrofit2.http.GET
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 //       the retrofit client without Spring
 @SpringBootTest(
   classes = [KeelApplication::class, TestConfiguration::class],
-  webEnvironment = MOCK
+  webEnvironment = NONE
 )
 internal class SchedulingResilienceTests
 @Autowired constructor(val service: DummyRetrofitService){

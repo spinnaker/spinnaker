@@ -5,11 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion.VersionFlag.V201909
@@ -18,14 +16,12 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.Assertion
 import strikt.api.expectThat
 
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
     "keel.plugins.bakery.enabled=true",
     "keel.plugins.ec2.enabled=true",
@@ -33,7 +29,6 @@ import strikt.api.expectThat
   ],
   webEnvironment = NONE
 )
-@AutoConfigureMockMvc
 class ApiDocCompatibilityTests
 @Autowired constructor(val generator: Generator) {
 

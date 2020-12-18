@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
@@ -21,7 +20,6 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.services.ApplicationService
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
@@ -45,10 +43,7 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 
-@SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
-  webEnvironment = MOCK
-)
+@SpringBootTest(webEnvironment = MOCK)
 @AutoConfigureMockMvc
 internal class ApplicationControllerTests
 @Autowired constructor(

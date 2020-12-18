@@ -1,18 +1,14 @@
 package com.netflix.spinnaker.keel.integration
 
-import com.netflix.spinnaker.keel.KeelApplication
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.context.ApplicationListener
 
-@SpringBootTest(
-  classes = [KeelApplication::class],
-  webEnvironment = MOCK
-)
+@SpringBootTest(webEnvironment = NONE)
 internal class SpringStartupTests {
 
   @MockkBean(relaxUnitFun = true)

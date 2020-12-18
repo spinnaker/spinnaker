@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ApplicationListener
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException
 
 @SpringBootTest(
   classes = [KeelApplication::class, ThreadCapturingEventListener::class],
-  webEnvironment = MOCK
+  webEnvironment = NONE
 )
 internal class ApplicationEventTests
 @Autowired constructor(

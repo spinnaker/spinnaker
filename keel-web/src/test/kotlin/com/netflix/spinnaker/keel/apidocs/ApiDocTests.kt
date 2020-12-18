@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.MissingNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -21,13 +20,11 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.Assertion
@@ -54,7 +51,6 @@ import strikt.jackson.textValues
 import kotlin.reflect.KClass
 
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
     "keel.plugins.bakery.enabled=true",
     "keel.plugins.ec2.enabled=true",
@@ -62,7 +58,6 @@ import kotlin.reflect.KClass
   ],
   webEnvironment = NONE
 )
-@AutoConfigureMockMvc
 class ApiDocTests
   @Autowired constructor(
     val generator: Generator,

@@ -1,11 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.services.AdminService
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -20,10 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
-  webEnvironment = MOCK
-)
+@SpringBootTest(webEnvironment = MOCK)
 @AutoConfigureMockMvc
 internal class AdminControllerTests
 @Autowired constructor(
