@@ -28,13 +28,13 @@ interface VerificationRepository {
   /**
    * Updates the state of [verification] as run against [context].
    *
-   * @param metadata `null` means "do not update the metadata".
+   * @param metadata if non-empty this will overwrite any existing metadata.
    */
   fun updateState(
     context: VerificationContext,
     verification: Verification,
     status: VerificationStatus,
-    metadata: Map<String, Any?>? = null
+    metadata: Map<String, Any?> = emptyMap()
   )
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<VerificationContext>

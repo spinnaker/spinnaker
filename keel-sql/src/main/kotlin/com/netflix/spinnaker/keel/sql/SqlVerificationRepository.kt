@@ -161,7 +161,7 @@ class SqlVerificationRepository(
     context: VerificationContext,
     verification: Verification,
     status: VerificationStatus,
-    metadata: Map<String, Any?>?
+    metadata: Map<String, Any?>
   ) {
     with(context) {
       jooq
@@ -175,6 +175,15 @@ class SqlVerificationRepository(
         .set(VERIFICATION_STATE.VERIFICATION_ID, verification.id)
         .onDuplicateKeyUpdate()
         .set(VERIFICATION_STATE.STATUS, status)
+        .run {
+          // we only want to overwrite metadata if new metadata was supplied
+          // TODO: figure out how to use MySQL's json_merge function in JOOQ
+          if (metadata.isNotEmpty()) {
+            set(VERIFICATION_STATE.METADATA, metadata)
+          } else {
+            this
+          }
+        }
         .set(status.timestampColumn, currentTimestamp())
         .execute()
     }

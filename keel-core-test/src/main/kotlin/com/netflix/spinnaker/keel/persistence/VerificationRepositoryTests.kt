@@ -130,6 +130,49 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   }
 
   @Test
+  fun `successive updates do not wipe out metadata`() {
+    val verification = DummyVerification("1")
+    val context = VerificationContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(
+            name = "fnord",
+            deliveryConfigName = "fnord-manifest",
+            reference = "fnord-docker"
+          )
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = setOf(verification)
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    context.setup()
+
+    subject.updateState(context, verification, RUNNING)
+    val metadata = mapOf("taskId" to ULID().nextULID())
+    subject.updateState(context, verification, RUNNING, metadata)
+    subject.updateState(context, verification, PASSED)
+
+    expectCatching {
+      subject.getState(context, verification)
+    }
+      .isSuccess()
+      .isNotNull()
+      .with(VerificationState::status) { isEqualTo(PASSED) }
+      .with(VerificationState::metadata) { isEqualTo(metadata) }
+  }
+
+  @Test
   fun `different verifications are isolated from one another`() {
     val verification1 = DummyVerification("1")
     val verification2 = DummyVerification("2")

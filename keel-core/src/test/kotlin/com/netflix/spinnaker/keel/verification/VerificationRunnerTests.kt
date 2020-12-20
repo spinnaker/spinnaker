@@ -170,11 +170,11 @@ internal class VerificationRunnerTests {
 
     subject.runVerificationsFor(context)
 
-    verify { repository.updateState(any(), DummyVerification("1"), status, null) }
+    verify { repository.updateState(any(), DummyVerification("1"), status) }
     verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
 
     verify { evaluator.start(context, DummyVerification("2")) }
-    verify { repository.updateState(any(), DummyVerification("2"), RUNNING, emptyMap()) }
+    verify { repository.updateState(any(), DummyVerification("2"), RUNNING) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
