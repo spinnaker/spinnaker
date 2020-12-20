@@ -218,3 +218,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201218-add-environment-verify-with.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201219-add-artifact-unique-index.yml
+      relativeToChangelogFile: true

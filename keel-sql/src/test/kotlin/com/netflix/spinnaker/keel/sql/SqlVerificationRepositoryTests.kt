@@ -62,7 +62,7 @@ internal class SqlVerificationRepositoryTests :
     )
 
   override fun VerificationContext.setup() {
-    artifactRepository.register(artifact)
+    deliveryConfig.artifacts.forEach(artifactRepository::register)
     deliveryConfigRepository.store(deliveryConfig)
     artifactRepository.storeArtifactVersion(
       PublishedArtifact(

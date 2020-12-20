@@ -58,7 +58,12 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
           DockerArtifact(
             name = "fnord",
             deliveryConfigName = "fnord-manifest",
-            reference = "fnord-docker"
+            reference = "fnord-docker-stable"
+          ),
+          DockerArtifact(
+            name = "fnord",
+            deliveryConfigName = "fnord-manifest",
+            reference = "fnord-docker-unstable"
           )
         ),
         environments = setOf(
@@ -69,7 +74,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         )
       ),
       environmentName = "test",
-      artifactReference = "fnord-docker",
+      artifactReference = "fnord-docker-stable",
       version = "fnord-0.190.0-h378.eacb135"
     )
 
