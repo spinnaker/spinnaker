@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerCluster;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroup;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
 import com.netflix.spinnaker.clouddriver.ecs.model.TaskDefinition;
+import com.netflix.spinnaker.clouddriver.ecs.names.MonikerHelper;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
@@ -533,8 +534,9 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
     try {
       AmazonCredentials credentials = getEcsCredentials(account);
-      // Can't filter by application as there's not enough information in the serverGroupName
-      clusterMap = findClusters(clusterMap, credentials);
+      Moniker moniker = MonikerHelper.applicationNameToMoniker(serverGroupName);
+      log.debug("App Name is: " + moniker.getApp());
+      clusterMap = findClusters(clusterMap, credentials, moniker.getApp());
     } catch (NoSuchElementException exception) {
       /* This is ugly, but not sure how else to do it. If we don't have creds due
        *  to not being an ECS account, there's nothing to do here, and we should
