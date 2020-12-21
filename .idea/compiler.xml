@@ -3,6 +3,70 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.12/48e4e5d60309ebd833bc528dcf77668eab3cd72c/lombok-1.18.12.jar" />
+        </processorPath>
+        <module name="kayenta.kayenta-standalone-canary-analysis.test" />
+        <module name="kayenta.kayenta-atlas.test" />
+        <module name="kayenta.kayenta-graphite.test" />
+        <module name="kayenta.kayenta-prometheus.test" />
+        <module name="kayenta.kayenta-signalfx.test" />
+        <module name="kayenta.kayenta-integration-tests.test" />
+        <module name="kayenta.kayenta-influxdb.test" />
+        <module name="kayenta.kayenta-objectstore-configbin.test" />
+        <module name="kayenta.kayenta-newrelic-insights.test" />
+        <module name="kayenta.kayenta-signalfx.integrationTest" />
+        <module name="kayenta.kayenta-blobs.test" />
+        <module name="kayenta.kayenta-datadog.test" />
+        <module name="kayenta.kayenta-aws.test" />
+        <module name="kayenta.kayenta-azure.test" />
+        <module name="kayenta.kayenta-web.test" />
+        <module name="kayenta.kayenta-s3.test" />
+        <module name="kayenta.kayenta-core.test" />
+        <module name="kayenta.kayenta-stackdriver.test" />
+        <module name="kayenta.kayenta-gcs.test" />
+        <module name="kayenta.kayenta-google.test" />
+        <module name="kayenta.kayenta-mannwhitney.test" />
+        <module name="kayenta.kayenta-orca.test" />
+        <module name="kayenta.kayenta-objectstore-memory.test" />
+        <module name="kayenta.kayenta-graphite.integrationTest" />
+        <module name="kayenta.kayenta-judge.test" />
+        <module name="kayenta.kayenta-wavefront.test" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.12/48e4e5d60309ebd833bc528dcf77668eab3cd72c/lombok-1.18.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.2.5.RELEASE/3426cb36706915047406da672b7ee9628f5f47d6/spring-boot-configuration-processor-2.2.5.RELEASE.jar" />
+        </processorPath>
+        <module name="kayenta.kayenta-azure.main" />
+        <module name="kayenta.kayenta-wavefront.main" />
+        <module name="kayenta.kayenta-core.main" />
+        <module name="kayenta.kayenta-newrelic-insights.main" />
+        <module name="kayenta.kayenta-objectstore-memory.main" />
+        <module name="kayenta.kayenta-web.main" />
+        <module name="kayenta.kayenta-mannwhitney.main" />
+        <module name="kayenta.kayenta-objectstore-configbin.main" />
+        <module name="kayenta.kayenta-google.main" />
+        <module name="kayenta.kayenta-gcs.main" />
+        <module name="kayenta.kayenta-s3.main" />
+        <module name="kayenta.kayenta-integration-tests.main" />
+        <module name="kayenta.kayenta-judge.main" />
+        <module name="kayenta.kayenta-influxdb.main" />
+        <module name="kayenta.kayenta-blobs.main" />
+        <module name="kayenta.kayenta-signalfx.main" />
+        <module name="kayenta.kayenta-prometheus.main" />
+        <module name="kayenta.kayenta-datadog.main" />
+        <module name="kayenta.kayenta-graphite.main" />
+        <module name="kayenta.kayenta-stackdriver.main" />
+        <module name="kayenta.kayenta-standalone-canary-analysis.main" />
+        <module name="kayenta.kayenta-atlas.main" />
+        <module name="kayenta.kayenta-aws.main" />
+        <module name="kayenta.kayenta-orca.main" />
+      </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="11" />
   </component>
 </project>

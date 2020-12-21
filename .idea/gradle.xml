@@ -5,7 +5,36 @@
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="useAutoImport" value="true" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/kayenta-atlas" />
+            <option value="$PROJECT_DIR$/kayenta-aws" />
+            <option value="$PROJECT_DIR$/kayenta-azure" />
+            <option value="$PROJECT_DIR$/kayenta-blobs" />
+            <option value="$PROJECT_DIR$/kayenta-bom" />
+            <option value="$PROJECT_DIR$/kayenta-core" />
+            <option value="$PROJECT_DIR$/kayenta-datadog" />
+            <option value="$PROJECT_DIR$/kayenta-gcs" />
+            <option value="$PROJECT_DIR$/kayenta-google" />
+            <option value="$PROJECT_DIR$/kayenta-graphite" />
+            <option value="$PROJECT_DIR$/kayenta-influxdb" />
+            <option value="$PROJECT_DIR$/kayenta-integration-tests" />
+            <option value="$PROJECT_DIR$/kayenta-judge" />
+            <option value="$PROJECT_DIR$/kayenta-mannwhitney" />
+            <option value="$PROJECT_DIR$/kayenta-newrelic-insights" />
+            <option value="$PROJECT_DIR$/kayenta-objectstore-configbin" />
+            <option value="$PROJECT_DIR$/kayenta-objectstore-memory" />
+            <option value="$PROJECT_DIR$/kayenta-orca" />
+            <option value="$PROJECT_DIR$/kayenta-prometheus" />
+            <option value="$PROJECT_DIR$/kayenta-s3" />
+            <option value="$PROJECT_DIR$/kayenta-signalfx" />
+            <option value="$PROJECT_DIR$/kayenta-stackdriver" />
+            <option value="$PROJECT_DIR$/kayenta-standalone-canary-analysis" />
+            <option value="$PROJECT_DIR$/kayenta-wavefront" />
+            <option value="$PROJECT_DIR$/kayenta-web" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>

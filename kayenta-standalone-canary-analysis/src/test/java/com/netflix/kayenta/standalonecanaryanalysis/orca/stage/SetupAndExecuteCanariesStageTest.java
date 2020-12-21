@@ -206,4 +206,27 @@ public class SetupAndExecuteCanariesStageTest {
     assertEquals(Instant.parse(startIso), actual.getStart());
     assertEquals(Instant.parse(startIso).plus(3L, ChronoUnit.MINUTES), actual.getEnd());
   }
+
+  @Test
+  public void
+      test_that_buildRequestScopes_has_expected_start_and_end_when_control_offset_is_supplied() {
+    int interval = 1;
+    String startIso = "2018-12-17T20:56:39.689Z";
+    Duration lifetimeDuration = Duration.ofMinutes(3L);
+    CanaryAnalysisExecutionRequest request =
+        CanaryAnalysisExecutionRequest.builder()
+            .scopes(
+                ImmutableList.of(
+                    CanaryAnalysisExecutionRequestScope.builder()
+                        .controlOffsetInMinutes(5L)
+                        .startTimeIso(startIso)
+                        .build()))
+            .build();
+
+    var requestScopes = stage.buildRequestScopes(request, interval, lifetimeDuration);
+    var defaultScope = requestScopes.get("default");
+    var expectedControlStartIso = "2018-12-17T20:51:39.689Z";
+    assertEquals(Instant.parse(startIso), defaultScope.getExperimentScope().getStart());
+    assertEquals(Instant.parse(expectedControlStartIso), defaultScope.getControlScope().getStart());
+  }
 }
