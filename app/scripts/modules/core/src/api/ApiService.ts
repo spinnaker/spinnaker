@@ -249,7 +249,7 @@ export function makeRequestBuilderConfig(pathPrefix?: string): IRequestBuilderCo
     cache: false,
     data: undefined,
     params: {},
-    timeout: (SETTINGS.pollSchedule || 3000) * 2 + 5000,
+    timeout: (SETTINGS.pollSchedule || 30000) * 2 + 5000,
     headers: { 'X-RateLimit-App': 'deck' },
   };
 }
