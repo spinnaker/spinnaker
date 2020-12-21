@@ -54,7 +54,7 @@
                 <select
                   class="form-control input-sm"
                   ng-model="rule.type"
-                  ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"
+                  ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp', 'icmpv6']"
                   ng-change="ctrl.updateRuleType(rule.type, securityGroup.securityGroupIngress, $index)"
                   required
                 ></select>
