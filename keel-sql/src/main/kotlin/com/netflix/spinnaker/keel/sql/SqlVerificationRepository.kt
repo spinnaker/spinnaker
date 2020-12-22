@@ -54,6 +54,7 @@ class SqlVerificationRepository(
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck)
     return sqlRetry.withRetry(WRITE) {
+      // TODO: only consider environments that have verifications
       jooq.inTransaction {
         select(
           DELIVERY_CONFIG.UID,
@@ -100,19 +101,20 @@ class SqlVerificationRepository(
               .set(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION, artifactVersion)
               .set(ENVIRONMENT_LAST_VERIFIED.AT, now)
               .onDuplicateKeyUpdate()
+              .set(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION, artifactVersion)
               .set(ENVIRONMENT_LAST_VERIFIED.AT, now)
               .execute()
           }
-          .map { (_, deliveryConfigName, _, environmentName, _, artifactReference, artifactVersion) ->
-            VerificationContext(
-              deliveryConfigByName(deliveryConfigName),
-              environmentName,
-              artifactReference,
-              artifactVersion
-            )
-          }
       }
     }
+      .map { (_, deliveryConfigName, _, environmentName, _, artifactReference, artifactVersion) ->
+        VerificationContext(
+          deliveryConfigByName(deliveryConfigName),
+          environmentName,
+          artifactReference,
+          artifactVersion
+        )
+      }
   }
 
   override fun getState(

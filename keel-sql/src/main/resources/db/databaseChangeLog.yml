@@ -224,3 +224,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201220-fix-verification-state-columns.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20201221-shorten-environment-last-verified-pk.yml
+      relativeToChangelogFile: true
