@@ -170,13 +170,27 @@ class SqlVerificationRepository(
         .insertInto(VERIFICATION_STATE)
         .set(VERIFICATION_STATE.STATUS, status)
         .set(VERIFICATION_STATE.METADATA, metadata)
-        .set(status.timestampColumn, currentTimestamp())
+        .set(VERIFICATION_STATE.STARTED_AT, currentTimestamp())
+        .run {
+          if (status.complete) {
+            set(VERIFICATION_STATE.ENDED_AT, currentTimestamp())
+          } else {
+            setNull(VERIFICATION_STATE.ENDED_AT)
+          }
+        }
         .set(VERIFICATION_STATE.ENVIRONMENT_UID, environmentUid)
         .set(VERIFICATION_STATE.ARTIFACT_UID, artifactUid)
         .set(VERIFICATION_STATE.ARTIFACT_VERSION, version)
         .set(VERIFICATION_STATE.VERIFICATION_ID, verification.id)
         .onDuplicateKeyUpdate()
         .set(VERIFICATION_STATE.STATUS, status)
+        .run {
+          if (status.complete) {
+            set(VERIFICATION_STATE.ENDED_AT, currentTimestamp())
+          } else {
+            setNull(VERIFICATION_STATE.ENDED_AT)
+          }
+        }
         .run {
           // we only want to overwrite metadata if new metadata was supplied
           // TODO: figure out how to use MySQL's json_merge function in JOOQ
@@ -186,15 +200,11 @@ class SqlVerificationRepository(
             this
           }
         }
-        .set(status.timestampColumn, currentTimestamp())
         .execute()
     }
   }
 
   private fun currentTimestamp() = clock.instant()
-
-  private val VerificationStatus.timestampColumn
-    get() = if (complete) VERIFICATION_STATE.ENDED_AT else VERIFICATION_STATE.STARTED_AT
 
   private val VerificationContext.environmentUid: Select<Record1<String>>
     get() = select(ENVIRONMENT.UID)
