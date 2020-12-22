@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
-import spock.lang.Ignore
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
+import retrofit.mime.TypedInput
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -27,12 +30,29 @@ import java.util.concurrent.TimeUnit
  * with an exception indicating a network or HTTP error, or will fail to load data
  * from dockerhub.
  */
-@Ignore
 class DockerRegistryClientSpec extends Specification {
   private static final REPOSITORY1 = "library/ubuntu"
 
   @Shared
   DockerRegistryClient client
+  def dockerBearerTokenService = Mock(DockerBearerTokenService)
+
+  def stubbedRegistryService = Stub(DockerRegistryClient.DockerRegistryService){
+    String tagsJson = "{\"name\":\"library/ubuntu\",\"tags\":[\"latest\",\"xenial\",\"rolling\"]}"
+    TypedInput tagsTypedInput = new TypedByteArray("application/json", tagsJson.getBytes())
+    Response tagsResponse = new Response("/v2/{repository}/tags/list",200, "nothing", Collections.EMPTY_LIST, tagsTypedInput)
+    getTags(_,_,_) >> tagsResponse
+
+    String checkJson = "{}"
+    TypedInput checkTypedInput = new TypedByteArray("application/json", checkJson.getBytes())
+    Response checkResponse = new Response("/v2/",200, "nothing", Collections.EMPTY_LIST, checkTypedInput)
+    checkVersion(_,_) >> checkResponse
+
+    String json = "{\"repositories\":[\"armory-io/armorycommons\",\"armory/aquascan\",\"other/keel\"]}"
+    TypedInput catalogTypedInput = new TypedByteArray("application/json", json.getBytes())
+    Response catalogResponse = new Response("/v2/_catalog/",200, "nothing", Collections.EMPTY_LIST, catalogTypedInput)
+    getCatalog(_,_,_) >> catalogResponse
+  }
 
   def setupSpec() {
 
@@ -40,44 +60,56 @@ class DockerRegistryClientSpec extends Specification {
 
   void "DockerRegistryClient should request a real set of tags."() {
     when:
-      client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100, "", false)
-      DockerRegistryTags result = client.getTags(REPOSITORY1)
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    def result = client.getTags(REPOSITORY1)
 
     then:
-      result.name == REPOSITORY1
-      result.tags.size() > 0
+    result.name == REPOSITORY1
+    result.tags.size() > 0
   }
 
   void "DockerRegistryClient should validate that it is pointing at a v2 endpoint."() {
     when:
-      client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100, "", false)
-      // Can only fail due to an exception thrown here.
-      client.checkV2Availability()
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    // Can only fail due to an exception thrown here.
+    client.checkV2Availability()
 
     then:
-      true
+    true
   }
 
   void "DockerRegistryClient invoked with insecureRegistry=true"() {
     when:
-      client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100, "", true)
-      DockerRegistryTags result = client.getTags(REPOSITORY1)
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    DockerRegistryTags result = client.getTags(REPOSITORY1)
 
     then:
-      result.name == REPOSITORY1
-      result.tags.size() > 0
+    result.name == REPOSITORY1
+    result.tags.size() > 0
   }
 
   void "DockerRegistryClient uses correct user agent"() {
-    when:
-    client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100, "", true)
-    client.registryService = Mock(DockerRegistryClient.DockerRegistryService)
+    def mockService  = Mock(DockerRegistryClient.DockerRegistryService);
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",mockService, dockerBearerTokenService)
 
+    when:
+    client.checkV2Availability()
     def userAgent = client.userAgent
-    client.getTags(REPOSITORY1)
 
     then:
     userAgent.startsWith("Spinnaker")
-    1 * client.registryService.getTags(_, _, userAgent)
+    1 * mockService.checkVersion(_,_)
   }
+
+  void "DockerRegistryClient should filter repositories by regular expression."() {
+    when:
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    def original = client.getCatalog().repositories.size()
+    client = new DockerRegistryClient("https://index.docker.io",100,"","armory\\/.*",stubbedRegistryService, dockerBearerTokenService)
+    def filtered = client.getCatalog().repositories.size()
+
+    then:
+    filtered < original
+  }
+
 }

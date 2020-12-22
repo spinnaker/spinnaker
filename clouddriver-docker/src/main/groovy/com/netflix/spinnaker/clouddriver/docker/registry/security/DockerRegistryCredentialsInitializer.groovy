@@ -51,7 +51,7 @@ class DockerRegistryCredentialsInitializer {
     AccountCredentialsRepository accountCredentialsRepository,
     CatsModule catsModule,
     DockerOkClientProvider dockerOkClientProvider) {
-    
+
     def (ArrayList<DockerRegistryConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
     ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, DockerRegistryNamedAccountCredentials,
       dockerRegistryConfigurationProperties.accounts)
@@ -69,6 +69,7 @@ class DockerRegistryCredentialsInitializer {
           .email(managedAccount.email)
           .passwordFile(managedAccount.passwordFile)
           .catalogFile(managedAccount.catalogFile)
+          .repositoriesRegex(managedAccount.repositoriesRegex)
           .dockerconfigFile(managedAccount.dockerconfigFile)
           .cacheThreads(managedAccount.cacheThreads)
           .cacheIntervalSeconds(managedAccount.cacheIntervalSeconds)
