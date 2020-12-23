@@ -66,7 +66,7 @@ class TestContainerVerificationEvaluator(
         taskLauncher.submitJob(
           type = VERIFICATION,
           subject = "container integration test for ${context.deliveryConfig.application}.${context.environmentName}",
-          description = "Verifying environment ${context.environmentName} with test container ${verification.repository}/${verification.tag}",
+          description = "Verifying ${context.version} in environment ${context.environmentName} with test container ${verification.repository}/${verification.tag}",
           correlationId = "${supportedVerification.first}:${context.deliveryConfig.application}.${context.environmentName}",
           user = context.deliveryConfig.serviceAccount,
           application = context.deliveryConfig.application,
