@@ -25,7 +25,9 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.pipeline.expressions.functions.ArtifactExpressionFunctionProvider.triggerResolvedArtifact
 import static com.netflix.spinnaker.orca.pipeline.expressions.functions.ArtifactExpressionFunctionProvider.triggerResolvedArtifactByType
+import static com.netflix.spinnaker.orca.pipeline.expressions.functions.ArtifactExpressionFunctionProvider.resolvedArtifacts
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 
 class ArtifactExpressionFunctionProviderSpec extends Specification {
@@ -38,6 +40,34 @@ class ArtifactExpressionFunctionProviderSpec extends Specification {
     trigger.resolvedExpectedArtifacts = [
       ExpectedArtifact.builder().matchArtifact(matchArtifact1).boundArtifact(boundArtifact).build()
     ]
+
+    stage {
+      id = "1"
+      refId = "1"
+      name = "Stage 1"
+      outputs = [artifacts: [Artifact.builder().type("type1").name("name1").reference("ref1").build()] ]
+    }
+
+    stage {
+      id = "2"
+      refId = "2"
+      name = "Stage 2"
+      outputs = [artifacts: [Artifact.builder().type("type2").name("name2").reference("ref2").build()] ]
+    }
+
+    stage {
+      id = "3"
+      refId = "3"
+      name = "Stage 3"
+      outputs = [artifacts: [Artifact.builder().type("type3").name("name3").reference("ref3").build()] ]
+    }
+
+    stage {
+      id = "4"
+      refId = "4"
+      name = "Stage 4"
+      outputs = [artifacts: [Artifact.builder().type("type4").name("name4").reference("ref4").build()] ]
+    }
   }
 
   def "triggerResolvedArtifact returns resolved trigger artifact by name"() {
@@ -73,5 +103,15 @@ class ArtifactExpressionFunctionProviderSpec extends Specification {
 
     then:
     thrown(SpelHelperFunctionException)
+  }
+
+  def "resolvedArtifacts returns artifacts in execution"() {
+    when:
+    def artifacts = resolvedArtifacts(pipeline1)
+
+    then:
+    artifacts.collect { it.name } == [ "name1", "name2", "name3", "name4" ]
+    artifacts.collect { it.type } == [ "type1", "type2", "type3", "type4" ]
+    artifacts.collect { it.reference } == [ "ref1", "ref2", "ref3", "ref4" ]
   }
 }
