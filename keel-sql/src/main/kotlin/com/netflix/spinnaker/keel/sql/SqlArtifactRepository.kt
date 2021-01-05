@@ -51,7 +51,6 @@ import org.jooq.SelectConditionStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
-import org.jooq.kotlin.*
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest

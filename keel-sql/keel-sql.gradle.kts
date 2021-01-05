@@ -35,7 +35,6 @@ dependencies {
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
   implementation("org.jooq:jooq")
-  implementation("org.jooq:jooq-kotlin")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
   implementation("com.netflix.spinnaker.kork:kork-sql")
@@ -122,7 +121,7 @@ afterEvaluate {
 }
 
 jooq {
-  version.set("3.14.4")
+  version.set("3.13.2")
 }
 
 liquibase {
