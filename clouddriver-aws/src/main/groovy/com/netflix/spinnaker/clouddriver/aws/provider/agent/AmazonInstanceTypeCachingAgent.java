@@ -84,7 +84,11 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
       HttpClient httpClient) {
     this.region = region;
     this.credentialsRepository = credentialsRepository;
-    pricingHost = HttpHost.create("https://pricing.us-east-1.amazonaws.com");
+    if (region.startsWith("cn-")) {
+      pricingHost = HttpHost.create("https://pricing.cn-north-1.amazonaws.com.cn");
+    } else {
+      pricingHost = HttpHost.create("https://pricing.us-east-1.amazonaws.com");
+    }
     pricingUri = URI.create("/offers/v1.0/aws/AmazonEC2/current/" + region + "/index.json");
     this.httpClient = httpClient;
   }
