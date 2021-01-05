@@ -32,7 +32,6 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.jooq.CloseableDSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
