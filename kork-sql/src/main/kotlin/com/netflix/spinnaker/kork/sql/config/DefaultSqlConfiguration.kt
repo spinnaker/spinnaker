@@ -27,10 +27,8 @@ import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger
 import java.sql.Connection
 import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
-import org.jooq.CloseableDSLContext
 import org.jooq.DSLContext
 import org.jooq.impl.DataSourceConnectionProvider
-import org.jooq.impl.DefaultCloseableDSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
 import org.jooq.impl.DefaultExecuteListenerProvider
@@ -177,12 +175,8 @@ class DefaultSqlConfiguration {
   @Suppress("UndocumentedPublicFunction")
   @Bean(destroyMethod = "close")
   @ConditionalOnMissingBean(DSLContext::class)
-  fun jooq(jooqConfiguration: DefaultConfiguration): CloseableDSLContext =
-    DefaultCloseableDSLContext(
-      jooqConfiguration.connectionProvider(),
-      jooqConfiguration.dialect(),
-      jooqConfiguration.settings()
-    )
+  fun jooq(jooqConfiguration: DefaultConfiguration): DSLContext =
+    DefaultDSLContext(jooqConfiguration)
 
   @Suppress("UndocumentedPublicFunction")
   @Bean(destroyMethod = "close")
@@ -190,7 +184,7 @@ class DefaultSqlConfiguration {
   fun secondaryJooq(
     connectionProvider: DataSourceConnectionProvider,
     sqlProperties: SqlProperties
-  ): CloseableDSLContext {
+  ): DSLContext {
     val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools
       .filter { !it.value.default }
       .values
@@ -206,11 +200,7 @@ class DefaultSqlConfiguration {
       set(connectionProvider)
       setSQLDialect(secondaryPool.dialect)
     }
-    return DefaultCloseableDSLContext(
-      secondaryJooqConfig.connectionProvider(),
-      secondaryJooqConfig.dialect(),
-      secondaryJooqConfig.settings()
-    )
+    return DefaultDSLContext(secondaryJooqConfig)
   }
 
   @Suppress("UndocumentedPublicFunction")
