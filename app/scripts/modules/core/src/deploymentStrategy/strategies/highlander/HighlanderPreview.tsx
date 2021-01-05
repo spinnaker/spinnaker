@@ -8,6 +8,11 @@ import { HealthCounts } from 'core/healthCounts';
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 
 export function HighlanderPreview(props: IDeploymentStrategyAdditionalFieldsProps) {
+  const isPipeline = props.command.viewState.mode === 'editPipeline';
+  return isPipeline ? null : <HighlanderPreviewCmp {...props} />;
+}
+
+export function HighlanderPreviewCmp(props: IDeploymentStrategyAdditionalFieldsProps) {
   const { credentials, region, application, stack, freeFormDetails } = props.command;
   const cluster = NameUtils.getClusterName(application, stack, freeFormDetails);
   const fetchit = useData(() => REST('/applications').path(application, 'serverGroups').get<IServerGroup[]>(), [], []);
