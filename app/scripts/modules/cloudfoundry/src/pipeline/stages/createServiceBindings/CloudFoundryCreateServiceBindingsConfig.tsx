@@ -6,7 +6,7 @@ import { IStage, FormValidator, FormikStageConfig, IStageConfigProps } from '@sp
 
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
 
-interface ServiceBindingRequests {
+export interface ServiceBindingRequests {
   serviceInstanceName: String;
 }
 
@@ -61,5 +61,8 @@ export function validateCloudFoundryCreateServiceBindingsStage(stage: IStage): F
 }
 
 export function validateServiceBindingRequests(serviceBindingRequests: ServiceBindingRequests[]): boolean {
-  return serviceBindingRequests.every((req) => req.serviceInstanceName);
+  if (serviceBindingRequests?.length < 1) {
+    return false;
+  }
+  return serviceBindingRequests.every((req) => req?.serviceInstanceName);
 }
