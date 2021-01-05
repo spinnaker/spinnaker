@@ -21,6 +21,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation(project(":keel-test"))
   testImplementation("io.strikt:strikt-jackson")
+  testImplementation("io.strikt:strikt-mockk")
   testImplementation("dev.minutest:minutest")
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   testImplementation("org.funktionale:funktionale-partials")

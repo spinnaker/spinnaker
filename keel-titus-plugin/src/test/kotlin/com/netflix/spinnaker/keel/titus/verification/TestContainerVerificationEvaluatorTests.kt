@@ -16,15 +16,21 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.titus.batch.RUN_JOB_TYPE
 import de.huxhorn.sulky.ulid.ULID
+import io.mockk.CapturingSlot
 import io.mockk.mockk
+import io.mockk.slot
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.first
 import strikt.assertions.get
+import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
+import strikt.mockk.withCaptured
 import java.time.Instant.now
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
@@ -46,27 +52,15 @@ internal class TestContainerVerificationEvaluatorTests {
     location = Location(
       account = "titustestvpc",
       region = "ap-south-1"
-    )
+    ),
+    application = "fnord-test-app"
   )
 
   @Test
   fun `starting verification launches a container job via task launcher`() {
-    val taskId = ULID().nextULID()
+    val taskId = stubTaskLaunch()
 
-    every {
-      taskLauncher.submitJob(
-        type = any(),
-        user = any(),
-        application = any(),
-        notifications = any(),
-        subject = any(),
-        description = any(),
-        correlationId = any(),
-        stages = any()
-      )
-    } answers { Task(id = taskId, name = arg(3)) }
-
-    expectCatching {subject.start(context, verification)}
+    expectCatching { subject.start(context, verification) }
       .isSuccess()
       .get(TASK_ID) isEqualTo taskId
 
@@ -83,6 +77,34 @@ internal class TestContainerVerificationEvaluatorTests {
           it.first()["type"] == RUN_JOB_TYPE
         }
       )
+    }
+  }
+
+  @Test
+  fun `container job runs with verification's application`() {
+    val job = captureTaskLaunch()
+
+    subject.start(context, verification)
+
+    expectThat(job).withCaptured {
+      hasSize(1)
+        .first()
+        .get("cluster").isA<Map<String, Any?>>()
+        .get("application") isEqualTo verification.application
+    }
+  }
+
+  @Test
+  fun `if no application is specified container job runs with delivery config's application`() {
+    val job = captureTaskLaunch()
+
+    subject.start(context, verification.copy(application = null))
+
+    expectThat(job).withCaptured {
+      hasSize(1)
+        .first()
+        .get("cluster").isA<Map<String, Any?>>()
+        .get("application") isEqualTo context.deliveryConfig.application
     }
   }
 
@@ -157,6 +179,41 @@ internal class TestContainerVerificationEvaluatorTests {
 
     expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo FAILED
   }
+
+  private fun stubTaskLaunch(): String =
+    ULID()
+      .nextULID()
+      .also { taskId ->
+        every {
+          taskLauncher.submitJob(
+            type = any(),
+            user = any(),
+            application = any(),
+            notifications = any(),
+            subject = any(),
+            description = any(),
+            correlationId = any(),
+            stages = any()
+          )
+        } answers { Task(id = taskId, name = arg(3)) }
+      }
+
+  private fun captureTaskLaunch(): CapturingSlot<List<Map<String, Any?>>> =
+    slot<List<Map<String, Any?>>>()
+      .also { slot ->
+        every {
+          taskLauncher.submitJob(
+            type = any(),
+            user = any(),
+            application = any(),
+            notifications = any(),
+            subject = any(),
+            description = any(),
+            correlationId = any(),
+            stages = capture(slot)
+          )
+        } answers { Task(id = ULID().nextULID(), name = arg(3)) }
+      }
 
   private fun runningState(taskId: String?) =
     VerificationState(

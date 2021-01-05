@@ -25,7 +25,6 @@ data class ContainerJobConfig(
     networkMbps = 1024
   ),
   val capacity: Capacity = Capacity(min = 1, max = 1, desired = 1),
-  val serviceAccount: String,
   val credentials: String,
   val entrypoint: String = "",
   val runtimeLimit: Duration = Duration.ofSeconds(2700),
