@@ -50,6 +50,7 @@ import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage
 import './pipeline/stages/unshareService/cloudfoundryUnshareServiceStage.module';
 import './pipeline/stages/runJob/cloudfoundryRunJob.module';
 import './pipeline/stages/bakeCloudFoundryManifest/bakeCloudFoundryManifestStage';
+import './pipeline/stages/createServiceBindings/cloudFoundryCreateServiceBindingsStage';
 
 CloudProviderRegistry.registerProvider('cloudfoundry', {
   name: 'Cloud Foundry',
