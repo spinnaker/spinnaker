@@ -30,9 +30,6 @@ public interface ServiceInstanceService {
   Page<UserProvidedServiceInstance> allUserProvided(
       @Query("page") Integer page, @Query("q") List<String> queryParam);
 
-  @POST("/v2/service_bindings?accepts_incomplete=true")
-  Resource<ServiceBinding> createServiceBinding(@Body CreateServiceBinding body);
-
   @GET("/v2/services")
   Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);
 
@@ -68,6 +65,9 @@ public interface ServiceInstanceService {
       @Path("guid") String userProvidedServiceInstanceGuid,
       @Body CreateUserProvidedServiceInstance body);
 
+  @POST("/v2/service_bindings?accepts_incomplete=true")
+  Resource<ServiceBinding> createServiceBinding(@Body CreateServiceBinding body);
+
   @GET("/v2/service_instances/{guid}/service_bindings")
   Page<ServiceBinding> getBindingsForServiceInstance(
       @Path("guid") String serviceInstanceGuid,
@@ -79,6 +79,12 @@ public interface ServiceInstanceService {
       @Path("guid") String userProvidedServiceInstanceGuid,
       @Query("page") Integer page,
       @Query("q") List<String> queryParams);
+
+  @GET("/v2/service_bindings")
+  Page<ServiceBinding> getAllServiceBindings(@Query("q") List<String> queryParams);
+
+  @DELETE("/v2/service_bindings/{guid}?accepts_incomplete=true")
+  Response deleteServiceBinding(@Path("guid") String serviceBindingGuid);
 
   @DELETE("/v2/service_instances/{guid}?accepts_incomplete=true")
   Response destroyServiceInstance(@Path("guid") String serviceInstanceGuid);

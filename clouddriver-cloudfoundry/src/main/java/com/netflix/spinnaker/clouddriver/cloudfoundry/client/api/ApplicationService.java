@@ -114,4 +114,7 @@ public interface ApplicationService {
 
   @PATCH("/v3/apps/{guid}/relationships/current_droplet")
   Response setCurrentDroplet(@Path("guid") String appGuid, @Body ToOneRelationship body);
+
+  @POST("/v2/apps/{guid}/restage")
+  Response restageApplication(@Path("guid") String appGuid, @Body Object dummy);
 }

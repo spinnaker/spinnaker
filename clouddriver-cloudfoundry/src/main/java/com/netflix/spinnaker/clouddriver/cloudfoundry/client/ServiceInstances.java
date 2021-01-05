@@ -68,6 +68,16 @@ public class ServiceInstances {
     }
   }
 
+  public List<Resource<ServiceBinding>> findAllServiceBindingsByApp(String appGuid) {
+    String bindingsQuery = "app_guid:" + appGuid;
+    return collectPageResources(
+        "service bindings", pg -> api.getAllServiceBindings(singletonList(bindingsQuery)));
+  }
+
+  public void deleteServiceBinding(String serviceBindingGuid) {
+    safelyCall(() -> api.deleteServiceBinding(serviceBindingGuid));
+  }
+
   private Resource<Service> findServiceByServiceName(String serviceName) {
     List<Resource<Service>> services =
         collectPageResources(

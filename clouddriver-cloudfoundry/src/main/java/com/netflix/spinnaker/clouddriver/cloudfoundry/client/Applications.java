@@ -723,4 +723,8 @@ public class Applications {
     return AbstractServerGroupNameResolver.generateServerGroupName(
         names.getApp(), names.getStack(), names.getDetail(), 999, false);
   }
+
+  public void restageApplication(String appGuid) {
+    safelyCall(() -> api.restageApplication(appGuid, ""));
+  }
 }
