@@ -27,6 +27,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   public List<TargetGroup> targetGroups = new ArrayList<>();
   public Boolean deletionProtection = false;
   public Boolean loadBalancingCrossZone;
+  public String ipAddressType = "ipv4";
 
   public static class TargetGroup {
     private String name;
