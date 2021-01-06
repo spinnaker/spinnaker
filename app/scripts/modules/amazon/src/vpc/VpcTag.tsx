@@ -1,42 +1,24 @@
 import React from 'react';
-
+import { useData } from '@spinnaker/core';
 import { VpcReader } from './VpcReader';
 
 export interface IVpcTagProps {
   vpcId: string;
 }
 
-export interface IVpcTagState {
-  label: string;
-}
+const defaultLabel = 'None (EC2 Classic)';
 
-export class VpcTag extends React.Component<IVpcTagProps, IVpcTagState> {
-  private defaultLabel = 'None (EC2 Classic)';
+export function VpcTag(props: IVpcTagProps) {
+  const { vpcId } = props;
+  const fetchVpcLabel = useData(
+    async () => {
+      const name = await VpcReader.getVpcName(props.vpcId);
+      return name ? `${name} (${props.vpcId})` : `(${props.vpcId})`;
+    },
+    defaultLabel,
+    [vpcId],
+  );
 
-  constructor(props: IVpcTagProps) {
-    super(props);
-    this.state = { label: this.defaultLabel };
-    this.updateState(props);
-  }
-
-  private updateState(props: IVpcTagProps): void {
-    if (!props.vpcId) {
-      this.setState({ label: this.defaultLabel });
-    } else {
-      VpcReader.getVpcName(props.vpcId).then((name) => {
-        const label = name ? `${name} (${props.vpcId})` : `(${props.vpcId})`;
-        this.setState({ label });
-      });
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IVpcTagProps): void {
-    if (nextProps.vpcId !== this.props.vpcId) {
-      this.updateState(nextProps);
-    }
-  }
-
-  public render() {
-    return <span className="vpc-tag">{this.state.label}</span>;
-  }
+  const label = vpcId ? fetchVpcLabel.result : defaultLabel;
+  return <span className="vpc-tag">{label}</span>;
 }
