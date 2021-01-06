@@ -16,7 +16,7 @@ export const applyHealthCheckInfoToTargetGroups = (
 ) => {
   healthMetrics.forEach((metric) => {
     if (metric.type === 'TargetGroup') {
-      metric.targetGroups.forEach((tg: ITargetGroup) => {
+      metric.targetGroups.forEach((tg) => {
         const group = targetGroups.find((g) => g.name === tg.name && g.account === account) ?? ({} as ITargetGroup);
         const useTrafficPort = group.healthCheckPort === 'traffic-port' || isNil(group.healthCheckPort);
         const port = useTrafficPort ? group.port : group.healthCheckPort;
