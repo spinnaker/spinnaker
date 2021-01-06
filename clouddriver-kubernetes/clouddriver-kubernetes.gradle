@@ -66,6 +66,7 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
   implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.github.wnameless.json:json-flattener:0.11.1"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
@@ -76,6 +77,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "com.netflix.spinnaker.kork:kork-secrets"
   implementation "io.kubernetes:client-java:7.0.0"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
