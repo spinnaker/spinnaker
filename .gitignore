@@ -13,3 +13,4 @@ out/
 swagger.json
 swagger/swagger.json
 bin/
+plugins/**

@@ -127,7 +127,9 @@ public class RedisRateLimiter implements RateLimiter {
       rate.capacity = capacity;
       rate.rateSeconds = this.rate;
       rate.remaining = Math.max(remaining, 0);
-      rate.reset = reset.getTime();
+
+      // 5 seconds are added here to allow for a degree of time drift between server and client.
+      rate.reset = reset.getTime() + 5;
       rate.throttled = remaining < 0;
       return rate;
     }
