@@ -1083,9 +1083,11 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
         .filter(it -> it.getValue().size() > 1)
         .forEach(
             (entry) -> {
-              Job cachedJob = null;
+              com.netflix.spinnaker.clouddriver.titus.client.model.Job cachedJob = null;
               try {
-                cachedJob = (Job) serverGroupCache.get(entry.getKey()).getAttributes().get("job");
+                cachedJob =
+                    (com.netflix.spinnaker.clouddriver.titus.client.model.Job)
+                        serverGroupCache.get(entry.getKey()).getAttributes().get("job");
               } catch (Exception e) {
                 log.error(
                     "Error retrieving duplicate server group {} from server group cache.",
