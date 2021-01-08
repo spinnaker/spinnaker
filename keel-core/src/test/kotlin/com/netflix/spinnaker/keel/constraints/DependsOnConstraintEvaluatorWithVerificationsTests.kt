@@ -39,7 +39,7 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
     )
     val previousEnvironment = Environment(
       name = "test",
-      verifyWith = setOf(verification)
+      verifyWith = listOf(verification)
     )
 
     val manifest = DeliveryConfig(

@@ -348,7 +348,7 @@ class SqlDeliveryConfigRepository(
             resources = resourcesForEnvironment(uid),
             constraints = objectMapper.readValue(constraintsJson),
             notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
-            verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptySet()
+            verifyWith = verifyWithJson?.let { objectMapper.readValue(it) } ?: emptyList()
           )
         }
     } ?: throw OrphanedResourceException(resourceId)

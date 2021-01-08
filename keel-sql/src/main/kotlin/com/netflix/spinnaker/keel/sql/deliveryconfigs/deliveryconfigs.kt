@@ -87,7 +87,7 @@ internal fun SqlStorageContext.attachDependents(deliveryConfig: DeliveryConfig):
                 notifications = notificationsJson?.let { objectMapper.readValue(it) } ?: emptySet(),
                 verifyWith = verifyWithJson?.let {
                   objectMapper.readValue(it)
-                } ?: emptySet()
+                } ?: emptyList()
               )
             }
             .let { environments ->

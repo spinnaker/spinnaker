@@ -79,7 +79,7 @@ internal class VerificationRunnerTests {
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(DummyVerification("1"), DummyVerification("2"))
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
           )
         )
       ),
@@ -112,7 +112,7 @@ internal class VerificationRunnerTests {
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(DummyVerification("1"), DummyVerification("2"))
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
           )
         )
       ),
@@ -152,7 +152,7 @@ internal class VerificationRunnerTests {
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(DummyVerification("1"), DummyVerification("2"))
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
           )
         )
       ),
@@ -197,7 +197,7 @@ internal class VerificationRunnerTests {
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(DummyVerification("1"), DummyVerification("2"))
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
           )
         )
       ),

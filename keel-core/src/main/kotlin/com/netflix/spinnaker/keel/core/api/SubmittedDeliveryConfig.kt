@@ -31,7 +31,7 @@ data class SubmittedEnvironment(
   val name: String,
   val resources: Set<SubmittedResource<*>>,
   val constraints: Set<Constraint> = emptySet(),
-  val verifyWith: Set<Verification> = emptySet(),
+  val verifyWith: List<Verification> = emptyList(),
   val notifications: Set<NotificationConfig> = emptySet(),
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null

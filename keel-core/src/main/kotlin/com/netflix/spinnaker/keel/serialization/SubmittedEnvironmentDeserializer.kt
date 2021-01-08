@@ -27,7 +27,7 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
     with(context.mapper) {
       val name = root.path("name").textValue()
       val constraints: Set<Constraint> = convert(root, "constraints") ?: emptySet()
-      val verifyWith: Set<Verification> = convert(root, "verifyWith") ?: emptySet()
+      val verifyWith: List<Verification> = convert(root, "verifyWith") ?: emptyList()
       val notifications: Set<NotificationConfig> = convert(root, "notifications") ?: emptySet()
       val locations: SubnetAwareLocations? = convert(root, "locations")
       val resources: Set<SubmittedResource<*>> = copy().run {

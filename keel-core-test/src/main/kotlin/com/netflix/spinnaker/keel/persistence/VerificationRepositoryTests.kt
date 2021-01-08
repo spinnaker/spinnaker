@@ -69,7 +69,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(verification)
+            verifyWith = listOf(verification)
           )
         )
       ),
@@ -106,7 +106,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(verification)
+            verifyWith = listOf(verification)
           )
         )
       ),
@@ -147,7 +147,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(verification)
+            verifyWith = listOf(verification)
           )
         )
       ),
@@ -191,7 +191,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(verification1, verification2)
+            verifyWith = listOf(verification1, verification2)
           )
         )
       ),
@@ -246,7 +246,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         environments = setOf(
           Environment(
             name = "test",
-            verifyWith = setOf(verification)
+            verifyWith = listOf(verification)
           )
         )
       ),

@@ -237,7 +237,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                   ),
                   ManualJudgementConstraint()
                 ),
-                verifyWith = setOf(
+                verifyWith = listOf(
                   DummyVerification()
                 ),
                 resources = setOf(
