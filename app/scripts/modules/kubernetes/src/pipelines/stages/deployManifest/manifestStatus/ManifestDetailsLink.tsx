@@ -58,6 +58,9 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
     if (!params.region && kind === 'namespace' && stateKey === UNMAPPED_K8S_RESOURCE_STATE_KEY) {
       params.region = name;
     }
+    if (!params.region || params.region === '') {
+      params.region = '_';
+    }
     return params;
   }
 
