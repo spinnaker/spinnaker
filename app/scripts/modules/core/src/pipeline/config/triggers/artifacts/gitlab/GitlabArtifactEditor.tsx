@@ -59,16 +59,16 @@ export const GitlabDefault: IArtifactKindConfig = {
     public render() {
       return (
         <>
-          <StageConfigField label="Content URL" helpKey="pipeline.config.expectedArtifact.defaultGithub.reference">
+          <StageConfigField label="Content URL" helpKey="pipeline.config.expectedArtifact.defaultGitlab.reference">
             <SpelText
-              placeholder="https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH"
+              placeholder="https://gitlab.com/api/v4/projects/$ORG%2F$REPO/repository/files/path%2Fto%2Ffile.yml/raw"
               value={this.props.artifact.reference}
               onChange={this.onReferenceChange}
               pipeline={this.props.pipeline}
               docLink={false}
             />
           </StageConfigField>
-          <StageConfigField label="Commit/Branch" helpKey="pipeline.config.expectedArtifact.defaultGithub.version">
+          <StageConfigField label="Commit/Branch" helpKey="pipeline.config.expectedArtifact.defaultGitlab.version">
             <SpelText
               placeholder="master"
               value={this.props.artifact.version}
