@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
@@ -26,6 +28,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -39,9 +42,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
+import strikt.assertions.all
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.containsKey
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
+import strikt.assertions.size
 
 @SpringBootTest(webEnvironment = MOCK)
 @AutoConfigureMockMvc
@@ -82,11 +91,15 @@ internal class ApplicationControllerTests
 
     context("application with delivery config exists") {
       before {
+        val verification = mockk<Verification>()
+        val staging = Environment(name="staging", verifyWith=listOf(verification))
+        val envSummaries : List<EnvironmentSummary> = listOf(EnvironmentSummary(environment=staging, artifacts=emptySet()))
+
         authorizationSupport.allowAll()
         every { applicationService.hasManagedResources(application) } returns true
         every { applicationService.getConstraintStatesFor(application) } returns emptyList()
         every { applicationService.getResourceSummariesFor(application) } returns emptyList()
-        every { applicationService.getEnvironmentSummariesFor(application) } returns emptyList()
+        every { applicationService.getEnvironmentSummariesFor(application) } returns envSummaries
         every { applicationService.getArtifactSummariesFor(application) } returns emptyList()
         every {
           applicationService.getArtifactSummariesFor(
@@ -97,10 +110,12 @@ internal class ApplicationControllerTests
         every { applicationService.getDeliveryConfig(application) } returns deliveryConfig
         every { applicationService.getSummariesAllEntities(application) } returns
           mapOf(
-            "environments" to emptyList<EnvironmentSummary>(),
+            "environments" to envSummaries,
             "resources" to emptyList<ResourceSummary>(),
             "artifacts" to emptyList<ArtifactSummary>()
           )
+        every { verification.id } returns "mock-id"
+        every { verification.type } returns "mock-type"
       }
 
       test("can get delivery config") {
@@ -211,6 +226,53 @@ internal class ApplicationControllerTests
             .andDo { println(it.response.contentAsString) }
             .andReturn()
           verify { applicationService.getArtifactSummariesFor(application, 10) }
+        }
+
+        test("environments list contains verifications") {
+          val request = get("/application/$application?entities=environments")
+            .accept(APPLICATION_JSON_VALUE)
+
+          val result = mvc
+            .perform(request)
+            .andExpect(status().isOk)
+            .andDo { print(it.response.contentAsString) }
+            .andReturn()
+          val response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
+
+          /*
+            This is the part of the response we're asserting on:
+
+             {
+              "environments": [
+                {
+                 "name": "staging",
+                 "verifications": [
+                   {
+                    "type": "mock-type",
+                    "id": "mock-id"
+                   }
+                 ]
+                }
+              ]
+             }
+         */
+
+          expectThat(response["environments"])
+            .isA<List<Map<String, Any>>>()
+            .isNotEmpty()
+          val environments = response["environments"] as List<*>
+          expectThat(environments)
+            .isA<List<Map<String, Any>>>()
+            .size.isEqualTo(1)
+
+          val staging = environments.first() as Map<*, *>
+          val verifications = staging["verifications"] as List<*>
+          expectThat(verifications)
+            .isA<List<Map<String, Any>>>()
+            .containsExactly(mapOf(
+              "type" to "mock-type",
+              "id" to "mock-id")
+            )
         }
 
         test("is backwards-compatible with older version of the API") {

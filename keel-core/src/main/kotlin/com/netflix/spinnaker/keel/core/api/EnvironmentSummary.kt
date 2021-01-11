@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.core.api
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -28,6 +29,9 @@ data class EnvironmentSummary(
 
   val resources: Set<String>
     get() = environment.resources.map { it.id }.toSet()
+
+  val verifications: List<EnvironmentVerificationSummary>
+    get() = environment.verifyWith.map { it.toSummary() }
 
   companion object {
     val log = LoggerFactory.getLogger(EnvironmentSummary::class.java)
@@ -70,3 +74,10 @@ data class ArtifactVersionStatus(
   val vetoed: List<String> = emptyList(),
   val skipped: List<String> = emptyList()
 )
+
+data class EnvironmentVerificationSummary(
+  val type: String,
+  val id: String
+)
+
+fun Verification.toSummary(): EnvironmentVerificationSummary = EnvironmentVerificationSummary(type=type, id=id)
