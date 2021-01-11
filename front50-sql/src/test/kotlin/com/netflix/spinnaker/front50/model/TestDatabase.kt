@@ -28,7 +28,6 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.DatabaseException
 import liquibase.exception.LiquibaseException
 import liquibase.resource.ClassLoaderResourceAccessor
-import org.jooq.CloseableDSLContext
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.Schema
@@ -36,10 +35,10 @@ import org.jooq.conf.RenderNameStyle.AS_IS
 import org.jooq.impl.DSL.currentSchema
 import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
-import org.jooq.impl.DefaultCloseableDSLContext
+import org.jooq.impl.DefaultDSLContext
 import org.slf4j.LoggerFactory
 
-internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): CloseableDSLContext {
+internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): DSLContext {
   val dataSource = HikariDataSource(
     HikariConfig().also {
       it.jdbcUrl = jdbcUrl
@@ -73,7 +72,7 @@ internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): CloseableDSL
     throw DatabaseInitializationFailed(e)
   }
 
-  return DefaultCloseableDSLContext(config.connectionProvider(), config.dialect(), config.settings())
+  return DefaultDSLContext(config)
 }
 
 internal class DatabaseInitializationFailed(cause: Throwable) : RuntimeException(cause)
