@@ -30,6 +30,7 @@ const reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 const templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 const useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 const functionsEnabled = process.env.FUNCTIONS_ENABLED === 'true' ? true : false;
+const k8sRawResourcesEnabled = process.env.K8S_RAW_RESOURCES_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
@@ -91,6 +92,7 @@ window.spinnakerSettings = {
     slack: false,
     snapshots: false,
     functions: functionsEnabled,
+    kubernetesRawResources: k8sRawResourcesEnabled,
   },
   gateUrl: apiHost,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],

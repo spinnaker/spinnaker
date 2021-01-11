@@ -1,0 +1,79 @@
+.RawResource {
+  &.card {
+    background-color: white;
+    padding: 1em;
+    margin-top: 1em;
+    margin-left: 3em;
+    border: thin solid lightgrey;
+  }
+
+  &.clickable-row {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-alto);
+    margin: 5px 15px 3px;
+    position: relative;
+    z-index: 1;
+
+    &.active {
+      border-color: var(--color-accent-g1);
+      background-color: var(--color-accent-g3);
+    }
+
+    &:hover {
+      border-color: var(--color-accent-g1);
+      box-shadow: 0 0 4px 2px var(--color-accent-g1);
+      z-index: 2;
+    }
+
+    &.managed {
+      margin: 5px;
+      border-style: dashed;
+    }
+  }
+
+  .details {
+    color: grey;
+    display: flex;
+
+    .column {
+      margin-right: 5em;
+
+      .title {
+        margin-right: 1em;
+      }
+    }
+  }
+
+  .title {
+    margin: 0;
+  }
+}
+
+.RawResourceGroup {
+  margin-top: 2em;
+
+  .header {
+    display: flex;
+    height: 37px;
+    padding: 0;
+    color: var(--color-primary);
+  }
+
+  .title {
+    display: inline-block;
+    padding-left: 1em;
+  }
+
+  .pipeline-toggle {
+    background-color: var(--color-alabaster);
+    display: inline-block;
+    padding: 10px 10px 10px 0;
+    height: 36px;
+    flex: 0 0 auto;
+  }
+
+  .shadowed {
+    position: relative;
+    display: flex;
+  }
+}

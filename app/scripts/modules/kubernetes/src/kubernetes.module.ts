@@ -1,6 +1,11 @@
 import { module } from 'angular';
 
-import { CloudProviderRegistry, STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT, YAML_EDITOR_COMPONENT } from '@spinnaker/core';
+import {
+  CloudProviderRegistry,
+  STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
+  SETTINGS,
+  YAML_EDITOR_COMPONENT,
+} from '@spinnaker/core';
 
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
@@ -38,6 +43,8 @@ import { KUBERNETES_DISABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/di
 import { KubernetesSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { KUBERNETES_ROLLING_RESTART } from './manifest/rollout/RollingRestart';
 
+import { KUBERNETS_RAW_RESOURCE_MODULE } from './rawResource';
+
 import kubernetesLogo from './logo/kubernetes.logo.svg';
 
 import './validation/applicationName.validator';
@@ -54,7 +61,7 @@ templates.keys().forEach(function (key) {
 
 export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
-module(KUBERNETES_MODULE, [
+const requires = [
   KUBERNETES_INSTANCE_DETAILS_CTRL,
   KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_SECURITY_GROUP_DETAILS_CTRL,
@@ -91,7 +98,13 @@ module(KUBERNETES_MODULE, [
   KUBERNETES_DISABLE_MANIFEST_STAGE,
   STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
   KUBERNETES_ROLLING_RESTART,
-]).config(() => {
+];
+
+if (SETTINGS.feature.kubernetesRawResources) {
+  requires.push(KUBERNETS_RAW_RESOURCE_MODULE);
+}
+
+module(KUBERNETES_MODULE, requires).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
     logo: {
