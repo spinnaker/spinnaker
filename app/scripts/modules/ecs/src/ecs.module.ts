@@ -20,6 +20,7 @@ import { ECS_NETWORKING_REACT } from './serverGroup/configure/wizard/networking/
 import { SERVICE_DISCOVERY_REACT } from './serverGroup/configure/wizard/serviceDiscovery/ServiceDiscovery';
 import { TASK_DEFINITION_REACT } from './serverGroup/configure/wizard/taskDefinition/TaskDefinition';
 import { ECS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
+import { ECS_CAPACITY_PROVIDER_REACT } from "./serverGroup/configure/wizard/capacityProvider/CapacityProvider";
 
 import ecsLogo from './logo/ecs.logo.svg';
 import './logo/ecs.logo.less';
@@ -66,6 +67,7 @@ module(ECS_MODULE, [
   CONTAINER_REACT,
   ECS_NETWORKING_REACT,
   SERVICE_DISCOVERY_REACT,
+  ECS_CAPACITY_PROVIDER_REACT,
   ECS_SERVER_GROUP_LOGGING,
   ECS_CLUSTER_READ_SERVICE,
   ECS_SECRET_READ_SERVICE,

@@ -33,69 +33,8 @@
   </div>
 
   <div class="form-group" ng-if="$ctrl.capacityProviderState.useCapacityProviders">
-    <div class="sm-label-left">
-      <b>Capacity Provider Strategy</b>
-      <help-field key="ecs.capacityProviderStrategy"></help-field>
-    </div>
-    <div>
-      <table class="table table-condensed packed tags">
-        <thead>
-          <th style="width: 50%">Provider name <help-field key="ecs.capacityProviderName"></help-field></th>
-          <th style="width: 25%">Base <help-field key="ecs.capacityProviderBase"></help-field></th>
-          <th style="width: 25%">Weight <help-field key="ecs.capacityProviderWeight"></help-field></th>
-        </thead>
-        <tbody>
-          <tr ng-repeat="cp in $ctrl.command.capacityProviderStrategy">
-            <td>
-              <input
-                type="text"
-                data-test-id="capacityProvider.name.{{ $index }}"
-                class="form-control input-sm no-spel"
-                ng-model="cp.capacityProvider"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                data-test-id="capacityProvider.base.{{ $index }}"
-                class="form-control input-sm no-spel"
-                ng-model="cp.base"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                data-test-id="capacityProvider.weight.{{ $index }}"
-                class="form-control input-sm no-spel"
-                ng-model="cp.weight"
-              />
-            </td>
-            <td>
-              <div class="form-control-static">
-                <a class="btn-link sm-label" ng-click="$ctrl.command.capacityProviderStrategy.splice($index, 1)">
-                  <span class="glyphicon glyphicon-trash"></span>
-                  <span class="sr-only">Remove</span>
-                </a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3">
-              <button
-                class="btn btn-block btn-sm add-new"
-                ng-click="$ctrl.command.capacityProviderStrategy.push({})"
-                data-test-id="ServerGroup.addCapacityProvider"
-              >
-                <span class="glyphicon glyphicon-plus-sign"></span>
-                Add New Capacity Provider
-              </button>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <ecs-capacity-provider-react command="$ctrl.command"
+                             notify-angular="$ctrl.notifyAngular"/>
   </div>
 
   <div class="form-group" ng-if="!$ctrl.capacityProviderState.useCapacityProviders" style="padding-top: 10px">
