@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.WAITING
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import dev.minutest.junit.JUnit5Minutests
@@ -214,12 +215,41 @@ class ResourceStatusServiceTests : JUnit5Minutests {
           }
 
           context("when last event is ResourceCheckUnresolvable") {
-            before {
-              events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
+            context("only created and unresolvable events") {
+              before {
+                events.clear()
+                events.add(ResourceCreated(resource))
+                events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
+              }
+
+              test("returns WAITING") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(WAITING)
+              }
             }
 
-            test("returns CURRENTLY_UNRESOLVABLE") {
-              expectThat(subject.getStatus(resource.id)).isEqualTo(CURRENTLY_UNRESOLVABLE)
+            context("too many created and unresolvable events") {
+              before {
+                events.clear()
+                events.add(ResourceCreated(resource))
+                repeat (8) {
+                  events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
+                }
+              }
+
+              test("returns CURRENTLY_UNRESOLVABLE") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(CURRENTLY_UNRESOLVABLE)
+              }
+            }
+
+            context("more than created and unresolvable events") {
+              before {
+                events.add(ResourceDeltaResolved(resource))
+                events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
+              }
+
+              test("returns CURRENTLY_UNRESOLVABLE") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(CURRENTLY_UNRESOLVABLE)
+              }
             }
           }
 

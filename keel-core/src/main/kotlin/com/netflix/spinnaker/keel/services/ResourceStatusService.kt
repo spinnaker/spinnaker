@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.WAITING
 import org.springframework.stereotype.Component
 
 /**
@@ -66,6 +67,7 @@ class ResourceStatusService(
       history.isError() -> ERROR
       history.isCreated() -> CREATED
       history.isResumed() -> RESUMED
+      history.isWaiting() -> WAITING // must be before CURRENTLY_UNRESOLVABLE because it's a special case of that status
       history.isCurrentlyUnresolvable() -> CURRENTLY_UNRESOLVABLE
       else -> UNKNOWN
     }
@@ -91,6 +93,12 @@ class ResourceStatusService(
 
   private fun List<ResourceHistoryEvent>.isCreated(): Boolean {
     return first() is ResourceCreated
+  }
+
+  private fun List<ResourceHistoryEvent>.isWaiting(): Boolean {
+    // we expect to have only two events, but we will accept several different "unresolvable" events
+    // in order to be less brittle and show the user this status instead of an error
+    return size < 5 && all { it is ResourceCreated || it is ResourceCheckUnresolvable }
   }
 
   private fun List<ResourceHistoryEvent>.isDiff(): Boolean {
