@@ -223,4 +223,21 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
       </>
     ),
   },
+  WAITING: {
+    appearance: 'info',
+    iconName: 'mdCreated',
+    popoverContents: (resourceSummary: IManagedResourceSummary) => (
+      <>
+        <p>
+          <b>Waiting for information.</b>
+        </p>
+        <p>
+          This resource is part of a brand new environment. Spinnaker is waiting for an artifact to become available to
+          deploy. It normally takes less than 5 minutes for a newly created artifact to be seen, and after that all
+          constraints need to pass in order for it to start deploying. You can click History to see a more detailed
+          message. <LearnMoreLink resourceSummary={resourceSummary} />
+        </p>
+      </>
+    ),
+  },
 };

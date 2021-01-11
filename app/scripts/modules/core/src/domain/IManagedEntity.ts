@@ -13,6 +13,7 @@ export enum ManagedResourceStatus {
   RESUMED = 'RESUMED',
   UNHAPPY = 'UNHAPPY',
   UNKNOWN = 'UNKNOWN',
+  WAITING = 'WAITING',
 }
 
 export enum StatefulConstraintStatus {
