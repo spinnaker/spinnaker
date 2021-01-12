@@ -3,6 +3,7 @@ import Select, { Option } from 'react-select';
 import { defaultsDeep, unset } from 'lodash';
 
 import {
+  CoreRedBlackAdditionalFields,
   HelpField,
   IDeploymentStrategy,
   IDeploymentStrategyAdditionalFieldsProps,
@@ -11,7 +12,6 @@ import {
 } from '@spinnaker/core';
 
 import { IRedBlackCommand } from './strategies/redblack/redblack.strategy';
-import { AdditionalFields as AdditionalRedBlackFields } from './strategies/redblack/AdditionalFields';
 import {
   AdditionalFields as AdditionalRollingRedBlackFields,
   IRollingRedBlackCommand,
@@ -52,7 +52,7 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
           'Disables <i>all</i> previous server groups in the cluster as soon as new server group passes health checks',
         key: 'redblack',
         additionalFields: ['maxRemainingAsgs'],
-        AdditionalFieldsComponent: AdditionalRedBlackFields,
+        AdditionalFieldsComponent: CoreRedBlackAdditionalFields,
         initializationMethod: (command: IRedBlackCommand) => {
           defaultsDeep(command, {
             rollback: {
