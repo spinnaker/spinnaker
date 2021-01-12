@@ -187,8 +187,6 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     ConfirmationModalService.confirm({
       header: 'Really pause execution?',
       buttonText: 'Pause',
-      body:
-        '<p>This will pause the pipeline for up to 72 hours.</p><p>After 72 hours the pipeline will automatically timeout and fail.</p>',
       submitMethod: () => executionService.pauseExecution(this.props.application, this.props.execution.id),
     });
   }
