@@ -41,6 +41,7 @@ class LoadBalancerV2UpsertHandler {
   private static final String STICKINESS_TYPE = "lb_cookie"
   private static final String STICKINESS_DURATION = "86400"
   private static final Boolean PROXY_PROTOCOL_V2 = false
+  private static final Boolean CONNECTION_TERMINATION = false
   /** The following attribute is supported only if the target is a Lambda function. */
   private static final Boolean MULTI_VALUE_HEADERS_ENABLED = false
 
@@ -78,6 +79,9 @@ class LoadBalancerV2UpsertHandler {
         def proxyProtocolV2Attribute = attributes.proxyProtocolV2 ?: PROXY_PROTOCOL_V2
         targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: proxyProtocolV2Attribute))
 
+        def enableConnectionTermination = attributes.deregistrationDelayConnectionTermination ?: CONNECTION_TERMINATION
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.connection_termination.enabled", value: enableConnectionTermination))
+
       }
     }
     return updateTargetGroupAttributes(loadBalancing, targetGroup, targetGroupAttributes)
@@ -113,6 +117,11 @@ class LoadBalancerV2UpsertHandler {
           if (attributes.proxyProtocolV2 != null) {
             targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: attributes.proxyProtocolV2))
           }
+
+          if(attributes.deregistrationDelayConnectionTermination != null) {
+            targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.connection_termination.enabled", value: attributes.deregistrationDelayConnectionTermination))
+          }
+
         }
       }
     }

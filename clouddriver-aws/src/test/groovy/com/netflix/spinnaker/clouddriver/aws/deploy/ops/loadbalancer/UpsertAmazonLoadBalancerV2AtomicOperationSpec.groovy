@@ -407,6 +407,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
       assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds' }.value == "300"
       assert request.attributes.find { it.key == 'proxy_protocol_v2.enabled' }.withValue("false")
+      assert request.attributes.find { it.key == 'deregistration_delay.connection_termination.enabled' }.withValue("false")
       assert request.targetGroupArn == "test:target:group:arn"
       return new ModifyTargetGroupAttributesResult()
     }
