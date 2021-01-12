@@ -2,6 +2,8 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
+import * as classNames from 'classnames';
+import { Tooltip } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
@@ -29,6 +31,35 @@ interface IMetricListDispatchProps {
   openChangeMetricGroupModal: (event: any) => void;
 }
 
+function FailOn({ metric }: { metric: ICanaryMetricConfig }) {
+  const direction = metric.analysisConfigurations?.canary?.direction;
+  const isCritical = metric.analysisConfigurations?.canary?.critical;
+  const tooltipSuffix = isCritical ? '(critical — if this metric fails, the entire canary will fail)' : '';
+  const classes = classNames('metric-fail-on-icon', 'fas', 'sp-margin-xs-right', { critical: isCritical });
+  if (direction === 'decrease') {
+    return (
+      <Tooltip value={`decrease ${tooltipSuffix}`}>
+        <i className={`fa-caret-square-down ${classes}`} />
+      </Tooltip>
+    );
+  }
+  if (direction === 'increase') {
+    return (
+      <Tooltip value={`increase ${tooltipSuffix}`}>
+        <i className={`fa-caret-square-up ${classes}`} />
+      </Tooltip>
+    );
+  }
+  return (
+    <Tooltip value={`increase OR decrease ${tooltipSuffix}`}>
+      <span>
+        <i className={`fa-caret-square-down ${classes}`} />
+        <i className={`fa-caret-square-up ${classes}`} />
+      </span>
+    </Tooltip>
+  );
+}
+
 /*
  * Configures an entire list of metrics.
  */
@@ -50,6 +81,10 @@ function MetricList({
     {
       label: 'Metric Name',
       getContent: (metric) => <span>{metric.name || '(new)'}</span>,
+    },
+    {
+      label: 'Fail On',
+      getContent: (metric) => <FailOn metric={metric} />,
     },
     {
       label: 'Groups',
