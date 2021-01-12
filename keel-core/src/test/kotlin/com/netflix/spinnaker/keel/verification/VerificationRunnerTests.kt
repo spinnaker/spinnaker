@@ -3,13 +3,13 @@ package com.netflix.spinnaker.keel.verification
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.PASSED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
@@ -95,7 +95,7 @@ internal class VerificationRunnerTests {
     subject.runVerificationsFor(context)
 
     verify { evaluator.start(context, DummyVerification("1")) }
-    verify { repository.updateState(any(), DummyVerification("1"), RUNNING, metadata) }
+    verify { repository.updateState(any(), DummyVerification("1"), PENDING, metadata) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
@@ -121,10 +121,10 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
-    every { repository.getState(any(), DummyVerification("1")) } returns RUNNING.toState()
+    every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
-    every { evaluator.evaluate(context, DummyVerification("1"), emptyMap()) } returns RUNNING
+    every { evaluator.evaluate(context, DummyVerification("1"), emptyMap()) } returns PENDING
 
     subject.runVerificationsFor(context)
 
@@ -137,10 +137,10 @@ internal class VerificationRunnerTests {
     name = "continues to the next if any verification was already running and has now completed with {0}"
   )
   @EnumSource(
-    value = VerificationStatus::class,
-    names = ["PASSED", "FAILED"]
+    value = ConstraintStatus::class,
+    names = ["PASS", "FAIL"]
   )
-  fun `continues to the next if any verification was already running and has now completed`(status: VerificationStatus) {
+  fun `continues to the next if any verification was already running and has now completed`(status: ConstraintStatus) {
     val context = VerificationContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
@@ -161,7 +161,7 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
-    every { repository.getState(any(), DummyVerification("1")) } returns RUNNING.toState()
+    every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
     every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns status
@@ -174,7 +174,7 @@ internal class VerificationRunnerTests {
     verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
 
     verify { evaluator.start(context, DummyVerification("2")) }
-    verify { repository.updateState(any(), DummyVerification("2"), RUNNING) }
+    verify { repository.updateState(any(), DummyVerification("2"), PENDING) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
@@ -182,10 +182,10 @@ internal class VerificationRunnerTests {
     name = "no-ops if all verifications are already complete and the final one is {0}"
   )
   @EnumSource(
-    value = VerificationStatus::class,
-    names = ["PASSED", "FAILED"]
+    value = ConstraintStatus::class,
+    names = ["PASS", "FAIL"]
   )
-  fun `no-ops if all verifications are already complete`(status: VerificationStatus) {
+  fun `no-ops if all verifications are already complete`(status: ConstraintStatus) {
     val context = VerificationContext(
       deliveryConfig = DeliveryConfig(
         application = "fnord",
@@ -208,7 +208,7 @@ internal class VerificationRunnerTests {
 
     every {
       repository.getState(any(), DummyVerification("1"))
-    } returns PASSED.toState()
+    } returns PASS.toState()
     every {
       repository.getState(any(), DummyVerification("2"))
     } returns status.toState()
@@ -220,10 +220,10 @@ internal class VerificationRunnerTests {
     }
   }
 
-  private fun VerificationStatus.toState() =
+  private fun ConstraintStatus.toState() =
     VerificationState(
       status = this,
       startedAt = now(),
-      endedAt = if (this.complete) now() else null
+      endedAt = if (complete) now() else null
     )
 }

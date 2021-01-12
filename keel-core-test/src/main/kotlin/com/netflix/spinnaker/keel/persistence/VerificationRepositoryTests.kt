@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.PASSED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.time.MutableClock
 import de.huxhorn.sulky.ulid.ULID
@@ -88,8 +88,8 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   }
 
   @ParameterizedTest
-  @EnumSource(VerificationStatus::class)
-  fun `after initial creation a verification state can be retrieved`(status: VerificationStatus) {
+  @EnumSource(ConstraintStatus::class)
+  fun `after initial creation a verification state can be retrieved`(status: ConstraintStatus) {
     val verification = DummyVerification("1")
     val context = VerificationContext(
       deliveryConfig = DeliveryConfig(
@@ -158,17 +158,17 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     context.setup()
 
-    subject.updateState(context, verification, RUNNING)
+    subject.updateState(context, verification, PENDING)
     val metadata = mapOf("taskId" to ULID().nextULID())
-    subject.updateState(context, verification, RUNNING, metadata)
-    subject.updateState(context, verification, PASSED)
+    subject.updateState(context, verification, PENDING, metadata)
+    subject.updateState(context, verification, PASS)
 
     expectCatching {
       subject.getState(context, verification)
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PASSED) }
+      .with(VerificationState::status) { isEqualTo(PASS) }
       .with(VerificationState::metadata) { isEqualTo(metadata) }
   }
 
@@ -205,15 +205,15 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     val metadata1 = mapOf("taskId" to ULID().nextULID())
     val metadata2 = mapOf("taskId" to ULID().nextULID())
 
-    subject.updateState(context, verification1, PASSED, metadata1)
-    subject.updateState(context, verification2, RUNNING, metadata2)
+    subject.updateState(context, verification1, PASS, metadata1)
+    subject.updateState(context, verification2, PENDING, metadata2)
 
     expectCatching {
       subject.getState(context, verification1)
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(PASSED) }
+      .with(VerificationState::status) { isEqualTo(PASS) }
       .with(VerificationState::metadata) { isEqualTo(metadata1) }
 
     expectCatching {
@@ -221,7 +221,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     }
       .isSuccess()
       .isNotNull()
-      .with(VerificationState::status) { isEqualTo(RUNNING) }
+      .with(VerificationState::status) { isEqualTo(PENDING) }
       .with(VerificationState::metadata) { isEqualTo(metadata2) }
   }
 

@@ -3,13 +3,13 @@ package com.netflix.spinnaker.keel.titus.verification
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroup.Location
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationState
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.FAILED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.PASSED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -129,7 +129,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo RUNNING
+    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo PENDING
   }
 
   @ParameterizedTest(name = "verification is considered successful if orca status is {0}")
@@ -153,7 +153,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo PASSED
+    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo PASS
   }
 
   @ParameterizedTest(name = "verification is considered failed if orca status is {0}")
@@ -177,7 +177,7 @@ internal class TestContainerVerificationEvaluatorTests {
       status = taskStatus
     )
 
-    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo FAILED
+    expectThat(subject.evaluate(context, verification, previousState.metadata)) isEqualTo FAIL
   }
 
   private fun stubTaskLaunch(): String =
@@ -217,7 +217,7 @@ internal class TestContainerVerificationEvaluatorTests {
 
   private fun runningState(taskId: String?) =
     VerificationState(
-      status = RUNNING,
+      status = PENDING,
       startedAt = now().minusSeconds(120),
       endedAt = null,
       metadata = mapOf(TASK_ID to taskId)

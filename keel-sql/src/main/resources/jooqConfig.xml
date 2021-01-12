@@ -99,7 +99,7 @@
           <includeExpression>PAUSED\\.SCOPE</includeExpression>
         </forcedType>
         <forcedType>
-          <userType>com.netflix.spinnaker.keel.api.verification.VerificationStatus</userType>
+          <userType>com.netflix.spinnaker.keel.api.constraints.ConstraintStatus</userType>
           <enumConverter>true</enumConverter>
           <includeExpression>VERIFICATION_STATE\\.STATUS</includeExpression>
         </forcedType>

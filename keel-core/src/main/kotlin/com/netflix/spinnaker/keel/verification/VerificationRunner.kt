@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.verification
 
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
 import org.slf4j.LoggerFactory
@@ -47,9 +47,9 @@ class VerificationRunner(
     eventPublisher.publishEvent(VerificationStarted(this, verification))
   }
 
-  private fun VerificationContext.latestStatus(verification: Verification): VerificationStatus? {
+  private fun VerificationContext.latestStatus(verification: Verification): ConstraintStatus? {
     val state = previousState(verification)
-    return if (state?.status == RUNNING) {
+    return if (state?.status == PENDING) {
       evaluators.evaluate(this, verification, state.metadata)
         .also { newStatus ->
           if (newStatus.complete) {
@@ -63,10 +63,10 @@ class VerificationRunner(
     }
   }
 
-  private val Collection<Pair<*, VerificationStatus?>>.anyStillRunning: Boolean
-    get() = any { (_, status) -> status == RUNNING }
+  private val Collection<Pair<*, ConstraintStatus?>>.anyStillRunning: Boolean
+    get() = any { (_, status) -> status == PENDING }
 
-  private val Collection<Pair<Verification, VerificationStatus?>>.firstOutstanding: Verification?
+  private val Collection<Pair<Verification, ConstraintStatus?>>.firstOutstanding: Verification?
     get() = firstOrNull { (_, status) -> status == null }?.first
 
   private fun VerificationContext.previousState(verification: Verification) =
@@ -77,10 +77,10 @@ class VerificationRunner(
     verification: Verification,
     metadata: Map<String, Any?>
   ) {
-    verificationRepository.updateState(this, verification, RUNNING, metadata)
+    verificationRepository.updateState(this, verification, PENDING, metadata)
   }
 
-  private fun VerificationContext.markAs(verification: Verification, status: VerificationStatus) {
+  private fun VerificationContext.markAs(verification: Verification, status: ConstraintStatus) {
     verificationRepository.updateState(this, verification, status)
   }
 

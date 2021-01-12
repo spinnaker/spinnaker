@@ -4,10 +4,11 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.*
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -82,7 +83,7 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
           verificationRepository.getStates(
             verContext
           )
-        } returns mapOf("fake-id" to VerificationState(status=PASSED, startedAt=mockk(), endedAt=mockk()))
+        } returns mapOf("fake-id" to VerificationState(status= PASS, startedAt=mockk(), endedAt=mockk()))
       }
 
       test("promotion is allowed") {
@@ -97,7 +98,7 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
           verificationRepository.getStates(
             verContext
           )
-        } returns mapOf("fake-id" to VerificationState(status=FAILED, startedAt=mockk(), endedAt=mockk()))
+        } returns mapOf("fake-id" to VerificationState(status=FAIL, startedAt=mockk(), endedAt=mockk()))
       }
 
       test("promotion is not allowed") {

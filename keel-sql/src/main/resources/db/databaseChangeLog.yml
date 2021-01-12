@@ -227,3 +227,6 @@ databaseChangeLog:
   - include:
       file: changelog/20201221-shorten-environment-last-verified-pk.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210111-update-verification-status-enum.yml
+      relativeToChangelogFile: true

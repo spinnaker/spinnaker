@@ -3,14 +3,18 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.*
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.slf4j.LoggerFactory
@@ -69,13 +73,13 @@ class DependsOnConstraintEvaluator(
       .map { it.id }
       .all { id ->
         when (states[id]?.status) {
-          PASSED -> true.also {
+          PASS, OVERRIDE_PASS -> true.also {
             log.info("verification ($id) passed against version $version for app ${deliveryConfig.application}")
           }
-          FAILED -> false.also {
+          FAIL, OVERRIDE_FAIL -> false.also {
             log.info("verification ($id) failed against version $version for app ${deliveryConfig.application}")
           }
-          RUNNING -> false.also {
+          NOT_EVALUATED, PENDING -> false.also {
             log.info("verification ($id) still running against version $version for app ${deliveryConfig.application}")
           }
           null -> false.also {

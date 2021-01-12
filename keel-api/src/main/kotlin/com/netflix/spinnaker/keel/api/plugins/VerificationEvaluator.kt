@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 
 /**
  * A component responsible for performing verification of an [com.netflix.spinnaker.keel.api.Environment].
@@ -18,7 +18,7 @@ interface VerificationEvaluator<VERIFICATION: Verification> {
     context: VerificationContext,
     verification: Verification,
     metadata: Map<String, Any?>
-  ): VerificationStatus
+  ): ConstraintStatus
 
   /**
    * Start running [verification].

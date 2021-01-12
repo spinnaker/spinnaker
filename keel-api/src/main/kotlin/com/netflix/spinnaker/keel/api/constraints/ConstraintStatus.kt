@@ -28,4 +28,6 @@ enum class ConstraintStatus(private val passed: Boolean, private val failed: Boo
 
   fun passes() = passed
   fun failed() = failed
+
+  val complete: Boolean = passes() || failed()
 }

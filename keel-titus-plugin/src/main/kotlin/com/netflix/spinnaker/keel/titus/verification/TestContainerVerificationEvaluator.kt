@@ -3,13 +3,13 @@ package com.netflix.spinnaker.keel.titus.verification
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.VERIFICATION
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.titus.TestContainerVerification
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.FAILED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.PASSED
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus.RUNNING
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.titus.batch.ContainerJobConfig
 import com.netflix.spinnaker.keel.titus.batch.createRunJobStage
@@ -35,7 +35,7 @@ class TestContainerVerificationEvaluator(
     context: VerificationContext,
     verification: Verification,
     metadata: Map<String, Any?>
-  ): VerificationStatus {
+  ): ConstraintStatus {
     val taskId = metadata[TASK_ID]
     require(taskId is String) {
       "No task id found in previous verification state"
@@ -48,9 +48,9 @@ class TestContainerVerificationEvaluator(
         .let { response ->
           log.debug("Container test task $taskId status: ${response.status.name}")
           when {
-            response.status.isSuccess() -> PASSED
-            response.status.isIncomplete() -> RUNNING
-            else -> FAILED
+            response.status.isSuccess() -> PASS
+            response.status.isIncomplete() -> PENDING
+            else -> FAIL
           }
         }
     }

@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
-import com.netflix.spinnaker.keel.api.verification.VerificationStatus
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Duration
 
@@ -104,12 +104,12 @@ data class VerificationCompleted(
   val artifactType: ArtifactType,
   val artifactVersion: String,
   val verificationType: String,
-  val status: VerificationStatus
+  val status: ConstraintStatus
 ) : TelemetryEvent() {
   constructor(
     context: VerificationContext,
     verification: Verification,
-    status: VerificationStatus
+    status: ConstraintStatus
   ) : this(
     context.deliveryConfig.application,
     context.deliveryConfig.name,

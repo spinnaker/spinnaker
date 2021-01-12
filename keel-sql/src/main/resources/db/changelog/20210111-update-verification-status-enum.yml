@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: update-verification-status-enum
+    author: fletch
+    changes:
+    - update:
+        tableName: verification_state
+        columns:
+        - name: status
+          value: PASS
+        where: status = 'PASSED'
+    - update:
+        tableName: verification_state
+        columns:
+        - name: status
+          value: FAIL
+        where: status = 'FAILED'
+    - update:
+        tableName: verification_state
+        columns:
+        - name: status
+          value: PENDING
+        where: status = 'RUNNING'

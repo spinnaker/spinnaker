@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import java.time.Duration
 import java.time.Instant
 
@@ -33,7 +34,7 @@ interface VerificationRepository {
   fun updateState(
     context: VerificationContext,
     verification: Verification,
-    status: VerificationStatus,
+    status: ConstraintStatus,
     metadata: Map<String, Any?> = emptyMap()
   )
 
@@ -41,7 +42,7 @@ interface VerificationRepository {
 }
 
 data class VerificationState(
-  val status: VerificationStatus,
+  val status: ConstraintStatus,
   val startedAt: Instant,
   val endedAt: Instant?,
   /**
@@ -49,10 +50,6 @@ data class VerificationState(
    */
   val metadata: Map<String, Any?> = emptyMap()
 )
-
-enum class VerificationStatus(val complete: Boolean) {
-  RUNNING(false), PASSED(true), FAILED(true)
-}
 
 data class VerificationContext(
   val deliveryConfig: DeliveryConfig,
