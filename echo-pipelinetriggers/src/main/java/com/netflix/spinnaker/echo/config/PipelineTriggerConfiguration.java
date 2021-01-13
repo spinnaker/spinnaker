@@ -39,6 +39,9 @@ public class PipelineTriggerConfiguration {
   private OkHttpClientProvider clientProvider;
   private RequestInterceptor requestInterceptor;
 
+  @Value("${trigger.git.shared-secret:}")
+  private String gitSharedSecret;
+
   @Autowired
   public void setRequestInterceptor(RequestInterceptor spinnakerRequestInterceptor) {
     this.requestInterceptor = spinnakerRequestInterceptor;
@@ -47,6 +50,10 @@ public class PipelineTriggerConfiguration {
   @Autowired
   public void setRetrofitClient(OkHttpClientProvider clientProvider) {
     this.clientProvider = clientProvider;
+  }
+
+  public String getGitSharedSecret() {
+    return this.gitSharedSecret;
   }
 
   @Bean

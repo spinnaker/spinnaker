@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.config.PipelineTriggerConfiguration;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
@@ -47,12 +48,16 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   private static final List<String> supportedTriggerTypes =
       Collections.singletonList(GIT_TRIGGER_TYPE);
 
+  @Autowired private PipelineTriggerConfiguration pipelineTriggerConfiguration;
+
   @Autowired
   public GitEventHandler(
       Registry registry,
       ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
+      FiatPermissionEvaluator fiatPermissionEvaluator,
+      PipelineTriggerConfiguration pipelineTriggerConfiguration) {
     super(registry, objectMapper, fiatPermissionEvaluator);
+    this.pipelineTriggerConfiguration = pipelineTriggerConfiguration;
   }
 
   @Override
@@ -130,7 +135,9 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   }
 
   private boolean passesGithubAuthenticationCheck(GitEvent gitEvent, Trigger trigger) {
-    boolean triggerHasSecret = StringUtils.isNotEmpty(trigger.getSecret());
+    boolean triggerHasSecret =
+        StringUtils.isNotEmpty(trigger.getSecret())
+            || StringUtils.isNotEmpty(pipelineTriggerConfiguration.getGitSharedSecret());
     boolean eventHasSignature =
         gitEvent.getDetails().getRequestHeaders().containsKey(GITHUB_SECURE_SIGNATURE_HEADER);
 
@@ -162,7 +169,12 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
     log.debug("GitHub Signature detected. " + GITHUB_SECURE_SIGNATURE_HEADER + ": " + header);
     String signature = StringUtils.removeStart(header, "sha1=");
 
-    String computedDigest = HmacUtils.hmacSha1Hex(trigger.getSecret(), gitEvent.getRawContent());
+    String secret = trigger.getSecret();
+    if (StringUtils.isEmpty(secret)) {
+      secret = pipelineTriggerConfiguration.getGitSharedSecret();
+    }
+
+    String computedDigest = HmacUtils.hmacSha1Hex(secret, gitEvent.getRawContent());
 
     // TODO: Find constant time comparison algo?
     boolean digestsMatch = signature.equalsIgnoreCase(computedDigest);
