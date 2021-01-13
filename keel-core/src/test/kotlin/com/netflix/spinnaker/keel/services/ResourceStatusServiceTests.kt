@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.WAITING
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -218,6 +220,20 @@ class ResourceStatusServiceTests : JUnit5Minutests {
             context("only created and unresolvable events") {
               before {
                 events.clear()
+                events.add(ResourceCreated(resource))
+                events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
+              }
+
+              test("returns WAITING") {
+                expectThat(subject.getStatus(resource.id)).isEqualTo(WAITING)
+              }
+            }
+
+            context("only created and unresolvable events and application paused/resumed events") {
+              before {
+                events.clear()
+                events.add(ApplicationActuationPaused(resource.application, "me"))
+                events.add(ApplicationActuationResumed(resource.application, "me"))
                 events.add(ResourceCreated(resource))
                 events.add(ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("") {}))
               }

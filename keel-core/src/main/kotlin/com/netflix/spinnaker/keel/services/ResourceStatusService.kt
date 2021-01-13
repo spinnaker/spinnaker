@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
@@ -96,9 +97,11 @@ class ResourceStatusService(
   }
 
   private fun List<ResourceHistoryEvent>.isWaiting(): Boolean {
-    // we expect to have only two events, but we will accept several different "unresolvable" events
+    // we expect to have only two events (after we scrub paused/resumed events),
+    // but we will accept several different "unresolvable" events
     // in order to be less brittle and show the user this status instead of an error
-    return size < 5 && all { it is ResourceCreated || it is ResourceCheckUnresolvable }
+    val filtered = filterNot { it is ApplicationActuationPaused || it is ApplicationActuationResumed }
+    return filtered.size < 5 && filtered.all { it is ResourceCreated || it is ResourceCheckUnresolvable }
   }
 
   private fun List<ResourceHistoryEvent>.isDiff(): Boolean {
