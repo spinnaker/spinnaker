@@ -45,8 +45,15 @@ class AwsConfigurationProperties {
     final AlarmsConfig alarms = new AlarmsConfig()
   }
 
+  @Canonical
+  static class CloudFormationConfig {
+    boolean changeSetsIncludeNestedStacks = false
+  }
+
   @NestedConfigurationProperty
   final ClientConfig client = new ClientConfig()
   @NestedConfigurationProperty
   final CleanupConfig cleanup = new CleanupConfig()
+  @NestedConfigurationProperty
+  final CloudFormationConfig cloudformation = new CloudFormationConfig()
 }

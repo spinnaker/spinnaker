@@ -30,6 +30,7 @@ import com.amazonaws.services.cloudformation.model.Tag
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest
 import com.amazonaws.services.cloudformation.model.UpdateStackResult
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -149,6 +150,9 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     def amazonClientProvider = Mock(AmazonClientProvider)
     def amazonCloudFormation = Mock(AmazonCloudFormation)
     def createChangeSetResult = Mock(CreateChangeSetResult)
+
+    def awsConfigurationProperties = new AwsConfigurationProperties()
+
     def stackId = "stackId"
     def op = new DeployCloudFormationAtomicOperation(
       new DeployCloudFormationDescription(
@@ -167,6 +171,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       )
     )
     op.amazonClientProvider = amazonClientProvider
+    op.awsConfigurationProperties = awsConfigurationProperties
     op.objectMapper = new ObjectMapper()
 
     when:
@@ -190,6 +195,73 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       assert request.getCapabilities() == ["cap1", "cap2"]
       assert request.getChangeSetName() == "changeSetTest"
       assert request.getChangeSetType() == changeSetType
+      assert request.isIncludeNestedStacks() == false
+      createChangeSetResult
+    }
+    1 * createChangeSetResult.getStackId() >> stackId
+
+    where:
+    roleARN                              | expectedRoleARN                      | existingStack || changeSetType
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
+    ""                                   | null                                 | true          || ChangeSetType.UPDATE.toString()
+    "   "                                | null                                 | true          || ChangeSetType.UPDATE.toString()
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
+  }
+
+  @Unroll
+  void "should build an CreateChangeSetRequest with includeNestedStacks if set"() {
+    given:
+    def amazonClientProvider = Mock(AmazonClientProvider)
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def createChangeSetResult = Mock(CreateChangeSetResult)
+
+    def awsConfigurationProperties = new AwsConfigurationProperties()
+    awsConfigurationProperties.cloudformation.changeSetsIncludeNestedStacks = true
+
+    def stackId = "stackId"
+    def op = new DeployCloudFormationAtomicOperation(
+      new DeployCloudFormationDescription(
+        [
+          stackName: "stackTest",
+          region: "eu-west-1",
+          templateBody: 'key: "value"',
+          roleARN: roleARN,
+          parameters: [ key: "value" ],
+          tags: [ key: "value" ],
+          capabilities: ["cap1", "cap2"],
+          credentials: TestCredential.named("test"),
+          isChangeSet: true,
+          changeSetName: "changeSetTest"
+        ]
+      )
+    )
+    op.amazonClientProvider = amazonClientProvider
+    op.awsConfigurationProperties = awsConfigurationProperties
+    op.objectMapper = new ObjectMapper()
+
+    when:
+    op.operate([])
+
+    then:
+    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> {
+      if (existingStack) {
+        new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
+      } else {
+        new DescribeStacksResult().withStacks([] as Collection)
+      }
+    }
+    1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
+      assert request.getStackName() == "stackTest"
+      assert request.getTemplateBody() == 'key: "value"'
+      assert request.getRoleARN() == expectedRoleARN
+      assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
+      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
+      assert request.getCapabilities() == ["cap1", "cap2"]
+      assert request.getChangeSetName() == "changeSetTest"
+      assert request.getChangeSetType() == changeSetType
+      assert request.isIncludeNestedStacks() == true
       createChangeSetResult
     }
     1 * createChangeSetResult.getStackId() >> stackId

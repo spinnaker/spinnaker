@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -39,6 +40,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   private static final String NO_CHANGE_STACK_ERROR_MESSAGE = "No updates";
 
   @Autowired AmazonClientProvider amazonClientProvider;
+  @Autowired AwsConfigurationProperties awsConfigurationProperties;
 
   @Autowired
   @Qualifier("amazonObjectMapper")
@@ -191,7 +193,9 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities)
-            .withChangeSetType(changeSetType);
+            .withChangeSetType(changeSetType)
+            .withIncludeNestedStacks(
+                awsConfigurationProperties.getCloudformation().getChangeSetsIncludeNestedStacks());
     if (StringUtils.hasText(roleARN)) {
       createChangeSetRequest.setRoleARN(roleARN);
     }
