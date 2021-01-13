@@ -832,6 +832,8 @@ const Action = (props: {
             <dd>{redirectConfig.port}</dd>
             <dt>Protocol</dt>
             <dd>{redirectConfig.protocol}</dd>
+            <dt>Query</dt>
+            <dd>{redirectConfig.query}</dd>
             <dt>Status Code</dt>
             <dd>{redirectConfig.statusCode}</dd>
             <dt>
