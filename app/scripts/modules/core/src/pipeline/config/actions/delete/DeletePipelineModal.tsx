@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { isEmpty, set } from 'lodash';
+import { isEmpty, set, get } from 'lodash';
 import { $log } from 'ngimport';
 
 import { Application } from 'core/application';
@@ -49,7 +49,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         $log.warn(response);
         setDeleting(false);
         setDeleteError(true);
-        setErrorMessage(response.message || 'No message provided');
+        setErrorMessage(get(response, 'data.message', 'No message provided'));
       },
     );
   }

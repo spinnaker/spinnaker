@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+import { get } from 'lodash';
 
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
@@ -20,7 +21,7 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
       () => closeModal(),
       (response) => {
         setSaveError(true);
-        setErrorMessage(response.message || 'No message provided');
+        setErrorMessage(get(response, 'data.message', 'No message provided'));
       },
     );
   }

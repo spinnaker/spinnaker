@@ -1,5 +1,5 @@
 import React from 'react';
-import { map, without } from 'lodash';
+import { map, without, get } from 'lodash';
 import { Modal } from 'react-bootstrap';
 import { Form } from 'formik';
 
@@ -51,7 +51,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
       (response) => {
         setSaving(false);
         setSaveError(true);
-        setErrorMessage(response.message || 'No message provided');
+        setErrorMessage(get(response, 'data.message', 'No message provided'));
       },
     );
   }
