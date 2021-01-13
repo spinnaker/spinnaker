@@ -70,6 +70,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
                   .computeIfAbsent("restartDetails", k -> new HashMap<String, Object>());
       restartDetails.put("previousBuildInfo", buildInfo);
     }
+    stage.getContext().remove("queuedBuild");
     stage.getContext().remove("buildInfo");
     stage.getContext().remove("buildNumber");
   }
