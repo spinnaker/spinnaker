@@ -16,5 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataProvider
+
 class NullOpUserDataProvider implements UserDataProvider {
 }

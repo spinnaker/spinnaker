@@ -27,9 +27,11 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHa
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.DefaultScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.DefaultUserDataTokenizer
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvider
-import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.event.DefaultAfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -40,7 +42,10 @@ import com.netflix.spinnaker.clouddriver.aws.security.*
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataTokenizer
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.saga.config.SagaAutoConfiguration
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -55,6 +60,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.*
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
@@ -104,9 +111,23 @@ class AwsConfiguration {
   }
 
   @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
+  static DefaultUserDataTokenizer defaultUserDataTokenizer() {
+    return new DefaultUserDataTokenizer()
+  }
+
+  @Bean
+  UserDataProviderAggregator userDataProviderAggregator(List<UserDataProvider> userDataProviders,
+                                                        List<UserDataTokenizer> userDataTokenizers) {
+    return new UserDataProviderAggregator(userDataProviders, userDataTokenizers)
+  }
+
+  @Bean
   @ConditionalOnProperty(value = 'udf.enabled', matchIfMissing = true)
-  UserDataProvider userDataProvider() {
-    new LocalFileUserDataProvider()
+  UserDataProvider localFileUserDataProvider(LocalFileUserDataProperties localFileUserDataProperties,
+                                                      Front50Service front50Service,
+                                                      DefaultUserDataTokenizer defaultUserDataTokenizer) {
+    return new LocalFileUserDataProvider(localFileUserDataProperties, front50Service, defaultUserDataTokenizer)
   }
 
   @Bean

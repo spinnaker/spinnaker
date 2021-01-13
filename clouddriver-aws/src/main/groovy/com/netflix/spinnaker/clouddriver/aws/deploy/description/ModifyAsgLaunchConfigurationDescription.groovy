@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -40,6 +41,7 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
   List<String> classicLinkVpcSecurityGroups
   Boolean legacyUdf
   String base64UserData
+  UserDataOverride userDataOverride = new UserDataOverride()
 
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups

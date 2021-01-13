@@ -125,7 +125,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     } else {
       newSettings = newSettings.copyWith(suffix: null)
       def name = Names.parseName(description.asgName)
-      def newLc = lcBuilder.buildLaunchConfiguration(name.app, description.subnetType, newSettings, description.legacyUdf)
+      def newLc = lcBuilder.buildLaunchConfiguration(name.app, description.subnetType, newSettings, description.legacyUdf, description.getUserDataOverride())
 
       resultLaunchConfigName = newLc
       def autoScaling = regionScopedProvider.autoScaling

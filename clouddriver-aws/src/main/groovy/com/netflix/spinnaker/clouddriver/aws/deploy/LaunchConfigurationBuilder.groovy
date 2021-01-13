@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy
 
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.Immutable
 
@@ -64,7 +65,8 @@ interface LaunchConfigurationBuilder {
    * @param subnetType the subnet type for security groups in the launch configuration
    * @param settings the settings for the launch configuration
    * @param whether to explicitly use or not use legacyUdf mode - can be null which will fall through to application default
+   * @param userDataOverride - whether to allow the user supplied user data to override any default user data
    * @return the name of the new launch configuration
    */
-  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf)
+  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf, UserDataOverride userDataOverride)
 }

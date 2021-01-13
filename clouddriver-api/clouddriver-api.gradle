@@ -23,6 +23,7 @@ dependencies {
   api("com.netflix.spinnaker.kork:kork-plugins-api")
   api("com.netflix.spinnaker.kork:kork-credentials-api")
 
+  implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-moniker"
 
   compileOnly("org.projectlombok:lombok")

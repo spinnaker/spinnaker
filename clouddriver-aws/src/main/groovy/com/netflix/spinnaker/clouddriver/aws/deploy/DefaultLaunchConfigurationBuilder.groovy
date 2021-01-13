@@ -23,20 +23,19 @@ import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
-import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 
 import groovy.util.logging.Slf4j
-import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
-
-import java.nio.charset.Charset
 
 @Slf4j
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
@@ -44,18 +43,19 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   final AmazonAutoScaling autoScaling
   final AsgService asgService
   final SecurityGroupService securityGroupService
-  final List<UserDataProvider> userDataProviders
+  final UserDataProviderAggregator userDataProviderAggregator
   final LocalFileUserDataProperties localFileUserDataProperties
   final DeployDefaults deployDefaults
 
   DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService,
-                                    SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders,
+                                    SecurityGroupService securityGroupService,
+                                    UserDataProviderAggregator userDataProviderAggregator,
                                     LocalFileUserDataProperties localFileUserDataProperties,
                                     DeployDefaults deployDefaults) {
     this.autoScaling = autoScaling
     this.asgService = asgService
     this.securityGroupService = securityGroupService
-    this.userDataProviders = (userDataProviders ?: Collections.<UserDataProvider>emptyList()) as List<UserDataProvider>
+    this.userDataProviderAggregator = userDataProviderAggregator
     this.localFileUserDataProperties = localFileUserDataProperties
     this.deployDefaults = deployDefaults
   }
@@ -133,11 +133,11 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
    * @return the name of the new launch configuration
    */
   @Override
-  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf) {
+  String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf, UserDataOverride userDataOverride) {
     settings = setAppSecurityGroup(application, subnetType, deployDefaults, securityGroupService, settings)
 
     String name = createName(settings)
-    String userData = getUserData(name, settings, legacyUdf)
+    String userData = getUserData(name, settings, legacyUdf, userDataOverride)
     createLaunchConfiguration(name, userData, settings)
   }
 
@@ -169,16 +169,24 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
   }
 
-  private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
-    String data = userDataProviders?.collect { udp ->
-      udp.getUserData(launchConfigName, settings, legacyUdf)
-    }?.join("\n")
-    String userDataDecoded = new String((settings.base64UserData ?: '').decodeBase64(), Charset.forName("UTF-8"))
-    data = [data, userDataDecoded].findResults { it }.join("\n")
-    if (data && data.startsWith("\n")) {
-      data = data.trim()
-    }
-    data ? new String(Base64.encodeBase64(data.bytes),  Charset.forName("UTF-8")) : null
+  private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf, UserDataOverride userDataOverride) {
+    UserDataInput userDataRequest =
+      UserDataInput.builder()
+        .launchTemplate(false)
+        .asgName(settings.baseName)
+        .launchSettingName(launchConfigName)
+        .region(settings.region)
+        .account(settings.account)
+        .accountType(settings.accountType)
+        .environment(settings.environment)
+        .iamRole(settings.iamRole)
+        .imageId(settings.ami)
+        .legacyUdf(legacyUdf)
+        .userDataOverride(userDataOverride)
+        .base64UserData(settings.base64UserData)
+        .build()
+
+    return userDataProviderAggregator.aggregate(userDataRequest)
   }
 
   static LaunchConfigurationSettings setAppSecurityGroup(

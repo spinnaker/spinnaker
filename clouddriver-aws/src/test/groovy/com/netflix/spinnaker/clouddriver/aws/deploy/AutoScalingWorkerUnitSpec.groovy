@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -58,6 +59,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   def asgLifecycleHookWorker = Mock(AsgLifecycleHookWorker)
   def dynamicConfigService = Mock(DynamicConfigService)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
+  def userDataOverride = new UserDataOverride()
   def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getAutoScaling() >> autoScaling
@@ -85,12 +87,13 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
     mockAutoScalingWorker.sequence = sequence
     mockAutoScalingWorker.dynamicConfigService = dynamicConfigService
+    mockAutoScalingWorker.userDataOverride = userDataOverride
 
     when:
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> launchConfigName
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null, userDataOverride) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, launchConfigName, null) >> {}
     (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
     0 * clusterProvider._
@@ -120,7 +123,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     and:
     mockAutoScalingWorker.setLaunchTemplate = true
     regionScopedProvider.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
-      createLaunchTemplate(_,_,_,_,_) >> new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
+      createLaunchTemplate(_,_,_,_,_,_) >> new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
     }
 
     when:
@@ -170,7 +173,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
-    1 * launchTemplateService.createLaunchTemplate(_,_,_,_,_) >>
+    1 * launchTemplateService.createLaunchTemplate(_,_,_,_,_,_) >>
       new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
     1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
       new Cluster.SimpleCluster(type: 'aws', serverGroups: [
@@ -195,14 +198,15 @@ class AutoScalingWorkerUnitSpec extends Specification {
       credentials: credential,
       application: "myasg",
       region: "us-east-1",
-      dynamicConfigService: dynamicConfigService
+      dynamicConfigService: dynamicConfigService,
+      userDataOverride: userDataOverride
     )
 
     when:
     String asgName = autoScalingWorker.deploy()
 
     then:
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> 'lcName'
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null, userDataOverride) >> 'lcName'
     1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
       new Cluster.SimpleCluster(type: 'aws', serverGroups: [
         sG('myasg-v011', 0, 'us-east-1'), sG('myasg-v099', 1, 'us-west-1')
@@ -324,7 +328,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
       application: "myasg",
       region: "us-east-1",
       classicLoadBalancers: ["one", "two"],
-      dynamicConfigService: dynamicConfigService
+      dynamicConfigService: dynamicConfigService,
+      userDataOverride: userDataOverride
     )
 
     when:
@@ -332,7 +337,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     noExceptionThrown()
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null, userDataOverride) >> "myasg-12345"
     1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
     1 * autoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult(
@@ -359,7 +364,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
       application: "myasg",
       region: "us-east-1",
       classicLoadBalancers: ["one", "two"],
-      dynamicConfigService: dynamicConfigService
+      dynamicConfigService: dynamicConfigService,
+      userDataOverride: userDataOverride
     )
 
     when:
@@ -367,7 +373,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     thrown(AlreadyExistsException)
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null, userDataOverride) >> "myasg-12345"
     _ * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
     _ * autoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult(
@@ -393,7 +399,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
       application: "myasg",
       region: "us-east-1",
       classicLoadBalancers: ["one", "two"],
-      dynamicConfigService: dynamicConfigService
+      dynamicConfigService: dynamicConfigService,
+      userDataOverride: userDataOverride
     )
 
     when:
@@ -401,7 +408,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     thrown(AlreadyExistsException)
-    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null, userDataOverride) >> "myasg-12345"
     _ * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
     _ * autoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult(

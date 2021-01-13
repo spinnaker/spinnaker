@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
 import com.amazonaws.services.ec2.model.Image
+import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -160,13 +161,15 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       existing
     }
 
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.ami == newAmi
       assert settings.iamRole == existing.iamRole
       assert settings.suffix == null
       assert legacyUdf == null
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
@@ -223,12 +226,14 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
       existing
     }
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.suffix == null
       assert settings.instanceMonitoring == false
       assert legacyUdf == null
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
@@ -281,12 +286,14 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
       existing
     }
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.suffix == null
       assert settings.classicLinkVpcId == "vpc-456"
       assert legacyUdf == null
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
@@ -333,8 +340,10 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
       existing
     }
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert settings.securityGroups == ['sg-1', 'sg-2', 'sg-3']
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
       return newLc
     }
 
@@ -381,7 +390,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       existing
     }
 
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.iamRole == existing.iamRole
@@ -389,6 +398,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       assert legacyUdf == null
       assert settings.instanceType == 'm4.xlarge'
       assert settings.blockDevices == blockDeviceConfig.getBlockDevicesForInstanceType('m4.xlarge')
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
@@ -446,7 +457,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       existing
     }
 
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.iamRole == existing.iamRole
@@ -454,6 +465,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       assert legacyUdf == null
       assert settings.instanceType == 'm4.xlarge'
       assert settings.blockDevices == blockDevices
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
@@ -513,7 +526,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       existing
     }
 
-    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _, _) >> { appName, subnetType, settings, legacyUdf, userDataOverride ->
       assert appName == app
       assert subnetType == null
       assert settings.iamRole == existing.iamRole
@@ -521,6 +534,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       assert legacyUdf == null
       assert settings.instanceType == 'm4.xlarge'
       assert settings.blockDevices == blockDeviceConfig.getBlockDevicesForInstanceType('m4.xlarge')
+      assert userDataOverride.isEnabled() == false
+      assert userDataOverride.getTokenizerName() == "default"
 
       return newLc
     }
