@@ -43,7 +43,10 @@ export interface IAWSProviderSettings extends IProviderSettings {
   minRootVolumeSize?: number;
   serverGroups?: {
     enableLaunchTemplates?: boolean;
+    // Enables IPv6 as an advanced setting
     enableIPv6?: boolean;
+    // If `enableIPv6` is true, will automatically opt asgs in the test environment into IPv6
+    setIPv6InTest?: boolean;
     enableIMDSv2?: boolean;
     defaultIMDSv2AppAgeLimit?: number;
     enableCpuCredits?: boolean;
