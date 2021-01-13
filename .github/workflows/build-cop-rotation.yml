@@ -29,7 +29,7 @@ jobs:
           schedule extend --stop ${{ steps.dates.outputs.day60 }} --prune --github spinnaker,build-cops,${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }} --schedule .github/build-cop/schedule.yaml --domains google.com,netflix.com,armory.io .github/build-cop/schedule.yaml
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v2
+      uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
         title: "Extend build cop schedule to ${{ steps.dates.outputs.day60 }}"
