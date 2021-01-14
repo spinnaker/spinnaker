@@ -294,7 +294,20 @@ class ApplicationLoadBalancerHandler(
           "isInternal" to internal,
           "idleTimeout" to idleTimeout.seconds,
           "securityGroups" to dependencies.securityGroupNames,
-          "listeners" to listeners,
+          "listeners" to listeners.map {
+            mapOf(
+              "port" to it.port,
+              "protocol" to it.protocol,
+              "rules" to it.rules,
+              "defaultActions" to it.defaultActions,
+            ).run {
+              if (it.certificateArn == null) {
+                this
+              } else {
+                this + mapOf("certificates" to listOf(mapOf("certificateArn" to it.certificateArn)))
+              }
+            }
+          },
           "targetGroups" to targetGroups.map {
             mapOf(
               "name" to it.name,

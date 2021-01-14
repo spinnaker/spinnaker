@@ -1,11 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
-import com.netflix.spinnaker.keel.api.ec2.TargetGroupAttributes
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
@@ -46,6 +45,7 @@ import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.getValue
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -92,13 +92,14 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     |    - us-east-1d
     |listeners:
     | - port: 80
-    |   protocol: HTTP
+    |   protocol: HTTPS
+    |   certificateArn: this-is-my-certificate
     |targetGroups:
     | - name: managedogge-wow-tg
     |   port: 7001
     """.trimMargin()
 
-  private val spec = yamlMapper.readValue(yaml, ApplicationLoadBalancerSpec::class.java)
+  private val spec = yamlMapper.readValue<ApplicationLoadBalancerSpec>(yaml)
   private val resource = resource(
     kind = EC2_APPLICATION_LOAD_BALANCER_V1_1.kind,
     spec = spec
@@ -122,8 +123,12 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     listeners = listOf(
       ApplicationLoadBalancerListener(
         port = 80,
-        protocol = "HTTP",
-        certificates = null,
+        protocol = "HTTPS",
+        certificates = listOf(
+          ApplicationLoadBalancerModel.Certificate(
+            certificateArn = "this-is-my-certificate"
+          )
+        ),
         rules = emptyList(),
         defaultActions = listOf(
           ApplicationLoadBalancerModel.Action(
@@ -212,10 +217,18 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
           get("type").isEqualTo("upsertLoadBalancer")
         }
 
-        val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancerSpec.Listener>
+        val listeners = slot.captured.job.first()["listeners"] as Collection<Map<String, Any?>>
 
         expectThat(listeners.first()) {
-          get { defaultActions.first() }.isEqualTo(model().listeners.first().defaultActions.first().toEc2Api())
+          get("defaultActions")
+            .isA<Collection<*>>()
+            .first()
+            .isEqualTo(model().listeners.first().defaultActions.first().toEc2Api())
+          get("certificates")
+            .isA<Collection<Map<String, Any?>>>()
+            .first()
+            .get("certificateArn")
+            .isEqualTo(model().listeners.first().certificates?.first()?.certificateArn)
         }
       }
     }
