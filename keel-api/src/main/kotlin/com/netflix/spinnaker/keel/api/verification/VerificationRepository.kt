@@ -64,4 +64,6 @@ data class VerificationContext(
     deliveryConfig.artifacts.first { it.reference == artifactReference }
 
   val verifications: Collection<Verification> = environment.verifyWith
+
+  fun verification(id: String): Verification = verifications.first { it.id == id }
 }

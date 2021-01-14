@@ -21,10 +21,13 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.Record1
 import org.jooq.Select
+import org.jooq.impl.DSL.function
 import org.jooq.impl.DSL.isnull
 import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.value
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
@@ -192,16 +195,39 @@ class SqlVerificationRepository(
           }
         }
         .run {
-          // we only want to overwrite metadata if new metadata was supplied
-          // TODO: figure out how to use MySQL's json_merge function in JOOQ
           if (metadata.isNotEmpty()) {
-            set(VERIFICATION_STATE.METADATA, metadata)
+            set(VERIFICATION_STATE.METADATA, jsonSet(VERIFICATION_STATE.METADATA, metadata))
           } else {
             this
           }
         }
         .execute()
     }
+  }
+
+  /**
+   * JOOQ-ified access to MySQL's `json_set` function.
+   *
+   * Updates [field] with [values] retaining any existing entries that are not present in [values].
+   *
+   * @see https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-set
+   */
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> jsonSet(field: Field<T>, values: Map<String, Any?>): Field<T> {
+    require(values.isNotEmpty()) {
+      "MySQL's JSON_SET function cannot be used without values"
+    }
+    return function(
+      "json_set",
+      Map::class.java,
+      field,
+      *values.flatMap {
+        listOf(
+          value("\$.${it.key}"),
+          value(it.value)
+        )
+      }.toTypedArray()
+    ) as Field<T>
   }
 
   private fun currentTimestamp() = clock.instant()

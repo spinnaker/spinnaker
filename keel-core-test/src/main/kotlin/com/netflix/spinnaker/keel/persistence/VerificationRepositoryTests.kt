@@ -4,6 +4,8 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
@@ -170,6 +172,50 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       .isNotNull()
       .with(VerificationState::status) { isEqualTo(PASS) }
       .with(VerificationState::metadata) { isEqualTo(metadata) }
+  }
+
+  @Test
+  fun `successive updates can add and update metadata`() {
+    val verification = DummyVerification("1")
+    val context = VerificationContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(
+            name = "fnord",
+            deliveryConfigName = "fnord-manifest",
+            reference = "fnord-docker"
+          )
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(verification)
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    context.setup()
+
+    subject.updateState(context, verification, PENDING)
+    val initialMetadata = mapOf("taskId" to ULID().nextULID())
+    subject.updateState(context, verification, FAIL, initialMetadata)
+    val newMetadata = mapOf("overriddenBy" to "flzlem@netflix.com", "comment" to "flaky test!")
+    subject.updateState(context, verification, OVERRIDE_PASS, newMetadata)
+
+    expectCatching {
+      subject.getState(context, verification)
+    }
+      .isSuccess()
+      .isNotNull()
+      .with(VerificationState::status) { isEqualTo(OVERRIDE_PASS) }
+      .with(VerificationState::metadata) { isEqualTo(initialMetadata + newMetadata) }
   }
 
   @Test
