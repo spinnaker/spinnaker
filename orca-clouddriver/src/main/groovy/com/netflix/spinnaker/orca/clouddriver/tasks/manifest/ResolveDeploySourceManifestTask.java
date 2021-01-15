@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,6 +43,8 @@ public final class ResolveDeploySourceManifestTask implements Task {
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull StageExecution stage) {
+    List<Object> manifests = flattenNestedLists(stage.getContext().get("manifests"));
+    stage.getContext().put("manifests", manifests);
     DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     ImmutableMap<String, Object> outputs = getOutputs(result);
@@ -53,5 +57,22 @@ public final class ResolveDeploySourceManifestTask implements Task {
         .put("requiredArtifacts", result.getRequiredArtifacts())
         .put("optionalArtifacts", result.getOptionalArtifacts())
         .build();
+  }
+
+  // DeployManifestContext only accepts List<Map<Object, Object>>,
+  // Spel is not flattening nested List anymore
+  // We flatten them because its possible have a List of manifests resolved by spel
+  private List<Object> flattenNestedLists(Object manifests) {
+    List<Object> result = new ArrayList<>();
+    List<Object> tmp = (List<Object>) manifests;
+
+    for (Object obj : tmp) {
+      if (obj instanceof List) {
+        result.addAll(flattenNestedLists(obj));
+      } else {
+        result.add(obj);
+      }
+    }
+    return result;
   }
 }
