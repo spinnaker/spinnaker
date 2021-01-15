@@ -463,6 +463,9 @@ export class AwsLoadBalancerTransformer {
             healthCheckPath: targetGroup.healthCheckPath,
             attributes: {
               deregistrationDelay: Number(targetGroup.attributes['deregistration_delay.timeout_seconds']),
+              deregistrationDelayConnectionTermination: Boolean(
+                targetGroup.attributes['deregistration_delay.connection_termination.enabled'] === 'true',
+              ),
             },
           };
         });

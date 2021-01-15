@@ -13,6 +13,7 @@ import {
   ValidationMessage,
   FormValidator,
   Validators,
+  CheckboxInput,
 } from '@spinnaker/core';
 import { isNameLong, isNameInUse } from '../common/targetGroupValidators';
 
@@ -386,6 +387,21 @@ export class TargetGroups
                                 )
                               }
                             />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <CheckboxInput
+                              name="deregistrationDelayConnectionTermination"
+                              text="Connection Termination"
+                              checked={targetGroup.attributes.deregistrationDelayConnectionTermination}
+                              onChange={(event: { target: { checked: boolean } }) => {
+                                this.targetGroupFieldChanged(
+                                  index,
+                                  'attributes.deregistrationDelayConnectionTermination',
+                                  event.target.checked,
+                                );
+                              }}
+                            />
+                            <HelpField id="aws.targetGroup.attributes.deregistrationDelayConnectionTermination" />
                           </span>
                         </div>
                       </div>

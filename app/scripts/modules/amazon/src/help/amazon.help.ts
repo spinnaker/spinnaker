@@ -114,6 +114,8 @@ const helpContents: { [key: string]: string } = {
   'aws.targetGroup.attributes.deregistrationDelay':
     'The amount of time for the load balancer to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.',
   'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
+  'aws.targetGroup.attributes.deregistrationDelayConnectionTermination':
+    'If enabled, your Network Load Balancer will terminate active connections when deregistration delay is reached.',
   'aws.targetGroup.attributes.stickinessType':
     'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',
   'aws.targetGroup.attributes.stickinessDuration':
