@@ -30,7 +30,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class IvyArtifactAccount implements ArtifactAccount {
+public class IvyArtifactAccount implements ArtifactAccount {
   private final String name;
   @Nullable private final IvySettings settings;
 

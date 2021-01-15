@@ -41,7 +41,8 @@ import org.slf4j.LoggerFactory;
 
 @NonnullByDefault
 @Slf4j
-final class IvyArtifactCredentials implements ArtifactCredentials {
+public class IvyArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-ivy";
   @Getter private final ImmutableList<String> types = ImmutableList.of("ivy/file");
   private final IvyArtifactAccount account;
   private final Supplier<Path> cacheBuilder;
@@ -147,5 +148,10 @@ final class IvyArtifactCredentials implements ArtifactCredentials {
   @Override
   public String getName() {
     return account.getName();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

@@ -24,7 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class OracleArtifactCredentials implements ArtifactCredentials {
+public class OracleArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-oracle";
   private static final String ARTIFACT_REFERENCE_PREFIX = "oci://";
   private static final String ARTIFACT_VERSION_QUERY_PARAM = "versionId";
   private static final String ARTIFACT_URI =
@@ -91,5 +92,10 @@ final class OracleArtifactCredentials implements ArtifactCredentials {
       }
       throw e;
     }
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

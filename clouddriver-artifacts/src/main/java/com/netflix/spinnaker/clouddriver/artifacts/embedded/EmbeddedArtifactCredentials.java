@@ -32,6 +32,7 @@ import org.apache.commons.lang3.NotImplementedException;
 @NonnullByDefault
 @Slf4j
 final class EmbeddedArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-embedded";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("embedded/base64");
 
@@ -59,5 +60,10 @@ final class EmbeddedArtifactCredentials implements ArtifactCredentials {
   @Override
   public boolean handlesType(String type) {
     return type.startsWith("embedded/");
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

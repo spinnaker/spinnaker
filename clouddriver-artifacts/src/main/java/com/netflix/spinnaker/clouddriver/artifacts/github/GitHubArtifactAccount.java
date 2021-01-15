@@ -30,7 +30,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
+public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
   private String name;
   /*
    One of the following are required for auth:

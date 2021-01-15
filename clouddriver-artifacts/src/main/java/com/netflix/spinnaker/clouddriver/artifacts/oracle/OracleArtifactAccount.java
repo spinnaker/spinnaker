@@ -19,7 +19,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class OracleArtifactAccount implements ArtifactAccount {
+public class OracleArtifactAccount implements ArtifactAccount {
   private final String name;
   private final String namespace;
   private final String region;

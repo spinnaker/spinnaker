@@ -32,7 +32,8 @@ import lombok.Getter;
 
 @NonnullByDefault
 @Slf4j
-final class S3ArtifactCredentials implements ArtifactCredentials {
+public class S3ArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-s3";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("s3/object");
 
@@ -88,5 +89,10 @@ final class S3ArtifactCredentials implements ArtifactCredentials {
     String path = reference.substring(slash + 1);
     S3Object s3obj = getS3Client().getObject(bucketName, path);
     return s3obj.getObjectContent();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

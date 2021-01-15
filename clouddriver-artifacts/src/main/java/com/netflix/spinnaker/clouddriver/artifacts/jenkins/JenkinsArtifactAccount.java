@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class JenkinsArtifactAccount implements ArtifactAccount, BasicAuth {
+public class JenkinsArtifactAccount implements ArtifactAccount, BasicAuth {
   private final String name;
   private final Optional<String> username;
   private final Optional<String> password;

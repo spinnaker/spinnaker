@@ -31,8 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount>
+public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount>
     implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-gitlab";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("gitlab/file");
 
@@ -62,5 +63,10 @@ final class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<Gitl
       version = "master";
     }
     return parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

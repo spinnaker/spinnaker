@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,18 +33,22 @@ class S3ArtifactConfiguration {
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
 
   @Bean
-  List<? extends S3ArtifactCredentials> s3ArtifactCredentials() {
-    return s3ArtifactProviderProperties.getAccounts().stream()
-        .map(
+  public CredentialsTypeProperties<S3ArtifactCredentials, S3ArtifactAccount>
+      s3CredentialsProperties() {
+    return CredentialsTypeProperties.<S3ArtifactCredentials, S3ArtifactAccount>builder()
+        .type(S3ArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(S3ArtifactCredentials.class)
+        .credentialsDefinitionClass(S3ArtifactAccount.class)
+        .defaultCredentialsSource(s3ArtifactProviderProperties::getAccounts)
+        .credentialsParser(
             a -> {
               try {
                 return new S3ArtifactCredentials(a);
-              } catch (IllegalArgumentException e) {
+              } catch (Exception e) {
                 log.warn("Failure instantiating s3 artifact account {}: ", a, e);
                 return null;
               }
             })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .build();
   }
 }

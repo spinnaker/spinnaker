@@ -49,6 +49,7 @@ import org.eclipse.aether.version.VersionScheme;
 
 @NonnullByDefault
 public final class MavenArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-maven";
   private static final String RELEASE = "RELEASE";
   private static final String SNAPSHOT = "SNAPSHOT";
   private static final String LATEST = "LATEST";
@@ -83,6 +84,11 @@ public final class MavenArtifactCredentials implements ArtifactCredentials {
   @Override
   public String getName() {
     return account.getName();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 
   @Override

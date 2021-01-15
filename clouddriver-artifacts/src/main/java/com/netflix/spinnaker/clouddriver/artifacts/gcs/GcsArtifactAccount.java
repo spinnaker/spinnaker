@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class GcsArtifactAccount implements ArtifactAccount {
+public class GcsArtifactAccount implements ArtifactAccount {
   private final String name;
   private final Optional<String> jsonPath;
 

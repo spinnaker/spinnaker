@@ -17,8 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.kubernetes;
 
-import java.util.Collections;
-import java.util.List;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,8 +32,13 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 class KubernetesArtifactConfiguration {
   @Bean
-  List<? extends KubernetesArtifactCredentials> kubernetesArtifactAccounts() {
-    return Collections.singletonList(
-        new KubernetesArtifactCredentials(new KubernetesArtifactAccount()));
+  public CredentialsRepository<KubernetesArtifactCredentials>
+      kubernetesArtifactCredentialsRepository() {
+    CredentialsRepository<KubernetesArtifactCredentials> repository =
+        new MapBackedCredentialsRepository<>(
+            KubernetesArtifactCredentials.CREDENTIALS_TYPE,
+            new NoopCredentialsLifecycleHandler<>());
+    repository.save(new KubernetesArtifactCredentials(new KubernetesArtifactAccount()));
+    return repository;
   }
 }

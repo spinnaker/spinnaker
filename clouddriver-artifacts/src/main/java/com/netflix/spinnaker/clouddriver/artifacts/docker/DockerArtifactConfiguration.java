@@ -17,8 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
-import java.util.Collections;
-import java.util.List;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,8 +31,13 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 @Slf4j
 class DockerArtifactConfiguration {
+
   @Bean
-  List<? extends DockerArtifactCredentials> dockerArtifactCredentials() {
-    return Collections.singletonList(new DockerArtifactCredentials(new DockerArtifactAccount()));
+  public CredentialsRepository<DockerArtifactCredentials> dockerArtifactCredentialsRepository() {
+    CredentialsRepository<DockerArtifactCredentials> repository =
+        new MapBackedCredentialsRepository<>(
+            DockerArtifactCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
+    repository.save(new DockerArtifactCredentials(new DockerArtifactAccount()));
+    return repository;
   }
 }

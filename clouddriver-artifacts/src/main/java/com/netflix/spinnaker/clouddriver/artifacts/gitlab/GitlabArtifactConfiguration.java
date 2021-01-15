@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.squareup.okhttp.OkHttpClient;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,9 +34,14 @@ class GitlabArtifactConfiguration {
   private final GitlabArtifactProviderProperties gitlabArtifactProviderProperties;
 
   @Bean
-  List<? extends GitlabArtifactCredentials> gitlabArtifactCredentials(OkHttpClient okHttpClient) {
-    return gitlabArtifactProviderProperties.getAccounts().stream()
-        .map(
+  public CredentialsTypeProperties<GitlabArtifactCredentials, GitlabArtifactAccount>
+      gitlabCredentialsProperties(OkHttpClient okHttpClient) {
+    return CredentialsTypeProperties.<GitlabArtifactCredentials, GitlabArtifactAccount>builder()
+        .type(GitlabArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(GitlabArtifactCredentials.class)
+        .credentialsDefinitionClass(GitlabArtifactAccount.class)
+        .defaultCredentialsSource(gitlabArtifactProviderProperties::getAccounts)
+        .credentialsParser(
             a -> {
               try {
                 return new GitlabArtifactCredentials(a, okHttpClient);
@@ -47,7 +50,6 @@ class GitlabArtifactConfiguration {
                 return null;
               }
             })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .build();
   }
 }

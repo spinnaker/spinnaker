@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,9 +33,14 @@ class IvyArtifactConfiguration {
   private final IvyArtifactProviderProperties ivyArtifactProviderProperties;
 
   @Bean
-  List<? extends IvyArtifactCredentials> ivyArtifactCredentials() {
-    return ivyArtifactProviderProperties.getAccounts().stream()
-        .map(
+  public CredentialsTypeProperties<IvyArtifactCredentials, IvyArtifactAccount>
+      ivyCredentialsProperties() {
+    return CredentialsTypeProperties.<IvyArtifactCredentials, IvyArtifactAccount>builder()
+        .type(IvyArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(IvyArtifactCredentials.class)
+        .credentialsDefinitionClass(IvyArtifactAccount.class)
+        .defaultCredentialsSource(ivyArtifactProviderProperties::getAccounts)
+        .credentialsParser(
             a -> {
               try {
                 return new IvyArtifactCredentials(a);
@@ -46,7 +49,6 @@ class IvyArtifactConfiguration {
                 return null;
               }
             })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .build();
   }
 }

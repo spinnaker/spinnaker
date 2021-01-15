@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @NonnullByDefault
 @Value
 final class DockerArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-docker";
   public static final String TYPE = "docker/image";
 
   private final String name;
@@ -41,5 +42,10 @@ final class DockerArtifactCredentials implements ArtifactCredentials {
   public InputStream download(Artifact artifact) {
     throw new UnsupportedOperationException(
         "Docker references are passed on to cloud platforms who retrieve images directly");
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

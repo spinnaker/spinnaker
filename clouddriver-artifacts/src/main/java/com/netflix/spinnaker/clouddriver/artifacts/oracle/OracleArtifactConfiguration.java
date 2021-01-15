@@ -9,9 +9,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,10 +26,14 @@ class OracleArtifactConfiguration {
   private final OracleArtifactProviderProperties oracleArtifactProviderProperties;
 
   @Bean
-  List<? extends OracleArtifactCredentials> oracleArtifactCredentials(
-      String clouddriverUserAgentApplicationName) {
-    return oracleArtifactProviderProperties.getAccounts().stream()
-        .map(
+  public CredentialsTypeProperties<OracleArtifactCredentials, OracleArtifactAccount>
+      oracleCredentialsProperties(String clouddriverUserAgentApplicationName) {
+    return CredentialsTypeProperties.<OracleArtifactCredentials, OracleArtifactAccount>builder()
+        .type(OracleArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(OracleArtifactCredentials.class)
+        .credentialsDefinitionClass(OracleArtifactAccount.class)
+        .defaultCredentialsSource(oracleArtifactProviderProperties::getAccounts)
+        .credentialsParser(
             a -> {
               try {
                 return new OracleArtifactCredentials(clouddriverUserAgentApplicationName, a);
@@ -40,7 +42,6 @@ class OracleArtifactConfiguration {
                 return null;
               }
             })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .build();
   }
 }

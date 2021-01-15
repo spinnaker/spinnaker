@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Value
 @NonnullByDefault
 final class KubernetesArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-kubernetes";
   private final String name;
   private final ImmutableList<String> types;
 
@@ -47,5 +48,10 @@ final class KubernetesArtifactCredentials implements ArtifactCredentials {
   public InputStream download(Artifact artifact) {
     throw new UnsupportedOperationException(
         "Kubernetes artifacts are retrieved by kubernetes directly");
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

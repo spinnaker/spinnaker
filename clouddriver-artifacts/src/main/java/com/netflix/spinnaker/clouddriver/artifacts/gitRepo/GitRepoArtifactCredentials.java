@@ -51,7 +51,8 @@ import org.eclipse.jgit.util.FS;
 
 @NonnullByDefault
 @Slf4j
-final class GitRepoArtifactCredentials implements ArtifactCredentials {
+public class GitRepoArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-git";
   @Getter private final ImmutableList<String> types = ImmutableList.of("git/repo");
 
   @Getter private final String name;
@@ -63,6 +64,11 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
   private final String sshKnownHostsFilePath;
   private final boolean sshTrustUnknownHosts;
   private final AuthType authType;
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
+  }
 
   private enum AuthType {
     HTTP,

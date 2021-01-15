@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @NonnullByDefault
 @Slf4j
 final class CustomArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-custom";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("custom/object");
 
@@ -38,5 +39,10 @@ final class CustomArtifactCredentials implements ArtifactCredentials {
   public InputStream download(Artifact artifact) {
     throw new UnsupportedOperationException(
         "Custom references are passed on to cloud platforms to handle or process");
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

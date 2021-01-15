@@ -38,8 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount>
+public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount>
     implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-github";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("github/file");
 
@@ -81,6 +82,11 @@ final class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitH
               + artifact);
     }
     return parseUrl(metadata.getDownloadUrl());
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 
   @Data

@@ -28,8 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount>
-    implements ArtifactCredentials {
+public class JenkinsArtifactCredentials
+    extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount> implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-jenkins";
   private static final String TYPE = "jenkins/file";
 
   @Getter private final String name;
@@ -70,5 +71,10 @@ final class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<Jen
               + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
     }
     return url;
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

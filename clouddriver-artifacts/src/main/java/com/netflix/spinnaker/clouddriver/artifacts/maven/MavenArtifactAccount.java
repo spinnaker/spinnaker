@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class MavenArtifactAccount implements ArtifactAccount {
+public class MavenArtifactAccount implements ArtifactAccount {
   private final String name;
   private final String repositoryUrl;
 

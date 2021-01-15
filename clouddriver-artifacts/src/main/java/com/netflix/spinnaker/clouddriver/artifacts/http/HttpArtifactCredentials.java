@@ -27,13 +27,19 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class HttpArtifactCredentials extends SimpleHttpArtifactCredentials<HttpArtifactAccount>
+public class HttpArtifactCredentials extends SimpleHttpArtifactCredentials<HttpArtifactAccount>
     implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-http";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("http/file");
 
   HttpArtifactCredentials(HttpArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);
     this.name = account.getName();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

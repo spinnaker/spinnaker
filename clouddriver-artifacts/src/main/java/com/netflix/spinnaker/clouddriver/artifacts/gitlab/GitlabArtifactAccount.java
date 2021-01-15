@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
+public class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
   private final String name;
   private final Optional<String> token;
   private final Optional<String> tokenFile;

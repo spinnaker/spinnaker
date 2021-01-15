@@ -42,7 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @NonnullByDefault
 @Slf4j
-final class GcsArtifactCredentials implements ArtifactCredentials {
+public class GcsArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-gcs";
   @Getter private final String name;
   @Getter private final ImmutableList<String> types = ImmutableList.of("gcs/object");
 
@@ -103,5 +104,10 @@ final class GcsArtifactCredentials implements ArtifactCredentials {
     Storage.Objects.Get get = storage.objects().get(bucketName, path).setGeneration(generation);
 
     return get.executeMediaAsInputStream();
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 }

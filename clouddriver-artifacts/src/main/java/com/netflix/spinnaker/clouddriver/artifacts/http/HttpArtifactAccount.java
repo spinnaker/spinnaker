@@ -30,7 +30,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
+public class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
   private final String name;
   /*
    One of the following are required for auth:

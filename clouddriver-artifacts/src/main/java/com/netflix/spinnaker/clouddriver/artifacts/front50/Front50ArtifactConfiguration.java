@@ -18,8 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.front50;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
-import java.util.Collections;
-import java.util.List;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -30,9 +31,12 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 class Front50ArtifactConfiguration {
   @Bean
-  List<? extends Front50ArtifactCredentials> front50ArtifactCredentials(
+  public CredentialsRepository<Front50ArtifactCredentials> front50ArtifactCredentialsRepository(
       ObjectMapper objectMapper, Front50Service front50Service) {
-    Front50ArtifactCredentials c = new Front50ArtifactCredentials(objectMapper, front50Service);
-    return Collections.singletonList(c);
+    CredentialsRepository<Front50ArtifactCredentials> repository =
+        new MapBackedCredentialsRepository<>(
+            Front50ArtifactCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
+    repository.save(new Front50ArtifactCredentials(objectMapper, front50Service));
+    return repository;
   }
 }

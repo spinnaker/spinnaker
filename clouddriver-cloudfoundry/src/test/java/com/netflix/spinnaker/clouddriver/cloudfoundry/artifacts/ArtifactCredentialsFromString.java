@@ -27,6 +27,7 @@ import java.util.List;
 
 @NonnullByDefault
 public class ArtifactCredentialsFromString implements ArtifactCredentials {
+  public static final String ARTIFACT_TYPE = "artifacts/string";
 
   private final String name;
   private final ImmutableList<String> types;
@@ -45,6 +46,11 @@ public class ArtifactCredentialsFromString implements ArtifactCredentials {
 
   public String getName() {
     return name;
+  }
+
+  @Override
+  public String getType() {
+    return ARTIFACT_TYPE;
   }
 
   public ImmutableList<String> getTypes() {

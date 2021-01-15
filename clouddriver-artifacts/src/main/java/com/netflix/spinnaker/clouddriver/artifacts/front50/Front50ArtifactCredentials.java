@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @NonnullByDefault
 @Slf4j
 final class Front50ArtifactCredentials implements ArtifactCredentials {
+  public static final String CREDENTIALS_TYPE = "artifacts-front50";
   private static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
@@ -104,6 +105,11 @@ final class Front50ArtifactCredentials implements ArtifactCredentials {
       throw new IllegalArgumentException("Malformed Front50 artifact reference: " + reference);
     }
     return new SplitResult(refParts[0], refParts[1]);
+  }
+
+  @Override
+  public String getType() {
+    return CREDENTIALS_TYPE;
   }
 
   @Data

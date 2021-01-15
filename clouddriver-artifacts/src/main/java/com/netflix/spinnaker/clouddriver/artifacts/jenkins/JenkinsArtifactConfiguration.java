@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.squareup.okhttp.OkHttpClient;
-import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,21 +35,29 @@ class JenkinsArtifactConfiguration {
   private final JenkinsProperties jenkinsProperties;
 
   @Bean
-  List<? extends JenkinsArtifactCredentials> jenkinsArtifactCredentials(OkHttpClient okHttpClient) {
-    return jenkinsProperties.getMasters().stream()
-        .map(
-            m -> {
+  public CredentialsTypeProperties<JenkinsArtifactCredentials, JenkinsArtifactAccount>
+      jenkinsCredentialsProperties(OkHttpClient okHttpClient) {
+    return CredentialsTypeProperties.<JenkinsArtifactCredentials, JenkinsArtifactAccount>builder()
+        .type(JenkinsArtifactCredentials.CREDENTIALS_TYPE)
+        .credentialsClass(JenkinsArtifactCredentials.class)
+        .credentialsDefinitionClass(JenkinsArtifactAccount.class)
+        .defaultCredentialsSource(
+            () ->
+                jenkinsProperties.getMasters().stream()
+                    .map(
+                        m ->
+                            new JenkinsArtifactAccount(
+                                m.getName(), m.getUsername(), m.getPassword(), m.getAddress()))
+                    .collect(Collectors.toList()))
+        .credentialsParser(
+            a -> {
               try {
-                return new JenkinsArtifactCredentials(
-                    new JenkinsArtifactAccount(
-                        m.getName(), m.getUsername(), m.getPassword(), m.getAddress()),
-                    okHttpClient);
+                return new JenkinsArtifactCredentials(a, okHttpClient);
               } catch (Exception e) {
-                log.warn("Failure instantiating jenkins artifact account {}: ", m, e);
+                log.warn("Failure instantiating jenkins artifact account {}: ", a, e);
                 return null;
               }
             })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .build();
   }
 }

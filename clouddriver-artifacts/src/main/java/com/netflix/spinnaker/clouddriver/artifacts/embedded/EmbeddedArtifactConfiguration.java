@@ -17,8 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
-import java.util.Collections;
-import java.util.List;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -29,9 +30,12 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 class EmbeddedArtifactConfiguration {
   @Bean
-  List<? extends EmbeddedArtifactCredentials> embeddedArtifactCredentials() {
-    EmbeddedArtifactAccount account = new EmbeddedArtifactAccount();
-    EmbeddedArtifactCredentials credentials = new EmbeddedArtifactCredentials(account);
-    return Collections.singletonList(credentials);
+  public CredentialsRepository<EmbeddedArtifactCredentials>
+      embeddedArtifactCredentialsRepository() {
+    CredentialsRepository<EmbeddedArtifactCredentials> repository =
+        new MapBackedCredentialsRepository<>(
+            EmbeddedArtifactCredentials.CREDENTIALS_TYPE, new NoopCredentialsLifecycleHandler<>());
+    repository.save(new EmbeddedArtifactCredentials(new EmbeddedArtifactAccount()));
+    return repository;
   }
 }

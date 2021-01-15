@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class GitRepoArtifactAccount implements ArtifactAccount {
+public class GitRepoArtifactAccount implements ArtifactAccount {
   private final String name;
   private final String username;
   private final String password;

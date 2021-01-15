@@ -29,7 +29,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth {
+public class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth {
   private final String name;
   private final Optional<String> username;
   private final Optional<String> password;

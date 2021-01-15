@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-final class S3ArtifactAccount implements ArtifactAccount {
+public class S3ArtifactAccount implements ArtifactAccount {
   private final String name;
   private final String apiEndpoint;
   private final String apiRegion;
