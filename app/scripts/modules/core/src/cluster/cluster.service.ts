@@ -110,8 +110,22 @@ export class ClusterService {
         }
       });
 
-      // splice is necessary to preserve referential equality
-      toRemove.forEach((idx) => data.splice(idx, 1));
+      // IMPORTANT!!! - toRemove must be forEach'ed in decending order, so that we splice backwards.
+      // For example, if we started with [0, 1, 2, 3, 4, 5] and wanted toRemove [0, 1],
+      // Blindly forEach'ing and splicing like so: toRemove.forEach(idx => data.splice(idx, 1))
+      // would result in the following at each step:
+      // data              // [0, 1, 2, 3, 4, 5]
+      // data.splice(0,1); // [1, 2, 3, 4, 5]
+      // data.splice(1,1); // [1, 3, 4, 5]           wait, what??
+      // If toRemove is in ascending order, every splice will cause everything to shift left
+      // and every remaning index will no longer be correct (off by 1 for every iteration)
+      // Works perfect in descending order though.
+      toRemove
+        // ensure indices are in descending order so splice can work properly
+        .sort()
+        .reverse()
+        // splice is necessary to preserve referential equality
+        .forEach((idx) => data.splice(idx, 1));
 
       // add any new ones
       serverGroups.forEach((serverGroup) => {

@@ -157,6 +157,138 @@ describe('Service: Cluster', function () {
     });
   });
 
+  describe('addServerGroupsToApplication merging to preserve referential equality', () => {
+    const asgFabricator = (x: string): IServerGroup => ({
+      cluster: `cluster-${x}`,
+      name: `cluster-${x}-v001`,
+      account: 'test',
+      region: 'us-east-1',
+      category: 'serverGroup',
+      cloudProvider: 'titus',
+      type: 'titus',
+      instances: [],
+      instanceCounts: { total: 1, up: 1, down: 0, starting: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
+    });
+
+    it('merges single new server group', () => {
+      // local data
+      application.serverGroups.data = ['mike', 'dustin', 'lucas', 'will'].map(asgFabricator);
+      // remote data
+      const serverGroups = ['mike', 'dustin', 'lucas', 'will', 'eleven'].map(asgFabricator);
+
+      const merged = clusterService.addServerGroupsToApplication(application, serverGroups);
+
+      expect(merged.find((sg) => sg.name === 'cluster-mike-v001')).toBeDefined(
+        'Existing server group should be in merged output1' + JSON.stringify(merged, null, 4),
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-dustin-v001')).toBeDefined(
+        'Existing server group should be in merged output2',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-lucas-v001')).toBeDefined(
+        'Existing server group should be in merged output3',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-will-v001')).toBeDefined(
+        'Existing server group should be in merged output4',
+      );
+
+      expect(merged.find((sg) => sg.name === 'cluster-eleven-v001')).toBeDefined(
+        'New server group should be added in merged output',
+      );
+    });
+
+    it('merges multiple new server groups', () => {
+      // local data
+      application.serverGroups.data = ['mike', 'dustin', 'lucas', 'will'].map(asgFabricator);
+      // remote data
+      const serverGroups = ['mike', 'dustin', 'lucas', 'will', 'eleven', 'hopper'].map(asgFabricator);
+
+      const merged = clusterService.addServerGroupsToApplication(application, serverGroups);
+
+      expect(merged.find((sg) => sg.name === 'cluster-mike-v001')).toBeDefined(
+        'Existing server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-dustin-v001')).toBeDefined(
+        'Existing server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-lucas-v001')).toBeDefined(
+        'Existing server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-will-v001')).toBeDefined(
+        'Existing server group should be in merged output',
+      );
+
+      expect(merged.find((sg) => sg.name === 'cluster-eleven-v001')).toBeDefined(
+        'New server group should be added in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-hopper-v001')).toBeDefined(
+        'New server group should be added in merged output',
+      );
+    });
+
+    it('removes single server group that no longer exists', () => {
+      // local data
+      application.serverGroups.data = ['mike', 'dustin', 'lucas', 'will', 'eleven'].map(asgFabricator);
+      // remote data
+      const serverGroups = ['mike', 'dustin', 'lucas', 'eleven'].map(asgFabricator);
+
+      const merged = clusterService.addServerGroupsToApplication(application, serverGroups);
+
+      expect(merged.find((sg) => sg.name === 'cluster-mike-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-dustin-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-lucas-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-eleven-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+
+      expect(merged.find((sg) => sg.name === 'cluster-will-v001')).toBeUndefined(
+        'Removed server group should be absent in merged output',
+      );
+    });
+
+    it('removes multiple server group that no longer exists', () => {
+      // This test is specifically meant to catch a shifting iterative splice
+      // If we started with [0, 1, 2, 3, 4, 5] and wanted toRemove [0, 1],
+      // Blindly forEach'ing and splicing like so: toRemove.forEach(i => data.splice(i, 1))
+      // would result in the following at each step:
+      // data              // [0, 1, 2, 3, 4, 5]
+      // data.splice(0,1); // [1, 2, 3, 4, 5]
+      // data.splice(1,1); // [1, 3, 4, 5]
+      // If toRemove is in ascending order, every splice will cause everything to shift left
+      // and every remaning index will no longer be correct (off by 1 for every iteration)
+      // Works perfect in descending order though.
+
+      // local data
+      application.serverGroups.data = ['mike', 'dustin', 'lucas', 'will', 'eleven', 'hopper'].map(asgFabricator);
+      // remote data
+      const serverGroups = ['dustin', 'lucas', 'will', 'hopper'].map(asgFabricator);
+
+      const merged = clusterService.addServerGroupsToApplication(application, serverGroups);
+
+      expect(merged.find((sg) => sg.name === 'cluster-dustin-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-lucas-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-will-v001')).toBeDefined(
+        'Remaining server group should be in merged output',
+      );
+
+      expect(merged.find((sg) => sg.name === 'cluster-mike-v001')).toBeUndefined(
+        'Removed server group should be absent in merged output',
+      );
+      expect(merged.find((sg) => sg.name === 'cluster-eleven-v001')).toBeUndefined(
+        'Removed server group should be absent in merged output',
+      );
+    });
+  });
+
   describe('addTasksToServerGroups', () => {
     describe('rollback tasks', function () {
       it('attaches to source and target', function () {
