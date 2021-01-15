@@ -23,26 +23,34 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesRawResource;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.RawResourcesEndpointConfig;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesRawResourceProvider {
   private final KubernetesCacheUtils cacheUtils;
-  private final RawResourcesEndpointConfig configuration;
+  private final KubernetesAccountResolver accountResolver;
+
+  private static final Logger log = LoggerFactory.getLogger(KubernetesRawResourceProvider.class);
 
   @Autowired
   KubernetesRawResourceProvider(
-      KubernetesCacheUtils cacheUtils, KubernetesConfigurationProperties globalConfig) {
+      KubernetesCacheUtils cacheUtils, KubernetesAccountResolver accountResolver) {
     this.cacheUtils = cacheUtils;
-    this.configuration = globalConfig.getRawResourcesEndpointConfig();
-    this.configuration.validate();
+    this.accountResolver = accountResolver;
   }
 
   public Set<KubernetesRawResource> getApplicationRawResources(String application) {
@@ -56,15 +64,59 @@ public class KubernetesRawResourceProvider {
 
   private Set<KubernetesRawResource> fromRawResourceCacheData(
       Collection<CacheData> rawResourceData) {
-    Set<String> kinds = configuration.getKinds();
-    Set<String> omitKinds = configuration.getOmitKinds();
     return rawResourceData.stream()
         .map(KubernetesRawResource::fromCacheData)
         .filter(Objects::nonNull)
-        .filter(
-            resource ->
-                (kinds.isEmpty() || kinds.contains(resource.getKind().toString()))
-                    && !omitKinds.contains(resource.getKind().toString()))
+        .filter(resource -> includeInResponse(resource))
         .collect(Collectors.toSet());
+  }
+
+  private boolean includeInResponse(KubernetesRawResource resource) {
+    Optional<KubernetesCredentials> optionalCredentials =
+        this.accountResolver.getCredentials(resource.getAccount());
+
+    if (!optionalCredentials.isPresent()) {
+      log.warn("Account {} has no credentials", resource.getAccount());
+      return false;
+    }
+
+    KubernetesCredentials credentials = optionalCredentials.get();
+    ImmutableSet<KubernetesKind> omitKinds = credentials.getOmitKinds();
+    ImmutableSet<KubernetesKind> kinds = credentials.getKinds();
+    RawResourcesEndpointConfig epConfig = credentials.getRawResourcesEndpointConfig();
+    List<Pattern> kindPatterns = epConfig.getKindPatterns();
+    List<Pattern> omitKindPatterns = epConfig.getOmitKindPatterns();
+
+    log.debug(
+        "Kinds: {} OmitKinds: {} KindPatterns: {} OmitKindPatterns: {}",
+        kinds.size(),
+        omitKinds.size(),
+        kindPatterns.size(),
+        omitKindPatterns.size());
+
+    // check account level kinds and omitKinds first
+    if (!kinds.isEmpty() && !kinds.contains(resource.getKind())) {
+      return false;
+    }
+    if (omitKinds.contains(resource.getKind())) {
+      return false;
+    }
+
+    // check kindPatterns
+    for (Pattern p : kindPatterns) {
+      Matcher m = p.matcher(resource.getKind().toString());
+      if (m.matches()) {
+        return true;
+      }
+    }
+    // check omitKindPatterns
+    for (Pattern p : omitKindPatterns) {
+      Matcher m = p.matcher(resource.getKind().toString());
+      if (m.matches()) {
+        return false;
+      }
+    }
+    // It didn't match any filters, default to include
+    return true;
   }
 }

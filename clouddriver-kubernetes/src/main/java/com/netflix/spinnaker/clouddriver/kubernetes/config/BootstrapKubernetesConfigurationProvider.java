@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -91,16 +90,6 @@ public class BootstrapKubernetesConfigurationProvider {
           .add((KubernetesConfigurationProperties.ManagedAccount) result.get());
     }
 
-    try {
-      propertiesMap.remove("accounts"); // accounts are already processed above
-      result = bind(getFlatMap(propertiesMap), KubernetesConfigurationProperties.class);
-      k8sConfigProps.setRawResourcesEndpointConfig(
-          ((KubernetesConfigurationProperties) result.get()).getRawResourcesEndpointConfig());
-      // mappings to any future fields similar to rawResourcesEndpointConfig go here
-    } catch (NoSuchElementException e) {
-      // this binding error occurs when rawResourcesEndpointConfig is not supplied.
-      // ignoring it as rawResourcesEndpointConfig is not a mandatory configuration
-    }
     return k8sConfigProps;
   }
 
