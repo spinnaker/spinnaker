@@ -16,6 +16,7 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 
