@@ -35,6 +35,8 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
+import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
@@ -52,6 +54,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectThat
@@ -170,6 +173,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       }
     }
 
+    val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -177,7 +182,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
       scmInfo,
-      lifecycleEventRepository
+      lifecycleEventRepository,
+      publisher
     )
 
     val buildMetadata = BuildMetadata(
@@ -877,13 +883,19 @@ class ApplicationServiceTests : JUnit5Minutests {
         every {
           repository.pinEnvironment(singleArtifactDeliveryConfig, pin)
         } just Runs
+
         applicationService.pin("keel@keel.io", application1, pin)
       }
+
 
       test("causes the pin to be persisted") {
         verify(exactly = 1) {
           repository.pinEnvironment(singleArtifactDeliveryConfig, pin)
         }
+      }
+
+      test("pinned notification was sent") {
+        verify { publisher.publishEvent(ofType<PinnedNotification>()) }
       }
     }
 
@@ -892,6 +904,11 @@ class ApplicationServiceTests : JUnit5Minutests {
         every {
           repository.deletePin(singleArtifactDeliveryConfig, "production", releaseArtifact.reference)
         } just Runs
+
+        every {
+          repository.pinnedEnvironments(singleArtifactDeliveryConfig)
+        } returns emptyList()
+
         applicationService.deletePin("keel@keel.io", application1, "production", releaseArtifact.reference)
       }
 
@@ -900,6 +917,10 @@ class ApplicationServiceTests : JUnit5Minutests {
           repository.deletePin(singleArtifactDeliveryConfig, "production", releaseArtifact.reference)
         }
       }
+
+      test("unpinned notification was sent") {
+        verify { publisher.publishEvent(ofType<UnpinnedNotification>()) }
+      }
     }
 
     context("unpinning all artifacts in an environment") {
@@ -907,6 +928,11 @@ class ApplicationServiceTests : JUnit5Minutests {
         every {
           repository.deletePin(singleArtifactDeliveryConfig, "production")
         } just Runs
+
+        every {
+          repository.pinnedEnvironments(singleArtifactDeliveryConfig)
+        } returns emptyList()
+
         applicationService.deletePin("keel@keel.io", application1, "production")
       }
 
@@ -914,6 +940,10 @@ class ApplicationServiceTests : JUnit5Minutests {
         verify(exactly = 1) {
           repository.deletePin(singleArtifactDeliveryConfig, "production")
         }
+      }
+
+      test("slack unpinned event was sent") {
+        verify { publisher.publishEvent(ofType<UnpinnedNotification>()) }
       }
     }
   }

@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spinnaker.config.UnhealthyNotificationConfig
 import com.netflix.spinnaker.keel.events.ClearNotificationEvent
-import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
+import com.netflix.spinnaker.keel.events.UnhealthyNotification
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
 import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
 import com.netflix.spinnaker.keel.persistence.UnhealthyRepository
@@ -91,7 +91,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
           subject.onResourceHealthEvent(event)
           verify(exactly = 1) {
             publisher.publishEvent(
-              NotificationEvent(RESOURCE, r.id, UNHEALTHY_RESOURCE, subject.message(event, Duration.ofMinutes(6)))
+              UnhealthyNotification(r.id,  subject.message(event, Duration.ofMinutes(6)))
             )
           }
         }

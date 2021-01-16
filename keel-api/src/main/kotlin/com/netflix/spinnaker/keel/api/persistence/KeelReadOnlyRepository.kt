@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -18,6 +19,8 @@ interface KeelReadOnlyRepository {
   fun getDeliveryConfig(name: String): DeliveryConfig
 
   fun environmentFor(resourceId: String): Environment
+
+  fun environmentNotifications(deliveryConfigName: String, environmentName: String): Set<NotificationConfig>
 
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 

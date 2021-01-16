@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -31,6 +32,11 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
    * Retrieve the [Environment] a resource belongs to, by the resource [id].
    */
   fun environmentFor(resourceId: String): Environment
+
+  /**
+   * Retrieve the [NotificationConfig] for an environment by environment name and delivery config name.
+   */
+  fun environmentNotifications(deliveryConfigName: String, environmentName: String): Set<NotificationConfig>
 
   /**
    * Retrieve the [DeliveryConfig] a resource belongs to (the parent of its environment).

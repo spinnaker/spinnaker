@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -352,6 +353,26 @@ class SqlDeliveryConfigRepository(
           )
         }
     } ?: throw OrphanedResourceException(resourceId)
+
+  override fun environmentNotifications(deliveryConfigName: String, environmentName: String): Set<NotificationConfig> =
+    sqlRetry.withRetry(READ) {
+      val uid = jooq
+        .select(DELIVERY_CONFIG.UID)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.NAME.eq(deliveryConfigName))
+        .fetchOne(DELIVERY_CONFIG.UID)
+        ?: randomUID().toString()
+      jooq
+        .select(
+          ENVIRONMENT.NOTIFICATIONS,
+        )
+        .from(ENVIRONMENT)
+        .where(ENVIRONMENT.NAME.eq(environmentName))
+        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+        .fetchOne { (notificationsJson) ->
+             notificationsJson?.let { objectMapper.readValue(it) }
+        } ?: emptySet()
+    }
 
   override fun deliveryConfigFor(resourceId: String): DeliveryConfig =
     // TODO: this implementation could be more efficient by sharing code with get(name)

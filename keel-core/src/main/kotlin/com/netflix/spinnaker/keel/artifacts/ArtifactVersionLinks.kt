@@ -34,7 +34,7 @@ private fun generateCompareLink(scmInfo: ScmInfo, newerGitMetadata: GitMetadata?
 }
 
 //Calling igor to fetch all base urls by SCM type, and returning the right one based on current commit link
-private fun getScmBaseLink(scmInfo: ScmInfo, commitLink: String): String? {
+fun getScmBaseLink(scmInfo: ScmInfo, commitLink: String): String? {
   val scmBaseURLs = runBlocking {
     scmInfo.getScmInfo()
   }

@@ -2,6 +2,9 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.NotificationFrequency
+import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.Verification
@@ -573,6 +576,41 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                 get { kind } isEqualTo parseKind("ec2/security-group@v1")
               }
           }
+        }
+      }
+
+      context("notifications") {
+        before {
+          repository.store(deliveryConfig.copy(
+            environments = setOf(
+              Environment(
+                name = "prod",
+                resources = setOf(
+                  resource(kind = parseKind("ec2/cluster@v1")),
+                  resource(kind = parseKind("ec2/security-group@v1"))
+                ),
+                notifications = setOf(NotificationConfig(
+                  type = NotificationType.slack,
+                  address = "test",
+                  frequency = NotificationFrequency.verbose
+                ),
+                  NotificationConfig(
+                    type = NotificationType.email,
+                    address = "test",
+                    frequency = NotificationFrequency.quiet
+                  ))
+              ),
+            )
+          ))
+        }
+        test ("get stored notifications") {
+          expectThat(repository.environmentNotifications(deliveryConfig.name, "prod").size)
+            .isEqualTo(2)
+        }
+
+        test ("environment without notifications will return an empty set") {
+          expectThat(repository.environmentNotifications(deliveryConfig.name, "staging"))
+            .isEmpty()
         }
       }
     }

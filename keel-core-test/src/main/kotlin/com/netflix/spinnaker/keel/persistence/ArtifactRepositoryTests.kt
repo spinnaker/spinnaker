@@ -45,6 +45,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -1100,7 +1101,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         subject.markAsSuccessfullyDeployedTo(manifest, versionedReleaseDebian, version1, testEnvironment.name)
       }
 
-      test ("no vertsions for version which is not persisted") {
+      test ("no versions exists if not persisted") {
         expectThat(subject.getArtifactVersionByPromotionStatus(manifest, testEnvironment.name, versionedReleaseDebian, PromotionStatus.PREVIOUS))
           .isNull()
       }
@@ -1156,5 +1157,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           .isEqualTo(version2)
       }
     }
+
   }
 }

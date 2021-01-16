@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.echo.model.EchoNotification.InteractiveActions
 import com.netflix.spinnaker.keel.events.ClearNotificationEvent
-import com.netflix.spinnaker.keel.events.NotificationEvent
+import com.netflix.spinnaker.keel.events.RepeatedNotificationEvent
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.NotificationRepository
@@ -56,8 +56,8 @@ class Notifier(
   private val notificationsEnabled: Boolean
     get() = springEnv.getProperty("keel.notifications.resource", Boolean::class.java, true)
 
-  @EventListener(NotificationEvent::class)
-  fun onResourceNotificationEvent(event: NotificationEvent) {
+  @EventListener(RepeatedNotificationEvent::class)
+  fun onResourceNotificationEvent(event: RepeatedNotificationEvent) {
     if (notificationsEnabled){
       val shouldNotify = notificationRepository.addNotification(event.scope, event.ref, event.type)
       if (shouldNotify) {
@@ -79,7 +79,7 @@ class Notifier(
    * This method assumes we're notifying about a resource.
    * If / when we notify about something else, we will need to update this assumption
    */
-  private fun notify(event: NotificationEvent) {
+  private fun notify(event: RepeatedNotificationEvent) {
     log.debug("Sending notifications for ${event.scope.name.toLowerCase()} ${event.ref} with content ${event.message}")
     try {
       val application = keelRepository.getResource(event.ref).application
@@ -107,7 +107,7 @@ class Notifier(
 
   }
 
-  private fun NotificationConfig.toEchoNotification(application: String, event: NotificationEvent): EchoNotification {
+  private fun NotificationConfig.toEchoNotification(application: String, event: RepeatedNotificationEvent): EchoNotification {
     return EchoNotification(
       notificationType = EchoNotification.Type.valueOf(type.name.toUpperCase()),
       to = listOf(address),

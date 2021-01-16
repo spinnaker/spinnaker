@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import java.time.Instant.EPOCH
 import javax.xml.bind.DatatypeConverter
 
@@ -1049,18 +1050,18 @@ class SqlArtifactRepository(
     with(environmentArtifactPin) {
       val environment = deliveryConfig.environmentNamed(targetEnvironment)
       val artifact = get(deliveryConfig.name, reference)
-
+      val now = clock.instant()
       sqlRetry.withRetry(WRITE) {
         jooq.insertInto(ENVIRONMENT_ARTIFACT_PIN)
           .set(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID, artifact.uid)
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.instant())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, now)
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
           .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, comment)
           .onDuplicateKeyUpdate()
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
-          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.instant())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, now)
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
           .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_PIN.COMMENT))
           .execute()
@@ -1153,7 +1154,7 @@ class SqlArtifactRepository(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: String,
     reference: String
-  ) {
+  ){
     sqlRetry.withRetry(WRITE) {
       jooq.select(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID)
         .from(DELIVERY_ARTIFACT)
@@ -1168,7 +1169,7 @@ class SqlArtifactRepository(
           ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid)
         )
         .fetch { (envUid, artUid) ->
-          deletePin(envUid, artUid)
+           deletePin(envUid, artUid)
         }
     }
   }

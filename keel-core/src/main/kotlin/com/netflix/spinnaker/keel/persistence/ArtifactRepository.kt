@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
+import java.time.Instant
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 

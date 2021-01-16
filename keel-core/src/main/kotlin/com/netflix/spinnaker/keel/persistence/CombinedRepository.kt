@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
@@ -195,6 +196,9 @@ class CombinedRepository(
 
   override fun environmentFor(resourceId: String): Environment =
     deliveryConfigRepository.environmentFor(resourceId)
+
+  override fun environmentNotifications(deliveryConfigName: String, environmentName: String): Set<NotificationConfig> =
+    deliveryConfigRepository.environmentNotifications(deliveryConfigName, environmentName)
 
   override fun deliveryConfigFor(resourceId: String): DeliveryConfig =
     deliveryConfigRepository.deliveryConfigFor(resourceId)

@@ -114,7 +114,4 @@ class AdminService(
     }
   }
 
-  fun sendNotificationEvent(event: NotificationEvent) {
-    publisher.publishEvent(event)
-  }
 }

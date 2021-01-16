@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
@@ -39,6 +40,8 @@ import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
@@ -47,6 +50,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -60,7 +64,8 @@ class ApplicationService(
   private val constraintEvaluators: List<ConstraintEvaluator<*>>,
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val scmInfo: ScmInfo,
-  private val lifecycleEventRepository: LifecycleEventRepository
+  private val lifecycleEventRepository: LifecycleEventRepository,
+  private val publisher: ApplicationEventPublisher
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -105,13 +110,18 @@ class ApplicationService(
   fun pin(user: String, application: String, pin: EnvironmentArtifactPin) {
     val config = repository.getDeliveryConfigForApplication(application)
     repository.pinEnvironment(config, pin.copy(pinnedBy = user))
-    // TODO: publish ArtifactPinnedEvent
+    publisher.publishEvent(PinnedNotification(config, pin))
   }
 
   fun deletePin(user: String, application: String, targetEnvironment: String, reference: String? = null) {
     val config = repository.getDeliveryConfigForApplication(application)
+    val pinnedEnvironment = repository.pinnedEnvironments(config).find { it.targetEnvironment == targetEnvironment }
     repository.deletePin(config, targetEnvironment, reference)
-    // TODO: publish ArtifactUnpinnedEvent
+
+    publisher.publishEvent(UnpinnedNotification(config,
+      pinnedEnvironment,
+      targetEnvironment,
+      user))
   }
 
   fun markAsVetoedIn(user: String, application: String, veto: EnvironmentArtifactVeto, force: Boolean) {

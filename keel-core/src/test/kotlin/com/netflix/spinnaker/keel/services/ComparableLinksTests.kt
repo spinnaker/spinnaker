@@ -36,6 +36,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -117,6 +118,8 @@ class ComparableLinksTests : JUnit5Minutests {
       every { getSteps(any(), any()) } returns emptyList()
     }
 
+    val publisher: ApplicationEventPublisher = mockk(relaxed = true)
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -124,7 +127,8 @@ class ComparableLinksTests : JUnit5Minutests {
       listOf(dependsOnEvaluator),
       listOf(artifactSupplier),
       scmInfo,
-      lifecycleEventRepository
+      lifecycleEventRepository,
+      publisher
     )
 
     val buildMetadata = BuildMetadata(
