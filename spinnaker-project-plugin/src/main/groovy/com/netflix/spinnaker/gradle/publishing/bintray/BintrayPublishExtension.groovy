@@ -197,6 +197,9 @@ class BintrayPublishExtension {
 
   protected <T> T projectProperty(Class<T> type, String projectPropertyName, T defaultValue) {
     if (project.hasProperty(projectPropertyName)) {
+      if (type == Boolean) {
+        return Boolean.valueOf(project.property(projectPropertyName).toString()) as T
+      }
       return project.property(projectPropertyName).asType(type)
     }
     return defaultValue
