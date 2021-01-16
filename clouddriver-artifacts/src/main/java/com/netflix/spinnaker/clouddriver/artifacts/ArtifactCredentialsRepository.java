@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import java.util.List;
 
 public class ArtifactCredentialsRepository
@@ -28,5 +30,24 @@ public class ArtifactCredentialsRepository
   public ArtifactCredentialsRepository(
       List<CredentialsRepository<? extends ArtifactCredentials>> repositories) {
     super(repositories);
+  }
+
+  public ArtifactCredentials getCredentialsForType(String name, String artifactType) {
+    if (Strings.isNullOrEmpty(name)) {
+      throw new IllegalArgumentException(
+          "An artifact account must be supplied to download this artifact: " + name);
+    }
+
+    return getAllCredentials().stream()
+        .filter(a -> a.getName().equals(name) && a.handlesType(artifactType))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new MissingCredentialsException(
+                    "Credentials '"
+                        + name
+                        + "' supporting artifact type '"
+                        + artifactType
+                        + "' cannot be found"));
   }
 }

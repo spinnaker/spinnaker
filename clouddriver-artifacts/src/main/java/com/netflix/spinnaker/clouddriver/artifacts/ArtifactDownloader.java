@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
-import com.netflix.spinnaker.kork.exceptions.UnknownCredentialsTypeException;
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,10 +33,8 @@ public class ArtifactDownloader {
   public InputStream download(Artifact artifact) throws IOException {
     try {
       return artifactCredentialsRepository
-          .getCredentials(artifact.getArtifactAccount(), artifact.getType())
+          .getCredentialsForType(artifact.getArtifactAccount(), artifact.getType())
           .download(artifact);
-    } catch (UnknownCredentialsTypeException e) {
-      throw new InvalidRequestException(e);
     } catch (MissingCredentialsException e) {
       throw new NotFoundException(e);
     }
