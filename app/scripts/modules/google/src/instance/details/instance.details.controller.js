@@ -8,7 +8,7 @@ import {
   ConfirmationModalService,
   FirewallLabels,
   InstanceReader,
-  INSTANCE_WRITE_SERVICE,
+  InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
 
@@ -23,13 +23,11 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   ANGULAR_UI_BOOTSTRAP,
   GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
-  INSTANCE_WRITE_SERVICE,
   GCE_HTTP_LOAD_BALANCER_UTILS,
 ]).controller('gceInstanceDetailsCtrl', [
   '$scope',
   '$state',
   '$uibModal',
-  'instanceWriter',
   'instance',
   'app',
   'moniker',
@@ -41,7 +39,6 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     $scope,
     $state,
     $uibModal,
-    instanceWriter,
     instance,
     app,
     moniker,
@@ -344,7 +341,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           params.managedInstanceGroupName = instance.serverGroup;
         }
 
-        return instanceWriter.terminateInstance(instance, app, params);
+        return InstanceWriter.terminateInstance(instance, app, params);
       };
 
       ConfirmationModalService.confirm({
@@ -370,7 +367,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, {
+        return InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, {
           serverGroupName: instance.serverGroup,
           instanceIds: [instance.instanceId],
           zone: instance.placement.availabilityZone,
@@ -395,7 +392,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.rebootInstance(instance, app, {
+        return InstanceWriter.rebootInstance(instance, app, {
           // We can't really reliably do anything other than ignore health here.
           interestingHealthProviderNames: [],
         });
@@ -420,7 +417,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
+        return InstanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
       ConfirmationModalService.confirm({
@@ -442,7 +439,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
+        return InstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
       ConfirmationModalService.confirm({
@@ -463,7 +460,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.enableInstanceInDiscovery(instance, app);
+        return InstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
       ConfirmationModalService.confirm({
@@ -484,7 +481,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.disableInstanceInDiscovery(instance, app);
+        return InstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
       ConfirmationModalService.confirm({

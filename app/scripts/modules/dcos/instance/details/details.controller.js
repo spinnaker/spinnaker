@@ -6,7 +6,7 @@ import {
   CloudProviderRegistry,
   ConfirmationModalService,
   InstanceReader,
-  INSTANCE_WRITE_SERVICE,
+  InstanceWriter,
   RecentHistoryService,
   ServerGroupTemplates,
 } from '@spinnaker/core';
@@ -15,16 +15,15 @@ import { module } from 'angular';
 
 export const DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.instance.details.controller';
 export const name = DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
-module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE]).controller('dcosInstanceDetailsController', [
+module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER).controller('dcosInstanceDetailsController', [
   '$scope',
   '$state',
   '$uibModal',
-  'instanceWriter',
   'instance',
   'app',
   'dcosProxyUiService',
   '$q',
-  function ($scope, $state, $uibModal, instanceWriter, instance, app, dcosProxyUiService, $q) {
+  function ($scope, $state, $uibModal, instance, app, dcosProxyUiService, $q) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('dcos', 'instance.detailsTemplateUrl');
 
@@ -118,7 +117,7 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE]).contr
         params.namespace = instance.namespace;
         instance.placement = {};
 
-        return instanceWriter.terminateInstance(instance, app, params);
+        return InstanceWriter.terminateInstance(instance, app, params);
       };
 
       ConfirmationModalService.confirm({
@@ -140,7 +139,7 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE]).contr
       };
 
       const submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
+        return InstanceWriter.registerInstanceWithLoadBalancer(instance, app, {
           interestingHealthProviderNames: ['Dcos'],
         });
       };
@@ -164,7 +163,7 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE]).contr
       };
 
       const submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
+        return InstanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
           interestingHealthProviderNames: ['Dcos'],
         });
       };

@@ -1,3 +1,4 @@
+import { mockServerGroupDataSourceConfig } from '@spinnaker/mocks';
 import React from 'react';
 import { mock } from 'angular';
 import { mount } from 'enzyme';
@@ -11,7 +12,7 @@ describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {
 
   const getProps = () => {
     return {
-      application: ApplicationModelBuilder.createApplicationForTests('my-application'),
+      application: ApplicationModelBuilder.createApplicationForTests('my-application', mockServerGroupDataSourceConfig),
       pipeline: {
         application: 'my-application',
         id: 'pipeline-id',

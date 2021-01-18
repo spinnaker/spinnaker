@@ -6,7 +6,7 @@ import { IAmazonServerGroupView, IScalingProcess } from 'amazon/domain';
 import { AwsNgReact } from 'amazon/reactShims';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
-import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
 
 @Overridable('aws.serverGroup.ScalingPoliciesDetailsSection')

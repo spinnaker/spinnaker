@@ -2,20 +2,19 @@
 
 import { module } from 'angular';
 
-import { InstanceReader, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
+import { InstanceReader } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.oracle.instance.details.controller';
 export const name = ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
-module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, INSTANCE_WRITE_SERVICE]).controller(
+module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
   'oracleInstanceDetailsCtrl',
   [
     '$scope',
     '$q',
-    'instanceWriter',
     'app',
     'instance',
-    function ($scope, $q, instanceWriter, app, instance) {
+    function ($scope, $q, app, instance) {
       $scope.application = app;
 
       const initialize = app.isStandalone

@@ -1,9 +1,8 @@
-import { module } from 'angular';
+import { ReactInjector } from 'core/reactShims';
 
 import { TaskExecutor, IJob } from 'core/task/taskExecutor';
 import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { Application } from 'core/application/application.model';
-import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 import { IInstance, IServerGroup, ITask } from 'core/domain';
 
 export interface IMultiInstanceGroup {
@@ -29,10 +28,11 @@ export interface IMultiInstanceJob {
 }
 
 export class InstanceWriter {
-  public static $inject = ['providerServiceDelegate'];
-  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {}
-
-  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): PromiseLike<ITask> {
+  public static terminateInstance(
+    instance: IInstance,
+    application: Application,
+    params: IJob = {},
+  ): PromiseLike<ITask> {
     params.type = 'terminateInstances';
     params['instanceIds'] = [instance.id];
     params['region'] = instance.region;
@@ -46,11 +46,14 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
-    return this.executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
+  public static terminateInstances(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+  ): PromiseLike<ITask> {
+    return InstanceWriter.executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
   }
 
-  private executeMultiInstanceTask(
+  private static executeMultiInstanceTask(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     type: string,
@@ -58,8 +61,8 @@ export class InstanceWriter {
     descriptorSuffix?: string,
     additionalJobProperties: any = {},
   ): PromiseLike<ITask> {
-    const jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
-    const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
+    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
+    const descriptor = InstanceWriter.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return TaskExecutor.executeTask({
       job: jobs,
       application,
@@ -67,11 +70,11 @@ export class InstanceWriter {
     });
   }
 
-  public rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
-    return this.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
+  public static rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
+    return InstanceWriter.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
   }
 
-  public rebootInstance(instance: IInstance, application: Application, params: any = {}): PromiseLike<ITask> {
+  public static rebootInstance(instance: IInstance, application: Application, params: any = {}): PromiseLike<ITask> {
     params.type = 'rebootInstances';
     params.instanceIds = [instance.id];
     params.region = instance.region;
@@ -87,14 +90,18 @@ export class InstanceWriter {
     });
   }
 
-  public deregisterInstancesFromLoadBalancer(
+  public static deregisterInstancesFromLoadBalancer(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
   ): PromiseLike<ITask> {
-    const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
+    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
-    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
+    const descriptor = InstanceWriter.buildMultiInstanceDescriptor(
+      jobs,
+      'Deregister',
+      `from ${loadBalancerNames.join(' and ')}`,
+    );
     return TaskExecutor.executeTask({
       job: jobs,
       application,
@@ -102,7 +109,7 @@ export class InstanceWriter {
     });
   }
 
-  public deregisterInstanceFromLoadBalancer(
+  public static deregisterInstanceFromLoadBalancer(
     instance: IInstance,
     application: Application,
     params: any = {},
@@ -120,14 +127,18 @@ export class InstanceWriter {
     });
   }
 
-  public registerInstancesWithLoadBalancer(
+  public static registerInstancesWithLoadBalancer(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
   ): PromiseLike<ITask> {
-    const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
+    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
-    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
+    const descriptor = InstanceWriter.buildMultiInstanceDescriptor(
+      jobs,
+      'Register',
+      `with ${loadBalancerNames.join(' and ')}`,
+    );
     return TaskExecutor.executeTask({
       job: jobs,
       application,
@@ -135,7 +146,7 @@ export class InstanceWriter {
     });
   }
 
-  public registerInstanceWithLoadBalancer(
+  public static registerInstanceWithLoadBalancer(
     instance: IInstance,
     application: Application,
     params: any = {},
@@ -153,8 +164,11 @@ export class InstanceWriter {
     });
   }
 
-  public enableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
-    return this.executeMultiInstanceTask(
+  public static enableInstancesInDiscovery(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+  ): PromiseLike<ITask> {
+    return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
       'enableInstancesInDiscovery',
@@ -163,7 +177,7 @@ export class InstanceWriter {
     );
   }
 
-  public enableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
+  public static enableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -181,8 +195,11 @@ export class InstanceWriter {
     });
   }
 
-  public disableInstancesInDiscovery(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
-    return this.executeMultiInstanceTask(
+  public static disableInstancesInDiscovery(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+  ): PromiseLike<ITask> {
+    return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
       'disableInstancesInDiscovery',
@@ -191,7 +208,7 @@ export class InstanceWriter {
     );
   }
 
-  public disableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
+  public static disableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -209,11 +226,11 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstancesAndShrinkServerGroups(
+  public static terminateInstancesAndShrinkServerGroups(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
   ): PromiseLike<ITask> {
-    return this.executeMultiInstanceTask(
+    return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
       'detachInstances',
@@ -227,7 +244,7 @@ export class InstanceWriter {
     );
   }
 
-  public terminateInstanceAndShrinkServerGroup(
+  public static terminateInstanceAndShrinkServerGroup(
     instance: IInstance,
     application: Application,
     params: any = {},
@@ -256,13 +273,17 @@ export class InstanceWriter {
     });
   }
 
-  protected buildMultiInstanceJob(instanceGroups: IMultiInstanceGroup[], type: string, additionalJobProperties = {}) {
+  protected static buildMultiInstanceJob(
+    instanceGroups: IMultiInstanceGroup[],
+    type: string,
+    additionalJobProperties = {},
+  ) {
     return instanceGroups
       .filter((instanceGroup) => instanceGroup.instances.length > 0)
-      .map((instanceGroup) => this.convertGroupToJob(instanceGroup, type, additionalJobProperties));
+      .map((instanceGroup) => InstanceWriter.convertGroupToJob(instanceGroup, type, additionalJobProperties));
   }
 
-  protected buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {
+  protected static buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {
     let totalInstances = 0;
     jobs.forEach((job: IMultiInstanceJob) => (totalInstances += job.instanceIds.length));
     let descriptor = `${base} ${totalInstances} instance`;
@@ -275,7 +296,7 @@ export class InstanceWriter {
     return descriptor;
   }
 
-  private convertGroupToJob(
+  private static convertGroupToJob(
     instanceGroup: IMultiInstanceGroup,
     type: string,
     additionalJobProperties: any = {},
@@ -292,25 +313,17 @@ export class InstanceWriter {
 
     Object.assign(job, additionalJobProperties);
 
-    this.transform(instanceGroup, job);
+    InstanceWriter.transform(instanceGroup, job);
 
     return job;
   }
 
-  private transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
-    const hasTransformer: boolean = this.providerServiceDelegate.hasDelegate(
-      instanceGroup.cloudProvider,
-      'instance.multiInstanceTaskTransformer',
-    );
-    if (hasTransformer) {
-      const transformer: any = this.providerServiceDelegate.getDelegate(
-        instanceGroup.cloudProvider,
-        'instance.multiInstanceTaskTransformer',
-      );
+  private static transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
+    const serviceKey = 'instance.multiInstanceTaskTransformer';
+    const { providerServiceDelegate } = ReactInjector;
+    if (providerServiceDelegate.hasDelegate(instanceGroup.cloudProvider, serviceKey)) {
+      const transformer: any = providerServiceDelegate.getDelegate(instanceGroup.cloudProvider, serviceKey);
       transformer.transform(instanceGroup, job);
     }
   }
 }
-
-export const INSTANCE_WRITE_SERVICE = 'spinnaker.core.instance.write.service';
-module(INSTANCE_WRITE_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service('instanceWriter', InstanceWriter);

@@ -2,14 +2,7 @@ import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import {
-  Application,
-  InstanceReader,
-  InstanceWriter,
-  RecentHistoryService,
-  Spinner,
-  ILoadBalancer,
-} from '@spinnaker/core';
+import { Application, InstanceReader, RecentHistoryService, Spinner, ILoadBalancer } from '@spinnaker/core';
 
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 import { CloudFoundryInstanceDetailsSection } from './sections';
@@ -37,7 +30,6 @@ interface ICloudFoundryInstanceDetailsState {
 interface ICloudFoundryInstanceDetailsProps {
   app: Application;
   instance: InstanceFromStateParams;
-  instanceWriter: InstanceWriter;
   loading: boolean;
 }
 
@@ -99,7 +91,7 @@ export class CloudFoundryInstanceDetails extends React.Component<
   }
 
   public render(): JSX.Element {
-    const { app, instanceWriter } = this.props;
+    const { app } = this.props;
     const { instance, instanceIdNotFound, loading } = this.state;
     const CloseButton = (
       <div className="close-button">
@@ -131,7 +123,7 @@ export class CloudFoundryInstanceDetails extends React.Component<
           <span className={'glyphicon glyphicon-hdd ' + instance.healthState} />
           <h3 className="horizontal middle space-between flex-1">{instance.name}</h3>
         </div>
-        <CloudFoundryInstanceActions application={app} instance={instance} instanceWriter={instanceWriter} />
+        <CloudFoundryInstanceActions application={app} instance={instance} />
       </div>
     );
     const notFoundContent = () => (

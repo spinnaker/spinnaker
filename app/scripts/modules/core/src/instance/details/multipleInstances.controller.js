@@ -1,8 +1,8 @@
 'use strict';
 
 import { ConfirmationModalService } from 'core/confirmationModal';
-import { INSTANCE_WRITE_SERVICE } from '../instance.write.service';
 import { ClusterState } from 'core/state';
+import { InstanceWriter } from '../instance.write.service';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
@@ -13,14 +13,12 @@ export const CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER =
 export const name = CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER; // for backwards compatibility
 module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
   UIROUTER_ANGULARJS,
-  INSTANCE_WRITE_SERVICE,
   CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE,
 ]).controller('MultipleInstancesCtrl', [
   '$scope',
   '$state',
-  'instanceWriter',
   'app',
-  function ($scope, $state, instanceWriter, app) {
+  function ($scope, $state, app) {
     this.selectedGroups = [];
 
     /**
@@ -58,7 +56,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.terminateInstances = () => {
-      const submitMethod = () => instanceWriter.terminateInstances(this.selectedGroups, app);
+      const submitMethod = () => InstanceWriter.terminateInstances(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Terminating',
         simplePresent: 'Terminate',
@@ -74,7 +72,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.terminateInstancesAndShrinkServerGroups = () => {
-      const submitMethod = () => instanceWriter.terminateInstancesAndShrinkServerGroups(this.selectedGroups, app);
+      const submitMethod = () => InstanceWriter.terminateInstancesAndShrinkServerGroups(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Terminating',
         simplePresent: 'Terminate',
@@ -83,7 +81,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.rebootInstances = () => {
-      const submitMethod = () => instanceWriter.rebootInstances(this.selectedGroups, app);
+      const submitMethod = () => InstanceWriter.rebootInstances(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Rebooting',
         simplePresent: 'Reboot',
@@ -107,7 +105,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     this.canDeregisterWithDiscovery = () => allDiscoveryHealthsMatch('Up') || allDiscoveryHealthsMatch('Down');
 
     this.registerWithDiscovery = () => {
-      const submitMethod = () => instanceWriter.enableInstancesInDiscovery(this.selectedGroups, app);
+      const submitMethod = () => InstanceWriter.enableInstancesInDiscovery(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Registering',
         simplePresent: 'Register',
@@ -116,7 +114,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.deregisterWithDiscovery = () => {
-      const submitMethod = () => instanceWriter.disableInstancesInDiscovery(this.selectedGroups, app);
+      const submitMethod = () => InstanceWriter.disableInstancesInDiscovery(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Deregistering',
         simplePresent: 'Deregister',
@@ -165,7 +163,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     this.registerWithLoadBalancers = () => {
       const allLoadBalancers = getAllLoadBalancers().sort();
       const submitMethod = () =>
-        instanceWriter.registerInstancesWithLoadBalancer(this.selectedGroups, app, allLoadBalancers);
+        InstanceWriter.registerInstancesWithLoadBalancer(this.selectedGroups, app, allLoadBalancers);
       confirm(
         submitMethod,
         {
@@ -180,7 +178,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     this.deregisterFromLoadBalancers = () => {
       const allLoadBalancers = getAllLoadBalancers().sort();
       const submitMethod = () =>
-        instanceWriter.deregisterInstancesFromLoadBalancer(this.selectedGroups, app, allLoadBalancers);
+        InstanceWriter.deregisterInstancesFromLoadBalancer(this.selectedGroups, app, allLoadBalancers);
       confirm(
         submitMethod,
         {

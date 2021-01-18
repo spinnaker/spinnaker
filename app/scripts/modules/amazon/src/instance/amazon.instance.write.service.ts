@@ -1,14 +1,9 @@
-import { module } from 'angular';
-
 import {
   Application,
   IMultiInstanceGroup,
   IMultiInstanceJob,
-  INSTANCE_WRITE_SERVICE,
   InstanceWriter,
   ITask,
-  PROVIDER_SERVICE_DELEGATE,
-  ProviderServiceDelegate,
   TaskExecutor,
 } from '@spinnaker/core';
 
@@ -23,22 +18,17 @@ export interface IAmazonMultiInstanceJob extends IMultiInstanceJob {
 }
 
 export class AmazonInstanceWriter extends InstanceWriter {
-  public static $inject = ['providerServiceDelegate'];
-  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
-    super(providerServiceDelegate);
-  }
-
-  public deregisterInstancesFromTargetGroup(
+  public static deregisterInstancesFromTargetGroup(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
   ): PromiseLike<ITask> {
-    const jobs = this.buildMultiInstanceJob(
+    const jobs = super.buildMultiInstanceJob(
       instanceGroups,
       'deregisterInstancesFromLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
-    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
+    const descriptor = super.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,
       application,
@@ -46,7 +36,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 
-  public deregisterInstanceFromTargetGroup(
+  public static deregisterInstanceFromTargetGroup(
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
@@ -64,17 +54,17 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 
-  public registerInstancesWithTargetGroup(
+  public static registerInstancesWithTargetGroup(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
   ) {
-    const jobs = this.buildMultiInstanceJob(
+    const jobs = super.buildMultiInstanceJob(
       instanceGroups,
       'registerInstancesWithLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
-    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
+    const descriptor = super.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
     return TaskExecutor.executeTask({
       job: jobs,
       application,
@@ -82,7 +72,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 
-  public registerInstanceWithTargetGroup(
+  public static registerInstanceWithTargetGroup(
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
@@ -100,9 +90,3 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 }
-
-export const AMAZON_INSTANCE_WRITE_SERVICE = 'spinnaker.amazon.instance.write.service';
-module(AMAZON_INSTANCE_WRITE_SERVICE, [INSTANCE_WRITE_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
-  'amazonInstanceWriter',
-  AmazonInstanceWriter,
-);

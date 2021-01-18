@@ -10,7 +10,7 @@ import {
   ConfirmationModalService,
   FirewallLabels,
   InstanceReader,
-  INSTANCE_WRITE_SERVICE,
+  InstanceWriter,
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
@@ -23,20 +23,18 @@ export const name = TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for b
 module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   ANGULAR_UI_BOOTSTRAP,
-  INSTANCE_WRITE_SERVICE,
   TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE,
 ]).controller('titusInstanceDetailsCtrl', [
   '$scope',
   '$q',
   '$state',
   '$uibModal',
-  'instanceWriter',
   'instance',
   'app',
   'moniker',
   'environment',
   'overrides',
-  function ($scope, $q, $state, $uibModal, instanceWriter, instance, app, moniker, environment, overrides) {
+  function ($scope, $q, $state, $uibModal, instance, app, moniker, environment, overrides) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
 
@@ -173,7 +171,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         if (instance.serverGroup) {
           params.serverGroupName = instance.serverGroup;
         }
-        return instanceWriter.terminateInstance(instance, app, params);
+        return InstanceWriter.terminateInstance(instance, app, params);
       };
 
       ConfirmationModalService.confirm({
@@ -199,7 +197,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.terminateInstancesAndShrinkServerGroups(
+        return InstanceWriter.terminateInstancesAndShrinkServerGroups(
           [
             {
               cloudProvider: instance.cloudProvider,
@@ -241,7 +239,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.enableInstanceInDiscovery(instance, app);
+        return InstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
       ConfirmationModalService.confirm({
@@ -263,7 +261,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       };
 
       const submitMethod = function () {
-        return instanceWriter.disableInstanceInDiscovery(instance, app);
+        return InstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
       ConfirmationModalService.confirm({
