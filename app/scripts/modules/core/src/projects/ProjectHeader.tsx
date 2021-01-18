@@ -67,7 +67,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
 
     if (project.notFound) {
       return (
-        <div className="project-header">
+        <div className="flex-fill application">
           <div className="row" ng-if="vm.project.notFound">
             <h1 className="text-center">&lt;404&gt;</h1>
 
