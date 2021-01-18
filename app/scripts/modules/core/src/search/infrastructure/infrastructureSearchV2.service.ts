@@ -2,6 +2,7 @@ import { isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
 import { UrlBuilder, IQueryParams } from 'core/navigation';
+import { uniqBy } from 'lodash';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
 import { ISearchResult, ISearchResults } from '../search.service';
@@ -33,8 +34,11 @@ export class InfrastructureSearchServiceV2 {
     };
 
     const makeResultSet = (searchResults: ISearchResults<any>, type: SearchResultType): ISearchResultSet => {
-      // Add URLs to each search result
-      const results = searchResults.results.map((result) => addComputedAttributes(result, type));
+      // Add URLs to each search result (discard duplicate results)
+      const results = uniqBy(
+        searchResults.results.map((result) => addComputedAttributes(result, type)),
+        (r) => r.href,
+      );
       const query: string = apiParams.key as string;
       return { type, results, status: SearchStatus.FINISHED, query };
     };
