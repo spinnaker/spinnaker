@@ -374,7 +374,10 @@ angular
             () => {
               setOriginal(toSave);
               markDirty();
-              this.setViewState({ saving: false });
+              this.setViewState({
+                saveError: false,
+                saving: false,
+              });
             },
             (err) =>
               this.setViewState({
