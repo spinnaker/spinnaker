@@ -97,7 +97,7 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
     return trigger ->
-        trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
+        supportedTriggerTypes().contains(trigger.getType())
             && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
             && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
             && (trigger.getPayloadConstraints() == null
