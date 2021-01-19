@@ -41,7 +41,7 @@ public class AzureCredentials {
 
   public CloudBlobContainer getAzureContainer(String containerName) throws Exception {
     final String storageConnectionString =
-        "DefaultEndpointsProtocol=http;"
+        "DefaultEndpointsProtocol=https;"
             + "AccountName="
             + this.storageAccountName
             + ";"
