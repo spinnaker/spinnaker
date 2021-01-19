@@ -22,7 +22,7 @@
         />
         <validation-error
           ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials"
-          message="A {{ctrl.translate('firewall')}} named '{{namePreview}}' already exists in one or more of the selected regions"
+          message="A {{ctrl.translate('firewall')}} named '{{namePreview}}' already exists in one or more of the selected regions. Use a unique stack and detail to create a new {{ctrl.translate('firewall')}}."
         ></validation-error>
         <validation-error
           ng-if="form.securityGroupName.$error.pattern"
