@@ -19,6 +19,7 @@ import {
 } from 'core/domain';
 import { NextRunTag } from '../../triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
+import { Placement } from 'core/presentation/Placement';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
@@ -51,6 +52,7 @@ export interface IExecutionGroupState {
   displayExecutionActions: boolean;
   showAccounts: boolean;
   showOverflowAccountTags: boolean;
+  placement: Placement;
 }
 
 export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IExecutionGroupState> {
@@ -58,6 +60,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
   private destroy$ = new Subject();
+  private headerRef = React.createRef<HTMLDivElement>();
 
   constructor(props: IExecutionGroupProps) {
     super(props);
@@ -82,6 +85,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
       showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
       showOverflowAccountTags: false,
+      placement: 'top',
     };
   }
 
@@ -231,6 +235,14 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
       .filter((a) => !!a);
   }
 
+  private onEnter = (element: HTMLElement): void => {
+    // height of the content of the popover
+    const { height } = element.lastElementChild.getBoundingClientRect();
+    // distance from top to where is located the header
+    const headerOffset = this.headerRef.current?.getBoundingClientRect()?.top + window.scrollY;
+    this.setState({ placement: headerOffset - height > 0 ? 'top' : 'right' });
+  };
+
   private renderExecutions() {
     const { pipelineConfig } = this.state;
     const { executions } = this.props.group;
@@ -251,7 +263,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
 
   public render(): React.ReactElement<ExecutionGroup> {
     const { group } = this.props;
-    const { displayExecutionActions, pipelineConfig, triggeringExecution, showingDetails } = this.state;
+    const { displayExecutionActions, pipelineConfig, triggeringExecution, showingDetails, placement } = this.state;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;
     const pipelineJustMigrated = pipelineConfig?.migrationStatus === 'Started';
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
@@ -299,7 +311,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
       <div className={`execution-group ${showingDetails ? 'showing-details' : 'details-hidden'}`}>
         {group.heading && (
           <div className="clickable sticky-header" onClick={this.handleHeadingClicked}>
-            <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
+            <div ref={this.headerRef} className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`} />
               <div className={shadowedClassName} style={{ position: 'relative' }}>
                 <div className={`heading-tag-overflow-group ${this.state.showOverflowAccountTags ? 'shown' : ''}`}>
@@ -315,7 +327,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
                   {pipelineDescription && (
                     <span>
                       {' '}
-                      <Popover value={pipelineDescription}>
+                      <Popover onEnter={this.onEnter} value={pipelineDescription} placement={placement}>
                         <span className="glyphicon glyphicon-info-sign" />
                       </Popover>
                     </span>
