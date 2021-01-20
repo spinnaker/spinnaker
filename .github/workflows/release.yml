@@ -40,7 +40,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           RELEASE_VERSION: ${{ steps.release_info.outputs.RELEASE_VERSION }}
         run: |
-          ./gradlew --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" publish
+          ./gradlew --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -PbintrayPublishDebEnabled=false publish
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
         uses: actions/create-release@v1
