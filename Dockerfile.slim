@@ -1,33 +1,47 @@
-FROM alpine:3.12
+FROM python:3.7-alpine3.12
 LABEL maintainer="sig-platform@spinnaker.io"
 
-# KUBECTL_VERSION kept one minor version behind latest to maximise compatibility overlap
-ENV KUBECTL_VERSION v1.18.10
+# KUBECTL_RELEASE kept one minor version behind latest to maximise compatibility overlap
+ENV KUBECTL_RELEASE=1.18.10
+ENV AWS_CLI_VERSION=1.18.152
+ENV AWS_CLI_S3_CMD=2.0.2
+ENV AWS_AIM_AUTHENTICATOR_VERSION=0.4.0
+ENV GOOGLE_CLOUD_SDK_VERSION=313.0.1
+ENV ECR_TOKEN_VERSION=v1.0.2
 
-RUN apk --no-cache add --update bash wget unzip openjdk11 'python2>2.7.9' && \
-  wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
-  unzip -qq google-cloud-sdk.zip -d /opt && \
-  rm google-cloud-sdk.zip && \
-  CLOUDSDK_PYTHON="python2.7" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false --additional-components app-engine-java app-engine-go && \
-  rm -rf ~/.config/gcloud
+ENV PATH "$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
 
-RUN wget https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
-  chmod +x kubectl && \
-  mv ./kubectl /usr/local/bin/kubectl
+RUN apk update \
+  && apk upgrade \
+  && apk --no-cache add --update \
+    bash \
+    ca-certificates \
+    wget \
+    openjdk11
 
-RUN wget https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/aws-iam-authenticator && \
-  chmod +x ./aws-iam-authenticator && \
-  mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator && \
-  ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
+# AWS CLI
+RUN pip install --upgrade awscli==${AWS_CLI_VERSION} s3cmd==${AWS_CLI_S3_CMD} python-magic \
+  && pip uninstall -y pip
 
-RUN apk -v --update add py-pip && \
-  pip install --upgrade awscli==1.18.152 s3cmd==2.0.2 python-magic && \
-  apk -v --purge del py-pip && \
-  rm /var/cache/apk/*
+# Google cloud SDK 
+RUN wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && mkdir -p /opt && cd /opt \
+  && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && rm /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && CLOUDSDK_PYTHON="python3" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false  --additional-components app-engine-java app-engine-go \
+  && rm -rf ~/.config/gcloud \
+  && rm -rf /opt/google-cloud-sdk/.install/.backup
 
-ENV PATH "$PATH:/usr/local/bin/"
+# kubectl + AWS IAM authenticator
+RUN wget https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl \
+  && chmod +x kubectl \
+  && mv ./kubectl /usr/local/bin/kubectl \
+  && wget -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64 \
+	&& chmod +x ./aws-iam-authenticator \
+	&& mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator\
+    && ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
 
-ENV PATH=$PATH:/opt/google-cloud-sdk/bin/
+RUN rm /var/cache/apk/*
 
 RUN addgroup -S -g 10111 spinnaker
 RUN adduser -S -G spinnaker -u 10111 spinnaker
