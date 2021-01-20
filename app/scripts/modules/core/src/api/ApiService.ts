@@ -169,7 +169,7 @@ export class RequestBuilder implements IRequestBuilder {
   }
 
   path(...paths: IPrimitive[]) {
-    const url = joinPaths(this.config.url, ...paths);
+    const url = joinPaths(this.config.url, ...paths.map((path) => encodeURIComponent(path)));
     return this.builder({ ...this.config, url });
   }
 
@@ -241,6 +241,18 @@ export class DeprecatedRequestBuilder extends RequestBuilder implements IDepreca
   useCache = (cache: boolean | ICache = true) => this.builder({ ...this.config, cache: cache as boolean });
 }
 
+class DeprecatedRequestBuilderRoot extends DeprecatedRequestBuilder {
+  // Do not encode paths for the root API.one() call
+  one = (...paths: string[]) => {
+    const url = joinPaths(this.config.url, ...paths);
+    return this.builder({ ...this.config, url });
+  };
+  all = (...paths: string[]) => {
+    const url = joinPaths(this.config.url, ...paths);
+    return this.builder({ ...this.config, url });
+  };
+}
+
 export const invalidContentMessage = 'API response was neither JSON nor zero-length html or text';
 
 export function makeRequestBuilderConfig(pathPrefix?: string): IRequestBuilderConfig {
@@ -255,7 +267,7 @@ export function makeRequestBuilderConfig(pathPrefix?: string): IRequestBuilderCo
 }
 
 /** @deprecated use REST('/path/to/gate/endpoint') */
-export const API: IDeprecatedRequestBuilder = new DeprecatedRequestBuilder(makeRequestBuilderConfig());
+export const API: IDeprecatedRequestBuilder = new DeprecatedRequestBuilderRoot(makeRequestBuilderConfig());
 
 /**
  * A REST client used to access Gate endpoints

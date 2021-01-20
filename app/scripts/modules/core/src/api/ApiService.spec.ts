@@ -41,16 +41,33 @@ describe('RequestBuilder backend', () => {
     expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different/path' }));
   });
 
-  it('trims all leading and trailing slashes', function () {
+  it('trims all leading and trailing slashes from the base url', function () {
     const backend = createBackend();
-    new RequestBuilder(undefined, backend, '///http://different/path/////').path('////foo///').get();
+    new RequestBuilder(undefined, backend, '///http://different/path/////').path('foo').get();
     expect(backend.get).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'http://different/path/foo' }));
   });
 });
 
 describe('REST Service', function () {
-  const builder = () => new RequestBuilder(makeRequestBuilderConfig());
+  const builder = (pathPrefix?: string) => new RequestBuilder(makeRequestBuilderConfig(pathPrefix));
   afterEach(() => SETTINGS.resetToOriginal());
+
+  describe('makeRequestBuilderConfig', () => {
+    it('trims leading slashes from the path prefix', function () {
+      const result = builder('/foo');
+      expect(result['config'].url).toEqual(`foo`);
+    });
+
+    it('trims trailing slashes from the path prefix', function () {
+      const result = builder('foo/');
+      expect(result['config'].url).toEqual(`foo`);
+    });
+
+    it('trims repeated leading and trailing slashes from the path prefix', function () {
+      const result = builder('///foo///');
+      expect(result['config'].url).toEqual(`foo`);
+    });
+  });
 
   describe('RequestBuilder.path()', function () {
     it('joins a path to the current url using a /', function () {
@@ -75,26 +92,10 @@ describe('REST Service', function () {
       expect(child['config'].url).toEqual(`foo/bar`);
     });
 
-    it('trims leading slashes in paths', function () {
-      const result = builder().path('/foo');
-      expect(result['config'].url).toEqual(`foo`);
+    it('uriencodes path() parameters', () => {
+      const result = builder().path('foo/bar');
+      expect(result['config'].url).toEqual(`foo%2Fbar`);
     });
-
-    it('trims trailing slashes in paths', function () {
-      const result = builder().path('foo/');
-      expect(result['config'].url).toEqual(`foo`);
-    });
-
-    it('trims repeated leading and trailing slashes from urls', function () {
-      const result = builder().path('///foo///');
-      expect(result['config'].url).toEqual(`foo`);
-    });
-
-    // coming soon:
-    // it('uriencodes path parameters', () => {
-    //   const result = builder().path('foo/bar');
-    //   expect(result['config'].url).toEqual(`${BASEURL}/foo%2fbar`);
-    // });
   });
 
   describe('RequestBuilder.query()', function () {

@@ -105,7 +105,7 @@ export class ExecutionService {
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
           return REST('/applications')
-            .path(application, 'pipelineConfigs', encodeURIComponent(name))
+            .path(application, 'pipelineConfigs', name)
             .get()
             .then((pipelineConfig: IPipeline) => {
               execution.pipelineConfig = pipelineConfig;
