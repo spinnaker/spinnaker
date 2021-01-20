@@ -196,7 +196,7 @@ class SqlVerificationRepository(
         }
         .run {
           if (metadata.isNotEmpty()) {
-            set(VERIFICATION_STATE.METADATA, jsonSet(VERIFICATION_STATE.METADATA, metadata))
+            set(VERIFICATION_STATE.METADATA, jsonMerge(VERIFICATION_STATE.METADATA, metadata))
           } else {
             this
           }
@@ -206,29 +206,23 @@ class SqlVerificationRepository(
   }
 
   /**
-   * JOOQ-ified access to MySQL's `json_set` function.
+   * JOOQ-ified access to MySQL's `json_merge` function.
    *
    * Updates [field] with [values] retaining any existing entries that are not present in [values].
+   * Any array properties are appended to existing arrays.
    *
-   * @see https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-set
+   * @see https://dev.mysql.com/doc/refman/8.0/en/json-modification-functions.html#function_json-merge
    */
   @Suppress("UNCHECKED_CAST")
-  private fun <T> jsonSet(field: Field<T>, values: Map<String, Any?>): Field<T> {
-    require(values.isNotEmpty()) {
-      "MySQL's JSON_SET function cannot be used without values"
-    }
-    return function(
-      "json_set",
-      Map::class.java,
+  private fun jsonMerge(field: Field<Map<String, Any?>>, values: Map<String, Any?>) =
+    function<Map<String, Any?>>(
+      "json_merge",
       field,
-      *values.flatMap {
-        listOf(
-          value("\$.${it.key}"),
-          value(it.value)
-        )
-      }.toTypedArray()
-    ) as Field<T>
-  }
+      value(objectMapper.writeValueAsString(values))
+    )
+
+  private inline fun <reified T> function(name: String, vararg arguments: Field<*>) =
+    function(name, T::class.java, *arguments)
 
   private fun currentTimestamp() = clock.instant()
 

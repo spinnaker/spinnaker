@@ -5,14 +5,19 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.rest.VerificationController.RetryVerificationRequest
+import com.netflix.spinnaker.keel.rest.VerificationController.UpdateVerificationStatusRequest
 import com.ninjasquad.springmockk.MockkBean
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE
+import org.junit.jupiter.params.provider.NullSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -21,6 +26,7 @@ import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.Instant.now
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -70,7 +76,7 @@ internal class VerificationControllerTests
   @ParameterizedTest(name = "verification status can be overridden with {0}")
   @EnumSource(ConstraintStatus::class, names = ["OVERRIDE_PASS", "OVERRIDE_FAIL"])
   fun `verification status can be overridden by user request`(status: ConstraintStatus) {
-    val payload = VerificationController.UpdatedVerificationStatus(
+    val payload = UpdateVerificationStatusRequest(
       verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0",
@@ -101,7 +107,7 @@ internal class VerificationControllerTests
   @ParameterizedTest(name = "verification cannot be overridden with {0}")
   @EnumSource(ConstraintStatus::class, names = ["OVERRIDE_PASS", "OVERRIDE_FAIL"], mode = EXCLUDE)
   fun `only override statuses are accepted`(status: ConstraintStatus) {
-    val payload = VerificationController.UpdatedVerificationStatus(
+    val payload = UpdateVerificationStatusRequest(
       verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0",
@@ -115,7 +121,67 @@ internal class VerificationControllerTests
       .accept(APPLICATION_JSON)
       .content(jsonMapper.writeValueAsString(payload))
 
-    mvc.perform(request).andExpect(status().is4xxClientError)
+    mvc.perform(request).andExpect(status().isUnprocessableEntity)
+
+    verify(exactly = 0) {
+      verificationRepository.updateState(any(), any(), any(), any())
+    }
+  }
+
+  @ParameterizedTest(name = "verification can be retried when the current status is {0}")
+  @EnumSource(ConstraintStatus::class, names = ["NOT_EVALUATED", "PENDING"], mode = EXCLUDE)
+  @NullSource
+  fun `verification can be retried if not currently running`(currentStatus: ConstraintStatus?) {
+    val payload = RetryVerificationRequest(
+      verificationId = verification.id,
+      artifactReference = artifact.reference,
+      artifactVersion = "1.0.0"
+    )
+    val user = "fzlem@netflix.com"
+    val request = post("/${deliveryConfig.application}/environment/test/verifications/retry")
+      .header("X-SPINNAKER-USER", user)
+      .contentType(APPLICATION_JSON)
+      .accept(APPLICATION_JSON)
+      .content(jsonMapper.writeValueAsString(payload))
+
+    every {
+      verificationRepository.getState(any(), any())
+    } returns currentStatus?.let { VerificationState(it, now(), now()) }
+
+    mvc.perform(request).andExpect(status().isOk)
+
+    verify {
+      verificationRepository.updateState(
+        match {
+          it.deliveryConfig == deliveryConfig
+        },
+        verification,
+        NOT_EVALUATED,
+        mapOf("retryRequestedBy" to user)
+      )
+    }
+  }
+
+  @ParameterizedTest(name = "verification cannot be retried when the current status is {0}")
+  @EnumSource(ConstraintStatus::class, names = ["NOT_EVALUATED", "PENDING"])
+  fun `verification cannot be retried if running`(currentStatus: ConstraintStatus) {
+    val payload = RetryVerificationRequest(
+      verificationId = verification.id,
+      artifactReference = artifact.reference,
+      artifactVersion = "1.0.0"
+    )
+    val user = "fzlem@netflix.com"
+    val request = post("/${deliveryConfig.application}/environment/test/verifications/retry")
+      .header("X-SPINNAKER-USER", user)
+      .contentType(APPLICATION_JSON)
+      .accept(APPLICATION_JSON)
+      .content(jsonMapper.writeValueAsString(payload))
+
+    every {
+      verificationRepository.getState(any(), any())
+    } returns VerificationState(currentStatus, now(), null)
+
+    mvc.perform(request).andExpect(status().isConflict)
 
     verify(exactly = 0) {
       verificationRepository.updateState(any(), any(), any(), any())
