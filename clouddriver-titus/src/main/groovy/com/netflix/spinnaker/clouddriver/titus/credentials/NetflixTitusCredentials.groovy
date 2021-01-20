@@ -42,6 +42,8 @@ class NetflixTitusCredentials extends AbstractAccountCredentials<TitusCredential
 
   private final List<TitusRegion> regions
 
+  NetflixTitusCredentials() {}
+
   NetflixTitusCredentials(String name,
                           String environment,
                           String accountType,

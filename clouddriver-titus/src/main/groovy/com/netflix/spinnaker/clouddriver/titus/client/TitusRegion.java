@@ -21,16 +21,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class TitusRegion {
-  private final String name;
-  private final String account;
-  private final String endpoint;
-  private final List<TitusFaultDomain> faultDomains;
-  private final String applicationName;
-  private final String url;
-  private final int port;
-  private final List<String> featureFlags;
-  private final String eurekaName;
-  private final String eurekaRegion;
+  private String name;
+  private String account;
+  private String endpoint;
+  private List<TitusFaultDomain> faultDomains;
+  private String applicationName;
+  private String url;
+  private int port;
+  private List<String> featureFlags;
+  private String eurekaName;
+  private String eurekaRegion;
 
   private <T> T notNull(T val, String name) {
     if (val == null) {
@@ -38,6 +38,8 @@ public class TitusRegion {
     }
     return val;
   }
+
+  public TitusRegion() {}
 
   public TitusRegion(
       String name,

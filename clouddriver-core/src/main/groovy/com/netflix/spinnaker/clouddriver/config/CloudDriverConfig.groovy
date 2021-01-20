@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.databind.Module
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
@@ -137,15 +138,19 @@ class CloudDriverConfig {
   }
 
   @Bean
-  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer() {
+  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
     return new Jackson2ObjectMapperBuilderCustomizer() {
       @Override
       void customize(Jackson2ObjectMapperBuilder jacksonObjectMapperBuilder) {
+        modules.addAll(List.of(
+          new Jdk8Module(),
+          new JavaTimeModule(),
+          new KotlinModule(),
+          new ClouddriverApiModule()))
         jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL)
         jacksonObjectMapperBuilder.failOnEmptyBeans(false)
         jacksonObjectMapperBuilder.failOnUnknownProperties(false)
-        jacksonObjectMapperBuilder.modules(
-          new Jdk8Module(), new JavaTimeModule(), new KotlinModule(), new ClouddriverApiModule())
+        jacksonObjectMapperBuilder.modules(modules)
       }
     }
   }
