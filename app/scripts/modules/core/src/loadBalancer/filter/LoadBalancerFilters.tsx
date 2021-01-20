@@ -66,6 +66,7 @@ export interface ILoadBalancerFiltersState {
   sortFilter: ISortFilter;
   tags: any[];
   availabilityZoneHeadings: string[];
+  loadBalancerTypeHeadings: string[];
   providerTypeHeadings: string[];
   accountHeadings: string[];
   regionHeadings: string[];
@@ -85,6 +86,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
       sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
       tags: LoadBalancerState.filterModel.asFilterModel.tags,
       availabilityZoneHeadings: [],
+      loadBalancerTypeHeadings: [],
       providerTypeHeadings: [],
       accountHeadings: [],
       regionHeadings: [],
@@ -138,6 +140,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
       accountHeadings: account,
       regionHeadings: region,
       availabilityZoneHeadings: availabilityZone,
+      loadBalancerTypeHeadings: this.getHeadingsForOption('loadBalancerType'),
       stackHeadings: ['(none)'].concat(this.getHeadingsForOption('stack')),
       detailHeadings: ['(none)'].concat(this.getHeadingsForOption('detail')),
       providerTypeHeadings: this.getHeadingsForOption('type'),
@@ -173,6 +176,7 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
     const loadBalancersLoaded = this.props.app.loadBalancers.loaded;
     const {
       accountHeadings,
+      loadBalancerTypeHeadings,
       providerTypeHeadings,
       regionHeadings,
       stackHeadings,
@@ -246,6 +250,17 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
                   heading={heading}
                   key={heading}
                   sortFilterType={sortFilter.detail}
+                  onChange={this.updateLoadBalancerGroups}
+                />
+              ))}
+            </FilterSection>
+
+            <FilterSection heading="Type" expanded={true}>
+              {loadBalancerTypeHeadings.map((heading) => (
+                <FilterCheckbox
+                  heading={heading}
+                  key={heading}
+                  sortFilterType={sortFilter.loadBalancerType}
                   onChange={this.updateLoadBalancerGroups}
                 />
               ))}

@@ -48,9 +48,23 @@ export class LoadBalancerFilterService {
     });
   }
 
+  private checkLoadBalancerTypeFilters(loadBalancer: ILoadBalancer): boolean {
+    const sortFilter: ISortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
+    if (this.isFilterable(sortFilter.loadBalancerType)) {
+      const checkedLoadBalancerTypes = this.getCheckValues(sortFilter.loadBalancerType);
+      if (!checkedLoadBalancerTypes.includes(loadBalancer.loadBalancerType)) {
+        return false;
+      }
+      return true;
+    } else {
+      return true;
+    }
+  }
+
   public filterLoadBalancersForDisplay(loadBalancers: ILoadBalancer[]): ILoadBalancer[] {
     return chain(loadBalancers)
       .filter((lb) => this.checkSearchTextFilter(lb))
+      .filter((lb) => this.checkLoadBalancerTypeFilters(lb))
       .filter((lb) => FilterModelService.checkAccountFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
       .filter((lb) => FilterModelService.checkRegionFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
       .filter((lb) => FilterModelService.checkStackFilters(LoadBalancerState.filterModel.asFilterModel)(lb))

@@ -32,6 +32,7 @@ export interface ISortFilter {
   instanceType: ITrueKeyModel;
   labels: ITrueKeyModel;
   listInstances: boolean;
+  loadBalancerType: ITrueKeyModel;
   maxInstances: number;
   minInstances: number;
   multiselect: boolean;

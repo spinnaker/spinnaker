@@ -7,6 +7,7 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },
   { model: 'detail', param: 'detail', type: 'trueKeyObject' },
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
+  { model: 'loadBalancerType', param: 'loadBalancerType', filterLabel: 'type', type: 'trueKeyObject' },
   { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider' },
   { model: 'region', param: 'reg', type: 'trueKeyObject' },
   { model: 'showInstances', displayOption: true, type: 'boolean' },
