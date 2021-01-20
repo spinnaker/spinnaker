@@ -13,19 +13,20 @@
   },
   "peerDependencies": {
     "lodash": "^4.17.20",
-    "react": "~16.14.0",
-    "react-dom": "^16.14.0"
+    "react": "~16.14.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-typescript": "^8.1.0",
     "@types/react": "~16.14.0",
-    "@types/react-dom": "^16.9.10",
     "rollup": "^2.35.1",
     "typescript": "^4.0.0"
   },
   "dependencies": {
     "formik": "^1.4.1"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
