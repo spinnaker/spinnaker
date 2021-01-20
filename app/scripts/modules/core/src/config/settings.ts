@@ -86,6 +86,7 @@ export interface ISpinnakerSettings {
   defaultProviders: string[];
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
   dockerInsights: IDockerInsightSettings;
+  disabledImages?: string[];
   entityTags?: {
     maxUrlLength?: number;
     maxResults?: number;

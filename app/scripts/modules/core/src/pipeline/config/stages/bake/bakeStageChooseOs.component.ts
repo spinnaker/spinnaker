@@ -1,4 +1,5 @@
 import { IController, IComponentOptions, module } from 'angular';
+import { SETTINGS } from 'core/config/settings';
 
 export interface IBaseOsOption {
   id: string;
@@ -28,6 +29,11 @@ export class BakeStageChooseOSController implements IController {
   }
   public getBaseOsDetailedDescription(baseOsOption: IBaseOsOption): string {
     return baseOsOption.detailedDescription + (baseOsOption.isImageFamily ? ' (family)' : '');
+  }
+
+  public getBaseOsDisabled(baseOsOption: IBaseOsOption): boolean {
+    const disabledImages = SETTINGS.disabledImages || [];
+    return disabledImages.includes(baseOsOption.id);
   }
 }
 

@@ -67,6 +67,7 @@ window.spinnakerSettings = {
     'tencentcloud',
   ],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
+  disabledImages: [],
   entityTags: {
     maxResults: 5000,
   },
