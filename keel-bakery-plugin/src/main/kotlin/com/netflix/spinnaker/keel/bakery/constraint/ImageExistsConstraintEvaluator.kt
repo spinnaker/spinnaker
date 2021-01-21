@@ -56,6 +56,7 @@ class ImageExistsConstraintEvaluator(
           log.info("Found AMIs for all desired regions for {}", version)
         } else {
           log.warn("Missing regions {} for {}", (vmOptions.regions - it.keys).sorted().joinToString(), version)
+          eventPublisher.publishEvent(MissingRegionsDetected(version))
         }
       }
       .keys.containsAll(vmOptions.regions)
@@ -65,3 +66,6 @@ class ImageExistsConstraintEvaluator(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
+
+data class MissingRegionsDetected(val version: String)
+
