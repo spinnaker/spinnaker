@@ -19,6 +19,8 @@
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-typescript": "^8.1.0",
+    "@rollup/plugin-url": "^6.0.0",
+    "@svgr/rollup": "^5.5.0",
     "@types/react": "~16.14.0",
     "rollup": "^2.35.1",
     "typescript": "^4.0.0"
