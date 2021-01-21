@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
-import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
@@ -42,7 +41,6 @@ import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyArtifactVersionedResourceSpec
-import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.artifactVersionedResource
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.Veto
@@ -52,6 +50,8 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Runs
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
@@ -415,15 +415,16 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 before {
                   every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
                   every { plugin1.current(resource) } throws UserException("bad, bad user!")
-
-                  runBlocking {
-                    subject.checkResource(resource)
-                  }
                 }
 
                 test("the user exception is wrapped in the event") {
                   val event = slot<ResourceCheckResult>()
-                  verify { publisher.publishEvent(capture(event)) }
+                  every { publisher.publishEvent(capture(event)) } just Runs
+
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+
                   expectThat(event.captured)
                     .isA<ResourceCheckError>()
                     .get { exceptionType }
@@ -435,15 +436,16 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 before {
                   every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
                   every { plugin1.current(resource) } throws SystemException("oopsies!")
-
-                  runBlocking {
-                    subject.checkResource(resource)
-                  }
                 }
 
                 test("the system exception is wrapped in the event") {
                   val event = slot<ResourceCheckResult>()
-                  verify { publisher.publishEvent(capture(event)) }
+                  every { publisher.publishEvent(capture(event)) } just Runs
+
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+
                   expectThat(event.captured)
                     .isA<ResourceCheckError>()
                     .get { exceptionType }
@@ -456,19 +458,24 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               before {
                 every { plugin1.desired(resource) } throws RuntimeException("o noes")
                 every { plugin1.current(resource) } returns null
-
-                runBlocking {
-                  subject.checkResource(resource)
-                }
               }
 
               test("the resource is not updated") {
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+
                 verify(exactly = 0) { plugin1.update(any(), any()) }
               }
 
               test("a resource history event is published with the wrapped exception") {
                 val event = slot<ResourceCheckResult>()
-                verify { publisher.publishEvent(capture(event)) }
+                every { publisher.publishEvent(capture(event)) } just Runs
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+
                 expectThat(event.captured)
                   .isA<ResourceCheckError>()
                   .get { exceptionType }
@@ -480,19 +487,24 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               before {
                 every { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
                 every { plugin1.current(resource) } returns null
-
-                runBlocking {
-                  subject.checkResource(resource)
-                }
               }
 
               test("the resource is not updated") {
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+
                 verify(exactly = 0) { plugin1.update(any(), any()) }
               }
 
               test("a resource history event is published with detail of the problem") {
                 val event = slot<ResourceCheckUnresolvable>()
-                verify { publisher.publishEvent(capture(event)) }
+                every { publisher.publishEvent(capture(event)) } just Runs
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+
                 expectThat(event.captured)
                   .isA<ResourceCheckUnresolvable>()
                   .get { message }

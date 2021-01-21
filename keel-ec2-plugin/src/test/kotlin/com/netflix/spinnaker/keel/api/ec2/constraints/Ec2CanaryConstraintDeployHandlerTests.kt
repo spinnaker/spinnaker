@@ -27,12 +27,10 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.CapturingSlot
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
@@ -45,6 +43,8 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.time.Clock
 import java.time.Duration
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
 
@@ -105,7 +105,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
 
     context("need to launch canaries in two regions") {
       before {
-        coEvery {
+        every {
           imageService.getLatestNamedImage(any(), any(), any())
         } returns NamedImage(
             imageName = "fnord-42.0.0-h42",
@@ -115,23 +115,23 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
             amis = mapOf("us-west-1" to listOf("ami-001"), "us-west-2" to listOf("ami-002"))
           )
 
-        coEvery {
+        every {
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-1", any())
         } returns sourceServerGroup("us-west-1")
 
-        coEvery {
+        every {
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-2", any())
         } returns sourceServerGroup("us-west-2")
 
-        coEvery {
+        every {
           taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any())
         } returns Task(randomUID().toString(), "fnord canary")
 
-        coEvery {
+        every {
           imageResolver.defaultImageAccount
         } returns "test"
 
-        coEvery {
+        every {
           cloudDriverCache.subnetBy(any())
         } returns Subnet(
           id = "subnet-42",
@@ -142,7 +142,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
           purpose = "internal"
         )
 
-        coEvery {
+        every {
           cloudDriverCache.credentialBy("test")
         } returns Credential(
           name = "test",
@@ -157,18 +157,19 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
 
       test("generates and submits an orca task per regions") {
         val slot: CapturingSlot<List<Map<String, Any>>> = slot()
+        every {
+          taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), capture(slot))
+        } answers { Task(ULID().nextULID(), "whatever") }
+
         val tasks = runBlocking {
           subject.deployCanary(constraint, version, deliveryConfig, targetEnvironment, regions)
         }
 
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
           imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-1")
           imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-2")
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-1", any())
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-2", any())
-        }
-        coVerify(exactly = 2) {
-          taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), capture(slot))
         }
 
         expectThat(tasks)

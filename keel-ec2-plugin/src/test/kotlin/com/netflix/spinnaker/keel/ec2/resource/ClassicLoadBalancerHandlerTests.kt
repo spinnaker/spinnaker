@@ -38,12 +38,9 @@ import de.danielbechler.diff.selector.BeanPropertyElementSelector
 import de.danielbechler.diff.selector.CollectionItemElementSelector
 import de.danielbechler.diff.selector.ElementSelector
 import de.danielbechler.diff.selector.MapKeyElementSelector
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
@@ -57,6 +54,8 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import java.util.UUID
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 @Suppress("UNCHECKED_CAST")
 internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
@@ -179,16 +178,12 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         every { securityGroupByName(vpc.account, vpc.region, sg3.name) } returns sg3
       }
 
-      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
-    }
-
-    after {
-      confirmVerified(orcaService)
+      every { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
     }
 
     context("the CLB does not exist") {
       before {
-        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns emptyList()
+        every { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns emptyList()
       }
 
       test("the current model is empty") {
@@ -200,14 +195,14 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       // TODO: this test should really be pulled into a test for ClassicLoadBalancerSecurityGroupsResolver
       test("the CLB is created with a default security group as none are specified in spec") {
+        val slot = slot<OrchestrationRequest>()
+        every { orcaService.orchestrate("keel@spinnaker", capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+
         runBlocking {
           val current = current(resource)
           val desired = desired(resource)
           upsert(resource, DefaultResourceDiff(desired = desired, current = current))
         }
-
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
@@ -219,6 +214,9 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       // TODO: this test should really be pulled into a test for ClassicLoadBalancerSecurityGroupsResolver
       test("no default security group is applied if any are included in the spec") {
+        val slot = slot<OrchestrationRequest>()
+        every { orcaService.orchestrate("keel@spinnaker", capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+
         val modSpec = spec.run {
           copy(dependencies = dependencies.copy(securityGroupNames = setOf("nondefault-elb")))
         }
@@ -230,9 +228,6 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
           upsert(modResource, DefaultResourceDiff(desired = desired, current = current))
         }
 
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-
         expectThat(slot.captured.job.first()) {
           get("securityGroups").isEqualTo(setOf("nondefault-elb"))
         }
@@ -241,7 +236,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("deployed CLB with a default security group") {
       before {
-        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
+        every { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
       }
 
       test("computed diff removes the default security group if the spec only specifies another") {
@@ -275,8 +270,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
           upsert(newResource, diff)
         }
 
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+        verify { orcaService.orchestrate("keel@spinnaker", any()) }
       }
 
       test("export generates a valid spec for the deployed CLB") {

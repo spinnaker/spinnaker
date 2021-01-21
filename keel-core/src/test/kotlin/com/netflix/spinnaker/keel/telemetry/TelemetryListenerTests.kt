@@ -13,13 +13,13 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import java.time.Clock
-import java.time.Instant
 import org.junit.jupiter.api.fail
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.isEqualTo
+import java.time.Clock
+import java.time.Instant
 
 internal class TelemetryListenerTests : JUnit5Minutests {
 
@@ -37,16 +37,12 @@ internal class TelemetryListenerTests : JUnit5Minutests {
       TelemetryListener(registry, Clock.systemUTC())
     }
 
-    before {
-      every { registry.counter(any(), any<List<Tag>>()) } returns counter
-    }
-
     context("successful metric submission") {
-      before {
-        onResourceChecked(event)
-      }
-
       test("increments an Atlas counter") {
+        every { registry.counter(any(), any<List<Tag>>()) } returns counter
+
+        onResourceChecked(event)
+
         verify {
           counter.increment()
         }
@@ -55,9 +51,12 @@ internal class TelemetryListenerTests : JUnit5Minutests {
       test("tags the counter") {
         val id = slot<String>()
         val tags = slot<List<Tag>>()
-        verify {
+        every {
           registry.counter(capture(id), capture(tags))
-        }
+        } returns counter
+
+        onResourceChecked(event)
+
         expectThat(id.captured).isEqualTo("keel.resource.checked")
         expectThat(tags.captured) {
           any {
