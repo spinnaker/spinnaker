@@ -1,25 +1,35 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.ALL
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
-import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.propertiesAreEqualTo
 
+@SpringBootTest(
+  classes = [KeelApplication::class],
+  properties = [
+    "spring.liquibase.enabled = false" // TODO: ignored by kork's SpringLiquibaseProxy
+  ],
+  webEnvironment = NONE
+)
 internal class SecurityGroupRuleTests : JUnit5Minutests {
+  @Autowired
+  lateinit var mapper: YAMLMapper
 
   data class Fixture(
-    val mapper: ObjectMapper = configuredYamlMapper().registerKeelEc2ApiModule(),
     val yaml: String,
     val rule: SecurityGroupRule
   ) {

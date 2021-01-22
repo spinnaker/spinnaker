@@ -43,6 +43,7 @@ class ClouddriverConfiguration {
       ?: throw BeanCreationException("Invalid URL: $clouddriverBaseUrl")
 
   @Bean
+  @ConditionalOnMissingBean(CloudDriverService::class)
   fun clouddriverService(
     clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,

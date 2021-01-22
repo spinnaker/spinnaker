@@ -54,6 +54,7 @@ dependencies {
   testImplementation("org.testcontainers:mysql:${property("testContainersVersion")}")
   testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("com.netflix.spinnaker.kork:kork-plugins")
+  testRuntimeOnly(project(":keel-ec2-plugin"))
 }
 
 application {

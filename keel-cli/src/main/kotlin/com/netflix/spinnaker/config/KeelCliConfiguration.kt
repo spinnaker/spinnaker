@@ -18,7 +18,7 @@ import javax.annotation.PostConstruct
 @Component
 class KeelCliConfiguration(
   private val extensionRegistry: ExtensionRegistry,
-  private val objectMappers: List<ObjectMapper>,
+  private val objectMappers: List<ObjectMapper>
 ) {
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 

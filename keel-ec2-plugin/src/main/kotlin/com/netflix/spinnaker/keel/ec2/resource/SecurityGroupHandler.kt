@@ -52,11 +52,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
 
-class SecurityGroupHandler(
-  private val cloudDriverService: CloudDriverService,
-  private val cloudDriverCache: CloudDriverCache,
-  private val orcaService: OrcaService,
-  private val taskLauncher: TaskLauncher,
+open class SecurityGroupHandler(
+  open val cloudDriverService: CloudDriverService,
+  val cloudDriverCache: CloudDriverCache,
+  val orcaService: OrcaService,
+  val taskLauncher: TaskLauncher,
   resolvers: List<Resolver<*>>
 ) : ResolvableResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(resolvers) {
 
@@ -96,11 +96,11 @@ class SecurityGroupHandler(
 
           when (diff.current) {
             null -> {
-              job = spec.toCreateJob()
+              job = generateCreateJob(spec)
               verb = Pair("Create", "create")
             }
             else -> {
-              job = spec.toUpdateJob()
+              job = generateUpdateJob(spec)
               verb = Pair("Update", "update")
             }
           }
@@ -271,6 +271,7 @@ class SecurityGroupHandler(
         region = region
       ),
       description = description,
+      tags = tags,
       inboundRules = inboundRules.flatMap { rule ->
         val ingressGroup = rule.securityGroup
         val ingressRange = rule.range
@@ -302,7 +303,8 @@ class SecurityGroupHandler(
                 CidrRule(
                   protocol,
                   portRange,
-                  ingressRange.ip + ingressRange.cidr
+                  ingressRange.ip + ingressRange.cidr,
+                  rule.description
                 )
               } ?: emptyList()
           ingressGroup != null && ingressGroup.name == null -> {
@@ -328,52 +330,56 @@ class SecurityGroupHandler(
   private fun String.clouddriverProtocolToKeel(): Protocol =
     if (this == "-1") Protocol.ALL else Protocol.valueOf(toUpperCase())
 
-  private fun SecurityGroup.toCreateJob(): Job =
-    Job(
-      "upsertSecurityGroup",
-      mapOf(
-        "application" to moniker.app,
-        "credentials" to location.account,
-        "cloudProvider" to CLOUD_PROVIDER,
-        "name" to moniker.toString(),
-        "regions" to listOf(location.region),
-        "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
-        "description" to description,
-        "securityGroupIngress" to inboundRules
-          // we have to do a 2-phase create for self-referencing ingress rules as the referenced
-          // security group must exist prior to the rule being applied. We filter then out here and
-          // the subsequent diff will apply the additional group(s).
-          .filterNot { it is ReferenceRule && it.name == moniker.name }
-          .mapNotNull {
+  protected open fun generateCreateJob(securityGroup: SecurityGroup): Job =
+    with(securityGroup) {
+      Job(
+        "upsertSecurityGroup",
+        mapOf(
+          "application" to moniker.app,
+          "credentials" to location.account,
+          "cloudProvider" to CLOUD_PROVIDER,
+          "name" to moniker.toString(),
+          "regions" to listOf(location.region),
+          "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
+          "description" to description,
+          "securityGroupIngress" to inboundRules
+            // we have to do a 2-phase create for self-referencing ingress rules as the referenced
+            // security group must exist prior to the rule being applied. We filter then out here and
+            // the subsequent diff will apply the additional group(s).
+            .filterNot { it is ReferenceRule && it.name == moniker.name }
+            .mapNotNull {
+              it.referenceRuleToJob(this)
+            },
+          "ipIngress" to inboundRules.mapNotNull {
+            it.cidrRuleToJob()
+          },
+          "accountName" to location.account
+        )
+      )
+    }
+
+  protected open fun generateUpdateJob(securityGroup: SecurityGroup): Job =
+    with(securityGroup) {
+      Job(
+        "upsertSecurityGroup",
+        mapOf(
+          "application" to moniker.app,
+          "credentials" to location.account,
+          "cloudProvider" to CLOUD_PROVIDER,
+          "name" to moniker.toString(),
+          "regions" to listOf(location.region),
+          "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
+          "description" to description,
+          "securityGroupIngress" to inboundRules.mapNotNull {
             it.referenceRuleToJob(this)
           },
-        "ipIngress" to inboundRules.mapNotNull {
-          it.cidrRuleToJob()
-        },
-        "accountName" to location.account
+          "ipIngress" to inboundRules.mapNotNull {
+            it.cidrRuleToJob()
+          },
+          "accountName" to location.account
+        )
       )
-    )
-
-  private fun SecurityGroup.toUpdateJob(): Job =
-    Job(
-      "upsertSecurityGroup",
-      mapOf(
-        "application" to moniker.app,
-        "credentials" to location.account,
-        "cloudProvider" to CLOUD_PROVIDER,
-        "name" to moniker.toString(),
-        "regions" to listOf(location.region),
-        "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
-        "description" to description,
-        "securityGroupIngress" to inboundRules.mapNotNull {
-          it.referenceRuleToJob(this)
-        },
-        "ipIngress" to inboundRules.mapNotNull {
-          it.cidrRuleToJob()
-        },
-        "accountName" to location.account
-      )
-    )
+    }
 
   private fun SecurityGroupRule.referenceRuleToJob(securityGroup: SecurityGroup): Map<String, Any?>? =
     when (this) {
@@ -381,7 +387,7 @@ class SecurityGroupHandler(
         "type" to protocol.type,
         "startPort" to (portRange as? PortRange)?.startPort,
         "endPort" to (portRange as? PortRange)?.endPort,
-        "name" to (name ?: securityGroup.moniker.toString())
+        "name" to name
       )
       is CrossAccountReferenceRule -> mapOf(
         "type" to protocol.type,

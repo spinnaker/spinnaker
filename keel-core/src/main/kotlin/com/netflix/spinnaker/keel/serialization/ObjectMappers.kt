@@ -16,6 +16,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import de.huxhorn.sulky.ulid.ULID
+import org.springframework.boot.jackson.JsonComponentModule
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 

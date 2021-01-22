@@ -1,30 +1,23 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.fasterxml.jackson.databind.BeanDescription
-import com.fasterxml.jackson.databind.DeserializationConfig
-import com.fasterxml.jackson.databind.JavaType
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationConfig
-import com.fasterxml.jackson.databind.deser.Deserializers
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.ser.Serializers
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.InstanceProvider
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.BuildInfo
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.Health
 import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
@@ -33,6 +26,7 @@ import com.netflix.spinnaker.keel.api.ec2.TargetGroupAttributes
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
 import com.netflix.spinnaker.keel.api.ec2.old.ClusterV1Spec
+import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ApplicationLoadBalancerSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.BuildInfoMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ClassicLoadBalancerSpecMixin
@@ -52,14 +46,31 @@ import com.netflix.spinnaker.keel.ec2.jackson.mixins.StepScalingPolicyMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.TargetGroupAttributesMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.TargetTrackingPolicyMixin
 
-fun ObjectMapper.registerKeelEc2ApiModule(): ObjectMapper = registerModule(KeelEc2ApiModule)
+val SECURITY_GROUP_RULE_SUBTYPES = mapOf(
+  ReferenceRule::class.java to "reference",
+  CrossAccountReferenceRule::class.java to "cross-account",
+  CidrRule::class.java to "cidr"
+)
 
-object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
+fun ObjectMapper.registerKeelEc2ApiModule(): ObjectMapper {
+  return registerModule(KeelEc2ApiModule)
+    .apply {
+      SECURITY_GROUP_RULE_SUBTYPES.forEach { (subType, discriminator) ->
+        registerSubtypes(NamedType(subType, discriminator))
+      }
+    }
+}
+
+fun ExtensionRegistry.registerEc2Subtypes() {
+  // Note that the discriminators below are not used as sub-types are determined by the custom deserializer above
+  SECURITY_GROUP_RULE_SUBTYPES.forEach { (subType, discriminator) ->
+    register(SecurityGroupRule::class.java, subType, discriminator)
+  }
+}
+
+internal object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
   override fun setupModule(context: SetupContext) {
     with(context) {
-      addSerializers(KeelEc2ApiSerializers)
-      addDeserializers(KeelEc2ApiDeserializers)
-
       setMixInAnnotations<ApplicationLoadBalancerSpec, ApplicationLoadBalancerSpecMixin>()
       // same annotations are required for this legacy model, so it can reuse the same mixin
       setMixInAnnotations<ApplicationLoadBalancerV1Spec, ApplicationLoadBalancerSpecMixin>()
@@ -83,25 +94,6 @@ object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
     }
     super.setupModule(context)
   }
-}
-
-internal object KeelEc2ApiSerializers : Serializers.Base() {
-  override fun findSerializer(config: SerializationConfig, type: JavaType, beanDesc: BeanDescription): JsonSerializer<*>? =
-    when {
-      IngressPorts::class.java.isAssignableFrom(type.rawClass) -> IngressPortsSerializer()
-      else -> null
-    }
-}
-
-internal object KeelEc2ApiDeserializers : Deserializers.Base() {
-  override fun findBeanDeserializer(type: JavaType, config: DeserializationConfig, beanDesc: BeanDescription): JsonDeserializer<*>? =
-    when (type.rawClass) {
-      ActiveServerGroupImage::class.java -> ActiveServerGroupImageDeserializer()
-      IngressPorts::class.java -> IngressPortsDeserializer()
-      SecurityGroupSpec::class.java -> SecurityGroupSpecDeserializer()
-      SecurityGroupRule::class.java -> SecurityGroupRuleDeserializer()
-      else -> null
-    }
 }
 
 private inline fun <reified TARGET, reified MIXIN> Module.SetupContext.setMixInAnnotations() {

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
+import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
@@ -48,6 +49,9 @@ class KeelConfigurationFinalizer(
   // TODO: not sure if we can do this more dynamically
   @PostConstruct
   fun registerApiExtensionsWithObjectMappers() {
+    // Registering sub-types with the extension registry is redundant with the call to
+    // registerKeelEc2ApiModule below, as far as object mappers go, but needed for the schema generator.
+    extensionRegistry.registerEc2Subtypes()
     objectMappers.forEach {
       it.registerKeelEc2ApiModule()
       it.registerKeelTitusApiModule()

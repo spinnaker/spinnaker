@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.ec2.jackson.registerEc2Subtypes
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.generateSchema
 import com.networknt.schema.JsonSchema
@@ -28,10 +30,11 @@ import strikt.api.expectThat
   webEnvironment = NONE
 )
 class ApiDocCompatibilityTests
-@Autowired constructor(val generator: Generator) {
+@Autowired constructor(val extensionRegistry: ExtensionRegistry, val generator: Generator) {
 
   val schemaFactory: JsonSchemaFactory = JsonSchemaFactory.getInstance(V201909)
   val api by lazy {
+    extensionRegistry.registerEc2Subtypes()
     generator.generateSchema<SubmittedDeliveryConfig>()
       .also {
         jacksonObjectMapper()

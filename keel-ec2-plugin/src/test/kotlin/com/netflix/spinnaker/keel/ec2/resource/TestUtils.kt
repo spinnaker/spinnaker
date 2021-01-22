@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicyAlarm
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
-import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.TargetTrackingConfiguration
 import com.netflix.spinnaker.keel.core.parseMoniker
 import org.apache.commons.lang3.RandomStringUtils

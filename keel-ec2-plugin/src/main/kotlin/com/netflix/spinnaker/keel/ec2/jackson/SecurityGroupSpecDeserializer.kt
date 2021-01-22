@@ -12,7 +12,9 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.core.name
+import org.springframework.boot.jackson.JsonComponent
 
+@JsonComponent
 class SecurityGroupSpecDeserializer : StdNodeBasedDeserializer<SecurityGroupSpec>(SecurityGroupSpec::class.java) {
   override fun convert(root: JsonNode, context: DeserializationContext) =
     with(context.parser.codec as ObjectMapper) {

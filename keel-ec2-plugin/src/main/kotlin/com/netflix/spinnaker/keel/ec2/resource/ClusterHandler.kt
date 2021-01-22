@@ -55,7 +55,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
-import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.parseMoniker

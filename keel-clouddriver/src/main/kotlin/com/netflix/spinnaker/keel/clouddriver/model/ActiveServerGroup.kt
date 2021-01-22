@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
@@ -312,11 +313,6 @@ data class MetricDimensionModel(
 data class SuspendedProcess(
   val processName: String,
   val suspensionReason: String? = null
-)
-
-data class Tag(
-  val key: String,
-  val value: String
 )
 
 data class InstanceMonitoring(

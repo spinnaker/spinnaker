@@ -1,14 +1,13 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
+import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
-import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Runs
@@ -17,26 +16,39 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import javax.servlet.FilterChain
-import javax.servlet.ServletRequest
-import javax.servlet.http.HttpServletRequestWrapper
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import javax.servlet.FilterChain
+import javax.servlet.ServletRequest
+import javax.servlet.http.HttpServletRequestWrapper
 
+@SpringBootTest(
+  properties = [
+    "keel.plugins.ec2.enabled = true",
+    "spring.liquibase.enabled = false" // TODO: ignored by kork's SpringLiquibaseProxy
+  ],
+  classes = [KeelApplication::class],
+  webEnvironment = NONE
+)
 class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {
+
+  @Autowired
+  lateinit var mapper: YAMLMapper
+
   object Fixture {
     val chain: FilterChain = mockk()
     val filter = DeliveryConfigYamlParsingFilter()
     val request = MockHttpServletRequest("POST", "/delivery-configs")
     val response = MockHttpServletResponse()
-    val objectMapper = configuredTestObjectMapper().registerKeelEc2ApiModule()
 
     init {
-      objectMapper.registerSubtypes(EC2_SECURITY_GROUP_V1.toNamedType())
       request.contentType = "application/x-yaml"
       request.setContent(
         """
@@ -110,7 +122,7 @@ class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {
           .isA<HttpServletRequestWrapper>()
           .get { contentType }.isEqualTo("application/json")
 
-        val deliveryConfig: SubmittedDeliveryConfig = objectMapper.readValue(normalizedRequest.captured.inputStream)
+        val deliveryConfig: SubmittedDeliveryConfig = mapper.readValue(normalizedRequest.captured.inputStream)
         expectThat(deliveryConfig) {
           get { environments }.hasSize(2)
           get { environments.find { it.name == "prod" }!!.resources }.hasSize(1)
