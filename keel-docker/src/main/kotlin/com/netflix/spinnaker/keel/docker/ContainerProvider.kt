@@ -29,6 +29,10 @@ data class ReferenceProvider(
   val reference: String
 ) : ContainerProvider()
 
+// used for resources with multiple container references
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class MultiReferenceContainerProvider(val references : Set<String> = HashSet()) : ContainerProvider()
+
 // used in titus handler as a way to represent a fully specified container
 @JsonDeserialize(using = JsonDeserializer.None::class)
 data class DigestProvider(

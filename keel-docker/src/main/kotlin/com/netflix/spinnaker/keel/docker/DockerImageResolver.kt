@@ -72,17 +72,32 @@ abstract class DockerImageResolver<T : ResourceSpec>(
 
   override fun invoke(resource: Resource<T>): Resource<T> {
     val container = getContainerFromSpec(resource)
-    if (container is DigestProvider) {
+    if (container is DigestProvider || (container is MultiReferenceContainerProvider && container.references.isEmpty())) {
       return resource
     }
+
     val deliveryConfig = repository.deliveryConfigFor(resource.id)
     val environment = repository.environmentFor(resource.id)
-    val artifact = getArtifact(container, deliveryConfig)
     val account = getAccountFromSpec(resource)
-    val tag: String = findTagGivenDeliveryConfig(deliveryConfig, environment, artifact)
 
-    val newContainer = getContainer(account, artifact, tag)
-    return updateContainerInSpec(resource, newContainer, artifact, tag)
+    val containers = mutableListOf<ContainerProvider>()
+    if (container is MultiReferenceContainerProvider) {
+      container.references.forEach {
+        containers.add(ReferenceProvider(it))
+      }
+    } else {
+      containers.add(container)
+    }
+
+    var updatedResource = resource
+    containers.forEach {
+      val artifact = getArtifact(it, deliveryConfig)
+      val tag: String = findTagGivenDeliveryConfig(deliveryConfig, environment, artifact)
+
+      val newContainer = getContainer(account, artifact, tag)
+      updatedResource = updateContainerInSpec(updatedResource, newContainer, artifact, tag)
+    }
+    return updatedResource
   }
 
   fun getArtifact(container: ContainerProvider, deliveryConfig: DeliveryConfig): DockerArtifact =

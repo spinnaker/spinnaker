@@ -41,7 +41,11 @@ import strikt.assertions.isEqualTo
 class SampleDockerImageResolverTests : JUnit5Minutests {
   val repository: KeelRepository = mockk()
 
-  private val artifact = DockerArtifact(name = "spkr/keeldemo", reference = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig")
+  private val artifacts = setOf(
+    DockerArtifact(name = "spkr/keeldemo", reference = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig"),
+    DockerArtifact(name = "spkr/anotherkeeldemo", reference = "spkr/anotherkeeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig")
+  )
+
 
   private val oldStyleSpec = SampleSpecWithContainer(
     container = VersionedTagProvider(
@@ -58,12 +62,27 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
     ),
     account = "test"
   )
+
+  private val multiReferenceSpec = SampleSpecWithContainer(
+    container = MultiReferenceContainerProvider(
+      references = setOf("spkr/keeldemo", "spkr/anotherkeeldemo")
+    ),
+    account = "test"
+  )
+
+  private val nullContainerSpec = SampleSpecWithContainer(
+    account = "test"
+  )
+
   val versionedContainerResource = generateResource(oldStyleSpec)
-
   val referenceResource = generateResource(referenceSpec)
-  val versionedDeliveryConfig = generateDeliveryConfig(versionedContainerResource, artifact)
+  val multiReferenceResource = generateResource(multiReferenceSpec)
+  val nullContainerResource = generateResource(nullContainerSpec)
 
-  val referenceDeliveryConfig = generateDeliveryConfig(referenceResource, artifact)
+  val versionedDeliveryConfig = generateDeliveryConfig(versionedContainerResource, artifacts)
+  val referenceDeliveryConfig = generateDeliveryConfig(referenceResource, artifacts)
+  val multiReferenceDeliveryConfig = generateDeliveryConfig(multiReferenceResource, artifacts)
+  val nullContainerDeliveryConfig = generateDeliveryConfig(nullContainerResource, artifacts)
 
   private fun generateResource(spec: SampleSpecWithContainer) =
     Resource(
@@ -76,7 +95,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
       )
     )
 
-  private fun generateDeliveryConfig(resource: Resource<SampleSpecWithContainer>, artifact: DockerArtifact): DeliveryConfig {
+  private fun generateDeliveryConfig(resource: Resource<SampleSpecWithContainer>, artifacts: Set<DockerArtifact>): DeliveryConfig {
     val env = Environment(
       name = "test",
       resources = setOf(resource)
@@ -85,7 +104,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
       name = "mydeliveryconfig",
       application = "keel",
       serviceAccount = "keel@spinnaker",
-      artifacts = setOf(artifact),
+      artifacts = artifacts,
       environments = setOf(env)
     )
   }
@@ -103,7 +122,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
 
       context("no versions are approved yet") {
         before {
-          every { repository.latestVersionApprovedIn(versionedDeliveryConfig, artifact, "test") } returns null
+          every { repository.latestVersionApprovedIn(versionedDeliveryConfig, artifacts.first(), "test") } returns null
         }
 
         test("the resolver throws an exception") {
@@ -113,7 +132,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
 
       context("there is a version approved") {
         before {
-          every { repository.latestVersionApprovedIn(versionedDeliveryConfig, artifact, "test") } returns "v0.0.1"
+          every { repository.latestVersionApprovedIn(versionedDeliveryConfig, artifacts.first(), "test") } returns "v0.0.1"
         }
 
         test("the resolver finds the correct version") {
@@ -134,25 +153,76 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
 
       context("no versions are approved yet") {
         before {
-          every { repository.latestVersionApprovedIn(referenceDeliveryConfig, artifact, "test") } returns null
+          every { repository.latestVersionApprovedIn(referenceDeliveryConfig, artifacts.first(), "test") } returns null
         }
 
         test("the resolver throws an exception") {
-          expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(versionedContainerResource) }
+          expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(referenceResource) }
         }
       }
 
       context("there is a version approved") {
         before {
-          every { repository.latestVersionApprovedIn(referenceDeliveryConfig, artifact, "test") } returns "v0.0.1"
+          every { repository.latestVersionApprovedIn(referenceDeliveryConfig, artifacts.first(), "test") } returns "v0.0.1"
         }
 
         test("the resolver finds the correct version") {
-          val resolvedResource = this.invoke(versionedContainerResource)
+          val resolvedResource = this.invoke(referenceResource)
           expect {
             that(resolvedResource.spec.container).isA<DigestProvider>()
             that(resolvedResource.spec.container as DigestProvider).get { digest }.isEqualTo("sha256:2763a2b9d53e529c62b326b7331d1b44aae344be0b79ff64c74559c5c96b76b7")
           }
+        }
+      }
+    }
+
+    context("resolving from multiple reference providers") {
+      before {
+        every { repository.deliveryConfigFor(multiReferenceResource.id) } returns multiReferenceDeliveryConfig
+        every { repository.environmentFor(multiReferenceResource.id) } returns multiReferenceDeliveryConfig.environments.first()
+      }
+
+      context("no versions are approved yet") {
+        before {
+          every { repository.latestVersionApprovedIn(multiReferenceDeliveryConfig, artifacts.elementAt(0), "test") } returns null
+          every { repository.latestVersionApprovedIn(multiReferenceDeliveryConfig, artifacts.elementAt(1), "test") } returns null
+        }
+
+        test("the resolver throws an exception") {
+          expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(multiReferenceResource) }
+        }
+      }
+
+      // Given the updateContainerInSpec behavior in SimpleDockerImageResolver, the test verifies that
+      // for multiple container references, the resource specification goes through the resolver twice
+      // and that the container reference is eventually overwritten by the last artifact. Hence the
+      // test verifies that the digest for the resolvedResource will be that of the second artifact.
+      context("there is a version approved for each artifact") {
+        before {
+          every { repository.latestVersionApprovedIn(multiReferenceDeliveryConfig, artifacts.elementAt(0), "test") } returns "v0.0.1"
+          every { repository.latestVersionApprovedIn(multiReferenceDeliveryConfig, artifacts.elementAt(1), "test") } returns "v0.0.2"
+        }
+
+        test("the resolver overrides to the latest artifact") {
+          val resolvedResource = this.invoke(multiReferenceResource)
+          expect {
+            that(resolvedResource.spec.container).isA<DigestProvider>()
+            that(resolvedResource.spec.container as DigestProvider).get { digest }.isEqualTo("sha256:b4857d7596462aeb1977e6e5d1e31b20a5b5eecf890cd64ac62f145b3839ee97")
+          }
+        }
+      }
+    }
+
+    context("resolving from resource with no container info") {
+      before{
+        every { repository.deliveryConfigFor(nullContainerResource.id) } returns nullContainerDeliveryConfig
+        every { repository.environmentFor(nullContainerResource.id) } returns nullContainerDeliveryConfig.environments.first()
+      }
+
+      test("resource is resolved as is") {
+        val resolvedResource = this.invoke(nullContainerResource)
+        expect {
+          that(resolvedResource).isEqualTo(nullContainerResource)
         }
       }
     }
