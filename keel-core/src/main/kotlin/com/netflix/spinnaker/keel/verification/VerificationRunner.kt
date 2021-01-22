@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.verification
 
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
@@ -67,7 +68,7 @@ class VerificationRunner(
     get() = any { (_, status) -> status == PENDING }
 
   private val Collection<Pair<Verification, ConstraintStatus?>>.firstOutstanding: Verification?
-    get() = firstOrNull { (_, status) -> status == null }?.first
+    get() = firstOrNull { (_, status) -> status in listOf(null, NOT_EVALUATED) }?.first
 
   private fun VerificationContext.previousState(verification: Verification) =
     verificationRepository

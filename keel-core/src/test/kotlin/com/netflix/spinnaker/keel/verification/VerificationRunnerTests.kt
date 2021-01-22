@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
@@ -96,6 +97,38 @@ internal class VerificationRunnerTests {
 
     verify { evaluator.start(context, DummyVerification("1")) }
     verify { repository.updateState(any(), DummyVerification("1"), PENDING, metadata) }
+    verify { publisher.publishEvent(ofType<VerificationStarted>()) }
+  }
+
+  @Test
+  fun `re-starts a verification if a user has requested it be retried`() {
+    val context = VerificationContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), any()) } returns VerificationState(NOT_EVALUATED, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
+    every { evaluator.start(any(), any()) } answers { mapOf("tasks" to listOf(ULID().nextULID())) }
+
+    subject.runVerificationsFor(context)
+
+    verify { evaluator.start(context, DummyVerification("1")) }
+    verify { repository.updateState(any(), DummyVerification("1"), PENDING, any()) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
