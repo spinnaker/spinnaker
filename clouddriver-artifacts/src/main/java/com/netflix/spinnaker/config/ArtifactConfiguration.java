@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.squareup.okhttp.OkHttpClient;
@@ -47,12 +48,16 @@ public class ArtifactConfiguration {
   public ArtifactCredentialsRepository artifactCredentialsRepository(
       ApplicationContext applicationContext,
       List<CredentialsTypeProperties<? extends ArtifactCredentials, ? extends ArtifactAccount>>
-          credentialsTypes) {
-    return new ArtifactCredentialsRepository(
+          credentialsTypes,
+      List<CredentialsRepository<? extends ArtifactCredentials>> defaultRepositories) {
+    List<CredentialsRepository<? extends ArtifactCredentials>> repositories =
         credentialsTypes.stream()
             .map(c -> new CredentialsTypeBaseConfiguration<>(applicationContext, c))
             .peek(CredentialsTypeBaseConfiguration::afterPropertiesSet)
             .map(CredentialsTypeBaseConfiguration::getCredentialsRepository)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList());
+
+    repositories.addAll(defaultRepositories);
+    return new ArtifactCredentialsRepository(repositories);
   }
 }
