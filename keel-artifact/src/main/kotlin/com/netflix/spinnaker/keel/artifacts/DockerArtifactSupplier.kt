@@ -69,11 +69,9 @@ class DockerArtifactSupplier(
       throw IllegalArgumentException("Only Docker artifacts are supported by this implementation.")
     }
 
-    return runWithIoContext {
-      findArtifactVersions(artifact)
+    return findArtifactVersions(artifact)
         .sortedWith(artifact.sortingStrategy.comparator)
         .firstOrNull()
-    }
   }
 
   override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, sortingStrategy: SortingStrategy): BuildMetadata? {
