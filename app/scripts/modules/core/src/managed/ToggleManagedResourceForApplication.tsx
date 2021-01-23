@@ -4,8 +4,6 @@ import ReactGA from 'react-ga';
 import { Application } from '../application';
 import { Button } from './Button';
 import {
-  Illustration,
-  IllustrationName,
   IModalComponentProps,
   ModalBody,
   ModalFooter,
@@ -14,6 +12,8 @@ import {
   ValidationMessage,
 } from '../presentation';
 import { ManagedWriter } from './ManagedWriter';
+
+import { Illustration, IllustrationName } from '@spinnaker/presentation';
 
 const logClick = (label: string, application: string) =>
   ReactGA.event({

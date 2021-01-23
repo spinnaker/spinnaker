@@ -3,8 +3,10 @@ import { $window } from 'ngimport';
 
 import { ApplicationFreshIcon } from '../ApplicationFreshIcon';
 import { SchedulerFactory } from 'core/scheduler';
-import { Illustration, Tooltip } from 'core/presentation';
+import { Tooltip } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils/timeFormatters';
+
+import { Illustration } from '@spinnaker/presentation';
 
 export interface IAppRefreshIconProps {
   appName: string;
