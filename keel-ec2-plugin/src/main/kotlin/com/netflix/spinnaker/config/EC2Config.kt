@@ -33,6 +33,7 @@ import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -68,6 +69,7 @@ class EC2Config {
     )
 
   @Bean
+  @ConditionalOnMissingBean
   fun securityGroupHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
