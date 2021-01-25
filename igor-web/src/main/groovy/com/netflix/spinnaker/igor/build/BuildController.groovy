@@ -38,6 +38,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -170,22 +171,29 @@ class BuildController {
     "true"
   }
 
+
   @RequestMapping(value = '/masters/{name}/jobs/**', method = RequestMethod.PUT)
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
   ResponseEntity<String> build(
     @PathVariable("name") String master,
-    @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
+    @RequestParam Map<String, String> requestParams,
+    @RequestBody(required = false) String startTime,
+    HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
 
-    String pendingKey = computePendingBuildKey(master, job, requestParams)
+    String pendingKey = computePendingBuildKey(master, job, requestParams, startTime)
     String buildNumber = null
 
     PendingOperationsCache.OperationState pendingStatus = pendingOperationsCache.getAndSetOperationStatus(pendingKey, PendingOperationsCache.OperationStatus.PENDING, "")
     if (pendingStatus.status == PendingOperationsCache.OperationStatus.PENDING) {
+      log.info("Received duplicate request to the start job {}, status: {}, pendingKey: {}", job,
+        pendingStatus.status, pendingKey)
       return ResponseEntity.accepted().build()
     }
     if (pendingStatus.status == PendingOperationsCache.OperationStatus.COMPLETED && !Strings.isNullOrEmpty(pendingStatus.value)) {
+      log.info("Received duplicate request to the start job {}, status: {}, pendingKey: {}", job,
+        pendingStatus.status, pendingKey)
       pendingOperationsCache.clear(pendingKey)
       return ResponseEntity.of(Optional.of(pendingStatus.value))
     }
@@ -251,8 +259,12 @@ class BuildController {
     }
   }
 
-  static String computePendingBuildKey(String master, String job, Map<String, String> requestParams) {
+  static String computePendingBuildKey(String master, String job, Map<String, String> requestParams, String startTime) {
     String key = master + ":" + job + ":" + AuthenticatedRequest.getSpinnakerExecutionId().orElse("NO_EXECUTION_ID")
+
+    if (startTime != null && !startTime.isEmpty()) {
+      key = key + ":startTime=" + startTime
+    }
 
     requestParams.each { parameterDefinition ->
       key = key + ":" + parameterDefinition.key + "=" + parameterDefinition.value
