@@ -49,7 +49,25 @@ data class CidrRule(
   val blockRange: String,
   @get:ExcludedFromDiff
   val description: String? = null
-) : SecurityGroupRule()
+) : SecurityGroupRule() {
+  // DO NOT REMOVE! Required due to https://github.com/SQiShER/java-object-diff/issues/216
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+
+    return other is CidrRule
+      && other.protocol == this.protocol
+      && other.portRange == this.portRange
+      && other.blockRange == this.blockRange
+  }
+
+  // DO NOT REMOVE! Required due to https://github.com/SQiShER/java-object-diff/issues/216
+  override fun hashCode(): Int {
+    var result = protocol.hashCode()
+    result = 31 * result + portRange.hashCode()
+    result = 31 * result + blockRange.hashCode()
+    return result
+  }
+}
 
 sealed class IngressPorts
 
