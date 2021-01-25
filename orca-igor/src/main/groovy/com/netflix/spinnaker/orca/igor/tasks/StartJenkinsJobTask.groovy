@@ -57,7 +57,7 @@ class StartJenkinsJobTask implements RetryableTask {
     String job = stage.context.job
 
     try {
-      Response igorResponse = buildService.build(master, job, stage.context.parameters)
+      Response igorResponse = buildService.build(master, job, stage.context.parameters, stage.startTime.toString())
 
       if (igorResponse.getStatus() == HttpStatus.ACCEPTED.value()) {
         log.info("build for job=$job on master=$master is pending, waiting for build to start")

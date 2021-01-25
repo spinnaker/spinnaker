@@ -31,7 +31,7 @@ public interface IgorService {
       @Path("name") String master,
       @Path(encode = false, value = "jobName") String jobName,
       @QueryMap Map<String, String> queryParams,
-      @Body String ignored);
+      @Body String startTime);
 
   @PUT("/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}")
   String stop(

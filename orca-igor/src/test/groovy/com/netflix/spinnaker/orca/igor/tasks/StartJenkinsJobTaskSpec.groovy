@@ -51,7 +51,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
         and:
         task.buildService = Stub(BuildService) {
-          build(stage.context.master, stage.context.job, stage.context.parameters) >>
+          build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
               new Response("", 200, "OK", [], new TypedString(new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
         }
 
@@ -68,7 +68,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
       and:
       task.buildService = Stub(BuildService) {
-        build(stage.context.master, stage.context.job, stage.context.parameters) >>
+        build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
             new Response("", 200, "OK", [], new TypedString(new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
       }
 
@@ -85,7 +85,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
         and:
         task.buildService = Stub(BuildService) {
-            build(stage.context.master, stage.context.job, stage.context.parameters) >> {throw RetrofitError.unexpectedError("http://test", new RuntimeException())}
+            build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >> {throw RetrofitError.unexpectedError("http://test", new RuntimeException())}
         }
 
         when:
@@ -101,7 +101,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
     and:
     task.buildService = Stub(BuildService) {
-      build(stage.context.master, stage.context.job, stage.context.parameters) >>
+      build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
           new Response("", 202, "OK", [], null)
     }
 
