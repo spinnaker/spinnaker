@@ -4,14 +4,14 @@ serviceAccount: delivery-engineering@netflix.com
 environments:
 - name: test
   resources:
-  - kind: ec2/application-load-balancer@v1.1
+  - kind: ec2/application-load-balancer@v1.2
     spec:
       moniker:
         app: fnord
       listeners:
       - port: 443
         protocol: HTTPS
-        certificateArn: arn:aws:iam::111111111111:server-certificate/fnord.prod.illuminati.org-DigiCertSHA2SecureServerCA-20200205-20210205
+        certificate: fnord.prod.illuminati.org-DigiCertSHA2SecureServerCA-20200205-20210205
         defaultActions:
         - type: forward
           order: 1

@@ -62,6 +62,7 @@ subprojects {
 
       "testImplementation"("org.junit.platform:junit-platform-runner")
       "testImplementation"("org.junit.jupiter:junit-jupiter-api")
+      "testImplementation"("org.junit.jupiter:junit-jupiter-params")
       "testImplementation"("io.mockk:mockk")
       "testImplementation"("org.jacoco:org.jacoco.ant:0.8.5")
 

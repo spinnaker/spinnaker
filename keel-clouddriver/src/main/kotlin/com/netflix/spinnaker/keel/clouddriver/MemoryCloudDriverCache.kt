@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.clouddriver
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
+import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -158,6 +159,36 @@ class MemoryCloudDriverCache(
         ?: notFound("Subnet with purpose \"$purpose\" not found in $account:$region")
     }
 
+  private val certificatesByName: AsyncLoadingCache<String, Certificate> =
+    cacheFactory
+      .asyncLoadingCache("certificatesByName") { name ->
+        runCatching {
+          cloudDriver
+            .getCertificates()
+            .find { it.serverCertificateName == name }
+            ?.also {
+              certificatesByArn.put(it.arn, completedFuture(it))
+            }
+        }
+          .handleNotFound()
+          ?: notFound("Certificate with name $name not found")
+      }
+
+  private val certificatesByArn: AsyncLoadingCache<String, Certificate> =
+    cacheFactory
+      .asyncLoadingCache("certificatesByArn") { arn ->
+        runCatching {
+          cloudDriver
+            .getCertificates()
+            .find { it.arn == arn }
+            ?.also {
+              certificatesByName.put(it.serverCertificateName, completedFuture(it))
+            }
+        }
+          .handleNotFound()
+          ?: notFound("Certificate with ARN $arn not found")
+      }
+
   override fun credentialBy(name: String): Credential =
     runBlocking {
       credentials.get(name).await()
@@ -197,6 +228,12 @@ class MemoryCloudDriverCache(
     runBlocking {
       subnetsByPurpose.get(Triple(account, region, purpose)).await()
     }
+
+  override fun certificateByName(name: String): Certificate =
+    runBlocking { certificatesByName.get(name).await() }
+
+  override fun certificateByArn(arn: String): Certificate =
+    runBlocking { certificatesByArn.get(arn).await() }
 }
 
 /**

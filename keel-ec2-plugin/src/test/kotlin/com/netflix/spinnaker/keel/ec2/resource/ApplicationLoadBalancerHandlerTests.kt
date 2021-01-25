@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.ApplicationLoadBalancerListener
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupMatcher
+import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -92,7 +93,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     |listeners:
     | - port: 80
     |   protocol: HTTPS
-    |   certificateArn: this-is-my-certificate
+    |   certificate: this-is-my-certificate
     |targetGroups:
     | - name: managedogge-wow-tg
     |   port: 7001
@@ -100,7 +101,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val spec = yamlMapper.readValue<ApplicationLoadBalancerSpec>(yaml)
   private val resource = resource(
-    kind = EC2_APPLICATION_LOAD_BALANCER_V1_1.kind,
+    kind = EC2_APPLICATION_LOAD_BALANCER_V1_2.kind,
     spec = spec
   )
 
@@ -108,6 +109,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
   private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")
+  private val cert = Certificate("this-is-my-certificate", "arn:this-is-my-certificate")
 
   private fun model(port: Int = 7001, healthCheckPort: String = "7001") = ApplicationLoadBalancerModel(
     moniker = null,
@@ -125,7 +127,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         protocol = "HTTPS",
         certificates = listOf(
           ApplicationLoadBalancerModel.Certificate(
-            certificateArn = "this-is-my-certificate"
+            certificateArn = cert.arn
           )
         ),
         rules = emptyList(),
@@ -188,6 +190,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         every { subnetBy(sub2.id) } returns sub2
         every { securityGroupById(vpc.account, vpc.region, sg1.id) } returns sg1
         every { securityGroupByName(vpc.account, vpc.region, sg1.name) } returns sg1
+        every { certificateByName(cert.serverCertificateName) } returns cert
+        every { certificateByArn(cert.arn) } returns cert
       }
 
       every { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
@@ -223,7 +227,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
             .isA<Collection<Map<String, Any?>>>()
             .first()
             .get("certificateArn")
-            .isEqualTo(model().listeners.first().certificates?.first()?.certificateArn)
+            .isEqualTo(cert.arn)
         }
       }
     }

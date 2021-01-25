@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.clouddriver
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.AmazonLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
+import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
@@ -196,4 +197,7 @@ interface CloudDriverService {
     @Query("entityId") entityId: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<EntityTags>
+
+  @GET("/certificates/aws")
+  suspend fun getCertificates() : List<Certificate>
 }
