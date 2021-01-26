@@ -141,8 +141,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `VPC networks are looked up by id from CloudDriver`() {
     every {
-      cloudDriver.listNetworks()
-    } returns mapOf("aws" to vpcs)
+      cloudDriver.listNetworks("aws")
+    } returns vpcs
 
     subject.networkBy("vpc-2").let { vpc ->
       expectThat(vpc) {
@@ -156,8 +156,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid VPC id throws an exception`() {
     every {
-      cloudDriver.listNetworks()
-    } returns mapOf("aws" to vpcs)
+      cloudDriver.listNetworks("aws")
+    } returns vpcs
 
     expectThrows<ResourceNotFound> {
       subject.networkBy("vpc-5")
@@ -167,8 +167,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `VPC networks are looked up by name and region from CloudDriver`() {
     every {
-      cloudDriver.listNetworks()
-    } returns mapOf("aws" to vpcs)
+      cloudDriver.listNetworks("aws")
+    } returns vpcs
 
     subject.networkBy("vpcName", "test", "us-west-2").let { vpc ->
       expectThat(vpc.id).isEqualTo("vpc-2")
@@ -178,8 +178,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid VPC name and region throws an exception`() {
     every {
-      cloudDriver.listNetworks()
-    } returns mapOf("aws" to vpcs)
+      cloudDriver.listNetworks("aws")
+    } returns vpcs
 
     expectThrows<ResourceNotFound> {
       subject.networkBy("invalid", "prod", "us-west-2")
@@ -246,6 +246,16 @@ internal class MemoryCloudDriverCacheTest {
     verify(exactly = 1) { cloudDriver.getCertificates() }
   }
 
+  @Test
+  fun `all certs are cached at once when requested by name`() {
+    every { cloudDriver.getCertificates() } returns certificates
+
+    listOf("cert-1", "cert-2")
+      .forEach(subject::certificateByName)
+
+    verify(exactly = 1) { cloudDriver.getCertificates() }
+  }
+
   @ParameterizedTest
   @ValueSource(strings = ["arn:cert-1", "arn:cert-2"])
   fun `certificates are looked up from CloudDriver when requested by ARN`(arn: String) {
@@ -268,6 +278,16 @@ internal class MemoryCloudDriverCacheTest {
     every { cloudDriver.getCertificates() } returns certificates
 
     repeat(5) { subject.certificateByArn(arn) }
+
+    verify(exactly = 1) { cloudDriver.getCertificates() }
+  }
+
+  @Test
+  fun `all certs are cached at once when requested by ARN`() {
+    every { cloudDriver.getCertificates() } returns certificates
+
+    listOf("arn:cert-1", "arn:cert-2")
+      .forEach(subject::certificateByArn)
 
     verify(exactly = 1) { cloudDriver.getCertificates() }
   }
