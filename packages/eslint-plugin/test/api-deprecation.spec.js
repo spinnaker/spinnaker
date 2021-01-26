@@ -29,8 +29,8 @@ ruleTester.run('api-deprecation', rule, {
     },
     {
       code: `API.withParams('foo');`,
-      output: `API.params('foo');`,
-      errors: ['API.withParams() is deprecated.  Migrate from withParams() to params()'],
+      output: `API.query('foo');`,
+      errors: ['API.withParams() is deprecated.  Migrate from withParams() to query()'],
     },
     {
       code: `API.remove('foo');`,
@@ -52,17 +52,17 @@ ruleTester.run('api-deprecation', rule, {
     // .get() doesn't have queryparams args
     {
       code: `API.path('foo').get(queryParams);`,
-      output: `API.path('foo').params(queryParams).get();`,
+      output: `API.path('foo').query(queryParams).get();`,
       errors: [
-        'Passing parameters to API.get() is deprecated.  Migrate from .get(queryparams) to .params(queryparams).get()',
+        'Passing parameters to API.get() is deprecated.  Migrate from .get(queryparams) to .query(queryparams).get()',
       ],
     },
     // .delete() doesn't have queryparams args
     {
       code: `API.path('foo').delete(queryParams);`,
-      output: `API.path('foo').params(queryParams).delete();`,
+      output: `API.path('foo').query(queryParams).delete();`,
       errors: [
-        'Passing parameters to API.delete() is deprecated.  Migrate from .delete(queryparams) to .params(queryparams).delete()',
+        'Passing parameters to API.delete() is deprecated.  Migrate from .delete(queryparams) to .query(queryparams).delete()',
       ],
     },
     // .delete() doesn't have queryparams args
