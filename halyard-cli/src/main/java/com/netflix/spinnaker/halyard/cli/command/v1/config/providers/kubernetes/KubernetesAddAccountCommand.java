@@ -121,6 +121,12 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   private int cacheThreads = 1;
 
   @Parameter(
+      names = "--cache-all-application-relationships",
+      arity = 1,
+      description = KubernetesCommandProperties.CACHE_ALL_APPLICATION_RELATIONSHIPS)
+  public Boolean cacheAllApplicationRelationships;
+
+  @Parameter(
       names = "--provider-version",
       description = KubernetesCommandProperties.PROVIDER_VERSION_DESCRIPTION)
   private ProviderVersion providerVersion = ProviderVersion.V2;
@@ -149,6 +155,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
     account.setLiveManifestCalls(liveManifestCalls);
     account.setCacheThreads(cacheThreads);
+    account.setCacheAllApplicationRelationships(cacheAllApplicationRelationships);
     account.setProviderVersion(providerVersion);
 
     return account;

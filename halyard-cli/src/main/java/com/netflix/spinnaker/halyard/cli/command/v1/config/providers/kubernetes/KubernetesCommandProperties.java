@@ -69,6 +69,11 @@ public class KubernetesCommandProperties {
   static final String CACHE_THREADS =
       "Number of caching agents for this kubernetes account. Each agent handles a subset of the namespaces available to this account. "
           + "By default, only 1 agent caches all kinds for all namespaces in the account.";
+
+  static final String CACHE_ALL_APPLICATION_RELATIONSHIPS =
+      "If true, will add application relationships in the cache for all types of resources.\n"
+          + "This includes CRDs and resources that aren't used in the Clusters, Load Balancers or Firewalls sections.";
+
   static final String CUSTOM_RESOURCES =
       "(V2 Only) Add Kubernetes custom resource to the list of custom resources to managed by clouddriver and made available for use in patch and delete manifest stages. "
           + "Fields besides the Kubernetes Kind (resource name) can be set using the flags \"--spinnaker-kind\" and \"--versioned\"";
