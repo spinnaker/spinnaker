@@ -50,7 +50,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> ['sg-feef000', 'sg-named']
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> ['sg-feef000', 'sg-named']
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
     }
@@ -76,7 +76,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> []
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -103,7 +103,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> []
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -132,9 +132,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, new UserDataOverride(enabled: true))
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
-    1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
-    1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType([], null) >> ["sg-123"]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.getUserData() == expectedUserData
     }
@@ -164,7 +162,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> []
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -192,7 +190,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> []
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> null
     1 * securityGroupService.createSecurityGroup(application, subnetType) >> "sg-$application"
@@ -221,7 +219,8 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    2 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> ["sg-123", "sg-456"]
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> ["sg-123", "sg-456"]
+    1 * securityGroupService.resolveSecurityGroupIdsInVpc(_, _) >> ["sg-123", "sg-456"]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.classicLinkVPCId == "vpc-123"
       assert req.classicLinkVPCSecurityGroups == ["sg-123", "sg-456"]
@@ -248,7 +247,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> ["sg-123"]
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> ["sg-123"]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.classicLinkVPCId == "vpc-123"
       assert req.classicLinkVPCSecurityGroups == []
@@ -277,7 +276,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> securityGroups
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> securityGroups
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [(appGroup): securityGroups[0]]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
@@ -307,7 +306,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> securityGroups
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> securityGroups
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.securityGroups.toList().sort() == expectedGroups.toList().sort()
     }
@@ -337,7 +336,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> securityGroups
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> securityGroups
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [notappgroup: securityGroups[0]]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> appGroup
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
@@ -368,7 +367,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> securityGroups
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> securityGroups
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> null
     1 * securityGroupService.createSecurityGroup(application, subnetType) >> appGroup
@@ -398,7 +397,8 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    2 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> ["sg-123"]
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> ["sg-123"]
+    1 * securityGroupService.resolveSecurityGroupIdsInVpc(_, _) >> ["sg-123"]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.classicLinkVPCId == "vpc-123"
       assert req.classicLinkVPCSecurityGroups == ["sg-123"]
@@ -425,7 +425,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings, null, userDataOverride)
 
     then:
-    1 * securityGroupService.resolveSecurityGroupIdsByStrategy(_, _) >> []
+    1 * securityGroupService.resolveSecurityGroupIdsWithSubnetType(_, _) >> []
     1 * securityGroupService.getSecurityGroupNamesFromIds(_) >> [:]
     1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> "sg-$application"
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->

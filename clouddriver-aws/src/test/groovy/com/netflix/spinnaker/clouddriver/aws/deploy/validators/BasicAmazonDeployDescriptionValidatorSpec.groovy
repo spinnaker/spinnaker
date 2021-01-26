@@ -328,15 +328,15 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
     where:
     requireIMDSv2 | associateIPv6Address | unlimitedCpuCredits  | expectedFieldsInWarning
-    false		  |      false           |        true          | ["unlimitedCpuCredits"]
-    false		  |      false           |       false          | ["unlimitedCpuCredits"]
-    true		  |      false           |        null          | ["requireIMDSv2"]
-    false		  |      true            |        null          | ["associateIPv6Address"]
-    true		  |      false           |        true          | ["requireIMDSv2, unlimitedCpuCredits"]
-    false		  |      true            |       false          | ["associateIPv6Address, unlimitedCpuCredits"]
-    true		  |      true            |        null          | ["requireIMDSv2, associateIPv6Address"]
-    true		  |      true            |        true          | ["requireIMDSv2, associateIPv6Address, unlimitedCpuCredits"]
-    true		  |      true            |       false          | ["requireIMDSv2, associateIPv6Address, unlimitedCpuCredits"]
+    false         |      false           |        true          | ["unlimitedCpuCredits"]
+    false         |      false           |       false          | ["unlimitedCpuCredits"]
+    true          |      false           |        null          | ["requireIMDSv2"]
+    false         |      true            |        null          | ["associateIPv6Address"]
+    true          |      false           |        true          | ["requireIMDSv2, unlimitedCpuCredits"]
+    false         |      true            |       false          | ["associateIPv6Address, unlimitedCpuCredits"]
+    true          |      true            |        null          | ["requireIMDSv2, associateIPv6Address"]
+    true          |      true            |        true          | ["requireIMDSv2, associateIPv6Address, unlimitedCpuCredits"]
+    true          |      true            |       false          | ["requireIMDSv2, associateIPv6Address, unlimitedCpuCredits"]
   }
 
   void "invalid request with unlimited cpu credits and unsupported instance type fails validation"() {

@@ -157,18 +157,6 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     name.toString()
   }
 
-  private static List<String> resolveSecurityGroupIds(SecurityGroupService securityGroupService, List<String> securityGroupNamesAndIds, String subnetType) {
-    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
-      securityGroupService.getSecurityGroupIdsWithSubnetPurpose(names, subnetType)
-    }
-  }
-
-  private static List<String> resolveSecurityGroupIdsInVpc(SecurityGroupService securityGroupService, List<String> securityGroupNamesAndIds, String vpcId) {
-    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
-      securityGroupService.getSecurityGroupIds(names, vpcId)
-    }
-  }
-
   private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf, UserDataOverride userDataOverride) {
     UserDataInput userDataRequest =
       UserDataInput.builder()
@@ -200,7 +188,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       settings = settings.copyWith(suffix: createDefaultSuffix())
     }
 
-    Set<String> securityGroupIds = resolveSecurityGroupIds(securityGroupService, settings.securityGroups, subnetType).toSet()
+    Set<String> securityGroupIds = securityGroupService.resolveSecurityGroupIdsWithSubnetType(settings.securityGroups, subnetType).toSet()
+
     if (!securityGroupIds || (deployDefaults.addAppGroupToServerGroup && securityGroupIds.size() < deployDefaults.maxSecurityGroups)) {
       def names = securityGroupService.getSecurityGroupNamesFromIds(securityGroupIds)
 
@@ -211,9 +200,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
           if (!applicationSecurityGroup) {
             applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
           }
-
           securityGroupIds << applicationSecurityGroup
-        }, 500, 3);
+        }, 500, 3)
       }
     }
     settings = settings.copyWith(securityGroups: securityGroupIds.toList())
@@ -222,7 +210,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       if (!settings.classicLinkVpcId) {
         throw new IllegalStateException("Can't provide classic link security groups without classiclink vpc Id")
       }
-      List<String> classicLinkIds = resolveSecurityGroupIdsInVpc(securityGroupService, settings.classicLinkVpcSecurityGroups, settings.classicLinkVpcId)
+      List<String> classicLinkIds = securityGroupService.resolveSecurityGroupIdsInVpc(settings.classicLinkVpcSecurityGroups, settings.classicLinkVpcId)
       settings = settings.copyWith(classicLinkVpcSecurityGroups: classicLinkIds)
     }
 

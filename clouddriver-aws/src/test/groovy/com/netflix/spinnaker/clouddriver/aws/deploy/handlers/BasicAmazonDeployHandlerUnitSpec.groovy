@@ -47,6 +47,7 @@ import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker.AsgConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
@@ -146,7 +147,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "handler invokes a deploy feature for each specified region"() {
     setup:
     def deployCallCounts = 0
-    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgConfig ->
+      deployCallCounts++
+      "foo"
+    }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -162,9 +166,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   void "classic load balancer names are derived from prior execution results"() {
     setup:
+    def classicLbs = []
     def setlbCalls = 0
-    AutoScalingWorker.metaClass.deploy = {}
-    AutoScalingWorker.metaClass.setClassicLoadBalancers = { setlbCalls++ }
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      setlbCalls++
+      classicLbs.addAll(asgCfg.classicLoadBalancers as Collection<String>)
+      "foo"
+    }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -174,14 +182,17 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     setlbCalls
+    classicLbs == ['lb']
     1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
   void "handles classic load balancers"() {
-
     def classicLbs = []
-    AutoScalingWorker.metaClass.setClassicLoadBalancers = { Collection<String> lbs -> classicLbs.addAll(lbs) }
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      classicLbs.addAll(asgCfg.classicLoadBalancers as Collection<String>)
+      "foo"
+    }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345", loadBalancers: ["lb"])
     description.availabilityZones = ["us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -218,7 +229,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "handles application load balancers"() {
 
     def targetGroupARNs = []
-    AutoScalingWorker.metaClass.setTargetGroupArns = { Collection<String> arns -> targetGroupARNs.addAll(arns) }
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      targetGroupARNs.addAll(asgCfg.targetGroupArns as Collection<String>)
+      "foo"
+    }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345", targetGroups: ["tg"])
     description.availabilityZones = ["us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -250,8 +264,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   void "should populate classic link VPC Id when classic link is enabled"() {
     def actualClassicLinkVpcId
-    AutoScalingWorker.metaClass.deploy = {
-      actualClassicLinkVpcId = classicLinkVpcId
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      actualClassicLinkVpcId = asgCfg.classicLinkVpcId
       "foo"
     }
     def description = new BasicAmazonDeployDescription(
@@ -274,8 +288,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   void "should not populate classic link VPC Id when there is a subnetType"() {
     def actualClassicLinkVpcId
-    AutoScalingWorker.metaClass.deploy = {
-      actualClassicLinkVpcId = classicLinkVpcId
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      actualClassicLinkVpcId = asgCfg.classicLinkVpcId
       "foo"
     }
     def description = new BasicAmazonDeployDescription(
@@ -324,10 +338,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should send instance class block devices to AutoScalingWorker when matched and none are specified"() {
     setup:
     def deployCallCounts = 0
-    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
     def setBlockDevices = []
-    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
-      setBlockDevices = blockDevices
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      deployCallCounts++
+      setBlockDevices = asgCfg.blockDevices
+      "foo"
     }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
@@ -349,10 +364,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should favour explicit description block devices over default config"() {
     setup:
     def deployCallCounts = 0
-    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
     List<AmazonBlockDevice> setBlockDevices = []
-    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
-      setBlockDevices = blockDevices
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      setBlockDevices = asgCfg.blockDevices
+      deployCallCounts++
+      "foo"
     }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
@@ -377,10 +393,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should favour ami block device mappings over explicit description block devices and default config, if useAmiBlockDeviceMappings is set"() {
     setup:
     def deployCallCounts = 0
-    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
     List<AmazonBlockDevice> setBlockDevices = []
-    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
-      setBlockDevices = blockDevices
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      deployCallCounts++
+      setBlockDevices = asgCfg.blockDevices
+      "foo"
     }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
@@ -416,7 +433,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should resolve amiId from amiName"() {
     setup:
     def deployCallCounts = 0
-    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
+    AutoScalingWorker.metaClass.deploy = { AsgConfiguration asgCfg ->
+      deployCallCounts++
+      "foo"
+    }
 
     def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1': []])
     description.credentials = TestCredential.named('baz')
@@ -931,5 +951,5 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     return blockDevices.collect {
       [deviceName: it.deviceName, virtualName: it.virtualName]
     }.sort { it.deviceName }
-  }
+   }
 }

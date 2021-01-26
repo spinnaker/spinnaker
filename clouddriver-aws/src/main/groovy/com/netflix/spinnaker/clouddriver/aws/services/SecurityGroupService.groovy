@@ -161,4 +161,16 @@ class SecurityGroupService {
       return []
     }
   }
+
+  List<String> resolveSecurityGroupIdsWithSubnetType(List<String> securityGroupNamesAndIds, String subnetPurpose) {
+    return this.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+      this.getSecurityGroupIdsWithSubnetPurpose(names, subnetPurpose)
+    }
+  }
+
+  List<String> resolveSecurityGroupIdsInVpc(List<String> securityGroupNamesAndIds, String vpcId) {
+    return this.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+      this.getSecurityGroupIds(names, vpcId)
+    }
+  }
 }

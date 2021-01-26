@@ -1,17 +1,18 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
@@ -40,14 +41,15 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import groovy.transform.AutoClone
 import groovy.util.logging.Slf4j
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.function.Supplier
+
 
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
@@ -58,66 +60,69 @@ import java.util.function.Supplier
 class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY"
 
+  private final RetrySupport retrySupport = new RetrySupport()
+
+  private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
+  private DynamicConfigService dynamicConfigService
+
+  AutoScalingWorker(RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider, DynamicConfigService dynamicConfigService) {
+    this.regionScopedProvider = regionScopedProvider
+    this.dynamicConfigService = dynamicConfigService
+  }
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final RetrySupport retrySupport = new RetrySupport()
+  @AutoClone
+  static class AsgConfiguration {
+    String application
+    String region
+    NetflixAmazonCredentials credentials
+    String stack
+    String freeFormDetails
+    String ami
+    String classicLinkVpcId
+    List<String> classicLinkVpcSecurityGroups
+    String instanceType
+    String iamRole
+    String keyPair
+    String base64UserData
+    Boolean legacyUdf
+    UserDataOverride userDataOverride
+    Integer sequence
+    Boolean ignoreSequence
+    Boolean startDisabled
+    Boolean associatePublicIpAddress
+    String subnetType
+    List<String> subnetIds
+    Integer cooldown
+    Collection<String> enabledMetrics
+    Integer healthCheckGracePeriod
+    String healthCheckType
+    String spotMaxPrice
+    Set<String> suspendedProcesses
+    Collection<String> terminationPolicies
+    String kernelId
+    String ramdiskId
+    Boolean instanceMonitoring
+    Boolean ebsOptimized
+    Collection<String> classicLoadBalancers
+    Collection<String> targetGroupArns
+    List<String> securityGroups
+    List<String> availabilityZones
+    List<AmazonBlockDevice> blockDevices
+    Map<String, String> tags
+    List<AmazonAsgLifecycleHook> lifecycleHooks
+    int minInstances
+    int maxInstances
+    int desiredInstances
 
-  private String application
-  private String region
-  private NetflixAmazonCredentials credentials
-  private String stack
-  private String freeFormDetails
-  private String ami
-  private String classicLinkVpcId
-  private List<String> classicLinkVpcSecurityGroups
-  private String instanceType
-  private String iamRole
-  private String keyPair
-  private String base64UserData
-  private Boolean legacyUdf
-  private UserDataOverride userDataOverride
-  private Integer sequence
-  private Boolean ignoreSequence
-  private Boolean startDisabled
-  private Boolean associatePublicIpAddress
-  private String subnetType
-  private List<String> subnetIds
-  private Integer cooldown
-  private Collection<String> enabledMetrics
-  private Integer healthCheckGracePeriod
-  private String healthCheckType
-  private String spotPrice
-  private Set<String> suspendedProcesses
-  private Collection<String> terminationPolicies
-  private String kernelId
-  private String ramdiskId
-  private Boolean instanceMonitoring
-  private Boolean ebsOptimized
-  private Collection<String> classicLoadBalancers
-  private Collection<String> targetGroupArns
-  private List<String> securityGroups
-  private List<String> availabilityZones
-  private List<AmazonBlockDevice> blockDevices
-  private Map<String, String> tags
-  private List<AmazonAsgLifecycleHook> lifecycleHooks
-
-  /** Launch Templates properties **/
-  private Boolean setLaunchTemplate
-  private Boolean requireIMDSv2
-  private Boolean associateIPv6Address
-  private Boolean unlimitedCpuCredits
-
-  private int minInstances
-  private int maxInstances
-  private int desiredInstances
-
-  private DeployDefaults deployDefaults
-  private DynamicConfigService dynamicConfigService
-  private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
-
-  AutoScalingWorker() {
+    /** Launch Templates properties **/
+    Boolean setLaunchTemplate
+    Boolean requireIMDSv2
+    Boolean associateIPv6Address
+    Boolean unlimitedCpuCredits
   }
 
   /**
@@ -133,75 +138,82 @@ class AutoScalingWorker {
    *
    * @return the name of the newly deployed ASG
    */
-  String deploy() {
+  String deploy(AsgConfiguration asgConfig) {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
 
-    if (startDisabled) {
-      suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
+    if (asgConfig.startDisabled) {
+      asgConfig.suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
     }
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
 
     AWSServerGroupNameResolver awsServerGroupNameResolver = regionScopedProvider.AWSServerGroupNameResolver
     String asgName
-    if (sequence != null) {
-      asgName = awsServerGroupNameResolver.generateServerGroupName(application, stack, freeFormDetails, sequence, false)
-    }  else {
-      asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
+    if (asgConfig.sequence != null) {
+      asgName = awsServerGroupNameResolver.generateServerGroupName(
+              asgConfig.application,
+              asgConfig.stack,
+              asgConfig.freeFormDetails,
+              asgConfig.sequence,
+              false)
+    } else {
+      asgName = awsServerGroupNameResolver.resolveNextServerGroupName(
+              asgConfig.application,
+              asgConfig.stack,
+              asgConfig.freeFormDetails,
+              asgConfig.ignoreSequence)
     }
-
-    def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
-      account: credentials.name,
-      environment: credentials.environment,
-      accountType: credentials.accountType,
-      region: region,
-      baseName: asgName,
-      suffix: null,
-      ami: ami,
-      iamRole: iamRole,
-      classicLinkVpcId: classicLinkVpcId,
-      classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
-      instanceType: instanceType,
-      keyPair: keyPair,
-      base64UserData: base64UserData?.trim(),
-      associatePublicIpAddress: associatePublicIpAddress,
-      kernelId: kernelId,
-      ramdiskId: ramdiskId,
-      ebsOptimized: ebsOptimized,
-      spotPrice: spotPrice,
-      instanceMonitoring: instanceMonitoring,
-      blockDevices: blockDevices,
-      securityGroups: securityGroups)
 
     LaunchTemplateSpecification launchTemplateSpecification = null
     String launchConfigName = null
-    if (shouldSetLaunchTemplate()) {
-      settings = DefaultLaunchConfigurationBuilder.setAppSecurityGroup(
-        application,
-        subnetType,
-        regionScopedProvider.getDeploymentDefaults(),
-        regionScopedProvider.securityGroupService,
-        settings
-      )
+
+    if (shouldSetLaunchTemplate(asgConfig)) {
+      def asgConfigWithSecGroups = AsgConfigHelper.setAppSecurityGroups(
+              asgConfig,
+              regionScopedProvider.getSecurityGroupService(),
+              regionScopedProvider.getDeploymentDefaults())
+      def launchTemplateName = AsgConfigHelper.createName(asgName, null)
 
       final LaunchTemplate launchTemplate = regionScopedProvider
-        .getLaunchTemplateService()
-        .createLaunchTemplate(
-              settings,
-              DefaultLaunchConfigurationBuilder.createName(settings),
-              requireIMDSv2,
-              associateIPv6Address,
-              unlimitedCpuCredits,
-              userDataOverride)
+              .getLaunchTemplateService()
+              .createLaunchTemplate(asgConfigWithSecGroups, asgName, launchTemplateName)
       launchTemplateSpecification = new LaunchTemplateSpecification(
               launchTemplateId: launchTemplate.launchTemplateId,
               version: launchTemplate.latestVersionNumber)
     } else {
-      launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf, userDataOverride)
+      def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+              account: asgConfig.credentials.name,
+              environment: asgConfig.credentials.environment,
+              accountType: asgConfig.credentials.accountType,
+              region: asgConfig.region,
+              baseName: asgName,
+              suffix: null,
+              ami: asgConfig.ami,
+              iamRole: asgConfig.iamRole,
+              classicLinkVpcId: asgConfig.classicLinkVpcId,
+              classicLinkVpcSecurityGroups: asgConfig.classicLinkVpcSecurityGroups,
+              instanceType: asgConfig.instanceType,
+              keyPair: asgConfig.keyPair,
+              base64UserData: asgConfig.base64UserData,
+              associatePublicIpAddress: asgConfig.associatePublicIpAddress,
+              kernelId: asgConfig.kernelId,
+              ramdiskId: asgConfig.ramdiskId,
+              ebsOptimized: asgConfig.ebsOptimized,
+              spotPrice: asgConfig.spotMaxPrice,
+              instanceMonitoring: asgConfig.instanceMonitoring,
+              blockDevices: asgConfig.blockDevices,
+              securityGroups: asgConfig.securityGroups)
+
+      launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(
+              asgConfig.application,
+              asgConfig.subnetType,
+              settings,
+              asgConfig.legacyUdf,
+              asgConfig.userDataOverride)
     }
 
     task.updateStatus AWS_PHASE, "Deploying ASG: $asgName"
-    createAutoScalingGroup(asgName, launchConfigName, launchTemplateSpecification)
+    createAutoScalingGroup(asgConfig, asgName, launchConfigName, launchTemplateSpecification)
   }
 
   /**
@@ -211,20 +223,20 @@ class AutoScalingWorker {
    *
    * @return list of subnet ids applicable to this deployment.
    */
-  List<String> getSubnetIds(List<Subnet> allSubnetsForTypeAndAvailabilityZone) {
-    def subnetIds = allSubnetsForTypeAndAvailabilityZone*.subnetId
+  List<String> getSubnetIds(List<Subnet> allSubnetsForTypeAndAvailabilityZone, List<String> subnetIds, List<String> availabilityZones) {
+    def allSubnetIds = allSubnetsForTypeAndAvailabilityZone*.subnetId
 
-    def invalidSubnetIds = (this.subnetIds ?: []).findAll { !subnetIds.contains(it) }
+    def invalidSubnetIds = (subnetIds ?: []).findAll { !allSubnetIds.contains(it) }
     if (invalidSubnetIds) {
       throw new IllegalStateException(
-        "One or more subnet ids are not valid (invalidSubnetIds: ${invalidSubnetIds.join(", ")}, availabilityZones: ${availabilityZones})"
+        "One or more subnet ids are not valid (invalidSubnetIds: ${invalidSubnetIds.join(", ")}, availabilityZones: ${availabilityZones.join(", ")})"
       )
     }
 
-    return this.subnetIds ?: subnetIds
+    return subnetIds ?: allSubnetIds
   }
 
-  private List<Subnet> getSubnets(boolean filterForSubnetPurposeTags = true) {
+  private List<Subnet> getSubnets(boolean filterForSubnetPurposeTags = true, String subnetType, List<String> availabilityZones) {
     if (!subnetType) {
       return []
     }
@@ -255,18 +267,18 @@ class AutoScalingWorker {
    * @param launchTemplateSpecification when defined, the server group is created with the provided launch template specification
    * @return
    */
-  String createAutoScalingGroup(String asgName, String launchConfigurationName, LaunchTemplateSpecification launchTemplateSpecification = null) {
+  String createAutoScalingGroup(AsgConfiguration asgConfig, String asgName, String launchConfigurationName, LaunchTemplateSpecification launchTemplateSpecification = null) {
     CreateAutoScalingGroupRequest request = new CreateAutoScalingGroupRequest()
       .withAutoScalingGroupName(asgName)
       .withMinSize(0)
       .withMaxSize(0)
       .withDesiredCapacity(0)
-      .withLoadBalancerNames(classicLoadBalancers)
-      .withTargetGroupARNs(targetGroupArns)
-      .withDefaultCooldown(cooldown)
-      .withHealthCheckGracePeriod(healthCheckGracePeriod)
-      .withHealthCheckType(healthCheckType)
-      .withTerminationPolicies(terminationPolicies)
+      .withLoadBalancerNames(asgConfig.classicLoadBalancers)
+      .withTargetGroupARNs(asgConfig.targetGroupArns)
+      .withDefaultCooldown(asgConfig.cooldown)
+      .withHealthCheckGracePeriod(asgConfig.healthCheckGracePeriod)
+      .withHealthCheckType(asgConfig.healthCheckType)
+      .withTerminationPolicies(asgConfig.terminationPolicies)
 
     if (launchTemplateSpecification != null) {
       request.withLaunchTemplate(launchTemplateSpecification)
@@ -274,7 +286,7 @@ class AutoScalingWorker {
       request.withLaunchConfigurationName(launchConfigurationName)
     }
 
-    tags?.each { key, value ->
+    asgConfig.tags?.each { key, value ->
       request.withTags(new Tag()
                         .withKey(key)
                         .withValue(value)
@@ -282,17 +294,22 @@ class AutoScalingWorker {
     }
 
     // if we have explicitly specified subnetIds, don't require that they are tagged with a subnetType/purpose
-    boolean filterForSubnetPurposeTags = !this.subnetIds
+    boolean filterForSubnetPurposeTags = !asgConfig.subnetIds
     // Favor subnetIds over availability zones
-    def subnetIds = getSubnetIds(getSubnets(filterForSubnetPurposeTags))?.join(',')
+    def subnetIds = getSubnetIds(getSubnets(
+                                    filterForSubnetPurposeTags,
+                                    asgConfig.subnetType,
+                                    asgConfig.availabilityZones),
+                                asgConfig.subnetIds,
+                                asgConfig.availabilityZones)?.join(',')
     if (subnetIds) {
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
-    } else if (subnetType && !getSubnets()) {
-      throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${subnetType}'!")
+    } else if (asgConfig.subnetType && !getSubnets(subnetType: asgConfig.subnetType, availabilityZones: asgConfig.availabilityZones)) {
+      throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${asgConfig.subnetType}'!")
     } else {
-      task.updateStatus AWS_PHASE, "Deploying to availabilityZones: $availabilityZones"
-      request.withAvailabilityZones(availabilityZones)
+      task.updateStatus AWS_PHASE, "Deploying to availabilityZones: $asgConfig.availabilityZones"
+      request.withAvailabilityZones(asgConfig.availabilityZones)
     }
 
     def autoScaling = regionScopedProvider.autoScaling
@@ -312,10 +329,10 @@ class AutoScalingWorker {
       throw ex
     }
 
-    if (lifecycleHooks != null && !lifecycleHooks.isEmpty()) {
+    if (asgConfig.lifecycleHooks != null && !asgConfig.lifecycleHooks.isEmpty()) {
       Exception e = retrySupport.retry({ ->
         task.updateStatus AWS_PHASE, "Creating lifecycle hooks for: $asgName"
-        regionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, asgName)
+        regionScopedProvider.asgLifecycleHookWorker.attach(task, asgConfig.lifecycleHooks, asgName)
       }, 10, 1000, false)
 
       if (e != null) {
@@ -323,31 +340,31 @@ class AutoScalingWorker {
       }
     }
 
-    if (suspendedProcesses) {
+    if (asgConfig.suspendedProcesses) {
       retrySupport.retry({ ->
-        autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
+        autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: asgConfig.suspendedProcesses))
       }, 10, 1000, false)
     }
 
-    if (enabledMetrics && instanceMonitoring) {
+    if (asgConfig.enabledMetrics && asgConfig.instanceMonitoring) {
       task.updateStatus AWS_PHASE, "Enabling metrics collection for: $asgName"
       retrySupport.retry({ ->
         autoScaling.enableMetricsCollection(new EnableMetricsCollectionRequest()
           .withAutoScalingGroupName(asgName)
           .withGranularity('1Minute')
-          .withMetrics(enabledMetrics))
+          .withMetrics(asgConfig.enabledMetrics))
       }, 10, 1000, false)
     }
 
     retrySupport.retry({ ->
-      task.updateStatus AWS_PHASE, "Setting size of $asgName in ${credentials.name}/$region to " +
-        "[min=$minInstances, max=$maxInstances, desired=$desiredInstances]"
+      task.updateStatus AWS_PHASE, "Setting size of $asgName in ${asgConfig.credentials.name}/$asgConfig.region to " +
+        "[min=$asgConfig.minInstances, max=$asgConfig.maxInstances, desired=$asgConfig.desiredInstances]"
       autoScaling.updateAutoScalingGroup(
         new UpdateAutoScalingGroupRequest(
           autoScalingGroupName: asgName,
-          minSize: minInstances,
-          maxSize: maxInstances,
-          desiredCapacity: desiredInstances
+          minSize: asgConfig.minInstances,
+          maxSize: asgConfig.maxInstances,
+          desiredCapacity: asgConfig.desiredInstances
         )
       )
     }, 10, 1000, false)
@@ -395,9 +412,9 @@ class AutoScalingWorker {
   /**
    * This is used to gradually roll out launch template.
    */
-  private boolean shouldSetLaunchTemplate() {
+  private boolean shouldSetLaunchTemplate(final AsgConfiguration asgConfig) {
     // Request level flag that forces launch configurations.
-    if (!setLaunchTemplate) {
+    if (!asgConfig.setLaunchTemplate) {
       return false
     }
 
@@ -411,7 +428,7 @@ class AutoScalingWorker {
     String excludedApps = dynamicConfigService
       .getConfig(String.class, "aws.features.launch-templates.excluded-applications", "")
     for (excludedApp in excludedApps.split(",")) {
-      if (excludedApp.trim() == application) {
+      if (excludedApp.trim() == asgConfig.application) {
         return false
       }
     }
@@ -419,7 +436,7 @@ class AutoScalingWorker {
     // This is a comma separated list of accounts to exclude
     String excludedAccounts = dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "")
     for (excludedAccount in excludedAccounts.split(",")) {
-      if (excludedAccount.trim() == credentials.name) {
+      if (excludedAccount.trim() == asgConfig.credentials.name) {
         return false
       }
     }
@@ -434,7 +451,7 @@ class AutoScalingWorker {
     // This allows more control over what account and region pairs to enable for this deployment.
     String allowedApps = dynamicConfigService
       .getConfig(String.class, "aws.features.launch-templates.allowed-applications", "")
-    if (matchesAppAccountAndRegion(application, credentials.name, region, allowedApps.split(","))) {
+    if (matchesAppAccountAndRegion(asgConfig.application, asgConfig.credentials.name, asgConfig.region, allowedApps.split(","))) {
       return true
     }
 
@@ -445,7 +462,7 @@ class AutoScalingWorker {
     for (accountRegion in allowedAccountsAndRegions.split(",")) {
       if (accountRegion && accountRegion.contains(":")) {
         def (account, region) = accountRegion.split(":")
-        if (account.trim() == credentials.name && region.trim() == this.region) {
+        if (account.trim() == asgConfig.credentials.name && region.trim() == asgConfig.region) {
           return true
         }
       }
@@ -454,7 +471,7 @@ class AutoScalingWorker {
     // This is a comma separated list of accounts to allow
     String allowedAccounts = dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "")
     for (allowedAccount in allowedAccounts.split(",")) {
-      if (allowedAccount.trim() == credentials.name) {
+      if (allowedAccount.trim() == asgConfig.credentials.name) {
         return true
       }
     }

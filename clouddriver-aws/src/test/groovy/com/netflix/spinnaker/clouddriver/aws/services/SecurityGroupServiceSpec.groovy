@@ -158,6 +158,50 @@ class SecurityGroupServiceSpec extends Specification {
     result == ["sg-456", "sg-123"]
   }
 
+  void "should resolve Security Group for Application given security group names and subnet purpose"() {
+    def callCount = 0
+    def sgNamesInCall = []
+    def subnetPurposeInCall = ""
+    securityGroupService.metaClass.getSecurityGroupIdsWithSubnetPurpose = { List<String> sgNames, String subnetPurpose ->
+      sgNamesInCall.addAll(sgNames)
+      subnetPurposeInCall = subnetPurpose
+      callCount++
+      ["myApp": "sg-123"]
+    }
+
+    when:
+    def result = securityGroupService.resolveSecurityGroupIdsWithSubnetType(["myApp", "sg-456"], "internal")
+
+    then:
+    result == ["sg-456","sg-123"]
+    callCount == 1
+    sgNamesInCall == ["myApp"]
+    subnetPurposeInCall == "internal"
+    0 * _
+  }
+
+  void "should resolve Security Group for Application given security group names and vpc id"() {
+    def callCount = 0
+    def sgNamesInCall = []
+    def vpcIdInCall = ""
+    securityGroupService.metaClass.getSecurityGroupIds = { List<String> sgNames, String vpcId ->
+      sgNamesInCall.addAll(sgNames)
+      vpcIdInCall = vpcId
+      callCount++
+      ["myApp": "sg-123"]
+    }
+
+    when:
+    def result = securityGroupService.resolveSecurityGroupIdsInVpc(["myApp", "sg-456"], "vpc-1234")
+
+    then:
+    result == ["sg-456","sg-123"]
+    callCount == 1
+    sgNamesInCall == ["myApp"]
+    vpcIdInCall == "vpc-1234"
+    0 * _
+  }
+
   private Matcher<DescribeSecurityGroupsRequest> matchRequest(String... groupNames) {
     hasProperty("filters", contains(new Filter("group-name", groupNames.toList())))
   }

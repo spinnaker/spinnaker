@@ -47,7 +47,7 @@ class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescriptio
 
   static class Simple {
     Integer cooldown = 600
-    Integer	scalingAdjustment
+    Integer scalingAdjustment
   }
 
   static class Step {
