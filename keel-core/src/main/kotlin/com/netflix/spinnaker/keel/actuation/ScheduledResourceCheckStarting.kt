@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-object ResourceCheckCompleted
-
 object ScheduledEnvironmentCheckStarting
 
 object ScheduledEnvironmentVerificationStarting

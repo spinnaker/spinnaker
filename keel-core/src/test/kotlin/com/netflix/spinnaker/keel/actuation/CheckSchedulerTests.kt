@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.verification.VerificationRunner
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -87,7 +88,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         checkTimeout = Duration.ofMinutes(2),
         publisher = publisher,
         agentLockRepository = agentLockRepository,
-        verificationRunner = verificationRunner
+        verificationRunner = verificationRunner,
+        clock = MutableClock()
       )
     }
 

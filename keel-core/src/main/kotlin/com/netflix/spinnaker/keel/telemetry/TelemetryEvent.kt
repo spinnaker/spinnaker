@@ -26,6 +26,10 @@ data class ResourceLoadFailed(
   val ex: Throwable
 ) : TelemetryEvent()
 
+data class ResourceCheckCompleted(
+  val duration: Duration
+) : TelemetryEvent()
+
 data class LifecycleMonitorLoadFailed(
   val ex: Throwable
 ) : TelemetryEvent()
@@ -48,6 +52,10 @@ data class ArtifactVersionApproved(
   val artifactName: String,
   val artifactType: ArtifactType,
   val artifactVersion: String
+) : TelemetryEvent()
+
+data class ArtifactCheckComplete(
+  val duration: Duration
 ) : TelemetryEvent()
 
 data class EnvironmentsCheckTimedOut(
@@ -74,6 +82,15 @@ data class ArtifactCheckTimedOut(
 
 data class ArtifactVersionVetoed(
   val application: String,
+) : TelemetryEvent()
+
+data class AgentInvocationComplete(
+  val duration: Duration,
+  val agentName: String
+) : TelemetryEvent()
+
+data class VerificationCheckComplete(
+  val duration: Duration
 ) : TelemetryEvent()
 
 data class VerificationStarted(

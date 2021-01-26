@@ -4,9 +4,9 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.patterns.PolledMeter
-import com.netflix.spinnaker.keel.actuation.ResourceCheckCompleted
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
+import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentVerificationStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import org.slf4j.LoggerFactory
@@ -28,6 +28,8 @@ class TelemetryListener(
     createDriftGauge(ENVIRONMENT_CHECK_DRIFT_GAUGE)
   private val lastArtifactCheck: AtomicReference<Instant> =
     createDriftGauge(ARTIFACT_CHECK_DRIFT_GAUGE)
+  private val lastVerificationCheck: AtomicReference<Instant> =
+    createDriftGauge(VERIFICATION_CHECK_DRIFT_GAUGE)
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
@@ -123,14 +125,26 @@ class TelemetryListener(
     lastResourceCheck.set(clock.instant())
   }
 
+  @EventListener(ResourceCheckCompleted::class)
+  fun onEnvironmentCheckComplete(event: ResourceCheckCompleted) {
+    spectator.timer(
+      RESOURCE_CHECK_DURATION_ID,
+    ).record(event.duration)
+  }
+
   @EventListener(ScheduledEnvironmentCheckStarting::class)
-  fun onScheduledCheckStarting(event: ScheduledEnvironmentCheckStarting) {
+  fun onScheduledEnvironmentCheckStarting(event: ScheduledEnvironmentCheckStarting) {
     lastEnvironmentCheck.set(clock.instant())
   }
 
   @EventListener(ScheduledArtifactCheckStarting::class)
-  fun onScheduledCheckStarting(event: ScheduledArtifactCheckStarting) {
+  fun onScheduledArtifactCheckStarting(event: ScheduledArtifactCheckStarting) {
     lastArtifactCheck.set(clock.instant())
+  }
+
+  @EventListener(ScheduledEnvironmentVerificationStarting::class)
+  fun onScheduledVerificationCheckStarting(event: ScheduledEnvironmentVerificationStarting) {
+    lastVerificationCheck.set(clock.instant())
   }
 
   @EventListener(ArtifactVersionVetoed::class)
@@ -142,11 +156,33 @@ class TelemetryListener(
       .safeIncrement()
   }
 
+  @EventListener(ArtifactCheckComplete::class)
+  fun onArtifactCheckComplete(event: ArtifactCheckComplete) {
+    spectator.timer(
+      ARTIFACT_CHECK_DURATION_ID,
+    ).record(event.duration)
+  }
+
   @EventListener(EnvironmentCheckComplete::class)
   fun onEnvironmentCheckComplete(event: EnvironmentCheckComplete) {
     spectator.timer(
       ENVIRONMENT_CHECK_DURATION_ID,
       listOf(BasicTag("application", event.application))
+    ).record(event.duration)
+  }
+
+  @EventListener(VerificationCheckComplete::class)
+  fun onEnvironmentCheckComplete(event: VerificationCheckComplete) {
+    spectator.timer(
+      VERIFICATION_CHECK_DURATION_ID,
+    ).record(event.duration)
+  }
+
+  @EventListener(AgentInvocationComplete::class)
+  fun onAgentInvocationComplete(event: AgentInvocationComplete) {
+    spectator.timer(
+      AGENT_DURATION_ID,
+      listOf(BasicTag("agent", event.agentName))
     ).record(event.duration)
   }
 
@@ -200,9 +236,11 @@ class TelemetryListener(
     private const val RESOURCE_CHECK_TIMED_OUT_ID = "keel.resource.check.timeout"
     private const val RESOURCE_LOAD_FAILED_ID = "keel.resource.load.failed"
     private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
+    private const val RESOURCE_CHECK_DURATION_ID = "keel.resource.check.duration"
     private const val ARTIFACT_CHECK_DRIFT_GAUGE = "keel.artifact.check.drift"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val ARTIFACT_APPROVED_COUNTER_ID = "keel.artifact.approved"
+    private const val ARTIFACT_CHECK_DURATION_ID = "keel.artifact.check.duration"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
     private const val ENVIRONMENT_CHECK_DRIFT_GAUGE = "keel.environment.check.drift"
     private const val ENVIRONMENT_CHECK_TIMED_OUT_ID = "keel.environment.check.timeout"
@@ -210,5 +248,8 @@ class TelemetryListener(
     private const val ARTIFACT_VERSION_VETOED = "keel.artifact.version.vetoed"
     private const val VERIFICATION_COMPLETED_COUNTER_ID = "keel.verification.completed"
     private const val VERIFICATION_STARTED_COUNTER_ID = "keel.verification.started"
+    private const val VERIFICATION_CHECK_DRIFT_GAUGE = "keel.verification.check.drift"
+    private const val VERIFICATION_CHECK_DURATION_ID = "keel.verification.check.duration"
+    private const val AGENT_DURATION_ID = "keel.agent.duration"
   }
 }

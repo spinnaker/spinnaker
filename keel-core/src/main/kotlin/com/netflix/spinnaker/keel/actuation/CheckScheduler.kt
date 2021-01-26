@@ -4,10 +4,14 @@ import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.telemetry.AgentInvocationComplete
+import com.netflix.spinnaker.keel.telemetry.ArtifactCheckComplete
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckCompleted
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
+import com.netflix.spinnaker.keel.telemetry.VerificationCheckComplete
 import com.netflix.spinnaker.keel.telemetry.VerificationTimedOut
 import com.netflix.spinnaker.keel.verification.VerificationRunner
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
@@ -40,9 +45,9 @@ class CheckScheduler(
   @Value("\${keel.resource-check.timeout-duration:2m}") private val checkTimeout: Duration,
   @Value("\${keel.environment-verification.min-age-duration:60s}") private val environmentVerificationMinAge: Duration,
   @Value("\${keel.environment-verification.batch-size:1}") private val environmentVerificationBatchSize: Int,
-
   private val publisher: ApplicationEventPublisher,
-  private val agentLockRepository: AgentLockRepository
+  private val agentLockRepository: AgentLockRepository,
+  private val clock: Clock
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -63,8 +68,7 @@ class CheckScheduler(
   @Scheduled(fixedDelayString = "\${keel.resource-check.frequency:PT1S}")
   fun checkResources() {
     if (enabled.get()) {
-      log.debug("Starting scheduled resource validation…")
-
+      val startTime = clock.instant()
       val job = launch {
         supervisorScope {
           runCatching {
@@ -84,7 +88,7 @@ class CheckScheduler(
                   withTimeout(checkTimeout.toMillis()) {
                     launch {
                       resourceActuator.checkResource(it)
-                      publisher.publishEvent(ResourceCheckCompleted)
+                      publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
                     }
                   }
                 } catch (e: TimeoutCancellationException) {
@@ -96,16 +100,12 @@ class CheckScheduler(
         }
       }
       runBlocking { job.join() }
-      log.debug("Scheduled resource validation complete")
-    } else {
-      log.debug("Scheduled resource validation disabled")
     }
   }
 
   @Scheduled(fixedDelayString = "\${keel.environment-check.frequency:PT1S}")
   fun checkEnvironments() {
     if (enabled.get()) {
-      log.debug("Starting scheduled environment validation…")
       publisher.publishEvent(ScheduledEnvironmentCheckStarting)
 
       val job = launch {
@@ -135,16 +135,13 @@ class CheckScheduler(
       }
 
       runBlocking { job.join() }
-      log.debug("Scheduled environment validation complete")
-    } else {
-      log.debug("Scheduled environment validation disabled")
     }
   }
 
   @Scheduled(fixedDelayString = "\${keel.artifact-check.frequency:PT1S}")
   fun checkArtifacts() {
     if (enabled.get()) {
-      log.debug("Starting scheduled artifact validation…")
+      val startTime = clock.instant()
       publisher.publishEvent(ScheduledArtifactCheckStarting)
       val job = launch {
         supervisorScope {
@@ -165,18 +162,15 @@ class CheckScheduler(
             }
         }
       }
-
       runBlocking { job.join() }
-      log.debug("Scheduled artifact validation complete")
-    } else {
-      log.debug("Scheduled artifact validation disabled")
+      publisher.publishEvent(ArtifactCheckComplete(Duration.between(startTime, clock.instant())))
     }
   }
 
   @Scheduled(fixedDelayString = "\${keel.environment-verification.frequency:PT1S}")
   fun verifyEnvironments() {
     if (enabled.get()) {
-      log.debug("Starting scheduled environment verification…")
+      val startTime = clock.instant()
       publisher.publishEvent(ScheduledEnvironmentVerificationStarting)
 
       val job = launch {
@@ -199,9 +193,7 @@ class CheckScheduler(
       }
 
       runBlocking { job.join() }
-      log.debug("Scheduled environment verification complete")
-    } else {
-      log.debug("Scheduled environment verification disabled")
+      publisher.publishEvent(VerificationCheckComplete(Duration.between(startTime, clock.instant())))
     }
   }
 
@@ -210,19 +202,17 @@ class CheckScheduler(
   @Scheduled(fixedDelayString = "\${keel.scheduled.agent.frequency:PT1M}")
   fun invokeAgent() {
     if (enabled.get()) {
+      val startTime = clock.instant()
       agentLockRepository.agents.forEach {
         val agentName: String = it.javaClass.simpleName
         val lockAcquired = agentLockRepository.tryAcquireLock(agentName, it.lockTimeoutSeconds)
         if (lockAcquired) {
           runBlocking {
-            log.debug("invoking $agentName")
             it.invokeAgent()
           }
-          log.debug("invoking $agentName completed")
+          publisher.publishEvent(AgentInvocationComplete(Duration.between(startTime, clock.instant()), agentName))
         }
       }
-    } else {
-      log.debug("invoking agent disabled")
     }
   }
 
