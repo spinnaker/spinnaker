@@ -3,13 +3,13 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
+import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import org.springframework.stereotype.Component
 
 @Component
 class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancerSpec> {
-  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_2
+  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_1
 
   override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> {
     if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.dependencies.securityGroupNames.isEmpty()) {
@@ -31,7 +31,7 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
           ApplicationLoadBalancerSpec.Listener(
             port = it.port,
             protocol = it.protocol,
-            certificate = it.certificate,
+            certificateArn = it.certificateArn,
             // TODO: The default rule can only be written via clouddriver as a defaultAction which seems like a bug.
             //  When an ALB is read from clouddriver, the default action appears under both defaultAction and as a rule.
             //  UpsertAmazonLoadBalancerV2Description doesn't allow setting isDefault on Rules which may be the issue.

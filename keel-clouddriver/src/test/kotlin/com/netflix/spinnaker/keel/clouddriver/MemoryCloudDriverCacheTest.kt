@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
-import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -10,8 +9,6 @@ import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_SERVICE_UNAVAILABLE
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
@@ -52,11 +49,6 @@ internal class MemoryCloudDriverCacheTest {
     Subnet("b", "vpc-3", "prod", "us-west-2", "us-west-2b", "internal (vpc3)"),
     Subnet("c", "vpc-3", "prod", "us-west-2", "us-west-2c", "internal (vpc3)"),
     Subnet("d", "vpc-3", "prod", "us-west-2", "us-west-2d", "external (vpc3)")
-  )
-
-  val certificates = listOf(
-    Certificate("cert-1", "arn:cert-1"),
-    Certificate("cert-2", "arn:cert-2")
   )
 
   @Test
@@ -141,8 +133,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `VPC networks are looked up by id from CloudDriver`() {
     every {
-      cloudDriver.listNetworks("aws")
-    } returns vpcs
+      cloudDriver.listNetworks()
+    } returns mapOf("aws" to vpcs)
 
     subject.networkBy("vpc-2").let { vpc ->
       expectThat(vpc) {
@@ -156,8 +148,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid VPC id throws an exception`() {
     every {
-      cloudDriver.listNetworks("aws")
-    } returns vpcs
+      cloudDriver.listNetworks()
+    } returns mapOf("aws" to vpcs)
 
     expectThrows<ResourceNotFound> {
       subject.networkBy("vpc-5")
@@ -167,8 +159,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `VPC networks are looked up by name and region from CloudDriver`() {
     every {
-      cloudDriver.listNetworks("aws")
-    } returns vpcs
+      cloudDriver.listNetworks()
+    } returns mapOf("aws" to vpcs)
 
     subject.networkBy("vpcName", "test", "us-west-2").let { vpc ->
       expectThat(vpc.id).isEqualTo("vpc-2")
@@ -178,8 +170,8 @@ internal class MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid VPC name and region throws an exception`() {
     every {
-      cloudDriver.listNetworks("aws")
-    } returns vpcs
+      cloudDriver.listNetworks()
+    } returns mapOf("aws" to vpcs)
 
     expectThrows<ResourceNotFound> {
       subject.networkBy("invalid", "prod", "us-west-2")
@@ -218,77 +210,5 @@ internal class MemoryCloudDriverCacheTest {
     expectThat(
       subject.availabilityZonesBy("prod", "vpc-3", "external (vpc3)", "us-west-2")
     ).containsExactly("us-west-2d")
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["cert-1", "cert-2"])
-  fun `certificates are looked up from CloudDriver when requested by name`(name: String) {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    expectThat(subject.certificateByName(name))
-      .get { serverCertificateName } isEqualTo name
-  }
-
-  @Test
-  fun `an unknown certificate name throws an exception`() {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    expectThrows<ResourceNotFound> { subject.certificateByName("does-not-exist") }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["cert-1", "cert-2"])
-  fun `subsequent requests for a certificate by name hit the cache`(name: String) {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    repeat(4) { subject.certificateByName(name) }
-
-    verify(exactly = 1) { cloudDriver.getCertificates() }
-  }
-
-  @Test
-  fun `all certs are cached at once when requested by name`() {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    listOf("cert-1", "cert-2")
-      .forEach(subject::certificateByName)
-
-    verify(exactly = 1) { cloudDriver.getCertificates() }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["arn:cert-1", "arn:cert-2"])
-  fun `certificates are looked up from CloudDriver when requested by ARN`(arn: String) {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    expectThat(subject.certificateByArn(arn))
-      .get { arn } isEqualTo arn
-  }
-
-  @Test
-  fun `an unknown certificate ARN throws an exception`() {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    expectThrows<ResourceNotFound> { subject.certificateByArn("does-not-exist") }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["arn:cert-1", "arn:cert-2"])
-  fun `subsequent requests for a certificate by ARN hit the cache`(arn: String) {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    repeat(5) { subject.certificateByArn(arn) }
-
-    verify(exactly = 1) { cloudDriver.getCertificates() }
-  }
-
-  @Test
-  fun `all certs are cached at once when requested by ARN`() {
-    every { cloudDriver.getCertificates() } returns certificates
-
-    listOf("arn:cert-1", "arn:cert-2")
-      .forEach(subject::certificateByArn)
-
-    verify(exactly = 1) { cloudDriver.getCertificates() }
   }
 }

@@ -16,10 +16,6 @@ import kotlinx.coroutines.future.future
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executor
-import java.util.function.BiFunction
-import java.util.function.Function
 
 @Component
 @EnableConfigurationProperties(CacheProperties::class)
@@ -31,7 +27,7 @@ class CacheFactory(
    * Builds an instrumented cache configured with values from [cacheProperties] or the supplied
    * defaults that uses [dispatcher] for computing values for the cache on a miss.
    */
-  fun <K : Any, V> asyncCache(
+  fun <K, V> asyncCache(
     cacheName: String,
     defaultMaximumSize: Long = 1000,
     defaultExpireAfterWrite: Duration = Duration.ofHours(1),
@@ -45,7 +41,7 @@ class CacheFactory(
    * Builds an instrumented cache configured with values from [cacheProperties] or the supplied
    * defaults that uses [dispatcher] for computing values for the cache on a miss.
    */
-  fun <K : Any, V> asyncLoadingCache(
+  fun <K, V> asyncLoadingCache(
     cacheName: String,
     defaultMaximumSize: Long = 1000,
     defaultExpireAfterWrite: Duration = Duration.ofHours(1),
@@ -55,24 +51,6 @@ class CacheFactory(
     builder(cacheName, defaultMaximumSize, defaultExpireAfterWrite, dispatcher)
       .buildAsync(loader.toAsyncCacheLoader())
       .monitor(cacheName)
-
-  /**
-   * Builds an instrumented cache configured with values from [cacheProperties] or the supplied
-   * defaults that uses [dispatcher] for computing values for the cache on a miss.
-   *
-   * Caches created using this method load all entries at once.
-   */
-  fun <K : Any, V> asyncBulkLoadingCache(
-    cacheName: String,
-    defaultMaximumSize: Long = 1000,
-    defaultExpireAfterWrite: Duration = Duration.ofHours(1),
-    dispatcher: CoroutineDispatcher = IO,
-    loader: suspend () -> Map<K, V>
-  ): AsyncLoadingCache<K, V> =
-    builder(cacheName, defaultMaximumSize, defaultExpireAfterWrite, dispatcher)
-      .buildAsync(loader.toAsyncBulkCacheLoader())
-      .monitor(cacheName)
-      .let { AsyncBulkLoadingCache(it) }
 
   private fun builder(
     cacheName: String,
@@ -88,49 +66,15 @@ class CacheFactory(
         .recordStats()
     }
 
-  private fun <K, V, C : AsyncCache<K, V>> C.monitor(cacheName: String) =
+  private fun <K, V, C: AsyncCache<K, V>> C.monitor(cacheName: String) =
     CaffeineCacheMetrics.monitor(meterRegistry, this, cacheName)
 }
 
-fun <K : Any, V> (suspend (K) -> V?).toAsyncCacheLoader(): AsyncCacheLoader<K, V> =
+fun <K, V> (suspend (K) -> V?).toAsyncCacheLoader() : AsyncCacheLoader<K, V> =
   AsyncCacheLoader<K, V> { key, executor ->
     CoroutineScope(executor.asCoroutineDispatcher())
       .future { this@toAsyncCacheLoader.invoke(key) }
   }
-
-fun <K : Any, V> (suspend () -> Map<K, V>).toAsyncBulkCacheLoader(): AsyncCacheLoader<K, V> =
-  object : AsyncCacheLoader<K, V> {
-    override fun asyncLoad(key: K, executor: Executor): CompletableFuture<V> {
-      throw UnsupportedOperationException()
-    }
-
-    override fun asyncLoadAll(
-      keys: Iterable<K>,
-      executor: Executor
-    ): CompletableFuture<Map<K, V>> =
-      CoroutineScope(executor.asCoroutineDispatcher())
-        .future { this@toAsyncBulkCacheLoader.invoke() }
-  }
-
-/**
- * An implementation of [AsyncLoadingCache] that _always_ uses [AsyncCacheLoader.asyncLoadAll] to
- * populate the cache.
- */
-private class AsyncBulkLoadingCache<K : Any, V>(delegate: AsyncLoadingCache<K, V>) :
-  AsyncLoadingCache<K, V> by delegate {
-  override fun get(key: K): CompletableFuture<V> = getAll(listOf(key)).thenApply { it[key] }
-
-  override fun get(key: K, mappingFunction: Function<in K, out V>): CompletableFuture<V> {
-    throw UnsupportedOperationException()
-  }
-
-  override fun get(
-    key: K,
-    mappingFunction: BiFunction<in K, Executor, CompletableFuture<V>>
-  ): CompletableFuture<V> {
-    throw UnsupportedOperationException()
-  }
-}
 
 /**
  * A [CacheFactory] usable in tests that uses no-op metering and default configuration.

@@ -66,13 +66,13 @@ internal class AuthPropagationTests
   ) {
     val server = MockWebServer()
 
-    private var _listNetworksResults: Set<Network>? = null
-    val listNetworksResults: Set<Network>
+    private var _listNetworksResults: Map<String, Set<Network>>? = null
+    val listNetworksResults: Map<String, Set<Network>>
       get() = checkNotNull(_listNetworksResults) { "You need to actually make a call first" }
 
     fun listNetworks() {
       _listNetworksResults = runBlocking {
-        cloudDriverService.listNetworks("aws")
+        cloudDriverService.listNetworks()
       }
     }
   }
@@ -92,7 +92,7 @@ internal class AuthPropagationTests
 
     context("a call to Clouddriver") {
       before {
-        server.enqueue(MockResponse().setBody("[]"))
+        server.enqueue(MockResponse().setBody("{}"))
 
         listNetworks()
       }

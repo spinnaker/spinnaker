@@ -3,6 +3,9 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Listener
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.TargetGroup
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
@@ -36,18 +39,10 @@ data class ApplicationLoadBalancerSpec(
   data class Listener(
     val port: Int,
     val protocol: String,
-    val certificate: String? = null,
+    val certificateArn: String?,
     val rules: Set<Rule> = emptySet(),
     val defaultActions: Set<Action> = emptySet()
-  ) {
-    init {
-      if (protocol == "HTTPS") {
-        requireNotNull(certificate) {
-          "HTTPS listeners must specify a certificate"
-        }
-      }
-    }
-  }
+  )
 
   data class TargetGroup(
     val name: String,
