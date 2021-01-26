@@ -81,6 +81,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   String kubectlPath;
   Integer kubectlRequestTimeoutSeconds;
   Boolean checkPermissionsOnStartup;
+  RawResourcesEndpointConfig rawResourcesEndpointConfig = new RawResourcesEndpointConfig();
   Boolean cacheAllApplicationRelationships;
 
   @ValidForSpinnakerVersion(
@@ -156,6 +157,38 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   public static class KubernetesCachingPolicy {
     String kubernetesKind;
     int maxEntriesPerAgent;
+  }
+
+  @Data
+  public static class RawResourcesEndpointConfig {
+    @JsonProperty("kindExpressions")
+    List<String> kindExpressions;
+
+    @JsonProperty("omitKindExpressions")
+    List<String> omitKindExpressions;
+
+    @JsonProperty("kindExpressions")
+    public List<String> getKindExpressions() {
+      return this.kindExpressions;
+    }
+
+    public void setKindExpressions(List<String> expressions) {
+      this.kindExpressions = expressions;
+    }
+
+    @JsonProperty("omitKindExpressions")
+    public List<String> getOmitKindExpressions() {
+      return this.omitKindExpressions;
+    }
+
+    public void setOmitKindExpressions(List<String> expressions) {
+      this.omitKindExpressions = expressions;
+    }
+  }
+
+  @JsonProperty("rawResourcesEndpointConfig")
+  public RawResourcesEndpointConfig getRawResourcesEndpointConfig() {
+    return rawResourcesEndpointConfig;
   }
 
   // These six methods exist for backwards compatibility. Versions of Halyard prior to 1.22 would

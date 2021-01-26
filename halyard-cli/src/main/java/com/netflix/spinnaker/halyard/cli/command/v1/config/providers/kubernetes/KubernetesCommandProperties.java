@@ -78,6 +78,15 @@ public class KubernetesCommandProperties {
       "(V2 Only) Add Kubernetes custom resource to the list of custom resources to managed by clouddriver and made available for use in patch and delete manifest stages. "
           + "Fields besides the Kubernetes Kind (resource name) can be set using the flags \"--spinnaker-kind\" and \"--versioned\"";
 
+  static final String RAW_RESOURCES_ENDPOINT_KIND_EXPRESSIONS =
+      "(V2 Only) A list of resource kind regular expressions that the raw resources endpoint will use to filter resources. "
+          + "Only resources matching one or more of the provided expressions will be returned.";
+
+  static final String RAW_RESOURCES_ENDPOINT_OMIT_KIND_EXPRESSIONS =
+      "(V2 Only) A list of resource kind regular expressions that the raw resources endpoint will use to filter resources. "
+          + "Only resources that don't match any of the provided expressions will be returned. "
+          + "This can only be set when --raw-resource-endpoint-kinds is empty or not set";
+
   static final String PROVIDER_VERSION_DESCRIPTION =
       "There are currently two versions of the Kubernetes Provider: V1 and V2. "
           + "This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker."
