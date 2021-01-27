@@ -1022,11 +1022,11 @@ class SqlDeliveryConfigRepository(
                 .execute()
             }
           }
-          .map { (_, name) ->
-            get(name)
-          }
       }
     }
+      .map { (_, name) ->
+        get(name)
+      }
   }
 
   override fun markCheckComplete(deliveryConfig: DeliveryConfig) {
