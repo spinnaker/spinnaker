@@ -49,9 +49,8 @@ redis:
 #      baseUrl: https://travis-ci.com
 #      address: https://api.travis-ci.com
 #      githubToken: XXXXXX
-#      numberOfRepositories: 25 # How many repositories the travis integration should fetch from the api each time the
-#                               # poller runs. Should be set a bit higher than the expected maximum number of
-#                               # repositories built within the poll interval.
+#      numberOfJobs: 100 # Defines how many jobs the Travis integration should retrieve per polling cycle.
+#                        # Defaults to 100.
 #
 #  Additional regexes to use when parsing build logs in search for uploaded
 #  artifacts, besides the default regexes which match on the output of the
