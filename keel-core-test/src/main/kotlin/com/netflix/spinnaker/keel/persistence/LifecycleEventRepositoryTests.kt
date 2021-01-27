@@ -20,6 +20,7 @@ import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
@@ -41,6 +42,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
   )
   val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config")
   val version = "123.4"
+  val link = "http://www.bake.com/$version"
   val event = LifecycleEvent(
     scope = PRE_DEPLOYMENT,
     artifactRef = artifact.toLifecycleRef(),
@@ -49,7 +51,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
     status = NOT_STARTED,
     id = "bake-$version",
     text = "Submitting bake for version $version",
-    link = "www.bake.com/$version",
+    link = link,
     data = mapOf("hi" to "whatsup"),
     startMonitoring = true
   )
@@ -108,7 +110,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
         }
       }
 
-      context("multiple events single id"){
+      context("multiple events single id") {
         before {
           clock.tickMinutes(1)
           subject.saveEvent(event.copy(status = RUNNING, text = null, link = null))
@@ -122,7 +124,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.size).isEqualTo(1)
             that(steps.first().status).isEqualTo(SUCCEEDED)
             that(steps.first().text).isEqualTo("Bake finished! Here's your cake")
-            that(steps.first().link).isEqualTo("www.bake.com/$version")
+            that(steps.first().link).isEqualTo(link)
             that(steps.first().startedAt).isNotNull()
             that(steps.first().completedAt).isNotNull()
             that(steps.first().startedAt).isNotEqualTo(steps.first().completedAt)
@@ -144,7 +146,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           expectThat(steps.first()){
             get { status }.isEqualTo(SUCCEEDED)
             get { text }.isEqualTo("Bake finished! Here's your cake")
-            get { link }.isEqualTo("www.bake.com/$version")
+            get { link }.isEqualTo(link)
             get { startedAt }.isNotNull()
             get { completedAt }.isNotNull()
             get { startedAt }.isNotEqualTo(steps.first().completedAt)
@@ -172,12 +174,23 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
             that(steps.size).isEqualTo(2)
             that(steps.first().status).isEqualTo(FAILED)
             that(steps.first().text).isEqualTo("Oops, this failed")
-            that(steps.first().link).isEqualTo("www.bake.com/$version")
+            that(steps.first().link).isEqualTo(link)
             that(steps.last().status).isEqualTo(SUCCEEDED)
             that(steps.last().text).isEqualTo("Bake succeeded")
-            that(steps.last().link).isEqualTo("www.bake.com/$version")
+            that(steps.last().link).isEqualTo(link)
           }
         }
+      }
+    }
+
+    context("hiding steps") {
+      before {
+        subject.saveEvent(event.copy(link = "i.am.a.link"))
+      }
+
+      test("no steps returned when link isn't valid") {
+        val steps = subject.getSteps(artifact, version)
+        expectThat(steps).isEmpty()
       }
     }
 
@@ -194,7 +207,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
           that(steps.size).isEqualTo(1)
           that(steps.first().status).isEqualTo(SUCCEEDED)
           that(steps.first().text).isEqualTo("Bake finished! Here's your cake")
-          that(steps.first().link).isEqualTo("www.bake.com/$version")
+          that(steps.first().link).isEqualTo(link)
           that(steps.first().startedAt).isNotNull()
           that(steps.first().completedAt).isNotNull()
         }

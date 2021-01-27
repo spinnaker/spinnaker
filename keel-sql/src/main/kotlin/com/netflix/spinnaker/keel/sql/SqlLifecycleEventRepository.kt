@@ -141,7 +141,11 @@ class SqlLifecycleEventRepository(
         }
         step = step.copy(status = lastEvent.status)
       }
-      steps.add(step)
+
+      // only add the step if we have a valid link
+      if (step.link?.startsWith("http") == true) {
+        steps.add(step)
+      }
     }
 
     spectator.timer(
