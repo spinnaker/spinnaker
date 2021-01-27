@@ -123,11 +123,31 @@ final class ResolveDeploySourceManifestTaskTest {
     assertThat(getManifests(result)).containsExactly(MANIFEST_1, MANIFEST_2);
   }
 
+  @Test
+  void stageWithoutManifestsHandled() {
+    ManifestEvaluator manifestEvaluator = mock(ManifestEvaluator.class);
+    ResolveDeploySourceManifestTask task = new ResolveDeploySourceManifestTask(manifestEvaluator);
+
+    StageExecutionImpl myStage = createStageWithManifests(null);
+
+    DeployManifestContext deployManifestContext = DeployManifestContext.builder().build();
+
+    when(manifestEvaluator.evaluate(any(), eq(deployManifestContext)))
+        .thenReturn(
+            new ManifestEvaluator.Result(
+                ImmutableList.of(MANIFEST_1), ImmutableList.of(), ImmutableList.of()));
+
+    TaskResult result = task.execute(myStage);
+    verify(manifestEvaluator, times(1)).evaluate(any(), eq(deployManifestContext));
+  }
+
   private StageExecutionImpl createStageWithManifests(ImmutableList<Object> manifestsByNamespace) {
     return new StageExecutionImpl(
         new PipelineExecutionImpl(ExecutionType.PIPELINE, "test"),
         "test",
-        new HashMap<>(ImmutableMap.of("manifests", manifestsByNamespace)));
+        manifestsByNamespace != null
+            ? new HashMap<>(ImmutableMap.of("manifests", manifestsByNamespace))
+            : new HashMap<>());
   }
 
   private static List<Map<Object, Object>> getManifests(TaskResult result) {

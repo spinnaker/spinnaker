@@ -63,6 +63,10 @@ public final class ResolveDeploySourceManifestTask implements Task {
   // Spel is not flattening nested List anymore
   // We flatten them because its possible have a List of manifests resolved by spel
   private List<Object> flattenNestedLists(Object manifests) {
+    if (manifests == null) {
+      return null;
+    }
+
     List<Object> result = new ArrayList<>();
     List<Object> tmp = (List<Object>) manifests;
 
