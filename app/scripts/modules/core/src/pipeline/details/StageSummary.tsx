@@ -1,5 +1,4 @@
 import React from 'react';
-import { get } from 'lodash';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from 'core/domain';
@@ -13,28 +12,32 @@ export interface IStageSummaryProps {
   stageSummary: IExecutionStageSummary;
 }
 
-export class StageSummary extends React.Component<IStageSummaryProps> {
-  private getSourceUrl(): string {
-    return get(this.props, 'config.executionSummaryUrl', require('../config/stages/common/executionSummary.html'));
+export function StageSummary(props: IStageSummaryProps) {
+  const { application, execution, stage, stageSummary, config } = props;
+
+  // AngularJS override
+  const sourceUrl = config?.executionSummaryUrl ?? require('../config/stages/common/executionSummary.html');
+  // React override
+  const SummaryComponent = config?.executionSummaryComponent;
+
+  if (SummaryComponent) {
+    return (
+      <div className="stage-summary">
+        <SummaryComponent {...props} />
+      </div>
+    );
   }
 
-  public render(): React.ReactElement<StageSummary> {
-    const sourceUrl = this.getSourceUrl();
-    if (sourceUrl) {
-      const { application, execution, stage, stageSummary } = this.props;
-      const { StageSummaryWrapper } = NgReact;
-      return (
-        <div className="stage-summary">
-          <StageSummaryWrapper
-            application={application}
-            execution={execution}
-            sourceUrl={sourceUrl}
-            stage={stage}
-            stageSummary={stageSummary}
-          />
-        </div>
-      );
-    }
-    return null;
-  }
+  const { StageSummaryWrapper } = NgReact;
+  return (
+    <div className="stage-summary">
+      <StageSummaryWrapper
+        application={application}
+        execution={execution}
+        sourceUrl={sourceUrl}
+        stage={stage}
+        stageSummary={stageSummary}
+      />
+    </div>
+  );
 }
