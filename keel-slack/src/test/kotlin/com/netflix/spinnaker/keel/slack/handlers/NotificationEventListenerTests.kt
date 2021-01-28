@@ -8,18 +8,30 @@ import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.PinnedNotification
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.NotificationEventListener
+import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.keel.test.DummyArtifact
+import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
+import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
-import org.springframework.context.ApplicationEventPublisher
+import io.mockk.verify
 import java.time.Instant
 import java.time.ZoneId
+import com.netflix.spinnaker.keel.notifications.NotificationType as Type
 
 class NotificationEventListenerTests : JUnit5Minutests {
 
@@ -35,31 +47,114 @@ class NotificationEventListenerTests : JUnit5Minutests {
       ZoneId.of("UTC")
     )
 
-    val pin = EnvironmentArtifactPin("production", releaseArtifact.reference, version0, "keel@keel.io", "comment")
+    val pin = EnvironmentArtifactPin("test", releaseArtifact.reference, version0, "keel@keel.io", "comment")
     val application1 = "fnord1"
-    val singleArtifactEnvironments = listOf("test", "staging", "production").associateWith { name ->
+    val singleArtifactEnvironments = listOf(
       Environment(
-        name = name,
+        name = "test",
         notifications = setOf(
           NotificationConfig(
             type = NotificationType.slack,
             address = "test",
             frequency = NotificationFrequency.verbose
           )
+        ),
+        resources = setOf(
+          resource(
+            spec = DummyArtifactReferenceResourceSpec(
+              artifactReference = releaseArtifact.reference
+            )
+          )
         )
-      )
-    }
+      ),
+      Environment(
+        name = "staging",
+        notifications = setOf(
+          NotificationConfig(
+            type = NotificationType.slack,
+            address = "staging",
+            frequency = NotificationFrequency.verbose
+          )
+        ),
+        resources = setOf(
+          resource(
+            spec = DummyArtifactReferenceResourceSpec(
+              artifactReference = releaseArtifact.reference
+            )
+          )
+        )
+      ),
+      Environment(
+        name = "production",
+        notifications = setOf(
+          NotificationConfig(
+            type = NotificationType.slack,
+            address = "prod",
+            frequency = NotificationFrequency.verbose
+          ),
+          NotificationConfig(
+            type = NotificationType.slack,
+            address = "prod#2",
+            frequency = NotificationFrequency.quiet
+          ),
+          NotificationConfig(
+            type = NotificationType.email,
+            address = "@prod",
+            frequency = NotificationFrequency.verbose
+          )
+        )
+      ),
+    )
 
     val singleArtifactDeliveryConfig = DeliveryConfig(
       name = "manifest_$application1",
       application = application1,
       serviceAccount = "keel@spinnaker",
       artifacts = setOf(releaseArtifact),
-      environments = singleArtifactEnvironments.values.toSet()
+      environments = singleArtifactEnvironments.toSet(),
     )
 
+    val slackService: SlackService = mockk()
+    val gitDataGenerator: GitDataGenerator = mockk()
+    val pinnedNotificationHandler: PinnedNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        type
+      } returns Type.ARTIFACT_PINNED
+    }
+
+    val unpinnedNotificationHandler: UnpinnedNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        type
+      } returns Type.ARTIFACT_UNPINNED
+    }
+
+    val pausedNotificationHandler: PausedNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        type
+      } returns Type.APPLICATION_PAUSED
+    }
+
+    val lifecycleEventNotificationHandler: LifecycleEventNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        type
+      } returns Type.LIFECYCLE_EVENT
+    }
+
+
+    val lifecycleEvent = LifecycleEvent(
+      type = LifecycleEventType.BAKE,
+      scope = LifecycleEventScope.PRE_DEPLOYMENT,
+      status = LifecycleEventStatus.FAILED,
+      artifactRef = releaseArtifact.toLifecycleRef(),
+      artifactVersion = version0,
+      id = "bake-$version0",
+    )
     val pinnedNotification = PinnedNotification(singleArtifactDeliveryConfig, pin)
-    val subject = NotificationEventListener(repository, clock, emptyList())
+    val pausedNotification = ApplicationActuationPaused(application1, clock.instant(), "user1")
+    val subject = NotificationEventListener(repository, clock, listOf(pinnedNotificationHandler,
+      pausedNotificationHandler,
+      unpinnedNotificationHandler,
+      lifecycleEventNotificationHandler))
 
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
@@ -71,17 +166,22 @@ class NotificationEventListenerTests : JUnit5Minutests {
       Fixture()
     }
 
-    context("pin and unpin notifications") {
+    context("sending notifications with a single environment handler") {
       before {
         every {
-          repository.environmentNotifications(any(), any())
-        } returns setOf(NotificationConfig(NotificationType.slack, "test", NotificationFrequency.verbose))
-
-        every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
+          slackService.getUsernameByEmail(any())
+        } returns "@keel"
 
         every {
-          repository.getArtifact(any(), any())
-        } returns releaseArtifact
+          slackService.sendSlackNotification("test", any(), any(), any(), any())
+        } just Runs
+
+        every {
+          gitDataGenerator.generateData(any(), any(), any())
+        } returns SectionBlockBuilder()
+
+
+        every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
 
         every {
           repository.getArtifactVersionByPromotionStatus(any(), any(), any(), any())
@@ -93,10 +193,60 @@ class NotificationEventListenerTests : JUnit5Minutests {
 
       }
 
-//        test("slack notification was sent out") {
-//          subject.onPinnedNotification(pinnedNotification)
-//          verify { publisher.publishEvent(ofType<SlackPinnedNotification>()) }
-//        }
+      test("the right (pinned) slack notification was sent out just once") {
+        subject.onPinnedNotification(pinnedNotification)
+        verify(exactly = 1) {
+          pinnedNotificationHandler.sendMessage(any(), any())
+        }
+        verify(exactly = 0) {
+          unpinnedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("only slack notifications are sent out") {
+        subject.onPinnedNotification(pinnedNotification.copy(pin = pin.copy(targetEnvironment = "production")))
+        verify(exactly = 2) {
+          pinnedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("don't send a notification if an environment was not found") {
+        subject.onPinnedNotification(pinnedNotification.copy(pin = pin.copy(targetEnvironment = "test#2")))
+        verify(exactly = 0) {
+          pinnedNotificationHandler.sendMessage(any(), any())
+        }
       }
     }
+
+    context("sending notifications to multiple environments") {
+      before {
+        every {
+          repository.getDeliveryConfigForApplication(application1)
+        } returns singleArtifactDeliveryConfig
+      }
+      test("sending pause notifications") {
+        subject.onApplicationActuationPaused(pausedNotification)
+        verify(exactly = 4) {
+          pausedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+    }
+
+    context("lifecycle notifications") {
+      before {
+        every {
+          repository.getDeliveryConfig(any())
+        } returns singleArtifactDeliveryConfig
+
+        every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
+      }
+
+      test("send notifications to relevant environments only"){
+        subject.onLifecycleEvent(lifecycleEvent)
+          verify(exactly = 2) {
+            lifecycleEventNotificationHandler.sendMessage(any(), any())
+          }
+      }
+    }
+  }
 }

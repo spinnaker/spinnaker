@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.events.UnhealthyNotification
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
-import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
+import com.netflix.spinnaker.keel.notifications.NotificationType.RESOURCE_UNHEALTHY
 import com.netflix.spinnaker.keel.persistence.UnhealthyRepository
 import com.netflix.spinnaker.keel.test.locatableResource
 import dev.minutest.junit.JUnit5Minutests
@@ -52,7 +52,7 @@ class UnhealthyNotificationListenerTests : JUnit5Minutests {
       test("healthy marks resource healthy and clears unhealthy notification") {
         subject.onResourceHealthEvent(ResourceHealthEvent(resource = r, isHealthy = true))
         verify(exactly = 1) { unhealthyRepository.markHealthy(r) }
-        verify(exactly = 1) { publisher.publishEvent(ClearNotificationEvent(RESOURCE, r.id, UNHEALTHY_RESOURCE)) }
+        verify(exactly = 1) { publisher.publishEvent(ClearNotificationEvent(RESOURCE, r.id, RESOURCE_UNHEALTHY)) }
       }
 
       test("unhealthy adds a record") {

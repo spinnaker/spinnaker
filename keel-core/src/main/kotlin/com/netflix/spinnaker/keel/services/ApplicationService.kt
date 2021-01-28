@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
@@ -134,7 +135,12 @@ class ApplicationService(
     if (!succeeded) {
       throw InvalidVetoException(application, veto.targetEnvironment, veto.reference, veto.version)
     }
-    // TODO: publish ArtifactVetoedEvent
+
+    publisher.publishEvent(MarkAsBadNotification(
+      config = config,
+      user = user,
+      veto = veto
+    ))
   }
 
   fun deleteVeto(application: String, targetEnvironment: String, reference: String, version: String) {

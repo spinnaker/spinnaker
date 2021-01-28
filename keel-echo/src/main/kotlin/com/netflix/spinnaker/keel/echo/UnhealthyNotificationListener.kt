@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.events.UnhealthyNotification
 import com.netflix.spinnaker.keel.notifications.ClusterViewParams
 import com.netflix.spinnaker.keel.notifications.Notification
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
-import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
+import com.netflix.spinnaker.keel.notifications.NotificationType.RESOURCE_UNHEALTHY
 import com.netflix.spinnaker.keel.notifications.friendlyDuration
 import com.netflix.spinnaker.keel.persistence.UnhealthyRepository
 import com.netflix.spinnaker.keel.veto.unhealthy.UnsupportedResourceTypeException
@@ -42,7 +42,7 @@ class UnhealthyNotificationListener(
     if (notificationsEnabled) {
       if (event.isHealthy) {
         unhealthyRepository.markHealthy(event.resource)
-        publisher.publishEvent(ClearNotificationEvent(RESOURCE, event.resource.id, UNHEALTHY_RESOURCE))
+        publisher.publishEvent(ClearNotificationEvent(RESOURCE, event.resource.id, RESOURCE_UNHEALTHY))
       } else {
         unhealthyRepository.markUnhealthy(event.resource)
         val unhealthyDuration = unhealthyRepository.durationUnhealthy(event.resource)

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
-import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
+import com.netflix.spinnaker.keel.notifications.NotificationType.RESOURCE_UNHEALTHY
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -33,29 +33,29 @@ abstract class NotificationRepositoryTests<T: NotificationRepository> : JUnit5Mi
 
     context("new notification"){
       test("notification is due when we add it") {
-        expectThat(subject.addNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)).isTrue()
+        expectThat(subject.addNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)).isTrue()
       }
     }
 
     context("existing notification") {
       before {
-        subject.addNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)
+        subject.addNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)
         clock.incrementBy(Duration.ofDays(1) + Duration.ofHours(1))
       }
 
       test("due for notification") {
-        expectThat(subject.dueForNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)).isTrue()
+        expectThat(subject.dueForNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)).isTrue()
       }
 
       test("marking sent means it's no longer due") {
-        subject.markSent(RESOURCE, "id", UNHEALTHY_RESOURCE)
-        expectThat(subject.dueForNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)).isFalse()
+        subject.markSent(RESOURCE, "id", RESOURCE_UNHEALTHY)
+        expectThat(subject.dueForNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)).isFalse()
       }
 
       test("removing means we should not notify") {
-        subject.clearNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)
+        subject.clearNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)
         clock.incrementBy(Duration.ofDays(1) + Duration.ofHours(1))
-        expectThat(subject.dueForNotification(RESOURCE, "id", UNHEALTHY_RESOURCE)).isFalse()
+        expectThat(subject.dueForNotification(RESOURCE, "id", RESOURCE_UNHEALTHY)).isFalse()
       }
     }
   }

@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.artifacts.NPM
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
-import com.netflix.spinnaker.keel.events.NotificationEvent
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository

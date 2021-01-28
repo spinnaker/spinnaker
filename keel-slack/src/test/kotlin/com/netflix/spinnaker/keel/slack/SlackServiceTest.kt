@@ -1,23 +1,30 @@
 package com.netflix.spinnaker.keel.slack
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.SlackConfiguration
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import org.springframework.core.env.Environment
 
-class SlackNotifierTest: JUnit5Minutests {
+class SlackServiceTest: JUnit5Minutests {
 
   class Fixture {
     val slackConfiguration = SlackConfiguration()
     val springEnv: Environment = mockk(relaxed = true)
+    private val registry = spyk<Registry>(NoopRegistry())
 
-    val subject = SlackNotifier(
+
+    val subject = SlackService(
         springEnv,
-        slackConfiguration
+        slackConfiguration,
+        registry
       )
     }
 

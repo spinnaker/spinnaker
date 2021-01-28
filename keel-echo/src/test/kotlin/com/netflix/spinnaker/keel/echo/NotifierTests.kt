@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.events.ClearNotificationEvent
 import com.netflix.spinnaker.keel.notifications.Notification
 import com.netflix.spinnaker.keel.events.UnhealthyNotification
 import com.netflix.spinnaker.keel.notifications.NotificationScope.RESOURCE
-import com.netflix.spinnaker.keel.notifications.NotificationType.UNHEALTHY_RESOURCE
+import com.netflix.spinnaker.keel.notifications.NotificationType.RESOURCE_UNHEALTHY
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.NotificationRepository
@@ -59,7 +59,7 @@ class NotifierTests : JUnit5Minutests {
     val clearEvent = ClearNotificationEvent(
       RESOURCE,
       r.id,
-      UNHEALTHY_RESOURCE,
+      RESOURCE_UNHEALTHY,
     )
   }
 
