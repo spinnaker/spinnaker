@@ -23,9 +23,15 @@ import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record1
+import org.jooq.Record4
 import org.jooq.Select
+import org.jooq.SelectOrderByStep
 import org.jooq.impl.DSL.function
+import org.jooq.Table
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.isnull
+import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import java.time.Clock
@@ -162,6 +168,77 @@ class SqlVerificationRepository(
       }
     }
 
+  /**
+   * Query the repository for the states of multiple contexts.
+   *
+   * This call is semantically equivalent to
+   *    contexts.map { context -> this.getStates(context) }
+   *
+   * However, it's implemented as a single query for efficiency.
+   *
+   * @param contexts a list of verification contexts to query for state
+   * @return a list of maps of verification ids to states, in the same order as the contexts. If there are no
+   *         verification states associated with a context, the resulting map will be empty.
+   */
+  override fun getStatesBatch(contexts: List<VerificationContext>) : List<Map<String, VerificationState>> {
+    /**
+     * In-memory database table representation of the set of contexts we want to query for
+     *
+     * Columns:
+     *   ind - index that encodes the original list order, to ensure results are in same order
+     *   environment_name
+     *   artifact_reference
+     *   artifact_version
+     */
+    val contextTable = ContextTable(contexts, jooq)
+
+    /**
+     * This function guarantees that the number of output elements match the number of input elements.
+     * So we use left joins on the givenVersions table
+     */
+    return jooq.select(
+
+      contextTable.IND,
+      VERIFICATION_STATE.VERIFICATION_ID,
+      VERIFICATION_STATE.STATUS,
+      VERIFICATION_STATE.STARTED_AT,
+      VERIFICATION_STATE.ENDED_AT,
+      VERIFICATION_STATE.METADATA)
+      .from(contextTable.table)
+      .leftJoin(ENVIRONMENT)
+      .on(ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
+      .leftJoin(DELIVERY_CONFIG)
+      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .leftJoin(DELIVERY_ARTIFACT)
+      .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
+      .leftJoin(VERIFICATION_STATE)
+      .on(VERIFICATION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+      .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
+      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
+      .and(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+
+      // execute the query
+      .fetch()
+
+      // sort the results by the "ind" (index) column, so that outputs are same order as inputs
+      .groupBy { (index, _, _, _, _, _) -> index as Long }
+      .toSortedMap()
+      .values
+
+      // convert List<Record> to Map<String,VerificationState>, where the string is the verification id
+      .map { records ->
+        records
+          // since we do a left join, there may be rows where there is no corresponding records in the
+          // verification_state database, so we filter them out, which will result in an empty map
+          .filter {(_, _, status, _, _, _) -> status != null }
+          .associate { (_, verification_id, status, started_at, ended_at, metadata) ->
+            verification_id to VerificationState(status, started_at, ended_at, metadata)
+          }
+      }
+      .toList()
+  }
+
+
   override fun updateState(
     context: VerificationContext,
     verification: Verification,
@@ -238,4 +315,72 @@ class SqlVerificationRepository(
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
       .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifactReference))
+
+
+  /**
+   * Helper class for [getStatesBatch]
+   *
+   * This class enables the caller to construct a [Table] object from a list of [contexts].
+   * The table is accessed via the [table] property.
+   *
+   * his table object does not correspond to an actual table in keel's database. Instead, it constructs
+   * a query from the [contexts] that can be used as a subselect. The query would be used like this
+   *
+   * ```
+   * SELECT ...
+   * FROM
+   * (
+   * -- empty dummy record added to provide column names
+   * SELECT NULL ind, NULL environment_name, NULL artifact_reference, NULL artifact_version FROM dual WHERE 1 = 0 UNION ALL
+   * -- the actual values
+   * SELECT 0, "staging", "myapp", "myapp-h123-v23.4" FROM dual UNION ALL
+   * SELECT 1, "staging", "myapp", "myapp-h124-v23.5" FROM dual UNION ALL
+   * SELECT 2, "staging", "myapp", "myapp-h124-v23.6"
+   * ) verification_contexts
+   * ...
+   * ```
+   *
+   * Note that `dual` is a dummy table, c.f.: https://en.wikipedia.org/wiki/DUAL_table
+   *
+   * The query essentially emulates the VALUES() table constructor, which we can't use because it's not supported in MySQL 5.7:
+   * https://www.jooq.org/doc/3.0/manual/sql-building/table-expressions/values/
+   */
+  @Suppress("PropertyName")
+  private class ContextTable(
+    val contexts: List<VerificationContext>,
+    val jooq: DSLContext
+  ) {
+    val alias = "verification_contexts"
+
+    private val ind = "ind"
+    private val environmentName = "environment_name"
+    private val artifactReference = "artifact_reference"
+    private val artifactVersion = "artifact_version"
+
+    fun <T> typedField(s : String, t: Class<T>) : Field<T> = field(name(alias, s), t)
+
+    // These behave like regular jOOQ table field names when building SQL queries
+
+    val IND  = typedField(ind, Long::class.java)
+    val ENVIRONMENT_NAME = typedField(environmentName, String::class.java)
+    val ARTIFACT_REFERENCE = typedField(artifactReference, String::class.java)
+    val ARTIFACT_VERSION = typedField(artifactVersion, String::class.java)
+
+    /**
+     * return a jOOQ table that contains the [contexts] data represented as a table that can be selected against
+     */
+    val table : Table<Record4<Int, String, String, String>>
+      get() =
+        contexts
+          // Creates a SELECT statement from each element of [contexts], where every column is a constant. e.g.:
+          // SELECT 0, "staging", "myapp", "myapp-h123-v23.4" FROM dual
+          .mapIndexed { idx, v -> jooq.select(inline(idx), inline(v.environmentName), inline(v.artifactReference), inline(v.version)) as SelectOrderByStep<Record4<Int, String, String, String>> }
+
+          // Apply UNION ALL to the list of SELECT statements so they form a single query
+          .reduce { s1, s2 -> s1.unionAll(s2) }
+
+          // Convert the result to a [Table] object
+          .asTable(alias, ind, environmentName, artifactReference, artifactVersion)
+  }
+
 }

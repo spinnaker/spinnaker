@@ -19,7 +19,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import strikt.api.expect
 import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.containsKey
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
@@ -51,30 +55,31 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   }
 
   private val verification = DummyVerification("1")
-  private val context = VerificationContext(
-    deliveryConfig = DeliveryConfig(
-      application = "fnord",
-      name = "fnord-manifest",
-      serviceAccount = "jamm@illuminati.org",
-      artifacts = setOf(
-        DockerArtifact(
-          name = "fnord",
-          deliveryConfigName = "fnord-manifest",
-          reference = "fnord-docker-stable"
-        ),
-        DockerArtifact(
-          name = "fnord",
-          deliveryConfigName = "fnord-manifest",
-          reference = "fnord-docker-unstable"
-        )
+  private val deliveryConfig = DeliveryConfig(
+    application = "fnord",
+    name = "fnord-manifest",
+    serviceAccount = "jamm@illuminati.org",
+    artifacts = setOf(
+      DockerArtifact(
+        name = "fnord",
+        deliveryConfigName = "fnord-manifest",
+        reference = "fnord-docker-stable"
       ),
-      environments = setOf(
-        Environment(
-          name = "test",
-          verifyWith = listOf(verification)
-        )
+      DockerArtifact(
+        name = "fnord",
+        deliveryConfigName = "fnord-manifest",
+        reference = "fnord-docker-unstable"
       )
     ),
+    environments = setOf(
+      Environment(
+        name = "test",
+        verifyWith = listOf(verification)
+      )
+    )
+  )
+  private val context = VerificationContext(
+    deliveryConfig = deliveryConfig,
     environmentName = "test",
     artifactReference = "fnord-docker-stable",
     version = "fnord-0.190.0-h378.eacb135"
@@ -375,6 +380,97 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
       next().isSuccess().hasSize(1)
       next().isSuccess().hasSize(1)
+    }
+  }
+
+  //
+  // getStatesBatch tests
+  //
+  @Test
+  fun `no verification states`() {
+    context.setup()
+    val contexts = listOf(context)
+
+    expectThat(subject.getStatesBatch(contexts))
+      .hasSize(contexts.size)
+      .containsExactly(emptyMap())
+  }
+
+  @Test
+  fun `one verification state`() {
+    context.setup()
+    val contexts = listOf(context)
+
+    subject.updateState(context, verification, PENDING)
+
+    val stateMaps = subject.getStatesBatch(contexts)
+
+    expectThat(stateMaps)
+      .hasSize(contexts.size)
+
+    val stateMap = stateMaps.first()
+    expectThat(stateMap)
+      .containsKey(verification.id)
+
+    expectThat(stateMap[verification.id])
+      .isNotNull()
+      .with(VerificationState::status) { isEqualTo(PENDING) }
+  }
+
+  @Test
+  fun `multiple contexts, multiple verifications`() {
+    val c1 = context
+    val c2 = VerificationContext(
+      deliveryConfig = deliveryConfig,
+      environmentName = "test",
+      artifactReference = "fnord-docker-stable",
+      version = "fnord-0.191.0-h379.fbde246"
+    )
+
+    val v1 = verification
+    val v2 = DummyVerification("2")
+
+    val contexts = listOf(c1, c2)
+    contexts.forEach { it.setup() }
+
+    // First context: v1: PASS, v2: FAIL
+    subject.updateState(c1, v1, PASS)
+    subject.updateState(c1, v2, FAIL)
+
+    // Second context: v1: PENDING, v2: PENDING
+    subject.updateState(c2, v1, PENDING)
+    subject.updateState(c2, v2, PENDING)
+
+
+    val result = subject.getStatesBatch(contexts)
+
+    expect {
+      that(result)
+        .hasSize(contexts.size)
+
+      that(result[0])
+        .and {
+          get { get(v1.id) }
+          .isNotNull()
+          .with(VerificationState::status) { isEqualTo(PASS) }
+        }
+        .and {
+          get { get(v2.id) }
+          .isNotNull()
+          .with(VerificationState::status) { isEqualTo(FAIL) }
+        }
+
+      that(result[1])
+        .and {
+          get { get(v1.id) }
+            .isNotNull()
+            .with(VerificationState::status) { isEqualTo(PENDING) }
+        }
+        .and {
+          get { get(v2.id) }
+            .isNotNull()
+            .get(VerificationState::status) isEqualTo PENDING
+        }
     }
   }
 }

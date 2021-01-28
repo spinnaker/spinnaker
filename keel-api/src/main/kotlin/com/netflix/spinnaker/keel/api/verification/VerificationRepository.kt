@@ -26,6 +26,23 @@ interface VerificationRepository {
     context: VerificationContext,
   ) : Map<String, VerificationState>
 
+
+  /**
+   * Query the repository for the states of multiple contexts.
+   *
+   * This call is semantically equivalent to
+   *    val repo: VerificationRepository = ...
+   *    val contexts : List<VerificationContext> = ...
+   *    contexts.map { context -> this.getStates(context) }
+   *
+   * It exists as a separate call because it can be much more efficient to query the underlying repository as a batch.
+   *
+   * @param contexts a list of verification contexts to query fo rstate
+   *
+   * @return a list of maps of verification ids to states, in the same order as the contexts
+   */
+  fun getStatesBatch(contexts: List<VerificationContext>) : List<Map<String, VerificationState>>
+
   /**
    * Updates the state of [verification] as run against [context].
    *
