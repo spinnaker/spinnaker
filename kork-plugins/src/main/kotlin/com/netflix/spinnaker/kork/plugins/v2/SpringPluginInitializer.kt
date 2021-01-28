@@ -50,6 +50,10 @@ class SpringPluginInitializer(
     pluginApplicationContext.classLoader = pluginWrapper.pluginClassLoader
     pluginApplicationContext.setResourceLoader(DefaultResourceLoader(pluginWrapper.pluginClassLoader))
 
+    pluginApplicationContext
+      .beanFactory
+      .addBeanPostProcessor(ApplicationEventListenerBeanPostProcessor())
+
     listOf(
       PluginConfigurationRegisteringCustomizer(applicationContext.getBean(ConfigFactory::class.java)),
       PluginSdksRegisteringCustomizer(applicationContext),
