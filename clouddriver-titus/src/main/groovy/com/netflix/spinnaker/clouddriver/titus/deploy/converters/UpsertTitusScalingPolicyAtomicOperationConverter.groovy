@@ -53,7 +53,7 @@ class UpsertTitusScalingPolicyAtomicOperationConverter extends AbstractAtomicOpe
 
     try {
       def titusClient = titusClientProvider.getTitusClient(converted.credentials, converted.region)
-      def titusJob = titusClient.getJobAndAllRunningAndCompletedTasks(converted.jobId)
+      def titusJob = titusClient.findJobById(converted.jobId, false)
       converted.application = titusJob.appName
     } catch (Exception e) {
       converted.application = null

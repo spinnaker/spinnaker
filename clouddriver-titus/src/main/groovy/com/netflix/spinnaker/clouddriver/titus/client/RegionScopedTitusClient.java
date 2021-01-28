@@ -176,6 +176,13 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   @Override
+  public Job findJobById(String jobId, boolean includeTasks) {
+    return new Job(
+        grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()),
+        includeTasks ? getTasks(List.of(jobId), false).get(jobId) : Collections.emptyList());
+  }
+
+  @Override
   public Job findJobByName(String jobName, boolean includeTasks) {
     JobQuery.Builder jobQuery =
         JobQuery.newBuilder()
