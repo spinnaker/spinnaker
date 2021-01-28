@@ -64,7 +64,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
         });
       });
     } else if (submitJustWithReason) {
-      submitMethod({ reason }).then(closeModal);
+      submitMethod({ reason }).then(closeModal, showError);
     } else {
       if (submitMethod) {
         submitMethod().then(closeModal, showError);
