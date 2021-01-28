@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.ByteArrayInputStream;
@@ -103,6 +104,42 @@ class GithubArtifactCredentialsTest {
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
+  @Test
+  void useGitHubAPIs(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .token("zzz")
+            .useContentAPI(true)
+            .build();
+
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader("Authorization", equalTo("token zzz"))
+                .withHeader("Accept", equalTo("application/vnd.github.v3.raw")));
+  }
+
+  @Test
+  void useGitHubAPIsSpecificVersion(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .token("zzz")
+            .useContentAPI(true)
+            .githubAPIVersion("v10")
+            .build();
+
+    runTestCase(
+        server,
+        account,
+        m ->
+            m.withHeader("Authorization", equalTo("token zzz"))
+                .withHeader("Accept", equalTo("application/vnd.github.v10.raw")));
+  }
+
   private void runTestCase(
       WireMockServer server,
       GitHubArtifactAccount account,
@@ -139,6 +176,14 @@ class GithubArtifactCredentialsTest {
                 .withQueryParam("ref", equalTo("master"))
                 .willReturn(
                     aResponse().withBody(objectMapper.writeValueAsString(contentMetadata)))));
+
+    server.stubFor(
+        withAuth.apply(
+            any(urlPathEqualTo(METADATA_PATH))
+                .withQueryParam("ref", equalTo("master"))
+                .withHeader(
+                    "Accept", new RegexPattern("application\\/vnd\\.github\\.v(\\d+)\\.raw"))
+                .willReturn(aResponse().withBody(FILE_CONTENTS))));
 
     server.stubFor(
         withAuth.apply(

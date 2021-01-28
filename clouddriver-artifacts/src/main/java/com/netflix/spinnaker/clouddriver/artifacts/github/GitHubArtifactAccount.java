@@ -26,6 +26,7 @@ import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
@@ -44,6 +45,8 @@ public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenA
   private final Optional<String> usernamePasswordFile;
   private final Optional<String> token;
   private final Optional<String> tokenFile;
+  private final String githubAPIVersion;
+  private final boolean useContentAPI;
 
   @Builder
   @ConstructorBinding
@@ -54,12 +57,16 @@ public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenA
       String password,
       String usernamePasswordFile,
       String token,
-      String tokenFile) {
+      String tokenFile,
+      String githubAPIVersion,
+      boolean useContentAPI) {
     this.name = Strings.nullToEmpty(name);
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
     this.token = Optional.ofNullable(Strings.emptyToNull(token));
     this.tokenFile = Optional.ofNullable(Strings.emptyToNull(tokenFile));
+    this.githubAPIVersion = StringUtils.defaultString(githubAPIVersion, "v3");
+    this.useContentAPI = useContentAPI;
   }
 }

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCred
 import com.netflix.spinnaker.clouddriver.artifacts.exceptions.FailedDownloadException;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.ResponseBody;
@@ -45,12 +46,28 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
   @Getter private final ImmutableList<String> types = ImmutableList.of("github/file");
 
   @JsonIgnore private final ObjectMapper objectMapper;
+  private final boolean useContentAPI;
 
   GitHubArtifactCredentials(
       GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
     super(okHttpClient, account);
     this.name = account.getName();
     this.objectMapper = objectMapper;
+    this.useContentAPI = account.isUseContentAPI();
+  }
+
+  @Override
+  protected Headers getHeaders(GitHubArtifactAccount account) {
+    Headers headers = super.getHeaders(account);
+    if (account.isUseContentAPI()) {
+      return headers
+          .newBuilder()
+          .add(
+              "Accept",
+              String.format("application/vnd.github.%s.raw", account.getGithubAPIVersion()))
+          .build();
+    }
+    return headers;
   }
 
   private HttpUrl getMetadataUrl(Artifact artifact) {
@@ -65,6 +82,9 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
 
   @Override
   protected HttpUrl getDownloadUrl(Artifact artifact) throws IOException {
+    if (this.useContentAPI) {
+      return getMetadataUrl(artifact);
+    }
     ResponseBody metadataResponse;
     try {
       metadataResponse = fetchUrl(getMetadataUrl(artifact));
