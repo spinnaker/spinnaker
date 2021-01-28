@@ -98,7 +98,7 @@ class StartScriptTask implements RetryableTask {
     }
 
     try {
-      Response igorResponse = buildService.build(master, job, parameters)
+      Response igorResponse = buildService.build(master, job, parameters, stage.startTime.toString())
 
       if (igorResponse.getStatus() == HttpStatus.ACCEPTED.value()) {
         log.info("script for job=$job on master=$master is pending, waiting for script to start")
