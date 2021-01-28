@@ -303,6 +303,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         requireIMDSv2: description.requireIMDSv2,
         associateIPv6Address: description.associateIPv6Address,
         unlimitedCpuCredits: getUnlimitedCpuCredits(description.unlimitedCpuCredits, description.instanceType),
+        placement: description.placement,
+        licenseSpecifications: description.licenseSpecifications
       )
 
       def asgName = autoScalingWorker.deploy(asgConfig)

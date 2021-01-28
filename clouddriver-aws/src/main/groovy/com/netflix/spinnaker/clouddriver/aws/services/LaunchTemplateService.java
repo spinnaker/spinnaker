@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -251,6 +252,31 @@ public class LaunchTemplateService {
             .withMonitoring(
                 new LaunchTemplatesMonitoringRequest()
                     .withEnabled(asgConfig.getInstanceMonitoring()));
+
+    if (asgConfig.getPlacement() != null) {
+      request =
+          request.withPlacement(
+              new LaunchTemplatePlacementRequest()
+                  .withAffinity(asgConfig.getPlacement().getAffinity())
+                  .withAvailabilityZone(asgConfig.getPlacement().getAvailabilityZone())
+                  .withGroupName(asgConfig.getPlacement().getGroupName())
+                  .withHostId(asgConfig.getPlacement().getHostId())
+                  .withTenancy(asgConfig.getPlacement().getTenancy())
+                  .withHostResourceGroupArn(asgConfig.getPlacement().getHostResourceGroupArn())
+                  .withPartitionNumber(asgConfig.getPlacement().getPartitionNumber())
+                  .withSpreadDomain(asgConfig.getPlacement().getSpreadDomain()));
+    }
+
+    if (asgConfig.getLicenseSpecifications() != null) {
+      request =
+          request.withLicenseSpecifications(
+              asgConfig.getLicenseSpecifications().stream()
+                  .map(
+                      licenseSpecification ->
+                          new LaunchTemplateLicenseConfigurationRequest()
+                              .withLicenseConfigurationArn(licenseSpecification.getArn()))
+                  .collect(Collectors.toList()));
+    }
 
     setUserData(
         request,

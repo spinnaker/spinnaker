@@ -31,6 +31,7 @@ import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.LaunchTemplate
 import com.amazonaws.services.ec2.model.Subnet
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
@@ -123,6 +124,8 @@ class AutoScalingWorker {
     Boolean requireIMDSv2
     Boolean associateIPv6Address
     Boolean unlimitedCpuCredits
+    BasicAmazonDeployDescription.LaunchTemplatePlacement placement
+    List<BasicAmazonDeployDescription.LaunchTemplateLicenseSpecification> licenseSpecifications
   }
 
   /**
