@@ -70,12 +70,11 @@ public class DestroyTitusJob implements SagaAction<DestroyTitusJob.DestroyTitusJ
         titusClientProvider.getTitusClient(
             (NetflixTitusCredentials) accountCredentials, command.description.getRegion());
 
-    Job job = fetchJob(titusClient, command.description.getJobId());
-    if (job != null) {
+    try {
       titusClient.terminateJob(
           (TerminateJobRequest)
               new TerminateJobRequest()
-                  .withJobId(job.getId())
+                  .withJobId(command.description.getJobId())
                   .withUser(command.description.getUser()));
 
       saga.log(
@@ -83,11 +82,19 @@ public class DestroyTitusJob implements SagaAction<DestroyTitusJob.DestroyTitusJ
           command.description.getAccount(),
           command.description.getRegion(),
           command.description.getJobId());
-    } else {
-      saga.log("No titus job found");
-    }
 
-    return new Result();
+      return new Result();
+    } catch (Exception e) {
+      if (e instanceof StatusRuntimeException) {
+        StatusRuntimeException statusRuntimeException = (StatusRuntimeException) e;
+        if (statusRuntimeException.getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          saga.log("No titus job found");
+          return new Result();
+        }
+      }
+
+      throw e;
+    }
   }
 
   private Job fetchJob(TitusClient titusClient, String jobId) {

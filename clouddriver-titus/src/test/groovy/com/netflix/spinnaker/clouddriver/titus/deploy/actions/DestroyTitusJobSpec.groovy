@@ -53,11 +53,6 @@ class DestroyTitusJobSpec extends Specification {
 
     then:
     1 * accountCredentialsProvider.getCredentials('test') >> testCredentials
-    1 * titusClient.getJobAndAllRunningAndCompletedTasks('1234') >> {
-      def job = new Job()
-      job.id = '1234'
-      return job
-    }
     1 * titusClient.terminateJob({ TerminateJobRequest terminateJobRequest ->
       assert terminateJobRequest.jobId == '1234'
       assert terminateJobRequest.user == 'testUser'
