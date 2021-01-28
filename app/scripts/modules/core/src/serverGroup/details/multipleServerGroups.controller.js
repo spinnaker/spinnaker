@@ -88,6 +88,7 @@ angular
       };
 
       this.disableServerGroups = () => {
+        this.serverGroups = this.serverGroups.filter((group) => !group.disabled);
         confirm('disableServerGroup', {
           presentContinuous: 'Disabling',
           simplePresent: 'Disable',
@@ -96,6 +97,7 @@ angular
       };
 
       this.enableServerGroups = () => {
+        this.serverGroups = this.serverGroups.filter((group) => group.disabled);
         confirm('enableServerGroup', {
           presentContinuous: 'Enabling',
           simplePresent: 'Enable',
@@ -103,9 +105,9 @@ angular
         });
       };
 
-      this.canDisable = () => this.serverGroups.every((group) => !group.disabled);
+      this.canDisable = () => this.serverGroups.some((group) => !group.disabled);
 
-      this.canEnable = () => this.serverGroups.every((group) => group.disabled);
+      this.canEnable = () => this.serverGroups.some((group) => group.disabled);
 
       /***
        * View instantiation/synchronization

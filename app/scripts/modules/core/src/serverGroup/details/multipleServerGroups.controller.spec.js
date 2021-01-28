@@ -105,26 +105,26 @@ describe('Controller: MultipleServerGroups', function () {
   });
 
   describe('actions', function () {
-    it('can disable when all groups are enabled', function () {
+    it('can disable when some groups are enabled, but not all', function () {
       ClusterState.multiselectModel.toggleServerGroup(this.serverGroupA);
       ClusterState.multiselectModel.toggleServerGroup(this.serverGroupB);
       this.createController([this.serverGroupA, this.serverGroupB]);
-      expect(controller.canDisable()).toBe(false);
-
-      this.serverGroupB.isDisabled = false;
-      this.application.serverGroups.dataUpdated();
       expect(controller.canDisable()).toBe(true);
-    });
-
-    it('can enable when all groups are disabled', function () {
-      ClusterState.multiselectModel.toggleServerGroup(this.serverGroupA);
-      ClusterState.multiselectModel.toggleServerGroup(this.serverGroupB);
-      this.createController([this.serverGroupA, this.serverGroupB]);
-      expect(controller.canEnable()).toBe(false);
 
       this.serverGroupA.isDisabled = true;
       this.application.serverGroups.dataUpdated();
+      expect(controller.canDisable()).toBe(false);
+    });
+
+    it('can enable when some groups are disabled, but not all', function () {
+      ClusterState.multiselectModel.toggleServerGroup(this.serverGroupA);
+      ClusterState.multiselectModel.toggleServerGroup(this.serverGroupB);
+      this.createController([this.serverGroupA, this.serverGroupB]);
       expect(controller.canEnable()).toBe(true);
+
+      this.serverGroupB.isDisabled = false;
+      this.application.serverGroups.dataUpdated();
+      expect(controller.canEnable()).toBe(false);
     });
   });
 });
