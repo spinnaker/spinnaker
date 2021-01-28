@@ -215,6 +215,38 @@ class ApplicationController(
     applicationService.markAsVetoedIn(user, application, veto, true)
   }
 
+  @PostMapping(
+    path = ["/{application}/mark/bad"]
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun markAsBad(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("application") application: String,
+    @RequestBody veto: EnvironmentArtifactVeto
+  ) {
+    applicationService.markAsVetoedIn(user, application, veto, true)
+  }
+
+  @PostMapping(
+    path = ["/{application}/mark/good"]
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun markAsGood(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("application") application: String,
+    @RequestBody veto: EnvironmentArtifactVeto
+  ) {
+    applicationService.deleteVeto(application, veto.targetEnvironment, veto.reference, veto.version)
+  }
+
   @DeleteMapping(
     path = ["/{application}/veto/{targetEnvironment}/{reference}/{version}"]
   )
