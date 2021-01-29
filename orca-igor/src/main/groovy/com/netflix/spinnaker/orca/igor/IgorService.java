@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildRepoSource;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import lombok.Data;
 import retrofit.client.Response;
 import retrofit.http.*;
 
@@ -40,6 +41,13 @@ public interface IgorService {
       @Path(encode = false, value = "queuedBuild") String queuedBuild,
       @Path(encode = false, value = "buildNumber") Integer buildNumber,
       @Body String ignored);
+
+  @PATCH("/masters/{name}/jobs/{jobName}/update/{buildNumber}")
+  Response update(
+      @Path("name") String master,
+      @Path(encode = false, value = "jobName") String jobName,
+      @Path(encode = false, value = "buildNumber") Integer buildNumber,
+      @Body UpdatedBuild updatedBuild);
 
   @GET("/builds/queue/{master}/{item}")
   Map queuedBuild(@Path("master") String master, @Path("item") String item);
@@ -113,4 +121,13 @@ public interface IgorService {
       @Query("directory") @Nullable String directory,
       @Query("manifest") @Nullable String manifest,
       @Query("ref") @Nullable String ref);
+
+  @Data
+  class UpdatedBuild {
+    private final String description;
+
+    public UpdatedBuild(String description) {
+      this.description = description;
+    }
+  }
 }

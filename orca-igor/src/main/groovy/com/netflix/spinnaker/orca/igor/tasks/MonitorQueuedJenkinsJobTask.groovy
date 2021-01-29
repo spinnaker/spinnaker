@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.igor.IgorService
+import org.springframework.beans.factory.annotation.Value
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -31,24 +33,27 @@ import retrofit.RetrofitError
 @Slf4j
 @Component
 class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
-
-  long backoffPeriod = 10000
-  long timeout = TimeUnit.HOURS.toMillis(2)
+  private final BuildService buildService
+  private final String wwwHost
 
   @Autowired
-  BuildService buildService
+  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.www-host}") String wwwHost) {
+    this.buildService = buildService
+    this.wwwHost = wwwHost
+  }
 
   @Override
   TaskResult execute(StageExecution stage) {
-    String master = stage.context.master
-    String job = stage.context.job
+    String jenkinsController = stage.context.master
+    String jobName = stage.context.job
     String queuedBuild = stage.context.queuedBuild
 
     try {
-      Map<String, Object> build = buildService.queuedBuild(master, queuedBuild)
+      Map<String, Object> build = buildService.queuedBuild(jenkinsController, queuedBuild)
       if (build?.number == null) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else {
+        updateBuildDescription(stage, jenkinsController, jobName, build.number as Integer)
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([buildNumber: build.number]).build()
       }
     } catch (RetrofitError e) {
@@ -57,6 +62,50 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
       throw e
+    }
+  }
+
+  @Override
+  long getBackoffPeriod() {
+    return 10000
+  }
+
+  @Override
+  long getTimeout() {
+    return TimeUnit.HOURS.toMillis(2)
+  }
+
+  /**
+   * Update the description of a running Jenkins build and provide a deep link back to the particular execution in
+   * Spinnaker.
+   *
+   * Requires that `wwwHost` be specified _and_ that the build is running (vs. queued).
+   */
+  private void updateBuildDescription(StageExecution stageExecution,
+                                      String jenkinsController,
+                                      String jobName,
+                                      Integer buildNumber) {
+    if (wwwHost == null) {
+      return
+    }
+
+    try {
+      buildService.updateBuild(
+          jenkinsController,
+          jobName,
+          buildNumber,
+          new IgorService.UpdatedBuild(
+              String.format(
+                  "This build was triggered by '<a href=\"%s/#/applications/%s/executions/details/%s\">%s</a>' in Spinnaker.",
+                  wwwHost,
+                  stageExecution.execution.application,
+                  stageExecution.execution.id,
+                  Optional.ofNullable(stageExecution.execution.name).orElse("Unknown Pipeline")
+              )
+          )
+      )
+    } catch (Exception e) {
+      log.warn("Unable to update build description on {}:{}:{}", jenkinsController, jobName, buildNumber, e)
     }
   }
 }

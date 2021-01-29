@@ -62,4 +62,9 @@ public class BuildService {
       Integer buildNumber, String fileName, String master, String job) {
     return igorService.getArtifacts(buildNumber, fileName, master, encode(job));
   }
+
+  public Response updateBuild(
+      String master, String jobName, Integer buildNumber, IgorService.UpdatedBuild updatedBuild) {
+    return igorService.update(master, jobName, buildNumber, updatedBuild);
+  }
 }
