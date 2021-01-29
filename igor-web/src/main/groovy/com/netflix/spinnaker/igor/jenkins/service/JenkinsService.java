@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import com.netflix.spinnaker.igor.build.model.UpdatedBuild;
 import com.netflix.spinnaker.igor.exceptions.ArtifactNotFoundException;
 import com.netflix.spinnaker.igor.exceptions.BuildJobError;
 import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError;
@@ -256,6 +257,16 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   public Response buildWithParameters(String jobName, Map<String, String> queryParams) {
     return circuitBreaker.executeSupplier(
         () -> jenkinsClient.buildWithParameters(encode(jobName), queryParams, "", getCrumb()));
+  }
+
+  @Override
+  public void updateBuild(String jobName, Integer buildNumber, UpdatedBuild updatedBuild) {
+    if (updatedBuild.getDescription() != null) {
+      circuitBreaker.executeRunnable(
+          () ->
+              jenkinsClient.submitDescription(
+                  encode(jobName), buildNumber, updatedBuild.getDescription(), getCrumb()));
+    }
   }
 
   @Override

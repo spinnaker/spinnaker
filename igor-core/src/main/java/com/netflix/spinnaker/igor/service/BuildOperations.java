@@ -20,6 +20,7 @@ package com.netflix.spinnaker.igor.service;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.JobConfiguration;
+import com.netflix.spinnaker.igor.build.model.UpdatedBuild;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,17 @@ public interface BuildOperations extends BuildService {
    * @return A list of builds
    */
   List<?> getBuilds(String job);
+
+  /**
+   * Updates attributes of a build, support varies across across CI systems
+   *
+   * @param jobName The name of the job
+   * @param buildNumber The build number
+   * @param updatedBuild The updated details for the build
+   */
+  default void updateBuild(String jobName, Integer buildNumber, UpdatedBuild updatedBuild) {
+    // not supported by default
+  }
 
   JobConfiguration getJobConfig(String jobName);
 

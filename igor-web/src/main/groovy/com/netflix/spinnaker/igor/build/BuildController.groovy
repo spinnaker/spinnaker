@@ -21,6 +21,7 @@ import com.google.common.base.Strings
 import com.netflix.spinnaker.igor.PendingOperationsCache
 import com.netflix.spinnaker.igor.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.UpdatedBuild
 import com.netflix.spinnaker.igor.exceptions.BuildJobError
 import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
@@ -171,6 +172,23 @@ class BuildController {
     "true"
   }
 
+  @RequestMapping(value = "/masters/{name}/jobs/**/update/{buildNumber}", method = RequestMethod.PATCH)
+  @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
+  void update(
+    @PathVariable("name") String master,
+    @PathVariable("buildNumber") Integer buildNumber,
+    @RequestBody UpdatedBuild updatedBuild,
+    HttpServletRequest request
+  ) {
+    def jobName = ((String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE))
+      .split('/')
+      .drop(4)
+      .dropRight(2)
+      .join('/')
+
+    def buildService = getBuildService(master)
+    buildService.updateBuild(jobName, buildNumber, updatedBuild)
+  }
 
   @RequestMapping(value = '/masters/{name}/jobs/**', method = RequestMethod.PUT)
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")

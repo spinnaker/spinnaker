@@ -69,6 +69,10 @@ interface JenkinsClient {
     @POST('/job/{jobName}/buildWithParameters')
     Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 
+    @FormUrlEncoded
+    @POST('/job/{jobName}/{buildNumber}/submitDescription')
+    Response submitDescription(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber, @Field("description") String description, @Header("Jenkins-Crumb") String crumb)
+
     @POST('/job/{jobName}/{buildNumber}/stop')
     Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber,  @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 

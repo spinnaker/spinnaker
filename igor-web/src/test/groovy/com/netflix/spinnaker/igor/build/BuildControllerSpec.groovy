@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.PendingOperationsCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.build.model.UpdatedBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
@@ -46,6 +47,7 @@ import spock.lang.Specification
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
 import static com.netflix.spinnaker.igor.build.BuildController.validateJobParameters
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -401,5 +403,29 @@ class BuildControllerSpec extends Specification {
     response.status == HttpStatus.OK.value()
     response.contentAsString == BUILD_NUMBER.toString()
     1 * pendingOperationService.clear("${JENKINS_SERVICE}:${JOB_NAME}:NO_EXECUTION_ID:foo=bat")
+  }
+
+  void "updates a jenkins build description"() {
+    when:
+    MockHttpServletResponse response = mockMvc.perform(
+      patch("/masters/${JENKINS_SERVICE}/jobs/${jobName}/update/${BUILD_NUMBER}")
+        .contentType(MediaType.APPLICATION_JSON)
+      .content("""
+{
+  "description": "this is my new description"
+}
+""")
+    ).andReturn().response
+
+    then:
+    1 * jenkinsService.updateBuild(jobName, BUILD_NUMBER, new UpdatedBuild("this is my new description"))
+    0 * _
+    response.status == 200
+
+    where:
+    jobName << [
+      "complex/job/name/with/slashes",
+      "simpleJobName"
+    ]
   }
 }
