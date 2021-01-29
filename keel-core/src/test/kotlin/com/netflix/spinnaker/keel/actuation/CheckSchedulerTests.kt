@@ -21,6 +21,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment
 import java.time.Duration
 
 internal object CheckSchedulerTests : JUnit5Minutests {
@@ -30,6 +31,13 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private val environmentPromotionChecker = mockk<EnvironmentPromotionChecker>()
   private val artifactHandler = mockk<ArtifactHandler>(relaxUnitFun = true)
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+  private val checkMinAge = Duration.ofMinutes(5)
+  private val springEnv: Environment = mockk(relaxed = true) {
+    every {
+      getProperty("keel.check.min-age-duration", Duration::class.java, any())
+    } returns checkMinAge
+  }
+
 
   class DummyScheduledAgent(override val lockTimeoutSeconds: Long) : ScheduledAgent {
     override suspend fun invokeAgent() {
@@ -81,7 +89,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
         artifactHandlers = listOf(artifactHandler),
-        resourceCheckMinAge = Duration.ofMinutes(5),
+        resourceCheckMinAge = checkMinAge,
         resourceCheckBatchSize = 2,
         environmentVerificationMinAge = Duration.ofMinutes(5),
         environmentVerificationBatchSize = 2,
@@ -89,7 +97,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         publisher = publisher,
         agentLockRepository = agentLockRepository,
         verificationRunner = verificationRunner,
-        clock = MutableClock()
+        clock = MutableClock(),
+        springEnv = springEnv
       )
     }
 

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
+import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -47,7 +48,8 @@ class CheckScheduler(
   @Value("\${keel.environment-verification.batch-size:1}") private val environmentVerificationBatchSize: Int,
   private val publisher: ApplicationEventPublisher,
   private val agentLockRepository: AgentLockRepository,
-  private val clock: Clock
+  private val clock: Clock,
+  private val springEnv: Environment
 ) : CoroutineScope {
   override val coroutineContext: CoroutineContext = Dispatchers.IO
 
@@ -65,6 +67,10 @@ class CheckScheduler(
     enabled.set(false)
   }
 
+  // Used for resources, environments, and artifacts.
+  private val checkMinAge: Duration
+    get() = springEnv.getProperty("keel.check.min-age-duration", Duration::class.java, resourceCheckMinAge)
+
   @Scheduled(fixedDelayString = "\${keel.resource-check.frequency:PT1S}")
   fun checkResources() {
     if (enabled.get()) {
@@ -73,7 +79,7 @@ class CheckScheduler(
         supervisorScope {
           runCatching {
             repository
-              .resourcesDueForCheck(resourceCheckMinAge, resourceCheckBatchSize)
+              .resourcesDueForCheck(checkMinAge, resourceCheckBatchSize)
           }
             .onFailure {
               publisher.publishEvent(ResourceLoadFailed(it))
@@ -111,7 +117,7 @@ class CheckScheduler(
       val job = launch {
         supervisorScope {
           repository
-            .deliveryConfigsDueForCheck(resourceCheckMinAge, resourceCheckBatchSize)
+            .deliveryConfigsDueForCheck(checkMinAge, resourceCheckBatchSize)
             .forEach {
               try {
                 /**
@@ -145,7 +151,7 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledArtifactCheckStarting)
       val job = launch {
         supervisorScope {
-          repository.artifactsDueForCheck(resourceCheckMinAge, resourceCheckBatchSize)
+          repository.artifactsDueForCheck(checkMinAge, resourceCheckBatchSize)
             .forEach { artifact ->
               try {
                 withTimeout(checkTimeout.toMillis()) {
