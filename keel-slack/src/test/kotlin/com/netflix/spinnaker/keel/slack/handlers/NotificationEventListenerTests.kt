@@ -8,7 +8,9 @@ import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
+import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope
@@ -17,6 +19,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.NotificationEventListener
 import com.netflix.spinnaker.keel.slack.SlackService
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -140,6 +143,11 @@ class NotificationEventListenerTests : JUnit5Minutests {
       } returns Type.LIFECYCLE_EVENT
     }
 
+    val artifactDeployedNotificationHandler: ArtifactDeploymentNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        type
+      } returns Type.ARTIFACT_DEPLOYMENT
+    }
 
     val lifecycleEvent = LifecycleEvent(
       type = LifecycleEventType.BAKE,
@@ -149,12 +157,31 @@ class NotificationEventListenerTests : JUnit5Minutests {
       artifactVersion = version0,
       id = "bake-$version0",
     )
+
+    val failedToDeployNotification = ArtifactVersionVetoed(application1,
+      EnvironmentArtifactVeto(
+        "production",
+        releaseArtifact.reference,
+        version0,
+        "Spinnaker",
+        "Automatically marked as bad because multiple deployments of this version failed."
+      ),
+    singleArtifactDeliveryConfig)
+
+    val artifactDeployedNotification = ArtifactDeployedNotification(
+      singleArtifactDeliveryConfig,
+      version1,
+      releaseArtifact,
+      "test"
+    )
+
     val pinnedNotification = PinnedNotification(singleArtifactDeliveryConfig, pin)
     val pausedNotification = ApplicationActuationPaused(application1, clock.instant(), "user1")
     val subject = NotificationEventListener(repository, clock, listOf(pinnedNotificationHandler,
       pausedNotificationHandler,
       unpinnedNotificationHandler,
-      lifecycleEventNotificationHandler))
+      lifecycleEventNotificationHandler,
+      artifactDeployedNotificationHandler))
 
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
@@ -246,6 +273,33 @@ class NotificationEventListenerTests : JUnit5Minutests {
           verify(exactly = 2) {
             lifecycleEventNotificationHandler.sendMessage(any(), any())
           }
+      }
+    }
+
+    context("artifact deployment notifications"){
+      before {
+        every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
+
+        every {
+          repository.getArtifactVersionByPromotionStatus(any(), any(), any(), any())
+        } returns versions.toArtifactVersions(releaseArtifact).first()
+
+        every {
+          repository.getDeliveryConfigForApplication(application1)
+        } returns singleArtifactDeliveryConfig
+      }
+      test("send successful deployment notifications using the right handler to the right env") {
+        subject.onArtifactVersionDeployed(artifactDeployedNotification)
+        verify (exactly = 1) {
+          artifactDeployedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("send failed deployment notifications using the right handler to the right env") {
+        subject.onArtifactVersionVetoed(failedToDeployNotification)
+        verify (exactly = 2) {
+          artifactDeployedNotificationHandler.sendMessage(any(), any())
+        }
       }
     }
   }

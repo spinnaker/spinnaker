@@ -2,12 +2,15 @@ package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -21,13 +24,14 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
     val config = deliveryConfig(resource = resourceSpy)
     val artifact = config.artifacts.first()
     val repository = mockk<KeelRepository>(relaxUnitFun = true)
+    val publisher: EventPublisher = mockk(relaxUnitFun = true)
 
     val event = ArtifactVersionDeployed(
       resourceId = resourceSpy.id,
       artifactVersion = "1.1.1"
     )
 
-    val subject = ArtifactDeployedListener(repository)
+    val subject = ArtifactDeployedListener(repository, publisher)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -77,6 +81,11 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
             subject.onArtifactVersionDeployed(event)
             verify(exactly = 1) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
           }
+
+          test("an event was sent out") {
+            subject.onArtifactVersionDeployed(event)
+            verify { publisher.publishEvent(ofType<ArtifactDeployedNotification>()) }
+          }
         }
       }
 
@@ -87,6 +96,10 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
         test("nothing is marked as deployed") {
           subject.onArtifactVersionDeployed(event)
           verify(exactly = 0) { repository.markAsSuccessfullyDeployedTo(config, any(), event.artifactVersion, any()) }
+        }
+        test("an event was not sent out") {
+          subject.onArtifactVersionDeployed(event)
+          verify { publisher wasNot Called }
         }
       }
     }

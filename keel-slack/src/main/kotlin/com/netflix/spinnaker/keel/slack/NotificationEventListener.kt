@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
+import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
@@ -15,11 +16,13 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.handlers.SlackNotificationHandler
 import com.netflix.spinnaker.keel.slack.handlers.supporting
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import java.time.Clock
 import com.netflix.spinnaker.keel.notifications.NotificationType as Type
+
 /**
  * Responsible to listening to notification events, and fetching the information needed
  * for sending a notification, based on NotificationType.
@@ -82,13 +85,13 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackUnpinnedNotification(
-        latestArtifact = latestArtifact,
-        pinnedArtifact = pinnedArtifact,
-        application = config.application,
-        time = clock.instant(),
-        user = user,
-        targetEnvironment = targetEnvironment
-      ),
+          latestArtifact = latestArtifact,
+          pinnedArtifact = pinnedArtifact,
+          application = config.application,
+          time = clock.instant(),
+          user = user,
+          targetEnvironment = targetEnvironment
+        ),
         Type.ARTIFACT_UNPINNED,
         targetEnvironment)
 
@@ -132,10 +135,10 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackPausedNotification(
-        user = triggeredBy,
-        time = clock.instant(),
-        application = application
-      ),
+          user = triggeredBy,
+          time = clock.instant(),
+          application = application
+        ),
         Type.APPLICATION_PAUSED)
     }
 
@@ -148,10 +151,10 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackResumedNotification(
-        user = triggeredBy,
-        time = clock.instant(),
-        application = application
-      ),
+          user = triggeredBy,
+          time = clock.instant(),
+          application = application
+        ),
         Type.APPLICATION_RESUMED)
     }
   }
@@ -166,23 +169,77 @@ class NotificationEventListener(
 
       val artifact = repository.getArtifactVersion(deliveryArtifact, artifactVersion, null)
       if (artifact == null) {
-        log.debug("delivery artifact is null for application ${config.application}. Can't send $type notification")
+        log.debug("artifact version is null for application ${config.application}. Can't send $type notification")
         return
       }
 
       if (status == LifecycleEventStatus.FAILED) {
         sendSlackMessage(config,
           SlackLifecycleNotification(
-          time = clock.instant(),
-          artifact = artifact,
-          eventType = type,
-          application = config.application
-        ),
+            time = clock.instant(),
+            artifact = artifact,
+            eventType = type,
+            application = config.application
+          ),
           Type.LIFECYCLE_EVENT,
           artifact = deliveryArtifact)
       }
     }
   }
+
+  @EventListener(ArtifactDeployedNotification::class)
+  fun onArtifactVersionDeployed(notification: ArtifactDeployedNotification) {
+    with(notification) {
+      val artifact = repository.getArtifactVersion(deliveryArtifact, artifactVersion, null)
+      if (artifact == null) {
+        log.debug("artifact version is null for application ${config.application}. Can't send DeployedArtifactNotification.")
+        return
+      }
+
+      val priorVersion = repository.getArtifactVersionByPromotionStatus(config, targetEnvironment, deliveryArtifact, PromotionStatus.PREVIOUS)
+
+      sendSlackMessage(config,
+        SlackArtifactDeploymentNotification(
+          time = clock.instant(),
+          application = config.application,
+          artifact = artifact,
+          targetEnvironment = targetEnvironment,
+          priorVersion = priorVersion,
+          status = DeploymentStatus.SUCCEEDED
+        ),
+        Type.ARTIFACT_DEPLOYMENT,
+        targetEnvironment)
+    }
+  }
+
+  @EventListener(ArtifactVersionVetoed::class)
+  fun onArtifactVersionVetoed(notification: ArtifactVersionVetoed) {
+    with(notification) {
+      val config = repository.getDeliveryConfigForApplication(application)
+
+      val deliveryArtifact = config.artifacts.find {
+        it.reference == veto.reference
+      } ?: return
+
+      val artifact = repository.getArtifactVersion(deliveryArtifact, veto.version, null)
+      if (artifact == null) {
+        log.debug("artifact version is null for application ${config.application}. Can't send failed deployment notification.")
+        return
+      }
+
+      sendSlackMessage(config,
+        SlackArtifactDeploymentNotification(
+          time = clock.instant(),
+          application = config.application,
+          artifact = artifact,
+          targetEnvironment = veto.targetEnvironment,
+          status = DeploymentStatus.FAILED
+        ),
+        Type.ARTIFACT_DEPLOYMENT,
+        veto.targetEnvironment)
+    }
+  }
+
 
   private inline fun <reified T : SlackNotificationEvent> sendSlackMessage(config: DeliveryConfig, message: T, type: Type,
                                                                            targetEnvironment: String? = null,

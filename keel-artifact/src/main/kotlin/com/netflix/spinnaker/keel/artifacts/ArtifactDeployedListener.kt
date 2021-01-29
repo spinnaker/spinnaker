@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -9,7 +11,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class ArtifactDeployedListener(
-  private val repository: KeelRepository
+  private val repository: KeelRepository,
+  val publisher: EventPublisher
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -45,6 +48,14 @@ class ArtifactDeployedListener(
             artifact = artifact,
             version = event.artifactVersion,
             targetEnvironment = env.name
+          )
+          publisher.publishEvent(
+            ArtifactDeployedNotification(
+              config = deliveryConfig,
+              deliveryArtifact = artifact,
+              artifactVersion = event.artifactVersion,
+              targetEnvironment = env.name
+            )
           )
         }
       }

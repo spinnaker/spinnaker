@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.telemetry
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Duration
 
@@ -82,6 +84,8 @@ data class ArtifactCheckTimedOut(
 
 data class ArtifactVersionVetoed(
   val application: String,
+  val veto: EnvironmentArtifactVeto,
+  val deliveryConfig: DeliveryConfig
 ) : TelemetryEvent()
 
 data class AgentInvocationComplete(

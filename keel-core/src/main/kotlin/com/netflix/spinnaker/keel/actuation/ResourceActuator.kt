@@ -96,7 +96,7 @@ class ResourceActuator(
         }
 
         log.debug("Checking resource $id in environment ${environment.name} of application ${deliveryConfig.application}")
-        
+
         if (actuationPauser.isPaused(resource)) {
           log.debug("Actuation for resource {} is paused, skipping checks", id)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
@@ -235,16 +235,17 @@ class ResourceActuator(
           val promotionStatus = artifactRepository.getArtifactPromotionStatus(
             deliveryConfig, artifact, versionedArtifact.artifactVersion, environment.name)
 
+          val veto = EnvironmentArtifactVeto(
+            reference = artifact.reference,
+            version = versionedArtifact.artifactVersion,
+            targetEnvironment = environment.name,
+            vetoedBy = "Spinnaker",
+            comment = "Automatically marked as bad because multiple deployments of this version failed and none have ever succeeded."
+          )
           if (promotionStatus == DEPLOYING) {
             artifactRepository.markAsVetoedIn(
               deliveryConfig = deliveryConfig,
-              veto = EnvironmentArtifactVeto(
-                reference = artifact.reference,
-                version = versionedArtifact.artifactVersion,
-                targetEnvironment = environment.name,
-                vetoedBy = "Spinnaker",
-                comment = "Automatically marked as bad because multiple deployments of this version failed and none have ever succeeded."
-              )
+              veto = veto
             )
             log.info(
               "Vetoing artifact version {} of artifact {} for config {} and env {} because multiple deploys failed",
@@ -253,7 +254,12 @@ class ResourceActuator(
               deliveryConfig.name,
               environment.name
             )
-            publisher.publishEvent(ArtifactVersionVetoed(resource.application))
+
+            publisher.publishEvent(ArtifactVersionVetoed(
+              resource.application,
+              veto,
+              deliveryConfig),
+            )
           } else {
             log.info(
               "Not vetoing artifact version {} of artifact {} for config {} and env {} because it's not currently deploying",

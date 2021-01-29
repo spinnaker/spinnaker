@@ -56,3 +56,16 @@ data class SlackLifecycleNotification(
   override val time: Instant,
   override val application: String
 ) : SlackNotificationEvent(time, application)
+
+data class SlackArtifactDeploymentNotification(
+  val artifact: PublishedArtifact,
+  override val time: Instant,
+  val targetEnvironment: String,
+  val priorVersion: PublishedArtifact? = null,
+  val status: DeploymentStatus,
+  override val application: String
+) : SlackNotificationEvent(time, application)
+
+enum class DeploymentStatus {
+  SUCCEEDED, FAILED;
+}
