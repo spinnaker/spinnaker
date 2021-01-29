@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import java.text.ParsePosition
@@ -123,6 +124,93 @@ class AllowedTimesConstraintEvaluator(
           IntRange(0, hours[1].toInt()).toSet()
       }
     }
+
+    /**
+     * Used for converting the day config into a list of numbers for the UI.
+     */
+    private fun parseDays(dayConfig: String?): Set<Int> {
+      if (dayConfig == null) {
+        return emptySet()
+      }
+
+      val days = mutableSetOf<String>()
+      val trimmed = dayConfig.replace(whiteSpace, "")
+        .toLowerCase()
+      val elements = trimmed.split(",")
+
+      elements.forEach {
+        when {
+          it.isDayAlias() -> days.addAll(it.dayAlias())
+          it.isDay() -> days.add(it)
+          it.isDayRange() -> days.addAll(it.dayRange())
+        }
+      }
+
+      return days.map { word ->
+        DayOfWeek.valueOf(word.toUpperCase()).value
+      }.toSet()
+    }
+
+    private fun String.isDay(): Boolean = daysOfWeek.contains(this)
+
+    private fun String.isDayAlias(): Boolean = dayAliases.contains(this)
+
+    private fun String.isDayRange(): Boolean {
+      val days = this.split("-")
+      if (days.size != 2) {
+        return false
+      }
+
+      return daysOfWeek.contains(days[0]) && daysOfWeek.contains(days[1])
+    }
+
+    private fun String.dayAlias(): Set<String> =
+      when (this) {
+        "weekdays" -> setOf("monday", "tuesday", "wednesday", "thursday", "friday")
+        "weekends" -> setOf("saturday", "sunday")
+        else -> throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day alias $this")
+      }
+
+    private fun String.dayRange(): Set<String> {
+      /**
+       * Convert Mon-Fri or Monday-Friday to [DayOfWeek] integers to compute
+       * a range, then back to a set of individual days that today can be
+       * matched against.
+       */
+      val days = this.split("-").map { it.capitalize() }
+      val day1Temporal = fullDayFormatter.parseUnresolved(days[0], ParsePosition(0))
+        ?: shortDayFormatter.parseUnresolved(days[0], ParsePosition(0))
+        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
+      val day2Temporal = fullDayFormatter.parseUnresolved(days[1], ParsePosition(0))
+        ?: shortDayFormatter.parseUnresolved(days[1], ParsePosition(0))
+        ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
+
+      val day1 = DayOfWeek.from(day1Temporal).value
+      val day2 = DayOfWeek.from(day2Temporal).value
+
+      val intRange = if (day2 > day1) {
+        // Mon - Fri
+        IntRange(day1, day2).toList()
+      } else {
+        // Fri - Mon
+        IntRange(day1, 7).toList() + IntRange(1, day2).toList()
+      }
+
+      return intRange.map {
+        DayOfWeek.of(it)
+          .toString()
+          .toLowerCase()
+      }
+        .toSet()
+    }
+
+    fun toNumericTimeWindows(constraint: TimeWindowConstraint): List<TimeWindowNumeric> =
+      constraint.windows.map {
+        TimeWindowNumeric(
+          days = parseDays(it.days),
+          hours = parseHours(it.hours)
+        )
+      }
   }
 
   override val supportedType = SupportedConstraintType<TimeWindowConstraint>("allowed-times")
@@ -190,59 +278,6 @@ class AllowedTimesConstraintEvaluator(
     }
 
     return days
-  }
-
-  private fun String.isDay(): Boolean = daysOfWeek.contains(this)
-
-  private fun String.isDayAlias(): Boolean = dayAliases.contains(this)
-
-  private fun String.isDayRange(): Boolean {
-    val days = this.split("-")
-    if (days.size != 2) {
-      return false
-    }
-
-    return daysOfWeek.contains(days[0]) && daysOfWeek.contains(days[1])
-  }
-
-  private fun String.dayAlias(): Set<String> =
-    when (this) {
-      "weekdays" -> setOf("monday", "tuesday", "wednesday", "thursday", "friday")
-      "weekends" -> setOf("saturday", "sunday")
-      else -> throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day alias $this")
-    }
-
-  private fun String.dayRange(): Set<String> {
-    /**
-     * Convert Mon-Fri or Monday-Friday to [DayOfWeek] integers to compute
-     * a range, then back to a set of individual days that today can be
-     * matched against.
-     */
-    val days = this.split("-").map { it.capitalize() }
-    val day1Temporal = fullDayFormatter.parseUnresolved(days[0], ParsePosition(0))
-      ?: shortDayFormatter.parseUnresolved(days[0], ParsePosition(0))
-      ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
-    val day2Temporal = fullDayFormatter.parseUnresolved(days[1], ParsePosition(0))
-      ?: shortDayFormatter.parseUnresolved(days[1], ParsePosition(0))
-      ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
-
-    val day1 = DayOfWeek.from(day1Temporal).value
-    val day2 = DayOfWeek.from(day2Temporal).value
-
-    val intRange = if (day2 > day1) {
-      // Mon - Fri
-      IntRange(day1, day2).toList()
-    } else {
-      // Fri - Mon
-      IntRange(day1, 7).toList() + IntRange(1, day2).toList()
-    }
-
-    return intRange.map {
-      DayOfWeek.of(it)
-        .toString()
-        .toLowerCase()
-    }
-      .toSet()
   }
 
   private fun defaultTimeZone(): ZoneId =

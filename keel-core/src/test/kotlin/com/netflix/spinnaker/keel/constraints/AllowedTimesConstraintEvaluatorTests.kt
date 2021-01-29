@@ -6,17 +6,21 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.core.api.TimeWindowNumeric
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import strikt.api.expect
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -103,6 +107,17 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(2)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(setOf(1), IntRange(11,16).toSet()),
+            TimeWindowNumeric(setOf(3,4,5), setOf(13))
+          )
+        }
+      }
     }
 
     context("outside of time window") {
@@ -125,6 +140,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
       }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(1)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet()),
+          )
+        }
+      }
     }
 
     context("weekdays alias") {
@@ -145,6 +170,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("can't promote, not a weekday") {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
+      }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(1)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(IntRange(1,5).toSet(), emptySet()),
+          )
+        }
       }
     }
 
@@ -167,6 +202,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(1)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(IntRange(6,7).toSet(), emptySet()),
+          )
+        }
+      }
     }
 
     context("environment constraint can use short days for default locale") {
@@ -188,6 +233,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("in window with short day format") {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
+      }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(1)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(IntRange(1,5).toSet(), IntRange(11,16).toSet()),
+          )
+        }
       }
     }
 
@@ -231,6 +286,16 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("in window due to day and hour wrap-around") {
         expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
+      }
+
+      test("ui format is correct") {
+        val windows = AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint)
+        expect {
+          that(windows.size).isEqualTo(1)
+          that(windows).containsExactlyInAnyOrder(
+            TimeWindowNumeric(setOf(2,1,7,6), setOf(23) + IntRange(0,10).toSet()),
+          )
+        }
       }
     }
 

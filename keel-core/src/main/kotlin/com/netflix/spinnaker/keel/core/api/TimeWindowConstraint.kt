@@ -31,6 +31,15 @@ data class TimeWindowConstraint(
   }
 }
 
+/**
+ * Numeric day and hour representation of a time window.
+ * This format is consistent regardless of how the window is defined in a string.
+ */
+data class TimeWindowNumeric(
+  val days: Set<Int>,
+  val hours: Set<Int>,
+)
+
 data class TimeWindow(
   val days: String? = null,
   val hours: String? = null

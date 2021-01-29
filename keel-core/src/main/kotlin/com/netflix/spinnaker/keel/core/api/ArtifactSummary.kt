@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import java.time.Instant
 
@@ -84,6 +85,11 @@ data class DependOnConstraintMetadata(
 ) : ConstraintMetadata()
 
 data class AllowedTimesConstraintMetadata(
-  val windows: List<TimeWindow>,
+  val windows: List<TimeWindowNumeric>,
   val timezone: String? = null
-) : ConstraintMetadata()
+) : ConstraintMetadata() {
+  constructor(constraint: TimeWindowConstraint): this(
+    AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint),
+    constraint.tz
+  )
+}
