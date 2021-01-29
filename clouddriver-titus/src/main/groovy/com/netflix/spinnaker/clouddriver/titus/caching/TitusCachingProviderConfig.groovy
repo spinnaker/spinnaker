@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.agents.ClusterCleanupAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusStreamingUpdateAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchemaUtil
@@ -71,6 +72,7 @@ class TitusCachingProviderConfig {
         )
       }
     }
+    agents << new ClusterCleanupAgent()
     new TitusCachingProvider(agents, cachingSchemaUtilProvider)
   }
 }

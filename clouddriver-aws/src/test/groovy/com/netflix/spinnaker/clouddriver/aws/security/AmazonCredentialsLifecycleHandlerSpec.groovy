@@ -123,7 +123,7 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
 
     then:
     awsInfrastructureProvider.getAgents().size() == 12
-    awsProvider.getAgents().size() == 21
+    awsProvider.getAgents().size() == 22
     handler.publicRegions.size() == 2
     handler.awsInfraRegions.size() == 2
     handler.reservationReportCachingAgentScheduled

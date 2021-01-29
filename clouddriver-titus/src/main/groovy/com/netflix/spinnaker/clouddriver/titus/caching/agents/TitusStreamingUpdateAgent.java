@@ -142,9 +142,14 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       unmodifiableSet(
           Stream.of(
                   AUTHORITATIVE.forType(SERVER_GROUPS.ns),
-                  AUTHORITATIVE.forType(CLUSTERS.ns),
-                  AUTHORITATIVE.forType(APPLICATIONS.ns),
                   AUTHORITATIVE.forType(INSTANCES.ns),
+                  // clusters exist globally and the streaming agent only
+                  // caches regionally so we can't authoritatively evict
+                  // clusters. There is a ClusterCleanupAgent that handles
+                  // eviction of clusters that no longer contain
+                  // server groups.
+                  INFORMATIVE.forType(CLUSTERS.ns),
+                  INFORMATIVE.forType(APPLICATIONS.ns),
                   INFORMATIVE.forType(IMAGES.ns),
                   INFORMATIVE.forType(TARGET_GROUPS.ns))
               .collect(Collectors.toSet()));
@@ -626,32 +631,12 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
           });
 
       if (state.savedSnapshot) {
-        List<String> missingClusters =
-            state.appToClusters.entrySet().stream()
-                .filter(e -> currentApps.contains(e.getKey()))
-                .flatMap(e -> e.getValue().stream())
-                .filter(c -> !currentClusters.contains(c))
-                .collect(Collectors.toList());
-
         List<String> missingServerGroups =
             state.appsToServerGroups.entrySet().stream()
                 .filter(e -> currentApps.contains(e.getKey()))
                 .flatMap(e -> e.getValue().stream())
                 .filter(c -> !currentServerGroups.contains(c))
                 .collect(Collectors.toList());
-
-        if (!missingClusters.isEmpty()) {
-          log.info("Evicting {} clusters in {}", missingClusters.size(), getAgentType());
-          cache.evictDeletedItems(CLUSTERS.ns, missingClusters);
-          missingClusters.forEach(
-              cluster -> {
-                state
-                    .appToClusters
-                    .getOrDefault(state.clusterKeyToApp.get(cluster), emptySet())
-                    .remove(cluster);
-                state.clusterKeyToApp.remove(cluster);
-              });
-        }
 
         if (!missingServerGroups.isEmpty()) {
           log.info("Evicting {} server groups in {}", missingServerGroups.size(), getAgentType());

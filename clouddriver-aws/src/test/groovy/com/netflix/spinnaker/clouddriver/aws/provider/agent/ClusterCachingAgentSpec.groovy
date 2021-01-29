@@ -141,7 +141,7 @@ class ClusterCachingAgentSpec extends Specification {
     def result = agent.handle(providerCache, data)
 
     then:
-    result.authoritativeTypes as Set == ["clusters", "serverGroups", "applications"] as Set
+    result.authoritativeTypes as Set == ["serverGroups"] as Set
   }
 
   void "asg should filter excluded tags"() {

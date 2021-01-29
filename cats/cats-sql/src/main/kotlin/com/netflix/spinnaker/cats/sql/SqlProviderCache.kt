@@ -7,12 +7,10 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
-import kotlin.contracts.ExperimentalContracts
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import kotlin.contracts.ExperimentalContracts
 
 @ExperimentalContracts
 class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache {
@@ -166,27 +164,16 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     try {
       MDC.put("agentClass", "$source putCacheResult")
 
-      // TODO every source type should have an authoritative agent and every agent should be authoritative for something
-      // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
-      // TODO same with namedImages - fix in AWS ImageCachingAgent
-      if (
-        source.contains("clustercaching", ignoreCase = true) &&
-        !authoritativeTypes.contains(CLUSTERS.ns) &&
-        cacheResult.cacheResults
-          .any {
-            it.key.startsWith(CLUSTERS.ns)
-          }
-      ) {
-        authoritativeTypes.add(CLUSTERS.ns)
-      } else if (
-        source.contains("imagecaching", ignoreCase = true) &&
-        cacheResult.cacheResults
-          .any {
-            it.key.startsWith(NAMED_IMAGES.ns)
-          }
-      ) {
-        authoritativeTypes.add(NAMED_IMAGES.ns)
-      }
+      // This is a hack because some types are global and a single agent
+      // can't be authoritative for cleanup but can supply enough
+      // information to create the entity. For those types we need an out
+      // of band cleanup so they should be cached as authoritative but
+      // without cleanup
+      //
+      // TODO Consider adding a GLOBAL type for supported data types to
+      //  allow caching agents to explicitly opt into this rather than
+      //  encoding them in here..
+      val globalTypes = getGlobalTypes(source, authoritativeTypes, cacheResult)
 
       cacheResult.cacheResults
         .filter {
@@ -212,10 +199,10 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
         authoritativeTypes.isNotEmpty() ->
           cacheResult.cacheResults
             .filter {
-              authoritativeTypes.contains(it.key)
+              authoritativeTypes.contains(it.key) || globalTypes.contains(it.key)
             }
             .forEach {
-              cacheDataType(it.key, source, it.value, authoritative = true)
+              cacheDataType(it.key, source, it.value, authoritative = true, cleanup = !globalTypes.contains(it.key))
               cachedTypes.add(it.key)
             }
         else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
@@ -254,6 +241,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   ) {
     try {
       MDC.put("agentClass", "$source putCacheResult")
+
+      authoritativeTypes.addAll(getGlobalTypes(source, authoritativeTypes, cacheResult));
 
       val cachedTypes = mutableSetOf<String>()
 
@@ -339,5 +328,17 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       relationships["$key:$sourceAgentType"] = value
     }
     return DefaultCacheData(source.id, source.ttlSeconds, source.attributes, relationships)
+  }
+
+  private fun getGlobalTypes(source: String, authoritativeTypes: Collection<String>, cacheResult: CacheResult): Set<String> = when {
+    (source.contains("clustercaching", ignoreCase = true) ||
+      source.contains("titusstreaming", ignoreCase = true)) &&
+      !authoritativeTypes.contains(CLUSTERS.ns) &&
+      cacheResult.cacheResults
+        .any {
+          it.key.startsWith(CLUSTERS.ns)
+        } -> setOf(CLUSTERS.ns, APPLICATIONS.ns)
+
+    else -> emptySet()
   }
 }

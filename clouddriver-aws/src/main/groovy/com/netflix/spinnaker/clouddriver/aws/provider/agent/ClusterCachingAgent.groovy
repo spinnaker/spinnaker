@@ -69,9 +69,14 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(CLUSTERS.ns),
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
-    AUTHORITATIVE.forType(APPLICATIONS.ns),
+    // clusters exist globally and the caching agent only
+    // caches regionally so we can't authoritatively evict
+    // clusters. There is a ClusterCleanupAgent that handles
+    // eviction of clusters that no longer contain
+    // server groups.
+    INFORMATIVE.forType(CLUSTERS.ns),
+    INFORMATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
     INFORMATIVE.forType(TARGET_GROUPS.ns),
     INFORMATIVE.forType(LAUNCH_CONFIGS.ns),

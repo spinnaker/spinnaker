@@ -30,25 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCachingAgentFilter;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCloudFormationCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonElasticIpCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonInstanceTypeCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonKeyPairCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLaunchTemplateCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerInstanceStateCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSecurityGroupCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSubnetCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonVpcCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ClusterCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.EddaLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent;
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent;
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.*;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
@@ -135,6 +117,7 @@ public class ProviderHelpers {
       Set<String> publicRegions) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider);
     List<Agent> newlyAddedAgents = new ArrayList<>();
+    newlyAddedAgents.add(new ClusterCleanupAgent());
     for (NetflixAmazonCredentials.AWSRegion region : credentials.getRegions()) {
       if (!scheduledAccounts.contains(credentials.getName())) {
         newlyAddedAgents.add(

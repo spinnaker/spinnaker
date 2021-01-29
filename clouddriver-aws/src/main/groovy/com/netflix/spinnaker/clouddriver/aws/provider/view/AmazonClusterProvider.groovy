@@ -272,18 +272,20 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   }
 
   private Map<String, Set<AmazonCluster>> getClusters0(String applicationName, boolean includeDetails) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
-    if (application == null) {
-      return null
-    }
 
     Collection<AmazonCluster> clusters
 
     if (includeDetails && cacheView.supportsGetAllByApplication()) {
       clusters = allClustersByApplication(applicationName)
     } else {
-      clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
+      Collection<String> clusterKeys = cacheView.filterIdentifiers(CLUSTERS.ns, Keys.getClusterKey("*", applicationName, "*"))
+      Collection<CacheData> clusterData = cacheView.getAll(CLUSTERS.ns, clusterKeys)
+      clusters = translateClusters(clusterData, includeDetails)
     }
+    if (!clusters) {
+      return null
+    }
+
     mapResponse(clusters)
   }
 
@@ -460,10 +462,6 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
-  private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    resolveRelationshipData(source, relationship) { true }
-  }
-
   private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter, CacheFilter cacheFilter = null) {
     Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships, cacheFilter) : []
@@ -496,13 +494,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
   @Override
   Set<AmazonCluster> getClusters(String applicationName, String account) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName), RelationshipCacheFilter.include(CLUSTERS.ns))
-    if (application == null) {
-      return [] as Set
-    }
-    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll {
-      Keys.parse(it).account == account
-    }
+    Collection<String> clusterKeys = cacheView.filterIdentifiers(CLUSTERS.ns, Keys.getClusterKey("*", applicationName, account))
     Collection<CacheData> clusters = cacheView.getAll(CLUSTERS.ns, clusterKeys)
     translateClusters(clusters, true) as Set<AmazonCluster>
   }

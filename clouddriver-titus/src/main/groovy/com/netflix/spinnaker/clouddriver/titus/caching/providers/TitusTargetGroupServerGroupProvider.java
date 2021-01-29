@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonTargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.model.TargetGroupServerGroupProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
@@ -68,8 +69,22 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
       return allTargetGroups;
     }
 
+    // fetch keys here instead of using application -> serverGroup relationship which is
+    //  inconsistent due to streaming update agent
+    Collection<String> applicationServerGroupKeys =
+        cacheView.filterIdentifiers(
+            SERVER_GROUPS.ns, Keys.getServerGroupV2Key("*", "*", applicationName, "*"));
+
+    if (applicationServerGroupKeys.isEmpty()) {
+      return allTargetGroups;
+    }
+
     Collection<CacheData> applicationServerGroups =
-        resolveRelationshipData(application, SERVER_GROUPS.ns);
+        cacheView.getAll(
+            SERVER_GROUPS.ns,
+            applicationServerGroupKeys,
+            RelationshipCacheFilter.include(TARGET_GROUPS.ns, INSTANCES.ns));
+
     Set<String> instanceKeys = new HashSet<>();
     for (CacheData serverGroup : applicationServerGroups) {
       Map<String, Collection<String>> relationships = serverGroup.getRelationships();
@@ -136,12 +151,6 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
       }
     }
     return allTargetGroups;
-  }
-
-  Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    return source.getRelationships().get(relationship) != null
-        ? cacheView.getAll(relationship, source.getRelationships().get(relationship))
-        : Collections.emptyList();
   }
 
   private Optional<LoadBalancerInstance> getInstanceHealth(

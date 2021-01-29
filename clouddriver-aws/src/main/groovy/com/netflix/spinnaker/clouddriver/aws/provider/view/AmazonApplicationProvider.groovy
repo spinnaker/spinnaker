@@ -16,18 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
@@ -36,48 +30,53 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 class AmazonApplicationProvider implements ApplicationProvider {
   private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
-  private final ObjectMapper objectMapper
 
   @Autowired
-  AmazonApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
+  AmazonApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView) {
     this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   @Override
   Set<Application> getApplications(boolean expand) {
-    def relationships = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
-    Collection<CacheData> applications = cacheView.getAll(
-      APPLICATIONS.ns, cacheView.filterIdentifiers(APPLICATIONS.ns, "${amazonCloudProvider.id}:*"), relationships
-    )
-    applications.collect this.&translate
+    String allAwsGlob = "${amazonCloudProvider.id}:*"
+
+    // ignoring expand since we are deriving existence of the app by presence of server groups
+    // rather than the application cacheData which is not reliably updated or evicted
+    Map<String, Map<String, Set<String>>> appClusters = getAppClustersByAccount(allAwsGlob)
+    return appClusters.findResults {translate(it.key, appClusters) }
   }
 
   @Override
   Application getApplication(String name) {
-    translate(cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(name)))
+    name = name.toLowerCase()
+    String glob = Keys.getServerGroupKey("${name}*", "*", "*", "*")
+    return translate(name, getAppClustersByAccount(glob))
   }
 
-  Application translate(CacheData cacheData) {
-    if (cacheData == null) {
-      return null
-    }
-
-    String name = Keys.parse(cacheData.id).application
-    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, CatsApplication.ATTRIBUTES)
-    Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
-    for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
-      Map<String, String> cluster = Keys.parse(clusterId)
-      if (cluster.account && cluster.cluster) {
-        clusterNames[cluster.account].add(cluster.cluster)
+  private Map<String, Map<String, Set<String>>> getAppClustersByAccount(String glob) {
+    // app -> account -> [clusterName..]
+    Map<String, Map<String, Set<String>>> appClustersByAccount = [:].withDefault { [:].withDefault { [] as Set } }
+    Collection<String> serverGroupKeys = cacheView.filterIdentifiers(SERVER_GROUPS.ns, glob)
+    for (String key : serverGroupKeys) {
+      Map<String, String> sg = Keys.parse(key)
+      if (sg && sg.application && sg.cluster && sg.account) {
+        appClustersByAccount.get(sg.application).get(sg.account).add(sg.cluster)
       }
     }
-    new CatsApplication(name, attributes, clusterNames)
+    return appClustersByAccount
+  }
+
+  Application translate(String name, Map<String, Map<String, Set<String>>> appClustersByAccount) {
+    Map<String, Set<String>> clusterNames = appClustersByAccount.get(name)
+    if (!clusterNames) {
+      return null
+    }
+    Map<String, String> attributes = Map.of("name", name)
+    return new CatsApplication(name, attributes, clusterNames)
   }
 
   private static class CatsApplication implements Application {
-    public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
     final String name
     final Map<String, String> attributes
     final Map<String, Set<String>> clusterNames

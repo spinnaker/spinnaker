@@ -93,7 +93,8 @@ class AmazonClusterProviderSpec extends Specification {
       Keys.getApplicationKey(app), [name: app], [serverGroups: [serverGroupId], clusters: [clusterId]]
     )
     cacheView.getAll(LAUNCH_CONFIGS.ns, _ as Set) >> [launchConfiguration]
-    cacheView.getAll(CLUSTERS.ns, _, _) >> [new DefaultCacheData(clusterId, clusterAttributes, [serverGroups: [serverGroupId]])]
+    cacheView.filterIdentifiers(CLUSTERS.ns, _) >> [clusterId]
+    cacheView.getAll(CLUSTERS.ns, _ as Collection<String>) >> [new DefaultCacheData(clusterId, clusterAttributes, [serverGroups: [serverGroupId]])]
     cacheView.getAll(SERVER_GROUPS.ns, [ serverGroupId ], _ as CacheFilter) >> [
       new DefaultCacheData(serverGroupId, serverGroup, [launchConfigs: [launchConfiguration.id]])
     ]
@@ -144,7 +145,8 @@ class AmazonClusterProviderSpec extends Specification {
     ]
 
     cacheView.getAll(LAUNCH_CONFIGS.ns, _ as Set) >> [launchConfiguration]
-    cacheView.getAll(CLUSTERS.ns, _, _) >> [cluster]
+    cacheView.filterIdentifiers(CLUSTERS.ns, _) >> [cluster.id]
+    cacheView.getAll(CLUSTERS.ns, _ as Collection<String>) >> [cluster]
     cacheView.getAll(SERVER_GROUPS.ns, [ serverGroupId ], _ as CacheFilter) >> [serverGroup]
 
     cacheView.getAll(IMAGES.ns, _ as Set) >> [image]
@@ -153,10 +155,6 @@ class AmazonClusterProviderSpec extends Specification {
     def result = provider.getClusterDetails(app)
 
     then:
-    1 * cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(app)) >> new DefaultCacheData(
-      Keys.getApplicationKey(app), [name: app], [serverGroups: [serverGroupId], clusters: [clusterId]]
-    )
-
     def clusters = result.values()
     def allServerGroups = clusters*.serverGroups.flatten() as Set<AmazonServerGroup>
 

@@ -130,14 +130,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
    */
   @Override
   Set<TitusCluster> getClusters(String applicationName, String account, boolean includeDetails) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName),
-      RelationshipCacheFilter.include(CLUSTERS.ns))
-    if (application == null) {
-      return [] as Set
-    }
-    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll {
-      Keys.parse(it).account == account
-    }
+    Collection<String> clusterKeys = cacheView.filterIdentifiers(CLUSTERS.ns, Keys.getClusterV2Key("*", applicationName, account))
     Collection<CacheData> clusters = cacheView.getAll(CLUSTERS.ns, clusterKeys)
     translateClusters(clusters, includeDetails) as Set<TitusCluster>
   }
@@ -229,9 +222,12 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
 
   // Private methods
   private Map<String, Set<TitusCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
-    if (application == null) return null
-    Collection<TitusCluster> clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
+    Collection<String> clusterIdentifiers = cacheView.filterIdentifiers(CLUSTERS.ns, Keys.getClusterV2Key("*", applicationName, "*"))
+    Collection<CacheData> clusterData = cacheView.getAll(CLUSTERS.ns, clusterIdentifiers, RelationshipCacheFilter.include(SERVER_GROUPS.ns))
+    if (!clusterData) {
+      return null
+    }
+    Collection<TitusCluster> clusters = translateClusters(clusterData, includeDetails)
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }
 
@@ -251,7 +247,8 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
       cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
       cluster
     }
-    return clusters
+    //ensure we only return clusters that have serverGroups (to account for incremental cache updates)
+    return clusters.findAll {it.serverGroups }
   }
 
   /**
