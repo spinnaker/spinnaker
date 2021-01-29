@@ -356,7 +356,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
     final Set<String> dedupedUsernames = new HashSet<>();
     for (String role : new HashSet<>(anyRoles)) {
-      dedupedUsernames.addAll(scanSet(roleKey(role)));
+      dedupedUsernames.addAll(
+          scanSet(roleKey(role)).stream().map(String::toLowerCase).collect(Collectors.toSet()));
     }
     dedupedUsernames.add(UNRESTRICTED);
 
