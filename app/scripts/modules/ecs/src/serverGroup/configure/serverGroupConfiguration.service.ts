@@ -38,6 +38,7 @@ import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
 import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
 import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
 import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
+import { IEcsCapacityProviderDetails } from '../../ecsCluster/IEcsCapacityProviderDetails';
 import { SecretReader } from '../../secrets/secret.read.service';
 import { ISecretDescriptor } from '../../secrets/ISecret';
 import { ServiceDiscoveryReader } from '../../serviceDiscovery/serviceDiscovery.read.service';
@@ -71,6 +72,8 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   targetGroups: string[];
   iamRoles: string[];
   ecsClusters: string[];
+  availableCapacityProviders: string[];
+  defaultCapacityProviderStrategy: IEcsCapacityProviderStrategyItem[];
   metricAlarms: IMetricAlarmDescriptor[];
   subnetTypes: ISubnet[];
   securityGroupNames: string[];
@@ -83,6 +86,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   filtered: IEcsServerGroupCommandBackingDataFiltered;
   targetGroups: string[];
   ecsClusters: IEcsClusterDescriptor[];
+  capacityProviderDetails: IEcsCapacityProviderDetails[];
   iamRoles: IRoleDescriptor[];
   metricAlarms: IMetricAlarmDescriptor[];
   launchTypes: string[];
@@ -145,6 +149,8 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   useTaskDefinitionArtifact: boolean;
 
   capacityProviderStrategy: IEcsCapacityProviderStrategyItem[];
+  useDefaultCapacityProviders: boolean;
+  ecsClusterName: string;
   subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   regionIsDeprecated: (command: IEcsServerGroupCommand) => boolean;
@@ -250,6 +256,7 @@ export class EcsServerGroupConfigurationService {
         subnets: SubnetReader.listSubnetsByProvider('ecs'),
         iamRoles: this.iamRoleReader.listRoles('ecs'),
         ecsClusters: this.ecsClusterReader.listClusters(),
+        capacityProviderDetails: this.ecsClusterReader.describeClusters(cmd.credentials, cmd.region),
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         launchTypes: this.$q.when(clone(this.launchTypes)),
@@ -271,6 +278,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSubnetTypes(cmd);
         this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableEcsClusters(cmd);
+        this.setCapacityProviderDetails(cmd);
         this.configureAvailableSecrets(cmd);
         this.configureAvailableServiceDiscoveryRegistries(cmd);
         this.configureAvailableImages(cmd);
@@ -279,6 +287,49 @@ export class EcsServerGroupConfigurationService {
         this.applyOverrides('afterConfiguration', cmd);
         this.attachEventHandlers(cmd);
       });
+  }
+
+  public setCapacityProviderDetails(command: IEcsServerGroupCommand): void {
+    this.$q.all({
+      capacityProviderDetails: this.ecsClusterReader.describeClusters(command.credentials, command.region)
+    }).then((result: Partial<IEcsServerGroupCommandBackingData>) => {
+      command.backingData.capacityProviderDetails = chain(result.capacityProviderDetails)
+        .map((cluster) => this.mapCapacityProviderDetails(cluster))
+        .value();
+    });
+
+    if(command.ecsClusterName != null && command.ecsClusterName.length > 0){
+      this.configureAvailableCapacityProviders(command);
+    } else {
+      command.backingData.filtered.availableCapacityProviders = [];
+      command.backingData.filtered.defaultCapacityProviderStrategy = [];
+    }
+  }
+
+  public configureAvailableCapacityProviders(command: IEcsServerGroupCommand): void {
+    command.backingData.filtered.availableCapacityProviders = chain(command.backingData.capacityProviderDetails)
+      .filter({
+        clusterName: command.ecsClusterName
+      })
+      .map(availableCPs => availableCPs.capacityProviders)
+      .flattenDeep<string>()
+      .value();
+
+    command.backingData.filtered.defaultCapacityProviderStrategy = chain(command.backingData.capacityProviderDetails)
+      .filter({
+        clusterName: command.ecsClusterName
+      })
+      .map(availableCPs => availableCPs.defaultCapacityProviderStrategy)
+      .flattenDeep<IEcsCapacityProviderStrategyItem>()
+      .value();
+  }
+
+  public mapCapacityProviderDetails(describeClusters: IEcsCapacityProviderDetails) : IEcsCapacityProviderDetails {
+    return {
+      capacityProviders : describeClusters.capacityProviders,
+      clusterName : describeClusters.clusterName,
+      defaultCapacityProviderStrategy : describeClusters.defaultCapacityProviderStrategy
+    };
   }
 
   public applyOverrides(phase: string, command: IEcsServerGroupCommand): void {
@@ -594,6 +645,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecurityGroups(command);
         this.configureAvailableSecrets(command);
         this.configureAvailableServiceDiscoveryRegistries(command);
+        this.setCapacityProviderDetails(command);
       }
 
       return result;
@@ -620,6 +672,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecrets(command);
         this.configureAvailableServiceDiscoveryRegistries(command);
         this.configureAvailableRegions(command);
+        this.setCapacityProviderDetails(command);
 
         if (!some(backingData.filtered.regions, { name: command.region })) {
           command.region = null;
