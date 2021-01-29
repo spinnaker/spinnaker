@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTargetRequest;
-import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
-import com.amazonaws.services.applicationautoscaling.model.SuspendedState;
+import com.amazonaws.services.applicationautoscaling.model.*;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
@@ -48,26 +45,62 @@ public class DisableServiceAtomicOperation
     String account = description.getAccount();
     String cluster = getCluster(service, account);
 
-    updateTaskStatus(
-        String.format("Suspending autoscaling on %s server group for %s.", service, account));
-    RegisterScalableTargetRequest suspendRequest =
-        new RegisterScalableTargetRequest()
+    DescribeScalableTargetsRequest describeRequest =
+        new DescribeScalableTargetsRequest()
             .withServiceNamespace(ServiceNamespace.Ecs)
-            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-            .withResourceId(String.format("service/%s/%s", cluster, service))
-            .withSuspendedState(
-                new SuspendedState()
-                    .withDynamicScalingInSuspended(true)
-                    .withDynamicScalingOutSuspended(true)
-                    .withScheduledScalingSuspended(true));
-    autoScalingClient.registerScalableTarget(suspendRequest);
-    updateTaskStatus(
-        String.format("Autoscaling on server group %s suspended for %s.", service, account));
+            .withResourceIds(String.format("service/%s/%s", cluster, service))
+            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount);
+    DescribeScalableTargetsResult describeResult =
+        autoScalingClient.describeScalableTargets(describeRequest);
+
+    if (isSuspended(describeResult)) {
+      updateTaskStatus(
+          String.format(
+              "Autoscaling already suspended on server group %s for %s.", service, account));
+    } else {
+      updateTaskStatus(
+          String.format("Suspending autoscaling on %s server group for %s.", service, account));
+      RegisterScalableTargetRequest suspendRequest =
+          new RegisterScalableTargetRequest()
+              .withServiceNamespace(ServiceNamespace.Ecs)
+              .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+              .withResourceId(String.format("service/%s/%s", cluster, service))
+              .withSuspendedState(
+                  new SuspendedState()
+                      .withDynamicScalingInSuspended(true)
+                      .withDynamicScalingOutSuspended(true)
+                      .withScheduledScalingSuspended(true));
+      autoScalingClient.registerScalableTarget(suspendRequest);
+      updateTaskStatus(
+          String.format("Autoscaling on server group %s suspended for %s.", service, account));
+    }
 
     updateTaskStatus(String.format("Disabling %s server group for %s.", service, account));
     UpdateServiceRequest request =
         new UpdateServiceRequest().withCluster(cluster).withService(service).withDesiredCount(0);
     ecs.updateService(request);
     updateTaskStatus(String.format("Server group %s disabled for %s.", service, account));
+  }
+
+  private boolean isSuspended(DescribeScalableTargetsResult describeResult) {
+    if (describeResult != null
+        && describeResult.getScalableTargets() != null
+        && describeResult.getScalableTargets().size() > 0) {
+      ScalableTarget target =
+          describeResult.getScalableTargets().stream()
+              .filter(
+                  e ->
+                      (e.getScalableDimension()
+                          .equals(ScalableDimension.EcsServiceDesiredCount.toString())))
+              .findFirst()
+              .orElse(null);
+
+      return (target != null)
+          && target.getSuspendedState().getScheduledScalingSuspended()
+          && target.getSuspendedState().getDynamicScalingInSuspended()
+          && target.getSuspendedState().getDynamicScalingOutSuspended();
+    }
+
+    return false;
   }
 }
