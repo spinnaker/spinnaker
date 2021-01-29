@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
@@ -291,7 +291,7 @@ internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTest
   override val createSubject = ::ApplicationLoadBalancerNetworkResolver
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ApplicationLoadBalancerSpec> = resource(
-    kind = EC2_APPLICATION_LOAD_BALANCER_V1_1.kind,
+    kind = EC2_APPLICATION_LOAD_BALANCER_V1_2.kind,
     spec = ApplicationLoadBalancerSpec(
       moniker = Moniker(
         app = "fnord",

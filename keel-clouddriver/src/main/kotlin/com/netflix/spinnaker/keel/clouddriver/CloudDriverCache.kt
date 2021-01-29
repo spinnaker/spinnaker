@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -32,6 +33,8 @@ interface CloudDriverCache {
   fun credentialBy(name: String): Credential
   fun defaultKeyPairForAccount(account: String) =
     credentialBy(account).attributes["defaultKeyPair"] as String
+  fun certificateByName(name: String): Certificate
+  fun certificateByArn(arn: String): Certificate
 }
 
 class ResourceNotFound(message: String) : IntegrationException(message)

@@ -39,6 +39,7 @@ include(
   "keel-echo",
   "keel-front50",
   "keel-igor",
+  "keel-lemur",
   "keel-orca",
   "keel-retrofit",
   "keel-retrofit-test-support",

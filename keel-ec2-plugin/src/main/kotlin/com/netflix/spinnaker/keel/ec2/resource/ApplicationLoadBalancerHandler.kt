@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
@@ -37,32 +37,34 @@ class ApplicationLoadBalancerHandler(
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
   resolvers: List<Resolver<*>>
-) : ResolvableResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(resolvers) {
+) : ResolvableResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(
+  resolvers
+) {
 
-  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_1
+  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_2
 
   override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>):
     Map<String, ApplicationLoadBalancer> =
-      with(resource.spec) {
-        locations.regions.map { region ->
-          ApplicationLoadBalancer(
-            moniker,
-            Location(
-              account = locations.account,
-              region = region.name,
-              vpc = locations.vpc ?: error("No vpc supplied or resolved"),
-              subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
-              availabilityZones = region.availabilityZones
-            ),
-            internal,
-            overrides[region.name]?.dependencies ?: dependencies,
-            idleTimeout,
-            overrides[region.name]?.listeners ?: listeners,
-            overrides[region.name]?.targetGroups ?: targetGroups
-          )
-        }
-          .associateBy { it.location.region }
+    with(resource.spec) {
+      locations.regions.map { region ->
+        ApplicationLoadBalancer(
+          moniker,
+          Location(
+            account = locations.account,
+            region = region.name,
+            vpc = locations.vpc ?: error("No vpc supplied or resolved"),
+            subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
+            availabilityZones = region.availabilityZones
+          ),
+          internal,
+          overrides[region.name]?.dependencies ?: dependencies,
+          idleTimeout,
+          overrides[region.name]?.listeners ?: listeners,
+          overrides[region.name]?.targetGroups ?: targetGroups
+        )
       }
+        .associateBy { it.location.region }
+    }
 
   override suspend fun current(resource: Resource<ApplicationLoadBalancerSpec>): Map<String, ApplicationLoadBalancer> =
     cloudDriverService.getApplicationLoadBalancer(resource.spec, resource.serviceAccount)
@@ -82,7 +84,8 @@ class ApplicationLoadBalancerHandler(
             resourceDiff.current == null -> "Create"
             else -> "Update"
           }
-          val description = "$action ${resource.kind} load balancer ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
+          val description =
+            "$action ${resource.kind} load balancer ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
 
           async {
             taskLauncher.submitJob(
@@ -216,7 +219,11 @@ class ApplicationLoadBalancerHandler(
                     Moniker(lb.moniker!!.app, lb.moniker!!.stack, lb.moniker!!.detail)
                   } else {
                     val parsedNamed = lb.loadBalancerName.split("-")
-                    Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
+                    Moniker(
+                      app = parsedNamed[0],
+                      stack = parsedNamed.getOrNull(1),
+                      detail = parsedNamed.getOrNull(2)
+                    )
                   },
                   location = Location(
                     account = account,
@@ -227,12 +234,16 @@ class ApplicationLoadBalancerHandler(
                       ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     availabilityZones = lb.availabilityZones
                   ),
-                  internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
+                  internal = lb.scheme != null && lb.scheme!!.contains(
+                    "internal",
+                    ignoreCase = true
+                  ),
                   listeners = lb.listeners.map { l ->
                     ApplicationLoadBalancerSpec.Listener(
                       port = l.port,
                       protocol = l.protocol,
-                      certificateArn = l.certificates?.firstOrNull()?.certificateArn,
+                      certificate = l.certificates?.firstOrNull()
+                        ?.let { cloudDriverCache.certificateByArn(it.certificateArn).serverCertificateName },
                       // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
                       rules = l.rules.filter { !it.default }.map { it.toEc2Api() }.toSet(),
                       defaultActions = l.defaultActions.map { it.toEc2Api() }.toSet()
@@ -301,11 +312,15 @@ class ApplicationLoadBalancerHandler(
               "rules" to it.rules,
               "defaultActions" to it.defaultActions,
             ).run {
-              if (it.certificateArn == null) {
-                this
-              } else {
-                this + mapOf("certificates" to listOf(mapOf("certificateArn" to it.certificateArn)))
-              }
+              it.certificate?.let { certificateName ->
+                this + mapOf(
+                  "certificates" to listOf(
+                    mapOf(
+                      "certificateArn" to cloudDriverCache.certificateByName(certificateName).arn
+                    )
+                  )
+                )
+              } ?: this
             }
           },
           "targetGroups" to targetGroups.map {
