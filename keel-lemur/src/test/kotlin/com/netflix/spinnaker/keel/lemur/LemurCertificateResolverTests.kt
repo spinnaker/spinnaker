@@ -53,8 +53,8 @@ class LemurCertificateResolverTests {
     )
   )
 
-  val lemurService = mockk<LemurService>()
-  val subject = LemurCertificateResolver(lemurService)
+  val lemurCertificateByName = mockk<suspend (String) -> LemurCertificateResponse>()
+  val subject = LemurCertificateResolver(lemurCertificateByName)
 
   @Test
   fun `a listener with no certificate is not affected`() {
@@ -64,12 +64,12 @@ class LemurCertificateResolverTests {
       .isSuccess()
       .get { spec.listeners.first() } isEqualTo httpListener
 
-    verify(exactly = 0) { lemurService.certificateByName(any()) }
+    verify(exactly = 0) { lemurCertificateByName.invoke(any()) }
   }
 
   @Test
   fun `a listener with an active certificate is not affected`() {
-    every { lemurService.certificateByName(httpsListener.certificate!!)} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke(httpsListener.certificate!!)} returns LemurCertificateResponse(
       items = listOf(
         LemurCertificate(
           commonName = "my-certificate",
@@ -90,7 +90,7 @@ class LemurCertificateResolverTests {
 
   @Test
   fun `an expires certificate with a replacement is updated to the new certificate`() {
-    every { lemurService.certificateByName(httpsListener.certificate!!)} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke(httpsListener.certificate!!)} returns LemurCertificateResponse(
       items = listOf(
         LemurCertificate(
           commonName = "my-certificate",
@@ -120,7 +120,7 @@ class LemurCertificateResolverTests {
 
   @Test
   fun `an expired certificate with no replacement results in an exception being thrown`() {
-    every { lemurService.certificateByName(httpsListener.certificate!!)} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke(httpsListener.certificate!!)} returns LemurCertificateResponse(
       items = listOf(
         LemurCertificate(
           commonName = "my-certificate",
@@ -141,7 +141,7 @@ class LemurCertificateResolverTests {
 
   @Test
   fun `an expired certificate with an expired replacement results in looking further up the chain`() {
-    every { lemurService.certificateByName(httpsListener.certificate!!)} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke(httpsListener.certificate!!)} returns LemurCertificateResponse(
       items = listOf(
         LemurCertificate(
           commonName = "my-certificate",
@@ -162,7 +162,7 @@ class LemurCertificateResolverTests {
       )
     )
 
-    every { lemurService.certificateByName("my-certificate-v2")} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke("my-certificate-v2")} returns LemurCertificateResponse(
       items = listOf(
         LemurCertificate(
           commonName = "my-certificate",
@@ -192,7 +192,7 @@ class LemurCertificateResolverTests {
 
   @Test
   fun `an empty response from Lemur is handled`() {
-    every { lemurService.certificateByName(httpsListener.certificate!!)} returns LemurCertificateResponse(
+    every { lemurCertificateByName.invoke(httpsListener.certificate!!)} returns LemurCertificateResponse(
       items = emptyList()
     )
 

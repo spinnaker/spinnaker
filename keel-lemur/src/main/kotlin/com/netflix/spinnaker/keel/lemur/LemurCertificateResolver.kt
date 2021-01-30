@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnBean(LemurService::class)
 class LemurCertificateResolver(
-  private val lemurService: LemurService
+  private val lemurCertificateByName: suspend (String) -> LemurCertificateResponse
 ) : Resolver<ApplicationLoadBalancerSpec> {
   override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_2
 
@@ -30,7 +30,7 @@ class LemurCertificateResolver(
     )
 
   private suspend fun findCurrentCertificate(name: String): String {
-    val certificate = lemurService.certificateByName(name).items.firstOrNull()
+    val certificate = lemurCertificateByName(name).items.firstOrNull()
     return when {
       certificate == null -> throw CertificateNotFound(name)
       certificate.active -> certificate.name

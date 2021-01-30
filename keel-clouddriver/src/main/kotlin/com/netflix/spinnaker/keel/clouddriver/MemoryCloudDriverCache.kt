@@ -18,12 +18,14 @@ package com.netflix.spinnaker.keel.clouddriver
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
+import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
@@ -231,7 +233,7 @@ class MemoryCloudDriverCache(
  */
 private fun <V> Result<V>.handleNotFound(): V? =
   getOrElse { ex ->
-    if (ex is HttpException && ex.code() == 404) {
+    if (ex.isNotFound) {
       null
     } else {
       throw CacheLoadingException("Error loading cache", ex)

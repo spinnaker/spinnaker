@@ -1,7 +1,12 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.caffeine.CacheFactory
+import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
+import com.netflix.spinnaker.keel.lemur.LemurCertificateResponse
 import com.netflix.spinnaker.keel.lemur.LemurService
+import com.netflix.spinnaker.keel.retrofit.isNotFound
+import kotlinx.coroutines.future.await
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
@@ -48,6 +53,27 @@ class LemurConfiguration {
       .client(client)
       .build()
       .create(LemurService::class.java)
+  }
+
+  @Bean
+  fun lemurCertificateByName(cacheFactory: CacheFactory, lemurService: LemurService) : suspend (String) -> LemurCertificateResponse {
+    val cacheName = "lemurCertificatesByName"
+    val cache = cacheFactory
+      .asyncLoadingCache<String, LemurCertificateResponse>(cacheName) { name ->
+        runCatching {
+          lemurService.certificateByName(name)
+        }
+          .getOrElse { ex ->
+            if (ex.isNotFound) {
+              null
+            } else {
+              throw CacheLoadingException("Error loading $cacheName cache", ex)
+            }
+          }
+      }
+    return {
+      cache.get(it).await()
+    }
   }
 }
 

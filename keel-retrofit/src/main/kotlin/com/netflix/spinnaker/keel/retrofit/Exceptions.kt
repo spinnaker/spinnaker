@@ -6,5 +6,5 @@ import retrofit2.HttpException
 /**
  * Is this exception an HTTP 404?
  */
-val HttpException.isNotFound: Boolean
-  get() = code() == NOT_FOUND.value()
+val Throwable.isNotFound: Boolean
+  get() = this is HttpException && code() == NOT_FOUND.value()

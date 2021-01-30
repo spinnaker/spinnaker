@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.caffeine.CacheLoadingException
 import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.model.Certificate
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
