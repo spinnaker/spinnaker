@@ -34,12 +34,12 @@ import retrofit.RetrofitError
 @Component
 class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
   private final BuildService buildService
-  private final String wwwHost
+  private final String wwwBaseUrl
 
   @Autowired
-  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.www-host}") String wwwHost) {
+  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.base-url.www}") String wwwBaseUrl) {
     this.buildService = buildService
-    this.wwwHost = wwwHost
+    this.wwwBaseUrl = wwwBaseUrl
   }
 
   @Override
@@ -53,7 +53,7 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
       if (build?.number == null) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else {
-        updateBuildDescription(stage, jenkinsController, jobName, build.number as Integer)
+        createBacklink(stage, jenkinsController, jobName, build.number as Integer)
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([buildNumber: build.number]).build()
       }
     } catch (RetrofitError e) {
@@ -81,11 +81,12 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
    *
    * Requires that `wwwHost` be specified _and_ that the build is running (vs. queued).
    */
-  private void updateBuildDescription(StageExecution stageExecution,
-                                      String jenkinsController,
-                                      String jobName,
-                                      Integer buildNumber) {
-    if (wwwHost == null) {
+  private void createBacklink(StageExecution stageExecution,
+                              String jenkinsController,
+                              String jobName,
+                              Integer buildNumber) {
+    if (wwwBaseUrl == null) {
+      log.info("Not creating backlink from Jenkins to Spinnaker, see https://spinnaker.io/setup/ci/jenkins/ for more info")
       return
     }
 
@@ -97,7 +98,7 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
           new IgorService.UpdatedBuild(
               String.format(
                   "This build was triggered by '<a href=\"%s/#/applications/%s/executions/details/%s\">%s</a>' in Spinnaker.",
-                  wwwHost,
+                  wwwBaseUrl,
                   stageExecution.execution.application,
                   stageExecution.execution.id,
                   Optional.ofNullable(stageExecution.execution.name).orElse("Unknown Pipeline")
