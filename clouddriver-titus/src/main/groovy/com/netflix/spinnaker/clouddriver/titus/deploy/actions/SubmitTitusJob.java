@@ -43,6 +43,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
@@ -87,10 +88,12 @@ public class SubmitTitusJob extends AbstractTitusDeployAction
     final SubmitJobRequest submitJobRequest = command.getSubmitJobRequest();
     String[] nextServerGroupName = {command.getNextServerGroupName()};
 
+    AtomicInteger submissionAttempts = new AtomicInteger();
     String jobUri =
         retrySupport.retry(
             () -> {
               try {
+                submissionAttempts.getAndIncrement();
                 return titusClient.submitJob(submitJobRequest.withJobName(nextServerGroupName[0]));
               } catch (StatusRuntimeException e) {
                 if (isServiceExceptionRetryable(description, e)) {
@@ -102,6 +105,23 @@ public class SubmitTitusJob extends AbstractTitusDeployAction
                         TitusJobNameResolver.resolveJobName(titusClient, description);
                     saga.log("Retrying with job name %s", nextServerGroupName[0]);
                   }
+                  // Can't do an exact match on the server group name because the error from Titus
+                  // adds dashes if the server group name does not contain a stack or free form
+                  // details, i.e. testapp---v001
+                  else if (statusDescription != null
+                      && statusDescription.contains(
+                          "Constraint violation - job with group sequence")
+                      && statusDescription.contains("exists")
+                      && submissionAttempts.intValue() > 1) {
+
+                    String jobId = titusClient.findJobByName(nextServerGroupName[0]).getId();
+                    log.info(
+                        "Retried job submission for job that exists due to previous attempt"
+                            + ", returning jobId {}",
+                        jobId);
+                    return jobId;
+                  }
+
                   throw e;
                 }
 
