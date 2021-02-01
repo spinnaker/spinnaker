@@ -75,8 +75,11 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
           <NavSection key={`section-${i}`} dataSources={section} app={app} />
         ))}
       {SETTINGS.feature.pagerDuty && app.attributes.pdApiKey && (
-        <div className="nav-section clickable">
-          <div className="page-category flex-container-h middle text-semibold" onClick={pageApplicationOwner}>
+        <div className="nav-section sp-padding-s-yaxis">
+          <div
+            className="page-category flex-container-h middle text-semibold sp-padding-s-yaxis clickable"
+            onClick={pageApplicationOwner}
+          >
             <div className="nav-row-item sp-margin-s-right">
               {!isExpanded ? (
                 <Tooltip value="Page App Owner" placement="right">
