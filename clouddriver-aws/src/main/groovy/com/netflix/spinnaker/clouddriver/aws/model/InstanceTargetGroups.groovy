@@ -38,6 +38,7 @@ class InstanceTargetGroups {
     instanceTargetGroupStates.any { it.healthState == HealthState.Starting } ? HealthState.Starting :
       instanceTargetGroupStates.any { it.healthState == HealthState.Down } ? HealthState.Down :
         instanceTargetGroupStates.any { it.healthState == HealthState.OutOfService } ? HealthState.OutOfService :
+          instanceTargetGroupStates.any { it.healthState == HealthState.Draining } ? HealthState.Draining :
           HealthState.Up
   }
 
