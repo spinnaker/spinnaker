@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
@@ -212,11 +213,15 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
   protected boolean keyAccountRegionFilter(String authoritativeKeyName, String key) {
     Map<String, String> keyParts = Keys.parse(key);
     return keyParts != null
-        && keyParts.get("account").equals(accountName)
-        &&
-        // IAM role keys are not region specific, so it will be true. The region will be checked of
-        // other keys.
-        (authoritativeKeyName.equals(IAM_ROLE.ns) || keyParts.get("region").equals(region));
+        && ((accountName.equals(keyParts.get("account"))
+                &&
+                // IAM role keys are not region specific, so it will be true. The region will be
+                // checked of other keys.
+                (authoritativeKeyName.equals(IAM_ROLE.ns) || keyParts.get("region").equals(region)))
+            // Application keys are not account or region specific so this will be true. The region
+            // and
+            // account will be checked for other keys.
+            || (authoritativeKeyName.equals(APPLICATIONS.ns)));
   }
 
   /**

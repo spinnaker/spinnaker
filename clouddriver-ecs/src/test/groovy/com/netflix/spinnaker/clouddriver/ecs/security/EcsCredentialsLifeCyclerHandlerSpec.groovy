@@ -45,7 +45,8 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
     Set<Class> expectedClasses = [ IamRoleCachingAgent.class, EcsClusterCachingAgent.class, ServiceCachingAgent.class,
                          TaskCachingAgent.class, ContainerInstanceCachingAgent.class, TaskDefinitionCachingAgent.class,
                          TaskHealthCachingAgent.class, EcsCloudMetricAlarmCachingAgent.class, ScalableTargetsCachingAgent.class,
-                         SecretCachingAgent.class, ServiceDiscoveryCachingAgent.class, TargetHealthCachingAgent.class ]
+                         SecretCachingAgent.class, ServiceDiscoveryCachingAgent.class, TargetHealthCachingAgent.class,
+                         ApplicationCachingAgent.class ]
     Set<Class> actualClasses =[]
 
     when:
@@ -53,7 +54,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
 
     then:
     1 * ecsAccountMapper.addMapEntry({it.getName() == credOne.getName()})
-    ecsProvider.getAgents().size() == 23 // 2 * 12 - 1 ( One IamRoleCachingAgent per account )
+    ecsProvider.getAgents().size() == 24 // 2 * 11 + 1 + 1 ( One IamRoleCachingAgent and ApplicationCachingAgent per account )
     ecsProvider.getHealthAgents().size() == 4
     ecsProvider.getAgents().each({actualClasses.add(it.getClass())})
     (actualClasses - expectedClasses).isEmpty()

@@ -26,6 +26,7 @@ import java.util.Map;
 
 public class Keys implements KeyParser {
   public enum Namespace {
+    APPLICATIONS,
     IAM_ROLE,
     SERVICES,
     ECS_CLUSTERS,
@@ -85,9 +86,9 @@ public class Keys implements KeyParser {
     Map<String, String> result = new HashMap<>();
     result.put("provider", parts[0]);
     result.put("type", parts[1]);
-    result.put("account", parts[2]);
 
-    if (!canParse(parts[1]) && parts[1].equals(HEALTH.getNs())) {
+    if (parts[1].equals(HEALTH.getNs())) {
+      result.put("account", parts[2]);
       result.put("region", parts[3]);
       result.put("taskId", parts[4]);
       return result;
@@ -96,42 +97,62 @@ public class Keys implements KeyParser {
     Namespace namespace =
         Namespace.valueOf(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, parts[1]));
 
-    if (!namespace.equals(Namespace.IAM_ROLE)) {
-      result.put("region", parts[3]);
-    }
-
     switch (namespace) {
+      case APPLICATIONS:
+        result.put("application", parts[2]);
+        break;
       case SERVICES:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("serviceName", parts[4]);
         break;
       case ECS_CLUSTERS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("clusterName", parts[4]);
         break;
       case TASKS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("taskId", parts[4]);
         break;
       case CONTAINER_INSTANCES:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("containerInstanceArn", parts[4]);
         break;
       case TASK_DEFINITIONS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("taskDefinitionArn", parts[4]);
         break;
       case ALARMS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("alarmArn", parts[4]);
         break;
       case IAM_ROLE:
+        result.put("account", parts[2]);
         result.put("roleName", parts[3]);
         break;
       case SECRETS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("secretName", parts[4]);
         break;
       case SERVICE_DISCOVERY_REGISTRIES:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("serviceId", parts[4]);
         break;
       case SCALABLE_TARGETS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("resource", parts[4]);
         break;
       case TARGET_HEALTHS:
+        result.put("account", parts[2]);
+        result.put("region", parts[3]);
         result.put("targetGroupArn", parts[4]);
         break;
       default:
@@ -152,6 +173,10 @@ public class Keys implements KeyParser {
 
   public static String getClusterKey(String account, String region, String clusterName) {
     return buildKey(Namespace.ECS_CLUSTERS.ns, account, region, clusterName);
+  }
+
+  public static String getApplicationKey(String name) {
+    return ID + SEPARATOR + Namespace.APPLICATIONS + SEPARATOR + name.toLowerCase();
   }
 
   public static String getTaskKey(String account, String region, String taskId) {

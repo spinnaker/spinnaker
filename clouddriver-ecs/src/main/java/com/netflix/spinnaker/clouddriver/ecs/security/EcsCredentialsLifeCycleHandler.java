@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ApplicationCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ContainerInstanceCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsCloudMetricAlarmCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsClusterCachingAgent;
@@ -95,6 +96,14 @@ public class EcsCredentialsLifeCycleHandler
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(ecsProvider);
     List<Agent> newAgents = new LinkedList<>();
     newAgents.add(new IamRoleCachingAgent(credentials, amazonClientProvider, iamPolicyReader));
+    newAgents.add(
+        new ApplicationCachingAgent(
+            credentials,
+            "us-east-1",
+            amazonClientProvider,
+            awsCredentialsProvider,
+            registry,
+            objectMapper));
     if (!scheduledAccounts.contains(credentials.getName())) {
       for (AmazonCredentials.AWSRegion region : credentials.getRegions()) {
         newAgents.add(

@@ -51,6 +51,26 @@ class KeysSpec extends Specification {
     'test-account-10' | 'us-west-10' | TARGET_HEALTHS.ns | 'arn:aws:elasticloadbalancing' + region + ':012345678910:targetgroup/ECSTG/htgbfvv' | buildParsedKey(account, region, namespace, [targetGroupArn: identifier])
   }
 
+  def 'should parse a given application key properly'() {
+    given:
+    def application_1 = 'test-application-1'
+    def application_2 = 'test-application-2'
+
+    expect:
+    Keys.parse(ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_1) == [provider: ID, type: APPLICATIONS.ns, application: application_1]
+    Keys.parse(ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_2) == [provider: ID, type: APPLICATIONS.ns, application: application_2]
+  }
+
+  def 'should generate the proper application key'() {
+    given:
+    def application_1 = 'test-application-1'
+    def application_2 = 'test-application-2'
+
+    expect:
+    Keys.getApplicationKey(application_1) == ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_1
+    Keys.getApplicationKey(application_2) == ID + SEPARATOR + APPLICATIONS.ns + SEPARATOR + application_2
+  }
+
   def 'should parse a given iam role key properly'() {
     expect:
     Keys.parse(ID + SEPARATOR + IAM_ROLE.ns + SEPARATOR + account + SEPARATOR + roleName) == [provider: ID, type: IAM_ROLE.ns, account: account, roleName: roleName]
