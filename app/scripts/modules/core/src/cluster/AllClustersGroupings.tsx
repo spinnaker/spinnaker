@@ -3,7 +3,7 @@ import React from 'react';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 import { Subscription } from 'rxjs';
 
-import { ReactInjector } from 'core/reactShims';
+import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Application } from 'core/application';
 import { ClusterPod } from './ClusterPod';
 import { ISortFilter } from 'core/filterModel';
@@ -27,6 +27,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   private clusterFilterModel = ClusterState.filterModel;
 
   private groupsSubscription: Subscription;
+  private routeChangedSubscription: Subscription;
   private unwatchSortFilter: Function;
 
   private cellCache: CellMeasurerCache;
@@ -72,6 +73,16 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     this.cellCache.clearAll();
   };
 
+  private handleRouteChange = (stateChange: IStateChange) => {
+    const { to } = stateChange;
+    if (
+      to.name === 'home.applications.application.insight.clusters.instanceDetails' ||
+      to.name === 'home.applications.application.insight.clusters'
+    ) {
+      this.cellCache.clearAll();
+    }
+  };
+
   public componentDidMount() {
     window.addEventListener('resize', this.handleWindowResize);
     const onGroupsChanged = (groups: IClusterGroup[]) => {
@@ -81,6 +92,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
       );
     };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
+    this.routeChangedSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(this.handleRouteChange);
 
     const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
     const onFilterChanged = ({ ...sortFilter }: any) => {
@@ -97,6 +109,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   public componentWillUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     this.groupsSubscription.unsubscribe();
+    this.routeChangedSubscription.unsubscribe();
     this.unwatchSortFilter();
   }
 
