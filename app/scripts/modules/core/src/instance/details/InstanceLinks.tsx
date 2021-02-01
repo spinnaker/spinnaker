@@ -50,6 +50,7 @@ export const InstanceLinks = ({ address, application, instance, moniker, environ
           Object.assign({}, instance, moniker, {
             ipAddress: address,
             environment: environment,
+            embeddableIpAddress: (address || '').split('.').join('-'),
           }),
         );
       }
