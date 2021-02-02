@@ -2,8 +2,8 @@ name: Weekly Release
 
 on:
   schedule:
-    # Every Tuesday at 6 PM UTC (10 AM PST)
-    - cron: "0 18 * * 2"
+    # Every Tuesday at 10 PM UTC (2 PM PST)
+    - cron: "0 22 * * 2"
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
