@@ -1,6 +1,8 @@
 FROM ubuntu:bionic
 LABEL maintainer="sig-platform@spinnaker.io"
 
+ENV GIT_VERSION=1:2.17.1-1ubuntu0.7
+
 RUN apt-get update && apt-get install -y curl gnupg && \
   curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   echo "deb https://packages.cloud.google.com/apt cloud-sdk-bionic main" > /etc/apt/sources.list.d/cloud-sdk.list && \
@@ -13,7 +15,9 @@ RUN apt-get update && apt-get install -y curl gnupg && \
   google-cloud-sdk-app-engine-java \
   google-cloud-sdk-app-engine-go \
   kubectl \
-  python-pip && \
+  python-pip \
+  "git=$GIT_VERSION" \
+  openssh-client && \
   pip install awscli==1.18.152 --upgrade && \
   rm -rf ~/.config/gcloud
 

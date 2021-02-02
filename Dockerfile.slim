@@ -8,6 +8,7 @@ ENV AWS_CLI_S3_CMD=2.0.2
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.4.0
 ENV GOOGLE_CLOUD_SDK_VERSION=313.0.1
 ENV ECR_TOKEN_VERSION=v1.0.2
+ENV GIT_VERSION=2.26.2-r0
 
 ENV PATH "$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
 
@@ -17,13 +18,15 @@ RUN apk update \
     bash \
     ca-certificates \
     wget \
-    openjdk11
+    openjdk11 \
+    "git=$GIT_VERSION" \
+    openssh-client
 
 # AWS CLI
 RUN pip install --upgrade awscli==${AWS_CLI_VERSION} s3cmd==${AWS_CLI_S3_CMD} python-magic \
   && pip uninstall -y pip
 
-# Google cloud SDK 
+# Google cloud SDK
 RUN wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && mkdir -p /opt && cd /opt \
   && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \

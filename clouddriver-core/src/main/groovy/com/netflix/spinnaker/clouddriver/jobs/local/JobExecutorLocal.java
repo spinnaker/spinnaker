@@ -81,7 +81,8 @@ public class JobExecutorLocal implements JobExecutor {
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
 
     Executor executor =
-        buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
+        buildExecutor(
+            new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()), jobRequest);
     int exitValue = executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment());
 
     return JobResult.<String>builder()
@@ -97,7 +98,8 @@ public class JobExecutorLocal implements JobExecutor {
     PipedOutputStream stdOut = new PipedOutputStream();
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
     Executor executor =
-        buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
+        buildExecutor(
+            new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()), jobRequest);
 
     // Send a task to the executor to consume the output from the job.
     Future<T> futureResult =
@@ -128,13 +130,17 @@ public class JobExecutorLocal implements JobExecutor {
         .build();
   }
 
-  private Executor buildExecutor(ExecuteStreamHandler streamHandler) {
+  private Executor buildExecutor(ExecuteStreamHandler streamHandler, JobRequest jobRequest) {
     Executor executor = new DefaultExecutor();
     executor.setStreamHandler(streamHandler);
     executor.setWatchdog(new ForceDestroyWatchdog(timeoutMinutes * 60 * 1000));
     // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking
     // the exit status instead of having the executor throw an exception for non-zero exit codes.
     executor.setExitValues(null);
+
+    if (jobRequest.getWorkingDir() != null) {
+      executor.setWorkingDirectory(jobRequest.getWorkingDir());
+    }
 
     return executor;
   }

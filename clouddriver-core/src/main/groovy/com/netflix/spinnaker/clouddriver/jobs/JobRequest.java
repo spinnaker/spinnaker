@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.jobs;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class JobRequest {
   private final CommandLine commandLine;
   private final Map<String, String> environment;
   private final InputStream inputStream;
+  private final File workingDir;
 
   public JobRequest(List<String> tokenizedCommand) {
     this(tokenizedCommand, System.getenv(), new ByteArrayInputStream(new byte[0]));
@@ -39,10 +41,32 @@ public class JobRequest {
 
   public JobRequest(
       List<String> tokenizedCommand, Map<String, String> environment, InputStream inputStream) {
+    this(tokenizedCommand, environment, inputStream, null);
+  }
+
+  public JobRequest(
+      List<String> tokenizedCommand, Map<String, String> environment, File workingDir) {
+    this(tokenizedCommand, environment, new ByteArrayInputStream(new byte[0]), workingDir);
+  }
+
+  public JobRequest(List<String> tokenizedCommand, InputStream inputStream, File workingDir) {
+    this(tokenizedCommand, System.getenv(), inputStream, workingDir);
+  }
+
+  public JobRequest(List<String> tokenizedCommand, File workingDor) {
+    this(tokenizedCommand, System.getenv(), new ByteArrayInputStream(new byte[0]), workingDor);
+  }
+
+  public JobRequest(
+      List<String> tokenizedCommand,
+      Map<String, String> environment,
+      InputStream inputStream,
+      File workingDir) {
     this.tokenizedCommand = tokenizedCommand;
     this.commandLine = createCommandLine(tokenizedCommand);
     this.environment = environment;
     this.inputStream = inputStream;
+    this.workingDir = workingDir;
   }
 
   private CommandLine createCommandLine(List<String> tokenizedCommand) {
