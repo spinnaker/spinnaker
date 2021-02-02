@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_COMPLETE
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_STARTING
 
+//TODO[gyardeni]: once enabling the new slack integration, delete this class
 // This gets translated into an echo notification format in orca
 data class OrcaNotification(
   val type: String,
@@ -60,7 +61,6 @@ data class NotificationMessage(
 const val RAINBOW = "\uD83C\uDF08"
 const val THUNDERCLOUD = "\u26c8\ufe0f"
 
-//TODO [gyardeni]: figure out if we want to keep it around, or deprecate it
 fun NotificationConfig.toOrcaNotification() =
   OrcaNotification(
     type = this.type.toString().toLowerCase(),

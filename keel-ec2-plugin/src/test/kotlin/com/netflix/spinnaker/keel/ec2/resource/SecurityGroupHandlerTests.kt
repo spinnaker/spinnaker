@@ -80,6 +80,8 @@ import java.util.UUID.randomUUID
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
+import org.springframework.core.env.Environment as SpringEnv
+
 
 @Suppress("UNCHECKED_CAST")
 internal class SecurityGroupHandlerTests : JUnit5Minutests {
@@ -92,10 +94,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   private val publisher: EventPublisher = mockk(relaxUnitFun = true)
+  private val springEnv: SpringEnv = mockk(relaxUnitFun = true)
+
   private val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,
-    publisher
+    publisher,
+    springEnv
   )
   private val objectMapper = configuredObjectMapper()
   private val normalizers = emptyList<Resolver<SecurityGroupSpec>>()
@@ -269,6 +274,10 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
     before {
       setupVpc()
+
+      io.mockk.coEvery {
+        springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+      } returns false
     }
 
     context("no matching security group exists") {

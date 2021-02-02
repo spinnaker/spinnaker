@@ -56,6 +56,7 @@ import strikt.assertions.isTrue
 import java.util.UUID
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
+import org.springframework.core.env.Environment as SpringEnv
 
 @Suppress("UNCHECKED_CAST")
 internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
@@ -63,6 +64,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
+  private val springEnv: SpringEnv = mockk(relaxUnitFun = true)
 
   val repository = mockk<KeelRepository>() {
     // we're just using this to get notifications
@@ -72,7 +74,8 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,
-    publisher
+    publisher,
+    springEnv
   )
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
@@ -176,6 +179,10 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         every { securityGroupByName(vpc.account, vpc.region, sg1.name) } returns sg1
         every { securityGroupByName(vpc.account, vpc.region, sg2.name) } returns sg2
         every { securityGroupByName(vpc.account, vpc.region, sg3.name) } returns sg3
+
+        every {
+          springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+        } returns false
       }
 
       every { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")

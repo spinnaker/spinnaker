@@ -97,10 +97,13 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val repository = mockk<KeelRepository>()
   val publisher: EventPublisher = mockk(relaxUnitFun = true)
+  val springEnv: org.springframework.core.env.Environment = mockk(relaxUnitFun = true)
+
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,
-    publisher
+    publisher,
+    springEnv
   )
   val clock = Clock.systemUTC()
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
@@ -214,6 +217,10 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       every {
         clusterExportHelper.discoverDeploymentStrategy("titus", "titustest", "keel", any())
       } returns RedBlack()
+
+      every {
+        springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+      } returns false
     }
 
     after {

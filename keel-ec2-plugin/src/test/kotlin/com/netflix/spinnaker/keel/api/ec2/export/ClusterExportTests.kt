@@ -62,6 +62,7 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID
 import com.netflix.spinnaker.keel.clouddriver.model.Capacity as ClouddriverCapacity
+import org.springframework.core.env.Environment as SpringEnv
 
 internal class ClusterExportTests : JUnit5Minutests {
 
@@ -71,11 +72,13 @@ internal class ClusterExportTests : JUnit5Minutests {
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val clock = Clock.systemUTC()
   val publisher: EventPublisher = mockk(relaxUnitFun = true)
+  val springEnv: SpringEnv = mockk(relaxUnitFun = true)
   val repository = mockk<KeelRepository>()
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,
-    publisher
+    publisher,
+    springEnv
   )
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
   val blockDeviceConfig = mockk<BlockDeviceConfig>()
@@ -228,6 +231,10 @@ internal class ClusterExportTests : JUnit5Minutests {
       coEvery {
         clusterExportHelper.discoverDeploymentStrategy("aws", "test", "keel", any())
       } returns RedBlack()
+
+      coEvery {
+        springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+      } returns false
     }
 
     after {

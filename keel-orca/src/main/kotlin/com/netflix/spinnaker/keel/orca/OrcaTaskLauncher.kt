@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.toOrcaNotification
@@ -34,6 +35,7 @@ import com.netflix.spinnaker.keel.persistence.TaskRecord
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture
 
@@ -44,8 +46,14 @@ import java.util.concurrent.CompletableFuture
 class OrcaTaskLauncher(
   private val orcaService: OrcaService,
   private val repository: KeelRepository,
-  private val publisher: EventPublisher
+  private val publisher: EventPublisher,
+  private val springEnv: Environment
 ) : TaskLauncher {
+
+  private val isNewSlackEnabled: Boolean
+    get() = springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+
+
   override suspend fun submitJob(
     resource: Resource<*>,
     description: String,
@@ -94,7 +102,7 @@ class OrcaTaskLauncher(
           job = stages.map { Job(it["type"].toString(), it) },
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
-            notifications = notifications.map { it.toOrcaNotification() },
+            notifications = generateNotifications(notifications),
             artifacts = artifacts,
             parameters = parameters
           )
@@ -109,6 +117,16 @@ class OrcaTaskLauncher(
         )
         Task(id = it.taskId, name = description)
       }
+
+  //TODO[gyardeni]: remove this function and just return an empty list for orca notifications,
+  //as all notifications will be controlled from keel directly from now on.
+  private fun generateNotifications(notifications: Set<NotificationConfig>): List<OrcaNotification> {
+    return if (!isNewSlackEnabled)
+      notifications.map { it.toOrcaNotification() }
+    else {
+      emptyList()
+    }
+  }
 
   override suspend fun correlatedTasksRunning(correlationId: String): Boolean =
     orcaService

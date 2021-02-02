@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import org.springframework.core.env.Environment as SpringEnv
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -49,8 +50,9 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
   class Fixture {
     val orcaService: OrcaService = mockk()
     val publisher: EventPublisher = mockk(relaxUnitFun = true)
+    val springEnv: SpringEnv = mockk(relaxUnitFun = true)
     val combinedRepository = mockk<KeelRepository>()
-    val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher)
+    val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher, springEnv)
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
   }
@@ -62,6 +64,10 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
       coEvery {
         orcaService.orchestrate(any(), capture(request))
       } returns TaskRefResponse("/tasks/${randomUID()}")
+
+      coEvery {
+        springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+      } returns false
     }
 
     context("an environment exists") {

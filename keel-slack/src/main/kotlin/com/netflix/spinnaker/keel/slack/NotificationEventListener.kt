@@ -55,7 +55,7 @@ class NotificationEventListener(
         SlackPinnedNotification(
           pin = pin,
           currentArtifact = currentArtifact,
-          pinnedArtifact = pinnedArtifact,
+          pinnedArtifact = pinnedArtifact.copy(reference = pin.reference),
           application = config.application,
           time = clock.instant()
         ),
@@ -85,7 +85,7 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackUnpinnedNotification(
-          latestArtifact = latestArtifact,
+          latestArtifact = latestArtifact?.copy(reference = pinnedEnvironment!!.artifact.reference),
           pinnedArtifact = pinnedArtifact,
           application = config.application,
           time = clock.instant(),
@@ -115,7 +115,7 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackMarkAsBadNotification(
-          vetoedArtifact = vetoedArtifact,
+          vetoedArtifact = vetoedArtifact.copy(reference = deliveryArtifact.reference),
           user = user,
           targetEnvironment = veto.targetEnvironment,
           time = clock.instant(),
@@ -177,7 +177,7 @@ class NotificationEventListener(
         sendSlackMessage(config,
           SlackLifecycleNotification(
             time = clock.instant(),
-            artifact = artifact,
+            artifact = artifact.copy(reference = deliveryArtifact.reference),
             eventType = type,
             application = config.application
           ),
@@ -202,7 +202,7 @@ class NotificationEventListener(
         SlackArtifactDeploymentNotification(
           time = clock.instant(),
           application = config.application,
-          artifact = artifact,
+          artifact = artifact.copy(reference = deliveryArtifact.reference),
           targetEnvironment = targetEnvironment,
           priorVersion = priorVersion,
           status = DeploymentStatus.SUCCEEDED
@@ -231,7 +231,7 @@ class NotificationEventListener(
         SlackArtifactDeploymentNotification(
           time = clock.instant(),
           application = config.application,
-          artifact = artifact,
+          artifact = artifact.copy(reference = deliveryArtifact.reference),
           targetEnvironment = veto.targetEnvironment,
           status = DeploymentStatus.FAILED
         ),
