@@ -4,6 +4,8 @@ on:
   schedule:
     # Every Tuesday at 10 PM UTC (2 PM PST)
     - cron: "0 22 * * 2"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch: {}
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
