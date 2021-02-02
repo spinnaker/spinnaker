@@ -106,6 +106,10 @@ constructor(
       }
     }
 
+    if (context.manifest.isNullOrBlank()) {
+      context.manifest = "spinnaker.yml"
+    }
+
     // this is just a friend URI-like string to refer to the delivery config location in logs
     return "${context.repoType}://${context.projectKey}/${context.repositorySlug}/<manifestBaseDir>/${context.directory
       ?: ""}/${context.manifest}@${context.ref}"
@@ -215,7 +219,7 @@ constructor(
     var projectKey: String? = null,
     var repositorySlug: String? = null,
     var directory: String? = null, // as in, the directory *under* whatever manifest base path is configured in igor (e.g. ".netflix")
-    var manifest: String? = "spinnaker.yml",
+    var manifest: String? = null,
     var ref: String? = null,
     var attempt: Int = 1,
     val maxRetries: Int? = MAX_RETRIES,
