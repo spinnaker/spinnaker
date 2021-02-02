@@ -46,6 +46,7 @@ import { IServiceDiscoveryRegistryDescriptor } from '../../serviceDiscovery/ISer
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroups?: string[];
+  capacityProviders?: string[];
 }
 
 export interface IEcsServerGroupCommandResult extends IServerGroupCommandResult {
@@ -304,6 +305,7 @@ export class EcsServerGroupConfigurationService {
       command.backingData.filtered.availableCapacityProviders = [];
       command.backingData.filtered.defaultCapacityProviderStrategy = [];
     }
+    this.checkDirtyCapacityProviders(command);
   }
 
   public configureAvailableCapacityProviders(command: IEcsServerGroupCommand): void {
@@ -623,6 +625,21 @@ export class EcsServerGroupConfigurationService {
       command.vpcId = subnet ? subnet.vpcId : null;
     }
     return result;
+  }
+
+  public checkDirtyCapacityProviders(command: IEcsServerGroupCommand): void {
+    if(command.capacityProviderStrategy){
+      const availableCapacityProviders = command.backingData.filtered.availableCapacityProviders;
+      const currentCapacityProviders = command.capacityProviderStrategy.map(cp => cp.capacityProvider);
+      const matched = intersection(availableCapacityProviders, currentCapacityProviders);
+      const removedCapacityProviders = xor(matched, currentCapacityProviders);
+
+      if (removedCapacityProviders && removedCapacityProviders.length > 0) {
+        command.viewState.dirty.capacityProviders = removedCapacityProviders;
+      } else if(command.viewState.dirty && command.viewState.dirty.capacityProviders) {
+        command.viewState.dirty.capacityProviders = [];
+      }
+    }
   }
 
   public attachEventHandlers(cmd: IEcsServerGroupCommand): void {

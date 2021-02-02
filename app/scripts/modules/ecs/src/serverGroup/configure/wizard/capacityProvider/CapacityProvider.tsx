@@ -1,7 +1,7 @@
 import React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
-import {IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand} from '../../serverGroupConfiguration.service';
+import { IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { HelpField, withErrorBoundary, TetheredSelect } from  '@spinnaker/core';
 import { Option } from "react-select";
 import  { Alert } from "react-bootstrap";
@@ -83,6 +83,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
     targetCapacityProviderStrategy.capacityProvider = targetCapacityProviderName;
     this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
+    this.props.command.viewState.dirty.capacityProviders = [];
   };
 
   private updateCapacityProviderBase = (index: number, targetCapacityProviderBase: number) => {
@@ -104,6 +105,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
   private updateCapacityProviderType = (targetCapacityProviderType: boolean) => {
     this.setState({useDefaultCapacityProviders : targetCapacityProviderType});
     this.props.notifyAngular("useDefaultCapacityProviders", targetCapacityProviderType);
+    this.props.command.viewState.dirty.capacityProviders = [];
 
     const capacityProviderStrategy = targetCapacityProviderType && this.state.defaultCapacityProviderStrategy.length > 0 ? this.state.defaultCapacityProviderStrategy : [];
     this.setState({ capacityProviderStrategy : capacityProviderStrategy });
@@ -121,11 +123,33 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     const useDefaultCapacityProviders = this.state.useDefaultCapacityProviders;
     const capacityProviderLoadedFlag = this.state.capacityProviderLoadedFlag;
-
+    const dirtyCapacityProviders = this.props.command.viewState.dirty && this.props.command.viewState.dirty.capacityProviders ? this.props.command.viewState.dirty.capacityProviders : [];
 
     const capacityProviderNames = this.state.availableCapacityProviders &&  this.state.availableCapacityProviders.length > 0 ?  this.state.availableCapacityProviders.map((capacityProviderNames) => {
       return { label: `${capacityProviderNames}`, value: capacityProviderNames };
     }) : [];
+
+    const dirtyCapacityProviderList = dirtyCapacityProviders ? dirtyCapacityProviders.map(function (capacityProvider, index){
+      return (
+        <li key={index}>{capacityProvider}</li>
+      );
+    }) : '';
+
+    const dirtyCapacityProviderSection = (
+      <div className="alert alert-warning">
+        <p>
+          <i className="fa fa-exclamation-triangle"></i>
+          The following capacity providers could not be found in the selected account/region/cluster and were removed:
+        </p>
+        <ul>
+          {dirtyCapacityProviderList}
+        </ul>
+        <br/>
+        <p className="text-left">
+          Please select the capacity provider(s) from the dropdown to resolve this error.
+        </p>
+      </div>
+    );
 
     const capacityProviderInputs = capacityProviderStrategy.length > 0 ? capacityProviderStrategy.map(function (mapping, index) {
       return (
@@ -204,6 +228,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
 
     return (
       <div>
+        {dirtyCapacityProviders.length > 0 ? ( <div>{dirtyCapacityProviderSection}</div>) : ''}
         <div className="sm-label-left">
           <b>Capacity Provider Strategy</b><HelpField id="ecs.capacityProviderStrategy" /> <br/>
           <span>({this.state.ecsClusterName})</span>
