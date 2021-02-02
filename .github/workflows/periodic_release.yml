@@ -24,17 +24,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Write current version
-        run: |
-          export CURRENT_TAG=`curl --silent "https://api.github.com/repos/spinnaker/keel/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
-          echo "version: $CURRENT_TAG" > version.yml
-
       - name: Prepare changelog
         id: changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version-file: "./version.yml"
           output-file: "false"
           skip-version-file: "true"
           skip-commit: "true"
