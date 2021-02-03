@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
@@ -174,6 +175,19 @@ class CreateAmazonLoadBalancerDescriptionValidator
           errors.rejectValue(
               "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.unused");
         }
+
+        // Verify that listeners on this load balancer all have a unique port, this validation
+        // mimics what the UI is enforcing.
+        List<Integer> allPorts =
+            albDescription.listeners.stream()
+                .map(UpsertAmazonLoadBalancerV2Description.Listener::getPort)
+                .collect(Collectors.toList());
+        Set<Integer> uniquePorts = new HashSet<>(allPorts);
+
+        if (uniquePorts.size() != allPorts.size()) {
+          errors.rejectValue("listeners", "Multiple listeners cannot use the same port");
+        }
+
         break;
       default:
         errors.rejectValue(
