@@ -13,7 +13,7 @@ import {
   IManagedArtifactVersionEnvironment,
 } from '../domain';
 import { Application } from '../application';
-import { useEventListener, Markdown } from '../presentation';
+import { useEventListener, Markdown, CollapsibleElement } from '../presentation';
 
 import { AbsoluteTimestamp } from './AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
@@ -208,7 +208,8 @@ const EnvironmentCards = memo(
 
 const VersionMetadataItem = ({ label, value }: { label: string; value: JSX.Element | string }) => (
   <div className="flex-container-h sp-margin-xs-bottom">
-    <div className="metadata-label text-bold text-right sp-margin-l-right flex-none">{label}</div> <span>{value}</span>
+    <div className="metadata-label text-bold text-right sp-margin-l-right flex-none">{label}</div>
+    <CollapsibleElement maxHeight={150}>{value}</CollapsibleElement>
   </div>
 );
 
