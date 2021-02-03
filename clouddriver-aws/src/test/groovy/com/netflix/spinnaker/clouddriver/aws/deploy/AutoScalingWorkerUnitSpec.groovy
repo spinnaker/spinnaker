@@ -144,6 +144,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     0 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.allowed-accounts", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.excluded-applications", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
+    1 * dynamicConfigService.getConfig(Boolean.class, 'aws.features.launch-templates.ipv6.foo', false) >> false
     0 * dynamicConfigService._
 
     and:
@@ -195,7 +196,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-applications", "") >> ""
     1 * dynamicConfigService.getConfig(String.class, "aws.features.launch-templates.excluded-accounts", "") >> ""
     1 * dynamicConfigService.getConfig(String.class,"aws.features.launch-templates.allowed-applications", "") >> { "myasg:foo:us-east-1" }
-
+    1 * dynamicConfigService.getConfig(Boolean.class, 'aws.features.launch-templates.ipv6.foo', false) >> false
     0 * dynamicConfigService._
 
     and:

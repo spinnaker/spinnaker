@@ -171,6 +171,12 @@ class AutoScalingWorker {
     String launchConfigName = null
 
     if (shouldSetLaunchTemplate(asgConfig)) {
+      if(asgConfig.getAssociateIPv6Address() == null) {
+        def asgConfigEnv = asgConfig.getCredentials().getEnvironment()
+        def autoEnableIPv6 = dynamicConfigService.getConfig(Boolean.class, "aws.features.launch-templates.ipv6.${asgConfigEnv}", false)
+        asgConfig.setAssociateIPv6Address(autoEnableIPv6)
+      }
+
       def asgConfigWithSecGroups = AsgConfigHelper.setAppSecurityGroups(
               asgConfig,
               regionScopedProvider.getSecurityGroupService(),

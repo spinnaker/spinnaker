@@ -70,7 +70,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    * Associate an IPv6 address
    * This is a Launch Template only feature
    */
-  Boolean associateIPv6Address = false
+  Boolean associateIPv6Address
 
   /**
    * Applicable only for burstable performance instance types like t2/t3.
