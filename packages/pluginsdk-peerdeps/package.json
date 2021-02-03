@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "Apache-2.0",
   "scripts": {
     "usage": "cat USAGE.txt",
@@ -14,7 +14,7 @@
     "@rollup/plugin-commonjs": "16.0.0",
     "@rollup/plugin-node-resolve": "10.0.0",
     "@rollup/plugin-typescript": "6.1.0",
-    "@spinnaker/core": "0.0.540",
+    "@spinnaker/core": "0.0.544",
     "@spinnaker/eslint-plugin": "1.0.9",
     "@spinnaker/pluginsdk": "*",
     "@types/react": "16.8.25",
