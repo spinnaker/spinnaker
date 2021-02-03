@@ -412,6 +412,10 @@ public class LaunchTemplateService {
     if (blockDevice.getEncrypted() != null) {
       blockDeviceRequest.setEncrypted(blockDevice.getEncrypted());
     }
+
+    if (blockDevice.getKmsKeyId() != null) {
+      blockDeviceRequest.setKmsKeyId(blockDevice.getKmsKeyId());
+    }
     return blockDeviceRequest;
   }
 }

@@ -77,6 +77,12 @@ class AmazonBlockDevice {
    */
   Boolean encrypted
 
+  /**
+   *  The KMS key id to encrypt EBS
+   *  This is available only for LaunchTemplate
+   */
+  String kmsKeyId
+
   private AmazonBlockDevice(Builder builder) {
     deviceName = builder.deviceName
     virtualName = builder.virtualName
@@ -86,6 +92,7 @@ class AmazonBlockDevice {
     iops = builder.iops
     snapshotId = builder.snapshotId
     encrypted = builder.encrypted
+    kmsKeyId = builder.kmsKeyId
   }
 
   static class Builder {
@@ -97,6 +104,7 @@ class AmazonBlockDevice {
     Integer iops
     String snapshotId
     Boolean encrypted
+    String kmsKeyId
 
     Builder deviceName(String deviceName) {
       this.deviceName = deviceName
@@ -135,6 +143,11 @@ class AmazonBlockDevice {
 
     Builder encrypted(Boolean encrypted) {
       this.encrypted = encrypted
+      return this
+    }
+
+    Builder kmsKeyId(String kmsKeyId) {
+      this.kmsKeyId = kmsKeyId
       return this
     }
 
