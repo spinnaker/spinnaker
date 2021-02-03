@@ -104,7 +104,7 @@ export class ServerGroupBasicSettings
       AWSProviderSettings?.serverGroups?.setIPv6InTest &&
       accountDetails.environment === 'test';
 
-    setFieldValue('associateIPv6Address', enableIPv6InTest || undefined);
+    setFieldValue('associateIPv6Address', enableIPv6InTest);
   };
 
   private regionUpdated = (region: string): void => {
