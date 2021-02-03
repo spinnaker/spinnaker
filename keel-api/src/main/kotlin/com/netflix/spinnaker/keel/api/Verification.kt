@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
 import com.netflix.spinnaker.keel.api.schema.Discriminator
+import com.netflix.spinnaker.keel.api.verification.VerificationState
 
 interface Verification {
   @Discriminator
@@ -13,4 +14,9 @@ interface Verification {
    * in the database.
    */
   val id: String
+
+  /**
+   * Generate a URL that a user can be directed to in order to view the current state of a verification
+   */
+  fun getLink(state: VerificationState) : String? = null
 }
