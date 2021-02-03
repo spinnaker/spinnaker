@@ -35,8 +35,9 @@ class CreateApplicationTest {
     DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
         new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
     applicationAttributes.setBuildpacks(ImmutableList.of("buildpackOne", "buildpackTwo"));
+    Lifecycle lifecycle = new Lifecycle(Lifecycle.Type.BUILDPACK, applicationAttributes);
     CreateApplication createApplication =
-        new CreateApplication("some-application", relationships, null, applicationAttributes);
+        new CreateApplication("some-application", relationships, null, lifecycle);
 
     assertThat(createApplication.getLifecycle().getData().get("buildpacks"))
         .isEqualTo(applicationAttributes.getBuildpacks());
@@ -51,8 +52,9 @@ class CreateApplicationTest {
         new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
     applicationAttributes.setBuildpacks(ImmutableList.of("buildpackOne"));
     applicationAttributes.setStack("cflinuxfs3");
+    Lifecycle lifecycle = new Lifecycle(Lifecycle.Type.BUILDPACK, applicationAttributes);
     CreateApplication createApplication =
-        new CreateApplication("some-application", relationships, null, applicationAttributes);
+        new CreateApplication("some-application", relationships, null, lifecycle);
 
     Map<String, Object> data =
         ImmutableMap.of(
@@ -70,25 +72,12 @@ class CreateApplicationTest {
     DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
         new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
     applicationAttributes.setStack("cflinuxfs3");
+    Lifecycle lifecycle = new Lifecycle(Lifecycle.Type.BUILDPACK, applicationAttributes);
     CreateApplication createApplication =
-        new CreateApplication("some-application", relationships, null, applicationAttributes);
+        new CreateApplication("some-application", relationships, null, lifecycle);
 
     Map<String, Object> data = ImmutableMap.of("stack", applicationAttributes.getStack());
 
     assertThat(createApplication.getLifecycle().getData()).isEqualTo(data);
-  }
-
-  @Test
-  void getLifecycleShouldReturnNull() {
-    ToOneRelationship toOneRelationship =
-        new ToOneRelationship(new Relationship("relationship-guid"));
-    Map<String, ToOneRelationship> relationships =
-        Collections.singletonMap("relationship", toOneRelationship);
-    DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
-        new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
-    CreateApplication createApplication =
-        new CreateApplication("some-application", relationships, null, applicationAttributes);
-
-    assertThat(createApplication.getLifecycle()).isNull();
   }
 }

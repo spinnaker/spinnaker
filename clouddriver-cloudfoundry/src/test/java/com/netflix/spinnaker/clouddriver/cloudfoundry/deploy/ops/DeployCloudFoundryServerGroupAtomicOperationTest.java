@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreatePackage;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Docker;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
@@ -95,6 +97,29 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
   }
 
   @Test
+  void executeOperationAndDeployDockerSucceeds() {
+    // Given
+    final DeployCloudFoundryServerGroupDescription description =
+        getDockerDeployCloudFoundryServerGroupDescription(true);
+    final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
+    final DeployCloudFoundryServerGroupAtomicOperation operation =
+        new DeployCloudFoundryServerGroupAtomicOperation(
+            new PassThroughOperationPoller(), description);
+    final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
+    final ServiceInstances serviceInstances = getServiceInstances();
+
+    // When
+    final DeploymentResult result = operation.operate(Lists.emptyList());
+
+    // Then
+    verifyInOrderDockerDeploy(apps, serviceInstances, () -> atLeastOnce());
+
+    assertThat(testTask.getStatus().isFailed()).isFalse();
+    assertThat(result.getServerGroupNames())
+        .isEqualTo(Collections.singletonList("region1:app1-stack1-detail1-v000"));
+  }
+
+  @Test
   void executeOperationAndDeployFails() {
     // Given
     final DeployCloudFoundryServerGroupDescription description =
@@ -153,20 +178,27 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
       ServiceInstances serviceInstances,
       Supplier<VerificationMode> calls) {
     InOrder inOrder = Mockito.inOrder(apps, serviceInstances);
-    DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
-        new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
-    applicationAttributes.setBuildpacks(
-        io.vavr.collection.List.of("buildpack1", "buildpack2").asJava());
+    inOrder.verify(apps).createApplication(any(), any(), any(), any());
     inOrder
         .verify(apps)
-        .createApplication(
-            "app1-stack1-detail1-v000",
-            CloudFoundrySpace.builder().id("space1Id").name("space1").build(),
-            getDeployCloudFoundryServerGroupDescription(true).getApplicationAttributes(),
-            HashMap.of("token", "ASDF").toJavaMap());
-    inOrder.verify(apps).uploadPackageBits(eq("serverGroupId_package"), any());
+        .createPackage(eq(new CreatePackage("serverGroupId", CreatePackage.Type.BITS, null)));
+    inOrder.verify(apps).uploadPackageBits(any(), any());
     inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
-    inOrder.verify(apps).createBuild("serverGroupId_package");
+    inOrder.verify(apps).createBuild(any());
+    inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
+    inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
+    inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
+  }
+
+  private void verifyInOrderDockerDeploy(
+      final Applications apps,
+      ServiceInstances serviceInstances,
+      Supplier<VerificationMode> calls) {
+    InOrder inOrder = Mockito.inOrder(apps, serviceInstances);
+    inOrder.verify(apps).createApplication(any(), any(), any(), any());
+    inOrder.verify(apps).createPackage(any());
+    inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
+    inOrder.verify(apps).createBuild(any());
     inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
     inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
@@ -222,6 +254,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                     "test", io.vavr.collection.List.of("a").asJava(), ""))
             .setSpace(CloudFoundrySpace.builder().id("space1Id").name("space1").build())
             .setApplicationArtifact(Artifact.builder().reference("ref1").build())
+            .setDocker(null)
             .setApplicationAttributes(
                 new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                     .setInstances(7)
@@ -230,6 +263,36 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                     .setHealthCheckType("http")
                     .setHealthCheckHttpEndpoint("/health")
                     .setBuildpacks(io.vavr.collection.List.of("buildpack1", "buildpack2").asJava())
+                    .setServices(List.of("service1"))
+                    .setEnv(HashMap.of("token", "ASDF").toJavaMap()));
+    description.setClient(cloudFoundryClient);
+    description.setRegion("region1");
+    description.setStartApplication(b);
+    return description;
+  }
+
+  private DeployCloudFoundryServerGroupDescription
+      getDockerDeployCloudFoundryServerGroupDescription(boolean b) {
+    final DeployCloudFoundryServerGroupDescription description =
+        new DeployCloudFoundryServerGroupDescription()
+            .setAccountName("account1")
+            .setApplication("app1")
+            .setStack("stack1")
+            .setFreeFormDetails("detail1")
+            .setSpace(CloudFoundrySpace.builder().id("space1Id").name("space1").build())
+            .setArtifactCredentials(
+                new ArtifactCredentialsFromString(
+                    "test", io.vavr.collection.List.of("a").asJava(), ""))
+            .setApplicationArtifact(Artifact.builder().reference("ref1").build())
+            .setDocker(Docker.builder().image("some/image").build())
+            .setApplicationAttributes(
+                new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+                    .setInstances(7)
+                    .setMemory("1G")
+                    .setDiskQuota("2048M")
+                    .setHealthCheckType("http")
+                    .setHealthCheckHttpEndpoint("/health")
+                    .setBuildpacks(Collections.emptyList())
                     .setServices(List.of("service1"))
                     .setEnv(HashMap.of("token", "ASDF").toJavaMap()));
     description.setClient(cloudFoundryClient);

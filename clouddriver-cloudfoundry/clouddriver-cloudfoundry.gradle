@@ -30,6 +30,7 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
   implementation project(":cats:cats-core")
+  implementation project(":clouddriver-docker")
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"

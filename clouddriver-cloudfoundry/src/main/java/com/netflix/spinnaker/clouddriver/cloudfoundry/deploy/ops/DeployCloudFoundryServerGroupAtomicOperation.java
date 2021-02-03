@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
-import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.*;
-import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.Deployment.*;
+import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.Deployment;
+import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.Deployment.Capacity;
 import static java.util.stream.Collectors.toList;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArti
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreatePackage;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Lifecycle;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
@@ -66,7 +68,6 @@ public class DeployCloudFoundryServerGroupAtomicOperation
   @Override
   public DeploymentResult operate(List priorOutputs) {
     getTask().updateStatus(PHASE, "Deploying '" + description.getApplication() + "'");
-
     CloudFoundryClient client = description.getClient();
 
     CloudFoundryServerGroupNameResolver serverGroupNameResolver =
@@ -79,13 +80,12 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             description.getFreeFormDetails(),
             false));
 
-    CloudFoundryServerGroup serverGroup;
+    CloudFoundryServerGroup serverGroup = createApplication(description);
     String packageId;
-    // we download the package artifact first, because if this fails, we don't want to create an
-    // empty CF app
-    File packageArtifact = downloadPackageArtifact(description);
+
+    File packageArtifact =
+        description.getDocker() == null ? downloadPackageArtifact(description) : null;
     try {
-      serverGroup = createApplication(description);
       packageId = buildPackage(serverGroup.getId(), description, packageArtifact);
     } finally {
       if (packageArtifact != null) {
@@ -230,14 +230,19 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         .updateStatus(
             PHASE, "Creating Cloud Foundry application '" + description.getServerGroupName() + "'");
 
+    Lifecycle lifecycle =
+        description.getDocker() == null
+            ? new Lifecycle(Lifecycle.Type.BUILDPACK, description.getApplicationAttributes())
+            : new Lifecycle(Lifecycle.Type.DOCKER, description.getApplicationAttributes());
+
     CloudFoundryServerGroup serverGroup =
         client
             .getApplications()
             .createApplication(
                 description.getServerGroupName(),
                 description.getSpace(),
-                description.getApplicationAttributes(),
-                getEnvironmentVars(description));
+                getEnvironmentVars(description),
+                lifecycle);
     getTask()
         .updateStatus(
             PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
@@ -399,8 +404,23 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         .updateStatus(
             PHASE, "Creating package for application '" + description.getServerGroupName() + "'");
 
-    String packageId = client.getApplications().createPackage(serverGroupId);
-    client.getApplications().uploadPackageBits(packageId, packageArtifact);
+    String packageId;
+    if (packageArtifact != null) {
+      // Bits Package
+      packageId =
+          client
+              .getApplications()
+              .createPackage(new CreatePackage(serverGroupId, CreatePackage.Type.BITS, null));
+      client.getApplications().uploadPackageBits(packageId, packageArtifact);
+    } else {
+      // Docker Package
+      packageId =
+          client
+              .getApplications()
+              .createPackage(
+                  new CreatePackage(
+                      serverGroupId, CreatePackage.Type.DOCKER, description.getDocker()));
+    }
 
     operationPoller.waitForOperation(
         () -> client.getApplications().packageUploadComplete(packageId),

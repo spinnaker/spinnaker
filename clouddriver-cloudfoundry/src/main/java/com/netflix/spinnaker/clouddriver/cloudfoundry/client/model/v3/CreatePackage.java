@@ -18,14 +18,27 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 
-@Getter
+@Data
 public class CreatePackage {
-  private final String type = "bits";
+  private final String type;
   private final Map<String, ToOneRelationship> relationships = new HashMap<>();
+  private Docker data;
 
-  public CreatePackage(String appId) {
+  public CreatePackage(String appId, Type type, Docker data) {
+    this.type = type.getValue();
     relationships.put("app", new ToOneRelationship(new Relationship(appId)));
+    this.data = data;
+  }
+
+  @Getter
+  @AllArgsConstructor
+  public enum Type {
+    BITS("bits"),
+    DOCKER("docker");
+    private String value;
   }
 }

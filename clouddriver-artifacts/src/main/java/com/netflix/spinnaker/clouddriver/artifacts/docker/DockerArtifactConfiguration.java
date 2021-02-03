@@ -22,12 +22,12 @@ import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("kubernetes.enabled")
+@ConditionalOnExpression("${kubernetes.enabled:false} || ${dockerRegistry.enabled:false}")
 @RequiredArgsConstructor
 @Slf4j
 class DockerArtifactConfiguration {

@@ -28,9 +28,11 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Docker;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServerGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -49,12 +51,16 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   private final OperationPoller operationPoller;
   private final ArtifactCredentialsRepository credentialsRepository;
+  private final List<? extends DockerRegistryNamedAccountCredentials>
+      dockerRegistryNamedAccountCredentials;
 
   public DeployCloudFoundryServerGroupAtomicOperationConverter(
       @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
-      ArtifactCredentialsRepository credentialsRepository) {
+      ArtifactCredentialsRepository credentialsRepository,
+      List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials) {
     this.operationPoller = operationPoller;
     this.credentialsRepository = credentialsRepository;
+    this.dockerRegistryNamedAccountCredentials = dockerRegistryNamedAccountCredentials;
   }
 
   @Override
@@ -86,7 +92,30 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     converted.setApplicationAttributes(
         convertManifest(
             converted.getManifest().stream().findFirst().orElse(Collections.emptyMap())));
+    converted.setDocker(
+        converted.getArtifactCredentials().getTypes().contains("docker/image")
+            ? resolveDockerAccount(converted.getApplicationArtifact())
+            : null);
     return converted;
+  }
+
+  private Docker resolveDockerAccount(Artifact artifact) {
+    DockerRegistryNamedAccountCredentials dockerCreds =
+        dockerRegistryNamedAccountCredentials.stream()
+            .filter(reg -> reg.getRegistry().equals(artifact.getReference().split("/")[0]))
+            .filter(reg -> reg.getRepositories().contains(artifact.getName().split("/", 2)[1]))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Could not find a docker registry for the docker image: "
+                            + artifact.getName()));
+
+    return Docker.builder()
+        .image(artifact.getReference())
+        .username(dockerCreds.getUsername())
+        .password(dockerCreds.getPassword())
+        .build();
   }
 
   private ArtifactCredentials getArtifactCredentials(

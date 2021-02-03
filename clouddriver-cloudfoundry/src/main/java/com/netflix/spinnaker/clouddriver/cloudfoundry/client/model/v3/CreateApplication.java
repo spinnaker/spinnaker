@@ -17,11 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import java.util.Map;
 import javax.annotation.Nullable;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,42 +29,16 @@ public class CreateApplication {
 
   @Nullable private final Map<String, String> environmentVariables;
 
-  @Nullable private final BuildpackLifecycle lifecycle;
+  @Nullable private final Lifecycle lifecycle;
 
   public CreateApplication(
       String name,
       Map<String, ToOneRelationship> relationships,
       @Nullable Map<String, String> environmentVariables,
-      DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes) {
+      Lifecycle lifecycle) {
     this.name = name;
     this.relationships = relationships;
     this.environmentVariables = environmentVariables;
-    this.lifecycle =
-        applicationAttributes.getBuildpacks() != null || applicationAttributes.getStack() != null
-            ? new BuildpackLifecycle(applicationAttributes)
-            : null;
-  }
-
-  @AllArgsConstructor
-  @Getter
-  public static class BuildpackLifecycle {
-    private String type = "buildpack";
-    private Map<String, Object> data;
-
-    BuildpackLifecycle(
-        DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes) {
-      this.data =
-          new BuildpackLifecycleBuilder<String, Object>()
-              .putIfValueNotNull("buildpacks", applicationAttributes.getBuildpacks())
-              .putIfValueNotNull("stack", applicationAttributes.getStack())
-              .build();
-    }
-  }
-
-  static class BuildpackLifecycleBuilder<K, V> extends ImmutableMap.Builder<K, V> {
-    public BuildpackLifecycleBuilder<K, V> putIfValueNotNull(K key, V value) {
-      if (value != null) super.put(key, value);
-      return this;
-    }
+    this.lifecycle = lifecycle;
   }
 }
