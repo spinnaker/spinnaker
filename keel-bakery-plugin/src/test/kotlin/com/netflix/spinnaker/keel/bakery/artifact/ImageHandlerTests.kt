@@ -38,6 +38,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
 import java.util.UUID.randomUUID
@@ -213,8 +214,12 @@ internal class ImageHandlerTests : JUnit5Minutests {
             }
           }
 
-          test("the handler throws an exception") {
-            handlerResult.isFailure().isA<NoKnownArtifactVersions>()
+          test("the handler completes successfully") {
+            handlerResult.isSuccess()
+          }
+
+          test("no bake is launched") {
+            expectThat(bakeTask).isNotCaptured()
           }
         }
 

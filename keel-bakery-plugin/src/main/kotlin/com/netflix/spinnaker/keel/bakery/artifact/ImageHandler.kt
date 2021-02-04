@@ -45,7 +45,12 @@ class ImageHandler(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestArtifactVersion = artifact.findLatestArtifactVersion()
+        val latestArtifactVersion = try {
+          artifact.findLatestArtifactVersion()
+        } catch (e: NoKnownArtifactVersions) {
+          log.debug(e.message)
+          return
+        }
         val latestBaseAmiVersion = artifact.findLatestBaseAmiVersion()
 
         val desired = Image(latestBaseAmiVersion, latestArtifactVersion, artifact.vmOptions.regions)
