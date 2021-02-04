@@ -213,6 +213,10 @@ const helpContents: { [key: string]: string } = {
     '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
   'loadBalancer.advancedSettings.loadBalancingCrossZone':
     '<p>Cross-zone load balancing distributes traffic evenly across all targets in the Availability Zones enabled for the load balancer.</p><p> Default: <b>True</b></p>',
+  'loadBalancer.advancedSettings.albIpAddressType':
+    '<p>Assigns both a v4 and v6 IP address to the load balancer. This option is only valid for an external load balancer. If left unchecked, this value will default to <b>"ipv4"</b>.</p>',
+  'loadBalancer.advancedSettings.nlbIpAddressType':
+    '<p>Assigns both a v4 and v6 IP address to the load balancer. This option is only valid for NLBs which are external and only have Ip targets (not instance targets). If left unchecked, this value will default to <b>"ipv4"</b>.</p>',
   'pipeline.config.resizeAsg.action': `
       <p>Configures the resize action for the target server group.
       <ul>
@@ -357,7 +361,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.trigger.runAsUser':
     "The current user must have access to the specified service account, and the service account must have access to the current application. Otherwise, you'll receive an 'Access is denied' error.",
   'pipeline.config.trigger.authorizedUser':
-      "The current user must have the permission to approve the manual judgment stage. Otherwise, you'll not be able continue to the next pipeline stage.",
+    "The current user must have the permission to approve the manual judgment stage. Otherwise, you'll not be able continue to the next pipeline stage.",
   'pipeline.config.script.repoUrl':
     '<p>Path to the repo hosting the scripts in Stash. (e.g. <samp>CDL/mimir-scripts</samp>). Leave empty to use the default.</p>',
   'pipeline.config.script.repoBranch':

@@ -1,38 +1,33 @@
 import React from 'react';
-import { Field, FormikProps } from 'formik';
-
-import { HelpField } from '@spinnaker/core';
-
-import { IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
+import { HelpField, FormikFormField, CheckboxInput } from '@spinnaker/core';
 
 export interface INLBAdvancedSettingsProps {
-  formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+  showDualstack: boolean;
 }
 
-export class NLBAdvancedSettings extends React.Component<INLBAdvancedSettingsProps> {
-  public render() {
-    const { values } = this.props.formik;
-    return (
-      <div className="form-group">
-        <div className="col-md-3 sm-label-right">
-          <b>Protection</b> <HelpField id="loadBalancer.advancedSettings.deletionProtection" />
-        </div>
-        <div className="col-md-7 checkbox">
-          <label>
-            <Field type="checkbox" name="deletionProtection" checked={values.deletionProtection} />
-            Enable deletion protection
-          </label>
-        </div>
-        <div className="col-md-3 sm-label-right">
-          <b>Cross-Zone Load Balancing</b> <HelpField id="loadBalancer.advancedSettings.loadBalancingCrossZone" />
-        </div>
-        <div className="col-md-7 checkbox">
-          <label>
-            <Field type="checkbox" name="loadBalancingCrossZone" checked={values.loadBalancingCrossZone} />
-            Cross-Zone Load Balancing
-          </label>
-        </div>
-      </div>
-    );
-  }
-}
+export const NLBAdvancedSettings = React.forwardRef<HTMLDivElement, INLBAdvancedSettingsProps>((props, ref) => (
+  <div ref={ref}>
+    <FormikFormField
+      name="deletionProtection"
+      label="Protection"
+      help={<HelpField id="loadBalancer.advancedSettings.deletionProtection" />}
+      input={(inputProps) => <CheckboxInput {...inputProps} text="Enable deletion protection" />}
+    />
+
+    <FormikFormField
+      name="loadBalancingCrossZone"
+      label="Cross-Zone Load Balancing"
+      help={<HelpField id="loadBalancer.advancedSettings.loadBalancingCrossZone" />}
+      input={(inputProps) => <CheckboxInput {...inputProps} text="Enable deletion protection" />}
+    />
+
+    {props.showDualstack && (
+      <FormikFormField
+        name="dualstack"
+        label="Dualstack"
+        help={<HelpField id="loadBalancer.advancedSettings.nlbIpAddressType" />}
+        input={(inputProps) => <CheckboxInput {...inputProps} text="Assign Ipv4 and IPv6" />}
+      />
+    )}
+  </div>
+));
