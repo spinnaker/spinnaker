@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.jira.JiraProperties;
 import com.netflix.spinnaker.echo.jira.JiraService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -54,7 +55,7 @@ public class JiraConfig {
     RestAdapter.Builder builder =
         new RestAdapter.Builder()
             .setEndpoint(newFixedEndpoint(jiraProperties.getBaseUrl()))
-            .setConverter(new JacksonConverter())
+            .setConverter(new JacksonConverter(EchoObjectMapper.getInstance()))
             .setClient(retrofitClient)
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(JiraService.class));

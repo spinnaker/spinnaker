@@ -18,21 +18,92 @@ package com.netflix.spinnaker.echo.jira;
 
 import com.netflix.spinnaker.echo.controller.EchoResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import retrofit.client.Response;
 import retrofit.http.Body;
+import retrofit.http.GET;
 import retrofit.http.POST;
+import retrofit.http.Path;
 
 public interface JiraService {
   @POST("/rest/api/2/issue/")
-  CreateJiraIssueResponse createJiraIssue(@Body CreateJiraIssueRequest createJiraIssueRequest);
+  CreateIssueResponse createIssue(@Body CreateIssueRequest createIssueRequest);
 
-  class CreateJiraIssueRequest extends HashMap<String, Object> {
-    CreateJiraIssueRequest(Map<String, Object> body) {
+  @GET("/rest/api/2/issue/{issueIdOrKey}/transitions")
+  IssueTransitions getIssueTransitions(@Path("issueIdOrKey") String issueIdOrKey);
+
+  @POST("/rest/api/2/issue/{issueIdOrKey}/transitions")
+  Response transitionIssue(
+      @Path("issueIdOrKey") String issueIdOrKey,
+      @Body TransitionIssueRequest transitionIssueRequest);
+
+  @POST("/rest/api/2/issue/{issueIdOrKey}/comment")
+  Response addComment(
+      @Path("issueIdOrKey") String issueIdOrKey, @Body CommentIssueRequest commentIssueRequest);
+
+  class CreateIssueRequest extends HashMap<String, Object> {
+    CreateIssueRequest(Map<String, Object> body) {
       super(body);
     }
   }
 
-  class CreateJiraIssueResponse implements EchoResponse.EchoResult {
+  class TransitionIssueRequest extends HashMap<String, Object> {
+    TransitionIssueRequest(Map<String, Object> body) {
+      super(body);
+    }
+  }
+
+  class CommentIssueRequest {
+    private String body;
+
+    CommentIssueRequest(String body) {
+      this.body = body;
+    }
+
+    public String getBody() {
+      return body;
+    }
+
+    public void setBody(String body) {
+      this.body = body;
+    }
+  }
+
+  class IssueTransitions {
+    private List<Transition> transitions;
+
+    public List<Transition> getTransitions() {
+      return transitions;
+    }
+
+    public void setTransitions(List<Transition> transitions) {
+      this.transitions = transitions;
+    }
+
+    public static class Transition {
+      private String id;
+      private String name;
+
+      public String getId() {
+        return id;
+      }
+
+      public void setId(String id) {
+        this.id = id;
+      }
+
+      public String getName() {
+        return name;
+      }
+
+      public void setName(String name) {
+        this.name = name;
+      }
+    }
+  }
+
+  class CreateIssueResponse implements EchoResponse.EchoResult {
     private String id;
     private String key;
     private String self;
