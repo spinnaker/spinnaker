@@ -22,6 +22,7 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
@@ -104,7 +105,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
     internal val deliveryConfigRepository: D =
       deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
-    internal val resourceRepository: R = resourceRepositoryProvider(DummyResourceSpecIdentifier)
+    internal val resourceRepository: ResourceRepository = spyk<ResourceRepository>(resourceRepositoryProvider(DummyResourceSpecIdentifier))
     internal val artifactRepository: A = artifactRepositoryProvider()
     internal val verificationRepository: V =
       verificationRepositoryProvider(DummyResourceSpecIdentifier)
@@ -173,6 +174,12 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             expectCatching {
               subject.getResource(id)
             }.isSuccess()
+          }
+        }
+
+        test("records that each resource was created") {
+          verify(exactly=deliveryConfig.resources.size) {
+            resourceRepository.appendHistory(ofType<ResourceCreated>())
           }
         }
       }
@@ -295,7 +302,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
           test("records that the resource was created") {
             verify {
-              publisher.publishEvent(ofType<ResourceCreated>())
+              resourceRepository.appendHistory(ofType<ResourceCreated>())
             }
           }
 
@@ -329,7 +336,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
             test("records that the resource was updated") {
               verify {
-                publisher.publishEvent(ofType<ResourceUpdated>())
+                resourceRepository.appendHistory(ofType<ResourceCreated>())
               }
             }
 

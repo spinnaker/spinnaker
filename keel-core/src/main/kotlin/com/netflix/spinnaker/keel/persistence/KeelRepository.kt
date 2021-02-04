@@ -69,12 +69,12 @@ interface KeelRepository : KeelReadOnlyRepository {
       if (diff.hasChanges() || resource.kind.version != existingResource.kind.version) {
         log.debug("Updating ${resource.id}")
         storeResource(resource)
-        publisher.publishEvent(ResourceUpdated(resource, diff.toDeltaJson(), clock))
+        appendResourceHistory(ResourceUpdated(resource, diff.toDeltaJson(), clock))
       }
     } else {
       log.debug("Creating $resource")
       storeResource(resource)
-      publisher.publishEvent(ResourceCreated(resource, clock))
+      appendResourceHistory(ResourceCreated(resource, clock))
     }
   }
 
