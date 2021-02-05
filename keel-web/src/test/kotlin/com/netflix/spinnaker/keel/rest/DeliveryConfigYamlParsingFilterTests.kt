@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
@@ -30,11 +29,6 @@ import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
 @SpringBootTest(
-  properties = [
-    "keel.plugins.ec2.enabled = true",
-    "spring.liquibase.enabled = false" // TODO: ignored by kork's SpringLiquibaseProxy
-  ],
-  classes = [KeelApplication::class],
   webEnvironment = NONE
 )
 class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {

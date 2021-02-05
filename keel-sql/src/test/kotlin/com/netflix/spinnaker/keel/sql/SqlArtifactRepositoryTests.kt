@@ -11,7 +11,6 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import java.time.Clock
 
 class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository>() {
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)

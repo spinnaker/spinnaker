@@ -13,23 +13,21 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.rootContext
-import java.time.Clock
-import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterAll
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
+import java.time.Clock
+import java.time.Duration
 
 internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   ResourceRepositoryPeriodicallyCheckedTests<SqlResourceRepository>() {
 
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
@@ -40,12 +38,6 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
   override fun flush() {
     cleanupDb(jooq)
-  }
-
-  @JvmStatic
-  @AfterAll
-  fun shutdown() {
-    testDatabase.dataSource.close()
   }
 
   fun parallelCheckingTests() = rootContext<Fixture<Resource<ResourceSpec>, SqlResourceRepository>> {

@@ -10,12 +10,10 @@ import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import java.time.Clock
 
 internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository, SqlPausedRepository>() {
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
@@ -45,11 +43,5 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
       registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
       registerSubtypes(NamedType(DummyVerification::class.java, "verification"))
     }
-  }
-
-  @JvmStatic
-  @AfterAll
-  fun shutdown() {
-    testDatabase.dataSource.close()
   }
 }

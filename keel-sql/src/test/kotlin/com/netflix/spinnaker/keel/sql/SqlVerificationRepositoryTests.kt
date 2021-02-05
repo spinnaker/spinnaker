@@ -12,7 +12,6 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import io.mockk.mockk
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 
 internal class SqlVerificationRepositoryTests :
@@ -92,15 +91,5 @@ internal class SqlVerificationRepositoryTests :
   @AfterEach
   fun flush() {
     SqlTestUtil.cleanupDb(jooq)
-  }
-
-  companion object {
-    private val testDatabase = initTestDatabase()
-
-    @JvmStatic
-    @AfterAll
-    fun shutdown() {
-      testDatabase.dataSource.close()
-    }
   }
 }

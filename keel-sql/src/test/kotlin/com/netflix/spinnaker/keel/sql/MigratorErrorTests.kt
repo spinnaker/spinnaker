@@ -13,7 +13,6 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -111,15 +110,5 @@ class MigratorErrorTests {
   @AfterEach
   fun flush() {
     cleanupDb(jooq)
-  }
-
-  companion object {
-    private val testDatabase = initTestDatabase()
-
-    @JvmStatic
-    @AfterAll
-    fun shutdown() {
-      testDatabase.dataSource.close()
-    }
   }
 }

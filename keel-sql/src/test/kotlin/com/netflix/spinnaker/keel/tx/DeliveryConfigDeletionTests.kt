@@ -11,19 +11,21 @@ import org.jooq.DSLContext
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.ContextHierarchy
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
+)
+@ContextHierarchy(
+  ContextConfiguration(classes = [KeelApplication::class]),
+  ContextConfiguration(classes = [TestConfiguration::class])
 )
 internal class DeliveryConfigDeletionTests
 @Autowired constructor(

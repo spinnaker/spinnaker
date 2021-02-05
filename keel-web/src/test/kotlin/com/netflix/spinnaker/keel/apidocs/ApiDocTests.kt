@@ -52,9 +52,6 @@ import strikt.jackson.textValues
 import kotlin.reflect.KClass
 
 @SpringBootTest(
-  properties = [
-    "keel.plugins.bakery.enabled=true"
-  ],
   webEnvironment = NONE
 )
 class ApiDocTests

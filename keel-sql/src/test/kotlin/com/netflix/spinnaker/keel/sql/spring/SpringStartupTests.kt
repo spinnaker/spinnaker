@@ -8,25 +8,19 @@ import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.ContextHierarchy
 import strikt.api.expectThat
 import strikt.assertions.isA
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class],
-  webEnvironment = MOCK,
-  properties = [
-    "spinnaker.baseUrl=http://spinnaker",
-    "sql.enabled=true",
-    "sql.connection-pools.default.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    "sql.migration.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
-  ]
+  webEnvironment = MOCK
+)
+@ContextHierarchy(
+  ContextConfiguration(classes = [KeelApplication::class])
 )
 internal class SpringStartupTests
 @Autowired constructor(
@@ -34,7 +28,6 @@ internal class SpringStartupTests
   val resourceRepository: ResourceRepository,
   val deliveryConfigRepository: DeliveryConfigRepository
 ) {
-
   @Test
   fun `uses SqlArtifactRepository`() {
     expectThat(artifactRepository).isA<SqlArtifactRepository>()

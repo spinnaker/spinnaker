@@ -13,13 +13,13 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.time.Clock.systemUTC
-import java.time.Instant
-import java.time.Instant.EPOCH
 import strikt.api.expectCatching
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
+import java.time.Clock.systemUTC
+import java.time.Instant
+import java.time.Instant.EPOCH
 
 internal class LegacySpecUpgradeTests : JUnit5Minutests {
 
@@ -51,9 +51,6 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
   }
 
   object Fixture {
-    @JvmStatic
-    val testDatabase = initTestDatabase()
-
     private val jooq = testDatabase.context
     private val retryProperties = RetryProperties(1, 0)
     private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
@@ -139,10 +136,6 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
             }
         }
       }
-    }
-
-    afterAll {
-      Fixture.testDatabase.dataSource.close()
     }
   }
 }

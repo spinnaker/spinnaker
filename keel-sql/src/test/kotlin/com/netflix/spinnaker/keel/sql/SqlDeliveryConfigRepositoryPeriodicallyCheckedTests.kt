@@ -15,7 +15,6 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.rootContext
-import org.junit.jupiter.api.AfterAll
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -27,7 +26,6 @@ import java.time.Duration
 internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
   DeliveryConfigRepositoryPeriodicallyCheckedTests<SqlDeliveryConfigRepository>() {
 
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
   private val objectMapper = configuredTestObjectMapper()
@@ -46,12 +44,6 @@ internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
 
   override fun flush() {
     cleanupDb(jooq)
-  }
-
-  @JvmStatic
-  @AfterAll
-  fun shutdown() {
-    testDatabase.dataSource.close()
   }
 
   fun pausedApplicationTests() = rootContext<Fixture<DeliveryConfig, SqlDeliveryConfigRepository>> {

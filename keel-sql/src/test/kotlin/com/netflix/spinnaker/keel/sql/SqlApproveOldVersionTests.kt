@@ -14,7 +14,6 @@ import java.time.Clock
 
 class SqlApproveOldVersionTests : ApproveOldVersionTests<CombinedRepository>() {
 
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))

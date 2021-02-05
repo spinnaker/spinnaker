@@ -23,13 +23,11 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -37,7 +35,6 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
@@ -186,5 +183,6 @@ internal class DeliveryConfigTransactionTests
 @Configuration
 internal class TestConfiguration {
   @Bean
-  fun dummyResourceHandler() = DummyResourceHandlerV1
+  fun dummyResourceHandler() =
+    DummyResourceHandlerV1
 }

@@ -21,6 +21,10 @@ import java.util.concurrent.TimeoutException
   classes = [KeelApplication::class, ThreadCapturingEventListener::class],
   webEnvironment = NONE
 )
+//@ContextHierarchy(
+//  ContextConfiguration(classes = [KeelApplication::class]),
+//  ContextConfiguration(classes = [ThreadCapturingEventListener::class])
+//)
 internal class ApplicationEventTests
 @Autowired constructor(
   val publisher: ApplicationEventPublisher,

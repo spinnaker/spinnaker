@@ -24,9 +24,6 @@ import strikt.api.Assertion
 import strikt.api.expectThat
 
 @SpringBootTest(
-  properties = [
-    "keel.plugins.bakery.enabled=true"
-  ],
   webEnvironment = NONE
 )
 class ApiDocCompatibilityTests

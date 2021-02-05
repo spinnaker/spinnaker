@@ -9,7 +9,6 @@ import java.time.Clock
 
 class SqlArtifactRepositoryPeriodicallyCheckedTests :
   ArtifactRepositoryPeriodicallyCheckedTests<SqlArtifactRepository>() {
-  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
   private val objectMapper = configuredObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
