@@ -10,8 +10,10 @@ import com.netflix.spinnaker.fiat.permissions.DefaultFallbackPermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.permissions.FallbackPermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.DefaultApplicationResourceProvider;
+import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountPredicateProvider;
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountResourceProvider;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
+import com.netflix.spinnaker.fiat.providers.ServiceAccountPredicateProvider;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -95,8 +97,10 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
       value = "fiat.service-account-resource-provider.default.enabled",
       matchIfMissing = true)
   DefaultServiceAccountResourceProvider serviceAccountResourceProvider(
-      Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
-    return new DefaultServiceAccountResourceProvider(front50Service, fiatRoleConfig);
+      Front50Service front50Service,
+      Collection<ServiceAccountPredicateProvider> serviceAccountPredicateProviders) {
+    return new DefaultServiceAccountResourceProvider(
+        front50Service, serviceAccountPredicateProviders);
   }
 
   @Bean
@@ -104,6 +108,12 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
       FiatServerConfigurationProperties properties) {
     return new DefaultFallbackPermissionsResolver(
         Authorization.EXECUTE, properties.getExecuteFallback());
+  }
+
+  @Bean
+  public DefaultServiceAccountPredicateProvider defaultServiceAccountPredicateProvider(
+      FiatRoleConfig fiatRoleConfig) {
+    return new DefaultServiceAccountPredicateProvider(fiatRoleConfig);
   }
 
   /**

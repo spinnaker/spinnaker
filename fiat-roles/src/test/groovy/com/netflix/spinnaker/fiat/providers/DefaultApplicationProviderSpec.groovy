@@ -65,7 +65,7 @@ class DefaultApplicationProviderSpec extends Specification {
     provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, fallbackPermissionsResolver, allowAccessToUnknownApplications)
 
     when:
-    def restrictedResult = provider.getAllRestricted([new Role(role)] as Set<Role>, false)
+    def restrictedResult = provider.getAllRestricted("userId", [new Role(role)] as Set<Role>, false)
     List<String> restrictedApplicationNames = restrictedResult*.name
 
     def unrestrictedResult = provider.getAllUnrestricted()

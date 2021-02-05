@@ -29,6 +29,7 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.AccessControlledResourcePermissionSource
 import com.netflix.spinnaker.fiat.providers.AggregatingResourcePermissionProvider
 import com.netflix.spinnaker.fiat.providers.DefaultAccountResourceProvider
+import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountPredicateProvider
 import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountResourceProvider
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
@@ -87,7 +88,9 @@ class DefaultPermissionsResolverSpec extends Specification {
   }
 
   @Shared
-  DefaultServiceAccountResourceProvider serviceAccountProvider = new DefaultServiceAccountResourceProvider(front50Service, fiatRoleConfig)
+  DefaultServiceAccountResourceProvider serviceAccountProvider = new DefaultServiceAccountResourceProvider(
+          front50Service, [new DefaultServiceAccountPredicateProvider(fiatRoleConfig) ]
+  )
 
   @Shared
   ResourceProvider<Application> applicationProvider = Mock(ResourceProvider) {

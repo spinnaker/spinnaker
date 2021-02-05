@@ -58,14 +58,14 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   }
 
   @Override
-  public Set<Application> getAllRestricted(Set<Role> roles, boolean isAdmin)
+  public Set<Application> getAllRestricted(String userId, Set<Role> userRoles, boolean isAdmin)
       throws ProviderException {
-    return getAllApplications(roles, isAdmin, true);
+    return getAllApplications(userId, userRoles, isAdmin, true);
   }
 
   @Override
   public Set<Application> getAllUnrestricted() throws ProviderException {
-    return getAllApplications(Collections.emptySet(), false, false);
+    return getAllApplications(null, Collections.emptySet(), false, false);
   }
 
   @Override
@@ -115,7 +115,7 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   }
 
   private Set<Application> getAllApplications(
-      Set<Role> roles, boolean isAdmin, boolean isRestricted) {
+      String userId, Set<Role> userRoles, boolean isAdmin, boolean isRestricted) {
     if (allowAccessToUnknownApplications) {
       /*
        * By default, the `BaseProvider` parent methods will filter out any applications that the authenticated user does
@@ -130,6 +130,8 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
       return getAll();
     }
 
-    return isRestricted ? super.getAllRestricted(roles, isAdmin) : super.getAllUnrestricted();
+    return isRestricted
+        ? super.getAllRestricted(userId, userRoles, isAdmin)
+        : super.getAllUnrestricted();
   }
 }

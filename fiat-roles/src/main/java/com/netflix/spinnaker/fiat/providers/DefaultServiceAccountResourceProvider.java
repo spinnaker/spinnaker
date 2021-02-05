@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.config.FiatRoleConfig;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +29,9 @@ public class DefaultServiceAccountResourceProvider extends BaseServiceAccountRes
   private final Front50Service front50Service;
 
   public DefaultServiceAccountResourceProvider(
-      Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
-    super(fiatRoleConfig);
+      Front50Service front50Service,
+      Collection<ServiceAccountPredicateProvider> serviceAccountPredicateProviders) {
+    super(serviceAccountPredicateProviders);
     this.front50Service = front50Service;
   }
 
