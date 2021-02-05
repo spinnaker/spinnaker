@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactGA from 'react-ga';
+import { CollapsibleSectionStateCache } from 'core/cache';
 
 export interface IFilter {
   label: string;
@@ -21,59 +22,56 @@ export interface IFilterTagsState {
   tags: IFilterTag[];
 }
 
-export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsState> {
-  public static defaultProps: Partial<IFilterTagsProps> = {
-    tagCleared: () => {},
+export const FilterTags = ({ clearFilters, tags, tagCleared }: IFilterTagsProps) => {
+  const hasExtraTags = tags.length > 5;
+  const [showExtraTags, setShowExtraTags] = React.useState(
+    hasExtraTags && CollapsibleSectionStateCache.isExpanded('filterTags'),
+  );
+  const visibleTags = !hasExtraTags || showExtraTags ? tags : tags.slice(0, 5);
+
+  const toggleExtraTags = () => {
+    CollapsibleSectionStateCache.setExpanded('filterTags', !showExtraTags);
+    setShowExtraTags(!showExtraTags);
   };
 
-  constructor(props: IFilterTagsProps) {
-    super(props);
-    this.state = {
-      tags: props.tags,
-    };
-  }
-
-  public componentWillReceiveProps(newProps: IFilterTagsProps) {
-    this.setState({ tags: newProps.tags });
-  }
-
-  private clearAllFilters = (): void => {
-    this.props.clearFilters();
+  const clearAllFilters = (): void => {
+    if (clearFilters) {
+      clearFilters();
+    }
     ReactGA.event({ category: 'Filter Tags', action: 'Clear All clicked' });
   };
 
-  private generateTag(tag: IFilterTag) {
-    const clearFilter = (): void => {
-      tag.clear();
-      this.props.tagCleared();
-      ReactGA.event({ category: 'Filter Tags', action: 'Individual tag removed' });
-    };
-    return (
-      <span className="filter-tag" key={[tag.label, tag.value].join(':')}>
-        <strong>{tag.label}</strong>: {tag.value}
-        <a className="clickable clear-filters" onClick={clearFilter}>
-          <span className="glyphicon glyphicon-remove-sign" />
-        </a>
-      </span>
-    );
-  }
+  const clearIndividualFilter = (tag: IFilterTag): void => {
+    tag.clear();
+    tagCleared();
+    ReactGA.event({ category: 'Filter Tags', action: 'Individual tag removed' });
+  };
 
-  public render() {
-    const { tags } = this.state;
-    return (
-      <div className="col-md-12 filter-tags">
-        {tags && tags.length > 0 && (
-          <span>
-            <span>Filtered by: </span>
-            {tags.map((tag) => this.generateTag(tag))}
-            {tags.length > 1 && (
-              <a className="clickable clear-filters" onClick={this.clearAllFilters}>
-                Clear All
+  return (
+    <div className="col-md-12 filter-tags">
+      {visibleTags && visibleTags.length > 0 && (
+        <span>
+          <span>Filtered by: </span>
+          {visibleTags.map((tag) => (
+            <span className="filter-tag" key={[tag.label, tag.value].join(':')}>
+              <strong>{tag.label}</strong>: {tag.value}
+              <a className="clickable clear-filters" onClick={() => clearIndividualFilter(tag)}>
+                <span className="glyphicon glyphicon-remove-sign" />
               </a>
-            )}
-          </span>
-        )}
-      </div>
-    );
-  }
-}
+            </span>
+          ))}
+          {hasExtraTags && (
+            <span className="filter-toggle" onClick={toggleExtraTags}>
+              {showExtraTags ? 'Hide List' : `See all ${tags.length} current filters`}
+            </span>
+          )}
+          {visibleTags.length > 1 && (
+            <a className="clickable clear-filters" onClick={clearAllFilters}>
+              Clear All
+            </a>
+          )}
+        </span>
+      )}
+    </div>
+  );
+};
