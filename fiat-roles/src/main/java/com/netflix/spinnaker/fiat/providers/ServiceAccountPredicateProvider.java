@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.providers;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import java.util.List;
 import java.util.function.Predicate;
+import lombok.NonNull;
 
 /** Builds a predicate that determines whether a given service account is accessible. */
 public interface ServiceAccountPredicateProvider {
@@ -28,5 +29,6 @@ public interface ServiceAccountPredicateProvider {
    * @param isAdmin Whether the currently authenticated user is an administrator
    * @return true if access to service account should be granted, otherwise false
    */
-  Predicate<ServiceAccount> get(String userId, List<String> userRoles, boolean isAdmin);
+  Predicate<ServiceAccount> get(
+      @NonNull String userId, @NonNull List<String> userRoles, boolean isAdmin);
 }
