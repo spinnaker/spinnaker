@@ -252,11 +252,7 @@ class ApplicationService(
 
         envSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
-          val verificationContext = VerificationContext(deliveryConfig, environment, artifactVersion)
-          val verifications = verificationStateMap[verificationContext]
-              ?.map { (verification, state) -> VerificationSummary(verification, state) }
-              ?: emptyList()
-
+          val verifications = getVerifications(deliveryConfig, environment, artifactVersion, verificationStateMap)
           environmentSummary.getArtifactPromotionStatus(artifact, artifactVersion.version)
             ?.let { status ->
               if (artifact.isUsedIn(environment)) { // only add a summary if the artifact is used in the environment
@@ -299,6 +295,21 @@ class ApplicationService(
       repository.getVerificationStates(deliveryConfig, artifactVersions)
     } else {
       emptyMap()
+    }
+
+  private fun getVerifications(
+    deliveryConfig: DeliveryConfig,
+    environment: Environment,
+    artifactVersion: PublishedArtifact,
+    verificationStateMap: Map<VerificationContext, Map<Verification, VerificationState>>
+  ) : List<VerificationSummary> =
+    if(verificationsEnabled) {
+      val verificationContext = VerificationContext(deliveryConfig, environment, artifactVersion)
+      verificationStateMap[verificationContext]
+        ?.map { (verification, state) -> VerificationSummary(verification, state) }
+        ?: emptyList()
+    } else {
+      emptyList()
     }
 
   private fun buildArtifactSummaryInEnvironment(
