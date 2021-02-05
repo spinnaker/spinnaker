@@ -5,11 +5,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.lifecycle.LifecycleStep
 import java.time.Instant
@@ -62,7 +64,10 @@ data class VerificationSummary(
   val startedAt: Instant? = null,
   val completedAt: Instant? = null,
   val link: String? = null
-)
+) {
+  constructor(v: Verification, s: VerificationState) :
+    this(v.id, v.type, s.status.toString(), s.startedAt, s.endedAt, v.getLink(s))
+}
 
 data class ActionMetadata(
   val at: Instant,

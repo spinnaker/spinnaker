@@ -37,6 +37,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment as SpringEnvironment
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -120,6 +121,12 @@ class ComparableLinksTests : JUnit5Minutests {
 
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
+    val springEnv: SpringEnvironment = mockk() {
+      every {
+        getProperty("keel.verifications.summary.enabled", Boolean::class.java, any())
+      } returns true
+    }
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -128,7 +135,8 @@ class ComparableLinksTests : JUnit5Minutests {
       listOf(artifactSupplier),
       scmInfo,
       lifecycleEventRepository,
-      publisher
+      publisher,
+      springEnv
     )
 
     val buildMetadata = BuildMetadata(
@@ -150,7 +158,7 @@ class ComparableLinksTests : JUnit5Minutests {
     )
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
-      map { PublishedArtifact(artifact.name, artifact.type, it) }
+      map { PublishedArtifact(artifact.name, artifact.type, artifact.reference, it) }
   }
 
   fun comparableLinksTests() = rootContext<Fixture> {
@@ -178,6 +186,10 @@ class ComparableLinksTests : JUnit5Minutests {
       every {
         repository.getPinnedVersion(any(), any(), any())
       } returns null
+
+      every {
+        repository.getVerificationStatesBatch(any())
+      } returns emptyList()
     }
 
     context("each environment has a current version, and previous versions") {

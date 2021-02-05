@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -13,6 +14,8 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
@@ -20,6 +23,8 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
@@ -59,6 +64,7 @@ import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
@@ -83,6 +89,10 @@ class ApplicationServiceTests : JUnit5Minutests {
     val releaseArtifact = DummyArtifact(reference = "release")
     val snapshotArtifact = DummyArtifact(reference = "snapshot")
 
+    data class DummyVerification(override val id: String) : Verification {
+      override val type = "dummy"
+    }
+
     val singleArtifactEnvironments = listOf("test", "staging", "production").associateWith { name ->
       Environment(
         name = name,
@@ -100,7 +110,12 @@ class ApplicationServiceTests : JUnit5Minutests {
           artifactReferenceResource(artifactReference = "release"),
           // resource with old-style image provider
           versionedArtifactResource()
-        )
+        ),
+        verifyWith = when (name) {
+          "test" -> listOf(DummyVerification("smoke"), DummyVerification("fuzz"))
+          "staging" -> listOf(DummyVerification("end-to-end"), DummyVerification("canary"))
+          else -> emptyList()
+        }
       )
     }
 
@@ -161,7 +176,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { parseDefaultGitMetadata(any(), any()) } returns null
     }
 
-    private val lifecycleEventRepository : LifecycleEventRepository = mockk() {
+    private val lifecycleEventRepository: LifecycleEventRepository = mockk() {
       every { getSteps(any(), any()) } returns emptyList()
     }
 
@@ -175,6 +190,12 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     val publisher: ApplicationEventPublisher = mockk(relaxed = true)
 
+    val springEnv: org.springframework.core.env.Environment = mockk() {
+      every {
+        getProperty("keel.verifications.summary.enabled", Boolean::class.java, any())
+      } returns true
+    }
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -183,7 +204,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       listOf(artifactSupplier),
       scmInfo,
       lifecycleEventRepository,
-      publisher
+      publisher,
+      springEnv
     )
 
     val buildMetadata = BuildMetadata(
@@ -205,7 +227,7 @@ class ApplicationServiceTests : JUnit5Minutests {
     )
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
-      map { PublishedArtifact(artifact.name, artifact.type, it) }
+      map { PublishedArtifact(artifact.name, artifact.type, artifact.reference, it) }
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {
@@ -239,12 +261,18 @@ class ApplicationServiceTests : JUnit5Minutests {
       every {
         repository.getPinnedVersion(any(), any(), any())
       } returns null
+
+      every {
+        repository.getVerificationStatesBatch(any())
+      } returns emptyList()
     }
 
     context("artifact summaries by application") {
       before {
         every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(releaseArtifact)
-        every { repository.artifactVersions(snapshotArtifact) } returns snapshotVersions.toArtifactVersions(snapshotArtifact)
+        every { repository.artifactVersions(snapshotArtifact) } returns snapshotVersions.toArtifactVersions(
+          snapshotArtifact
+        )
       }
 
       context("a delivery config with a single artifact for all environments") {
@@ -256,7 +284,13 @@ class ApplicationServiceTests : JUnit5Minutests {
           every {
             repository.getArtifactVersion(any(), any(), any())
           } answers {
-            PublishedArtifact(arg<DeliveryArtifact>(0).name, arg<DeliveryArtifact>(0).type, arg<String>(1), gitMetadata = gitMetadata, buildMetadata = buildMetadata)
+            PublishedArtifact(
+              arg<DeliveryArtifact>(0).name,
+              arg<DeliveryArtifact>(0).type,
+              arg<String>(1),
+              gitMetadata = gitMetadata,
+              buildMetadata = buildMetadata
+            )
           }
         }
 
@@ -273,7 +307,12 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
+              dependsOnEvaluator.canPromote(
+                releaseArtifact,
+                any(),
+                singleArtifactDeliveryConfig,
+                singleArtifactEnvironments.getValue("production")
+              )
             } returns false
 
             every {
@@ -387,10 +426,20 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
+              dependsOnEvaluator.canPromote(
+                releaseArtifact,
+                any(),
+                singleArtifactDeliveryConfig,
+                singleArtifactEnvironments.getValue("production")
+              )
             } answers {
               arg(1) in listOf(version0, version1)
             }
+
+            val contexts = slot<List<VerificationContext>>()
+            every {
+              repository.getVerificationStatesBatch(capture(contexts))
+            } returns emptyList()
           }
 
           test("artifact summary shows correct current version in each environment") {
@@ -508,29 +557,43 @@ class ApplicationServiceTests : JUnit5Minutests {
               }
           }
 
-
           context("compare links") {
             before {
               every {
-                repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PREVIOUS, any())
+                repository.getArtifactVersionByPromotionStatus(
+                  singleArtifactDeliveryConfig,
+                  any(),
+                  releaseArtifact,
+                  PREVIOUS,
+                  any()
+                )
               } answers {
                 PublishedArtifact(
                   name = arg<DeliveryArtifact>(2).name,
                   type = arg<DeliveryArtifact>(2).type,
                   version = version0,
-                  gitMetadata = GitMetadata(commit = "previousCommitIn${arg<String>(1)}",
-                    commitInfo = Commit(sha = "previousCommitIn:${arg<String>(1)}", link = "stash"))
+                  gitMetadata = GitMetadata(
+                    commit = "previousCommitIn${arg<String>(1)}",
+                    commitInfo = Commit(sha = "previousCommitIn:${arg<String>(1)}", link = "stash")
+                  )
                 )
               }
               every {
-                repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, CURRENT)
+                repository.getArtifactVersionByPromotionStatus(
+                  singleArtifactDeliveryConfig,
+                  any(),
+                  releaseArtifact,
+                  CURRENT
+                )
               } answers {
                 PublishedArtifact(
                   name = arg<DeliveryArtifact>(2).name,
                   type = arg<DeliveryArtifact>(2).type,
                   version = version1,
-                  gitMetadata = GitMetadata(commit = "currentCommitIn${arg<String>(1)}",
-                    commitInfo = Commit(sha = "currentCommitIn:${arg<String>(1)}", link = "stash"))
+                  gitMetadata = GitMetadata(
+                    commit = "currentCommitIn${arg<String>(1)}",
+                    commitInfo = Commit(sha = "currentCommitIn:${arg<String>(1)}", link = "stash")
+                  )
                 )
               }
 
@@ -578,7 +641,12 @@ class ApplicationServiceTests : JUnit5Minutests {
             } returns emptyList()
 
             every {
-              dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
+              dependsOnEvaluator.canPromote(
+                releaseArtifact,
+                any(),
+                singleArtifactDeliveryConfig,
+                singleArtifactEnvironments.getValue("production")
+              )
             } returns false
           }
 
@@ -676,7 +744,7 @@ class ApplicationServiceTests : JUnit5Minutests {
               repository.artifactVersions(releaseArtifact, capture(maxArtifactVersions))
             } answers {
               lotsaVersions.subList(0, maxArtifactVersions.captured)
-                .map { PublishedArtifact(releaseArtifact.name, releaseArtifact.type, it) }
+                .map { PublishedArtifact(releaseArtifact.name, releaseArtifact.type, releaseArtifact.reference, it) }
             }
 
             every {
@@ -690,7 +758,12 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
 
             every {
-              dependsOnEvaluator.canPromote(releaseArtifact, any(), singleArtifactDeliveryConfig, singleArtifactEnvironments.getValue("production"))
+              dependsOnEvaluator.canPromote(
+                releaseArtifact,
+                any(),
+                singleArtifactDeliveryConfig,
+                singleArtifactEnvironments.getValue("production")
+              )
             } returns false
 
             every {
@@ -726,7 +799,8 @@ class ApplicationServiceTests : JUnit5Minutests {
               repository.getEnvironmentSummaries(dualArtifactDeliveryConfig)
             } returns dualArtifactDeliveryConfig.environments.map { env ->
               when (env.name) {
-                "pr" -> EnvironmentSummary(env,
+                "pr" -> EnvironmentSummary(
+                  env,
                   setOf(
                     ArtifactVersions(
                       name = releaseArtifact.name,
@@ -754,7 +828,8 @@ class ApplicationServiceTests : JUnit5Minutests {
                     )
                   )
                 )
-                "test" -> EnvironmentSummary(env,
+                "test" -> EnvironmentSummary(
+                  env,
                   setOf(
                     ArtifactVersions(
                       name = releaseArtifact.name,
@@ -854,8 +929,8 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             expect {
               // each artifact is only summarized in the environment it'll end up in
-              that(releaseVersionsSummary.flatMap { it.environments }.all { it.environment == "test"}).isTrue()
-              that(snapshotVersionsSummary.flatMap { it.environments }.all { it.environment == "pr"}).isTrue()
+              that(releaseVersionsSummary.flatMap { it.environments }.all { it.environment == "test" }).isTrue()
+              that(snapshotVersionsSummary.flatMap { it.environments }.all { it.environment == "pr" }).isTrue()
             }
           }
         }
@@ -946,6 +1021,118 @@ class ApplicationServiceTests : JUnit5Minutests {
         verify { publisher.publishEvent(ofType<UnpinnedNotification>()) }
       }
     }
+
+    context("versions with different verification states") {
+      before {
+
+        every {
+          repository.getEnvironmentSummaries(singleArtifactDeliveryConfig)
+        } returns singleArtifactDeliveryConfig.environments.map { env ->
+          toEnvironmentSummary(env) {
+            when (env.name) {
+              "test" -> ArtifactVersionStatus(
+                previous = listOf(version0, version1, version2, version3, version4),
+                current = version5,
+              )
+              "staging" -> ArtifactVersionStatus(
+                previous = listOf(version2, version3),
+                current = version4
+              )
+              "production" -> ArtifactVersionStatus(
+                current = version4
+                )
+              else -> error("Unexpected environment ${env.name}")
+            }
+          }
+        }
+
+        every {
+          repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
+        } answers {
+          when (val environment = arg<String>(1)) {
+            "test" -> when (val version = arg<String>(3)) {
+              version0,
+              version1,
+              version2,
+              version3,
+              version4 -> ArtifactSummaryInEnvironment(environment, version, "previous")
+              version5 -> ArtifactSummaryInEnvironment(environment, version, "current")
+              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
+            }
+            "staging" -> when (val version = arg<String>(3)) {
+              version2,
+              version3 -> ArtifactSummaryInEnvironment(environment, version, "previous")
+              version4 -> ArtifactSummaryInEnvironment(environment, version, "current")
+              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
+            }
+            "production" -> when (val version = arg<String>(3)) {
+              version4 -> ArtifactSummaryInEnvironment(environment, version, "current")
+              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
+            }
+            else -> null
+          }
+        }
+
+        every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(releaseArtifact)
+
+        val contexts = slot<List<VerificationContext>>()
+        every {
+          repository.getVerificationStatesBatch(capture(contexts))
+        } answers {
+          contexts.captured.map {
+            val c = { env: String, ver: String -> VerificationContext(singleArtifactDeliveryConfig, env, "release", ver) }
+            val s = { status: ConstraintStatus -> VerificationState(status, clock.instant(), clock.instant()) }
+            when (it) {
+              c("test", version0) -> mapOf("smoke" to s(FAIL))
+
+              c("test", version1) -> mapOf("smoke" to s(PASS), "fuzz" to s(FAIL))
+
+              c("test", version2) -> mapOf("smoke" to s(PASS), "fuzz" to s(PASS))
+              c("staging", version2) -> mapOf("end-to-end" to s(FAIL))
+
+              c("test", version3) -> mapOf("smoke" to s(PASS), "fuzz" to s(PASS))
+              c("staging", version3) -> mapOf("end-to-end" to s(PASS), "canary" to s(FAIL))
+
+              c("test", version4) -> mapOf("smoke" to s(PASS), "fuzz" to s(PASS))
+              c("staging", version4) -> mapOf("end-to-end" to s(PASS), "canary" to s(PASS))
+
+              c("test", version5) -> mapOf("smoke" to s(PENDING))
+              else -> emptyMap()
+            }
+          }
+        }
+
+        every {
+          repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
+        } returns emptyList()
+
+
+        every {
+          dependsOnEvaluator.canPromote(any(), any(), any(), any())
+        } returns false
+      }
+
+      test("verification summaries") {
+        val summary = applicationService.getArtifactSummariesFor(application1)[0]
+
+        // helper
+        val v = { ver: String, env: String ->
+          summary.versions.first { it.version == ver }.environments.first { it.environment == env }.verifications.map { s -> s.id to s.status }
+        }
+
+        expect {
+          that(v(version0, "test")).containsExactly("smoke" to "FAIL")
+          that(v(version1, "test")).containsExactly("smoke" to "PASS", "fuzz" to "FAIL")
+          that(v(version2, "test")).containsExactly("smoke" to "PASS", "fuzz" to "PASS")
+          that(v(version2, "staging")).containsExactly("end-to-end" to "FAIL")
+          that(v(version3, "test")).containsExactly("smoke" to "PASS", "fuzz" to "PASS")
+          that(v(version3, "staging")).containsExactly("end-to-end" to "PASS", "canary" to "FAIL")
+          that(v(version4, "test")).containsExactly("smoke" to "PASS", "fuzz" to "PASS")
+          that(v(version4, "staging")).containsExactly("end-to-end" to "PASS", "canary" to "PASS")
+          that(v(version5, "test")).containsExactly("smoke" to "PENDING")
+        }
+      }
+    }
   }
 
   fun Assertion.Builder<ArtifactSummary>.withVersionInEnvironment(
@@ -964,7 +1151,7 @@ class ApplicationServiceTests : JUnit5Minutests {
   val Assertion.Builder<ArtifactSummaryInEnvironment>.state: Assertion.Builder<String>
     get() = get { state }
 
-   private fun Fixture.toEnvironmentSummary(env: Environment, block: () -> ArtifactVersionStatus): EnvironmentSummary {
+  private fun Fixture.toEnvironmentSummary(env: Environment, block: () -> ArtifactVersionStatus): EnvironmentSummary {
     return EnvironmentSummary(
       env,
       setOf(

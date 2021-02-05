@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import java.time.Duration
 import java.time.Instant
@@ -74,6 +75,9 @@ data class VerificationContext(
   val artifactReference: String,
   val version: String
 ) {
+  constructor(deliveryConfig: DeliveryConfig, environment: Environment, artifact: PublishedArtifact) :
+    this(deliveryConfig, environment.name, artifact.reference, artifact.version)
+
   val environment: Environment =
     deliveryConfig.environments.first { it.name == environmentName }
 

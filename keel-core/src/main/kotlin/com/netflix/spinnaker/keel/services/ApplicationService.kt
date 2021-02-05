@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.StatefulConstraint
+import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.artifacts.DEFAULT_MAX_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -17,11 +18,13 @@ import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.artifacts.generateCompareLink
-import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
+import com.netflix.spinnaker.keel.core.api.VerificationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.DependOnConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
@@ -52,6 +55,7 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment as SpringEnvironment
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -66,9 +70,13 @@ class ApplicationService(
   private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val scmInfo: ScmInfo,
   private val lifecycleEventRepository: LifecycleEventRepository,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  private val springEnv: SpringEnvironment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val verificationsEnabled: Boolean
+    get() = springEnv.getProperty("keel.verifications.summary.enabled", Boolean::class.java, false)
 
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
     constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator<*, *> }
@@ -231,15 +239,35 @@ class ApplicationService(
     }
 
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
-      val artifactVersionSummaries = repository.artifactVersions(artifact, limit).map { artifactVersion ->
+      val artifactVersions = repository.artifactVersions(artifact, limit)
+
+      // A verification context identifies an artifact version in an environment
+      // For each context, there may be multiple verifications (e.g., test-container, canary)
+      //
+      // This map associates a context with this collection of verifications and their states
+      val verificationStateMap = getVerificationStates(deliveryConfig, artifactVersions)
+
+      val artifactVersionSummaries = artifactVersions.map { artifactVersion ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         envSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
+          val verificationContext = VerificationContext(deliveryConfig, environment, artifactVersion)
+          val verifications = verificationStateMap[verificationContext]
+              ?.map { (verification, state) -> VerificationSummary(verification, state) }
+              ?: emptyList()
+
           environmentSummary.getArtifactPromotionStatus(artifact, artifactVersion.version)
             ?.let { status ->
-              if ( artifact.isUsedIn(environment)) { // only add a summary if the artifact is used in the environment
-                buildArtifactSummaryInEnvironment(deliveryConfig, environment.name, artifact, artifactVersion.version, status)
+              if (artifact.isUsedIn(environment)) { // only add a summary if the artifact is used in the environment
+                buildArtifactSummaryInEnvironment(
+                  deliveryConfig,
+                  environment.name,
+                  artifact,
+                  artifactVersion.version,
+                  status,
+                  verifications
+                )
                   ?.also {
                     artifactSummariesInEnvironments.add(
                       it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
@@ -262,6 +290,26 @@ class ApplicationService(
 
     return artifactSummaries
   }
+
+  private fun getVerificationStates(
+      deliveryConfig: DeliveryConfig,
+      artifactVersions: List<PublishedArtifact>
+  ) =
+    if (verificationsEnabled) {
+      repository.getVerificationStates(deliveryConfig, artifactVersions)
+    } else {
+      emptyMap()
+    }
+
+  private fun buildArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact,
+    version: String,
+    status: PromotionStatus,
+    verifications: List<VerificationSummary>) =
+    buildArtifactSummaryInEnvironment(deliveryConfig, environmentName, artifact, version, status)
+      ?.copy(verifications = verifications)
 
   private fun buildArtifactSummaryInEnvironment(deliveryConfig: DeliveryConfig, environmentName: String, artifact: DeliveryArtifact, version: String, status: PromotionStatus): ArtifactSummaryInEnvironment? {
     val currentArtifact = getArtifactInstance(artifact, version)
@@ -437,5 +485,34 @@ class ApplicationService(
     val releaseStatus = repository.getReleaseStatus(artifact, version)
     return repository.getArtifactVersion(artifact, version, releaseStatus)
   }
-
 }
+
+/**
+ * Query the repository for all of the verification states associated with [versions]
+ *
+ * This just calls [KeelRepository.getVerificationStatesBatch] and reshapes the returned value to a map
+ */
+fun KeelRepository.getVerificationStates(
+  deliveryConfig: DeliveryConfig,
+  versions: List<PublishedArtifact>
+): Map<VerificationContext, Map<Verification, VerificationState>> =
+  deliveryConfig.contexts(versions).let { contexts ->
+    contexts.zip(getVerificationStatesBatch(contexts))
+      .associate { (ctx: VerificationContext, vIdToState: Map<String, VerificationState>) ->
+        ctx to (vIdToState.entries.associate { (vId, state) ->
+          ctx.verification(vId) to state
+        })
+      }
+  }
+
+/**
+ * A verification context identifies an (environment, artifact version) pair.
+ *
+ * This takes a list of [PublishedArtifact] (artifact versions) and returns the corresponding contexts
+ */
+fun DeliveryConfig.contexts(
+  versions: List<PublishedArtifact>
+): List<VerificationContext> =
+  versions.flatMap { version ->
+    environments.map { env -> VerificationContext(this, env, version) }
+  }
