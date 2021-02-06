@@ -9,6 +9,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
+import com.netflix.spinnaker.gate.services.NotificationService;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
 import io.github.resilience4j.retry.RetryConfig;
@@ -28,6 +29,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,14 +54,19 @@ public class ManagedController {
   private final KeelService keelService;
   private final ObjectMapper objectMapper;
   private final RetryRegistry retryRegistry;
+  private final NotificationService notificationService;
 
   @Autowired
   public ManagedController(
-      KeelService keelService, ObjectMapper objectMapper, RetryRegistry retryRegistry) {
+      KeelService keelService,
+      ObjectMapper objectMapper,
+      RetryRegistry retryRegistry,
+      NotificationService notificationService) {
     this.keelService = keelService;
     this.objectMapper = objectMapper;
     this.yamlResponseHeaders = new HttpHeaders();
     this.retryRegistry = retryRegistry;
+    this.notificationService = notificationService;
     yamlResponseHeaders.setContentType(
         new MediaType("application", "x-yaml", StandardCharsets.UTF_8));
 
@@ -323,5 +330,14 @@ public class ManagedController {
       @PathVariable("reference") String reference,
       @PathVariable("version") String version) {
     keelService.deleteVeto(application, targetEnvironment, reference, version);
+  }
+
+  @PostMapping(
+      path = "/notifications/callbacks/{source}",
+      consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  ResponseEntity<String> processNotificationCallback(
+      @PathVariable String source, RequestEntity<String> request) {
+    return notificationService.processNotificationCallback(source, request, "keel");
   }
 }

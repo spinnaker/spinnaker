@@ -72,6 +72,6 @@ class NotificationController {
     produces = MediaType.APPLICATION_JSON_VALUE
   )
   ResponseEntity<String> processNotificationCallback(@PathVariable String source, RequestEntity<String> request) {
-    return notificationService.processNotificationCallback(source, request)
+    return notificationService.processNotificationCallback(source, request, "echo")
   }
 }

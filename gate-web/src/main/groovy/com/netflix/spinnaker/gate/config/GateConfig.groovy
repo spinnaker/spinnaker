@@ -289,6 +289,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty("services.keel.enabled")
+  KeelService keelService() {
+    createClient "keel", KeelService
+  }
+
+  @Bean
   @ConditionalOnProperty('services.kayenta.enabled')
   KayentaService kayentaService(OkHttpClientConfigurationProperties props,
                                 OkHttp3MetricsInterceptor interceptor,

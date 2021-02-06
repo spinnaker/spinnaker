@@ -50,8 +50,10 @@ class NotificationService {
   private Front50Service front50Service
   private EchoService echoService
 
-  private OkHttpClient okHttpClient
+  private OkHttpClient echoOkHttpClient
+  private OkHttpClient keelOkHttpClient
   private Endpoint echoEndpoint
+  private Endpoint keelEndpoint
 
   NotificationService(@Autowired(required = false) Front50Service front50Service,
                       @Autowired OkHttpClientProvider okHttpClientProvider,
@@ -63,7 +65,9 @@ class NotificationService {
     // of the body for the x-www-form-urlencoded content type, which is what Slack uses. This allows us to pass
     // the original body unmodified along to echo.
     this.echoEndpoint = serviceConfiguration.getServiceEndpoint("echo")
-    this.okHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url))
+    this.keelEndpoint = serviceConfiguration.getServiceEndpoint("keel")
+    this.echoOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url))
+    this.keelOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("keel", keelEndpoint.url))
   }
 
   Map getNotificationConfigs(String type, String app) {
@@ -82,7 +86,20 @@ class NotificationService {
     echoService.getNotificationTypeMetadata()
   }
 
-  ResponseEntity<String> processNotificationCallback(String source, RequestEntity<String> request) {
+  /**
+   * processNotificationCallback can be called from 2 places:
+   * 1. from NotificationController, which is the generic implementation and will use echo for further processing
+   * 2. from ManagedController, which is keel's (MD) specific implementation and will use keel for further processing
+   * @param source
+   * @param request
+   * @param service
+   * @return
+   */
+  ResponseEntity<String> processNotificationCallback(String source, RequestEntity<String> request, String service = "echo") {
+    Endpoint endpointToUse = echoEndpoint
+    OkHttpClient clientToUse = echoOkHttpClient
+    String path = request.url.path
+
     log.debug("Processing notification callback: ${request.getMethod()} ${request.getUrl()}, ${request.getHeaders()}")
     String contentType = request.getHeaders().getFirst("Content-Type")?.toLowerCase()
 
@@ -92,10 +109,16 @@ class NotificationService {
 
     final MediaType mediaType = MediaType.parse(contentType)
 
+    // If the call is coming from ManagedController, use keel client and keel endpoint instead of echo
+    if (service == "keel") {
+      endpointToUse = keelEndpoint
+      clientToUse = keelOkHttpClient
+      path = "/notifications/callback/v2"
+    }
 
-    log.debug("Building echo request with URL ${echoEndpoint.url + request.url.path}, Content-Type: $contentType")
+    log.debug("Building request with URL ${endpointToUse.url + path}, Content-Type: $contentType")
     Request.Builder builder = new Request.Builder()
-      .url(echoEndpoint.url + request.url.path)
+      .url(endpointToUse.url + path)
       .post(RequestBody.create(mediaType, request.body))
 
     request.getHeaders().each { String name, List values ->
@@ -105,9 +128,9 @@ class NotificationService {
       }
     }
 
-    Request echoRequest = builder.build();
+    Request callbackRequest = builder.build();
     try {
-      Response response = okHttpClient.newCall(echoRequest).execute()
+      Response response = clientToUse.newCall(callbackRequest).execute()
       // convert retrofit response to Spring format
       String body = response.body().contentLength() > 0 ? response.body().string() : null
       HttpHeaders headers = new HttpHeaders()

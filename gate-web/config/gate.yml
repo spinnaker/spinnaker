@@ -42,6 +42,9 @@ services:
   echo:
     baseUrl: http://localhost:8089
     enabled: true
+  keel:
+    baseUrl: http://localhost:8087
+    enabled: true
   fiat:
     enabled: false
   flapjack:

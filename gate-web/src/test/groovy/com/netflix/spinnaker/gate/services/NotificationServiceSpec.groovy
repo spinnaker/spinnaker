@@ -51,6 +51,7 @@ class NotificationServiceSpec extends Specification {
 
   void setup() {
     serviceConfiguration.getServiceEndpoint("echo") >> newFixedEndpoint("https://echo")
+    serviceConfiguration.getServiceEndpoint("keel") >> newFixedEndpoint("https://keel")
     clientProvider.getClient(_) >> { DefaultServiceEndpoint serviceEndpoint ->
       serviceEndpoint.name == 'echo'
       serviceEndpoint.baseUrl == 'https://echo'

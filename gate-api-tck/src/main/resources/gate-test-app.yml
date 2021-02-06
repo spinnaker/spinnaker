@@ -27,3 +27,6 @@ services:
     enabled: false
   swabbie:
     enabled: false
+  keel:
+    enabled: false
+    baseUrl: http://localhost:8087

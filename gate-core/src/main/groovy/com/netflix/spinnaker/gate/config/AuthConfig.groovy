@@ -85,6 +85,7 @@ class AuthConfig {
         .antMatchers('/plugins/deck/**').permitAll()
         .antMatchers(HttpMethod.POST, '/webhooks/**').permitAll()
         .antMatchers(HttpMethod.POST, '/notifications/callbacks/**').permitAll()
+        .antMatchers(HttpMethod.POST, '/managed/notifications/callbacks/**').permitAll()
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
     if (fiatSessionFilterEnabled) {
