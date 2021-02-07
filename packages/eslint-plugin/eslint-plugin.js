@@ -1,5 +1,6 @@
 module.exports = {
   rules: {
+    'import-sort': require('./rules/import-sort'),
     'api-deprecation': require('./rules/api-deprecation'),
     'api-no-slashes': require('./rules/api-no-slashes'),
     'api-no-unused-chaining': require('./rules/api-no-unused-chaining'),
