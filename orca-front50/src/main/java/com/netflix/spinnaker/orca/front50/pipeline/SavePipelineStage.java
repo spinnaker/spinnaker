@@ -27,6 +27,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SavePipelineStage implements StageDefinitionBuilder {
+
+  public static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
+  public static final String SHARED_SERVICE_ACCOUNT_SUFFIX = "@shared-managed-service-account";
+
   @Value("${tasks.use-managed-service-accounts:false}")
   boolean useManagedServiceAccounts;
 

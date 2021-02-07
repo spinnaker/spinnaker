@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 import static java.lang.String.format;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
@@ -30,10 +31,13 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
+import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +45,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -53,16 +58,23 @@ import retrofit.client.Response;
 @Slf4j
 public class SaveServiceAccountTask implements RetryableTask {
 
-  private static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
+  private final FiatStatus fiatStatus;
+  private final Front50Service front50Service;
+  private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final boolean useSharedManagedServiceAccounts;
 
-  @Autowired(required = false)
-  private FiatStatus fiatStatus;
-
-  @Autowired(required = false)
-  private Front50Service front50Service;
-
-  @Autowired(required = false)
-  private FiatPermissionEvaluator fiatPermissionEvaluator;
+  @Autowired
+  SaveServiceAccountTask(
+      Optional<FiatStatus> fiatStatus,
+      Optional<Front50Service> front50Service,
+      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      @Value("${tasks.use-shared-managed-service-accounts:false}")
+          boolean useSharedManagedServiceAccounts) {
+    this.fiatStatus = fiatStatus.get();
+    this.front50Service = front50Service.get();
+    this.fiatPermissionEvaluator = fiatPermissionEvaluator.get();
+    this.useSharedManagedServiceAccounts = useSharedManagedServiceAccounts;
+  }
 
   @Override
   public long getBackoffPeriod() {
@@ -122,7 +134,7 @@ public class SaveServiceAccountTask implements RetryableTask {
         });
 
     // Check if pipeline roles did not change, and skip updating a service account if so.
-    String serviceAccountName = generateSvcAcctName(pipeline);
+    String serviceAccountName = generateSvcAcctName(pipeline, roles);
     if (!pipelineRolesChanged(serviceAccountName, roles)) {
       log.debug("Skipping managed service account creation/updatimg since roles have not changed.");
       return TaskResult.builder(ExecutionStatus.SUCCEEDED)
@@ -153,12 +165,41 @@ public class SaveServiceAccountTask implements RetryableTask {
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
-  private String generateSvcAcctName(Map<String, Object> pipeline) {
+  private String generateSvcAcctName(Map<String, Object> pipeline, List<String> roles) {
     if (pipeline.containsKey("serviceAccount")) {
-      return (String) pipeline.get("serviceAccount");
+      final String serviceAccountName = (String) pipeline.get("serviceAccount");
+      /*
+       * if useSharedManagedServiceAccounts is disabled right now, but the existing service account name ends with
+       * @shared-managed-service-account, then force this pipeline to switch back to a regular managed service account,
+       * to avoid inadvertently updating a service account which is shared by multiple pipelines.
+       */
+      if (useSharedManagedServiceAccounts
+          || !usingSharedManagedServiceAccount(serviceAccountName)) {
+        return serviceAccountName;
+      }
     }
+
+    if (useSharedManagedServiceAccounts) {
+      return generateStableSvcAcctNameFromRoles(roles)
+          + SavePipelineStage.SHARED_SERVICE_ACCOUNT_SUFFIX;
+    }
+
     String pipelineName = (String) pipeline.get("id");
-    return pipelineName.toLowerCase() + SERVICE_ACCOUNT_SUFFIX;
+    return pipelineName.toLowerCase() + SavePipelineStage.SERVICE_ACCOUNT_SUFFIX;
+  }
+
+  private boolean usingSharedManagedServiceAccount(String serviceAccountName) {
+    return serviceAccountName.endsWith(SavePipelineStage.SHARED_SERVICE_ACCOUNT_SUFFIX);
+  }
+
+  private String generateStableSvcAcctNameFromRoles(List<String> roles) {
+    String roleString =
+        roles.stream()
+            .map(String::toLowerCase)
+            .distinct()
+            .sorted()
+            .collect(Collectors.joining("\0"));
+    return Hashing.sha256().hashString(roleString, StandardCharsets.UTF_8).toString();
   }
 
   private boolean isUserAuthorized(String user, List<String> pipelineRoles) {

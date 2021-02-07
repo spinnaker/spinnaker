@@ -35,7 +35,7 @@ class SavePipelineTaskSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
 
   @Subject
-  SavePipelineTask task = new SavePipelineTask(front50Service: front50Service, objectMapper: objectMapper, pipelineModelMutators: [mutator])
+  SavePipelineTask task = new SavePipelineTask(Optional.of(front50Service), Optional.of([mutator]), objectMapper)
 
   def "should run model mutators with correct context"() {
     given:
@@ -127,100 +127,49 @@ class SavePipelineTaskSpec extends Specification {
     receivedIndex == newIndex
   }
 
-  def "should update runAsUser with service account in each trigger where it is not set "() {
+  def "should update runAsUser"() {
     given:
-    String runAsUser
-    def expectedRunAsUser = 'my-pipeline-id@managed-service-account'
+    String actualRunAsUser
     def pipeline = [
-      application: 'orca',
-      name: 'my pipeline',
-      roles: ['foo'],
-      stages: [],
-      triggers: [
-        [
-          type: 'cron',
-          enabled: true
+        application: 'orca',
+        name: 'pipeline-id',
+        stages: [],
+        roles: roles,
+        triggers: [
+            [
+                type: 'cron',
+                enabled: true,
+                runAsUser: existingRunAsUser
+            ]
         ]
-      ]
     ]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
-      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+        pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
     when:
-    stage.getContext().put('pipeline.serviceAccount', expectedRunAsUser)
+    stage.getContext().put('pipeline.serviceAccount', serviceAccountFromSaveServiceAccountTask)
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
-      runAsUser = newPipeline.triggers[0].runAsUser
+      actualRunAsUser = newPipeline.get("triggers")[0]?.runAsUser
       new Response('http://front50', 200, 'OK', [], null)
     }
     task.execute(stage)
 
     then:
-    runAsUser == expectedRunAsUser
-  }
+    actualRunAsUser == expectedRunAsUser
 
-  def "should not update runAsUser in a trigger if it is already set"() {
-    given:
-    String runAsUser
-    def expectedRunAsUser = 'someServiceAccount'
-    def pipeline = [
-      application: 'orca',
-      name: 'my pipeline',
-      stages: [],
-      triggers: [
-        [
-          type: 'cron',
-          enabled: true,
-          runAsUser: expectedRunAsUser
-        ]
-      ]
-    ]
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
-      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
-    ])
-
-    when:
-    stage.getContext().put('pipeline.serviceAccount', 'my-pipeline@managed-service-account')
-    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
-      runAsUser = newPipeline.get("triggers")[0]?.runAsUser
-      new Response('http://front50', 200, 'OK', [], null)
-    }
-    task.execute(stage)
-
-    then:
-    runAsUser == expectedRunAsUser
-  }
-
-  def "should remove runAsUser in triggers if roles are empty"(){
-    given:
-    String runAsUser
-    def pipeline = [
-      application: 'orca',
-      name: 'my pipeline',
-      roles: [],
-      stages: [],
-      triggers: [
-        [
-          type: 'cron',
-          enabled: true,
-          runAsUser: 'id@managed-service-account'
-        ]
-      ]
-    ]
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
-      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
-    ])
-
-    when:
-    stage.getContext().put('pipeline.serviceAccount', 'id@managed-service-account')
-    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
-      runAsUser = newPipeline.get("triggers")[0]?.runAsUser
-      new Response('http://front50', 200, 'OK', [], null)
-    }
-    task.execute(stage)
-
-    then:
-    runAsUser == null
+    where:
+    existingRunAsUser                     | roles    | serviceAccountFromSaveServiceAccountTask | expectedRunAsUser
+    null                                  | ['test'] | 'pipeline-id@managed-service-account'    | 'pipeline-id@managed-service-account' // should update runAsUser with service account in each trigger where it is not set
+    'pipeline-id@managed-service-account' | []       | 'someAccount@someOrg'                    | 'pipeline-id@managed-service-account' // should not update runAsUser in a trigger if it is already set
+    'pipeline-id@managed-service-account' | []       | 'pipeline-id@managed-service-account'    | null // should remove runAsUser in triggers if roles are empty
+    'test@shared-managed-service-account' | ['test'] | 'pipeline-id@managed-service-account'    | 'pipeline-id@managed-service-account' // roles are set, update runAsUser
+    'pipeline-id@managed-service-account' | ['test'] | 'test@shared-managed-service-account'    | 'test@shared-managed-service-account' // roles are set, update runAsUser
+    'pipeline-id@managed-service-account' | ['test'] | 'pipeline-id@managed-service-account'    | 'pipeline-id@managed-service-account' // roles are set, preserve runAsUser
+    'someAccount@someOrg'                 | ['test'] | 'pipeline-id@managed-service-account'    | 'someAccount@someOrg' // roles and non-managed svc acct, preserve runAsUser
+    null                                  | []       | 'pipeline-id@managed-service-account'    | null // roles are empty, don't introduce a managed svc acct
+    null                                  | ['test'] | 'test@shared-managed-service-account'    | 'test@shared-managed-service-account' // roles are set, set runAsUser
+    null                                  | ['test'] | 'pipeline-id@managed-service-account'    | 'pipeline-id@managed-service-account' // roles are set, set runAsUser
   }
 
   def "should fail task when front 50 save call fails"() {
