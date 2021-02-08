@@ -36,8 +36,9 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
-import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
+import com.netflix.spinnaker.keel.api.plugins.CurrentImages
+import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.ResourcesSpec
@@ -147,9 +148,14 @@ class TitusClusterHandler(
       resource.spec.resolveCapacity(serverGroup.location.region)
     ) == true
 
-  override suspend fun willTakeAction(resource: Resource<TitusClusterSpec>, resourceDiff: ResourceDiff<Map<String, TitusServerGroup>>): ActionDecision {
-    return super.willTakeAction(resource, resourceDiff)
-  }
+  override suspend fun getImage(resource: Resource<TitusClusterSpec>): CurrentImages =
+    current(resource)
+    .map { (region, serverGroup) ->
+      ImageInRegion(region, serverGroup.container.digest, serverGroup.location.account)
+    }
+    .let { images ->
+      CurrentImages(supportedKind.kind, images, resource.id)
+    }
 
   override suspend fun upsert(
     resource: Resource<TitusClusterSpec>,

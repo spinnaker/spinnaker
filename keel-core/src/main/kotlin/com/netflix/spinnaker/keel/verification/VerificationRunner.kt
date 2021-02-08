@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Component
 class VerificationRunner(
   private val verificationRepository: VerificationRepository,
   private val evaluators: List<VerificationEvaluator<*>>,
-  private val eventPublisher: ApplicationEventPublisher
+  private val eventPublisher: ApplicationEventPublisher,
+  private val imageFinder: ImageFinder
 ) {
   /**
    * Evaluates the state of any currently running verifications and launches the next, against a
@@ -37,13 +39,13 @@ class VerificationRunner(
       }
 
       statuses.firstOutstanding?.let { verification ->
-        start(verification)
+        start(verification, imageFinder.getImages(context.deliveryConfig, context.environmentName))
       } ?: log.debug("Verification complete for {}", environment.name)
     }
   }
 
-  private fun VerificationContext.start(verification: Verification) {
-    val metadata = evaluators.start(this, verification)
+  private fun VerificationContext.start(verification: Verification, images: List<CurrentImages>) {
+    val metadata = evaluators.start(this, verification) + mapOf("images" to images)
     markAsRunning(verification, metadata)
     eventPublisher.publishEvent(VerificationStarted(this, verification))
   }
@@ -56,7 +58,7 @@ class VerificationRunner(
           if (newStatus.complete) {
             log.debug("Verification {} completed with status {} for {}", verification, newStatus, environment.name)
             markAs(verification, newStatus)
-            eventPublisher.publishEvent(VerificationCompleted(this, verification, newStatus))
+            eventPublisher.publishEvent(VerificationCompleted(this, verification, newStatus, state.metadata))
           }
         }
     } else {

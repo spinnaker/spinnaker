@@ -59,4 +59,9 @@ abstract class BaseClusterHandler<SPEC: ResourceSpec, RESOLVED: Any>(
     }
     return ActionDecision(willAct = true)
   }
+
+  /**
+   * gets current state of the resource and returns the current image, by region.
+   */
+  abstract suspend fun getImage(resource: Resource<SPEC>): CurrentImages
 }

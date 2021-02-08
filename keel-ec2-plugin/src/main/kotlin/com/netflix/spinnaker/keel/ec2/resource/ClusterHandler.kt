@@ -42,6 +42,8 @@ import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
+import com.netflix.spinnaker.keel.api.plugins.CurrentImages
+import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.withDefaultsOmitted
@@ -141,6 +143,20 @@ class ClusterHandler(
       resource.spec.deployWith.health,
       resource.spec.resolveCapacity(serverGroup.location.region)
     ) == true
+
+  override suspend fun getImage(resource: Resource<ClusterSpec>): CurrentImages =
+    current(resource)
+      .map { (region, serverGroup) ->
+        val account = serverGroup.location.account
+        val images = cloudDriverService.getImage(account = account, region = region, amiId = serverGroup.launchConfiguration.imageId)
+        if (images.size > 1) {
+          log.error("More than one image with ami id ${serverGroup.launchConfiguration.imageId}, using first...")
+        }
+        ImageInRegion(region, images.first().imageName , serverGroup.location.account)
+      }
+      .let { images ->
+        CurrentImages(supportedKind.kind, images, resource.id)
+      }
 
   override suspend fun upsert(
     resource: Resource<ClusterSpec>,

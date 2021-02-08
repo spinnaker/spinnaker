@@ -2,11 +2,14 @@ package com.netflix.spinnaker.keel.verification
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.plugins.CurrentImages
+import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
@@ -36,10 +39,23 @@ internal class VerificationRunnerTests {
   }
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
+  val images = listOf(
+    CurrentImages(
+      ResourceKind("dummy", "resource", "1.0"),
+      listOf(ImageInRegion("us-west-2", "i:am:an:image:id", "test")),
+      "resourceId:is:me"
+    )
+  )
+
+  private val imageFinder = mockk<ImageFinder>(relaxUnitFun = true) {
+    every { getImages(any(), any()) } returns images
+  }
+
   private val subject = VerificationRunner(
     repository,
     listOf(evaluator),
-    publisher
+    publisher,
+    imageFinder
   )
 
   @Test
@@ -88,7 +104,7 @@ internal class VerificationRunnerTests {
       artifactReference = "fnord-docker",
       version = "fnord-0.190.0-h378.eacb135"
     )
-    val metadata = mapOf("taskId" to ULID().nextULID())
+    val metadata = mapOf("taskId" to ULID().nextULID(), "images" to images)
 
     every { repository.getState(any(), any()) } returns null
     every { evaluator.start(any(), any()) } returns metadata
@@ -207,7 +223,7 @@ internal class VerificationRunnerTests {
     verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
 
     verify { evaluator.start(context, DummyVerification("2")) }
-    verify { repository.updateState(any(), DummyVerification("2"), PENDING) }
+    verify { repository.updateState(any(), DummyVerification("2"), PENDING, mapOf("images" to images)) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 

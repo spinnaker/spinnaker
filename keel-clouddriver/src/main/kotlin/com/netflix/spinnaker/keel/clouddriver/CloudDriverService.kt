@@ -160,6 +160,14 @@ interface CloudDriverService {
     @Query("region") region: String? = null
   ): List<NamedImage>
 
+  @GET("/aws/images/{account}/{region}/{id}")
+  suspend fun getImage(
+    @Path("account") account: String,
+    @Path("region") region: String,
+    @Path("id") amiId: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<NamedImage>
+
   @GET("/images/find")
   suspend fun images(
     @Query("provider") provider: String,
