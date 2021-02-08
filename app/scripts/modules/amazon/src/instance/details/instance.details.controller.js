@@ -201,7 +201,10 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           $scope.instance.targetGroups = targetGroups;
           if ($scope.instance.networkInterfaces) {
             $scope.instance.ipv6Addresses = _.flatMap($scope.instance.networkInterfaces, (i) =>
-              i.ipv6Addresses.map((a) => a.ipv6Address),
+              i.ipv6Addresses.map((a) => ({
+                ip: a.ipv6Address,
+                url: `http://${a.ipv6Address}:${$scope.state.instancePort}`,
+              })),
             );
 
             const permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(

@@ -27,32 +27,12 @@
       custom-health-url="instance.customHealthUrl"
     >
     </instance-status>
-    <collapsible-section heading="DNS">
-      <dl class="dl-horizontal dl-narrow">
-        <dt ng-if="instance.placement.containerIp">Container IP</dt>
-        <dd ng-if="instance.placement.containerIp">
-          {{instance.placement.containerIp}}
-          <copy-to-clipboard
-            class="copy-to-clipboard"
-            text="instance.placement.containerIp"
-            tool-tip="'Copy container IP clipboard'"
-          >
-          </copy-to-clipboard>
-        </dd>
-        <dt ng-if="instance.ipv6Address">Container IPv6</dt>
-        <dd ng-if="instance.ipv6Address">
-          {{instance.ipv6Address}}
-          <copy-to-clipboard
-            class="copy-to-clipboard"
-            text="'http://[' + instance.ipv6Address + ']:' + state.instancePort"
-            tool-tip="'Copy container IP clipboard'"
-          >
-          </copy-to-clipboard>
-        </dd>
-        <dt>Host IP</dt>
-        <dd>{{instance.placement.host}}</dd>
-      </dl>
-    </collapsible-section>
+    <titus-instance-dns
+      container-ip="instance.placement.containerIp"
+      host="instance.placement.host"
+      instance-port="state.instancePort"
+      ipv6-address="instance.ipv6Address"
+    ></titus-instance-dns>
     <titus-security-groups
       app="application"
       server-group="serverGroup"
