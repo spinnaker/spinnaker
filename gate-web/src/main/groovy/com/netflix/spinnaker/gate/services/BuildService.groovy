@@ -56,15 +56,15 @@ class BuildService {
   }
 
 
-  List<String> getJobsForBuildMaster(String buildMaster) {
+  List<String> getJobsForBuildMaster(String controller) {
     if (!igorService) {
       return []
     }
     try {
-      igorService.getJobsForBuildMaster(buildMaster)
+      igorService.getJobsForBuildMaster(controller)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
+        throw new BuildMasterNotFound("Build master '${controller}' not found")
       }
       throw e
     }
@@ -85,45 +85,45 @@ class BuildService {
     }
   }
 
-  Map getJobConfig(String buildMaster, String job) {
+  Map getJobConfig(String controller, String job) {
     if (!igorService) {
       return [:]
     }
     try {
-      igorService.getJobConfig(buildMaster, encode(job))
+      igorService.getJobConfig(controller, encode(job))
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' not found")
+        throw new BuildMasterNotFound("Job not found (controller: '${controller}', job: '${job}')")
       }
 
       throw e
     }
   }
 
-  List getBuilds(String buildMaster, String job) {
+  List getBuilds(String controller, String job) {
     if (!igorService) {
       return []
     }
     try {
-      igorService.getBuilds(buildMaster, encode(job))
+      igorService.getBuilds(controller, encode(job))
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' not found")
+        throw new BuildMasterNotFound("Builds not found (controller: '${controller}', job: '${job}')")
       }
 
       throw e
     }
   }
 
-  Map getBuild(String buildMaster, String job, String number) {
+  Map getBuild(String controller, String job, String number) {
     if (!igorService) {
       return [:]
     }
     try {
-      igorService.getBuild(buildMaster, encode(job), number)
+      igorService.getBuild(controller, encode(job), number)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' / build ${number} not found")
+        throw new BuildMasterNotFound("Build not found (controller: '${controller}', job: '${job}', build: ${number})")
       }
 
       throw e
