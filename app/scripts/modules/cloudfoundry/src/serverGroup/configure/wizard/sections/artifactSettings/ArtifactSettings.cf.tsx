@@ -30,7 +30,6 @@ export class CloudFoundryServerGroupArtifactSettings
 
   private excludedArtifactTypePatterns = [
     ArtifactTypePatterns.KUBERNETES,
-    ArtifactTypePatterns.DOCKER_IMAGE,
     ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
   ];
 
