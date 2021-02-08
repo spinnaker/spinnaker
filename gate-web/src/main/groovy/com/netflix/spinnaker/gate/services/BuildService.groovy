@@ -93,7 +93,7 @@ class BuildService {
       igorService.getJobConfig(buildMaster, encode(job))
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
+        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' not found")
       }
 
       throw e
@@ -108,7 +108,7 @@ class BuildService {
       igorService.getBuilds(buildMaster, encode(job))
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
+        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' not found")
       }
 
       throw e
@@ -123,7 +123,7 @@ class BuildService {
       igorService.getBuild(buildMaster, encode(job), number)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
+        throw new BuildMasterNotFound("Build master '${buildMaster}' / job '${job}' / build ${number} not found")
       }
 
       throw e
