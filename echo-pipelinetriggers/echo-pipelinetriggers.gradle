@@ -47,6 +47,7 @@ dependencies {
   implementation "commons-codec:commons-codec"
 
   implementation 'com.vdurmont:semver4j'
+  implementation "com.jayway.jsonpath:json-path"
 
   testImplementation project(':echo-test')
   testImplementation "org.springframework.boot:spring-boot-starter-test"

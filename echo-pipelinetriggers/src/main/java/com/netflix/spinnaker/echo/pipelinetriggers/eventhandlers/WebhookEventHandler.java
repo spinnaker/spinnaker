@@ -14,7 +14,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isJsonPathConstraintInPayload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -104,7 +104,7 @@ public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
                 // If the Constraints are present, check that there are equivalents in the webhook
                 // payload.
                 (trigger.getPayloadConstraints() != null
-                    && isConstraintInPayload(
+                    && isJsonPathConstraintInPayload(
                         trigger.getPayloadConstraints(), webhookEvent.getPayload())));
   }
 
