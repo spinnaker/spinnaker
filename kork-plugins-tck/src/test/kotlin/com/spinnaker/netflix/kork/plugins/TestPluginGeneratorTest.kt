@@ -20,9 +20,9 @@ import com.netflix.spinnaker.kork.plugins.testplugin.testPlugin
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
-import strikt.assertions.isDirectory
 import strikt.assertions.isEqualTo
-import strikt.assertions.isRegularFile
+import strikt.java.isDirectory
+import strikt.java.isRegularFile
 import java.nio.file.Files
 import java.nio.file.Path
 

@@ -9,7 +9,7 @@ dependencies {
   implementation "org.pf4j:pf4j"
 
   //Test framework dependencies
-  api("io.strikt:strikt-core")
+  api("io.strikt:strikt-jvm")
   api("dev.minutest:minutest")
   api("io.mockk:mockk")
   api("org.springframework.boot:spring-boot-starter-test")
