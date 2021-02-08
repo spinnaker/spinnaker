@@ -76,9 +76,9 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
         <div>
           <div className="form-group">
             <div className="col-md-12">
-              <p>Sets up auto-scaling for this server group.</p>
+              <p>Sets up auto-scaling constraints for this server group.</p>
               <p>
-                To disable auto-scaling, use the{' '}
+                To set min, max, and desired instance counts to the same value use the{' '}
                 <a className="clickable" onClick={() => this.setSimpleCapacity(true)}>
                   Simple Mode
                 </a>
@@ -155,11 +155,11 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
       <div>
         <div className="form-group">
           <div className="col-md-12">
-            <p>Sets min, max, and desired instance counts to the same value.</p>
+            <p>Sets the min, max, and desired instance counts to the same value.</p>
 
             <p>
               {' '}
-              To allow true auto-scaling, use the{' '}
+              To set capacity for auto-scaling, use the{' '}
               <a className="clickable" onClick={() => this.setSimpleCapacity(false)}>
                 Advanced Mode
               </a>
