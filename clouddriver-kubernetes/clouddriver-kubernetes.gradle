@@ -117,7 +117,8 @@ task integrationTest(type: Test) {
   description = 'Runs kubernetes provider integration tests.'
   group = 'verification'
 
-  environment "PROJECT_ROOT", project.rootDir.toString()
+  environment "KUBECTL_PATH", "$project.rootDir/clouddriver-kubernetes/src/integration/resources/kubectl-wrapper.sh"
+  environment "KUBECONFIGS_HOME", "$project.rootDir/clouddriver-kubernetes/build/kubeconfigs"
   useJUnitPlatform()
 
   testClassesDirs = sourceSets.integration.output.classesDirs

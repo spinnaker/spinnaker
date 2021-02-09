@@ -16,12 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.it.utils;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.it.BaseTest.ACCOUNT1_NAME;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.it.containers.KubernetesCluster;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -29,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -151,5 +161,212 @@ public abstract class KubeTestUtils {
 
       return this;
     }
+  }
+
+  public static void deployAndWaitStable(
+      String baseUrl, List<Map<String, Object>> reqBody, String targetNs, String... objectNames)
+      throws InterruptedException {
+
+    System.out.println("> Sending deploy manifest request");
+    Response resp =
+        given()
+            .log()
+            .uri()
+            .contentType("application/json")
+            .body(reqBody)
+            .post(baseUrl + "/kubernetes/ops");
+    resp.then().statusCode(200);
+    System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
+    String taskId = resp.jsonPath().get("id");
+
+    System.out.println("> Waiting for deploy task to complete");
+    long start = System.currentTimeMillis();
+    List<String> deployedObjectNames = new ArrayList<>();
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          Response respTask = given().log().uri().get(baseUrl + "/task/" + taskId);
+          if (respTask.statusCode() == 404) {
+            return false;
+          }
+          respTask.then().statusCode(200);
+          respTask.then().body("status.failed", is(false));
+          deployedObjectNames.clear();
+          deployedObjectNames.addAll(
+              respTask
+                  .jsonPath()
+                  .getList(
+                      "resultObjects.manifestNamesByNamespace." + targetNs + ".flatten()",
+                      String.class));
+          return respTask.jsonPath().getBoolean("status.completed");
+        },
+        30,
+        TimeUnit.SECONDS,
+        "Waited 30 seconds on GET /task/{id} to return \"status.completed: true\"");
+    System.out.println(
+        "< Deploy task completed in " + ((System.currentTimeMillis() - start) / 1000) + " seconds");
+
+    assertEquals(
+        Arrays.asList(objectNames),
+        deployedObjectNames,
+        "Expected object names deployed: "
+            + Arrays.toString(objectNames)
+            + " but were: "
+            + deployedObjectNames);
+
+    for (String objectName : objectNames) {
+      System.out.println(
+          "> Sending get manifest request for object \"" + objectName + "\" to check stability");
+      start = System.currentTimeMillis();
+      KubeTestUtils.repeatUntilTrue(
+          () -> {
+            Response respWait =
+                given()
+                    .log()
+                    .uri()
+                    .queryParam("includeEvents", false)
+                    .get(
+                        baseUrl
+                            + "/manifests/"
+                            + ACCOUNT1_NAME
+                            + "/"
+                            + targetNs
+                            + "/"
+                            + objectName);
+            JsonPath jsonPath = respWait.jsonPath();
+            System.out.println(jsonPath.getObject("status", Map.class));
+            respWait.then().statusCode(200).body("status.failed.state", is(false));
+            return jsonPath.getBoolean("status.stable.state");
+          },
+          5,
+          TimeUnit.MINUTES,
+          "Waited 5 minutes on GET /manifest.. to return \"status.stable.state: true\"");
+      System.out.println(
+          "< Object \""
+              + objectName
+              + "\" stable in "
+              + ((System.currentTimeMillis() - start) / 1000)
+              + " seconds");
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static void forceCacheRefresh(String baseUrl, String targetNs, String objectName)
+      throws InterruptedException {
+    System.out.println("> Sending force cache refresh request for object \"" + objectName + "\"");
+    Response resp =
+        given()
+            .log()
+            .uri()
+            .contentType("application/json")
+            .body(
+                ImmutableMap.of(
+                    "account", ACCOUNT1_NAME,
+                    "location", targetNs,
+                    "name", objectName))
+            .post(baseUrl + "/cache/kubernetes/manifest");
+    resp.then().statusCode(anyOf(is(200), is(202)));
+    System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
+
+    if (resp.statusCode() == 202) {
+      System.out.println("> Waiting cache to be refreshed for object \"" + objectName + "\"");
+      long start = System.currentTimeMillis();
+      KubeTestUtils.repeatUntilTrue(
+          () -> {
+            Response fcrWaitResp = given().log().uri().get(baseUrl + "/cache/kubernetes/manifest");
+            fcrWaitResp.then().log().body(false);
+            List<Object> list =
+                Stream.of(fcrWaitResp.as(Map[].class))
+                    .filter(
+                        it -> {
+                          Map<String, Object> details = (Map<String, Object>) it.get("details");
+                          String name = (String) details.get("name");
+                          String account = (String) details.get("account");
+                          String location = (String) details.get("location");
+                          Number processedTime = (Number) it.get("processedTime");
+                          return Objects.equals(ACCOUNT1_NAME, account)
+                              && Objects.equals(targetNs, location)
+                              && Objects.equals(objectName, name)
+                              && processedTime != null
+                              && processedTime.longValue() > -1;
+                        })
+                    .collect(Collectors.toList());
+            return !list.isEmpty();
+          },
+          5,
+          TimeUnit.MINUTES,
+          "GET /cache/kubernetes/manifest did not returned processedTime > -1 for object \""
+              + objectName
+              + "\" after 5 minutes");
+      System.out.println(
+          "< Force cache refresh for \""
+              + objectName
+              + "\" completed in "
+              + ((System.currentTimeMillis() - start) / 1000)
+              + " seconds");
+    } else {
+      System.out.println(
+          "< Force cache refresh for object \"" + objectName + "\" succeeded immediately");
+    }
+  }
+
+  public static void deployIfMissing(
+      String baseUrl,
+      String account,
+      String namespace,
+      String kind,
+      String name,
+      String app,
+      KubernetesCluster kubeCluster)
+      throws InterruptedException, IOException {
+    deployIfMissing(baseUrl, account, namespace, kind, name, app, null, kubeCluster);
+  }
+
+  public static void deployIfMissing(
+      String baseUrl,
+      String account,
+      String namespace,
+      String kind,
+      String name,
+      String app,
+      String image,
+      KubernetesCluster kubeCluster)
+      throws InterruptedException, IOException {
+
+    String path = "";
+    if (image != null) {
+      path = ".spec.template.spec.containers[0].image";
+    }
+
+    String output =
+        kubeCluster.execKubectl(
+            "-n "
+                + namespace
+                + " get "
+                + kind
+                + " -o=jsonpath='{.items[?(@.metadata.name==\""
+                + name
+                + "\")]"
+                + path
+                + "}'");
+    if (!output.isEmpty()) {
+      if (image == null || output.contains(image)) {
+        return;
+      }
+    }
+
+    TestResourceFile manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/" + kind + ".yml")
+            .withValue("metadata.name", name)
+            .withValue("metadata.namespace", namespace);
+    if (image != null) {
+      manifest = manifest.withValue("spec.template.spec.containers[0].image", image);
+    }
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", account)
+            .withValue("deployManifest.moniker.app", app)
+            .withValue("deployManifest.manifests", manifest.asList())
+            .asList();
+    KubeTestUtils.deployAndWaitStable(baseUrl, body, namespace, kind + " " + name);
   }
 }

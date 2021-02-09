@@ -97,11 +97,7 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
     List<String> cmd = new ArrayList<>();
     cmd.add("sh");
     cmd.add("-c");
-    cmd.add(
-        "${PROJECT_ROOT}/clouddriver-kubernetes/src/integration/resources/kubectl-wrapper.sh --kubeconfig="
-            + kubecfgPath
-            + " "
-            + args);
+    cmd.add("${KUBECTL_PATH} --kubeconfig=" + kubecfgPath + " " + args);
     builder.command(cmd);
     builder.redirectErrorStream(true);
     Process process = builder.start();
@@ -158,12 +154,7 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
 
   private Path copyKubecfgFromCluster(String containerName) throws IOException {
     Path myKubeconfig =
-        Paths.get(
-            System.getenv("PROJECT_ROOT"),
-            "clouddriver-kubernetes",
-            "build",
-            "kubeconfigs",
-            "kubecfg-" + containerName + ".yml");
+        Paths.get(System.getenv("KUBECONFIGS_HOME"), "kubecfg-" + containerName + ".yml");
     Files.createDirectories(myKubeconfig.getParent());
     copyFileFromContainer(KUBECFG_IN_CONTAINER, myKubeconfig.toAbsolutePath().toString());
     return myKubeconfig;

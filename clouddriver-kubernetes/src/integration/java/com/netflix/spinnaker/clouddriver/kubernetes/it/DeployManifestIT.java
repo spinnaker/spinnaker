@@ -22,13 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.it.utils.KubeTestUtils;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +43,7 @@ public class DeployManifestIT extends BaseTest {
   public void shouldDeployManifestFromText() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml").asList();
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml").asList();
     String overrideNamespace = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + overrideNamespace);
 
@@ -59,7 +55,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, overrideNamespace, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, overrideNamespace, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + overrideNamespace + " get pods");
@@ -81,7 +77,7 @@ public class DeployManifestIT extends BaseTest {
   public void shouldNotDeployToNamespaceNotListed() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", "default")
             .asList();
     String overrideNamespace = kubeCluster.getAvailableNamespace();
@@ -119,7 +115,7 @@ public class DeployManifestIT extends BaseTest {
   public void shouldDeployManifestToDefaultNs() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml").asList();
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml").asList();
 
     // ------------------------- when --------------------------
     List<Map<String, Object>> body =
@@ -128,7 +124,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, "default", "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, "default", "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n default get pods");
@@ -162,7 +158,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx", "service nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx", "service nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -193,7 +189,7 @@ public class DeployManifestIT extends BaseTest {
     String newImage = "index.docker.io/library/nginx:1.15.0";
 
     List<Map<String, Object>> oldManifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.containers[0].image", oldImage)
             .asList();
@@ -204,7 +200,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", oldManifest)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
     String currentImage =
         kubeCluster.execKubectl(
             "-n "
@@ -213,7 +209,7 @@ public class DeployManifestIT extends BaseTest {
     assertEquals(oldImage, currentImage, "Expected correct nginx image to be deployed");
 
     List<Map<String, Object>> newManifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.containers[0].image", newImage)
             .asList();
@@ -225,7 +221,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", newManifest)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -258,7 +254,7 @@ public class DeployManifestIT extends BaseTest {
     String imageWithTag = "index.docker.io/library/nginx:1.15.0";
 
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.containers[0].image", imageNoTag)
             .asList();
@@ -278,7 +274,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -311,7 +307,7 @@ public class DeployManifestIT extends BaseTest {
     String imageWithTag = "index.docker.io/library/nginx:1.15.0";
 
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.containers[0].image", imageNoTag)
             .asList();
@@ -331,7 +327,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.requiredArtifacts[0]", artifact)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -366,7 +362,7 @@ public class DeployManifestIT extends BaseTest {
     String optionalImage = "index.docker.io/library/nginx:1.15.0";
 
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.containers[0].image", imageNoTag)
             .asList();
@@ -394,7 +390,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.requiredArtifacts[0]", requiredArtifact)
             .withValue("deployManifest.optionalArtifacts[0]", optionalArtifact)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -436,7 +432,7 @@ public class DeployManifestIT extends BaseTest {
     kubeCluster.execKubectl("-n " + ns + " apply -f -", cm);
 
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx_vol.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment_with_vol.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.volumes[0].configMap.name", cmName)
             .asList();
@@ -458,7 +454,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -501,7 +497,7 @@ public class DeployManifestIT extends BaseTest {
     kubeCluster.execKubectl("-n " + ns + " apply -f -", secret);
 
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/deployment_nginx_vol.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/deployment_with_vol.yml")
             .withValue("metadata.namespace", ns)
             .withValue("spec.template.spec.volumes[0].secret.secretName", secretName)
             .asList();
@@ -523,7 +519,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    deployAndWaitStable(body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
@@ -567,7 +563,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "configMap " + cmName + "-v000");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "configMap " + cmName + "-v000");
 
     // ------------------------- then --------------------------
     String cm = kubeCluster.execKubectl("-n " + ns + " get cm " + cmName + "-v000");
@@ -601,7 +597,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "secret " + secretName + "-v000");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "secret " + secretName + "-v000");
 
     // ------------------------- then --------------------------
     String cm = kubeCluster.execKubectl("-n " + ns + " get secret " + secretName + "-v000");
@@ -635,7 +631,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "configMap " + cmName + "-v000");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "configMap " + cmName + "-v000");
 
     manifest =
         KubeTestUtils.loadYaml("classpath:manifests/configmap.yml")
@@ -651,7 +647,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "configMap " + cmName + "-v001");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "configMap " + cmName + "-v001");
 
     // ------------------------- then --------------------------
     String cm = kubeCluster.execKubectl("-n " + ns + " get cm " + cmName + "-v001");
@@ -687,7 +683,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "secret " + secretName + "-v000");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "secret " + secretName + "-v000");
 
     manifest =
         KubeTestUtils.loadYaml("classpath:manifests/secret.yml")
@@ -703,7 +699,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "secret " + secretName + "-v001");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "secret " + secretName + "-v001");
 
     // ------------------------- then --------------------------
     String secret = kubeCluster.execKubectl("-n " + ns + " get secret " + secretName + "-v001");
@@ -741,7 +737,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "configMap " + cmName);
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "configMap " + cmName);
 
     // ------------------------- then --------------------------
     String cm = kubeCluster.execKubectl("-n " + ns + " get cm " + cmName);
@@ -777,7 +773,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    deployAndWaitStable(body, ns, "secret " + secretName);
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "secret " + secretName);
 
     // ------------------------- then --------------------------
     String cm = kubeCluster.execKubectl("-n " + ns + " get secret " + secretName);
@@ -787,147 +783,4 @@ public class DeployManifestIT extends BaseTest {
   // ------------------------------------------------------------------------------------------------------
   // ------------------------------------------------------------------------------------------------------
 
-  @SuppressWarnings("unchecked")
-  private void deployAndWaitStable(
-      List<Map<String, Object>> reqBody, String targetNs, String... objectNames)
-      throws InterruptedException {
-
-    System.out.println("> Sending deploy manifest request");
-    Response resp =
-        given()
-            .log()
-            .uri()
-            .contentType("application/json")
-            .body(reqBody)
-            .post(baseUrl() + "/kubernetes/ops");
-    resp.then().statusCode(200);
-    System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
-    String taskId = resp.jsonPath().get("id");
-
-    System.out.println("> Waiting for deploy task to complete");
-    long start = System.currentTimeMillis();
-    List<String> deployedObjectNames = new ArrayList<>();
-    KubeTestUtils.repeatUntilTrue(
-        () -> {
-          Response respTask = given().log().uri().get(baseUrl() + "/task/" + taskId);
-          if (respTask.statusCode() == 404) {
-            return false;
-          }
-          respTask.then().statusCode(200);
-          respTask.then().body("status.failed", is(false));
-          deployedObjectNames.clear();
-          deployedObjectNames.addAll(
-              respTask
-                  .jsonPath()
-                  .getList(
-                      "resultObjects.manifestNamesByNamespace." + targetNs + ".flatten()",
-                      String.class));
-          return respTask.jsonPath().getBoolean("status.completed");
-        },
-        30,
-        TimeUnit.SECONDS,
-        "Waited 30 seconds on GET /task/{id} to return \"status.completed: true\"");
-    System.out.println(
-        "< Deploy task completed in " + ((System.currentTimeMillis() - start) / 1000) + " seconds");
-
-    assertEquals(
-        Arrays.asList(objectNames),
-        deployedObjectNames,
-        "Expected object names deployed: "
-            + Arrays.toString(objectNames)
-            + " but were: "
-            + deployedObjectNames);
-
-    for (String objectName : objectNames) {
-      System.out.println("> Sending force cache refresh request for object \"" + objectName + "\"");
-      resp =
-          given()
-              .log()
-              .uri()
-              .contentType("application/json")
-              .body(
-                  ImmutableMap.of(
-                      "account", ACCOUNT1_NAME,
-                      "location", targetNs,
-                      "name", objectName))
-              .post(baseUrl() + "/cache/kubernetes/manifest");
-      resp.then().statusCode(anyOf(is(200), is(202)));
-      System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
-
-      if (resp.statusCode() == 202) {
-        System.out.println("> Waiting cache to be refreshed for object \"" + objectName + "\"");
-        start = System.currentTimeMillis();
-        KubeTestUtils.repeatUntilTrue(
-            () -> {
-              Response fcrWaitResp =
-                  given().log().uri().get(baseUrl() + "/cache/kubernetes/manifest");
-              fcrWaitResp.then().log().body(false);
-              List<Object> list =
-                  Stream.of(fcrWaitResp.as(Map[].class))
-                      .filter(
-                          it -> {
-                            Map<String, Object> details = (Map<String, Object>) it.get("details");
-                            String name = (String) details.get("name");
-                            String account = (String) details.get("account");
-                            String location = (String) details.get("location");
-                            Number processedTime = (Number) it.get("processedTime");
-                            return Objects.equals(ACCOUNT1_NAME, account)
-                                && Objects.equals(targetNs, location)
-                                && Objects.equals(objectName, name)
-                                && processedTime != null
-                                && processedTime.longValue() > -1;
-                          })
-                      .collect(Collectors.toList());
-              return !list.isEmpty();
-            },
-            5,
-            TimeUnit.MINUTES,
-            "GET /cache/kubernetes/manifest did not returned processedTime > -1 for object \""
-                + objectName
-                + "\" after 5 minutes");
-        System.out.println(
-            "< Force cache refresh for \""
-                + objectName
-                + "\" completed in "
-                + ((System.currentTimeMillis() - start) / 1000)
-                + " seconds");
-      } else {
-        System.out.println(
-            "< Force cache refresh for object \"" + objectName + "\" succeeded immediately");
-      }
-
-      System.out.println(
-          "> Sending get manifest request for object \"" + objectName + "\" to check stability");
-      start = System.currentTimeMillis();
-      KubeTestUtils.repeatUntilTrue(
-          () -> {
-            Response respWait =
-                given()
-                    .log()
-                    .uri()
-                    .queryParam("includeEvents", false)
-                    .get(
-                        baseUrl()
-                            + "/manifests/"
-                            + ACCOUNT1_NAME
-                            + "/"
-                            + targetNs
-                            + "/"
-                            + objectName);
-            JsonPath jsonPath = respWait.jsonPath();
-            System.out.println(jsonPath.getObject("status", Map.class));
-            respWait.then().statusCode(200).body("status.failed.state", is(false));
-            return jsonPath.getBoolean("status.stable.state");
-          },
-          5,
-          TimeUnit.MINUTES,
-          "Waited 5 minutes on GET /manifest.. to return \"status.stable.state: true\"");
-      System.out.println(
-          "< Object \""
-              + objectName
-              + "\" stable in "
-              + ((System.currentTimeMillis() - start) / 1000)
-              + " seconds");
-    }
-  }
 }
