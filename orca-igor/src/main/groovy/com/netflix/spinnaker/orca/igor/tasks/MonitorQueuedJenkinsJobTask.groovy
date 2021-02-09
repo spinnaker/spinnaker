@@ -37,7 +37,7 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
   private final String wwwBaseUrl
 
   @Autowired
-  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.base-url.www}") String wwwBaseUrl) {
+  MonitorQueuedJenkinsJobTask(BuildService buildService, @Value("\${spinnaker.base-url.www:}") String wwwBaseUrl) {
     this.buildService = buildService
     this.wwwBaseUrl = wwwBaseUrl
   }
@@ -85,7 +85,7 @@ class MonitorQueuedJenkinsJobTask implements OverridableTimeoutRetryableTask {
                               String jenkinsController,
                               String jobName,
                               Integer buildNumber) {
-    if (wwwBaseUrl == null) {
+    if (wwwBaseUrl == null || wwwBaseUrl.isEmpty()) {
       log.info("Not creating backlink from Jenkins to Spinnaker, see https://spinnaker.io/setup/ci/jenkins/ for more info")
       return
     }
