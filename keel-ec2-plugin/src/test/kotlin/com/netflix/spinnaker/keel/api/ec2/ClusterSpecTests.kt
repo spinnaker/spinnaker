@@ -21,7 +21,7 @@ import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
-import strikt.assertions.propertiesAreEqualTo
+import strikt.java.propertiesAreEqualTo
 import java.time.Duration
 
 internal class ClusterSpecTests : JUnit5Minutests {

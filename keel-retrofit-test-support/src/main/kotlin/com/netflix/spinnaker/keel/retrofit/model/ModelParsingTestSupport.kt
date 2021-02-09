@@ -16,7 +16,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import strikt.api.expectThat
 import strikt.assertions.isNotNull
-import strikt.assertions.propertiesAreEqualTo
+import strikt.java.propertiesAreEqualTo
 
 abstract class ModelParsingTestSupport<in S : Any, out E : Any>(serviceType: Class<S>) {
 

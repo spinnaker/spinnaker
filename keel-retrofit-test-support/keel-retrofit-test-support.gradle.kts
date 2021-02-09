@@ -15,7 +15,7 @@ dependencies {
   implementation("com.squareup.retrofit2:retrofit-mock")
   implementation("com.squareup.okhttp3:mockwebserver")
   implementation("dev.minutest:minutest")
-  implementation("io.strikt:strikt-core")
+  implementation("io.strikt:strikt-jvm")
 
   runtime("org.jetbrains.kotlin:kotlin-reflect")
 }

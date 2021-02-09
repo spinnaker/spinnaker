@@ -24,6 +24,7 @@ dependencies {
   testImplementation(project(":keel-spring-test-support"))
   testImplementation("com.netflix.spinnaker.kork:kork-plugins")
   testImplementation("io.strikt:strikt-jackson")
+  testImplementation("io.strikt:strikt-jvm")
   testImplementation("dev.minutest:minutest")
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   testImplementation("org.funktionale:funktionale-partials")

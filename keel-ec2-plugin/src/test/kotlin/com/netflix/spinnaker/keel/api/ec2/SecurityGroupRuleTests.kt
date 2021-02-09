@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.assertions.propertiesAreEqualTo
+import strikt.java.propertiesAreEqualTo
 
 @SpringBootTest(
   classes = [KeelApplication::class],

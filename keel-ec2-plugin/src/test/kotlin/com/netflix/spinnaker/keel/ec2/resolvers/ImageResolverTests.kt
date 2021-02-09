@@ -33,7 +33,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
-import strikt.assertions.propertiesAreEqualTo
+import strikt.java.propertiesAreEqualTo
 import io.mockk.coEvery as every
 
 internal class ImageResolverTests : JUnit5Minutests {
