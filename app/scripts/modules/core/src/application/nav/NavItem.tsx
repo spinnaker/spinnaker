@@ -35,9 +35,9 @@ export const NavItem = ({ app, dataSource, isActive }: INavItemProps) => {
         {iconName &&
           (!isExpanded ? (
             <Tooltip value={dataSource.label} placement="right">
-              <span>
+              <div>
                 <Icon className="nav-icon" name={iconName} size="medium" color={isActive ? 'primary' : 'accent'} />
-              </span>
+              </div>
             </Tooltip>
           ) : (
             <Icon
