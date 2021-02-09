@@ -290,7 +290,9 @@ export class CreateNetworkLoadBalancer extends React.Component<
               render={({ innerRef }) => (
                 <NLBAdvancedSettings
                   ref={innerRef}
-                  showDualstack={!formik.values.isInternal && every(formik.values.targetGroups, { targetType: 'ip' })}
+                  showDualstack={
+                    !formik.values.isInternal && every(formik.values.targetGroups, { targetType: 'instance' })
+                  }
                 />
               )}
             />
