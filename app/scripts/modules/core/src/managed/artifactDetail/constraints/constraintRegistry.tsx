@@ -6,8 +6,8 @@ import {
   StatefulConstraintStatus,
   IStatelessConstraint,
   IManagedArtifactVersionEnvironment,
-} from '../../domain';
-import { IconNames } from '../../presentation';
+} from '../../../domain';
+import { IconNames } from '../../../presentation';
 
 const NO_FAILURE_MESSAGE = 'no details available';
 const UNKNOWN_CONSTRAINT_ICON = 'mdConstraintGeneric';

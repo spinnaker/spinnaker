@@ -1,13 +1,13 @@
 import React, { memo, useMemo } from 'react';
 import { DateTime } from 'luxon';
 
-import { IManagedArtifactVersion } from '../domain';
-import { Markdown, IconNames } from '../presentation';
+import { IManagedArtifactVersion } from '../../domain';
+import { Markdown, IconNames } from '../../presentation';
 
-import { getArtifactVersionDisplayName } from './displayNames';
-import { StatusCard, IStatusCardProps } from './StatusCard';
-import { Pill } from './Pill';
-import { Button } from './Button';
+import { getArtifactVersionDisplayName } from '../displayNames';
+import { StatusCard, IStatusCardProps } from '../StatusCard';
+import { Pill } from '../Pill';
+import { Button } from '../Button';
 
 interface CardTitleMetadata {
   deployedAt?: string;

@@ -11,26 +11,26 @@ import {
   IManagedEnvironmentSummary,
   IManagedResourceSummary,
   IManagedArtifactVersionEnvironment,
-} from '../domain';
-import { Application } from '../application';
-import { useEventListener, Markdown, CollapsibleElement } from '../presentation';
+} from '../../domain';
+import { Application } from '../../application';
+import { useEventListener, Markdown, CollapsibleElement } from '../../presentation';
 
-import { AbsoluteTimestamp } from './AbsoluteTimestamp';
+import { AbsoluteTimestamp } from '../AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
-import { ManagedResourceObject } from './ManagedResourceObject';
-import { EnvironmentRow } from './EnvironmentRow';
+import { ManagedResourceObject } from '../ManagedResourceObject';
+import { EnvironmentRow } from '../environment/EnvironmentRow';
 import { PreDeploymentRow } from './PreDeploymentRow';
 import { PreDeploymentStepCard } from './PreDeploymentStepCard';
 import { VersionStateCard } from './VersionStateCard';
-import { StatusCard } from './StatusCard';
-import { Button } from './Button';
+import { StatusCard } from '../StatusCard';
+import { Button } from '../Button';
 import { showPinArtifactModal } from './PinArtifactModal';
 import { showUnpinArtifactModal } from './UnpinArtifactModal';
 import { showMarkArtifactAsBadModal } from './MarkArtifactAsBadModal';
 
 import { ConstraintCard } from './constraints/ConstraintCard';
 import { isConstraintSupported } from './constraints/constraintRegistry';
-import { isResourceKindSupported } from './resources/resourceRegistry';
+import { isResourceKindSupported } from '../resources/resourceRegistry';
 
 import './ArtifactDetail.less';
 

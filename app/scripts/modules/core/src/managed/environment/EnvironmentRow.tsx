@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 
-import { IManagedResourceSummary, IManagedEnvironmentSummary } from '../domain';
-import { Icon } from '../presentation';
+import { IManagedResourceSummary, IManagedEnvironmentSummary } from '../../domain';
+import { Icon } from '../../presentation';
 
-import { StatusBubble } from './StatusBubble';
+import { StatusBubble } from '../StatusBubble';
 
-import { EnvironmentBadge } from './EnvironmentBadge';
-import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResources.hooks';
+import { EnvironmentBadge } from '../EnvironmentBadge';
+import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
 
 import './EnvironmentRow.less';
 

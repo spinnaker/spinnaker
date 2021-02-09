@@ -10,9 +10,9 @@ import { Application, ApplicationDataSource } from '../application';
 import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '../domain';
 
 import { ColumnHeader } from './ColumnHeader';
-import { ArtifactsList } from './ArtifactsList';
+import { ArtifactsList } from './artifactsList/ArtifactsList';
 import { EnvironmentsList } from './EnvironmentsList';
-import { ArtifactDetail } from './ArtifactDetail';
+import { ArtifactDetail } from './artifactDetail/ArtifactDetail';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
 
 import './Environments.less';

@@ -10,7 +10,7 @@ import { IManagedResourceSummary } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
 import { toggleResourcePause } from './toggleResourceManagement';
-import { showManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import managedDeliveryLogo from './icons/md-logo-color.svg';
 
 import './ManagedResourceDetailsIndicator.css';

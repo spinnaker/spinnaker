@@ -5,7 +5,7 @@ import { HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentat
 import { IManagedResourceSummary } from 'core/domain';
 import { Application } from 'core/application';
 
-import { showManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
 

@@ -14,17 +14,17 @@ import {
   SpinFormik,
   ValidationMessage,
   Illustration,
-} from '../presentation';
-import { HelpField } from '../help';
-import { IManagedArtifactVersion, IManagedResourceSummary } from '../domain';
-import { Application } from '../application';
+} from '../../presentation';
+import { HelpField } from '../../help';
+import { IManagedArtifactVersion, IManagedResourceSummary } from '../../domain';
+import { Application } from '../../application';
 
-import { ManagedWriter } from './ManagedWriter';
-import { Button } from './Button';
-import { EnvironmentBadge } from './EnvironmentBadge';
+import { ManagedWriter } from '../ManagedWriter';
+import { Button } from '../Button';
+import { EnvironmentBadge } from '../EnvironmentBadge';
 
-import { getArtifactVersionDisplayName } from './displayNames';
-import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResources.hooks';
+import { getArtifactVersionDisplayName } from '../displayNames';
+import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
 
 const MARK_BAD_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/marking-as-bad/';
 

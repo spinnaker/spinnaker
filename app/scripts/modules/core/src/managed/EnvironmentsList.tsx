@@ -5,7 +5,7 @@ import { Application } from 'core/application';
 import { IManagedEnvironmentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain';
 
 import { ManagedResourceObject } from './ManagedResourceObject';
-import { EnvironmentRow } from './EnvironmentRow';
+import { EnvironmentRow } from './environment/EnvironmentRow';
 
 import { isResourceKindSupported } from './resources/resourceRegistry';
 

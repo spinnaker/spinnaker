@@ -8,14 +8,14 @@ import {
   IStatelessConstraint,
   IManagedApplicationEnvironmentSummary,
   IManagedArtifactVersionEnvironment,
-} from '../../domain';
-import { Application, ApplicationDataSource } from '../../application';
-import { IRequestStatus } from '../../presentation';
+} from '../../../domain';
+import { Application, ApplicationDataSource } from '../../../application';
+import { IRequestStatus } from '../../../presentation';
 
-import { Button } from '../Button';
-import { StatusCard } from '../StatusCard';
+import { Button } from '../../Button';
+import { StatusCard } from '../../StatusCard';
 
-import { ManagedWriter, IUpdateConstraintStatusRequest } from '../ManagedWriter';
+import { ManagedWriter, IUpdateConstraintStatusRequest } from '../../ManagedWriter';
 import {
   isConstraintSupported,
   isConstraintStateful,
