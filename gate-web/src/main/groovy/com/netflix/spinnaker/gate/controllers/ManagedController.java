@@ -339,7 +339,7 @@ public class ManagedController {
     keelService.markBad(application, veto);
   }
 
-  @ApiOperation(value = "Veto an artifact version in an environment")
+  @ApiOperation(value = "Delete veto of an artifact version in an environment")
   @PostMapping(path = "/application/{application}/mark/good")
   void markGood(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
