@@ -81,6 +81,11 @@ class DynamicStageResolverSpec extends Specification {
       }
 
       @Override
+      String getPluginId() {
+        return "pluginId";
+      }
+
+      @Override
       Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         return method.invoke(new BuilderOne(), args)
       }
