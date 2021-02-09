@@ -263,6 +263,7 @@ export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBala
 
 export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
   deletionProtection: boolean;
+  ipAddressType?: string;
   idleTimeout: number;
   listeners: IListenerDescription[];
   targetGroups: IALBTargetGroupDescription[];
