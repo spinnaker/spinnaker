@@ -44,7 +44,7 @@ export const InstanceDns = ({
         value={<LinkWithClipboard text={privateIpAddress} url={`http://${privateIpAddress}:${instancePort}`} />}
       />
     )}
-    {permanentIps?.length && (
+    {Boolean(permanentIps?.length) && (
       <LabeledValue
         label="Permanent IP Address"
         value={permanentIps.map((ip) => (
@@ -58,7 +58,7 @@ export const InstanceDns = ({
         value={<LinkWithClipboard text={publicIpAddress} url={`http://${publicIpAddress}:${instancePort}`} />}
       />
     )}
-    {ipv6Addresses?.length && (
+    {Boolean(ipv6Addresses?.length) && (
       <LabeledValue
         label={`IPv6 Address${ipv6Addresses.length > 1 ? 'es' : ''}`}
         value={ipv6Addresses.map((ipv6) => (
