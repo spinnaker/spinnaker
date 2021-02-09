@@ -15,20 +15,25 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
-import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.Tag
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.LaunchTemplateTagSpecificationRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
+import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultAmazonResourceTagger;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class LaunchTemplateServiceSpec extends Specification {
-
   def launchTemplateService = new LaunchTemplateService(
     Mock(AmazonEC2),
     Mock(UserDataProviderAggregator),
-    Mock(LocalFileUserDataProperties)
+    Mock(LocalFileUserDataProperties),
+    Collections.singletonList(
+      new DefaultAmazonResourceTagger("spinnaker:application", "spinnaker:cluster")
+    )
   )
 
   void 'should match ebs encryption'() {
@@ -43,5 +48,33 @@ class LaunchTemplateServiceSpec extends Specification {
     new AmazonBlockDevice()                                 | null      | null
     new AmazonBlockDevice(encrypted: true)                  | true      | null
     new AmazonBlockDevice(encrypted: true, kmsKeyId: "xxx") | true      | "xxx"
+  }
+
+  @Unroll
+  void 'should generate volume tags'() {
+    expect:
+    launchTemplateService.tagSpecification(
+      amazonResourceTaggers,
+      "application-stack-details-v001"
+    ) == result
+
+    where:
+    amazonResourceTaggers << [
+      null,
+      [],
+      [new AmazonResourceTagger() {}],
+      [new DefaultAmazonResourceTagger("spinnaker:application", "spinnaker:cluster")]
+    ]
+    result << [
+      Optional.empty(),
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(
+        new LaunchTemplateTagSpecificationRequest()
+        .withResourceType("volume")
+        .withTags([new Tag("spinnaker:application", "application"), new Tag("spinnaker:cluster", "application-stack-details")])
+      )
+    ]
+
   }
 }

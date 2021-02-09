@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.aws.services
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
@@ -51,6 +52,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   List<ClusterProvider> clusterProviders
+
+  @Autowired(required = false)
+  Collection<AmazonResourceTagger> amazonResourceTaggers
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
@@ -115,7 +119,9 @@ class RegionScopedProviderFactory {
     }
 
     LaunchTemplateService getLaunchTemplateService() {
-      return new LaunchTemplateService(amazonEC2, userDataProviderAggregator, localFileUserDataProperties)
+      return new LaunchTemplateService(
+        amazonEC2, userDataProviderAggregator, localFileUserDataProperties, amazonResourceTaggers
+      )
     }
 
     AwsConfiguration.DeployDefaults getDeploymentDefaults() {
