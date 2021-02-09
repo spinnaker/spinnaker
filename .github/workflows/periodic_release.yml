@@ -41,6 +41,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           RELEASE_VERSION: ${{ steps.changelog.outputs.version }}
         run: |
+          echo "Building keel release ${RELEASE_VERSION}"
           ./gradlew --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -PbintrayPublishDebEnabled=false publish
 
       - name: Create release
@@ -50,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.changelog.outputs.tag }}
-          release_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ github.event.repository.name }} ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           draft: false
           prerelease: true
