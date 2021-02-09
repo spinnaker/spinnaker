@@ -150,12 +150,18 @@ public interface KeelService {
   @POST("/application/{application}/veto")
   Response veto(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
 
+  @POST("/application/{application}/mark/bad")
+  Response markBad(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
+
   @DELETE("/application/{application}/veto/{targetEnvironment}/{reference}/{version}")
   Response deleteVeto(
       @Path("application") String application,
       @Path("targetEnvironment") String targetEnvironment,
       @Path("reference") String reference,
       @Path("version") String version);
+
+  @POST("/application/{application}/mark/good")
+  Response markGood(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();

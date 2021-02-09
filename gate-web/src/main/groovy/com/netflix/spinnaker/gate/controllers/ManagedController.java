@@ -332,6 +332,20 @@ public class ManagedController {
     keelService.deleteVeto(application, targetEnvironment, reference, version);
   }
 
+  @ApiOperation(value = "Veto an artifact version in an environment")
+  @PostMapping(path = "/application/{application}/mark/bad")
+  void markBad(
+      @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
+    keelService.markBad(application, veto);
+  }
+
+  @ApiOperation(value = "Veto an artifact version in an environment")
+  @PostMapping(path = "/application/{application}/mark/good")
+  void markGood(
+      @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
+    keelService.markGood(application, veto);
+  }
+
   @PostMapping(
       path = "/notifications/callbacks/{source}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
