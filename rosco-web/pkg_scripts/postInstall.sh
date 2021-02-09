@@ -12,7 +12,7 @@ if [ -z `getent passwd spinnaker` ]; then
 fi
 
 install_packer() {
-  PACKER_VERSION="1.4.5"
+  PACKER_VERSION="1.6.6"
   local packer_version=$(/usr/bin/packer --version)
   local packer_status=$?
   if [ $packer_status -ne 0 ] || [ "$packer_version" != "$PACKER_VERSION" ]; then

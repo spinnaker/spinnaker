@@ -44,7 +44,7 @@
 
       "source_ami": "{{user `aws_source_ami`}}",
 
-      "ami_name": "{{user `aws_target_ami` | clean_ami_name}}",
+      "ami_name": "{{user `aws_target_ami` | clean_resource_name}}",
 
       "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
 

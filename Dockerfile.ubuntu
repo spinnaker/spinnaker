@@ -1,12 +1,15 @@
 FROM ubuntu:bionic
 LABEL maintainer="sig-platform@spinnaker.io"
 
+ENV KUSTOMIZE_VERSION=3.8.5
+ENV PACKER_VERSION=1.6.6
+
 WORKDIR /packer
 
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget unzip curl git openssh-client && \
-  wget https://releases.hashicorp.com/packer/1.4.5/packer_1.4.5_linux_amd64.zip && \
-  unzip packer_1.4.5_linux_amd64.zip && \
-  rm packer_1.4.5_linux_amd64.zip
+  wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip && \
+  unzip packer_${PACKER_VERSION}_linux_amd64.zip && \
+  rm packer_${PACKER_VERSION}_linux_amd64.zip
 
 ENV PATH "/packer:$PATH"
 
@@ -24,7 +27,7 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   rm get
 
 RUN mkdir kustomize && \
-  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.8.1/kustomize_v3.8.1_linux_amd64.tar.gz|\
+  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz|\
   tar xvz -C kustomize/
 
 ENV PATH "kustomize:$PATH"
