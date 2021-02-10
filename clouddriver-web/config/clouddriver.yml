@@ -54,6 +54,15 @@ default:
 
 aws:
   enabled: ${AWS_ENABLED:false}
+#  features:
+#    launch-templates:
+#      enabled: true
+#      allowed-applications: app1:account1:region1,app2:account1:region1
+#      all-applications: false
+#      allowed-accounts-regions: account1:region1
+#      allowed-accounts: account1,account2
+#      excluded-applications: ""
+#      excluded-accounts: account3,account4
   # proxy:
   #  proxyHost: 10.0.0.54
   #  proxyPort: 8888
