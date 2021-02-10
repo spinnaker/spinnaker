@@ -196,46 +196,48 @@ class SqlVerificationRepository(
      * This function guarantees that the number of output elements match the number of input elements.
      * So we use left joins on the givenVersions table
      */
-    return jooq.select(
+    return contextTable.table?.let { ctxTable ->
+      jooq.select(
+        contextTable.IND,
+        VERIFICATION_STATE.VERIFICATION_ID,
+        VERIFICATION_STATE.STATUS,
+        VERIFICATION_STATE.STARTED_AT,
+        VERIFICATION_STATE.ENDED_AT,
+        VERIFICATION_STATE.METADATA
+      )
+        .from(ctxTable)
+        .leftJoin(ENVIRONMENT)
+        .on(ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
+        .leftJoin(DELIVERY_CONFIG)
+        .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .leftJoin(DELIVERY_ARTIFACT)
+        .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
+        .leftJoin(VERIFICATION_STATE)
+        .on(VERIFICATION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
+        .and(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
 
-      contextTable.IND,
-      VERIFICATION_STATE.VERIFICATION_ID,
-      VERIFICATION_STATE.STATUS,
-      VERIFICATION_STATE.STARTED_AT,
-      VERIFICATION_STATE.ENDED_AT,
-      VERIFICATION_STATE.METADATA)
-      .from(contextTable.table)
-      .leftJoin(ENVIRONMENT)
-      .on(ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
-      .leftJoin(DELIVERY_CONFIG)
-      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
-      .leftJoin(DELIVERY_ARTIFACT)
-      .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
-      .leftJoin(VERIFICATION_STATE)
-      .on(VERIFICATION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
-      .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
-      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
-      .and(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        // execute the query
+        .fetch()
 
-      // execute the query
-      .fetch()
+        // sort the results by the "ind" (index) column, so that outputs are same order as inputs
+        .groupBy { (index, _, _, _, _, _) -> index as Long }
+        .toSortedMap()
+        .values
 
-      // sort the results by the "ind" (index) column, so that outputs are same order as inputs
-      .groupBy { (index, _, _, _, _, _) -> index as Long }
-      .toSortedMap()
-      .values
-
-      // convert List<Record> to Map<String,VerificationState>, where the string is the verification id
-      .map { records ->
-        records
-          // since we do a left join, there may be rows where there is no corresponding records in the
-          // verification_state database, so we filter them out, which will result in an empty map
-          .filter {(_, _, status, _, _, _) -> status != null }
-          .associate { (_, verification_id, status, started_at, ended_at, metadata) ->
-            verification_id to VerificationState(status, started_at, ended_at, metadata)
-          }
-      }
-      .toList()
+        // convert List<Record> to Map<String,VerificationState>, where the string is the verification id
+        .map { records ->
+          records
+            // since we do a left join, there may be rows where there is no corresponding records in the
+            // verification_state database, so we filter them out, which will result in an empty map
+            .filter { (_, _, status, _, _, _) -> status != null }
+            .associate { (_, verification_id, status, started_at, ended_at, metadata) ->
+              verification_id to VerificationState(status, started_at, ended_at, metadata)
+            }
+        }
+        .toList()
+    } ?: emptyList()
   }
 
 
@@ -368,19 +370,20 @@ class SqlVerificationRepository(
 
     /**
      * return a jOOQ table that contains the [contexts] data represented as a table that can be selected against
+     *
+     * null if there are no contexts
      */
-    val table : Table<Record4<Int, String, String, String>>
+    val table : Table<Record4<Int, String, String, String>>?
       get() =
-        contexts
+        contexts // List<VerificationContext>
           // Creates a SELECT statement from each element of [contexts], where every column is a constant. e.g.:
           // SELECT 0, "staging", "myapp", "myapp-h123-v23.4" FROM dual
-          .mapIndexed { idx, v -> jooq.select(inline(idx), inline(v.environmentName), inline(v.artifactReference), inline(v.version)) as SelectOrderByStep<Record4<Int, String, String, String>> }
+          .mapIndexed { idx, v -> jooq.select(inline(idx), inline(v.environmentName), inline(v.artifactReference), inline(v.version)) as SelectOrderByStep<Record4<Int, String, String, String>> } // List<SelectOrderByStep<Record4<Int, String, String, String>>>
 
           // Apply UNION ALL to the list of SELECT statements so they form a single query
-          .reduce { s1, s2 -> s1.unionAll(s2) }
-
+          .reduceOrNull { s1, s2 -> s1.unionAll(s2) } // SelectOrderByStep<Record4<Int, String, String, String>>?
           // Convert the result to a [Table] object
-          .asTable(alias, ind, environmentName, artifactReference, artifactVersion)
+          ?.asTable(alias, ind, environmentName, artifactReference, artifactVersion)
   }
 
 }

@@ -473,4 +473,13 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         }
     }
   }
+
+  @Test
+  fun `zero states`() {
+    context.setup()
+
+    val stateMaps = subject.getStatesBatch(emptyList())
+
+    expectThat(stateMaps).isEmpty()
+  }
 }
