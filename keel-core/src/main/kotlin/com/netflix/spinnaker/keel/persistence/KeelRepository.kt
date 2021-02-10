@@ -116,6 +116,8 @@ interface KeelRepository : KeelReadOnlyRepository {
   fun markDeliveryConfigCheckComplete(deliveryConfig: DeliveryConfig)
 
   fun getApplicationSummaries(): Collection<ApplicationSummary>
+
+  fun triggerRecheck(application: String)
   // END DeliveryConfigRepository methods
 
   // START ResourceRepository methods

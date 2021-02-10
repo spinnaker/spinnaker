@@ -255,6 +255,9 @@ class CombinedRepository(
 
   override fun getApplicationSummaries(): Collection<ApplicationSummary> =
     deliveryConfigRepository.getApplicationSummaries()
+
+  override fun triggerRecheck(application: String) =
+    deliveryConfigRepository.triggerRecheck(application)
   // END DeliveryConfigRepository methods
 
   // START ResourceRepository methods

@@ -958,6 +958,9 @@ class ApplicationServiceTests : JUnit5Minutests {
         every {
           repository.pinEnvironment(singleArtifactDeliveryConfig, pin)
         } just Runs
+        every {
+          repository.triggerRecheck(application1)
+        } just Runs
 
         applicationService.pin("keel@keel.io", application1, pin)
       }
@@ -978,6 +981,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       before {
         every {
           repository.deletePin(singleArtifactDeliveryConfig, "production", releaseArtifact.reference)
+        } just Runs
+
+        every {
+          repository.triggerRecheck(application1)
         } just Runs
 
         every {
@@ -1002,6 +1009,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       before {
         every {
           repository.deletePin(singleArtifactDeliveryConfig, "production")
+        } just Runs
+
+        every {
+          repository.triggerRecheck(application1)
         } just Runs
 
         every {

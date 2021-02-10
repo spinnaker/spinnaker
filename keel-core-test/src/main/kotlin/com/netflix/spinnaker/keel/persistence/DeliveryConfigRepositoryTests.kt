@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -43,6 +44,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
 import strikt.assertions.none
+import java.time.Duration
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository> :
   JUnit5Minutests {
@@ -189,6 +191,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .isFailure()
           .isA<NoSuchDeliveryConfigException>()
       }
+
+      test("recheck does not throw an exception") {
+        expectCatching { repository.triggerRecheck("whatever") }.isSuccess()
+      }
     }
 
     context("storing a delivery config with no artifacts or environments") {
@@ -214,6 +220,20 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             get { application }.isEqualTo(deliveryConfig.application)
             get { metadata }.isNotEmpty()
           }
+      }
+
+      test("config can be rechecked") {
+        val items = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+        val items2 = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+        repository.triggerRecheck(deliveryConfig.application)
+        val items3 = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+
+        expect {
+          that(items.size).isEqualTo(1)
+          that(items2.size).isEqualTo(0)
+          that(items3.size).isEqualTo(1)
+          that(items3.first().application).isEqualTo(deliveryConfig.application)
+        }
       }
     }
 

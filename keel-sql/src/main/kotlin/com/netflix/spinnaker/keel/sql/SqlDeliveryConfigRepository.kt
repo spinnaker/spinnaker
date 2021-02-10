@@ -983,6 +983,29 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  override fun triggerRecheck(application: String) {
+    val uid = sqlRetry.withRetry(READ) {
+      jooq.select(DELIVERY_CONFIG.UID)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.APPLICATION.eq(application))
+        .fetchOne(DELIVERY_CONFIG.UID)
+    }
+
+    if (uid == null) {
+      log.error("Config for app $application does not exist, cannot recheck it")
+      return
+    }
+
+    sqlRetry.withRetry(WRITE) {
+      jooq.update(DELIVERY_CONFIG_LAST_CHECKED)
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
+        .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT, EPOCH.plusSeconds(1))
+        .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY)
+        .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
+        .execute()
+    }
+  }
+
   override fun itemsDueForCheck(
     minTimeSinceLastCheck: Duration,
     limit: Int

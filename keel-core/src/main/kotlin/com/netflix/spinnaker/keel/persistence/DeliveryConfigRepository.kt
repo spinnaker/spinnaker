@@ -168,6 +168,12 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun getApplicationSummaries(): Collection<ApplicationSummary>
 
   fun deliveryConfigLastChecked(deliveryConfig: DeliveryConfig): Instant
+
+  /**
+   * Resets the last checked time for the delivery config to the initial value
+   * (EPOCH + 1s) so that the environments will immediately be rechecked.
+   */
+  fun triggerRecheck(application: String)
 }
 
 abstract class NoSuchDeliveryConfigException(message: String) :
