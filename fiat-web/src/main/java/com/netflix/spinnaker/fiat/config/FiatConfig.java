@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,6 +36,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -125,5 +128,14 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
     val frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true));
     frb.setOrder(Ordered.LOWEST_PRECEDENCE);
     return frb;
+  }
+
+  @Bean
+  public TaskScheduler taskScheduler(@Value("${fiat.scheduler.pool-size:5}") int poolSize) {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setThreadNamePrefix("scheduler-");
+    scheduler.setPoolSize(poolSize);
+
+    return scheduler;
   }
 }
