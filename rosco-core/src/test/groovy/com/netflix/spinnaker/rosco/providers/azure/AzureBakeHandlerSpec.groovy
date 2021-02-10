@@ -193,6 +193,78 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     }
   }
 
+  void 'can scrape packer logs for image name in SIG'() {
+    setup:
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler()
+
+    when:
+    def logsContent =
+            "==> azure-arm: Deleting the temporary OS disk ...\n" +
+                    "==> azure-arm:  -> OS Disk             : 'https://lgpackervms.blob.core.windows.net/images/pkroswfvmtp50x8.vhd'\n" +
+                    "==> azure-arm:\n" +
+                    "==> azure-arm: Cleanup requested, deleting resource group ...\n" +
+                    "==> azure-arm: Error deleting resource group.  Please delete it manually.\n" +
+                    "==> azure-arm:\n" +
+                    "==> azure-arm: Name: packer-Resource-Group-wfvmtp50x8\n" +
+                    "==> azure-arm: Error: azure#updatePollingState: Azure Polling Error - Unable to obtain polling URI for DELETE : StatusCode=0\n" +
+                    "==> azure-arm: Resource group has been deleted.\n" +
+                    "Build 'azure-arm' finished.\n" +
+                    "\n" +
+                    "==> Builds finished. The artifacts of successful builds are:\n" +
+                    "--> azure-arm: Azure.ResourceManagement.VMImage:\n" +
+                    "\n" +
+                    "StorageAccountLocation: westus\n" +
+                    "ManagedImageName: pkroswfvmtp50x8\n" +
+                    "ManagedImageSharedImageGalleryId: pkroswfvmtp50x8id"
+
+
+    Bake bake = azureBakeHandler.scrapeCompletedBakeResults(null, "123", logsContent)
+
+    then:
+    with (bake) {
+      id == "123"
+      ami == "pkroswfvmtp50x8id"
+      image_name == "pkroswfvmtp50x8"
+    }
+  }
+
+  void 'can scrape packer logs for image name for windows in SIG'() {
+    setup:
+    @Subject
+    AzureBakeHandler azureBakeHandler = new AzureBakeHandler()
+
+    when:
+    def logsContent =
+            "==> azure-arm: Deleting the temporary OS disk ...\n" +
+                    "==> azure-arm:  -> OS Disk             : 'https://lgpackervms.blob.core.windows.net/images/pkroswfvmtp50x8.vhd'\n" +
+                    "==> azure-arm:\n" +
+                    "==> azure-arm: Cleanup requested, deleting resource group ...\n" +
+                    "==> azure-arm: Error deleting resource group.  Please delete it manually.\n" +
+                    "==> azure-arm:\n" +
+                    "==> azure-arm: Name: packer-Resource-Group-wfvmtp50x8\n" +
+                    "==> azure-arm: Error: azure#updatePollingState: Azure Polling Error - Unable to obtain polling URI for DELETE : StatusCode=0\n" +
+                    "==> azure-arm: Resource group has been deleted.\n" +
+                    "Build 'azure-arm' finished.\n" +
+                    "\n" +
+                    "==> Builds finished. The artifacts of successful builds are:\n" +
+                    "--> azure-arm: Azure.ResourceManagement.VMImage:\n" +
+                    "\n" +
+                    "StorageAccountLocation: westus\n" +
+                    "ManagedImageName: pkroswfvmtp50x8\n" +
+                    "ManagedImageSharedImageGalleryId: pkroswfvmtp50x8id"
+
+
+    Bake bake = azureBakeHandler.scrapeCompletedBakeResults(null, "123", logsContent)
+
+    then:
+    with (bake) {
+      id == "123"
+      ami == "pkroswfvmtp50x8id"
+      image_name == "pkroswfvmtp50x8"
+    }
+  }
+
   void 'template file name data is serialized as expected'() {
     setup:
       @Subject
