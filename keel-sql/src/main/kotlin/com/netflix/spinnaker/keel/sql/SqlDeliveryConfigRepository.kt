@@ -77,6 +77,8 @@ class SqlDeliveryConfigRepository(
 ), DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  private val RECHECK_LEASE_NAME = "recheck"
+
   override fun getByApplication(application: String): DeliveryConfig =
     sqlRetry.withRetry(READ) {
       jooq
@@ -1000,7 +1002,7 @@ class SqlDeliveryConfigRepository(
       jooq.update(DELIVERY_CONFIG_LAST_CHECKED)
         .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_AT, EPOCH.plusSeconds(1))
-        .setNull(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY)
+        .set(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY, RECHECK_LEASE_NAME)
         .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
         .execute()
     }
@@ -1068,6 +1070,7 @@ class SqlDeliveryConfigRepository(
               .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           )
         )
+        .and(DELIVERY_CONFIG_LAST_CHECKED.LEASED_BY.ne(RECHECK_LEASE_NAME))
         .execute()
     }
   }

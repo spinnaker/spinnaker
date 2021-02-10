@@ -223,16 +223,16 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
 
       test("config can be rechecked") {
-        val items = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
-        val items2 = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+        val firstCheck = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+        val secondCheck = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
         repository.triggerRecheck(deliveryConfig.application)
-        val items3 = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
+        val afterRecheck = repository.itemsDueForCheck(Duration.ofMinutes(2), 1)
 
         expect {
-          that(items.size).isEqualTo(1)
-          that(items2.size).isEqualTo(0)
-          that(items3.size).isEqualTo(1)
-          that(items3.first().application).isEqualTo(deliveryConfig.application)
+          that(firstCheck.size).isEqualTo(1)
+          that(secondCheck.size).isEqualTo(0)
+          that(afterRecheck.size).isEqualTo(1)
+          that(afterRecheck.first().application).isEqualTo(deliveryConfig.application)
         }
       }
     }
