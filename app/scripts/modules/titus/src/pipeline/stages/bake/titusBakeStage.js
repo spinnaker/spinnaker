@@ -3,6 +3,7 @@
 import { module } from 'angular';
 
 import { AuthenticationService, Registry } from '@spinnaker/core';
+import { TitusProviderSettings } from '../../../titus.settings';
 import { TITUS_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 
 export const TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE = 'spinnaker.titus.pipeline.stage.titusBakeStage';
@@ -22,6 +23,8 @@ module(TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE, [TITUS_PIPELINE_STAGES_BAKE_BA
     '$scope',
     function ($scope) {
       const stage = $scope.stage;
+
+      $scope.bakeWarning = TitusProviderSettings.bakeWarning;
 
       if (!stage.user) {
         stage.user = AuthenticationService.getAuthenticatedUser().name;
