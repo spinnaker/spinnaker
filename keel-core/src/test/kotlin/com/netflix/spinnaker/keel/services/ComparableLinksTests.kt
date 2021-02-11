@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -47,7 +48,6 @@ import java.time.Instant
 import java.time.ZoneId
 
 class ComparableLinksTests : JUnit5Minutests {
-
   class Fixture {
     val clock: MutableClock = MutableClock(
       Instant.parse("2020-03-25T00:00:00.00Z"),
@@ -126,6 +126,7 @@ class ComparableLinksTests : JUnit5Minutests {
         getProperty("keel.verifications.summary.enabled", Boolean::class.java, any())
       } returns true
     }
+    val registry = NoopRegistry()
 
     // subject
     val applicationService = ApplicationService(
@@ -136,7 +137,9 @@ class ComparableLinksTests : JUnit5Minutests {
       scmInfo,
       lifecycleEventRepository,
       publisher,
-      springEnv
+      springEnv,
+      clock,
+      registry
     )
 
     val buildMetadata = BuildMetadata(

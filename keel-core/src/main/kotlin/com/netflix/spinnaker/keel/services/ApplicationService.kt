@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spectator.api.BasicTag
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
@@ -57,6 +59,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment as SpringEnvironment
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -71,12 +75,24 @@ class ApplicationService(
   private val scmInfo: ScmInfo,
   private val lifecycleEventRepository: LifecycleEventRepository,
   private val publisher: ApplicationEventPublisher,
-  private val springEnv: SpringEnvironment
+  private val springEnv: SpringEnvironment,
+  private val clock: Clock,
+  private val spectator: Registry
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val verificationsEnabled: Boolean
     get() = springEnv.getProperty("keel.verifications.summary.enabled", Boolean::class.java, false)
+
+  private val now: Instant
+    get() = clock.instant()
+
+  private val RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.resource.summary.duration"
+  private val ENV_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.environment.summary.duration"
+  private val ARTIFACT_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.artifact.summary.duration"
+  private val CONSTRAINT_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.constraint.summary.duration"
+  private val ARTIFACT_VERSION_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.artifact.version.summary.duration"
+  private val VERIFICATION_SUMMARY_CONSTRUCT_DURATION_ID = "keel.api.artifact.verification.summary.duration"
 
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
     constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator<*, *> }
@@ -180,10 +196,16 @@ class ApplicationService(
    */
   fun getResourceSummariesFor(application: String): List<ResourceSummary> {
     return try {
+      val startTime = now
       val deliveryConfig = repository.getDeliveryConfigForApplication(application)
-      return deliveryConfig.resources.map { resource ->
+      val summaries = deliveryConfig.resources.map { resource ->
         resource.toResourceSummary(deliveryConfig)
       }
+      spectator.timer(
+        RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID,
+        listOf(BasicTag("application", application))
+      ).record(Duration.between(startTime, now))
+      summaries
     } catch (e: NoSuchDeliveryConfigException) {
       emptyList()
     }
@@ -211,8 +233,14 @@ class ApplicationService(
    */
   fun getEnvironmentSummariesFor(application: String): List<EnvironmentSummary> =
     try {
+      val startTime = now
       val config = repository.getDeliveryConfigForApplication(application)
-      repository.getEnvironmentSummaries(config)
+      val summaries = repository.getEnvironmentSummaries(config)
+      spectator.timer(
+        ENV_SUMMARY_CONSTRUCT_DURATION_ID,
+        listOf(BasicTag("application", application))
+      ).record(Duration.between(startTime, now))
+      summaries
     } catch (e: NoSuchDeliveryConfigException) {
       emptyList()
     }
@@ -226,7 +254,12 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getArtifactSummariesFor(application: String, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
+    val startTime = now
     val environmentSummaries = getEnvironmentSummariesFor(application)
+    spectator.timer(
+      ENV_SUMMARY_CONSTRUCT_DURATION_ID,
+      listOf(BasicTag("application", application))
+    ).record(Duration.between(startTime, now))
     return getArtifactSummariesFor(application, environmentSummaries, limit)
   }
 
@@ -235,6 +268,7 @@ class ApplicationService(
    * It's non-trivial to pull that data.
    */
   fun getArtifactSummariesFor(application: String, envSummaries: List<EnvironmentSummary>, limit: Int = DEFAULT_MAX_ARTIFACT_VERSIONS): List<ArtifactSummary> {
+    val startTime = now
     val deliveryConfig = try {
       repository.getDeliveryConfigForApplication(application)
     } catch (e: NoSuchDeliveryConfigException) {
@@ -244,11 +278,16 @@ class ApplicationService(
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
       val artifactVersions = repository.artifactVersions(artifact, limit)
 
+      val verificationStartTime = now
       // A verification context identifies an artifact version in an environment
       // For each context, there may be multiple verifications (e.g., test-container, canary)
       //
       // This map associates a context with this collection of verifications and their states
       val verificationStateMap = getVerificationStates(deliveryConfig, artifactVersions)
+      spectator.timer(
+        VERIFICATION_SUMMARY_CONSTRUCT_DURATION_ID,
+        listOf(BasicTag("application", application))
+      ).record(Duration.between(verificationStartTime, now))
 
       val artifactVersionSummaries = artifactVersions.map { artifactVersion ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
@@ -268,16 +307,27 @@ class ApplicationService(
                   verifications
                 )
                   ?.also {
+                    val constraintStartTime = now
                     artifactSummariesInEnvironments.add(
                       it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
                         .addStatelessConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
                     )
+                    spectator.timer(
+                      CONSTRAINT_SUMMARY_CONSTRUCT_DURATION_ID,
+                      listOf(BasicTag("application", application))
+                    ).record(Duration.between(constraintStartTime, now))
                   }
               }
             }
         }
 
-        buildArtifactVersionSummary(artifact, artifactVersion.version, artifactSummariesInEnvironments)
+        val versionStartTime = now
+        val summary = buildArtifactVersionSummary(artifact, artifactVersion.version, artifactSummariesInEnvironments)
+        spectator.timer(
+          ARTIFACT_VERSION_SUMMARY_CONSTRUCT_DURATION_ID,
+          listOf(BasicTag("application", application))
+        ).record(Duration.between(versionStartTime, now))
+        summary
       }
       ArtifactSummary(
         name = artifact.name,
@@ -286,7 +336,10 @@ class ApplicationService(
         versions = artifactVersionSummaries.toSet()
       )
     }
-
+    spectator.timer(
+      ARTIFACT_SUMMARY_CONSTRUCT_DURATION_ID,
+      listOf(BasicTag("application", application))
+    ).record(Duration.between(startTime, now))
     return artifactSummaries
   }
 

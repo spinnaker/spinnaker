@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -196,6 +197,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       } returns true
     }
 
+    val spectator = NoopRegistry()
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -205,7 +208,9 @@ class ApplicationServiceTests : JUnit5Minutests {
       scmInfo,
       lifecycleEventRepository,
       publisher,
-      springEnv
+      springEnv,
+      clock,
+      spectator
     )
 
     val buildMetadata = BuildMetadata(
