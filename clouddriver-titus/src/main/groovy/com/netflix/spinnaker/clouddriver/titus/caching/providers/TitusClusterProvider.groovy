@@ -273,7 +273,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
         }
       }
       serverGroup.instances = serverGroup.instances ?: []
-      serverGroup.scalingPolicies = serverGroupData.attributes.scalingPolicies
       serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
       if (serverGroup.targetGroups) {
         awsLookupUtil.get().lookupTargetGroupHealth(job, serverGroup.instances)
