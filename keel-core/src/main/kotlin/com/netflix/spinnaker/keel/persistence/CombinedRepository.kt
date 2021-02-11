@@ -279,7 +279,7 @@ class CombinedRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> =
     resourceRepository.getResourcesByApplication(application)
 
-  override fun storeResource(resource: Resource<*>) =
+  override fun storeResource(resource: Resource<*>): Resource<*> =
     resourceRepository.store(resource)
 
   override fun deleteResource(id: String) =

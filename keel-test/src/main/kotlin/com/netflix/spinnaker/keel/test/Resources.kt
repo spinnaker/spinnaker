@@ -105,6 +105,7 @@ fun <T : ResourceSpec> resource(
     spec = spec,
     metadata = mapOf(
       "id" to generateId(kind, spec),
+      "version" to 1,
       "application" to application,
       "serviceAccount" to "keel@spinnaker"
     )
