@@ -53,6 +53,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
 
   def cleanup() {
     MDC.clear()
+    SecurityContextHolder.clearContext()
   }
 
   @Unroll
