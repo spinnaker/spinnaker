@@ -55,6 +55,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
+import com.netflix.spinnaker.keel.telemetry.InvalidVerificationIdSeen
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment as SpringEnvironment
@@ -552,25 +553,52 @@ class ApplicationService(
     val releaseStatus = repository.getReleaseStatus(artifact, version)
     return repository.getArtifactVersion(artifact, version, releaseStatus)
   }
+
+  /**
+   * Query the repository for all of the verification states associated with [versions]
+   *
+   * This just calls [KeelRepository.getVerificationStatesBatch] and reshapes the returned value to a map
+   */
+  fun KeelRepository.getVerificationStates(
+    deliveryConfig: DeliveryConfig,
+    versions: List<PublishedArtifact>
+  ): Map<VerificationContext, Map<Verification, VerificationState>> =
+    deliveryConfig.contexts(versions).let { contexts: List<VerificationContext> ->
+      contexts.zip(getVerificationStatesBatch(contexts))
+        .associate { (ctx, vIdToState) -> ctx to vIdToState.toVerificationMap(deliveryConfig, ctx) }
+    }
+
+  /**
+   * Convert a (verification id -> verification state) map to a (verification -> verification state) map
+   *
+   * Most of the logic in this method is to deal with the case where the verification id is invalid
+   */
+  fun Map<String, VerificationState>.toVerificationMap(deliveryConfig: DeliveryConfig, ctx: VerificationContext) : Map<Verification, VerificationState> =
+    entries
+      .mapNotNull { (vId: String, state: VerificationState) ->
+        ctx.verification(vId)
+          ?.let { verification -> verification to state }
+          .also { if (it == null) { onInvalidVerificationId(vId, deliveryConfig, ctx) } }
+      }
+      .toMap()
+
+  /**
+   * Actions to take when the verification state database table references a verification id that doesn't exist
+   * in the delivery config
+   */
+  fun onInvalidVerificationId(vId: String, deliveryConfig: DeliveryConfig, ctx: VerificationContext) {
+    publisher.publishEvent(
+      InvalidVerificationIdSeen(
+        vId,
+        deliveryConfig.application,
+        deliveryConfig.name,
+        ctx.environmentName
+      )
+    )
+    log.error("verification_state table contains invalid verification id: $vId  config: ${deliveryConfig.name} env: ${ctx.environmentName}. Valid ids in this env: ${ctx.environment.verifyWith.map { it.id }}")
+  }
 }
 
-/**
- * Query the repository for all of the verification states associated with [versions]
- *
- * This just calls [KeelRepository.getVerificationStatesBatch] and reshapes the returned value to a map
- */
-fun KeelRepository.getVerificationStates(
-  deliveryConfig: DeliveryConfig,
-  versions: List<PublishedArtifact>
-): Map<VerificationContext, Map<Verification, VerificationState>> =
-  deliveryConfig.contexts(versions).let { contexts ->
-    contexts.zip(getVerificationStatesBatch(contexts))
-      .associate { (ctx: VerificationContext, vIdToState: Map<String, VerificationState>) ->
-        ctx to (vIdToState.entries.associate { (vId, state) ->
-          ctx.verification(vId) to state
-        })
-      }
-  }
 
 /**
  * A verification context identifies an (environment, artifact version) pair.

@@ -209,6 +209,18 @@ class TelemetryListener(
     )
   }
 
+  @EventListener(InvalidVerificationIdSeen::class)
+  fun onInvalidVerificationId(event: InvalidVerificationIdSeen) {
+    spectator.counter(
+      INVALID_VERIFICATION_ID_SEEN_COUNTER_ID,
+      listOf(
+        BasicTag("application", event.application),
+        BasicTag("invalidId", event.id)
+      )
+    )
+
+  }
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
     PolledMeter
       .using(spectator)
@@ -250,6 +262,7 @@ class TelemetryListener(
     private const val VERIFICATION_STARTED_COUNTER_ID = "keel.verification.started"
     private const val VERIFICATION_CHECK_DRIFT_GAUGE = "keel.verification.check.drift"
     private const val VERIFICATION_CHECK_DURATION_ID = "keel.verification.check.duration"
+    private const val INVALID_VERIFICATION_ID_SEEN_COUNTER_ID = "keel.verification.invalid.id.seen"
     private const val AGENT_DURATION_ID = "keel.agent.duration"
   }
 }

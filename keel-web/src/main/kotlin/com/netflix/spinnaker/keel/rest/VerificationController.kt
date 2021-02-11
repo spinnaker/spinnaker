@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.springframework.http.HttpStatus.CONFLICT
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -51,7 +52,7 @@ class VerificationController(
     ).apply {
       verificationRepository.updateState(
         context = this,
-        verification = verification(payload.verificationId),
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = payload.status,
         mapOf("overriddenBy" to user, "comment" to payload.comment)
       )
@@ -93,14 +94,14 @@ class VerificationController(
     ).apply {
       verificationRepository.getState(
         context = this,
-        verification = verification(payload.verificationId)
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this)
       )?.apply {
         if (!status.complete) throw VerificationIncomplete()
       }
 
       verificationRepository.updateState(
         context = this,
-        verification = verification(payload.verificationId),
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = NOT_EVALUATED,
         mapOf("retryRequestedBy" to user)
       )
@@ -116,4 +117,8 @@ class VerificationController(
   @ResponseStatus(CONFLICT)
   private class VerificationIncomplete :
     IllegalStateException("Verifications may only be retried once complete.")
+
+  @ResponseStatus(NOT_FOUND)
+  private class InvalidVerificationId(id: String, context: VerificationContext) :
+    IllegalStateException("Unknown verification id: $id. Expecting one of: ${context.verifications.map { it.id }}")
 }

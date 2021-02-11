@@ -86,5 +86,5 @@ data class VerificationContext(
 
   val verifications: Collection<Verification> = environment.verifyWith
 
-  fun verification(id: String): Verification = verifications.first { it.id == id }
+  fun verification(id: String): Verification? = verifications.firstOrNull { it.id == id }
 }

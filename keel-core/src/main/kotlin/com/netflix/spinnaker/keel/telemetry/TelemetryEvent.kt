@@ -165,3 +165,10 @@ data class VerificationTimedOut(
     context.version
   )
 }
+
+data class InvalidVerificationIdSeen(
+  val id: String,
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+)
