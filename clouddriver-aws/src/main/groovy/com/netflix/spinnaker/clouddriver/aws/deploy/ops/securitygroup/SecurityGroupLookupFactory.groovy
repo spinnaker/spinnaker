@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -282,7 +283,7 @@ class SecurityGroupLookupFactory {
       securityGroup.ipPermissions.removeAll(ipPermissionsToRemove)
     }
 
-    void updateTags(UpsertSecurityGroupDescription description) {
+    void updateTags(UpsertSecurityGroupDescription description, DynamicConfigService dynamicConfigService) {
       String groupId = securityGroup.groupId
       try {
 
@@ -294,9 +295,10 @@ class SecurityGroupLookupFactory {
         List<TagDescription> currentTags = tagsResult.getTags()
         Collection<Tag> oldTags = new HashSet()
         // Filter Spinnaker specific tags, update to other tags might result in permission errors
+        def additionalTags = dynamicConfigService.getConfig(String.class, "aws.features.security-group.additional-tags","")
         currentTags.each {
           it ->
-            if (it.key.equals("Name") || description.tags.keySet().contains(it.key)) {
+            if (it.key.equals("Name") || description.tags?.keySet()?.contains(it.key) || additionalTags.contains(it.key)) {
               oldTags.add(new Tag(it.key, it.value))
             }
         }

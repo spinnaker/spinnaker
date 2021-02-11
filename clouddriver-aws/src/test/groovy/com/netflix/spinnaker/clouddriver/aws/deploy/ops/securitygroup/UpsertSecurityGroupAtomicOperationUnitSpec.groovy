@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGr
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -50,6 +50,8 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   def securityGroupLookup = Mock(SecurityGroupLookupFactory.SecurityGroupLookup)
 
+  def dynamicConfigService = Mock(DynamicConfigService)
+
   def securityGroupLookupFactory = Stub(SecurityGroupLookupFactory) {
     getInstance(_) >> securityGroupLookup
   }
@@ -60,6 +62,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     op.securityGroupLookupFactory = securityGroupLookupFactory
+    op.dynamicConfigService = dynamicConfigService
   }
 
   void "non-existent security group should be created"() {
@@ -103,7 +106,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    1 * createdSecurityGroup.updateTags(description)
+    1 * createdSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "non-existent security group that is found on create should be updated"() {
@@ -135,9 +138,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     }
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
     1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(ipPermissions: [
-            new IpPermission(fromPort: 211, toPort: 212, ipProtocol: "tcp", userIdGroupPairs: [
-                    new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-            ])
+      new IpPermission(fromPort: 211, toPort: 212, ipProtocol: "tcp", userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
     ])
 
     then:
@@ -146,7 +149,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "existing security group should be unchanged"() {
@@ -183,7 +186,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "existing security group should be updated with ingress by id"() {
@@ -208,7 +211,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "existing security group should be updated with ingress from another account"() {
@@ -235,7 +238,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId2", groupId: "id-bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "existing permissions should not be re-created when a security group is modified"() {
@@ -263,16 +266,16 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
     1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-        new IpPermission(fromPort: 80, toPort: 81,
-          userIdGroupPairs: [
-            new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
-            new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
-          ],
-          ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
-        ),
-        new IpPermission(fromPort: 25, toPort: 25,
-          userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
-      ])
+      new IpPermission(fromPort: 80, toPort: 81,
+        userIdGroupPairs: [
+          new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
+          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+        ],
+        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
+      ),
+      new IpPermission(fromPort: 25, toPort: 25,
+        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
+    ])
 
     then:
     1 * existingSecurityGroup.addIngress([
@@ -285,7 +288,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "grp")
       ])
     ])
-    2 * existingSecurityGroup.updateTags(description)
+    2 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should only append security group ingress"() {
@@ -328,7 +331,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should fail for missing ingress security group in vpc"() {
@@ -400,7 +403,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupName: "bar")
       ])
     ])
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
 
   }
 
@@ -477,7 +480,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "grp", description: "sg description")
       ])
     ])
-    2 * existingSecurityGroup.updateTags(description)
+    2 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should update ingress and add by name for missing ingress security group in EC2 classic"() {
@@ -508,7 +511,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * existingSecurityGroup.addIngress(_)
     1 * existingSecurityGroup.updateIngress(_)
-    2 * existingSecurityGroup.updateTags(description)
+    2 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should only update ingress of existing ingress when description is not null in the input"() {
@@ -530,7 +533,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * existingSecurityGroup.updateIngress(_)
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should update existing ingress with description when description is null for existing rule"() {
@@ -552,7 +555,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * existingSecurityGroup.updateIngress(_)
-    1 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
 
   void "should not update ingress existing ingress with description for the same rule"() {
@@ -574,8 +577,9 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     0 * existingSecurityGroup.updateIngress(_)
-    0 * existingSecurityGroup.updateTags(description)
+    0 * existingSecurityGroup.updateTags(description, dynamicConfigService)
   }
+
   void "should add, remove and update security group ingress rules"() {
     final existingSecurityGroup = Mock(SecurityGroupUpdater)
     final ingressSecurityGroup = Mock(SecurityGroupUpdater)
@@ -605,7 +609,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * existingSecurityGroup.addIngress(_)
     1 * existingSecurityGroup.updateIngress(_)
-    3 * existingSecurityGroup.updateTags(description)
+    3 * existingSecurityGroup.updateTags(description, dynamicConfigService)
     1 * existingSecurityGroup.removeIngress(_)
   }
 

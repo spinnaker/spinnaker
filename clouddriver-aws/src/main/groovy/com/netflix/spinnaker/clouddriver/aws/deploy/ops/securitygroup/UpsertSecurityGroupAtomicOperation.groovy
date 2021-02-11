@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGr
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -47,6 +48,9 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   SecurityGroupLookupFactory securityGroupLookupFactory
+
+  @Autowired
+  DynamicConfigService dynamicConfigService;
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -129,7 +133,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Updating Ingress (${tobeUpdated})"
         securityGroupUpdater.updateIngress(tobeUpdated)
         //Update tags to ensure they are consistent with rule changes
-        securityGroupUpdater.updateTags(description)
+        securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error updating ingress to '${description.name}' - ${e.errorMessage}"
@@ -150,7 +154,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Adding Ingress (${ipPermissionsToAdd})"
         securityGroupUpdater.addIngress(ipPermissionsToAdd)
         //Update tags to ensure they are consistent with rule changes
-        securityGroupUpdater.updateTags(description)
+        securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error adding ingress to '${description.name}' - ${e.errorMessage}"
@@ -170,7 +174,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Removing Ingress (${ipPermissionsToRemove})"
         securityGroupUpdater.removeIngress(ipPermissionsToRemove)
         //Update tags to ensure they are consistent with rule changes
-        securityGroupUpdater.updateTags(description)
+        securityGroupUpdater.updateTags(description, dynamicConfigService)
         task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error removing ingress from ${description.name}: ${e.errorMessage}"
