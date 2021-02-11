@@ -60,7 +60,12 @@ export class EditNotificationModal extends React.Component<IEditNotificationModa
               <button className="btn btn-default" onClick={dismissModal} type="button">
                 Cancel
               </button>
-              <SubmitButton isDisabled={!formik.isValid} isFormSubmit={true} submitting={false} label={'Update'} />
+              <SubmitButton
+                isDisabled={!formik.isValid}
+                isFormSubmit={true}
+                submitting={false}
+                label={'Save Changes'}
+              />
             </Modal.Footer>
           </Form>
         )}

@@ -54,7 +54,7 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
   };
 
   private editNotification = (notification?: INotification, index?: number) => {
-    const { level, notifications, stageType, updateNotifications } = this.props;
+    const { level, notifications, stageType } = this.props;
     EditNotificationModal.show({
       notification: notification || { level, when: [] },
       level: level,
@@ -63,11 +63,11 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
       .then((newNotification) => {
         const notificationsCopy = notifications || [];
         if (!notification) {
-          updateNotifications(notificationsCopy.concat(newNotification));
+          this.saveNotifications(notificationsCopy.concat(newNotification));
         } else {
           const update = [...notificationsCopy];
           update[index] = newNotification;
-          updateNotifications(update);
+          this.saveNotifications(update);
         }
         this.setState({ isNotificationsDirty: true });
       })
@@ -114,19 +114,18 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
     this.setState({ isNotificationsDirty: false });
   };
 
-  private saveNotifications = () => {
+  private saveNotifications = (newNotifications?: INotification[]) => {
     const { application, notifications } = this.props;
     const toSaveNotifications: any = {
       application: application.name,
     };
 
-    notifications.forEach((n) => {
+    (newNotifications || notifications).forEach((n) => {
       if (isEmpty(get(toSaveNotifications, n.type))) {
         toSaveNotifications[n.type] = [];
       }
       toSaveNotifications[n.type].push(n);
     });
-
     Observable.fromPromise(
       AppNotificationsService.saveNotificationsForApplication(application.name, toSaveNotifications),
     )
