@@ -37,7 +37,7 @@ export class IgorService {
   }
 
   public static getJobConfig(master: string, job: string): PromiseLike<IJobConfig> {
-    return REST('/v3/builds').path(master, 'jobs').query({ job }).get();
+    return REST('/v3/builds').path(master, 'job').query({ job }).get();
   }
 
   public static getGcbAccounts(): PromiseLike<string[]> {
