@@ -2,6 +2,8 @@ dependencies {
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
+  // TODO(plumpy): remove version once added to kork
+  implementation "com.google.cloud:google-cloud-storage:1.108.0"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
@@ -34,6 +36,7 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation 'com.jcraft:jsch'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
+  implementation "net.logstash.logback:logstash-logback-encoder"
 
 //  TODO: add clouddriverDCOS once that's merged
   implementation project(':halyard-core')
