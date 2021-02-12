@@ -195,7 +195,7 @@ class TelemetryListener(
         BasicTag("verificationType", event.verificationType),
         BasicTag("status", event.status.name)
       )
-    )
+    ).safeIncrement()
   }
 
   @EventListener(VerificationStarted::class)
@@ -206,7 +206,7 @@ class TelemetryListener(
         BasicTag("application", event.application),
         BasicTag("verificationType", event.verificationType)
       )
-    )
+    ).safeIncrement()
   }
 
   @EventListener(InvalidVerificationIdSeen::class)
@@ -217,8 +217,7 @@ class TelemetryListener(
         BasicTag("application", event.application),
         BasicTag("invalidId", event.id)
       )
-    )
-
+    ).safeIncrement()
   }
 
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
