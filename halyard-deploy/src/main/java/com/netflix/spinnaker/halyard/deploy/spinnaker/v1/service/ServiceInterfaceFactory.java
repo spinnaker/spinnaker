@@ -17,21 +17,21 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
+import com.jakewharton.retrofit.Ok3Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
 @Component
 public class ServiceInterfaceFactory {
-  @Autowired OkClient okClient;
+  @Autowired Ok3Client ok3Client;
 
   @Autowired RestAdapter.LogLevel retrofitLogLevel;
 
   public <T> T createService(String endpoint, SpinnakerService<T> service) {
     Class<T> clazz = service.getEndpointClass();
     return new RestAdapter.Builder()
-        .setClient(okClient)
+        .setClient(ok3Client)
         .setLogLevel(retrofitLogLevel)
         .setEndpoint(endpoint)
         .build()

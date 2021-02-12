@@ -16,27 +16,24 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.OkHttpClient;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Scope;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
 @Configuration
-@Import({OkHttpClientConfiguration.class, OkHttpClientComponents.class})
+@Import({OkHttp3ClientConfiguration.class, OkHttpClientComponents.class})
 class RetrofitConfig {
-  @Autowired OkHttpClientConfiguration okHttpClientConfig;
+  @Autowired OkHttp3ClientConfiguration okHttpClientConfig;
 
   @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   int maxIdleConnections;
@@ -55,13 +52,16 @@ class RetrofitConfig {
     return RestAdapter.LogLevel.valueOf(retrofitLogLevel);
   }
 
+  OkHttpClientProvider okHttpClientProvider;
+
   @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient() {
-    OkHttpClient client = okHttpClientConfig.create();
-    client.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
-    client.setRetryOnConnectionFailure(retryOnConnectionFailure);
-    return new OkClient(client);
+  OkHttpClientProvider okHttpClientProvider() {
+    return okHttpClientProvider;
+  }
+
+  @Bean
+  Ok3Client okClient() {
+    return new Ok3Client(okHttpClientConfig.create().build());
   }
 
   static class Slf4jRetrofitLogger implements RestAdapter.Log {

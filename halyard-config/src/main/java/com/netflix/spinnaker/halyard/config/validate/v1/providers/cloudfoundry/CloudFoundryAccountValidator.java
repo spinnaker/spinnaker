@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
@@ -31,7 +32,6 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.squareup.okhttp.OkHttpClient;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -43,10 +43,10 @@ import javax.net.ssl.X509TrustManager;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Data
@@ -55,8 +55,9 @@ import retrofit.converter.JacksonConverter;
 public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount> {
 
   private JacksonConverter jacksonConverter = createJacksonConverter();
-  private OkClient secureOkClient = new OkClient(createHttpClient(false));
-  private OkClient insecureOkClient = new OkClient(createHttpClient(true));
+  private X509TrustManager x509TrustManager;
+  private Ok3Client secureOkClient = new Ok3Client(createHttpClient(false));
+  private Ok3Client insecureOkClient = new Ok3Client(createHttpClient(true));
 
   @Override
   public void validate(
@@ -171,10 +172,10 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
   }
 
   private OkHttpClient createHttpClient(boolean skipSslValidation) {
-    OkHttpClient client = new OkHttpClient();
+    OkHttpClient.Builder oBuilder = new OkHttpClient.Builder();
 
     if (skipSslValidation) {
-      client.setHostnameVerifier((s, sslSession) -> true);
+      oBuilder.hostnameVerifier((s, sslSession) -> true);
 
       TrustManager[] trustAllCerts =
           new TrustManager[] {
@@ -200,10 +201,10 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
         throw new RuntimeException(e);
       }
 
-      client.setSslSocketFactory(sslContext.getSocketFactory());
+      oBuilder.sslSocketFactory(sslContext.getSocketFactory(), x509TrustManager);
     }
 
-    return client;
+    return oBuilder.build();
   }
 
   private boolean isHttp(String protocol) {
