@@ -108,6 +108,12 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       if (description.unlimitedCpuCredits != null) {
         ltFeaturesEnabled.add("unlimitedCpuCredits")
       }
+      if (description.placement != null) {
+        ltFeaturesEnabled.add("placement")
+      }
+      if (description.licenseSpecifications != null) {
+        ltFeaturesEnabled.add("licenseSpecifications")
+      }
 
       if (ltFeaturesEnabled) {
         warnings.add("WARNING: The following fields ${ltFeaturesEnabled} work as expected only with AWS EC2 Launch Template, " +
