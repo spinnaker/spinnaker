@@ -113,7 +113,7 @@ class NotificationService {
     if (service == "keel") {
       endpointToUse = keelEndpoint
       clientToUse = keelOkHttpClient
-      path = "/notifications/callback/v2"
+      path = "/slack/notifications/callbacks"
     }
 
     log.debug("Building request with URL ${endpointToUse.url + path}, Content-Type: $contentType")
@@ -137,7 +137,7 @@ class NotificationService {
       headers.putAll(response.headers().toMultimap())
       return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))
     } catch (RetrofitError error) {
-      log.error("Error proxying notification callback to echo: $error")
+      log.error("Error proxying notification callback to {}: $error", service)
       if (error.getKind() == HTTP) {
         throw error
       } else {
