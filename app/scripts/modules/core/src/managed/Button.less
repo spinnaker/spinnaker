@@ -2,19 +2,20 @@
 // really it should be a real button component we put somewhere central.
 // for now it's entirely experimental and might totally go away
 // or be replaced.
+@baseColor: rgb(90, 95, 180);
 
 .action-button {
-  color: rgb(90, 95, 180);
+  color: @baseColor;
   background-color: transparent;
-  font-size: 16px;
-  border: 1px solid rgb(90, 95, 180);
+  font-size: 14px;
+  border: 1px solid @baseColor;
   border-radius: 2px;
   padding: 4px 20px;
   transition: all 90ms ease-in;
 }
 
 .action-button-primary {
-  background-color: rgb(90, 95, 180);
+  background-color: @baseColor;
   color: var(--color-white);
 }
 
@@ -28,31 +29,28 @@
 }
 
 .action-button:not([disabled]):hover {
-  transform: scale(1.03);
-  background-color: rgba(90, 95, 180, 0.15);
+  background-color: fade(@baseColor, 15%);
 }
 
 .action-button-primary:not([disabled]):hover {
-  background-color: rgba(90, 95, 180, 0.66);
+  background-color: darken(@baseColor, 15%);
 }
 
 .action-button:not([disabled]):focus,
 .action-button:not([disabled]):active {
   outline: none;
-  transform: scale(1.04);
 }
 
 .action-button:not([disabled]):focus {
-  box-shadow: 2px 2px 0px rgba(90, 95, 180, 0.66);
 }
 
 .action-button:not([disabled]):active {
   box-shadow: none !important;
-  background-color: rgba(90, 95, 180, 0.66);
+  background-color: fade(@baseColor, 80%);
   color: var(--color-white);
 }
 
 .action-button-primary:not([disabled]):active {
-  background-color: rgba(90, 95, 180, 0.15);
-  color: rgb(90, 95, 180);
+  background-color: fade(@baseColor, 20%);
+  color: @baseColor;
 }

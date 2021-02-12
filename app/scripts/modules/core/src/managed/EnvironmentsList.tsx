@@ -57,6 +57,7 @@ export function EnvironmentsList({
                     showReferenceName={allArtifacts.length > 1}
                     artifactVersionsByState={artifactVersionsByState}
                     artifactDetails={artifactDetails}
+                    depth={0}
                   />
                 );
               })}

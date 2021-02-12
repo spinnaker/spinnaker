@@ -82,6 +82,15 @@ export interface IManagedEnvironmentSummary {
   }>;
 }
 
+export interface IVerification {
+  id: string;
+  type: string;
+  status: 'NOT_EVALUATED' | 'PENDING' | 'PASS' | 'FAIL' | 'OVERRIDE_PASS' | 'OVERRIDE_FAIL';
+  startedAt?: string;
+  completedAt?: string;
+  link?: string;
+}
+
 export interface IManagedArtifactVersion {
   version: string;
   displayName: string;
@@ -105,6 +114,7 @@ export interface IManagedArtifactVersion {
     statefulConstraints?: IStatefulConstraint[];
     statelessConstraints?: IStatelessConstraint[];
     compareLink?: string;
+    verifications?: IVerification[];
   }>;
   lifecycleSteps?: Array<{
     // likely more scopes + types later, but hard-coding to avoid premature abstraction for now

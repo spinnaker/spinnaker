@@ -66,6 +66,8 @@ export const getConstraintTimestamp = (
 
   const { status, startedAt, judgedAt } = constraint as IStatefulConstraint;
 
+  // PENDING and NOT_EVALUATED constraints stop running once an environment is skipped, however, their status do not change.
+  // We need to ignore them
   if (environment.state === 'skipped' && [PENDING, NOT_EVALUATED].includes(status)) {
     return null;
   }

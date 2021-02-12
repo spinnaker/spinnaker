@@ -64,7 +64,7 @@ interface IEnvironmentsProps {
   app: Application;
 }
 
-export function Environments({ app }: IEnvironmentsProps) {
+export const Environments: React.FC<IEnvironmentsProps> = ({ app }) => {
   const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
   const {
     data: { environments, artifacts, resources },
@@ -200,4 +200,4 @@ export function Environments({ app }: IEnvironmentsProps) {
       </div>
     </div>
   );
-}
+};

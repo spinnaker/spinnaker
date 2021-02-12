@@ -43,13 +43,9 @@ export function EnvironmentRow({ name, resources = [], pinnedVersions, children 
             ) : null}
           </div>
           <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
-            {isCollapsed && <Icon name="accordionExpand" size="extraSmall" />}
-            {!isCollapsed && <Icon name="accordionCollapse" size="extraSmall" />}
+            <Icon name={isCollapsed ? 'accordionExpand' : 'accordionCollapse'} size="extraSmall" />
           </div>
         </span>
-        {/* <div className="select">
-            <i className={`ico icon-checkbox-unchecked`}/>
-          </div> */}
       </div>
 
       {!isCollapsed && <div style={{ margin: '16px 0 40px 8px' }}>{children}</div>}

@@ -1,8 +1,8 @@
 import { IFilterService, mock } from 'angular';
 
 import { SETTINGS } from 'core/config/settings';
-import { duration } from './timeFormatters';
-import { Settings } from 'luxon';
+import { duration, timeDiffToString } from './timeFormatters';
+import { DateTime, Settings } from 'luxon';
 
 describe('Filter: timeFormatters', function () {
   beforeEach(function () {
@@ -70,6 +70,23 @@ describe('Filter: timeFormatters', function () {
         Settings.defaultZoneName = 'Atlantic/Reykjavik';
         expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
         Settings.defaultZoneName = baseZone;
+      });
+    });
+
+    describe('timeDiffToString', function () {
+      const startTime = DateTime.fromISO('2021-02-10T16:00:00.000Z');
+      it('Show only the correct units', () => {
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-10T16:00:01.000Z'))).toBe('1s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-10T16:00:21.000Z'))).toBe('21s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-10T16:02:01.000Z'))).toBe('2m 1s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-10T17:03:01.000Z'))).toBe('1h 3m 1s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-11T17:03:01.000Z'))).toBe('1d 1h 3m 1s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-04-11T17:03:01.000Z'))).toBe('60d 1h 3m 1s');
+      });
+
+      it('Do not skip units with zero value', () => {
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-10T17:00:01.000Z'))).toBe('1h 0m 1s');
+        expect(timeDiffToString(startTime, DateTime.fromISO('2021-02-11T16:00:00.000Z'))).toBe('1d 0h 0m 0s');
       });
     });
 

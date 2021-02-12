@@ -2,7 +2,7 @@ import React, { memo, useEffect, useState } from 'react';
 import { DateTime, Duration } from 'luxon';
 
 import { SETTINGS } from '../config';
-import { CopyToClipboard } from '../utils';
+import { CopyToClipboard, timeDiffToString } from '../utils';
 import { useInterval, Tooltip } from '../presentation';
 
 export interface IRelativeTimestampProps {
@@ -11,6 +11,21 @@ export interface IRelativeTimestampProps {
 }
 
 const TIMEZONE = SETTINGS.feature.displayTimestampsInUserLocalTime ? undefined : SETTINGS.defaultTimeZone;
+
+export const DurationRender: React.FC<{ startedAt: string; completedAt?: string }> = ({ startedAt, completedAt }) => {
+  const [, setRefresh] = React.useState<boolean>(false);
+  useInterval(
+    () => {
+      if (!completedAt) {
+        setRefresh((state) => !state);
+      }
+    },
+    !completedAt ? 1000 : undefined,
+  );
+  const startAtDateTime = DateTime.fromISO(startedAt);
+  const endTime = !completedAt ? DateTime.utc() : DateTime.fromISO(completedAt);
+  return <>{timeDiffToString(startAtDateTime, endTime)}</>;
+};
 
 const formatTimestamp = (timestamp: DateTime, distance: Duration) => {
   if (distance.years || distance.months) {

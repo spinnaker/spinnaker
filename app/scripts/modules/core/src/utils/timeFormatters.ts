@@ -11,13 +11,13 @@ import { SystemTimezone } from './SystemTimezone';
 const MAX_VALID_INPUT = 8640000000000000;
 const isInputValid = (input: any) => !(!input || isNaN(input) || input < 0 || input > MAX_VALID_INPUT);
 
-export function duration(input: any) {
+export function duration(input: number) {
   if (!isInputValid(input)) {
     return '-';
   }
   // formatting does not support optionally omitting fields so we have to get
   // a little weird with the format strings and the durations we send into them
-  const baseDuration = Duration.fromMillis(parseInt(input, 10));
+  const baseDuration = Duration.fromMillis(input);
   const days = Math.floor(baseDuration.as('days'));
   // remove any days - we will add them manually if needed
   const thisDuration = baseDuration.minus({ days: Math.floor(baseDuration.as('days')) });
@@ -29,6 +29,24 @@ export function duration(input: any) {
     }
   }
   return thisDuration.isValid ? dayLabel + thisDuration.toFormat(format) : '-';
+}
+
+export function timeDiffToString(startTime: DateTime, endTime: DateTime) {
+  const duration = endTime.diff(startTime).shiftTo('days', 'hours', 'minutes', 'seconds');
+
+  const formatStrings = [];
+  let forcePush = false;
+  const addUnits = (unit: 'days' | 'hours' | 'minutes', unitFormat: string) => {
+    if (duration[unit] || forcePush) {
+      formatStrings.push(unitFormat);
+      forcePush = true;
+    }
+  };
+  addUnits('days', `d'd'`);
+  addUnits('hours', `h'h'`);
+  addUnits('minutes', `m'm'`);
+  formatStrings.push(`s's'`);
+  return duration.toFormat(formatStrings.join(' '));
 }
 
 export function timestamp(input: any) {
