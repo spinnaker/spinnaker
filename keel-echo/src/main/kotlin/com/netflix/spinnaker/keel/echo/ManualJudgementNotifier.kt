@@ -18,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import org.springframework.core.env.Environment
 
 @Component
 @Configuration
@@ -31,6 +32,7 @@ class ManualJudgementNotifier(
   private val echoService: EchoService,
   private val repository: KeelRepository,
   private val scmInfo: ScmInfo,
+  private val springEnv: Environment,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
 ) {
   companion object {
@@ -38,24 +40,32 @@ class ManualJudgementNotifier(
       "https://www.spinnaker.io/guides/user/managed-delivery/environment-constraints/#manual-judgement"
   }
 
+  private val isNewSlackEnabled: Boolean
+    get() = springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @EventListener(ConstraintStateChanged::class)
   fun constraintStateChanged(event: ConstraintStateChanged) {
-    log.debug("Received constraint state changed event: $event")
-    // if this is the first time the constraint was evaluated, send a notification
-    // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
-    if (event.constraint is ManualJudgementConstraint &&
-      event.previousState == null &&
-      event.currentState.status == ConstraintStatus.PENDING
-    ) {
-      event.environment.notifications.map {
-        // TODO: run in parallel
-        runBlocking {
-          log.debug("Sending notification for manual judgement with config $it")
-          echoService.sendNotification(event.toEchoNotification(it))
+    if (!isNewSlackEnabled) {
+      log.debug("Received constraint state changed event: $event")
+      // if this is the first time the constraint was evaluated, send a notification
+      // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
+      if (event.constraint is ManualJudgementConstraint &&
+        event.previousState == null &&
+        event.currentState.status == ConstraintStatus.PENDING
+      ) {
+        event.environment.notifications.map {
+          // TODO: run in parallel
+          runBlocking {
+            log.debug("Sending notification for manual judgement with config $it")
+            echoService.sendNotification(event.toEchoNotification(it))
+          }
         }
       }
+    }
+    else {
+      log.debug("New slack integration is enabled, sending notifications using ManualJudgmentNotificationHandler")
     }
   }
 

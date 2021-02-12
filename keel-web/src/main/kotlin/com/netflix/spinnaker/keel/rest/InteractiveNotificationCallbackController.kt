@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.exceptions.SystemException
-import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 
 @RestController
 @RequestMapping(path = ["/notifications/callback"])
@@ -23,6 +23,7 @@ class InteractiveNotificationCallbackController(
   private val repository: KeelRepository,
   private val authorizationSupport: AuthorizationSupport
 ) {
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @PostMapping(

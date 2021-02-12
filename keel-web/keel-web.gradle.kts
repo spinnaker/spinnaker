@@ -33,6 +33,7 @@ dependencies {
   implementation("io.swagger.core.v3:swagger-annotations:2.1.2")
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("com.netflix.spinnaker.kork:kork-plugins")
+  implementation("com.slack.api:bolt-servlet:1.6.0")
 
   runtimeOnly("com.netflix.spinnaker.kork:kork-runtime") {
     // these dependencies weren't previously being included, keeping them out for now, if there

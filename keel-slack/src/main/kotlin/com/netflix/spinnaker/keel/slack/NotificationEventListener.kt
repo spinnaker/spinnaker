@@ -4,6 +4,9 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
@@ -237,6 +240,48 @@ class NotificationEventListener(
         ),
         Type.ARTIFACT_DEPLOYMENT,
         veto.targetEnvironment)
+    }
+  }
+
+  @EventListener(ConstraintStateChanged::class)
+  fun onConstraintStateChanged(notification: ConstraintStateChanged) {
+    log.debug("Received constraint state changed event: $notification")
+    with(notification) {
+      // if this is the first time the constraint was evaluated, send a notification
+      // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
+      if (constraint is ManualJudgementConstraint &&
+        previousState == null &&
+        currentState.status == ConstraintStatus.PENDING
+      ) {
+        val config = repository.getDeliveryConfig(currentState.deliveryConfigName)
+
+        val deliveryArtifact = config.artifacts.find {
+          it.reference == currentState.artifactReference
+        } .also {
+          if (it == null) log.debug("Artifact with reference ${currentState.artifactReference}  not found in delivery config")
+        } ?: return
+
+        val artifactCandidate = repository.getArtifactVersion(deliveryArtifact, currentState.artifactVersion, null)
+        if (artifactCandidate == null) {
+          log.debug("$deliveryArtifact version ${currentState.artifactVersion} not found. Can't send manual judgement notification.")
+          return
+        }
+        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName , deliveryArtifact, PromotionStatus.CURRENT)
+
+        sendSlackMessage(
+          config,
+          SlackManualJudgmentNotification(
+            time = clock.instant(),
+            application = config.application,
+            artifactCandidate = artifactCandidate.copy(reference = deliveryArtifact.reference),
+            targetEnvironment = currentState.environmentName,
+            currentArtifact = currentArtifact,
+            deliveryArtifact = deliveryArtifact,
+            stateUid = currentState.uid
+          ),
+          Type.MANUAL_JUDGMENT,
+          environment.name)
+      }
     }
   }
 

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.web.servlet.ServletComponentScan
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
 
@@ -46,6 +47,7 @@ private val DEFAULT_PROPS = mapOf(
   PluginsAutoConfiguration::class
 )
 @EnableAsync
+@ServletComponentScan
 class KeelApplication
 
 fun main(vararg args: String) {

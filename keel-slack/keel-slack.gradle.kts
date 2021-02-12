@@ -10,6 +10,7 @@ dependencies {
 
   implementation("com.slack.api:slack-api-model-kotlin-extension:1.4.1")
   implementation("com.slack.api:slack-api-client-kotlin-extension:1.4.1")
+  implementation("com.slack.api:bolt:1.6.0")
 
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")

@@ -65,7 +65,12 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
       }
     }
 
-    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, scmInfo, baseUrl)
+    val springEnv: org.springframework.core.env.Environment = mockk(relaxed = true) {
+      coEvery { getProperty("keel.notifications.slack", Boolean::class.java, true) } returns false
+    }
+
+
+    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, scmInfo, springEnv, baseUrl)
   }
 
   fun tests() = rootContext<Fixture> {

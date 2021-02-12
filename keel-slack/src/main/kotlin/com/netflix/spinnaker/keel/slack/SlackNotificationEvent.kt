@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.slack
 
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Instant
 
@@ -65,6 +67,17 @@ data class SlackArtifactDeploymentNotification(
   val status: DeploymentStatus,
   override val application: String
 ) : SlackNotificationEvent(time, application)
+
+data class SlackManualJudgmentNotification(
+  val artifactCandidate: PublishedArtifact,
+  val currentArtifact: PublishedArtifact? = null,
+  override val time: Instant,
+  val targetEnvironment: String,
+  val deliveryArtifact: DeliveryArtifact,
+  val stateUid: UID?,
+  override val application: String
+) : SlackNotificationEvent(time, application)
+
 
 enum class DeploymentStatus {
   SUCCEEDED, FAILED;
