@@ -24,12 +24,17 @@ fun generateCompareLink(scmInfo: ScmInfo, version1: PublishedArtifact?, version2
 
 //Generating a SCM compare link between source (new version) and target (old version) versions (the order matter!)
 private fun generateCompareLink(scmInfo: ScmInfo, newerGitMetadata: GitMetadata?, olderGitMetadata: GitMetadata?): String? {
-  val baseScmUrl = newerGitMetadata?.commitInfo?.link?.let { getScmBaseLink(scmInfo, it) }
-  return if (baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
-    "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
-      "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
-  } else {
-    null
+  val commitLink = newerGitMetadata?.commitInfo?.link ?: return null
+  return when {
+    "stash" in commitLink -> {
+      val baseScmUrl =  getScmBaseLink(scmInfo, commitLink)
+      if (baseScmUrl != null && olderGitMetadata != null && !(olderGitMetadata.commitInfo?.sha.isNullOrEmpty())) {
+        "$baseScmUrl/projects/${newerGitMetadata.project}/repos/${newerGitMetadata.repo?.name}/compare/commits?" +
+          "targetBranch=${olderGitMetadata.commitInfo?.sha}&sourceBranch=${newerGitMetadata.commitInfo?.sha}"
+      } else null
+    }
+    "github" in commitLink -> commitLink
+    else ->  throw UnsupportedScmType(message = "Stash & GitHub are currently the only supported SCM types.")
   }
 }
 
@@ -42,6 +47,6 @@ fun getScmBaseLink(scmInfo: ScmInfo, commitLink: String): String? {
     "stash" in commitLink ->
       return scmBaseURLs["stash"]
     else ->
-      throw UnsupportedScmType(message = "Stash is currently the only supported SCM type")
+      throw UnsupportedScmType(message = "Stash and GitHub are currently the only supported SCM types.")
   }
 }
