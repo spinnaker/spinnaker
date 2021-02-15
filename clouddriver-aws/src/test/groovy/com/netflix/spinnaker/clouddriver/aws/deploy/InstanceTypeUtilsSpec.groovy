@@ -79,13 +79,13 @@ class InstanceTypeUtilsSpec extends Specification {
     defaultBlockDevice             | null              | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80, volumeType: "standard")]
     null                           | null              | "m4.large"    || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40, volumeType: "standard")]
     null                           | null              | "m4.16xlarge" || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120, volumeType: "standard")]
-    null                           | null              | "c4.8xlarge"  || getExpectedBlockDevicesForEbsOnly("standard")
-    null                           | null              | "c5.9xlarge"  || getExpectedBlockDevicesForEbsOnly("standard")
+    null                           | null              | "c4.8xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120, volumeType: "standard")]
+    null                           | null              | "c5.9xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120, volumeType: "standard")]
     null                           | null              | "m3.medium"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
     null                           | null              | "i2.2xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
     null                           | null              | "d2.8xlarge"  || expectedD28xlargeBlockDevices
     null                           | "gp2"             | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80, volumeType: defaultVolumeType)]
-    null                           | "gp2"             | "c4.8xlarge"  || getExpectedBlockDevicesForEbsOnly("gp2")
+    null                           | "gp2"             | "c4.8xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120, volumeType: "gp2")]
   }
 
   private Collection<AmazonBlockDevice> getExpectedBlockDevicesForEbsOnly(String volumeType) {
