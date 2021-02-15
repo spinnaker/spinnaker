@@ -69,10 +69,10 @@ export const InstanceLinks = ({ address, application, instance, moniker, environ
     <div>
       {linkSections.map((section: LinkSection) =>
         !section.links.length ? null : (
-          <CollapsibleSection heading={section.title}>
+          <CollapsibleSection key={`link-section-${section.title}`} heading={section.title}>
             <ul>
               {section.links.map((link: Link) => (
-                <li>
+                <li key={link.title}>
                   <a href={link.url} target="_blank">
                     {link.title}
                   </a>

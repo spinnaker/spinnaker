@@ -201,6 +201,11 @@ function configure(env, webpackOpts) {
           test: /ui-sortable/,
           use: ['imports-loader?$UI=jquery-ui/ui/widgets/sortable'],
         },
+        {
+          test: /\.js$/,
+          enforce: 'pre',
+          use: ['source-map-loader'],
+        },
       ],
     },
     plugins,

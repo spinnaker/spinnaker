@@ -27,50 +27,16 @@
     >
     </instance-status>
     <collapsible-section heading="DNS">
-      <dl class="horizontal-when-filters-collapsed">
-        <dt ng-if="instance.privateDnsName">Private DNS Name</dt>
-        <dd ng-if="instance.privateDnsName">
-          <link-with-clipboard
-            url="'http://' + instance.privateDnsName + ':' + state.instancePort"
-            text="instance.privateDnsName"
-          >
-          </link-with-clipboard>
-        </dd>
-        <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
-        <dd ng-if="instance.publicDnsName">
-          <link-with-clipboard
-            url="'http://' + instance.publicDnsName + ':' + state.instancePort"
-            text="instance.publicDnsName"
-          >
-          </link-with-clipboard>
-        </dd>
-        <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
-        <dd ng-if="instance.privateIpAddress">
-          <link-with-clipboard
-            url="'http://' + instance.privateIpAddress + ':' + state.instancePort"
-            text="instance.privateIpAddress"
-          >
-          </link-with-clipboard>
-        </dd>
-        <dt ng-if="instance.permanentIps">Permanent IP Address</dt>
-        <dd ng-if="instance.permanentIps" ng-repeat="ip in instance.permanentIps">
-          <link-with-clipboard url="'http://' + ip + ':' + state.instancePort" text="ip"> </link-with-clipboard>
-        </dd>
-        <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
-        <dd ng-if="instance.publicIpAddress">
-          <link-with-clipboard
-            url="'http://' + instance.publicIpAddress + ':' + state.instancePort"
-            text="instance.publicIpAddress"
-          >
-          </link-with-clipboard>
-        </dd>
-        <dt ng-if="instance.ipv6Addresses.length">
-          IPv6 Address<span ng-if="instance.ipv6Addresses.length > 1">es</span>
-        </dt>
-        <dd ng-if="instance.ipv6Addresses.length" ng-repeat="ip in instance.ipv6Addresses">
-          <link-with-clipboard url="'http://[' + ip + ']:' + state.instancePort" text="ip"> </link-with-clipboard>
-        </dd>
-      </dl>
+      <instance-dns
+        instance-port="state.instancePort"
+        ipv6-addresses="instance.ipv6Addresses"
+        permanent-ips="instance.permanentIps"
+        private-dns-name="instance.privateDnsName"
+        private-ip-address="instance.privateIpAddress"
+        public-dns-name="instance.publicDnsName"
+        public-ip-address="instance.publicIpAddress"
+      >
+      </instance-dns>
     </collapsible-section>
     <instance-security-groups instance="instance"></instance-security-groups>
     <instance-tags tags="instance.tags"></instance-tags>

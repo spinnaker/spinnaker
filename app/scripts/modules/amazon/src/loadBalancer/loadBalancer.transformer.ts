@@ -280,6 +280,8 @@ export class AwsLoadBalancerTransformer {
       vpcId: undefined,
       idleTimeout: loadBalancer.idleTimeout || 60,
       deletionProtection: loadBalancer.deletionProtection || false,
+      ipAddressType: loadBalancer.ipAddressType || 'ipv4',
+      dualstack: loadBalancer.ipAddressType === 'dualstack',
     };
 
     if (loadBalancer.elb) {
@@ -392,6 +394,8 @@ export class AwsLoadBalancerTransformer {
       vpcId: undefined,
       deletionProtection: loadBalancer.deletionProtection,
       loadBalancingCrossZone: loadBalancer.loadBalancingCrossZone,
+      ipAddressType: loadBalancer.ipAddressType || 'ipv4',
+      dualstack: loadBalancer.ipAddressType === 'dualstack',
     };
 
     if (loadBalancer.elb) {
@@ -528,6 +532,8 @@ export class AwsLoadBalancerTransformer {
       stack: '',
       detail: '',
       loadBalancerType: 'application',
+      ipAddressType: 'ipv4',
+      dualstack: false,
       isInternal: false,
       cloudProvider: 'aws',
       credentials: defaultCredentials,
@@ -591,6 +597,8 @@ export class AwsLoadBalancerTransformer {
       detail: '',
       loadBalancerType: 'network',
       isInternal: false,
+      ipAddressType: 'ipv4',
+      dualstack: false,
       cloudProvider: 'aws',
       credentials: defaultCredentials,
       region: defaultRegion,

@@ -3,11 +3,11 @@ import ReactGA from 'react-ga';
 import { DateTime } from 'luxon';
 import * as distanceInWords from 'date-fns/distance_in_words';
 
-import { IManagedArtifactVersionLifecycleStep } from '../domain';
-import { Application } from '../application';
+import { IManagedArtifactVersionLifecycleStep } from '../../domain';
+import { Application } from '../../application';
 
-import { StatusCard } from './StatusCard';
-import { Button } from './Button';
+import { StatusCard } from '../StatusCard';
+import { Button } from '../Button';
 
 const cardAppearanceByStatus = {
   NOT_STARTED: 'future',

@@ -1,11 +1,13 @@
 module.exports = {
   rules: {
+    'import-sort': require('./rules/import-sort'),
     'api-deprecation': require('./rules/api-deprecation'),
     'api-no-slashes': require('./rules/api-no-slashes'),
     'api-no-unused-chaining': require('./rules/api-no-unused-chaining'),
     'import-from-alias-not-npm': require('./rules/import-from-alias-not-npm'),
     'import-from-npm-not-alias': require('./rules/import-from-npm-not-alias'),
     'import-from-npm-not-relative': require('./rules/import-from-npm-not-relative'),
+    'import-from-presentation-not-core': require('./rules/import-from-presentation-not-core'),
     'import-relative-within-subpackage': require('./rules/import-relative-within-subpackage'),
     'migrate-to-mock-http-client': require('./rules/migrate-to-mock-http-client'),
     'ng-no-component-class': require('./rules/ng-no-component-class'),

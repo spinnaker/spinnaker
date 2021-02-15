@@ -72,6 +72,7 @@ import { AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE } from './pip
 import { INSTANCE_STATUS_COMPONENT } from './instance/details/instanceStatus.component';
 import { INSTANCE_TAGS_COMPONENT } from './instance/details/instanceTags.component';
 import { INSTANCE_SECURITY_GROUPS_COMPONENT } from './instance/details/instanceSecurityGroups.component';
+import { INSTANCE_DNS_COMPONENT } from './instance/details/instanceDns.component';
 import { AMAZON_INSTANCE_INFORMATION_COMPONENT } from './instance/details/amazonInstanceInformation.component';
 
 // load all templates into the $templateCache
@@ -115,6 +116,7 @@ module(AMAZON_MODULE, [
   INSTANCE_STATUS_COMPONENT,
   INSTANCE_TAGS_COMPONENT,
   INSTANCE_SECURITY_GROUPS_COMPONENT,
+  INSTANCE_DNS_COMPONENT,
   AMAZON_INSTANCE_INFORMATION_COMPONENT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {

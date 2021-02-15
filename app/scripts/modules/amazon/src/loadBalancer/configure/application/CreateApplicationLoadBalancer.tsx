@@ -1,7 +1,6 @@
 import React from 'react';
 import { cloneDeep, get } from 'lodash';
 
-
 import {
   AccountService,
   FirewallLabels,
@@ -160,10 +159,16 @@ export class CreateApplicationLoadBalancer extends React.Component<
     });
   }
 
+  private setIpAddressType(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
+    command.ipAddressType = command.dualstack ? 'dualstack' : 'ipv4';
+    delete command.dualstack;
+  }
+
   private formatCommand(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
     this.setAvailabilityZones(command);
     this.manageTargetGroupNames(command);
     this.manageRules(command);
+    this.setIpAddressType(command);
   }
 
   protected onApplicationRefresh(values: IAmazonApplicationLoadBalancerUpsertCommand): void {
@@ -229,6 +234,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     if (forPipelineConfig) {
       // don't submit to backend for creation. Just return the loadBalancerCommand object
       this.formatListeners(loadBalancerCommandFormatted).then(() => {
+        this.setIpAddressType(loadBalancerCommandFormatted);
         closeModal && closeModal(loadBalancerCommandFormatted);
       });
     } else {
@@ -321,7 +327,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
                 label="Advanced Settings"
                 wizard={wizard}
                 order={nextIdx()}
-                render={({ innerRef }) => <ALBAdvancedSettings ref={innerRef} />}
+                render={({ innerRef }) => <ALBAdvancedSettings ref={innerRef} isInternal={formik.values.isInternal} />}
               />
             </>
           );

@@ -6,7 +6,7 @@ import { SETTINGS } from 'core/config/settings';
 
 import { AppRefresher } from './AppRefresher';
 import { NavSection } from './NavSection';
-import { Icon, Tooltip, useIsMobile, usePrevious } from '../../presentation';
+import { Tooltip, useIsMobile, usePrevious } from '../../presentation';
 
 import { navigationCategoryRegistry } from './navigationCategory.registry';
 import { verticalNavExpandedAtom } from './navAtoms';
@@ -15,6 +15,8 @@ import { Application } from '../application.model';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 
 import './verticalNav.less';
+
+import { Icon } from '@spinnaker/presentation';
 
 export interface IApplicationNavigationProps {
   app: Application;

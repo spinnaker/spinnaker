@@ -2,10 +2,10 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import { Application } from '../application';
-import { Illustration, IllustrationName } from '../presentation';
 import { showToggleManagedResourceModal } from './ToggleManagedResourceForApplication';
-
 import './EnvironmentsHeader.less';
+
+import { Illustration, IllustrationName } from '@spinnaker/presentation';
 
 interface IEnvironmentsHeaderProps {
   app: Application;

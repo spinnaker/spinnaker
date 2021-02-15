@@ -1,7 +1,7 @@
 import React from 'react';
 import { take } from 'lodash';
 
-import { IStatusBubbleProps, StatusBubble } from './StatusBubble';
+import { IStatusBubbleProps, StatusBubble } from '../StatusBubble';
 
 import './StatusBubbleStack.less';
 
