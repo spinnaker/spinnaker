@@ -115,20 +115,26 @@ class CombinedRepository(
     }
 
     // by this point, configWithSameName is the old delivery config for this application
-    deliveryConfig.resources.forEach { resource ->
-      upsertResource(resource, deliveryConfig.name)
-    }
-
     deliveryConfig.artifacts.forEach { artifact ->
       register(artifact)
     }
 
-    storeDeliveryConfig(deliveryConfig)
+    // because upsertResource adds metadata (crucially version #) we need to ensure we have the
+    // persisted versions of the resources for removeDependents below
+    val deliveryConfigWithPersistedResources = deliveryConfig.run {
+      copy(environments = environments.mapTo(mutableSetOf()) { environment ->
+        environment.copy(resources = environment.resources.mapTo(mutableSetOf()) {
+          upsertResource(it, name)
+        })
+      })
+    }
+
+    storeDeliveryConfig(deliveryConfigWithPersistedResources)
 
     if (configWithSameName != null) {
-      removeDependents(configWithSameName, deliveryConfig)
+      removeDependents(configWithSameName, deliveryConfigWithPersistedResources)
     }
-    return deliveryConfig
+    return deliveryConfigWithPersistedResources
   }
 
   /**
@@ -279,7 +285,7 @@ class CombinedRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> =
     resourceRepository.getResourcesByApplication(application)
 
-  override fun storeResource(resource: Resource<*>): Resource<*> =
+  override fun <T : ResourceSpec> storeResource(resource: Resource<T>): Resource<T> =
     resourceRepository.store(resource)
 
   override fun deleteResource(id: String) =

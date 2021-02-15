@@ -6,7 +6,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import java.time.Clock
 
-internal object SqlNotificationRepositoryTests : NotificationRepositoryTests<SqlNotificationRepository>() {
+internal class SqlNotificationRepositoryTests : NotificationRepositoryTests<SqlNotificationRepository>() {
 
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(1, 0)

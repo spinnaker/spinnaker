@@ -80,7 +80,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<ResourceSp
    *
    * @return the `uid` of the stored resource.
    */
-  fun store(resource: Resource<*>): Resource<*>
+  fun <T : ResourceSpec>  store(resource: Resource<T>): Resource<T>
 
   /**
    * Deletes the resource represented by [id].

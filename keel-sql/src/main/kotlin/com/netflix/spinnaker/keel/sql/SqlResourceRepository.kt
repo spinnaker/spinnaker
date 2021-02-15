@@ -30,7 +30,6 @@ import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.max
-import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -126,7 +125,7 @@ open class SqlResourceRepository(
   }
 
   // todo: this is not retryable due to overall repository structure: https://github.com/spinnaker/keel/issues/740
-  override fun store(resource: Resource<*>): Resource<*> {
+  override fun <T : ResourceSpec> store(resource: Resource<T>): Resource<T> {
     val version = jooq.select(
         coalesce(
           max(RESOURCE.VERSION),

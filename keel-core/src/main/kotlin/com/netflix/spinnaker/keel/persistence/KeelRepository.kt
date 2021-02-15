@@ -51,7 +51,7 @@ interface KeelRepository : KeelReadOnlyRepository {
   @Transactional(propagation = REQUIRED)
   fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig
 
-  fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) {
+  fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) : Resource<T> {
     val existingResource = try {
       getRawResource(resource.id)
     } catch (e: NoSuchResourceException) {
@@ -68,13 +68,15 @@ interface KeelRepository : KeelReadOnlyRepository {
       val diff = DefaultResourceDiff(resource.spec, existingResource.spec)
       if (diff.hasChanges() || resource.kind.version != existingResource.kind.version) {
         log.debug("Updating ${resource.id}")
-        storeResource(resource).also { updatedResource ->
+        return storeResource(resource).also { updatedResource ->
           appendResourceHistory(ResourceUpdated(updatedResource, diff.toDeltaJson(), clock))
         }
+      } else {
+        return resource
       }
     } else {
       log.debug("Creating $resource")
-      storeResource(resource).also { updatedResource ->
+      return storeResource(resource).also { updatedResource ->
         appendResourceHistory(ResourceCreated(updatedResource, clock))
       }
     }
@@ -125,7 +127,7 @@ interface KeelRepository : KeelReadOnlyRepository {
   // START ResourceRepository methods
   fun allResources(callback: (ResourceHeader) -> Unit)
 
-  fun storeResource(resource: Resource<*>): Resource<*>
+  fun <T : ResourceSpec> storeResource(resource: Resource<T>): Resource<T>
 
   fun deleteResource(id: String)
 
