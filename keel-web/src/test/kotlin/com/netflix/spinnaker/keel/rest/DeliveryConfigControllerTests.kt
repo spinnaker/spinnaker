@@ -121,7 +121,6 @@ internal class DeliveryConfigControllerTests
             kind = it.kind,
             metadata = mapOf(
               "id" to randomUID().toString(),
-              "version" to 1,
               "serviceAccount" to serviceAccount,
               "application" to application
             ),

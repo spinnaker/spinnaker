@@ -28,7 +28,6 @@ internal class TelemetryListenerTests : JUnit5Minutests {
   private val event = ResourceValid(
     kind = parseKind("ec2/cluster@v1"),
     id = "ec2:cluster:prod:keel-main",
-    version = 1,
     application = "fnord",
     timestamp = Instant.now()
   )

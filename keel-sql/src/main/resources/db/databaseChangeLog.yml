@@ -233,6 +233,3 @@ databaseChangeLog:
   - include:
       file: changelog/20210114-verification-state-task-list.yml
       relativeToChangelogFile: true
-  - include:
-      file: changelog/20210208-versioned-resources.yml
-      relativeToChangelogFile: true

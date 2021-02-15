@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
@@ -28,9 +27,6 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.coalesce
-import org.jooq.impl.DSL.max
-import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
@@ -125,50 +121,35 @@ open class SqlResourceRepository(
   }
 
   // todo: this is not retryable due to overall repository structure: https://github.com/spinnaker/keel/issues/740
-  override fun <T : ResourceSpec> store(resource: Resource<T>): Resource<T> {
-    val version = jooq.select(
-        coalesce(
-          max(RESOURCE.VERSION),
-          value(0)
-        )
-      )
+  override fun store(resource: Resource<*>) {
+    val uid = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
       .where(RESOURCE.ID.eq(resource.id))
-      .fetchOneInto(Int::class.java)
+      .fetchOne(RESOURCE.UID)
+      ?: randomUID().toString()
 
-    val oldUid = if (version > 0 ) {
-      getResourceUid(resource.id, version)
-    } else {
-      null
-    }
-    val uid = randomUID().toString()
-
-    jooq.insertInto(RESOURCE)
-      .set(RESOURCE.UID, uid)
-      .set(RESOURCE.KIND, resource.kind.toString())
-      .set(RESOURCE.ID, resource.id)
-      .set(RESOURCE.VERSION, version + 1)
-      .set(RESOURCE.SPEC, objectMapper.writeValueAsString(resource.spec))
-      .set(RESOURCE.APPLICATION, resource.application)
+    val updatePairs = mapOf(
+      RESOURCE.KIND to resource.kind,
+      RESOURCE.ID to resource.id,
+      RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec),
+      RESOURCE.APPLICATION to resource.application
+    )
+    val insertPairs = updatePairs + (RESOURCE.UID to uid)
+    jooq.insertInto(
+      RESOURCE,
+      *insertPairs.keys.toTypedArray()
+    )
+      .values(*insertPairs.values.toTypedArray())
+      .onDuplicateKeyUpdate()
+      .set(updatePairs)
       .execute()
-
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
       .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
+      .onDuplicateKeyUpdate()
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
+      .set(RESOURCE_LAST_CHECKED.IGNORE, false)
       .execute()
-
-    // This is somewhat temporary because eventually we'll define a new environment version
-    if (oldUid != null) {
-      jooq
-        .update(ENVIRONMENT_RESOURCE)
-        .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, uid)
-        .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(oldUid))
-        .execute()
-    }
-
-    return resource.copy(
-      metadata = resource.metadata + mapOf("uid" to uid, "version" to version + 1)
-    )
   }
 
   override fun applicationEventHistory(application: String, limit: Int): List<ApplicationEvent> {
@@ -230,7 +211,7 @@ open class SqlResourceRepository(
   // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
   override fun appendHistory(event: ResourceEvent) {
     // for historical reasons, we use the resource UID (not the ID) as an identifier in resource events
-    val ref = getResourceUid(event.ref, event.version)
+    val ref = getResourceUid(event.ref)
     doAppendHistory(event, ref)
   }
 
@@ -278,41 +259,35 @@ open class SqlResourceRepository(
 
   override fun delete(id: String) {
     // TODO: these should be run inside a transaction
-    val uids = sqlRetry.withRetry(READ) {
+    val uid = sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.UID)
         .from(RESOURCE)
         .where(RESOURCE.ID.eq(id))
-        .fetch(RESOURCE.UID)
-        .map(ULID::parseULID)
+        .fetchOne(RESOURCE.UID)
+        ?.let(ULID::parseULID)
+        ?: throw NoSuchResourceId(id)
     }
-
-    if (uids.isEmpty()) {
-      throw NoSuchResourceId(id)
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(RESOURCE)
+        .where(RESOURCE.UID.eq(uid.toString()))
+        .execute()
     }
-
-    uids.forEach { uid ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(RESOURCE)
-          .where(RESOURCE.UID.eq(uid.toString()))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
-          .and(EVENT.REF.eq(uid.toString()))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DIFF_FINGERPRINT)
-          .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(PAUSED)
-          .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
-          .and(PAUSED.NAME.eq(id))
-          .execute()
-      }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(EVENT)
+        .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
+        .and(EVENT.REF.eq(uid.toString()))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(PAUSED)
+        .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
+        .and(PAUSED.NAME.eq(id))
+        .execute()
     }
   }
 
@@ -357,17 +332,16 @@ open class SqlResourceRepository(
     }
   }
 
-  fun getResourceUid(id: String, version: Int) =
+  fun getResourceUid(id: String) =
     sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE.UID)
         .from(RESOURCE)
         .where(RESOURCE.ID.eq(id))
-        .and(RESOURCE.VERSION.eq(version))
         .fetchOne(RESOURCE.UID)
         ?: throw IllegalStateException("Resource with id $id not found. Retrying.")
     }
 
   private val Resource<*>.uid: String
-    get() = getResourceUid(id, version)
+    get() = getResourceUid(this.id)
 }

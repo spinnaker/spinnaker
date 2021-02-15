@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.transaction.annotation.Propagation.REQUIRED
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
@@ -45,13 +45,13 @@ interface KeelRepository : KeelReadOnlyRepository {
   val publisher: ApplicationEventPublisher
   val log: Logger
 
-  @Transactional(propagation = REQUIRED)
+  @Transactional(propagation = Propagation.REQUIRED)
   fun upsertDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig): DeliveryConfig
 
-  @Transactional(propagation = REQUIRED)
+  @Transactional(propagation = Propagation.REQUIRED)
   fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig
 
-  fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) : Resource<T> {
+  fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) {
     val existingResource = try {
       getRawResource(resource.id)
     } catch (e: NoSuchResourceException) {
@@ -68,17 +68,13 @@ interface KeelRepository : KeelReadOnlyRepository {
       val diff = DefaultResourceDiff(resource.spec, existingResource.spec)
       if (diff.hasChanges() || resource.kind.version != existingResource.kind.version) {
         log.debug("Updating ${resource.id}")
-        return storeResource(resource).also { updatedResource ->
-          appendResourceHistory(ResourceUpdated(updatedResource, diff.toDeltaJson(), clock))
-        }
-      } else {
-        return resource
+        storeResource(resource)
+        appendResourceHistory(ResourceUpdated(resource, diff.toDeltaJson(), clock))
       }
     } else {
       log.debug("Creating $resource")
-      return storeResource(resource).also { updatedResource ->
-        appendResourceHistory(ResourceCreated(updatedResource, clock))
-      }
+      storeResource(resource)
+      appendResourceHistory(ResourceCreated(resource, clock))
     }
   }
 
@@ -127,7 +123,7 @@ interface KeelRepository : KeelReadOnlyRepository {
   // START ResourceRepository methods
   fun allResources(callback: (ResourceHeader) -> Unit)
 
-  fun <T : ResourceSpec> storeResource(resource: Resource<T>): Resource<T>
+  fun storeResource(resource: Resource<*>)
 
   fun deleteResource(id: String)
 

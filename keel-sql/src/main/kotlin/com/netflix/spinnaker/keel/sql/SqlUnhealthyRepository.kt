@@ -47,9 +47,5 @@ class SqlUnhealthyRepository(
   }
 
   private val Resource<*>.uid: Select<Record1<String>>
-    get() = jooq
-      .select(RESOURCE.UID)
-      .from(RESOURCE)
-      .where(RESOURCE.ID.eq(id))
-      .and(RESOURCE.VERSION.eq(version))
+    get() = jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(id))
 }

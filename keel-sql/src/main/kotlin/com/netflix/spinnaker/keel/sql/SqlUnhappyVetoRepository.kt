@@ -96,5 +96,4 @@ class SqlUnhappyVetoRepository(
     get() = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
       .where(RESOURCE.ID.eq(id))
-      .and(RESOURCE.VERSION.eq(version))
 }
