@@ -221,6 +221,7 @@ public class InstanceTypeUtils {
               .put("h1.8xlarge", enumeratedBlockDevicesWithVirtualName(4))
               .put("h1.16xlarge", enumeratedBlockDevicesWithVirtualName(8))
               .put("hs1.8xlarge", enumeratedBlockDevicesWithVirtualName(24))
+              .put("i2.large", enumeratedBlockDevicesWithVirtualName(1))
               .put("i2.xlarge", enumeratedBlockDevicesWithVirtualName(1))
               .put("i2.2xlarge", enumeratedBlockDevicesWithVirtualName(2))
               .put("i2.4xlarge", enumeratedBlockDevicesWithVirtualName(4))
