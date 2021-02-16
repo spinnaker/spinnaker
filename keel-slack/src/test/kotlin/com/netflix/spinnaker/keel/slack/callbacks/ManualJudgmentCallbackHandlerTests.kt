@@ -82,16 +82,12 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
           repository.storeConstraintState(any())
         } just Runs
 
-        every {
-          slackService.respondToCallback(any(), any(), any())
-        } just Runs
-
       }
 
       test("update status correctly with approval") {
         val slot = slot<ConstraintState>()
         subject.updateConstraintState(buildPayload("OVERRIDE_PASS"))
-        verify(exactly = 1){
+        verify(exactly = 1) {
           repository.storeConstraintState(capture(slot))
         }
         expectThat(slot.captured.status).isEqualTo(ConstraintStatus.OVERRIDE_PASS)
@@ -101,7 +97,7 @@ class ManualJudgmentCallbackHandlerTests : JUnit5Minutests {
       test("update status correctly with rejection") {
         val slot = slot<ConstraintState>()
         subject.updateConstraintState(buildPayload("OVERRIDE_FAIL"))
-        verify(exactly = 1){
+        verify(exactly = 1) {
           repository.storeConstraintState(capture(slot))
         }
         expectThat(slot.captured.status).isEqualTo(ConstraintStatus.OVERRIDE_FAIL)

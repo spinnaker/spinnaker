@@ -30,7 +30,9 @@ class ManualJudgmentCallbackHandler(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  // Updating the constraint status based on the user response (either approve/reject)
+  /**
+   * Updating the constraint status based on the user response (either approve/reject)
+   */
   fun updateConstraintState(slackCallbackResponse: BlockActionPayload) {
     val constraintUid = slackCallbackResponse.constraintId
     val currentState = repository.getConstraintStateById(parseUID(constraintUid))
@@ -54,6 +56,11 @@ class ManualJudgmentCallbackHandler(
       )
   }
 
+  /**
+   * Update an existing manual judgment notification with the user and the action that was performed.
+   * For example, if user gyardeni approved the notification, this function will add:
+   * "@Gal Yardeni hit approve on 2021-02-12 11:05:57 AM" and will marked the original text with strikethrough.
+   */
   fun updateManualJudgementNotification(response: BlockActionPayload): List<LayoutBlock> {
     try {
       val originalCommitText = response.message.blocks[1].getText
@@ -65,7 +72,7 @@ class ManualJudgmentCallbackHandler(
           text("Was awaiting manual judgement", emoji = true)
         }
         section {
-          //This is to mark the old text with strikeout
+          //This is to mark the old text with strikethrough
           markdownText("~${originalCommitText.replace("\n\n", "\n").replace("\n", "~\n~")}~")
           accessory {
             image("https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_was_needed.png", altText = "mj_done")

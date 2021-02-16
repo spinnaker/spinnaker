@@ -29,7 +29,7 @@ class GitDataGenerator(
   /**
    * generateGitData will create a slack section blocks, which looks like:
    * "spkr/keel › PR#7 › master › c25a357"
-   * Or: "spkr/keel › master › c25a358" (no PR data)
+   * Or: "spkr/keel › master › c25a358" (if it's a commit without a PR)
    * Each component will have the corresponding link attached to SCM
    */
   fun generateData(sectionBlockBuilder: SectionBlockBuilder, application: String, artifact: PublishedArtifact): SectionBlockBuilder {

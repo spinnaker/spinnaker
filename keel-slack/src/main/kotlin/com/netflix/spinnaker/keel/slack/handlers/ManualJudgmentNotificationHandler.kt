@@ -18,9 +18,9 @@ class ManualJudgmentNotificationHandler(
   private val gitDataGenerator: GitDataGenerator,
   private val scmInfo: ScmInfo,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
-): SlackNotificationHandler<SlackManualJudgmentNotification> {
+) : SlackNotificationHandler<SlackManualJudgmentNotification> {
 
-  override val type: NotificationType = NotificationType.MANUAL_JUDGMENT
+  override val types = listOf(NotificationType.MANUAL_JUDGMENT_AWAIT)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   override fun sendMessage(notification: SlackManualJudgmentNotification, channel: String) {
     log.debug("Sending manual judgment notification for application ${notification.application}")
@@ -28,9 +28,10 @@ class ManualJudgmentNotificationHandler(
     with(notification) {
       val compareLink = generateCompareLink(scmInfo, artifactCandidate, currentArtifact, deliveryArtifact)
       val env = Strings.toRootUpperCase(targetEnvironment)
+      val headerText = "Awaiting manual judgement"
       val blocks = withBlocks {
         header {
-          text("Awaiting manual judgement", emoji = true)
+          text(headerText, emoji = true)
         }
 
         section {
@@ -59,7 +60,7 @@ class ManualJudgmentNotificationHandler(
               text("Approve", emoji = true)
               style("primary")
               value(ConstraintStatus.OVERRIDE_PASS.name)
-              actionId("${stateUid.toString()}:${ConstraintStatus.OVERRIDE_PASS.name}:${type.name}")
+              actionId("${stateUid.toString()}:${ConstraintStatus.OVERRIDE_PASS.name}:MANUAL_JUDGMENT")
               confirm {
                 confirm("Do it!")
                 deny("Stop, I've changed my mind!")
@@ -71,7 +72,7 @@ class ManualJudgmentNotificationHandler(
               text("Reject", emoji = true)
               style("danger")
               value(ConstraintStatus.OVERRIDE_FAIL.name)
-              actionId("${stateUid.toString()}:${ConstraintStatus.OVERRIDE_FAIL.name}:${type.name}")
+              actionId("${stateUid.toString()}:${ConstraintStatus.OVERRIDE_FAIL.name}:MANUAL_JUDGMENT")
               confirm {
                 markdownText("Are you sure you want to reject version ${artifactCandidate.version}?")
                 confirm("Do it!")
@@ -89,7 +90,7 @@ class ManualJudgmentNotificationHandler(
           }
         }
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 }

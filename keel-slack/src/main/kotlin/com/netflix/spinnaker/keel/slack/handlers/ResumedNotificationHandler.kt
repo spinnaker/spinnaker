@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
 import com.netflix.spinnaker.keel.notifications.NotificationType
-import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.keel.slack.SlackResumedNotification
+import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component
  * Sends notification when resuming management for an application
  */
 @Component
-class ResumedNotificationHandler (
+class ResumedNotificationHandler(
   private val slackService: SlackService,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
-) : SlackNotificationHandler<SlackResumedNotification>{
+) : SlackNotificationHandler<SlackResumedNotification> {
 
-  override val type: NotificationType = NotificationType.APPLICATION_RESUMED
+  override val types = listOf(NotificationType.APPLICATION_RESUMED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
 
@@ -26,10 +26,11 @@ class ResumedNotificationHandler (
     with(notification) {
       val appUrl = "$spinnakerBaseUrl/#/applications/${application}"
       val username = user?.let { slackService.getUsernameByEmail(it) }
+      val headerText = "Management resumed for $application"
 
       val blocks = withBlocks {
         header {
-          text("Management resumed for $application", emoji = true)
+          text(headerText, emoji = true)
         }
 
         section {
@@ -51,7 +52,7 @@ class ResumedNotificationHandler (
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 

@@ -1,42 +1,44 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.notifications.NotificationType
-import com.netflix.spinnaker.keel.slack.SlackLifecycleNotification
 import com.netflix.spinnaker.keel.slack.SlackService
+import com.netflix.spinnaker.keel.slack.SlackVerificationCompletedNotification
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-/**
- * Sends notification for a lifecycle event, like bake / build failures
- */
 @Component
-class LifecycleEventNotificationHandler(
+class VerificationCompletedNotificationHandler(
   private val slackService: SlackService,
+  private val gitDataGenerator: GitDataGenerator,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
-  private val gitDataGenerator: GitDataGenerator
-) : SlackNotificationHandler<SlackLifecycleNotification> {
+) : SlackNotificationHandler<SlackVerificationCompletedNotification> {
 
-  override val types = listOf(NotificationType.LIFECYCLE_EVENT)
-
+  override val types = listOf(NotificationType.TEST_FAILED, NotificationType.TEST_PASSED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun sendMessage(notification: SlackLifecycleNotification, channel: String) {
-    log.debug("Sending lifecycle event notification for application ${notification.application}")
-
+  override fun sendMessage(notification: SlackVerificationCompletedNotification, channel: String) {
     with(notification) {
-      val imageUrl = when (eventType) {
-        LifecycleEventType.BAKE -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/bake_fail.png"
-        LifecycleEventType.BUILD -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/build_fail.png"
-        else -> Strings.EMPTY
+      log.debug("Sending verification completed notifiaction with $status for application ${notification.application}")
+
+
+      val imageUrl = when (status) {
+        FAIL -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_fail.png"
+        PASS -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_pass.png"
+        else -> null
       }
 
-      val headerText = "${eventType.name} failed"
-      val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
+      val headerText = when (status) {
+        FAIL -> "Test failed"
+        PASS -> "Test passed"
+        //this is a default text. We shouldn't get here as we checked prior that status is either fail/pass.
+        else -> "Test verification completed"
+      }
 
+      val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)
@@ -65,5 +67,4 @@ class LifecycleEventNotificationHandler(
       slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
-
 }

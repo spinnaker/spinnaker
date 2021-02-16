@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.notifications.Notification
 import com.netflix.spinnaker.keel.notifications.NotificationScope
 import com.netflix.spinnaker.keel.notifications.NotificationType
 
-abstract class NotificationEvent{
+abstract class NotificationEvent {
   abstract val scope: NotificationScope
   abstract val type: NotificationType
 }
@@ -25,15 +25,15 @@ abstract class RepeatedNotificationEvent {
 data class UnhealthyNotification(
   override val ref: String,
   override val message: Notification
-  ) :RepeatedNotificationEvent() {
-    override val type = NotificationType.RESOURCE_UNHEALTHY
-    override val scope = NotificationScope.RESOURCE
-  }
+) : RepeatedNotificationEvent() {
+  override val type = NotificationType.RESOURCE_UNHEALTHY
+  override val scope = NotificationScope.RESOURCE
+}
 
 data class PinnedNotification(
   val config: DeliveryConfig,
   val pin: EnvironmentArtifactPin
-): NotificationEvent() {
+) : NotificationEvent() {
   override val type = NotificationType.ARTIFACT_PINNED
   override val scope = NotificationScope.ARTIFACT
 }
@@ -43,7 +43,7 @@ data class UnpinnedNotification(
   val pinnedEnvironment: PinnedEnvironment?,
   val targetEnvironment: String,
   val user: String
-): NotificationEvent() {
+) : NotificationEvent() {
   override val type = NotificationType.ARTIFACT_UNPINNED
   override val scope = NotificationScope.ARTIFACT
 }
@@ -52,7 +52,7 @@ data class MarkAsBadNotification(
   val config: DeliveryConfig,
   val user: String,
   val veto: EnvironmentArtifactVeto
-): NotificationEvent() {
+) : NotificationEvent() {
   override val type = NotificationType.ARTIFACT_MARK_AS_BAD
   override val scope = NotificationScope.ARTIFACT
 }
@@ -62,7 +62,7 @@ data class ArtifactDeployedNotification(
   val artifactVersion: String,
   val deliveryArtifact: DeliveryArtifact,
   val targetEnvironment: String
-): NotificationEvent() {
-  override val type = NotificationType.ARTIFACT_DEPLOYMENT
+) : NotificationEvent() {
+  override val type = NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
   override val scope = NotificationScope.ARTIFACT
 }

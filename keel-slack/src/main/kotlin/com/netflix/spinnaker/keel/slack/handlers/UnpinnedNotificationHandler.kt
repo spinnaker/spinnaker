@@ -19,7 +19,7 @@ class UnpinnedNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackUnpinnedNotification> {
 
-  override val type: NotificationType = NotificationType.ARTIFACT_UNPINNED
+  override val types = listOf(NotificationType.ARTIFACT_UNPINNED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackUnpinnedNotification, channel: String) {
@@ -29,11 +29,11 @@ class UnpinnedNotificationHandler(
       val env = Strings.toRootUpperCase(targetEnvironment)
       val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${latestArtifact?.reference}/${latestArtifact?.version}"
       val username = slackService.getUsernameByEmail(user)
-
+      val headerText = "$env was unpinned"
 
       val blocks = withBlocks {
         header {
-          text("$env was unpinned", emoji = true)
+          text(headerText, emoji = true)
         }
 
         section {
@@ -62,7 +62,7 @@ class UnpinnedNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 }

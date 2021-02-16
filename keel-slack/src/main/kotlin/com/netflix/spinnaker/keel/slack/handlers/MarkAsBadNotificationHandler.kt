@@ -19,7 +19,7 @@ class MarkAsBadNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackMarkAsBadNotification> {
 
-  override val type: NotificationType = NotificationType.ARTIFACT_MARK_AS_BAD
+  override val types = listOf(NotificationType.ARTIFACT_MARK_AS_BAD)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackMarkAsBadNotification, channel: String) {
@@ -28,12 +28,13 @@ class MarkAsBadNotificationHandler(
     with(notification) {
       val username = slackService.getUsernameByEmail(user)
       val env = Strings.toRootUpperCase(targetEnvironment)
-      val buildNumber = vetoedArtifact.buildMetadata?.number?: vetoedArtifact.buildMetadata?.id
+      val buildNumber = vetoedArtifact.buildMetadata?.number ?: vetoedArtifact.buildMetadata?.id
+      val headerText = "#$buildNumber Marked as bad in $env"
 
       val vetoedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${vetoedArtifact.reference}/${vetoedArtifact.version}"
       val blocks = withBlocks {
         header {
-          text("#$buildNumber Marked as bad in $env", emoji = true)
+          text(headerText, emoji = true)
         }
 
         section {
@@ -60,7 +61,7 @@ class MarkAsBadNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 }

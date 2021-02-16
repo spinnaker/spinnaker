@@ -7,16 +7,13 @@ import com.netflix.spinnaker.config.SlackConfiguration
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.slack.api.Slack
 import com.slack.api.model.block.LayoutBlock
-import com.slack.api.webhook.Payload.PayloadBuilder
-import com.slack.api.webhook.WebhookPayloads.payload
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 /**
- * This notifier is responsible for actually sending the Slack notification,
- * based on the [channel] and the [blocks] it gets from the different handlers.
+ * This notifier is responsible for actually sending or fetching data from Slack directly.
  */
 @Component
 @EnableConfigurationProperties(SlackConfiguration::class)
@@ -34,8 +31,13 @@ class SlackService(
   private val isSlackEnabled: Boolean
     get() = springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
 
+  /**
+   * Sends slack notification to [channel], which the specified [blocks].
+   * In case of an error with creating the blocks, or for notification preview, the fallback text will be sent.
+   */
   fun sendSlackNotification(channel: String, blocks: List<LayoutBlock>,
-                            application: String, type: NotificationType) {
+                            application: String, type: List<NotificationType>,
+                            fallbackText: String) {
     if (isSlackEnabled) {
       log.debug("Sending slack notification $type for application $application in channel $channel")
 
@@ -43,13 +45,14 @@ class SlackService(
         req
           .channel(channel)
           .blocks(blocks)
+          .text(fallbackText)
       }
 
       if (response.isOk) {
         spectator.counter(
           SLACK_MESSAGE_SENT,
           listOf(
-            BasicTag("notificationType", type.name),
+            BasicTag("notificationType", type.first().name),
             BasicTag("application", application)
           )
         ).safeIncrement()
@@ -67,6 +70,9 @@ class SlackService(
     }
   }
 
+  /**
+   * Get slack username by the user's [email]. Return the original email if username is not found.
+   */
   fun getUsernameByEmail(email: String): String {
     log.debug("lookup user id for email $email")
     val response = slack.methods(configToken).usersLookupByEmail { req ->
@@ -84,6 +90,9 @@ class SlackService(
     return email
   }
 
+  /**
+   * Get user's email address by slack [userId]. Return the original userId if email is not found.
+   */
   fun getEmailByUserId(userId: String): String {
     log.debug("lookup user email for username $userId")
     val response = slack.methods(configToken).usersInfo { req ->
@@ -101,18 +110,6 @@ class SlackService(
       return response.user.profile.email
     }
     return userId
-  }
-
-  // Update a notification based on the response Url, using blocks (the actual notification).
-  // If something failed, the fallback text will be displayed
-  fun respondToCallback(responseUrl: String, blocks: List<LayoutBlock>, fallbackText: String) {
-    val response = slack.send(responseUrl, payload { p: PayloadBuilder ->
-      p
-        .text(fallbackText)
-        .blocks(blocks)
-    })
-
-    log.debug("slack respondToCallback returned ${response.code}")
   }
 
 

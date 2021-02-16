@@ -5,8 +5,10 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationType
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
@@ -20,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.NotificationEventListener
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
+import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -59,7 +62,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
           NotificationConfig(
             type = NotificationType.slack,
             address = "test",
-            frequency = NotificationFrequency.verbose
+            frequency = NotificationFrequency.normal
           )
         ),
         resources = setOf(
@@ -76,7 +79,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
           NotificationConfig(
             type = NotificationType.slack,
             address = "staging",
-            frequency = NotificationFrequency.verbose
+            frequency = NotificationFrequency.quiet
           )
         ),
         resources = setOf(
@@ -121,32 +124,38 @@ class NotificationEventListenerTests : JUnit5Minutests {
     val gitDataGenerator: GitDataGenerator = mockk()
     val pinnedNotificationHandler: PinnedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        type
-      } returns Type.ARTIFACT_PINNED
+        types
+      } returns listOf(Type.ARTIFACT_PINNED)
     }
 
     val unpinnedNotificationHandler: UnpinnedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        type
-      } returns Type.ARTIFACT_UNPINNED
+        types
+      } returns listOf(Type.ARTIFACT_UNPINNED)
     }
 
     val pausedNotificationHandler: PausedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        type
-      } returns Type.APPLICATION_PAUSED
+        types
+      } returns listOf(Type.APPLICATION_PAUSED)
     }
 
     val lifecycleEventNotificationHandler: LifecycleEventNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        type
-      } returns Type.LIFECYCLE_EVENT
+        types
+      } returns listOf(Type.LIFECYCLE_EVENT)
     }
 
     val artifactDeployedNotificationHandler: ArtifactDeploymentNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        type
-      } returns Type.ARTIFACT_DEPLOYMENT
+        types
+      } returns listOf(Type.ARTIFACT_DEPLOYMENT_SUCCEDEED, Type.ARTIFACT_DEPLOYMENT_FAILED)
+    }
+
+    val verificationCompletedNotificationHandler: VerificationCompletedNotificationHandler = mockk(relaxUnitFun = true) {
+      every {
+        types
+      } returns listOf(Type.TEST_FAILED, Type.TEST_PASSED)
     }
 
     val lifecycleEvent = LifecycleEvent(
@@ -158,7 +167,8 @@ class NotificationEventListenerTests : JUnit5Minutests {
       id = "bake-$version0",
     )
 
-    val failedToDeployNotification = ArtifactVersionVetoed(application1,
+    val failedToDeployNotification = ArtifactVersionVetoed(
+      application1,
       EnvironmentArtifactVeto(
         "production",
         releaseArtifact.reference,
@@ -166,7 +176,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
         "Spinnaker",
         "Automatically marked as bad because multiple deployments of this version failed."
       ),
-    singleArtifactDeliveryConfig)
+      singleArtifactDeliveryConfig)
 
     val artifactDeployedNotification = ArtifactDeployedNotification(
       singleArtifactDeliveryConfig,
@@ -175,13 +185,31 @@ class NotificationEventListenerTests : JUnit5Minutests {
       "test"
     )
 
+    val verificationCompletedNotification = VerificationCompleted(
+      application = application1,
+      deliveryConfigName = singleArtifactDeliveryConfig.name,
+      environmentName = "staging",
+      artifactReference = "release",
+      artifactType = DEBIAN,
+      artifactVersion = "waffle-buttermilk-2.0",
+      verificationType = "taste-test",
+      verificationId = "my/docker:tag",
+      status = ConstraintStatus.FAIL,
+      metadata = mapOf(
+        "taste" to "excellent",
+        "task" to "eater=emily"
+      )
+    )
+
     val pinnedNotification = PinnedNotification(singleArtifactDeliveryConfig, pin)
     val pausedNotification = ApplicationActuationPaused(application1, clock.instant(), "user1")
+
     val subject = NotificationEventListener(repository, clock, listOf(pinnedNotificationHandler,
       pausedNotificationHandler,
       unpinnedNotificationHandler,
       lifecycleEventNotificationHandler,
-      artifactDeployedNotificationHandler))
+      artifactDeployedNotificationHandler,
+      verificationCompletedNotificationHandler))
 
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
@@ -200,7 +228,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
         } returns "@keel"
 
         every {
-          slackService.sendSlackNotification("test", any(), any(), any())
+          slackService.sendSlackNotification("test", any(), any(), any(), any())
         } just Runs
 
         every {
@@ -268,15 +296,15 @@ class NotificationEventListenerTests : JUnit5Minutests {
         every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
       }
 
-      test("send notifications to relevant environments only"){
+      test("send notifications to relevant environments only") {
         subject.onLifecycleEvent(lifecycleEvent)
-          verify(exactly = 2) {
-            lifecycleEventNotificationHandler.sendMessage(any(), any())
-          }
+        verify(exactly = 2) {
+          lifecycleEventNotificationHandler.sendMessage(any(), any())
+        }
       }
     }
 
-    context("artifact deployment notifications"){
+    context("artifact deployment notifications") {
       before {
         every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
 
@@ -288,17 +316,72 @@ class NotificationEventListenerTests : JUnit5Minutests {
           repository.getDeliveryConfigForApplication(application1)
         } returns singleArtifactDeliveryConfig
       }
+
       test("send successful deployment notifications using the right handler to the right env") {
         subject.onArtifactVersionDeployed(artifactDeployedNotification)
-        verify (exactly = 1) {
+        verify(exactly = 1) {
           artifactDeployedNotificationHandler.sendMessage(any(), any())
         }
       }
 
       test("send failed deployment notifications using the right handler to the right env") {
         subject.onArtifactVersionVetoed(failedToDeployNotification)
-        verify (exactly = 2) {
+        verify(exactly = 2) {
           artifactDeployedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("for quiet notification frequency, don't send artifact deployed successfully notification") {
+        subject.onArtifactVersionDeployed(artifactDeployedNotification.copy(
+          targetEnvironment = "staging"
+        ))
+        verify(exactly = 0) {
+          artifactDeployedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+    }
+
+    context("verification completed notifications") {
+      before {
+        every { repository.getArtifactVersion(releaseArtifact, any(), any()) } returns versions.toArtifactVersions(releaseArtifact).first()
+
+        every {
+          repository.getDeliveryConfig(any())
+        } returns singleArtifactDeliveryConfig
+      }
+
+      test("verification failed, send notification with right handler") {
+        subject.onVerificationCompletedNotification(verificationCompletedNotification)
+        verify(exactly = 1) {
+          verificationCompletedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("verification passed but frequency is quiet, don't send notification") {
+        subject.onVerificationCompletedNotification(verificationCompletedNotification.copy(
+          status = ConstraintStatus.PASS
+        ))
+        verify(exactly = 0) {
+          verificationCompletedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("verification passed and frequency is normal, send notification") {
+        subject.onVerificationCompletedNotification(verificationCompletedNotification.copy(
+          status = ConstraintStatus.PASS,
+          environmentName = "test"
+        ))
+        verify(exactly = 1) {
+          verificationCompletedNotificationHandler.sendMessage(any(), any())
+        }
+      }
+
+      test("verification sent with status which is not passed/failed, don't send notification") {
+        subject.onVerificationCompletedNotification(verificationCompletedNotification.copy(
+          status = ConstraintStatus.OVERRIDE_FAIL
+        ))
+        verify(exactly = 0) {
+          verificationCompletedNotificationHandler.sendMessage(any(), any())
         }
       }
     }

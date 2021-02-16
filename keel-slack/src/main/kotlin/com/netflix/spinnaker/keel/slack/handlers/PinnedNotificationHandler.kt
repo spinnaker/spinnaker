@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
-import com.netflix.spinnaker.keel.slack.SlackPinnedNotification
 import com.netflix.spinnaker.keel.notifications.NotificationType
+import com.netflix.spinnaker.keel.slack.SlackPinnedNotification
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component
  * Sends notification when pinning an artifact
  */
 @Component
-class PinnedNotificationHandler (
+class PinnedNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
-): SlackNotificationHandler<SlackPinnedNotification> {
+) : SlackNotificationHandler<SlackPinnedNotification> {
 
-  override val type: NotificationType = NotificationType.ARTIFACT_PINNED
+  override val types = listOf(NotificationType.ARTIFACT_PINNED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackPinnedNotification, channel: String) {
@@ -29,10 +29,11 @@ class PinnedNotificationHandler (
       val env = Strings.toRootUpperCase(pin.targetEnvironment)
       val username = pin.pinnedBy?.let { slackService.getUsernameByEmail(it) }
       val pinnedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${pinnedArtifact.reference}/${pinnedArtifact.version}"
+      val headerText = "$env is pinned"
 
       val blocks = withBlocks {
         header {
-          text("$env is pinned", emoji = true)
+          text(headerText, emoji = true)
         }
 
         section {
@@ -59,7 +60,7 @@ class PinnedNotificationHandler (
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
-import com.netflix.spinnaker.keel.notifications.NotificationType
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
 import com.netflix.spinnaker.keel.slack.DeploymentStatus
 import com.netflix.spinnaker.keel.slack.SlackArtifactDeploymentNotification
 import com.netflix.spinnaker.keel.slack.SlackService
@@ -20,59 +21,56 @@ class ArtifactDeploymentNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackArtifactDeploymentNotification> {
 
-  override val type: NotificationType = NotificationType.ARTIFACT_DEPLOYMENT
+  override val types = listOf(ARTIFACT_DEPLOYMENT_SUCCEDEED, ARTIFACT_DEPLOYMENT_FAILED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackArtifactDeploymentNotification, channel: String) {
     with(notification) {
       log.debug("Sending artifact deployment $status for application ${notification.application}")
 
-      with(notification) {
-        val imageUrl = when (status) {
-          DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail.png"
-          DeploymentStatus.SUCCEEDED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_success.png"
+      val imageUrl = when (status) {
+        DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail.png"
+        DeploymentStatus.SUCCEEDED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_success.png"
+      }
+
+      val env = Strings.toRootUpperCase(targetEnvironment)
+
+      val headerText = when (status) {
+        DeploymentStatus.FAILED -> "Deploy failed to $env"
+        DeploymentStatus.SUCCEEDED -> "Deployed to $env"
+      }
+
+      val deployedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
+      val blocks = withBlocks {
+        header {
+          text(headerText, emoji = true)
         }
 
-        val headerText = when (status){
-          DeploymentStatus.FAILED -> "Deploy failed"
-          DeploymentStatus.SUCCEEDED -> "Deployed"
-
-        }
-
-        val env = Strings.toRootUpperCase(targetEnvironment)
-
-        val deployedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
-        val blocks = withBlocks {
-          header {
-            text("$headerText to $env", emoji = true)
-          }
-
-          section {
-            with(artifact) {
-              var details = ""
-              if (priorVersion != null) {
-                val priorArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
-                details += "~<$priorArtifactUrl|#${priorVersion.buildMetadata?.number}>~ →"
-              }
-              if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-                markdownText("*Version:* $details <$deployedArtifactUrl|#${buildMetadata?.number}> " +
-                  "by @${gitMetadata?.author}\n " +
-                  "*Where:* $env\n\n " +
-                  "${gitMetadata?.commitInfo?.message}")
-                accessory {
-                  image(imageUrl = imageUrl, altText = "artifact_deployment")
-                }
+        section {
+          with(artifact) {
+            var details = ""
+            if (priorVersion != null) {
+              val priorArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
+              details += "~<$priorArtifactUrl|#${priorVersion.buildMetadata?.number}>~ →"
+            }
+            if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
+              markdownText("*Version:* $details <$deployedArtifactUrl|#${buildMetadata?.number}> " +
+                "by @${gitMetadata?.author}\n " +
+                "*Where:* $env\n\n " +
+                "${gitMetadata?.commitInfo?.message}")
+              accessory {
+                image(imageUrl = imageUrl, altText = "artifact_deployment")
               }
             }
           }
-
-          section {
-            gitDataGenerator.generateData(this, application, artifact)
-          }
-
         }
-        slackService.sendSlackNotification(channel, blocks, application = application, type = type)
+
+        section {
+          gitDataGenerator.generateData(this, application, artifact)
+        }
+
       }
+      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
     }
   }
 }

@@ -2,6 +2,10 @@ package com.netflix.spinnaker.keel.slack
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationFrequency
+import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
+import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
+import com.netflix.spinnaker.keel.api.NotificationFrequency.verbose
 import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
@@ -16,10 +20,25 @@ import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
+import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_PAUSED
+import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_RESUMED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_MARK_AS_BAD
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_PINNED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_UNPINNED
+import com.netflix.spinnaker.keel.notifications.NotificationType.DELIVEY_CONFIG_UPDATED
+import com.netflix.spinnaker.keel.notifications.NotificationType.LIFECYCLE_EVENT
+import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_APPROVED
+import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
+import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_REJECTED
+import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_FAILED
+import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_PASSED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.handlers.SlackNotificationHandler
 import com.netflix.spinnaker.keel.slack.handlers.supporting
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionVetoed
+import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -62,7 +81,7 @@ class NotificationEventListener(
           application = config.application,
           time = clock.instant()
         ),
-        Type.ARTIFACT_PINNED,
+        ARTIFACT_PINNED,
         pin.targetEnvironment)
     }
 
@@ -95,7 +114,7 @@ class NotificationEventListener(
           user = user,
           targetEnvironment = targetEnvironment
         ),
-        Type.ARTIFACT_UNPINNED,
+        ARTIFACT_UNPINNED,
         targetEnvironment)
 
       log.debug("no environment $targetEnvironment was found in the config named ${config.name}")
@@ -125,7 +144,7 @@ class NotificationEventListener(
           application = config.name,
           comment = veto.comment
         ),
-        Type.ARTIFACT_MARK_AS_BAD,
+        ARTIFACT_MARK_AS_BAD,
         veto.targetEnvironment
       )
     }
@@ -142,7 +161,7 @@ class NotificationEventListener(
           time = clock.instant(),
           application = application
         ),
-        Type.APPLICATION_PAUSED)
+        APPLICATION_PAUSED)
     }
 
   }
@@ -158,7 +177,7 @@ class NotificationEventListener(
           time = clock.instant(),
           application = application
         ),
-        Type.APPLICATION_RESUMED)
+        APPLICATION_RESUMED)
     }
   }
 
@@ -184,7 +203,7 @@ class NotificationEventListener(
             eventType = type,
             application = config.application
           ),
-          Type.LIFECYCLE_EVENT,
+          LIFECYCLE_EVENT,
           artifact = deliveryArtifact)
       }
     }
@@ -210,7 +229,7 @@ class NotificationEventListener(
           priorVersion = priorVersion,
           status = DeploymentStatus.SUCCEEDED
         ),
-        Type.ARTIFACT_DEPLOYMENT,
+        ARTIFACT_DEPLOYMENT_SUCCEDEED,
         targetEnvironment)
     }
   }
@@ -238,7 +257,7 @@ class NotificationEventListener(
           targetEnvironment = veto.targetEnvironment,
           status = DeploymentStatus.FAILED
         ),
-        Type.ARTIFACT_DEPLOYMENT,
+        ARTIFACT_DEPLOYMENT_FAILED,
         veto.targetEnvironment)
     }
   }
@@ -257,7 +276,7 @@ class NotificationEventListener(
 
         val deliveryArtifact = config.artifacts.find {
           it.reference == currentState.artifactReference
-        } .also {
+        }.also {
           if (it == null) log.debug("Artifact with reference ${currentState.artifactReference}  not found in delivery config")
         } ?: return
 
@@ -266,7 +285,7 @@ class NotificationEventListener(
           log.debug("$deliveryArtifact version ${currentState.artifactVersion} not found. Can't send manual judgement notification.")
           return
         }
-        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName , deliveryArtifact, PromotionStatus.CURRENT)
+        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
 
         sendSlackMessage(
           config,
@@ -279,9 +298,54 @@ class NotificationEventListener(
             deliveryArtifact = deliveryArtifact,
             stateUid = currentState.uid
           ),
-          Type.MANUAL_JUDGMENT,
+          MANUAL_JUDGMENT_AWAIT,
           environment.name)
       }
+    }
+  }
+
+  @EventListener(VerificationCompleted::class)
+  fun onVerificationCompletedNotification(notification: VerificationCompleted) {
+    log.debug("Received verification completed event: $notification")
+    with(notification) {
+      if (status != ConstraintStatus.PASS && status != ConstraintStatus.FAIL) {
+        log.debug("Not sending notification for verification completed with status $status it's not pass/fail. Ignoring notification for" +
+          "application $application")
+        return
+      }
+      val config = repository.getDeliveryConfig(notification.deliveryConfigName)
+
+      val deliveryArtifact = config.artifacts.find {
+        it.reference == notification.artifactReference
+      }.also {
+        if (it == null) log.debug("Artifact with reference ${notification.artifactReference}  not found in delivery config")
+      } ?: return
+
+      val artifactVersion = repository.getArtifactVersion(deliveryArtifact, notification.artifactVersion, null)
+      if (artifactVersion == null) {
+        log.debug("artifact version is null for application ${config.application}. Can't send verification completed notification.")
+        return
+      }
+
+      val type = when (status) {
+        ConstraintStatus.PASS -> TEST_PASSED
+        ConstraintStatus.FAIL -> TEST_FAILED
+        //We shouldn't get here as we checked prior that status is either fail/pass
+        else -> TEST_PASSED
+      }
+
+      sendSlackMessage(
+        config,
+        SlackVerificationCompletedNotification(
+          time = clock.instant(),
+          application = config.application,
+          artifact = artifactVersion.copy(reference = deliveryArtifact.reference),
+          targetEnvironment = environmentName,
+          deliveryArtifact = deliveryArtifact,
+          status = status
+        ),
+        type,
+        environmentName)
     }
   }
 
@@ -306,10 +370,25 @@ class NotificationEventListener(
 
     environments.flatMap { it.notifications }
       .filter { it.type == NotificationType.slack }
+      .filter { translateFrequencyToEvents(it.frequency).contains(type) }
       .groupBy { it.address }
       .forEach { (channel, _) ->
         handler.sendMessage(message, channel)
       }
+  }
+
+
+  fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
+    val quietNotifications = listOf(ARTIFACT_MARK_AS_BAD, ARTIFACT_PINNED, ARTIFACT_UNPINNED, LIFECYCLE_EVENT, APPLICATION_PAUSED,
+      APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
+    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEDEED, DELIVEY_CONFIG_UPDATED, TEST_PASSED)
+    val verboseNotifications = normalNotifications + listOf(MANUAL_JUDGMENT_REJECTED, MANUAL_JUDGMENT_APPROVED)
+
+    return when (frequency) {
+      verbose -> verboseNotifications
+      normal -> normalNotifications
+      quiet -> quietNotifications
+    }
   }
 }
 

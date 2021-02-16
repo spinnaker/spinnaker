@@ -11,15 +11,18 @@ import javax.servlet.annotation.WebServlet
 @WebServlet("/slack/notifications/callbacks")
 /**
  * New endpoint for the new slack integration. This will be called from gate directly instead of echo.
+ * We use Slack Bolt library (https://github.com/slackapi/java-slack-sdk/), which has a native support for handling callbacks from slack.
  */
 class SlackAppController(
   slackApp: App,
   private val mjHandler: ManualJudgmentCallbackHandler
-) : SlackAppServlet(slackApp){
+) : SlackAppServlet(slackApp) {
   init {
-    //the pattern here should match the action id string in the actual button, for example: constraintId:action:Manual_judgment
-    val pattern = "^(\\w+):(\\w+):(\\w+)".toPattern()
-    slackApp.blockAction(pattern) { req, ctx ->
+    // The pattern here should match the action id field in the actual button.
+    // for example, for manual judgment notifications: constraintId:OVERRIDE_PASS:MANUAL_JUDGMENT
+    val actionIdPattern = "^(\\w+):(\\w+):(\\w+)".toPattern()
+    slackApp.blockAction(actionIdPattern) { req, ctx ->
+      // If we want to add more handlers, we can parse here the action id type (i.e MANUAL_JUDGMENT) and use the right handler
       if (req.payload.responseUrl != null) {
         mjHandler.updateConstraintState(req.payload)
         val response = ActionResponse.builder()
