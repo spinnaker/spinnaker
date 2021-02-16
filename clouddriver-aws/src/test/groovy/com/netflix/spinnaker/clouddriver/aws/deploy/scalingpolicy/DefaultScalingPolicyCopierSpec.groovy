@@ -30,7 +30,7 @@ import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
 import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator

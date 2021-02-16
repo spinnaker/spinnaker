@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
-import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult

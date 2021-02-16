@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy
+package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AlreadyExistsException
@@ -99,29 +99,29 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
      */
     String base64UserData = (localFileUserDataProperties && !localFileUserDataProperties.enabled) ? lc.userData : null
 
-    new LaunchConfigurationSettings(
-      account: account.name,
-      environment: account.environment,
-      accountType: account.accountType,
-      region: region,
-      baseName: baseName,
-      suffix: suffix,
-      ami: lc.imageId,
-      iamRole: lc.iamInstanceProfile,
-      classicLinkVpcId: lc.classicLinkVPCId,
-      classicLinkVpcSecurityGroups: lc.classicLinkVPCSecurityGroups,
-      instanceType: lc.instanceType,
-      keyPair: lc.keyName,
-      associatePublicIpAddress: lc.associatePublicIpAddress,
-      kernelId: lc.kernelId ?: null,
-      ramdiskId: lc.ramdiskId ?: null,
-      ebsOptimized: lc.ebsOptimized,
-      spotPrice: lc.spotPrice,
-      instanceMonitoring: lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled,
-      blockDevices: blockDevices,
-      securityGroups: lc.securityGroups,
-      base64UserData: base64UserData
-    )
+    LaunchConfigurationSettings.builder()
+      .account(account.name)
+      .environment(account.environment)
+      .accountType(account.accountType)
+      .region(region)
+      .baseName(baseName)
+      .suffix(suffix)
+      .ami(lc.imageId)
+      .iamRole(lc.iamInstanceProfile)
+      .classicLinkVpcId(lc.classicLinkVPCId)
+      .classicLinkVpcSecurityGroups(lc.classicLinkVPCSecurityGroups)
+      .instanceType(lc.instanceType)
+      .keyPair(lc.keyName)
+      .associatePublicIpAddress(lc.associatePublicIpAddress)
+      .kernelId(lc.kernelId ?: null)
+      .ramdiskId(lc.ramdiskId ?: null)
+      .ebsOptimized(lc.ebsOptimized)
+      .spotPrice(lc.spotPrice)
+      .instanceMonitoring(lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled)
+      .blockDevices(blockDevices)
+      .securityGroups(lc.securityGroups)
+      .base64UserData(base64UserData)
+      .build()
   }
 
   /**
@@ -185,7 +185,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     LaunchConfigurationSettings settings
   ) {
     if (settings.suffix == null) {
-      settings = settings.copyWith(suffix: createDefaultSuffix())
+      settings = settings.toBuilder().suffix(createDefaultSuffix()).build()
     }
 
     Set<String> securityGroupIds = securityGroupService.resolveSecurityGroupIdsWithSubnetType(settings.securityGroups, subnetType).toSet()
@@ -204,14 +204,14 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
         }, 500, 3)
       }
     }
-    settings = settings.copyWith(securityGroups: securityGroupIds.toList())
+    settings = settings.toBuilder().securityGroups(securityGroupIds.toList()).build()
 
     if (settings.classicLinkVpcSecurityGroups) {
       if (!settings.classicLinkVpcId) {
         throw new IllegalStateException("Can't provide classic link security groups without classiclink vpc Id")
       }
       List<String> classicLinkIds = securityGroupService.resolveSecurityGroupIdsInVpc(settings.classicLinkVpcSecurityGroups, settings.classicLinkVpcId)
-      settings = settings.copyWith(classicLinkVpcSecurityGroups: classicLinkIds)
+      settings = settings.toBuilder().classicLinkVpcSecurityGroups(classicLinkIds).build()
     }
 
     return settings

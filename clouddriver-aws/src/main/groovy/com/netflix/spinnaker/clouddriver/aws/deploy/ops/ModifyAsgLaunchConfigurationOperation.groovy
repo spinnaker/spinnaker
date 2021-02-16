@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -63,25 +64,18 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
     def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentials, description.region, existingLc)
 
-    def props = [:]
+    LaunchConfigurationSettings.LaunchConfigurationSettingsBuilder newSettingsBuilder = settings.toBuilder()
     if (!asg.getVPCZoneIdentifier() && !settings.classicLinkVpcId) {
       def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
       if (classicLinkVpc) {
-        props.classicLinkVpcId = classicLinkVpc.vpcId
+        newSettingsBuilder.classicLinkVpcId(classicLinkVpc.vpcId)
         if (deployDefaults.classicLinkSecurityGroupName) {
-          props.classicLinkVpcSecurityGroups = [ deployDefaults.classicLinkSecurityGroupName ]
+          newSettingsBuilder.classicLinkVpcSecurityGroups([deployDefaults.classicLinkSecurityGroupName])
         }
       }
     }
 
-    def settingsKeys = settings.properties.keySet()
-    props = props + description.properties.findResults { k, v -> (v != null && settingsKeys.contains(k)) ? [k, v] : null }.collectEntries()
-    props.remove('class')
-
-    if (props.spotPrice == "") {
-      // a spotPrice of "" indicates that it should be removed regardless of value on source launch configuration
-      props.spotPrice = null
-    }
+    newSettingsBuilder = copyFromDescription(description, newSettingsBuilder, settings)
 
     if (description.amiName) {
       def amazonEC2 = regionScopedProvider.amazonEC2
@@ -89,17 +83,13 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
         it instanceof ResolvedAmiResult && it.region == description.region && (it.amiName == description.amiName || it.amiId == description.amiName)
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, description.region, description.amiName, description.credentials.accountId)
 
-      props.ami = ami.amiId
-    }
-
-    if (description.securityGroupsAppendOnly) {
-      props.securityGroups = settings.securityGroups + description.securityGroups
+      newSettingsBuilder.ami(ami.amiId)
     }
 
     //if we are changing instance types and don't have explicitly supplied block device mappings
     if (!description.blockDevices && description.instanceType != null && description.instanceType != settings.instanceType) {
       if (!description.copySourceCustomBlockDeviceMappings) {
-        props.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
+        newSettingsBuilder.blockDevices(blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType))
       } else {
         def blockDevicesForSourceLaunchConfig = settings.blockDevices.collect {
           [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
@@ -112,18 +102,17 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
         if (blockDevicesForSourceLaunchConfig == blockDevicesForSourceInstanceType) {
           // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
-          props.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
+          newSettingsBuilder.blockDevices(blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType))
         }
       }
     }
 
-    def newSettings = settings.copyWith(props)
+    def newSettings = newSettingsBuilder.build()
     String resultLaunchConfigName = existingLc
-
     if (newSettings == settings && description.legacyUdf == null) {
       task.updateStatus BASE_PHASE, "No changes required for launch configuration on $description.asgName in $description.region"
     } else {
-      newSettings = newSettings.copyWith(suffix: null)
+      newSettings = newSettings.toBuilder().suffix(null).build()
       def name = Names.parseName(description.asgName)
       def newLc = lcBuilder.buildLaunchConfiguration(name.app, description.subnetType, newSettings, description.legacyUdf, description.getUserDataOverride())
 
@@ -145,6 +134,35 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     task.addResultObjects([[launchConfigurationName: resultLaunchConfigName]])
     task.updateStatus BASE_PHASE, "completed for $description.asgName in $description.region."
     null
+  }
+
+  private LaunchConfigurationSettings.LaunchConfigurationSettingsBuilder copyFromDescription(
+    ModifyAsgLaunchConfigurationDescription description,
+    LaunchConfigurationSettings.LaunchConfigurationSettingsBuilder settingsBuilder,
+    LaunchConfigurationSettings srcSettings) {
+
+    Optional.ofNullable(description.region).ifPresent { settingsBuilder.region(description.region) }
+    Optional.ofNullable(description.instanceType).ifPresent { settingsBuilder.instanceType(description.instanceType) }
+    Optional.ofNullable(description.iamRole).ifPresent { settingsBuilder.iamRole(description.iamRole) }
+    Optional.ofNullable(description.keyPair).ifPresent { settingsBuilder.keyPair(description.keyPair) }
+    Optional.ofNullable(description.associatePublicIpAddress).ifPresent {
+      settingsBuilder.associatePublicIpAddress(description.associatePublicIpAddress) }
+    Optional.ofNullable(description.spotPrice).ifPresent {
+      settingsBuilder.spotPrice(description.spotPrice == "" ? null : description.spotPrice)} // a spotPrice of "" indicates that it should be removed regardless of value on source launch configuration
+    Optional.ofNullable(description.ramdiskId).ifPresent { settingsBuilder.ramdiskId(description.ramdiskId) }
+    Optional.ofNullable(description.instanceMonitoring).ifPresent {
+      settingsBuilder.instanceMonitoring(new Boolean(description.instanceMonitoring)) }
+    Optional.ofNullable(description.ebsOptimized).ifPresent { settingsBuilder.ebsOptimized(new Boolean(description.ebsOptimized)) }
+    Optional.ofNullable(description.classicLinkVpcId).ifPresent { settingsBuilder.classicLinkVpcId(description.classicLinkVpcId) }
+    Optional.ofNullable(description.classicLinkVpcSecurityGroups).ifPresent { settingsBuilder.classicLinkVpcSecurityGroups(description.classicLinkVpcSecurityGroups) }
+    Optional.ofNullable(description.base64UserData).ifPresent { settingsBuilder.base64UserData(description.base64UserData) }
+    Optional.ofNullable(description.blockDevices).ifPresent { settingsBuilder.blockDevices(description.blockDevices) }
+    Optional.ofNullable(description.securityGroups).ifPresent {
+      settingsBuilder.securityGroups(description.securityGroupsAppendOnly
+        ? srcSettings.securityGroups + description.securityGroups
+        : description.securityGroups)}
+
+    return settingsBuilder
   }
 
 }

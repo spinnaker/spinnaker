@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy;
+package com.netflix.spinnaker.clouddriver.aws.deploy.asg;
 
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;

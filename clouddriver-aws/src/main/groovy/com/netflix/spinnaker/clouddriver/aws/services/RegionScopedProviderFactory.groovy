@@ -20,11 +20,13 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.config.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgLifecycleHookWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
-import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultLaunchConfigurationBuilder
-import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.asgbuilders.*
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgReferenceCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.DefaultLaunchConfigurationBuilder
+
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -133,6 +135,14 @@ class RegionScopedProviderFactory {
         throw new IllegalStateException('discovery not enabled')
       }
       EurekaUtil.getWritableEureka(amazonCredentials.discovery, region)
+    }
+
+    AsgBuilder getAsgBuilderForLaunchConfiguration() {
+      new AsgWithLaunchConfigurationBuilder(getLaunchConfigurationBuilder(), getAutoScaling(), getAmazonEC2(), getAsgLifecycleHookWorker())
+    }
+
+    AsgBuilder getAsgBuilderForLaunchTemplate() {
+      new AsgWithLaunchTemplateBuilder(getLaunchTemplateService(), getSecurityGroupService(), deployDefaults, getAutoScaling(), getAmazonEC2(), getAsgLifecycleHookWorker())
     }
   }
 }

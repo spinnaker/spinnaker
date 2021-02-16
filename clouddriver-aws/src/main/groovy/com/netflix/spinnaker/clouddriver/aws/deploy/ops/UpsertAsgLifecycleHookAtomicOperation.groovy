@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgLifecycleHookWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator

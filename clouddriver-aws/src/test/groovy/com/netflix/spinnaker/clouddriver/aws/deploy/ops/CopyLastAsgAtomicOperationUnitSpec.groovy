@@ -33,7 +33,7 @@ import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions
 import com.amazonaws.services.ec2.model.LaunchTemplateSpotMarketOptions
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData
-import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -42,7 +42,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory

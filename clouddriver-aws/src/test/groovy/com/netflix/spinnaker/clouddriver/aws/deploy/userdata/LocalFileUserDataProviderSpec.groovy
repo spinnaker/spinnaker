@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import spock.lang.Specification
@@ -42,12 +42,13 @@ class LocalFileUserDataProviderSpec extends Specification {
   static final String ASG_NAME = "${APP}-${STACK}-${DETAIL}"
   static final String LAUNCH_CONFIG_NAME = 'launchConfigName'
 
-  static final LaunchConfigurationSettings SETTINGS = new LaunchConfigurationSettings(
-      baseName: ASG_NAME,
-      region: REGION,
-      account: ACCOUNT,
-      environment: ENVIRONMENT,
-      accountType: ACCOUNT_TYPE)
+  static final LaunchConfigurationSettings SETTINGS = LaunchConfigurationSettings.builder()
+      .baseName(ASG_NAME)
+      .region(REGION)
+      .account(ACCOUNT)
+      .environment(ENVIRONMENT)
+      .accountType(ACCOUNT_TYPE)
+      .build()
 
   static final UserDataInput INPUT = UserDataInput
     .builder()

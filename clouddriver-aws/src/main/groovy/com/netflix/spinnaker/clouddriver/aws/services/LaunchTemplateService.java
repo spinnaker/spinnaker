@@ -23,7 +23,7 @@ import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.*;
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger;
-import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker.AsgConfiguration;
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator;

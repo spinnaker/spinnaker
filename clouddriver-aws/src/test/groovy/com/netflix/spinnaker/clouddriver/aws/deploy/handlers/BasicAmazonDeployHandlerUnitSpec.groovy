@@ -45,9 +45,9 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
-import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker.AsgConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AsgReferenceCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker.AsgConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.InstanceTypeUtils.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
