@@ -32,6 +32,8 @@ import org.jooq.impl.DSL
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 
 internal object SqlStorageServiceTests : JUnit5Minutests {
 
@@ -74,6 +76,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
 
           var application = sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
           expectThat(application.description).isEqualTo("my first application!")
+          expectThat(application.createdAt).isNotNull()
 
           // verify that an application can be updated
           sqlStorageService.storeObject(
@@ -114,6 +117,15 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
 
           application = sqlStorageService.loadObject(ObjectType.APPLICATION, "application001")
           expectThat(application.description).isEqualTo("my updated application!")
+
+          val allApplications = sqlStorageService.loadObjects<Application>(
+            ObjectType.APPLICATION,
+            sqlStorageService.listObjectKeys(ObjectType.APPLICATION).keys.toList()
+          )
+          expectThat(allApplications).isNotEmpty()
+          allApplications.forEach {
+            expectThat(it.createdAt).isNotNull()
+          }
         }
       }
 

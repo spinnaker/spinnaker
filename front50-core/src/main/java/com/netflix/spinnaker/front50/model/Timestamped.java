@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface Timestamped {
   /**
    * TODO(rz): Move this method into new Identifiable interface. Has nothing to do with timestamps.
@@ -31,4 +33,13 @@ public interface Timestamped {
   String getLastModifiedBy();
 
   void setLastModifiedBy(String lastModifiedBy);
+
+  default void setCreatedAt(Long createdAt) {
+    // do nothing
+  }
+
+  @JsonIgnore
+  default Long getCreatedAt() {
+    return null;
+  }
 }

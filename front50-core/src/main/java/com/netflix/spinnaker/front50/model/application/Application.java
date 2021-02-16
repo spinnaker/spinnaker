@@ -91,6 +91,18 @@ public class Application implements Timestamped {
   }
 
   @Override
+  public void setCreatedAt(Long createdAt) {
+    if (createdAt != null) {
+      this.createTs = createdAt.toString();
+    }
+  }
+
+  @Override
+  public Long getCreatedAt() {
+    return Strings.isNullOrEmpty(createTs) ? null : Long.valueOf(createTs);
+  }
+
+  @Override
   public String toString() {
     return "Application{"
         + "name='"
