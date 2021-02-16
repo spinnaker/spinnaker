@@ -134,7 +134,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           runBlocking { subject.monitor(task) }
         }
 
-        test("publishes failed event and marks failure") {
+        test("publishes fail(ed) event and marks failure") {
           val slot = slot<LifecycleEvent>()
           verify(exactly = 1) {
             publisher.publishEvent(capture(slot))
