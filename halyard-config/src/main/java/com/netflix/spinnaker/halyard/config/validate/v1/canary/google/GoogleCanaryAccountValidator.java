@@ -77,9 +77,7 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator<GoogleC
       return;
     }
 
-    GcsProperties gcsProperties = new GcsProperties();
-    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
-    gcsProperties.setJsonPath(jsonPath.toString());
+    GcsProperties gcsProperties = getGoogleCloudStorageProperties(n);
 
     try {
       Credentials gcsCredentials = GCSConfig.getGcsCredentials(gcsProperties);
@@ -147,5 +145,15 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator<GoogleC
                   + "?");
       return null;
     }
+  }
+
+  public GcsProperties getGoogleCloudStorageProperties(GoogleCanaryAccount n) {
+    GcsProperties gcsProperties = new GcsProperties();
+    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
+    gcsProperties.setJsonPath(jsonPath.toString());
+    gcsProperties.setProject(n.getProject());
+    gcsProperties.setBucket(n.getBucket());
+    gcsProperties.setBucketLocation(n.getBucketLocation());
+    return gcsProperties;
   }
 }

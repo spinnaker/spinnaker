@@ -53,9 +53,7 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
-    GcsProperties gcsProperties = new GcsProperties();
-    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
-    gcsProperties.setJsonPath(jsonPath.toString());
+    GcsProperties gcsProperties = getGoogleCloudStorageProperties(n);
     try {
       Credentials credentials = GCSConfig.getGcsCredentials(gcsProperties);
       Storage googleCloudStorage = GCSConfig.getGoogleCloudStorage(credentials, gcsProperties);
@@ -83,5 +81,15 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
               + "\" exists: "
               + e.getMessage());
     }
+  }
+
+  public GcsProperties getGoogleCloudStorageProperties(GcsPersistentStore n) {
+    GcsProperties gcsProperties = new GcsProperties();
+    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
+    gcsProperties.setJsonPath(jsonPath.toString());
+    gcsProperties.setProject(n.getProject());
+    gcsProperties.setBucket(n.getBucket());
+    gcsProperties.setBucketLocation(n.getBucketLocation());
+    return gcsProperties;
   }
 }
