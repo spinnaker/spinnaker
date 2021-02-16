@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
+import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -422,6 +423,13 @@ class CombinedRepository(
   ) = artifactRepository.getArtifactVersionByPromotionStatus(
     deliveryConfig, environmentName, artifact, promotionStatus, version
   )
+
+  override fun getVersionInfoInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<StatusInfoForArtifactInEnvironment> =
+    artifactRepository.getVersionInfoInEnvironment(deliveryConfig, environmentName, artifact)
 
   override fun getPinnedVersion(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
     = artifactRepository.getPinnedVersion(deliveryConfig, targetEnvironment, reference)

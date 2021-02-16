@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
+import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.transaction.annotation.Propagation
@@ -210,6 +211,12 @@ interface KeelRepository : KeelReadOnlyRepository {
     promotionStatus: PromotionStatus,
     version: String? = null
   ): PublishedArtifact?
+
+  fun getVersionInfoInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<StatusInfoForArtifactInEnvironment>
 
   /**
    * Return a specific artifact version if is pinned, from [targetEnvironment], by [reference], if exists.

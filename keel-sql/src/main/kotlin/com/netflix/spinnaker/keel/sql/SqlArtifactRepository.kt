@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
+import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import org.jooq.DSLContext
@@ -56,7 +57,6 @@ import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
 import java.time.Instant.EPOCH
 import javax.xml.bind.DatatypeConverter
 
@@ -1206,6 +1206,33 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun getVersionInfoInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<StatusInfoForArtifactInEnvironment> =
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.`in`(listOf(CURRENT, PREVIOUS)))
+        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
+        .fetch { (version, status, deployedAt, replacedBy) ->
+          StatusInfoForArtifactInEnvironment(
+            version,
+            status,
+            replacedBy,
+            deployedAt
+          )
+        }
+    }
 
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,

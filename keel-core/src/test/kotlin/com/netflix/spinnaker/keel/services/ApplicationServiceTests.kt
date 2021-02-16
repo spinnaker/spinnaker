@@ -81,7 +81,11 @@ class ApplicationServiceTests : JUnit5Minutests {
       Instant.parse("2020-03-25T00:00:00.00Z"),
       ZoneId.of("UTC")
     )
-    val repository: KeelRepository = mockk()
+    val repository: KeelRepository = mockk() {
+      every {
+        getVersionInfoInEnvironment(any(), any(), any())
+      } returns emptyList()
+    }
     val resourceStatusService: ResourceStatusService = mockk()
 
     val application1 = "fnord1"
@@ -232,7 +236,14 @@ class ApplicationServiceTests : JUnit5Minutests {
     )
 
     fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
-      map { PublishedArtifact(artifact.name, artifact.type, artifact.reference, it) }
+      map { PublishedArtifact(
+        name = artifact.name,
+        type = artifact.type,
+        reference = artifact.reference,
+        version = it,
+        gitMetadata = gitMetadata,
+        buildMetadata = buildMetadata
+      ) }
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {

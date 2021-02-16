@@ -14,9 +14,9 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
-import java.time.Instant
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
@@ -249,6 +249,15 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
     artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment?
+
+  /**
+   * Get a map of the versions and status for an environmnet
+   */
+  fun getVersionInfoInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): List<StatusInfoForArtifactInEnvironment>
 
   /**
    * Given identifying information about an artifact version in an environment, return the version's promotion

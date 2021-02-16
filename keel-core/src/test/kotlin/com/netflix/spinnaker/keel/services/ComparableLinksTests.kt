@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.Repo
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
@@ -24,6 +25,9 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyArtifact
@@ -44,6 +48,7 @@ import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.isEqualTo
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -59,7 +64,6 @@ class ComparableLinksTests : JUnit5Minutests {
     val application1 = "fnord1"
 
     val releaseArtifact = DummyArtifact(reference = "release")
-    //val snapshotArtifact = DummyArtifact(reference = "snapshot")
 
     val version0 = "fnord-1.0.0-h0.a0a0a0a"
     val version1 = "fnord-1.0.1-h1.b1b1b1b"
@@ -147,21 +151,30 @@ class ComparableLinksTests : JUnit5Minutests {
       number = "1",
     )
 
-    val gitMetadata = GitMetadata(
-      author = "keel user",
-      commit = "1sdla",
-      commitInfo = Commit(
-        sha = "12345",
-        link = "https://stash"
-      ),
-      repo = Repo(
-        name = "keel"
-      ),
-      project = "spkr"
-    )
+    fun git(version: String, source: String) =
+      GitMetadata(
+        author = "keel user",
+        commit = version,
+        commitInfo = Commit(
+          sha = version,
+          link = source
+        ),
+        repo = Repo(
+          name = "keel"
+        ),
+        project = "spkr"
+      )
 
-    fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact) =
-      map { PublishedArtifact(artifact.name, artifact.type, artifact.reference, it) }
+    fun Collection<String>.toArtifactVersions(artifact: DeliveryArtifact, source: String) =
+      map { version ->
+        PublishedArtifact(
+        name = artifact.name,
+        type = artifact.type,
+        reference = artifact.reference,
+        version = version,
+        gitMetadata = git(version, source),
+        buildMetadata = buildMetadata,
+      ) }
   }
 
   fun comparableLinksTests() = rootContext<Fixture> {
@@ -171,20 +184,6 @@ class ComparableLinksTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfigForApplication(application1) } returns singleArtifactDeliveryConfig
-
-      every {
-        repository.getArtifactVersion(any(), any(), any())
-      } answers {
-        PublishedArtifact(arg<DeliveryArtifact>(0).name, arg<DeliveryArtifact>(0).type, arg<String>(1))
-      }
-
-      every {
-        repository.getReleaseStatus(releaseArtifact, any())
-      } returns ArtifactStatus.RELEASE
-
-      every {
-        repository.getArtifactVersionByPromotionStatus(any(), any(), any(), any())
-      } returns null
 
       every {
         repository.getPinnedVersion(any(), any(), any())
@@ -245,87 +244,88 @@ class ComparableLinksTests : JUnit5Minutests {
           emptyList()
         }
 
-        every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(releaseArtifact)
+        every {
+          repository.getVersionInfoInEnvironment(any(), "test", any())
+        } returns listOf(
+          StatusInfoForArtifactInEnvironment(
+            version0,
+            PREVIOUS,
+            version1,
+            clock.instant().minus(Duration.ofHours(4))
+          ),
+          StatusInfoForArtifactInEnvironment(
+            version1,
+            PREVIOUS,
+            version2,
+            clock.instant().minus(Duration.ofHours(3))
+          ),
+          StatusInfoForArtifactInEnvironment(version2, CURRENT, null, clock.instant().minus(Duration.ofHours(2))),
+        )
+
+        every {
+          repository.getVersionInfoInEnvironment(any(), "staging", any())
+        } returns listOf(
+          StatusInfoForArtifactInEnvironment(
+            version0,
+            PREVIOUS,
+            version1,
+            clock.instant().minus(Duration.ofHours(4))
+          ),
+          StatusInfoForArtifactInEnvironment(version1, CURRENT, null, clock.instant().minus(Duration.ofHours(2))),
+        )
       }
 
       context("stash") {
         before {
-
-          every {
-            repository.getArtifactVersion(any(), any(), any())
-          } answers {
-            PublishedArtifact(arg<DeliveryArtifact>(0).name, arg<DeliveryArtifact>(0).type, arg<String>(1),
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = arg<String>(1), link = "stash"),
-                repo = Repo(name = "keel"),
-                project = "spkr"
-              ), buildMetadata = buildMetadata)
-          }
-
-          every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS, any())
-          } answers {
-            PublishedArtifact(
-              name = arg<DeliveryArtifact>(2).name,
-              type = arg<DeliveryArtifact>(2).type,
-              version = version0,
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = "${arg<String>(1)}:$version0", link = "stash"))
-            )
-          }
-
-          every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.CURRENT)
-          } answers {
-            PublishedArtifact(
-              name = arg<DeliveryArtifact>(2).name,
-              type = arg<DeliveryArtifact>(2).type,
-              version = version1,
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = "${arg<String>(1)}:$version1", link = "stash"))
-            )
-          }
+          every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(
+            releaseArtifact,
+            "stash"
+          )
         }
 
-        test("compare links for previous --> current are generated as expected, in the correct env") {
+        test("compare links for previous-->current are generated as expected, in the correct env") {
+          // current is compared against what it replaced
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "test") {
-              state.isEqualTo(PromotionStatus.CURRENT.name.toLowerCase())
+              state.isEqualTo(CURRENT.name.toLowerCase())
               compareLink
-                .isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=test:fnord-1.0.0-h0.a0a0a0a&sourceBranch=fnord-1.0.2-h2.c2c2c2c")
+                .isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version2}")
             }
             .withVersionInEnvironment(version1, "staging") {
-              state.isEqualTo(PromotionStatus.CURRENT.name.toLowerCase())
-              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=staging:fnord-1.0.0-h0.a0a0a0a&sourceBranch=fnord-1.0.1-h1.b1b1b1b")
+              state.isEqualTo(CURRENT.name.toLowerCase())
+              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version1}")
             }
         }
 
         test("compare links for current --> deploying are generated as expected, in the correct env") {
+          // deploying is compared against the current version
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version3, "test") {
-              state.isEqualTo(PromotionStatus.DEPLOYING.name.toLowerCase())
+              state.isEqualTo(DEPLOYING.name.toLowerCase())
               compareLink
-                .isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=test:fnord-1.0.1-h1.b1b1b1b&sourceBranch=fnord-1.0.3-h3.d3d3d3d")
+                .isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version2}&sourceBranch=${version3}")
             }
         }
 
         test("compare links for previous --> current  are generated as expected, in the correct env") {
+          // previous is compared to what replaced it, which we know.
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version0, "staging") {
-              state.isEqualTo(PromotionStatus.PREVIOUS.name.toLowerCase())
-              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=fnord-1.0.0-h0.a0a0a0a&sourceBranch=fnord-1.0.1-h1.b1b1b1b")
+              state.isEqualTo(PREVIOUS.name.toLowerCase())
+              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version1}")
             }
         }
 
         test("compare links for pending --> current  are generated as expected, in the correct env") {
+          // pending is compared to current
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "staging") {
-              state.isEqualTo(ConstraintStatus.PENDING.name.toLowerCase())
-              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=staging:fnord-1.0.1-h1.b1b1b1b&sourceBranch=fnord-1.0.2-h2.c2c2c2c")
+              state.isEqualTo(PENDING.name.toLowerCase())
+              compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version2}")
             }
         }
 
@@ -340,58 +340,30 @@ class ComparableLinksTests : JUnit5Minutests {
             } returns version3
 
             every {
-              repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS, version0)
-            } answers {
-              PublishedArtifact(
-                name = arg<DeliveryArtifact>(2).name,
-                type = arg<DeliveryArtifact>(2).type,
-                version = version1,
-                gitMetadata = GitMetadata(commit = arg<String>(1),
-                  commitInfo = Commit(sha = "pinnedVersion", link = "stash"),
-                  repo = Repo(name = "keel"),
-                  project = "spkr"
-                )
-              )
-            }
+              repository.getVersionInfoInEnvironment(any(), "test", any())
+            } returns listOf(
+              StatusInfoForArtifactInEnvironment(version0, CURRENT, null, clock.instant().minus(Duration.ofHours(2))),
+            )
 
             every {
-              repository.getArtifactVersion(releaseArtifact, version3, ArtifactStatus.RELEASE)
-            } answers {
-              PublishedArtifact(
-                name = arg<DeliveryArtifact>(0).name,
-                type = arg<DeliveryArtifact>(0).type,
-                version = arg<String>(1),
-                gitMetadata = GitMetadata(
-                  commit = "pinnedVersion",
-                  commitInfo = Commit(sha = "pinnedVersion", link = "stash"),
-                  repo = Repo(name = "keel"),
-                  project = "spkr"
-                ),
-                buildMetadata = buildMetadata
-              )
-            }
-            every {
-              repository.getArtifactVersion(releaseArtifact, version0, ArtifactStatus.RELEASE)
-            } answers {
-              PublishedArtifact(
-                name = arg<DeliveryArtifact>(0).name,
-                type = arg<DeliveryArtifact>(0).type,
-                version = arg<String>(1),
-                gitMetadata = GitMetadata(
-                  commit = "pinnedVersion",
-                  commitInfo = Commit(sha = "pinnedVersion", link = "stash"),
-                  repo = Repo(name = "keel"),
-                  project = "spkr"
-                ),
-                buildMetadata = buildMetadata
-              )
-            }
+              repository.getVersionInfoInEnvironment(any(), "staging", any())
+            } returns listOf(
+              StatusInfoForArtifactInEnvironment(
+                version0,
+                PREVIOUS,
+                version1,
+                clock.instant().minus(Duration.ofHours(4))
+              ),
+              StatusInfoForArtifactInEnvironment(version1, CURRENT, null, clock.instant()),
+            )
           }
+
           test("get the correct compare link when pinning forward (current)") {
+            // pinning to version 3 here
             val summaries = applicationService.getArtifactSummariesFor(application1)
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "staging") {
-                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=fnord-1.0.1-h1.b1b1b1b&sourceBranch=pinnedVersion")
+                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version3}")
               }
           }
 
@@ -399,7 +371,7 @@ class ComparableLinksTests : JUnit5Minutests {
             val summaries = applicationService.getArtifactSummariesFor(application1)
             expectThat(summaries.first())
               .withVersionInEnvironment(version4, "test") {
-                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=pinnedVersion&sourceBranch=fnord-1.0.4-h4.e4e4e4e")
+                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version4}")
               }
           }
 
@@ -407,7 +379,7 @@ class ComparableLinksTests : JUnit5Minutests {
             val summaries = applicationService.getArtifactSummariesFor(application1)
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "test") {
-                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=fnord-1.0.1-h1.b1b1b1b&sourceBranch=fnord-1.0.2-h2.c2c2c2c")
+                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version1}&sourceBranch=${version2}")
               }
           }
 
@@ -415,7 +387,7 @@ class ComparableLinksTests : JUnit5Minutests {
             val summaries = applicationService.getArtifactSummariesFor(application1)
             expectThat(summaries.first())
               .withVersionInEnvironment(version2, "test") {
-                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=pinnedVersion&sourceBranch=fnord-1.0.2-h2.c2c2c2c")
+                compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version2}")
               }
           }
 
@@ -429,7 +401,7 @@ class ComparableLinksTests : JUnit5Minutests {
               val summaries = applicationService.getArtifactSummariesFor(application1)
               expectThat(summaries.first())
                 .withVersionInEnvironment(version1, "staging") {
-                  compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=staging:fnord-1.0.0-h0.a0a0a0a&sourceBranch=fnord-1.0.1-h1.b1b1b1b")
+                  compareLink.isEqualTo("https://stash/projects/spkr/repos/keel/compare/commits?targetBranch=${version0}&sourceBranch=${version1}")
                 }
             }
           }
@@ -438,48 +410,17 @@ class ComparableLinksTests : JUnit5Minutests {
 
       context("github") {
         before {
-          every {
-            repository.getArtifactVersion(any(), any(), any())
-          } answers {
-            PublishedArtifact(arg<DeliveryArtifact>(0).name, arg<DeliveryArtifact>(0).type, arg<String>(1),
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = arg<String>(1), link = "https://github.com/repo/123"),
-                repo = Repo(name = "keel"),
-                project = "spkr"
-              )
-              , buildMetadata = buildMetadata)
-          }
-
-          every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.PREVIOUS, any())
-          } answers {
-            PublishedArtifact(
-              name = arg<DeliveryArtifact>(2).name,
-              type = arg<DeliveryArtifact>(2).type,
-              version = version0,
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = "${arg<String>(1)}:$version0", link = "https://github.com/repo/120"))
-            )
-          }
-
-          every {
-            repository.getArtifactVersionByPromotionStatus(singleArtifactDeliveryConfig, any(), releaseArtifact, PromotionStatus.CURRENT)
-          } answers {
-            PublishedArtifact(
-              name = arg<DeliveryArtifact>(2).name,
-              type = arg<DeliveryArtifact>(2).type,
-              version = version1,
-              gitMetadata = GitMetadata(commit = arg<String>(1),
-                commitInfo = Commit(sha = "${arg<String>(1)}:$version1", link = "https://github.com/repo/121"))
-            )
-          }
+          every { repository.artifactVersions(releaseArtifact) } returns versions.toArtifactVersions(
+            releaseArtifact,
+            "https://github.com/repo/123"
+          )
         }
 
         test("compare links for current --> deploying shows the deploying github link") {
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version3, "test") {
-              state.isEqualTo(PromotionStatus.DEPLOYING.name.toLowerCase())
+              state.isEqualTo(DEPLOYING.name.toLowerCase())
               compareLink
                 .isEqualTo("https://github.com/repo/123")
             }
@@ -489,7 +430,7 @@ class ComparableLinksTests : JUnit5Minutests {
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version0, "staging") {
-              state.isEqualTo(PromotionStatus.PREVIOUS.name.toLowerCase())
+              state.isEqualTo(PREVIOUS.name.toLowerCase())
               compareLink.isEqualTo("https://github.com/repo/123")
             }
         }
@@ -498,11 +439,10 @@ class ComparableLinksTests : JUnit5Minutests {
           val summaries = applicationService.getArtifactSummariesFor(application1)
           expectThat(summaries.first())
             .withVersionInEnvironment(version2, "staging") {
-              state.isEqualTo(ConstraintStatus.PENDING.name.toLowerCase())
+              state.isEqualTo(PENDING.name.toLowerCase())
               compareLink.isEqualTo("https://github.com/repo/123")
             }
         }
-
       }
     }
   }
