@@ -16,6 +16,7 @@ import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import io.swagger.annotations.ApiOperation
 import java.util.stream.Collectors
 import org.pf4j.PluginWrapper
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -39,6 +40,8 @@ class PluginsInstalledController(
   private val spinnakerUpdateManager: SpinnakerUpdateManager,
   private val deckPluginService: DeckPluginService
 ) {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @ApiOperation(value = "Get all installed Spinnaker plugins")
   @RequestMapping(method = [RequestMethod.GET])
@@ -120,11 +123,8 @@ class PluginsInstalledController(
     return try {
       call()
     } catch (e: RetrofitError) {
-      if (e.response?.status == 404) {
-        emptyList()
-      } else {
-        throw e
-      }
+      log.warn("Unable to retrieve installed plugins from '${e.response?.url}' due to '${e.response?.status}'")
+      return emptyList()
     }
   }
 
