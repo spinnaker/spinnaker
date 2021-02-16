@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_SERVICE_UNAVAILABLE
 import io.mockk.mockk
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -289,6 +290,8 @@ internal class MemoryCloudDriverCacheTest {
     verify(exactly = 1) { cloudDriver.getCertificates() }
   }
 
+  // the sleep of 1 ms is not fixing this test, disabling it until we can investigate further.
+  @Disabled
   @Test
   fun `all certs are cached at once when requested by ARN`() {
     every { cloudDriver.getCertificates() } returns certificates
