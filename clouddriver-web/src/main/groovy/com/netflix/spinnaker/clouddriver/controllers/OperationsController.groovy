@@ -68,7 +68,7 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(requestBody)
-    return start(atomicOperations, clientRequestId)
+    return start(null, atomicOperations, clientRequestId)
   }
 
   /**
@@ -81,7 +81,7 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations([[(name): requestBody]])
-    return start(atomicOperations, clientRequestId)
+    return start(null, atomicOperations, clientRequestId)
   }
 
   @PostMapping("/{cloudProvider}/ops")
@@ -90,7 +90,7 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
-    return start(atomicOperations, clientRequestId)
+    return start(cloudProvider, atomicOperations, clientRequestId)
   }
 
   @PostMapping("/{cloudProvider}/ops/{name}")
@@ -100,7 +100,7 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, [[(name): requestBody]])
-    return start(atomicOperations, clientRequestId)
+    return start(cloudProvider, atomicOperations, clientRequestId)
   }
 
   @GetMapping("/task/{id}")
@@ -140,7 +140,7 @@ class OperationsController {
     if (atomicOperations.isEmpty()) {
       throw new NotFoundException("No saga was found for this task id: $id - can't resume")
     }
-    
+
     return start(atomicOperations, t.requestId)
   }
 
@@ -163,10 +163,12 @@ class OperationsController {
     }
   }
 
-  private StartOperationResult start(@Nonnull List<AtomicOperation> atomicOperations, @Nullable String id) {
+  private StartOperationResult start(@Nullable String cloudProvider,
+                                     @Nonnull List<AtomicOperation> atomicOperations,
+                                     @Nullable String id) {
     Task task =
       orchestrationProcessor.process(
-        atomicOperations, Optional.ofNullable(id).orElse(UUID.randomUUID().toString()));
+        cloudProvider, atomicOperations, Optional.ofNullable(id).orElse(UUID.randomUUID().toString()));
     return new StartOperationResult(task.getId());
   }
 

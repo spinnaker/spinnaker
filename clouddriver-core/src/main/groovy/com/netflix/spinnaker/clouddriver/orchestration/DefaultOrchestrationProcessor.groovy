@@ -28,13 +28,12 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHand
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionSummary
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionSummaryService
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
-import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 
 import javax.annotation.Nonnull
+import javax.annotation.Nullable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -88,11 +87,12 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   }
 
   @Override
-  Task process(List<AtomicOperation> atomicOperations, String clientRequestId) {
-
-    def orchestrationsId = registry.createId('orchestrations')
-    def atomicOperationId = registry.createId('operations')
-    def tasksId = registry.createId('tasks')
+  Task process(@Nullable String cloudProvider,
+               @Nonnull List<AtomicOperation> atomicOperations,
+               @Nonnull String clientRequestId) {
+    def orchestrationsId = registry.createId('orchestrations').withTag("cloudProvider", cloudProvider ?: "unknown")
+    def atomicOperationId = registry.createId('operations').withTag("cloudProvider", cloudProvider ?: "unknown")
+    def tasksId = registry.createId('tasks').withTag("cloudProvider", cloudProvider ?: "unknown")
 
     // Get the task (either an existing one, or a new one). If the task already exists, `shouldExecute` will be false
     // if the task is in a failed state and the failure is not retryable.

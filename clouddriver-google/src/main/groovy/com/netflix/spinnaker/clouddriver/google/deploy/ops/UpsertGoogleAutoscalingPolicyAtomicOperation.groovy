@@ -391,7 +391,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     if (templateOpMap.instanceMetadata) {
       def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce')
       AtomicOperation templateOp = converter.convertOperation(templateOpMap)
-      orchestrationProcessor.process([templateOp], UUID.randomUUID().toString())
+      orchestrationProcessor.process('gce', [templateOp], UUID.randomUUID().toString())
     }
   }
 }

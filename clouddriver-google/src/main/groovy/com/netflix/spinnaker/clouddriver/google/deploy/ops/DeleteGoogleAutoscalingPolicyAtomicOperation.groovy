@@ -189,7 +189,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       templateOpMap.instanceMetadata.remove(GCEUtil.AUTOSCALING_POLICY)
       def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce')
       AtomicOperation templateOp = converter.convertOperation(templateOpMap)
-      orchestrationProcessor.process([templateOp], UUID.randomUUID().toString())
+      orchestrationProcessor.process('gce', [templateOp], UUID.randomUUID().toString())
     }
   }
 }

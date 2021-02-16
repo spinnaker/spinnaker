@@ -1039,7 +1039,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                 "modifyGoogleServerGroupInstanceTemplateDescription", "gce");
         AtomicOperation templateOp = converter.convertOperation(templateOpMap);
         orchestrationProcessor.process(
-            new ArrayList<>(Arrays.asList(templateOp)), UUID.randomUUID().toString());
+            "gce", new ArrayList<>(Arrays.asList(templateOp)), UUID.randomUUID().toString());
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);

@@ -176,7 +176,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {
-    processor.process([atomicOp], taskKey)
+    processor.process("cloudProvider", [atomicOp], taskKey)
     processor.executorService.shutdown()
     processor.executorService.awaitTermination(5, TimeUnit.SECONDS)
   }
