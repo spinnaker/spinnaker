@@ -7,12 +7,13 @@ import { CollapsibleSection } from '../../presentation';
 
 import { Application } from '../../application';
 import { IInstance } from '../../domain';
+import { IMoniker } from '../../naming';
 
 export interface IInstanceLinksProps {
   address: string;
   application: Application;
   instance: IInstance;
-  moniker: string;
+  moniker: IMoniker;
   environment: string;
 }
 
