@@ -1,6 +1,5 @@
-import React, { memo, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
-import { useRouter } from '@uirouter/react';
 import { DateTime } from 'luxon';
 
 import {
@@ -8,30 +7,23 @@ import {
   IManagedArtifactVersion,
   IManagedEnvironmentSummary,
   IManagedResourceSummary,
-  IManagedArtifactVersionEnvironment,
-} from '../../domain';
+} from 'core/domain';
+
 import { Application } from '../../application';
 import { useEventListener, Markdown, CollapsibleElement } from '../../presentation';
-
 import { AbsoluteTimestamp } from '../AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
 import { ManagedResourceObject } from '../ManagedResourceObject';
 import { EnvironmentRow } from '../environment/EnvironmentRow';
 import { PreDeploymentRow } from './PreDeploymentRow';
 import { PreDeploymentStepCard } from './PreDeploymentStepCard';
-import { VersionStateCard } from './VersionStateCard';
-import { StatusCard } from '../StatusCard';
 import { Button } from '../Button';
 import { showPinArtifactModal } from './PinArtifactModal';
-import { showUnpinArtifactModal } from './UnpinArtifactModal';
 import { showMarkArtifactAsBadModal } from './MarkArtifactAsBadModal';
-
-import { ConstraintCard } from './constraints/ConstraintCard';
-import { isConstraintSupported } from './constraints/constraintRegistry';
+import { EnvironmentCards } from './EnvironmentCards';
 import { isResourceKindSupported } from '../resources/resourceRegistry';
-import { VerificationCard } from './verifications/VerificationCard';
+import { logCategories, useLogEvent } from '../utils/logging';
 
-import { useLogEvent } from '../utils/logging';
 import './ArtifactDetail.less';
 
 const SUPPORTED_PRE_DEPLOYMENT_TYPES = ['BUILD', 'BAKE'];
@@ -39,128 +31,6 @@ const SUPPORTED_PRE_DEPLOYMENT_TYPES = ['BUILD', 'BAKE'];
 function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
   return isResourceKindSupported(resource.kind) && reference === resource.artifact?.reference;
 }
-
-type IEnvironmentCardsProps = Pick<
-  IArtifactDetailProps,
-  'application' | 'reference' | 'version' | 'allVersions' | 'resourcesByEnvironment'
-> & {
-  environment: IManagedArtifactVersionEnvironment;
-  pinnedVersion: string;
-};
-
-const LOG_CATEGORY = 'Environments - artifact details';
-
-const EnvironmentCards = memo(
-  ({
-    application,
-    environment,
-    reference,
-    version: versionDetails,
-    allVersions,
-    pinnedVersion,
-    resourcesByEnvironment,
-  }: IEnvironmentCardsProps) => {
-    const {
-      name: environmentName,
-      state,
-      deployedAt,
-      replacedAt,
-      replacedBy,
-      pinned,
-      vetoed,
-      statefulConstraints,
-      statelessConstraints,
-      compareLink,
-    } = environment;
-    const {
-      stateService: { go },
-    } = useRouter();
-
-    const logEvent = useLogEvent(LOG_CATEGORY);
-
-    const differentVersionPinnedCard = pinnedVersion &&
-      pinnedVersion !== versionDetails.version &&
-      !['vetoed', 'skipped'].includes(state) && (
-        <StatusCard
-          iconName="cloudWaiting"
-          appearance="warning"
-          background={true}
-          title="A different version is pinned here"
-          actions={<Button onClick={() => go('.', { version: pinnedVersion })}>See version</Button>}
-        />
-      );
-
-    const pinnedCard = pinned && (
-      <StatusCard
-        iconName="pin"
-        appearance="warning"
-        background={true}
-        timestamp={pinned?.at ? DateTime.fromISO(pinned.at) : null}
-        title={
-          <span className="sp-group-margin-xs-xaxis">
-            <span>Pinned</span> <span className="text-regular">—</span>{' '}
-            <span className="text-regular">by {pinned.by}</span>
-          </span>
-        }
-        description={pinned.comment && <Markdown message={pinned.comment} tag="span" />}
-        actions={
-          <Button
-            iconName="unpin"
-            onClick={() =>
-              showUnpinArtifactModal({
-                application,
-                reference,
-                version: versionDetails,
-                resourcesByEnvironment,
-                environment: environmentName,
-              }).then(({ status }) => status === 'CLOSED' && application.getDataSource('environments').refresh())
-            }
-          >
-            Unpin
-          </Button>
-        }
-      />
-    );
-
-    return (
-      <>
-        {differentVersionPinnedCard}
-        {pinnedCard}
-        <VersionStateCard
-          key="versionStateCard"
-          state={state}
-          deployedAt={deployedAt}
-          replacedAt={replacedAt}
-          replacedBy={replacedBy}
-          vetoed={vetoed}
-          compareLink={compareLink}
-          allVersions={allVersions}
-          logClick={(action) => logEvent({ action, label: `${environmentName}:${reference}` })}
-        />
-        {environment.verifications?.map((verification) => (
-          <VerificationCard
-            key={verification.id}
-            verification={verification}
-            wasHalted={environment.state === 'skipped'}
-            logClick={(action) => logEvent({ action, label: `${environmentName}:${reference}` })}
-          />
-        ))}
-        {[...(statelessConstraints || []), ...(statefulConstraints || [])]
-          .filter(({ type }) => isConstraintSupported(type))
-          .map((constraint) => (
-            <ConstraintCard
-              key={constraint.type}
-              application={application}
-              environment={environment}
-              reference={reference}
-              version={versionDetails.version}
-              constraint={constraint}
-            />
-          ))}
-      </>
-    );
-  },
-);
 
 const VersionMetadataItem = ({ label, value }: { label: string; value: JSX.Element | string }) => (
   <div className="flex-container-h sp-margin-xs-bottom">
@@ -192,10 +62,12 @@ export const ArtifactDetail = ({
   onRequestClose,
 }: IArtifactDetailProps) => {
   const { environments, lifecycleSteps, git, createdAt } = versionDetails;
-  const logEvent = useLogEvent(LOG_CATEGORY);
+  const logEvent = useLogEvent(logCategories.artifactDetails);
 
-  const keydownCallback = ({ keyCode }: KeyboardEvent) => {
-    if (keyCode === 27 /* esc */) {
+  const keydownCallback = ({ key }: KeyboardEvent) => {
+    if (key === 'Esc') {
+      // eslint-disable-next-line no-console
+      console.log('here');
       onRequestClose();
     }
   };
