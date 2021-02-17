@@ -46,7 +46,8 @@ import { IServiceDiscoveryRegistryDescriptor } from '../../serviceDiscovery/ISer
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroups?: string[];
-  capacityProviders?: string[];
+  defaulCapacityProviders?: string[];
+  customCapacityProviders?: string[];
 }
 
 export interface IEcsServerGroupCommandResult extends IServerGroupCommandResult {
@@ -629,15 +630,26 @@ export class EcsServerGroupConfigurationService {
 
   public checkDirtyCapacityProviders(command: IEcsServerGroupCommand): void {
     if(command.capacityProviderStrategy){
-      const availableCapacityProviders = command.backingData.filtered.availableCapacityProviders;
+      const availableCustomCapacityProviders = command.backingData.filtered.availableCapacityProviders;
       const currentCapacityProviders = command.capacityProviderStrategy.map(cp => cp.capacityProvider);
-      const matched = intersection(availableCapacityProviders, currentCapacityProviders);
-      const removedCapacityProviders = xor(matched, currentCapacityProviders);
+      const matchedCustomCapacityProviders = intersection(availableCustomCapacityProviders, currentCapacityProviders);
+      const removedCustomCapacityProviders = xor(matchedCustomCapacityProviders, currentCapacityProviders);
 
-      if (removedCapacityProviders && removedCapacityProviders.length > 0) {
-        command.viewState.dirty.capacityProviders = removedCapacityProviders;
-      } else if(command.viewState.dirty && command.viewState.dirty.capacityProviders) {
-        command.viewState.dirty.capacityProviders = [];
+      if (removedCustomCapacityProviders && removedCustomCapacityProviders.length > 0) {
+        command.viewState.dirty.customCapacityProviders = removedCustomCapacityProviders;
+      } else if(command.viewState.dirty && command.viewState.dirty.customCapacityProviders) {
+        command.viewState.dirty.customCapacityProviders = [];
+      }
+
+      if(command.useDefaultCapacityProviders){
+        const availableDefaultCapacityProvider = command.backingData.filtered.defaultCapacityProviderStrategy
+          .map(cp => cp.capacityProvider);
+        const matchedDefaultCapacityProviders = intersection(availableDefaultCapacityProvider, currentCapacityProviders);
+        const removedDefaultCapacityProviders = xor(matchedDefaultCapacityProviders, currentCapacityProviders);
+
+        if (removedDefaultCapacityProviders && removedDefaultCapacityProviders.length > 0) {
+          command.viewState.dirty.defaulCapacityProviders = removedDefaultCapacityProviders;
+        }
       }
     }
   }

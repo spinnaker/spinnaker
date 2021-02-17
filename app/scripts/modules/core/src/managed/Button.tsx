@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Icon, IconNames } from '../presentation';
-
 import './Button.less';
+
+import { Icon, IconNames } from '@spinnaker/presentation';
 
 const DEFAULT_APPEARANCE = 'secondary';
 

@@ -3,11 +3,11 @@ import classNames from 'classnames';
 
 import { IManagedResourceSummary } from 'core/domain';
 import { Application } from 'core/application';
-import { Icon } from 'core/presentation';
-
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
+
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
 import './ManagedResourceStatusIndicator.less';
+import { Icon } from '@spinnaker/presentation';
 
 export interface IManagedResourceStatusIndicatorProps {
   shape: 'square' | 'circle';

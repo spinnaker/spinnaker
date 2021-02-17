@@ -21,12 +21,12 @@ function transformBuildToUIFormat(build: ICiBuildAPI) {
   const startTime = parseInt(properties.startedTs, 10);
 
   const transformedBuild = {
-    author: scm[0].committer,
+    author: scm.length == 0 ? '' : scm[0].committer,
     artifacts: artifacts.map((artifact) => ({ name: artifact.fileName, url: artifact.displayPath })),
-    branchName: scm[0].branch,
-    commitId: scm[0].sha1.substr(0, 7), // naive shortening of the commit hash.
-    commitLink: scm[0].compareUrl,
-    commitMessage: scm[0].message,
+    branchName: scm.length == 0 ? '' : scm[0].branch,
+    commitId: scm.length == 0 ? '' : scm[0].sha1.substr(0, 7), // naive shortening of the commit hash.
+    commitLink: scm.length == 0 ? '' : scm[0].compareUrl,
+    commitMessage: scm.length == 0 ? '' : scm[0].message,
     duration: build.duration,
     fullDisplayName: build.fullDisplayName,
     id: build.id,

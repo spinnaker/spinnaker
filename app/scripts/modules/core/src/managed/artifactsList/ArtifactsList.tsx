@@ -2,13 +2,14 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
 
+import { Icon, IconNames } from '@spinnaker/presentation';
+
 import {
   IManagedArtifactSummary,
   IManagedArtifactVersion,
   IStatefulConstraint,
   StatefulConstraintStatus,
 } from '../../domain/IManagedEntity';
-import { Icon, IconNames } from '../../presentation';
 
 import { isConstraintSupported, getConstraintIcon } from '../artifactDetail/constraints/constraintRegistry';
 

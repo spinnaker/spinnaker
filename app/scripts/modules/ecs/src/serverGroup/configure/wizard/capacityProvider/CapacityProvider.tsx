@@ -83,7 +83,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
     targetCapacityProviderStrategy.capacityProvider = targetCapacityProviderName;
     this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
-    this.props.command.viewState.dirty.capacityProviders = [];
+    this.props.command.viewState.dirty.customCapacityProviders = [];
   };
 
   private updateCapacityProviderBase = (index: number, targetCapacityProviderBase: number) => {
@@ -105,7 +105,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
   private updateCapacityProviderType = (targetCapacityProviderType: boolean) => {
     this.setState({useDefaultCapacityProviders : targetCapacityProviderType});
     this.props.notifyAngular("useDefaultCapacityProviders", targetCapacityProviderType);
-    this.props.command.viewState.dirty.capacityProviders = [];
+    this.props.command.viewState.dirty.customCapacityProviders = [];
 
     const capacityProviderStrategy = targetCapacityProviderType && this.state.defaultCapacityProviderStrategy.length > 0 ? this.state.defaultCapacityProviderStrategy : [];
     this.setState({ capacityProviderStrategy : capacityProviderStrategy });
@@ -123,19 +123,29 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     const useDefaultCapacityProviders = this.state.useDefaultCapacityProviders;
     const capacityProviderLoadedFlag = this.state.capacityProviderLoadedFlag;
-    const dirtyCapacityProviders = this.props.command.viewState.dirty && this.props.command.viewState.dirty.capacityProviders ? this.props.command.viewState.dirty.capacityProviders : [];
+    const customDirtyCapacityProviders = this.props.command.viewState.dirty && this.props.command.viewState.dirty.customCapacityProviders ? this.props.command.viewState.dirty.customCapacityProviders : [];
+    const defaultDirtyCapacityProviders = this.props.command.viewState.dirty && this.props.command.viewState.dirty.defaulCapacityProviders ? this.props.command.viewState.dirty.defaulCapacityProviders : [];
 
     const capacityProviderNames = this.state.availableCapacityProviders &&  this.state.availableCapacityProviders.length > 0 ?  this.state.availableCapacityProviders.map((capacityProviderNames) => {
       return { label: `${capacityProviderNames}`, value: capacityProviderNames };
     }) : [];
 
-    const dirtyCapacityProviderList = dirtyCapacityProviders ? dirtyCapacityProviders.map(function (capacityProvider, index){
+    const defaultCPError = useDefaultCapacityProviders && defaultDirtyCapacityProviders ? (
+      <div className="alert alert-warning">
+        <p className="text-left">
+          <i className="fa fa-exclamation-triangle"></i>
+          Invalid capacity providers are a part of default capacity provider strategy.
+          <br/>Please click 'Done' to use current default capacity provider strategy (shown below) or switch to using a custom strategy.
+        </p>
+      </div> ): '';
+
+    const dirtyCapacityProviderList = customDirtyCapacityProviders ? customDirtyCapacityProviders.map(function (capacityProvider, index){
       return (
         <li key={index}>{capacityProvider}</li>
       );
     }) : '';
 
-    const dirtyCapacityProviderSection = (
+    const dirtyCapacityProviderSection = useDefaultCapacityProviders && defaultDirtyCapacityProviders.length > 0 ? defaultCPError : customDirtyCapacityProviders.length > 0 && !useDefaultCapacityProviders ? (
       <div className="alert alert-warning">
         <p>
           <i className="fa fa-exclamation-triangle"></i>
@@ -149,7 +159,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
           Please select the capacity provider(s) from the dropdown to resolve this error.
         </p>
       </div>
-    );
+    ) : '';
 
     const capacityProviderInputs = capacityProviderStrategy.length > 0 ? capacityProviderStrategy.map(function (mapping, index) {
       return (
@@ -228,7 +238,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
 
     return (
       <div>
-        {dirtyCapacityProviders.length > 0 ? ( <div>{dirtyCapacityProviderSection}</div>) : ''}
+        {( customDirtyCapacityProviders.length > 0 || defaultDirtyCapacityProviders.length > 0 ) && capacityProviderLoadedFlag ? ( <div>{dirtyCapacityProviderSection}</div>) : ''}
         <div className="sm-label-left">
           <b>Capacity Provider Strategy</b><HelpField id="ecs.capacityProviderStrategy" /> <br/>
           <span>({this.state.ecsClusterName})</span>

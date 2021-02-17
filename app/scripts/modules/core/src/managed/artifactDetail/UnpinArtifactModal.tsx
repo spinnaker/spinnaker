@@ -1,6 +1,8 @@
 import React, { memo, useEffect, useState } from 'react';
 import ReactGA from 'react-ga';
 
+import { Illustration } from '@spinnaker/presentation';
+
 import {
   IModalComponentProps,
   ModalHeader,
@@ -9,7 +11,6 @@ import {
   showModal,
   ValidationMessage,
   IRequestStatus,
-  Illustration,
 } from '../../presentation';
 import { IManagedArtifactVersion, IManagedResourceSummary } from '../../domain';
 import { Application } from '../../application';

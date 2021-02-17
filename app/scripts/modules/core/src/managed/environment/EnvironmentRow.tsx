@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 
+import { Icon } from '@spinnaker/presentation';
+
 import { IManagedResourceSummary, IManagedEnvironmentSummary } from '../../domain';
-import { Icon } from '../../presentation';
-
 import { StatusBubble } from '../StatusBubble';
-
 import { EnvironmentBadge } from '../EnvironmentBadge';
 import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
 
