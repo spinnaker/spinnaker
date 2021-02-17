@@ -91,6 +91,12 @@ export interface IVerification {
   link?: string;
 }
 
+export interface IPinned {
+  at: string;
+  by: string;
+  comment?: string;
+}
+
 export interface IManagedArtifactVersion {
   version: string;
   displayName: string;
@@ -98,11 +104,7 @@ export interface IManagedArtifactVersion {
   environments: Array<{
     name: string;
     state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
-    pinned?: {
-      at: string;
-      by: string;
-      comment?: string;
-    };
+    pinned?: IPinned;
     vetoed?: {
       at: string;
       by: string;

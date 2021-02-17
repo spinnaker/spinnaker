@@ -22,3 +22,7 @@ export const useLogEvent = (category: string) => {
     logEvent({ ...props, category, application: app?.name });
   };
 };
+
+export const logCategories = {
+  artifactDetails: 'Environments - artifact details',
+};
