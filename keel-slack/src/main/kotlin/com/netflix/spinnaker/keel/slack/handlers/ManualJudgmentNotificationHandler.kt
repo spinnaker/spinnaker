@@ -84,7 +84,8 @@ class ManualJudgmentNotificationHandler(
               button {
                 text("See changes", emoji = true)
                 url(compareLink)
-                actionId("button-action")
+                // action id will be consisted by 3 sections with ":" between them to keep it consistent
+                actionId("button:url:diff")
               }
             }
           }

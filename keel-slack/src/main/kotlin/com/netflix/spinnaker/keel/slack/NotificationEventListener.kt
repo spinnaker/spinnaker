@@ -141,7 +141,7 @@ class NotificationEventListener(
           user = user,
           targetEnvironment = veto.targetEnvironment,
           time = clock.instant(),
-          application = config.name,
+          application = config.application,
           comment = veto.comment
         ),
         ARTIFACT_MARK_AS_BAD,
