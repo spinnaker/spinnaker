@@ -1234,6 +1234,80 @@ class SqlArtifactRepository(
         }
     }
 
+  /**
+   * Returns summary information for the provided list of versions.
+   */
+  override fun getArtifactSummariesInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactReference: String,
+    versions: List<String>
+  ): List<ArtifactSummaryInEnvironment> {
+    val artifact = deliveryConfig.artifacts.firstOrNull { it.reference == artifactReference }
+      ?: error("Artifact not found: name=$artifactReference, deliveryConfig=${deliveryConfig.name}")
+
+    // only one version can be pinned
+    val pinned: Pair<String, ActionMetadata>? = sqlRetry.withRetry(READ) { //version, pinned by info
+      jooq.select(
+          ENVIRONMENT_ARTIFACT_PIN.PINNED_BY,
+          ENVIRONMENT_ARTIFACT_PIN.PINNED_AT,
+          ENVIRONMENT_ARTIFACT_PIN.COMMENT,
+          ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION
+        )
+        .from(ENVIRONMENT_ARTIFACT_PIN)
+        .where(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artifact.uid))
+        .fetchOne { (pinnedBy, pinnedAt, comment, version) ->
+          Pair(version, ActionMetadata(at = pinnedAt, by = pinnedBy, comment = comment))
+        }
+    }
+
+    val vetoed: Map<String,ActionMetadata> = sqlRetry.withRetry(READ) {
+      jooq.select(
+          ENVIRONMENT_ARTIFACT_VETO.VETOED_AT,
+          ENVIRONMENT_ARTIFACT_VETO.VETOED_BY,
+          ENVIRONMENT_ARTIFACT_VETO.COMMENT,
+          ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_VERSION
+        )
+        .from(ENVIRONMENT_ARTIFACT_VETO)
+        .where(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_UID.eq(artifact.uid))
+        .fetch { (vetoedAt, vetoedBy, comment, version) ->
+          version to ActionMetadata(at = vetoedAt, by = vetoedBy, comment = comment)
+        }.toMap()
+    }
+
+    return sqlRetry.withRetry(READ) {
+      jooq.select(
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+          ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
+          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(versions))
+        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
+        .fetch { (version, deployedAt, promotionStatus, replacedBy, replacedAt) ->
+          ArtifactSummaryInEnvironment(
+            environment = environmentName,
+            version = version,
+            state = promotionStatus.name.toLowerCase(),
+            deployedAt = deployedAt,
+            replacedAt = replacedAt,
+            replacedBy = replacedBy,
+            pinned = if (pinned != null && pinned.first == version) pinned.second else null,
+            vetoed = vetoed[version]
+          )
+        }
+    }
+  }
+
+  /**
+   * Replaced by the bulk call ^
+   */
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,

@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
+import com.netflix.spinnaker.keel.core.api.ActionMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
@@ -175,6 +176,21 @@ class ComparableLinksTests : JUnit5Minutests {
         gitMetadata = git(version, source),
         buildMetadata = buildMetadata,
       ) }
+
+    val testSummaryInEnv = listOf(
+      ArtifactSummaryInEnvironment("test", version0, "previous", replacedBy = version1),
+      ArtifactSummaryInEnvironment("test", version1, "previous", replacedBy = version2),
+      ArtifactSummaryInEnvironment("test", version2, "current"),
+      ArtifactSummaryInEnvironment("test", version3, "deploying"),
+      ArtifactSummaryInEnvironment("test", version4, "pending")
+    )
+    val stagingSummaryInEnv = listOf(
+      ArtifactSummaryInEnvironment("staging", version0, "previous", replacedBy = version1),
+      ArtifactSummaryInEnvironment("staging", version1, "current"),
+      ArtifactSummaryInEnvironment("staging", version2, "pending"),
+      ArtifactSummaryInEnvironment("staging", version3, "pending"),
+      ArtifactSummaryInEnvironment("staging", version4, "pending")
+    )
   }
 
   fun comparableLinksTests() = rootContext<Fixture> {
@@ -192,6 +208,8 @@ class ComparableLinksTests : JUnit5Minutests {
       every {
         repository.getVerificationStatesBatch(any())
       } returns emptyList()
+
+      every { repository.getArtifactSummariesInEnvironment(any(), any(), any(), any()) } returns emptyList()
     }
 
     context("each environment has a current version, and previous versions") {
@@ -218,25 +236,19 @@ class ComparableLinksTests : JUnit5Minutests {
         }
 
         // for statuses other than PENDING, we go look for the artifact summary in environment
-        every {
-          repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
-        } answers {
-          when (val environment = arg<String>(1)) {
-            "test" -> when (val version = arg<String>(3)) {
-              version0 -> ArtifactSummaryInEnvironment(environment, version, "previous", replacedBy = version1)
-              version1 -> ArtifactSummaryInEnvironment(environment, version, "previous", replacedBy = version2)
-              version2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-              version3 -> ArtifactSummaryInEnvironment(environment, version, "deploying")
-              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-            }
-            "staging" -> when (val version = arg<String>(3)) {
-              version0 -> ArtifactSummaryInEnvironment(environment, version, "previous", replacedBy = version1)
-              version1 -> ArtifactSummaryInEnvironment(environment, version, "current")
-              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-            }
-            else -> null
-          }
-        }
+        every { repository.getArtifactSummariesInEnvironment(
+          singleArtifactDeliveryConfig,
+          "test",
+          any(),
+          versions
+        ) } returns testSummaryInEnv
+
+        every { repository.getArtifactSummariesInEnvironment(
+          singleArtifactDeliveryConfig,
+          "staging",
+          any(),
+          versions
+        ) } returns stagingSummaryInEnv
 
         every {
           repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
@@ -332,14 +344,6 @@ class ComparableLinksTests : JUnit5Minutests {
         context("pinned") {
           before {
             every {
-              repository.getPinnedVersion(singleArtifactDeliveryConfig, "test", releaseArtifact.reference)
-            } returns version0
-
-            every {
-              repository.getPinnedVersion(singleArtifactDeliveryConfig, "staging", releaseArtifact.reference)
-            } returns version3
-
-            every {
               repository.getVersionInfoInEnvironment(any(), "test", any())
             } returns listOf(
               StatusInfoForArtifactInEnvironment(version0, CURRENT, null, clock.instant().minus(Duration.ofHours(2))),
@@ -356,6 +360,35 @@ class ComparableLinksTests : JUnit5Minutests {
               ),
               StatusInfoForArtifactInEnvironment(version1, CURRENT, null, clock.instant()),
             )
+
+            // for statuses other than PENDING, we go look for the artifact summary in environment
+            every { repository.getArtifactSummariesInEnvironment(
+              singleArtifactDeliveryConfig,
+              "test",
+              any(),
+              versions
+            ) } returns testSummaryInEnv.map { versionSummary ->
+              if (versionSummary.version == version0) {
+                // version 0 is pinned
+                ArtifactSummaryInEnvironment("test", version0, "previous", replacedBy = version1, pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+              } else {
+                versionSummary
+              }
+            }
+
+            every { repository.getArtifactSummariesInEnvironment(
+              singleArtifactDeliveryConfig,
+              "staging",
+              any(),
+              versions
+            ) } returns stagingSummaryInEnv.map { versionSummary ->
+              if (versionSummary.version == version3) {
+                // version 3 is pinned
+                ArtifactSummaryInEnvironment("staging", version3, "pending", pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+              } else {
+                versionSummary
+              }
+            }
           }
 
           test("get the correct compare link when pinning forward (current)") {
@@ -393,10 +426,21 @@ class ComparableLinksTests : JUnit5Minutests {
 
           context("pin version == current version") {
             before {
-              every {
-                repository.getPinnedVersion(singleArtifactDeliveryConfig, "staging", releaseArtifact.reference)
-              } returns version1
+              every { repository.getArtifactSummariesInEnvironment(
+                singleArtifactDeliveryConfig,
+                "staging",
+                any(),
+                versions
+              ) } returns stagingSummaryInEnv.map { versionSummary ->
+                if (versionSummary.version == version1) {
+                  // version 1 is pinned
+                  ArtifactSummaryInEnvironment("staging", version1, "current", pinned = ActionMetadata(clock.instant(), "me", "because I said so"))
+                } else {
+                  versionSummary
+                }
+              }
             }
+
             test("generate the right compare link") {
               val summaries = applicationService.getArtifactSummariesFor(application1)
               expectThat(summaries.first())

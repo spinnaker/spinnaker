@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
+import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
@@ -404,6 +405,16 @@ class CombinedRepository(
   override fun markAsSkipped(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String, supersededByVersion: String) {
     artifactRepository.markAsSkipped(deliveryConfig, artifact, version, targetEnvironment, supersededByVersion)
   }
+
+  override fun getArtifactSummariesInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactReference: String,
+    versions: List<String>
+  ): List<ArtifactSummaryInEnvironment> =
+    artifactRepository.getArtifactSummariesInEnvironment(
+      deliveryConfig, environmentName, artifactReference, versions
+    )
 
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,

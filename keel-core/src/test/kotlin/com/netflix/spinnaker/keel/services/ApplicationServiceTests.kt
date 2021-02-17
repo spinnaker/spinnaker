@@ -244,6 +244,29 @@ class ApplicationServiceTests : JUnit5Minutests {
         gitMetadata = gitMetadata,
         buildMetadata = buildMetadata
       ) }
+
+    val testSummariesInEnv = listOf(
+      ArtifactSummaryInEnvironment("test", version0, "previous", replacedBy = version1),
+      ArtifactSummaryInEnvironment("test", version1, "previous", replacedBy = version2),
+      ArtifactSummaryInEnvironment("test", version2, "previous", replacedBy = version3),
+      ArtifactSummaryInEnvironment("test", version3, "current"),
+      ArtifactSummaryInEnvironment("test", version4, "deploying"),
+    )
+    val stagingSummariesInEnv = listOf(
+      ArtifactSummaryInEnvironment("staging", version0, "previous", replacedBy = version1),
+      ArtifactSummaryInEnvironment("staging", version1, "previous", replacedBy = version2),
+      ArtifactSummaryInEnvironment("staging", version2, "current"),
+      ArtifactSummaryInEnvironment("staging", version3, "pending"),
+      ArtifactSummaryInEnvironment("staging", version4, "pending"),
+    )
+
+    val productionSummariesInEnv = listOf(
+      ArtifactSummaryInEnvironment("production", version0, "previous", replacedBy = version1),
+      ArtifactSummaryInEnvironment("production", version1, "current"),
+      ArtifactSummaryInEnvironment("production", version2, "pending"),
+      ArtifactSummaryInEnvironment("production", version3, "pending"),
+      ArtifactSummaryInEnvironment("production", version4, "pending"),
+    )
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {
@@ -281,6 +304,8 @@ class ApplicationServiceTests : JUnit5Minutests {
       every {
         repository.getVerificationStatesBatch(any())
       } returns emptyList()
+
+      every { repository.getArtifactSummariesInEnvironment(any(), any(), any(), any()) } returns emptyList()
     }
 
     context("artifact summaries by application") {
@@ -330,11 +355,6 @@ class ApplicationServiceTests : JUnit5Minutests {
                 singleArtifactEnvironments.getValue("production")
               )
             } returns false
-
-            every {
-              repository.getArtifactSummaryInEnvironment(any(), any(), any(), any())
-            } returns null
-
           }
 
           test("artifact summary shows all versions pending in all environments") {
@@ -393,31 +413,14 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             // for statuses other than PENDING, we go look for the artifact summary in environment
             every {
-              repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
-            } answers {
-              when (val environment = arg<String>(1)) {
-                "test" -> when (val version = arg<String>(3)) {
-                  version0,
-                  version1,
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  version3 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  version4 -> ArtifactSummaryInEnvironment(environment, version, "deploying")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-                "staging" -> when (val version = arg<String>(3)) {
-                  version0,
-                  version1 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-                "production" -> when (val version = arg<String>(3)) {
-                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous", replacedBy = "version5")
-                  version1 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-                else -> null
-              }
-            }
+              repository.getArtifactSummariesInEnvironment(singleArtifactDeliveryConfig, "test", any(), any())
+            } returns testSummariesInEnv
+            every {
+              repository.getArtifactSummariesInEnvironment(singleArtifactDeliveryConfig, "staging", any(), any())
+            } returns stagingSummariesInEnv
+            every {
+              repository.getArtifactSummariesInEnvironment(singleArtifactDeliveryConfig, "production", any(), any())
+            } returns productionSummariesInEnv
 
             every {
               repository.constraintStateFor(singleArtifactDeliveryConfig.name, any(), any<String>())
@@ -670,15 +673,16 @@ class ApplicationServiceTests : JUnit5Minutests {
             before {
               // for statuses other than PENDING, we go look for the artifact summary in environment
               every {
-                repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
+                repository.getArtifactSummariesInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
               } answers {
                 val environment = arg<String>(1)
-                when (val version = arg<String>(3)) {
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  version1 -> ArtifactSummaryInEnvironment(environment, version, "vetoed")
-                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
+                listOf(
+                  ArtifactSummaryInEnvironment(environment, version0, "previous", replacedBy = version1),
+                  ArtifactSummaryInEnvironment(environment, version1, "vetoed", replacedBy = version2),
+                  ArtifactSummaryInEnvironment(environment, version2, "current"),
+                  ArtifactSummaryInEnvironment(environment, version3, "pending"),
+                  ArtifactSummaryInEnvironment(environment, version4, "pending")
+                )
               }
             }
 
@@ -695,21 +699,6 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           context("the skipped version has an artifact summary for the environment with a status of 'pending'") {
-            before {
-              // for statuses other than PENDING, we go look for the artifact summary in environment
-              every {
-                repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
-              } answers {
-                val environment = arg<String>(1)
-                when (val version = arg<String>(3)) {
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  version1 -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-              }
-            }
-
             test("we ignore the summary we found for the skipped version") {
               val summaries = applicationService.getArtifactSummariesFor(application1)
 
@@ -723,21 +712,6 @@ class ApplicationServiceTests : JUnit5Minutests {
           }
 
           context("the skipped version has no artifact summary for the environment") {
-            before {
-              // for statuses other than PENDING, we go look for the artifact summary in environment
-              every {
-                repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
-              } answers {
-                val environment = arg<String>(1)
-                when (val version = arg<String>(3)) {
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  version1 -> null
-                  version0 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-              }
-            }
-
             test("we synthesize a summary for the skipped version") {
               val summaries = applicationService.getArtifactSummariesFor(application1)
 
@@ -781,10 +755,6 @@ class ApplicationServiceTests : JUnit5Minutests {
                 singleArtifactEnvironments.getValue("production")
               )
             } returns false
-
-            every {
-              repository.getArtifactSummaryInEnvironment(any(), any(), any(), any())
-            } returns null
           }
 
           test("getting artifact summaries has a default cap on versions") {
@@ -879,22 +849,26 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             // for statuses other than PENDING, we go look for the artifact summary in environment
             every {
-              repository.getArtifactSummaryInEnvironment(dualArtifactDeliveryConfig, any(), any(), any())
+              repository.getArtifactSummariesInEnvironment(dualArtifactDeliveryConfig, any(), any(), any())
             } answers {
               when (val environment = arg<String>(1)) {
-                "pr" -> when (val version = arg<String>(3)) {
-                  snapshotVersion1 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  snapshotVersion2 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-                "test" -> when (val version = arg<String>(3)) {
-                  version0,
-                  version1,
-                  version2 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-                  version3 -> ArtifactSummaryInEnvironment(environment, version, "current")
-                  else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-                }
-                else -> null
+                "pr" -> listOf(
+                  ArtifactSummaryInEnvironment(environment, snapshotVersion1, "previous"),
+                  ArtifactSummaryInEnvironment(environment, snapshotVersion2, "current"),
+                  ArtifactSummaryInEnvironment(environment, version0, "pending"),
+                  ArtifactSummaryInEnvironment(environment, version1, "pending"),
+                  ArtifactSummaryInEnvironment(environment, version2, "pending"),
+                  ArtifactSummaryInEnvironment(environment, version3, "pending"),
+                  ArtifactSummaryInEnvironment(environment, version4, "pending")
+                )
+                "test" -> listOf(
+                  ArtifactSummaryInEnvironment(environment, version0, "previous", replacedBy = version1),
+                  ArtifactSummaryInEnvironment(environment, version1, "previous", replacedBy = version2),
+                  ArtifactSummaryInEnvironment(environment, version2, "previous", replacedBy = version3),
+                  ArtifactSummaryInEnvironment(environment, version3, "current"),
+                  ArtifactSummaryInEnvironment(environment, version4, "pending")
+                )
+                else -> emptyList()
               }
             }
 
@@ -1074,29 +1048,34 @@ class ApplicationServiceTests : JUnit5Minutests {
         }
 
         every {
-          repository.getArtifactSummaryInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
+          repository.getArtifactSummariesInEnvironment(singleArtifactDeliveryConfig, any(), any(), any())
         } answers {
           when (val environment = arg<String>(1)) {
-            "test" -> when (val version = arg<String>(3)) {
-              version0,
-              version1,
-              version2,
-              version3,
-              version4 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-              version5 -> ArtifactSummaryInEnvironment(environment, version, "current")
-              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-            }
-            "staging" -> when (val version = arg<String>(3)) {
-              version2,
-              version3 -> ArtifactSummaryInEnvironment(environment, version, "previous")
-              version4 -> ArtifactSummaryInEnvironment(environment, version, "current")
-              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-            }
-            "production" -> when (val version = arg<String>(3)) {
-              version4 -> ArtifactSummaryInEnvironment(environment, version, "current")
-              else -> ArtifactSummaryInEnvironment(environment, version, "pending")
-            }
-            else -> null
+            "test" ->listOf(
+              ArtifactSummaryInEnvironment(environment, version0, "previous", replacedBy = version1),
+              ArtifactSummaryInEnvironment(environment, version1, "previous", replacedBy = version2),
+              ArtifactSummaryInEnvironment(environment, version2, "previous", replacedBy = version3),
+              ArtifactSummaryInEnvironment(environment, version3, "previous",  replacedBy = version4),
+              ArtifactSummaryInEnvironment(environment, version4, "previous",  replacedBy = version5),
+              ArtifactSummaryInEnvironment(environment, version5, "current"),
+            )
+            "staging" -> listOf(
+              ArtifactSummaryInEnvironment(environment, version2, "previous", replacedBy = version3),
+              ArtifactSummaryInEnvironment(environment, version3, "previous",  replacedBy = version4),
+              ArtifactSummaryInEnvironment(environment, version4, "current"),
+              ArtifactSummaryInEnvironment(environment, version0, "pending"),
+              ArtifactSummaryInEnvironment(environment, version1, "pending"),
+              ArtifactSummaryInEnvironment(environment, version5, "pending"),
+            )
+            "production" ->listOf(
+              ArtifactSummaryInEnvironment(environment, version4, "current"),
+              ArtifactSummaryInEnvironment(environment, version0, "pending"),
+              ArtifactSummaryInEnvironment(environment, version1, "pending"),
+              ArtifactSummaryInEnvironment(environment, version2, "pending"),
+              ArtifactSummaryInEnvironment(environment, version3, "pending"),
+              ArtifactSummaryInEnvironment(environment, version5, "pending"),
+            )
+            else -> emptyList()
           }
         }
 

@@ -278,11 +278,26 @@ class ApplicationService(
     val artifactSummaries = deliveryConfig.artifacts.map { artifact ->
       // We calculate a bunch of data for each artifact, so pre-load the bulk of it here and pass that info into
       //  later functions to save redundant database calls.
+
+      // Load all artifact version information
       val artifactVersions = repository.artifactVersions(artifact, limit)
+      // Load the status of the versions in the environments
       val artifactVersionInfoInEnvironment: Map<String, List<StatusInfoForArtifactInEnvironment>> = deliveryConfig
         .environments
         .associate { env ->
           env.name to repository.getVersionInfoInEnvironment(deliveryConfig, env.name, artifact)
+        }
+
+      // Load the summary info for each version in each environment
+      val artifactSummariesInEnv: Map<String, List<ArtifactSummaryInEnvironment>> = deliveryConfig
+        .environments
+        .associate { env->
+          env.name to repository.getArtifactSummariesInEnvironment(
+            deliveryConfig,
+            env.name,
+            artifact.reference,
+            artifactVersions.map { it.version }
+          )
         }
 
       // A verification context identifies an artifact version in an environment
@@ -292,31 +307,39 @@ class ApplicationService(
       val verificationStateMap = getVerificationStates(deliveryConfig, artifactVersions)
 
       val artifactVersionSummaries = artifactVersions.map { artifactVersion ->
+        // For each version of the artifact
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         envSummaries.forEach { environmentSummary ->
+          // For each environment
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
           val verifications = getVerifications(deliveryConfig, environment, artifactVersion, verificationStateMap)
+
+          // Build the context needed for other functions to use
+          val versionEnvironmentContext = ArtifactSummaryContext(
+            deliveryConfig = deliveryConfig,
+            environmentName = environment.name,
+            artifact = artifact,
+            verifications = verifications,
+            allVersions = artifactVersions,
+            artifactInfoInEnvironment = artifactVersionInfoInEnvironment[environment.name] ?: emptyList(),
+            artifactSummariesInEnv = artifactSummariesInEnv[environment.name] ?: emptyList()
+          )
+
           environmentSummary.getArtifactPromotionStatus(artifact, artifactVersion.version)
             ?.let { status ->
               if (artifact.isUsedIn(environment)) { // only add a summary if the artifact is used in the environment
                 val artifactInEnvStartTime = now
                 buildArtifactSummaryInEnvironment(
-                  deliveryConfig,
-                  environment.name,
-                  artifact,
+                  versionEnvironmentContext,
                   artifactVersion,
-                  status,
-                  verifications,
-                  artifactVersions,
-                  artifactVersionInfoInEnvironment
+                  status
                 )
                   ?.also {
                     artifactSummariesInEnvironments.add(
                       it.addStatefulConstraintSummaries(deliveryConfig, environment, artifactVersion.version)
                         .addStatelessConstraintSummaries(deliveryConfig, environment, artifactVersion.version, artifact)
                     )
-
                   }
                 spectator.timer(
                   ARTIFACT_IN_ENV_SUMMARY_CONSTRUCT_DURATION,
@@ -379,54 +402,31 @@ class ApplicationService(
     }
 
   private fun buildArtifactSummaryInEnvironment(
-    deliveryConfig: DeliveryConfig,
-    environmentName: String,
-    artifact: DeliveryArtifact,
+    context: ArtifactSummaryContext,
     currentArtifact: PublishedArtifact,
     status: PromotionStatus,
-    verifications: List<VerificationSummary>,
-    allVersions: List<PublishedArtifact>,
-    artifactInfoInEnvironment: Map<String, List<StatusInfoForArtifactInEnvironment>>
-  ) =
-    buildArtifactSummaryInEnvironment(deliveryConfig, environmentName, artifact, currentArtifact, status, allVersions, artifactInfoInEnvironment)
-      ?.copy(verifications = verifications)
-
-  private fun buildArtifactSummaryInEnvironment(
-    deliveryConfig: DeliveryConfig,
-    environmentName: String,
-    artifact: DeliveryArtifact,
-    currentArtifact: PublishedArtifact,
-    status: PromotionStatus,
-    allVersions: List<PublishedArtifact>,
-    artifactInfoInEnvironment: Map<String, List<StatusInfoForArtifactInEnvironment>>
   ): ArtifactSummaryInEnvironment? {
     // some environments contain relevant info for skipped artifacts, so
     // try and find that summary before defaulting to less information
-    val potentialSummary =
-      repository.getArtifactSummaryInEnvironment(
-        deliveryConfig = deliveryConfig,
-        environmentName = environmentName,
-        artifactReference = artifact.reference,
-        version = currentArtifact.version
-      ) //todo eb: can we eliminate this call?
-
-    val pinnedArtifact = getPinnedArtifact(deliveryConfig, environmentName, artifact, currentArtifact.version, allVersions, artifactInfoInEnvironment)
+    val potentialSummary = context.artifactSummariesInEnv.firstOrNull{ it.version == currentArtifact.version }
+      ?.copy(verifications = context.verifications)
+    val pinnedArtifact = getPinnedArtifact(context, currentArtifact.version)
 
     return when (status) {
       PENDING -> {
-        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(environmentName, CURRENT, null, artifactInfoInEnvironment, allVersions)
+        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(context, CURRENT, null)
         ArtifactSummaryInEnvironment(
-          environment = environmentName,
+          environment = context.environmentName,
           version = currentArtifact.version,
           state = status.name.toLowerCase(),
           // comparing PENDING (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       SKIPPED -> {
         if (potentialSummary == null || potentialSummary.state == "pending") {
           ArtifactSummaryInEnvironment(
-            environment = environmentName,
+            environment = context.environmentName,
             version = currentArtifact.version,
             state = status.name.toLowerCase()
           )
@@ -436,25 +436,25 @@ class ApplicationService(
       }
 
       DEPLOYING, APPROVED -> {
-        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(environmentName, CURRENT, null, artifactInfoInEnvironment, allVersions)
+        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(context, CURRENT, null)
         potentialSummary?.copy(
           // comparing DEPLOYING/APPROVED (version in question, new code) vs. CURRENT (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       PREVIOUS -> {
-        val newerArtifactVersion = potentialSummary?.replacedBy?.let { replacedByVersion -> allVersions.find { it.version == replacedByVersion }}
+        val newerArtifactVersion = potentialSummary?.replacedBy?.let { replacedByVersion -> context.allVersions.find { it.version == replacedByVersion }}
         potentialSummary?.copy(
           //comparing PREVIOUS (version in question, old code) vs. the version which replaced it (new code)
           //pinned artifact should not be consider here, as we know exactly which version replace the current one
-          compareLink = generateCompareLink(scmInfo, currentArtifact, newerArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, newerArtifactVersion, context.artifact)
         )
       }
       CURRENT -> {
-        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(environmentName, PREVIOUS, null, artifactInfoInEnvironment, allVersions)
+        val olderArtifactVersion = pinnedArtifact?: getArtifactVersionByPromotionStatus(context, PREVIOUS, null)
         potentialSummary?.copy(
           // comparing CURRENT (version in question, new code) vs. PREVIOUS (old code)
-          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, artifact)
+          compareLink = generateCompareLink(scmInfo, currentArtifact, olderArtifactVersion, context.artifact)
         )
       }
       else -> potentialSummary
@@ -462,44 +462,38 @@ class ApplicationService(
   }
 
   private fun getArtifactVersionByPromotionStatus(
-    environmentName: String,
+    context: ArtifactSummaryContext,
     promotionStatus: PromotionStatus,
     version: String?,
-    artifactInfoInEnvironment: Map<String, List<StatusInfoForArtifactInEnvironment>>,
-    allVersions: List<PublishedArtifact>
   ): PublishedArtifact? {
     //only CURRENT and PREVIOUS are supported, as they can be sorted by deploy_at
     require(promotionStatus in listOf(CURRENT, PREVIOUS)) { "Invalid promotion status used to query" }
-    val currentEnvVersionInfo = artifactInfoInEnvironment[environmentName] ?: return null
     // we sort the versions by their deployed at time in descending order, then we take
     // the first one where all the conditions match.
     val chosenVersion = if (version == null) {
-      currentEnvVersionInfo.sortedByDescending { it.deployedAt }.firstOrNull { it.status == promotionStatus }
+      context.artifactInfoInEnvironment.sortedByDescending { it.deployedAt }.firstOrNull { it.status == promotionStatus }
     } else {
-      currentEnvVersionInfo.sortedByDescending { it.deployedAt }.firstOrNull { it.status == promotionStatus && it.replacedByVersion == version}
+      context.artifactInfoInEnvironment.sortedByDescending { it.deployedAt }.firstOrNull { it.status == promotionStatus && it.replacedByVersion == version}
     } ?: return null
-    return allVersions.find { it.version == chosenVersion.version }
+    return context.allVersions.find { it.version == chosenVersion.version }
   }
 
   // Pinning is a special case when is coming to creating a compare link between versions.
   // If there is a pinned version, which is not the same as the current version, we need
   // to make sure we are creating the comparable link with reference to the pinned version.
   private fun getPinnedArtifact(
-    deliveryConfig: DeliveryConfig,
-    environmentName: String,
-    artifact: DeliveryArtifact,
+    context: ArtifactSummaryContext,
     version: String,
-    allVersions: List<PublishedArtifact>,
-    artifactInfoInEnvironment: Map<String, List<StatusInfoForArtifactInEnvironment>>
   ): PublishedArtifact? {
-    val pinnedVersion = repository.getPinnedVersion(deliveryConfig, environmentName, artifact.reference)
+    // there can only be one pinned version
+    val pinnedVersion = context.artifactSummariesInEnv.firstOrNull { it.pinned != null }?.version
      return if (pinnedVersion != version) {
        pinnedVersion?.let {
-         allVersions.find { it.version == pinnedVersion }
+         context.allVersions.find { it.version == pinnedVersion }
        }
      } else { //if pinnedVersion == current version, fetch the version which the pinned version replaced
-       val chosenVersion = artifactInfoInEnvironment[environmentName]?.find { it.replacedByVersion == pinnedVersion && it.status == PREVIOUS }?.version
-       allVersions.find { it.version == chosenVersion }
+       val chosenVersion = context.artifactInfoInEnvironment.find { it.replacedByVersion == pinnedVersion && it.status == PREVIOUS }?.version
+       context.allVersions.find { it.version == chosenVersion }
      }
   }
 
@@ -639,6 +633,20 @@ class ApplicationService(
     log.error("verification_state table contains invalid verification id: $vId  config: ${deliveryConfig.name} env: ${ctx.environmentName}. Valid ids in this env: ${ctx.environment.verifyWith.map { it.id }}")
   }
 }
+
+/**
+ * Container class for pre-loaded information, to be used by functions in this class
+ * that generate UI summary information for artifacts by rearranging this data.
+ */
+data class ArtifactSummaryContext(
+  val deliveryConfig: DeliveryConfig,
+  val environmentName: String,
+  val artifact: DeliveryArtifact,
+  val verifications: List<VerificationSummary>,
+  val allVersions: List<PublishedArtifact>,
+  val artifactInfoInEnvironment: List<StatusInfoForArtifactInEnvironment>,
+  val artifactSummariesInEnv: List<ArtifactSummaryInEnvironment>
+)
 
 
 /**

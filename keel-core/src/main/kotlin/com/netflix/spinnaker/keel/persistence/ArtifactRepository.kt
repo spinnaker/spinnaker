@@ -240,6 +240,19 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   ): PublishedArtifact?
 
   /**
+   * Given information about a delivery config, environment, artifact and a list of versions
+   * returns a list of summaries for all versions that can be
+   * used by the UI.
+   */
+  fun getArtifactSummariesInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactReference: String,
+    versions: List<String>
+  ): List<ArtifactSummaryInEnvironment>
+
+  @Deprecated("Replace with the bulk call `getArtifactSummariesInEnvironment(...)` above")
+  /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be
    * used by the UI.
    */

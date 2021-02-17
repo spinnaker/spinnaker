@@ -191,9 +191,22 @@ interface KeelRepository : KeelReadOnlyRepository {
   )
 
   /**
+   * Given information about a delivery config, environment, artifact and a list of versions
+   * returns a list of summaries for all versions that can be
+   * used by the UI.
+   */
+  fun getArtifactSummariesInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactReference: String,
+    versions: List<String>
+  ): List<ArtifactSummaryInEnvironment>
+  
+  /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be
    * used by the UI, or null if the artifact version is not applicable to the environment.
    */
+  @Deprecated("Replace with the bulk call `getArtifactSummariesInEnvironment(...)` above")
   fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
