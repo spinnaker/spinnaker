@@ -15,5 +15,9 @@ export const ConsoleOutputLink = ({ instance, text, usesMultiOutput }: IConsoleO
     showModal(ConsoleOutputModal, { instance, usesMultiOutput });
   };
 
-  return <a onClick={showConsoleOutput}>{text || 'Console Output (Raw)'}</a>;
+  return (
+    <button className="btn btn-link" onClick={showConsoleOutput}>
+      {text || 'Console Output (Raw)'}
+    </button>
+  );
 };

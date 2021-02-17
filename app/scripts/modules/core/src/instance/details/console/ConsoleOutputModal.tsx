@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import { IInstance } from '../../../domain';
-import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader } from '../../../presentation';
+import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { Spinner } from '../../../widgets';
-import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from '../../InstanceReader';
+import { InstanceReader, IInstanceMultiOutputLog } from '../../InstanceReader';
 
 import './ConsoleOutputModal.less';
 
@@ -13,33 +13,22 @@ export interface IConsoleOutputModalProps extends IModalComponentProps {
 }
 
 export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: IConsoleOutputModalProps) => {
-  const [loading, setLoading] = React.useState(true);
-  const [selectedLog, setSelectedLog] = React.useState(null);
-  const [consoleOutput, setConsoleOutput] = React.useState(null);
-  const [exception, setException] = React.useState(null);
   const logContainerEnd = React.useRef(null);
 
-  const fetchLogs = () => {
-    setLoading(true);
-    InstanceReader.getConsoleOutput(instance.account, instance.region, instance.id, instance.provider).then(
-      (response: IInstanceConsoleOutput) => {
-        setConsoleOutput(response.output);
-        if (!selectedLog) {
-          setSelectedLog(response.output[0]);
-        }
-        setLoading(false);
-      },
-      (exception) => setException(exception),
-    );
+  const getConsoleOutput = () => {
+    return InstanceReader.getConsoleOutput(instance.account, instance.region, instance.id, instance.provider);
   };
+  const { result: consoleOutputResponse, status, error, refresh: refreshLogs } = useData(getConsoleOutput, null, []);
+
+  const consoleOutput = consoleOutputResponse?.output;
+  const [selectedLog, setSelectedLog] = React.useState<IInstanceMultiOutputLog>(
+    (consoleOutputResponse?.output || [])[0] as IInstanceMultiOutputLog,
+  );
+  const loading = status === 'PENDING';
 
   const jumpToEnd = () => {
     logContainerEnd.current.scrollIntoView({ behavior: 'smooth' });
   };
-
-  React.useEffect(() => {
-    fetchLogs();
-  }, []);
 
   return (
     <>
@@ -53,9 +42,9 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
                   <Spinner size="small" />
                 </div>
               )}
-              {usesMultiOutput && !loading && Boolean(consoleOutput.length) && (
+              {usesMultiOutput && !loading && Boolean(consoleOutput?.length) && (
                 <div>
-                  {(consoleOutput.log || []).map((log: IInstanceMultiOutputLog) => (
+                  {((consoleOutput as IInstanceMultiOutputLog[]) || []).map((log: IInstanceMultiOutputLog) => (
                     <ul className="tabs-basic console-output-tabs">
                       <li
                         className={`console-output-tab ${log.name === selectedLog.name ? 'selected' : ''}`}
@@ -66,19 +55,19 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
                       </li>
                     </ul>
                   ))}
-                  {selectedLog && <pre className="body-small">{selectedLog.output}</pre>}
+                  {selectedLog && <pre className="body-small">{selectedLog?.output}</pre>}
                 </div>
               )}
-              {!usesMultiOutput && !loading && Boolean(consoleOutput.length) && (
+              {!usesMultiOutput && !loading && Boolean(consoleOutput?.length) && (
                 <div>
                   <pre className="body-small">{consoleOutput}</pre>
                 </div>
               )}
-              {exception && (
+              {error && (
                 <div>
                   <p>An error occurred trying to load console output. Please try again later.</p>
                   <p>Exception:</p>
-                  <pre>{exception.message || exception}</pre>
+                  <pre>{error.data.body}</pre>
                 </div>
               )}
             </div>
@@ -90,7 +79,7 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
         primaryActions={
           <>
             {consoleOutput && (
-              <button className="btn btn-link" onClick={fetchLogs}>
+              <button className="btn btn-link" onClick={refreshLogs}>
                 Refresh
               </button>
             )}
