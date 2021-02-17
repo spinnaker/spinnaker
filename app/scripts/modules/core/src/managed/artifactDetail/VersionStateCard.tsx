@@ -105,7 +105,7 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
 export type IVersionStateCardProps = Pick<
   IManagedArtifactVersion['environments'][0],
   'state' | 'deployedAt' | 'replacedAt' | 'replacedBy' | 'vetoed' | 'compareLink'
-> & { allVersions: IManagedArtifactVersion[]; logClick: (message: string) => any };
+> & { allVersions: IManagedArtifactVersion[]; logClick: (message: string) => void };
 
 export const VersionStateCard = memo(
   ({
