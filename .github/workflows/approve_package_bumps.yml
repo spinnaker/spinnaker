@@ -33,14 +33,14 @@ jobs:
       - name: Approve package bump
         if: steps.purebump.outputs.ispurebump == 'true'
         # pin to v2.0.0 tag by commit hash
-        uses: hmarr/auto-approve-action@7782c7e
+        uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
         with:
           github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
 
       - name: Add ready to merge label
         if: steps.purebump.outputs.ispurebump == 'true'
         # pin to v3.0.0 tag by commit hash
-        uses: actions/github-script@626af12
+        uses: actions/github-script@626af12fe9a53dc2972b48385e7fe7dec79145c9
         with:
           github-token: ${{ secrets.SPINNAKERBOT_TOKEN }}
           script: |
