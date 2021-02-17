@@ -1,4 +1,3 @@
-
 import { TaskExecutor } from 'core/task/taskExecutor';
 import { $q } from 'ngimport';
 import { isString } from 'lodash';

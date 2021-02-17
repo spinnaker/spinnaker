@@ -2,7 +2,6 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Field, FieldProps, Form, Formik } from 'formik';
 
-
 import { SubmitButton, ModalClose } from 'core/modal';
 import { ReactModal, Markdown } from 'core/presentation';
 

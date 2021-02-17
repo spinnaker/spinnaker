@@ -40,17 +40,17 @@ export class ManualJudgmentApproval extends React.Component<
   }
 
   public componentDidMount() {
-      const applicationName = this.props.execution.application;
-      ApplicationReader.getApplicationPermissions(applicationName).then(result => {
-          if (result) {
-              this.setState({
-                  applicationRoles: result,
-              });
-          }
-      });
-      this.setState({
-          userRoles: AuthenticationService.getAuthenticatedUser().roles,
-      });
+    const applicationName = this.props.execution.application;
+    ApplicationReader.getApplicationPermissions(applicationName).then((result) => {
+      if (result) {
+        this.setState({
+          applicationRoles: result,
+        });
+      }
+    });
+    this.setState({
+      userRoles: AuthenticationService.getAuthenticatedUser().roles,
+    });
   }
 
   private provideJudgment(judgmentDecision: string): void {
@@ -61,38 +61,30 @@ export class ManualJudgmentApproval extends React.Component<
   }
 
   private isManualJudgmentStageNotAuthorized(): boolean {
-      let isStageNotAuthorized = true;
-      let returnOnceFalse = true;
-      const {
-          applicationRoles,
-          userRoles
-      } = this.state;
-      const stageRoles = this.props.stage?.context?.selectedStageRoles || [];
-      if (!stageRoles.length) {
-          isStageNotAuthorized = false;
-          return isStageNotAuthorized;
-      }
-      const {
-          CREATE,
-          EXECUTE,
-          WRITE
-      } = applicationRoles;
-      userRoles.forEach(userRole => {
-          if (returnOnceFalse) {
-              if (stageRoles.includes(userRole)) {
-                  isStageNotAuthorized = (WRITE || []).includes(userRole) ||
-                      (EXECUTE || []).includes(userRole) ||
-                      (CREATE || []).includes(userRole);
-                  if (isStageNotAuthorized) {
-                      isStageNotAuthorized = false;
-                      returnOnceFalse = false;
-                  } else {
-                      isStageNotAuthorized = true;
-                  }
-              }
-          }
-      })
+    let isStageNotAuthorized = true;
+    let returnOnceFalse = true;
+    const { applicationRoles, userRoles } = this.state;
+    const stageRoles = this.props.stage?.context?.selectedStageRoles || [];
+    if (!stageRoles.length) {
+      isStageNotAuthorized = false;
       return isStageNotAuthorized;
+    }
+    const { CREATE, EXECUTE, WRITE } = applicationRoles;
+    userRoles.forEach((userRole) => {
+      if (returnOnceFalse) {
+        if (stageRoles.includes(userRole)) {
+          isStageNotAuthorized =
+            (WRITE || []).includes(userRole) || (EXECUTE || []).includes(userRole) || (CREATE || []).includes(userRole);
+          if (isStageNotAuthorized) {
+            isStageNotAuthorized = false;
+            returnOnceFalse = false;
+          } else {
+            isStageNotAuthorized = true;
+          }
+        }
+      }
+    });
+    return isStageNotAuthorized;
   }
 
   private isSubmitting(decision: string): boolean {

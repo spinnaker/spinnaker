@@ -1,5 +1,3 @@
-
-
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
 import { ISecurityGroup, ITask } from 'core/domain';

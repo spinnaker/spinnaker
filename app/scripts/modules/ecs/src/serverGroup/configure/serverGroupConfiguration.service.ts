@@ -123,7 +123,7 @@ export interface IEcsServiceDiscoveryRegistryAssociation {
 export interface IEcsCapacityProviderStrategyItem {
   capacityProvider: string;
   base: number;
-  weight: number
+  weight: number;
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -292,15 +292,17 @@ export class EcsServerGroupConfigurationService {
   }
 
   public setCapacityProviderDetails(command: IEcsServerGroupCommand): void {
-    this.$q.all({
-      capacityProviderDetails: this.ecsClusterReader.describeClusters(command.credentials, command.region)
-    }).then((result: Partial<IEcsServerGroupCommandBackingData>) => {
-      command.backingData.capacityProviderDetails = chain(result.capacityProviderDetails)
-        .map((cluster) => this.mapCapacityProviderDetails(cluster))
-        .value();
-    });
+    this.$q
+      .all({
+        capacityProviderDetails: this.ecsClusterReader.describeClusters(command.credentials, command.region),
+      })
+      .then((result: Partial<IEcsServerGroupCommandBackingData>) => {
+        command.backingData.capacityProviderDetails = chain(result.capacityProviderDetails)
+          .map((cluster) => this.mapCapacityProviderDetails(cluster))
+          .value();
+      });
 
-    if(command.ecsClusterName != null && command.ecsClusterName.length > 0){
+    if (command.ecsClusterName != null && command.ecsClusterName.length > 0) {
       this.configureAvailableCapacityProviders(command);
     } else {
       command.backingData.filtered.availableCapacityProviders = [];
@@ -312,26 +314,26 @@ export class EcsServerGroupConfigurationService {
   public configureAvailableCapacityProviders(command: IEcsServerGroupCommand): void {
     command.backingData.filtered.availableCapacityProviders = chain(command.backingData.capacityProviderDetails)
       .filter({
-        clusterName: command.ecsClusterName
+        clusterName: command.ecsClusterName,
       })
-      .map(availableCPs => availableCPs.capacityProviders)
+      .map((availableCPs) => availableCPs.capacityProviders)
       .flattenDeep<string>()
       .value();
 
     command.backingData.filtered.defaultCapacityProviderStrategy = chain(command.backingData.capacityProviderDetails)
       .filter({
-        clusterName: command.ecsClusterName
+        clusterName: command.ecsClusterName,
       })
-      .map(availableCPs => availableCPs.defaultCapacityProviderStrategy)
+      .map((availableCPs) => availableCPs.defaultCapacityProviderStrategy)
       .flattenDeep<IEcsCapacityProviderStrategyItem>()
       .value();
   }
 
-  public mapCapacityProviderDetails(describeClusters: IEcsCapacityProviderDetails) : IEcsCapacityProviderDetails {
+  public mapCapacityProviderDetails(describeClusters: IEcsCapacityProviderDetails): IEcsCapacityProviderDetails {
     return {
-      capacityProviders : describeClusters.capacityProviders,
-      clusterName : describeClusters.clusterName,
-      defaultCapacityProviderStrategy : describeClusters.defaultCapacityProviderStrategy
+      capacityProviders: describeClusters.capacityProviders,
+      clusterName: describeClusters.clusterName,
+      defaultCapacityProviderStrategy: describeClusters.defaultCapacityProviderStrategy,
     };
   }
 
@@ -562,7 +564,7 @@ export class EcsServerGroupConfigurationService {
     const newLoadBalancers = this.getLoadBalancerNames(command);
     const vpcLoadBalancers = this.getVpcLoadBalancerNames(command);
     const allTargetGroups = this.getTargetGroupNames(command);
-    const currentTargetGroups = command.targetGroupMappings.map(tg => tg.targetGroup)
+    const currentTargetGroups = command.targetGroupMappings.map((tg) => tg.targetGroup);
     if (currentLoadBalancers && command.loadBalancers) {
       const valid = command.vpcId ? newLoadBalancers : newLoadBalancers.concat(vpcLoadBalancers);
       const matched = intersection(valid, currentLoadBalancers);
@@ -583,7 +585,7 @@ export class EcsServerGroupConfigurationService {
       const removedTargetGroups = xor(matched, currentTargetGroups);
       if (removedTargetGroups && removedTargetGroups.length > 0) {
         command.viewState.dirty.targetGroups = removedTargetGroups;
-      } else if(command.viewState.dirty && command.viewState.dirty.targetGroups) {
+      } else if (command.viewState.dirty && command.viewState.dirty.targetGroups) {
         command.viewState.dirty.targetGroups = [];
       }
     }
@@ -629,22 +631,26 @@ export class EcsServerGroupConfigurationService {
   }
 
   public checkDirtyCapacityProviders(command: IEcsServerGroupCommand): void {
-    if(command.capacityProviderStrategy){
+    if (command.capacityProviderStrategy) {
       const availableCustomCapacityProviders = command.backingData.filtered.availableCapacityProviders;
-      const currentCapacityProviders = command.capacityProviderStrategy.map(cp => cp.capacityProvider);
+      const currentCapacityProviders = command.capacityProviderStrategy.map((cp) => cp.capacityProvider);
       const matchedCustomCapacityProviders = intersection(availableCustomCapacityProviders, currentCapacityProviders);
       const removedCustomCapacityProviders = xor(matchedCustomCapacityProviders, currentCapacityProviders);
 
       if (removedCustomCapacityProviders && removedCustomCapacityProviders.length > 0) {
         command.viewState.dirty.customCapacityProviders = removedCustomCapacityProviders;
-      } else if(command.viewState.dirty && command.viewState.dirty.customCapacityProviders) {
+      } else if (command.viewState.dirty && command.viewState.dirty.customCapacityProviders) {
         command.viewState.dirty.customCapacityProviders = [];
       }
 
-      if(command.useDefaultCapacityProviders){
-        const availableDefaultCapacityProvider = command.backingData.filtered.defaultCapacityProviderStrategy
-          .map(cp => cp.capacityProvider);
-        const matchedDefaultCapacityProviders = intersection(availableDefaultCapacityProvider, currentCapacityProviders);
+      if (command.useDefaultCapacityProviders) {
+        const availableDefaultCapacityProvider = command.backingData.filtered.defaultCapacityProviderStrategy.map(
+          (cp) => cp.capacityProvider,
+        );
+        const matchedDefaultCapacityProviders = intersection(
+          availableDefaultCapacityProvider,
+          currentCapacityProviders,
+        );
         const removedDefaultCapacityProviders = xor(matchedDefaultCapacityProviders, currentCapacityProviders);
 
         if (removedDefaultCapacityProviders && removedDefaultCapacityProviders.length > 0) {

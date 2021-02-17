@@ -1,4 +1,3 @@
-
 import { $q, $timeout } from 'ngimport';
 
 export class RetryService {

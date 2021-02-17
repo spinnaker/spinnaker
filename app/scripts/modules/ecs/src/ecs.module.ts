@@ -20,7 +20,7 @@ import { ECS_NETWORKING_REACT } from './serverGroup/configure/wizard/networking/
 import { SERVICE_DISCOVERY_REACT } from './serverGroup/configure/wizard/serviceDiscovery/ServiceDiscovery';
 import { TASK_DEFINITION_REACT } from './serverGroup/configure/wizard/taskDefinition/TaskDefinition';
 import { ECS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
-import { ECS_CAPACITY_PROVIDER_REACT } from "./serverGroup/configure/wizard/capacityProvider/CapacityProvider";
+import { ECS_CAPACITY_PROVIDER_REACT } from './serverGroup/configure/wizard/capacityProvider/CapacityProvider';
 
 import ecsLogo from './logo/ecs.logo.svg';
 import './logo/ecs.logo.less';

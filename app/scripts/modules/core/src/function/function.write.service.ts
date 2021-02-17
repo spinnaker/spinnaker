@@ -1,5 +1,3 @@
-
-
 import { Application } from 'core/application/application.model';
 import { ITask } from 'core/domain';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';

@@ -53,12 +53,15 @@ export class GceCommonLoadBalancerCommandBuilder {
   ) {}
 
   public getBackingData(dataTypes: string[]): PromiseLike<any> {
-    const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: PromiseLike<any> }, dataType: string) => {
-      if (this.dataFetchers[dataType]) {
-        promisesByDataType[dataType] = this.dataFetchers[dataType]();
-      }
-      return promisesByDataType;
-    }, {});
+    const promises = dataTypes.reduce(
+      (promisesByDataType: { [dataType: string]: PromiseLike<any> }, dataType: string) => {
+        if (this.dataFetchers[dataType]) {
+          promisesByDataType[dataType] = this.dataFetchers[dataType]();
+        }
+        return promisesByDataType;
+      },
+      {},
+    );
 
     return this.$q.all(promises);
   }

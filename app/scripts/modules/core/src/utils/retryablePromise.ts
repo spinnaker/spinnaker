@@ -1,4 +1,3 @@
-
 import { $timeout } from 'ngimport';
 
 export interface IRetryablePromise<T> {

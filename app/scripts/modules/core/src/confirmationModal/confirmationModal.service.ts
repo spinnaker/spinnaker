@@ -1,4 +1,3 @@
-
 import { $q } from 'ngimport';
 
 import { ConfirmModal, IConfirmModalProps } from './ConfirmModal';

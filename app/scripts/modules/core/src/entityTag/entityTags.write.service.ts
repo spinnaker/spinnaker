@@ -1,4 +1,3 @@
-
 import { Application } from 'core/application/application.model';
 import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';

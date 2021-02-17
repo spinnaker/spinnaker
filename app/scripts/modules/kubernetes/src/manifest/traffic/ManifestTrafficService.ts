@@ -1,5 +1,3 @@
-
-
 import { IManifest, ITask, TaskExecutor, Application } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from '../../interfaces';
