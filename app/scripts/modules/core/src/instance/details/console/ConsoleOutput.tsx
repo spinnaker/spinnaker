@@ -15,13 +15,5 @@ export const ConsoleOutput = ({ instance, text, usesMultiOutput }: IConsoleOutpu
     showModal(ConsoleOutputModal, { instance, usesMultiOutput });
   };
 
-  return (
-    <CollapsibleSection heading="Console Output">
-      <ul>
-        <li>
-          <a onClick={showConsoleOutput}>{text || 'Console Output (Raw)'}</a>
-        </li>
-      </ul>
-    </CollapsibleSection>
-  );
+  return <a onClick={showConsoleOutput}>{text || 'Console Output (Raw)'}</a>;
 };
