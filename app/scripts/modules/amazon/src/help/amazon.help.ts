@@ -99,12 +99,12 @@ const helpContents: { [key: string]: string } = {
   'aws.blockDeviceMappings.useSource': `
     <p>Spinnaker will use the block device mappings of the existing server group when deploying a new server group.</p>
     <p>In the event that there is no existing server group, the
-        <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">defaults</a>
+        <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/InstanceTypeUtils.java">defaults</a>
         for the selected instance type will be used.</p>`,
   'aws.blockDeviceMappings.useAMI':
     '<p>Spinnaker will use the block device mappings from the selected AMI when deploying a new server group.</p>',
   'aws.blockDeviceMappings.useDefaults':
-    '<p>Spinnaker will use the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">default block device mappings</a> for the selected instance type when deploying a new server group.</p>',
+    '<p>Spinnaker will use the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/InstanceTypeUtils.java">default block device mappings</a> for the selected instance type when deploying a new server group.</p>',
   'aws.targetGroup.protocol':
     'The protocol to use for routing traffic to the targets. Cannot be edited after being saved; if you want to use a different protocol, create a new target group, save the load balancer, move your targets, and then delete this target group.',
   'aws.targetGroup.targetType':
