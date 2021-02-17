@@ -41,6 +41,8 @@ export interface IExecutionsState {
 
 // This Set ensures we only forward once from .executions to .executionDetails for an aged out execution
 const forwardedExecutions = new Set();
+// This ensures we only forward to permalink on landing, not on future refreshes
+let disableForwarding = false;
 
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
@@ -176,9 +178,10 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     ReactInjector.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
-  private handleAgedOutExecutions(executionId: string): void {
+  private handleAgedOutExecutions(executionId: string, forwardToPermalink: boolean): void {
     const { $state, executionService } = ReactInjector;
-    if (executionId && !forwardedExecutions.has(executionId)) {
+    if (forwardToPermalink && executionId && !forwardedExecutions.has(executionId)) {
+      // We only want to forward to permalink on initial load
       executionService.getExecution(executionId).then(() => {
         const detailsState = $state.current.name.replace('executions.execution', 'executionDetails.execution');
         const { stage, step, details } = $state.params;
@@ -221,9 +224,11 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         if ($state.params.executionId) {
           const executions: IExecution[] = app.executions.data;
           if (executions.every((e) => e.id !== $state.params.executionId)) {
-            this.handleAgedOutExecutions($state.params.executionId);
+            this.handleAgedOutExecutions($state.params.executionId, !disableForwarding);
           }
         }
+        // After the very first refresh interval (landing), we do not want to forward the user to the permalink
+        disableForwarding = true;
       },
       () => this.dataInitializationFailure(),
     );
