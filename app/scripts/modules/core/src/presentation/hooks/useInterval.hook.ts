@@ -21,7 +21,7 @@ export function useInterval(callback: () => any, interval: number): void {
   const stableCallback = useLatestCallback(callback);
 
   useEffect(() => {
-    const id = !!callback && setInterval(stableCallback, interval);
+    const id = !!callback && interval && setInterval(stableCallback, interval);
 
     return () => id && clearInterval(id);
   }, [!!callback, interval]);

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Application, ISubnet, HelpField } from '@spinnaker/core';
+import { Application, ISubnet, HelpField, Markdown } from '@spinnaker/core';
+import { AWSProviderSettings } from '../aws.settings';
 
 import { SubnetSelectInput } from './SubnetSelectInput';
 
@@ -27,13 +28,13 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
   public render() {
     const { labelColumns, helpKey, component, region, field, ...otherProps } = this.props;
     const value = component[field];
-
+    const isRecommended = (AWSProviderSettings.serverGroups?.recommendedSubnets || []).includes(value);
+    const { subnetWarning } = AWSProviderSettings.serverGroups;
     return (
       <div className="form-group">
         <div className={`col-md-${labelColumns} sm-label-right`}>
           VPC Subnet <HelpField id={helpKey} />
         </div>
-
         <div className="col-md-7">
           {region ? (
             <SubnetSelectInput
@@ -46,6 +47,14 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
             />
           ) : (
             '(Select an account)'
+          )}
+          {!isRecommended && Boolean(subnetWarning) && (
+            <div className="alert alert-warning sp-margin-s-top horizontal center">
+              <i className="fa fa-exclamation-triangle sp-margin-s-top" />
+              <div className="sp-margin-s-left">
+                <Markdown message={subnetWarning} style={{ display: 'inline-block', marginLeft: '2px' }} />
+              </div>
+            </div>
           )}
         </div>
       </div>

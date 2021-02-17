@@ -1,4 +1,10 @@
 <div ng-controller="titusBakeCtrl as bakeCtrl" class="form-horizontal">
+  <div ng-if="bakeWarning" class="alert alert-warning sp-margin-s-top horizontal middle">
+    <i class="fa fa-exclamation-triangle"></i>
+    <div class="sp-margin-s-left">
+      <markdown message="bakeWarning"></markdown>
+    </div>
+  </div>
   <h4>Git Repository</h4>
   <div class="horizontal-rule"></div>
 
