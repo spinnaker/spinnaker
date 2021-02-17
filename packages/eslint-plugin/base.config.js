@@ -11,6 +11,7 @@ module.exports = {
     '@spinnaker/import-from-alias-not-npm': 2,
     '@spinnaker/import-from-npm-not-alias': 2,
     '@spinnaker/import-from-npm-not-relative': 2,
+    '@spinnaker/import-from-presentation-not-core': 2,
     '@spinnaker/import-relative-within-subpackage': 2,
     '@spinnaker/migrate-to-mock-http-client': 2,
     '@spinnaker/ng-no-component-class': 2,

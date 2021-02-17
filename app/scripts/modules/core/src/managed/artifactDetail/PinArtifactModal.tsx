@@ -2,6 +2,8 @@ import React, { memo, useCallback, useEffect } from 'react';
 import ReactGA from 'react-ga';
 import { Option } from 'react-select';
 
+import { Illustration } from '@spinnaker/presentation';
+
 import {
   IModalComponentProps,
   ModalHeader,
@@ -13,7 +15,6 @@ import {
   showModal,
   SpinFormik,
   ValidationMessage,
-  Illustration,
 } from '../../presentation';
 import { HelpField } from '../../help';
 import { IManagedArtifactVersion, IManagedResourceSummary } from '../../domain';

@@ -9,9 +9,9 @@ import { CollapsibleSectionStateCache } from 'core/cache';
 import { Overridable } from 'core/overrideRegistry';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { HelpMenu } from 'core/help/HelpMenu';
-import { Icon } from 'core/presentation';
-
 import './SpinnakerHeader.css';
+
+import { Icon } from '@spinnaker/presentation';
 
 @UIRouterContext
 @Overridable('spinnakerHeader')

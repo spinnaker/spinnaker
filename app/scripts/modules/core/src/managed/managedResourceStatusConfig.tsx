@@ -3,7 +3,7 @@ import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
-import { IconNames } from 'core/presentation';
+import { IconNames } from '@spinnaker/presentation';
 
 interface IViewConfiguration {
   appearance: 'info' | 'warning' | 'error';

@@ -34,7 +34,7 @@ export const Icon = memo(({ name, appearance, size, color, className }: IIconPro
     throwInvalidIconError(name);
   }
 
-  const width = pxDimensionsBySize[size] || size || pxDimensionsBySize[DEFAULT_SIZE];
+  const width = size ? pxDimensionsBySize[size] || size : pxDimensionsBySize[DEFAULT_SIZE];
   const fill = color ? `var(--color-${color})` : `var(--color-icon-${appearance || DEFAULT_APPEARANCE})`;
 
   return <Component className={className} style={{ width, fill }} />;

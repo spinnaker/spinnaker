@@ -1,8 +1,10 @@
 import React, { memo, useMemo } from 'react';
 import { DateTime } from 'luxon';
 
+import { IconNames } from '@spinnaker/presentation';
+
 import { IManagedArtifactVersion } from '../../domain';
-import { Markdown, IconNames } from '../../presentation';
+import { Markdown } from '../../presentation';
 
 import { getArtifactVersionDisplayName } from '../displayNames';
 import { StatusCard, IStatusCardProps } from '../StatusCard';

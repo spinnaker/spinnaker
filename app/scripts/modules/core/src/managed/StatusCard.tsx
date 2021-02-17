@@ -2,12 +2,12 @@ import React from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
 
-import { IconNames } from '../presentation';
-
 import { StatusBubble } from './StatusBubble';
-import { RelativeTimestamp } from './RelativeTimestamp';
 
+import { RelativeTimestamp } from './RelativeTimestamp';
 import './StatusCard.less';
+
+import { IconNames } from '@spinnaker/presentation';
 
 export interface IStatusCardProps {
   appearance: 'future' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';

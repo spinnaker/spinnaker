@@ -2,9 +2,9 @@ import React, { ReactNode, memo } from 'react';
 import { useTransition, animated } from 'react-spring';
 import classNames from 'classnames';
 
-import { Icon, IconNames } from '../presentation';
-
 import './StatusBubble.less';
+
+import { Icon, IconNames } from '@spinnaker/presentation';
 
 const QUANITITY_SIZES = ['small', 'medium', 'large', 'extraLarge'];
 

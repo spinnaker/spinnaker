@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Icon } from '../../presentation';
-import { IManagedArtifactVersion } from '../../domain';
+import { Icon } from '@spinnaker/presentation';
 
+import { IManagedArtifactVersion } from '../../domain';
 import { getArtifactVersionDisplayName } from '../displayNames';
 
 import './ArtifactDetailHeader.less';
