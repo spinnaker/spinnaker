@@ -10,7 +10,7 @@ export interface IConsoleOutputProps {
   usesMultiOutput?: boolean;
 }
 
-export const ConsoleOutput = ({ instance, text, usesMultiOutput }: IConsoleOutputProps) => {
+export const ConsoleOutputLink = ({ instance, text, usesMultiOutput }: IConsoleOutputProps) => {
   const showConsoleOutput = () => {
     showModal(ConsoleOutputModal, { instance, usesMultiOutput });
   };
