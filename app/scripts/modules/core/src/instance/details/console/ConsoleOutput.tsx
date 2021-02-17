@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { CollapsibleSection, showModal } from '../../../presentation';
+import { showModal } from '../../../presentation';
 import { ConsoleOutputModal } from './ConsoleOutputModal';
 import { IInstance } from '../../../domain';
 

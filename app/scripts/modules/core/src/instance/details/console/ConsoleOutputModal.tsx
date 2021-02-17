@@ -5,6 +5,8 @@ import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader } from '../..
 import { Spinner } from '../../../widgets';
 import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from '../../InstanceReader';
 
+import './ConsoleOutputModal.less';
+
 export interface IConsoleOutputModalProps extends IModalComponentProps {
   instance: IInstance;
   usesMultiOutput: boolean;
