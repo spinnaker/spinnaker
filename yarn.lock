@@ -2311,10 +2311,10 @@
     prop-types "^15.6.1"
     react-lifecycles-compat "^3.0.4"
 
-"@spinnaker/eslint-plugin@1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.10.tgz#f79b94716d84fe1656e71e0f92e6f42d80943644"
-  integrity sha512-9EUlp8003G6a4smxnsa3lnuvyV90EHJo3xnSkFOCGgMr/UuckKMtHTafjWF3oBNkbyYL2zb7PHcUJOmJEX9Y6A==
+"@spinnaker/eslint-plugin@1.0.12":
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.12.tgz#ee0effeabdf861d57c900a39bf4f105a51a303b5"
+  integrity sha512-NhqRK5jnWPVwCXRWBn7IfubV9EdPorTVuDirsdOncKEfwEGQQEvxWFaiS77uHACO3DrTAcEkYCXTHbnr/PmGbw==
   dependencies:
     lodash "^4.17.20"
 
@@ -8685,6 +8685,13 @@ eslint-loader@^3.0.2:
     object-hash "^1.3.1"
     schema-utils "^2.2.0"
 
+eslint-plugin-prettier@^3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-3.3.1.tgz#7079cfa2497078905011e6f82e8dd8453d1371b7"
+  integrity sha512-Rq3jkcFY8RYeQLgk2cCwuc0P7SEFwDravPhsJZOQ5N4YI4DSg50NyqJ/9gdZHzQlHf8MvafSesbNJCcP/FF6pQ==
+  dependencies:
+    prettier-linter-helpers "^1.0.0"
+
 eslint-plugin-react-hooks@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-2.5.0.tgz#c50ab7ca5945ce6d1cf8248d9e185c80b54171b6"
@@ -9096,6 +9103,11 @@ fast-deep-equal@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.1.tgz#545145077c501491e33b15ec408c294376e94ae4"
   integrity sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
+
+fast-diff@^1.1.2:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/fast-diff/-/fast-diff-1.2.0.tgz#73ee11982d86caaf7959828d519cfe927fac5f03"
+  integrity sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==
 
 fast-glob@^2.0.2:
   version "2.2.7"
@@ -14798,6 +14810,13 @@ prepend-http@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
   integrity sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
+
+prettier-linter-helpers@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/prettier-linter-helpers/-/prettier-linter-helpers-1.0.0.tgz#d23d41fe1375646de2d0104d3454a3008802cf7b"
+  integrity sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
+  dependencies:
+    fast-diff "^1.1.2"
 
 prettier@2.1.2:
   version "2.1.2"
