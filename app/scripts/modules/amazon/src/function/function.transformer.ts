@@ -1,8 +1,8 @@
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { Application } from '@spinnaker/core';
-
-import { IAmazonFunctionUpsertCommand, IAmazonFunction } from 'amazon/domain';
+import { IAmazonFunction, IAmazonFunctionUpsertCommand } from 'amazon/domain';
 import { isEmpty } from 'lodash';
+
+import { Application } from '@spinnaker/core';
 
 export class AwsFunctionTransformer {
   public normalizeFunction(functionDef: IAmazonFunction): IAmazonFunction {

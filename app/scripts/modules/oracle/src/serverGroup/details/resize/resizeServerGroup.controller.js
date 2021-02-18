@@ -1,10 +1,11 @@
 'use strict';
 
 import { module } from 'angular';
+import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
 
 import { TaskMonitor } from '@spinnaker/core';
+
 import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
-import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
 
 export const ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER =
   'spinnaker.oracle.serverGroup.details.resize.controller';

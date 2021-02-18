@@ -1,21 +1,21 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import _ from 'lodash';
 
 import {
   FirewallLabels,
+  ModalWizard,
   NetworkReader,
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
   TaskMonitor,
-  ModalWizard,
 } from '@spinnaker/core';
 
 import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
 
 import './securityGroup.configure.less';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER =
   'spinnaker.google.securityGroup.baseConfig.controller';

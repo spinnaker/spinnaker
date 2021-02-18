@@ -1,6 +1,8 @@
-import { CloudfoundryDeleteServiceKeyStageConfig } from './CloudfoundryDeleteServiceKeyStageConfig';
-import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
+
+import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+
+import { CloudfoundryDeleteServiceKeyStageConfig } from './CloudfoundryDeleteServiceKeyStageConfig';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],

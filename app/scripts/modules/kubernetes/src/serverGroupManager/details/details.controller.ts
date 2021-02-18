@@ -1,17 +1,17 @@
+import { StateService } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { orderBy } from 'lodash';
-import { StateService } from '@uirouter/angularjs';
 
 import {
-  NameUtils,
   Application,
+  ClusterTargetBuilder,
   IManifest,
+  IOwnerOption,
   IServerGroupManager,
   IServerGroupManagerStateParams,
-  ClusterTargetBuilder,
-  IOwnerOption,
   ManifestReader,
+  NameUtils,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroupManager } from '../../interfaces';

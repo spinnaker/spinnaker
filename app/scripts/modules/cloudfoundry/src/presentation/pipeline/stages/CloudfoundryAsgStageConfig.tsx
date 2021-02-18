@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { Observable, Subject } from 'rxjs';
 
 import {
@@ -7,8 +6,8 @@ import {
   IAccount,
   IStageConfigProps,
   NgReact,
-  StageConstants,
   StageConfigField,
+  StageConstants,
 } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';

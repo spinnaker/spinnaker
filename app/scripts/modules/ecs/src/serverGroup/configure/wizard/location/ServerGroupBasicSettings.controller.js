@@ -1,10 +1,10 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 import { ModalWizard } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const ECS_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_SERVERGROUPBASICSETTINGS_CONTROLLER =
   'spinnaker.ecs.serverGroup.configure.basicSettings';

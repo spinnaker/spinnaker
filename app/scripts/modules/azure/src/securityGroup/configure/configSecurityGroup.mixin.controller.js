@@ -1,5 +1,6 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import _ from 'lodash';
 
@@ -10,7 +11,6 @@ import {
   SecurityGroupWriter,
   TaskMonitor,
 } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER =
   'spinnaker.azure.securityGroup.baseConfig.controller';

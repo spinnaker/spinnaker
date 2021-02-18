@@ -1,13 +1,13 @@
 import { IQService } from 'angular';
+import { ICloudFoundryApplication, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import { Application, IPipeline, IStage } from '@spinnaker/core';
 
-import { ICloudFoundryApplication, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { CloudFoundryServerGroupCommandBuilder } from './serverGroupCommandBuilder.service.cf';
 import {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryDeployConfiguration,
 } from './serverGroupConfigurationModel.cf';
-import { CloudFoundryServerGroupCommandBuilder } from './serverGroupCommandBuilder.service.cf';
 
 export class CloudFoundryServerGroupCommandBuilderShim {
   public static $inject = ['$q'];

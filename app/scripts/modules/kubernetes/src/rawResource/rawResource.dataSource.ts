@@ -1,5 +1,6 @@
 import { IQService, module } from 'angular';
-import { REST, Application, ApplicationDataSourceRegistry, INFRASTRUCTURE_KEY } from '@spinnaker/core';
+
+import { Application, ApplicationDataSourceRegistry, INFRASTRUCTURE_KEY, REST } from '@spinnaker/core';
 
 export const KUBERNETS_RAW_RESOURCE_DATA_SOURCE = 'spinnaker.core.rawresource.dataSource';
 export const KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY = 'k8s';

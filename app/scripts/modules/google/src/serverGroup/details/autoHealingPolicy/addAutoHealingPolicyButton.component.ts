@@ -1,4 +1,4 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application, IServerGroup } from '@spinnaker/core';

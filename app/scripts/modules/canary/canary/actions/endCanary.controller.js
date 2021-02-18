@@ -1,8 +1,9 @@
 'use strict';
 
-import { module } from 'angular';
-import { REST } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
+
+import { REST } from '@spinnaker/core';
 
 export const CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER = 'spinnaker.canary.actions.override.result.controller';
 export const name = CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER; // for backwards compatibility

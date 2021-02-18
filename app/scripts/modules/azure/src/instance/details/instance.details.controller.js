@@ -1,6 +1,8 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import {
@@ -8,11 +10,8 @@ import {
   ConfirmationModalService,
   InstanceReader,
   InstanceWriter,
-  InstanceTemplates,
   RecentHistoryService,
 } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.azure.instance.detail.controller';
 export const name = AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
@@ -342,19 +341,6 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, 
           account: instance.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
-        });
-      };
-
-      this.showConsoleOutput = function () {
-        $uibModal.open({
-          templateUrl: InstanceTemplates.consoleOutputModal,
-          controller: 'ConsoleOutputCtrl as ctrl',
-          size: 'lg',
-          resolve: {
-            instance: function () {
-              return $scope.instance;
-            },
-          },
         });
       };
 

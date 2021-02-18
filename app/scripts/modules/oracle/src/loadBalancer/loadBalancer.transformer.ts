@@ -1,9 +1,5 @@
 import { module } from 'angular';
-
-import { OracleProviderSettings } from 'oracle/oracle.settings';
-import { OracleDefaultProviderSettings } from 'oracle/oracle.settings';
-import { Application } from '@spinnaker/core';
-
+import { $q } from 'ngimport';
 import {
   IOracleBackEndSet,
   IOracleListener,
@@ -13,8 +9,10 @@ import {
   IOracleLoadBalancerUpsertCommand,
   LoadBalancingPolicy,
 } from 'oracle/domain/IOracleLoadBalancer';
+import { OracleProviderSettings } from 'oracle/oracle.settings';
+import { OracleDefaultProviderSettings } from 'oracle/oracle.settings';
 
-import { $q } from 'ngimport';
+import { Application } from '@spinnaker/core';
 
 export class OracleLoadBalancerTransformer {
   public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): PromiseLike<IOracleLoadBalancer> {

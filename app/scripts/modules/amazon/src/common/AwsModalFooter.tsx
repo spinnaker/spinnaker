@@ -1,7 +1,7 @@
 import React from 'react';
 import { ModalFooter } from 'react-bootstrap';
 
-import { AccountService, UserVerification, IAccountDetails } from '@spinnaker/core';
+import { AccountService, IAccountDetails, UserVerification } from '@spinnaker/core';
 
 export interface IAwsModalFooterProps {
   account: string;

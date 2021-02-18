@@ -1,6 +1,6 @@
+import { StateService } from '@uirouter/angularjs';
 import { IController, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService } from '@uirouter/angularjs';
 
 import {
   Application,

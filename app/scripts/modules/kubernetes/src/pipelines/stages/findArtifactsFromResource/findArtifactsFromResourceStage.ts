@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Registry, ExecutionDetailsTasks, ExecutionArtifactTab } from '@spinnaker/core';
+import { ExecutionArtifactTab, ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { KubernetesV2FindArtifactsFromResourceConfigCtrl } from './findArtifactsFromResourceConfig.controller';
 import { KUBERNETES_MANIFEST_SELECTOR } from '../../../manifest/selector/selector.component';

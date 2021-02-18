@@ -1,15 +1,17 @@
-import * as React from 'react';
 import { module } from 'angular';
-import { uniqWith, isEqual } from 'lodash';
+import { isEqual, uniqWith } from 'lodash';
+import * as React from 'react';
+import { Alert } from 'react-bootstrap';
+import { Option } from 'react-select';
 import { react2angular } from 'react2angular';
+
+import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+
 import {
   IEcsDockerImage,
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../../serverGroupConfiguration.service';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
-import { Alert } from 'react-bootstrap';
-import { Option } from 'react-select';
 
 export interface IContainerProps {
   command: IEcsServerGroupCommand;
@@ -164,7 +166,10 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
     const updateComputeUnits = this.updateComputeUnits;
     const updateReservedMemory = this.updateReservedMemory;
-    const dirtyTagetGroups = this.props.command.viewState.dirty && this.props.command.viewState.dirty.targetGroups ? this.props.command.viewState.dirty.targetGroups : [];
+    const dirtyTagetGroups =
+      this.props.command.viewState.dirty && this.props.command.viewState.dirty.targetGroups
+        ? this.props.command.viewState.dirty.targetGroups
+        : [];
 
     const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
@@ -174,27 +179,23 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       return { label: `${msg} (${image.imageId})`, value: image.imageId };
     });
 
-    const dirtyTargetGroupList = dirtyTagetGroups ? dirtyTagetGroups.map(function (targetGroup, index){
-        return (
-          <li key={index}>{targetGroup}</li>
-        );
-      }) : '';
+    const dirtyTargetGroupList = dirtyTagetGroups
+      ? dirtyTagetGroups.map(function (targetGroup, index) {
+          return <li key={index}>{targetGroup}</li>;
+        })
+      : '';
 
     const dirtyTargetGroupSection = (
-       <div className="alert alert-warning">
-         <p>
-           <i className="fa fa-exclamation-triangle"></i>
-           The following target groups could not be found in the selected account/region/VPC and were removed:
-         </p>
-         <ul>
-           {dirtyTargetGroupList}
-         </ul>
-         <br/>
-         <p className="text-left">
-           Please select the target group(s) from the dropdown to resolve this error.
-         </p>
-       </div>
-       );
+      <div className="alert alert-warning">
+        <p>
+          <i className="fa fa-exclamation-triangle"></i>
+          The following target groups could not be found in the selected account/region/VPC and were removed:
+        </p>
+        <ul>{dirtyTargetGroupList}</ul>
+        <br />
+        <p className="text-left">Please select the target group(s) from the dropdown to resolve this error.</p>
+      </div>
+    );
 
     const newTargetGroupMapping = this.state.targetGroupsAvailable.length ? (
       <button
@@ -255,7 +256,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
 
     return (
       <div className="container-fluid form-horizontal">
-        {dirtyTagetGroups.length > 0 ? ( <div>{dirtyTargetGroupSection}</div>) : ''}
+        {dirtyTagetGroups.length > 0 ? <div>{dirtyTargetGroupSection}</div> : ''}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
             <b>Container Image</b>

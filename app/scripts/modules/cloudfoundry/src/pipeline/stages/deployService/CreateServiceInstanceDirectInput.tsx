@@ -1,13 +1,12 @@
 import React from 'react';
-
 import { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
 
 import {
   IService,
   IServicePlan,
-  ServicesReader,
   ReactSelectInput,
+  ServicesReader,
   StageConfigField,
   TextAreaInput,
   TextInput,

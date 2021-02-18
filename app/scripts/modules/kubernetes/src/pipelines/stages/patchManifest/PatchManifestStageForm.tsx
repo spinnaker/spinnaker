@@ -1,6 +1,6 @@
+import { capitalize, get, isEmpty, map } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
-import { capitalize, get, isEmpty, map } from 'lodash';
 
 import {
   ArtifactTypePatterns,
@@ -14,12 +14,12 @@ import {
   YamlEditor,
 } from '@spinnaker/core';
 
+import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
 import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
 import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
-import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
-import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
-import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
+import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
 
 interface IPatchManifestStageConfigFormProps {
   stageFieldUpdated: () => void;

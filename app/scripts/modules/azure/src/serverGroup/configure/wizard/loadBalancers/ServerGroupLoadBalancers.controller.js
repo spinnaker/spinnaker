@@ -2,7 +2,8 @@
 
 import { module } from 'angular';
 
-import { InfrastructureCaches, LOAD_BALANCER_READ_SERVICE, NetworkReader, ModalWizard } from '@spinnaker/core';
+import { InfrastructureCaches, LOAD_BALANCER_READ_SERVICE, ModalWizard, NetworkReader } from '@spinnaker/core';
+
 import Utility from '../../../../utility';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS_CONTROLLER =

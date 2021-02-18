@@ -1,11 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
-
 import { Subject } from 'rxjs';
 
-import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
 import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT } from './dimensionsEditor.component';
+import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
 
 export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.alarm.configurer';

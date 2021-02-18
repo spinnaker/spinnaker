@@ -1,6 +1,8 @@
-import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+
+import { withErrorBoundary } from '@spinnaker/core';
+
 import { ConfigFileArtifactList } from './ConfigFileArtifactList';
 
 export const CONFIG_FILE_ARTIFACT_LIST = 'spinnaker.appengine.configFileArtifactList.component';

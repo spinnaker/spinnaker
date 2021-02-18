@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import {
-  IExecutionDetailsSectionProps,
   ExecutionDetailsSection,
   ExecutionStepDetails,
+  IExecutionDetailsSectionProps,
   StageFailureMessage,
 } from '@spinnaker/core';
 

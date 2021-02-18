@@ -1,5 +1,3 @@
-
-
 import { IVpc, NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {

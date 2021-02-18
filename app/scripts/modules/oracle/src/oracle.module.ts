@@ -1,11 +1,13 @@
 import { module } from 'angular';
+import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
+import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
+import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './helpContents/oracleHelpContents';
-import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
-import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
-import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
+import { ORACLE_IMAGE_IMAGE_READER } from './image/image.reader';
+import { ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
 import { ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE } from './pipeline/stages/bake/ociBakeStage';
 import { ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE } from './pipeline/stages/destroyAsg/destroyAsgStage';
 import { ORACLE_PIPELINE_STAGES_DISABLEASG_DISABLEASGSTAGE } from './pipeline/stages/disableAsg/disableAsgStage';
@@ -14,16 +16,14 @@ import { ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE }
 import { ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE } from './pipeline/stages/resizeAsg/resizeAsgStage';
 import { ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/scaleDownClusterStage';
 import { ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/shrinkClusterStage';
-import { ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
-import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_MODULE } from './serverGroup/configure/serverGroup.configure.module';
-import { ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER } from './serverGroup/details/serverGroupDetails.controller';
-import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './serverGroup/configure/serverGroupCommandBuilder.service';
-import { ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER } from './serverGroup/configure/wizard/cloneServerGroup.controller';
-import { ORACLE_IMAGE_IMAGE_READER } from './image/image.reader';
-import { ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER } from './securityGroup/configure/createSecurityGroup.controller';
 import { ORACLE_SECURITYGROUP_SECURITYGROUP_READER } from './securityGroup/securityGroup.reader';
 import { ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER } from './securityGroup/securityGroup.transformer';
-import { ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER } from './securityGroup/configure/createSecurityGroup.controller';
+import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_MODULE } from './serverGroup/configure/serverGroup.configure.module';
+import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER } from './serverGroup/configure/wizard/cloneServerGroup.controller';
+import { ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER } from './serverGroup/details/serverGroupDetails.controller';
+import { ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function (key) {

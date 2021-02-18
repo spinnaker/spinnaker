@@ -1,5 +1,7 @@
+import { IAmazonServerGroupView } from 'amazon/domain';
+import { VpcTag } from 'amazon/vpc/VpcTag';
+import { get, has } from 'lodash';
 import React from 'react';
-import { has, get } from 'lodash';
 
 import {
   AccountTag,
@@ -10,9 +12,6 @@ import {
   SETTINGS,
   timestamp,
 } from '@spinnaker/core';
-
-import { IAmazonServerGroupView } from 'amazon/domain';
-import { VpcTag } from 'amazon/vpc/VpcTag';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 

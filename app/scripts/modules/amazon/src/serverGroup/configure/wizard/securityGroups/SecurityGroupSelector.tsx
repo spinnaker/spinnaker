@@ -5,10 +5,10 @@ import VirtualizedSelect from 'react-virtualized-select';
 import {
   FirewallLabels,
   HelpField,
-  timestamp,
-  ISecurityGroup,
   InfrastructureCaches,
+  ISecurityGroup,
   ReactInjector,
+  timestamp,
 } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';

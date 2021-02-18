@@ -1,9 +1,9 @@
 import { get, isEmpty } from 'lodash';
 
-import { IPipeline, IStage, IValidatorConfig, ICustomValidator } from '@spinnaker/core';
+import { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
 
-import { strategyRedBlack } from '../../../rolloutStrategy/redblack.strategy';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import { strategyRedBlack } from '../../../rolloutStrategy/redblack.strategy';
 
 const MAX_VERSION_HISTORY_ANNOTATION = 'strategy.spinnaker.io/max-version-history';
 

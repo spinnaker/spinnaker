@@ -1,16 +1,10 @@
-import React from 'react';
 import { module } from 'angular';
-import { uniqWith, isEqual } from 'lodash';
-import { react2angular } from 'react2angular';
+import { isEqual, uniqWith } from 'lodash';
+import React from 'react';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
-import {
-  IEcsContainerMapping,
-  IEcsDockerImage,
-  IEcsServerGroupCommand,
-  IEcsTaskDefinitionArtifact,
-  IEcsTargetGroupMapping,
-} from '../../serverGroupConfiguration.service';
+import { react2angular } from 'react2angular';
+
 import {
   ArtifactTypePatterns,
   HelpField,
@@ -20,6 +14,14 @@ import {
   TetheredSelect,
   withErrorBoundary,
 } from '@spinnaker/core';
+
+import {
+  IEcsContainerMapping,
+  IEcsDockerImage,
+  IEcsServerGroupCommand,
+  IEcsTargetGroupMapping,
+  IEcsTaskDefinitionArtifact,
+} from '../../serverGroupConfiguration.service';
 
 export interface ITaskDefinitionProps {
   command: IEcsServerGroupCommand;

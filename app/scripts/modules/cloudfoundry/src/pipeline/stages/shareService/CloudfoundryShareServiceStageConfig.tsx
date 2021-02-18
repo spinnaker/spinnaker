@@ -1,8 +1,6 @@
 import React from 'react';
-
-import { Observable, Subject } from 'rxjs';
-
 import Select, { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
 
 import {
   AccountService,

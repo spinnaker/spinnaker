@@ -1,6 +1,7 @@
-import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+
+import { withErrorBoundary } from '@spinnaker/core';
 
 import { JsonEditor } from './JsonEditor';
 

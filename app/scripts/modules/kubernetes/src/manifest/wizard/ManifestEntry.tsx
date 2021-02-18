@@ -1,6 +1,6 @@
-import React from 'react';
 import { FormikProps } from 'formik';
 import { dump } from 'js-yaml';
+import React from 'react';
 
 import { Application, YamlEditor } from '@spinnaker/core';
 

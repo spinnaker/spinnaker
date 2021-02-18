@@ -1,13 +1,12 @@
 import React, { memo } from 'react';
 import ReactGA from 'react-ga';
 import { DateTime } from 'luxon';
-import * as distanceInWords from 'date-fns/distance_in_words';
 
 import { IManagedArtifactVersionLifecycleStep } from '../../domain';
 import { Application } from '../../application';
-
 import { StatusCard } from '../StatusCard';
 import { Button } from '../Button';
+import { timeDiffToString } from '../../utils';
 
 const cardAppearanceByStatus = {
   NOT_STARTED: 'future',
@@ -22,8 +21,8 @@ const cardConfigurationByType = {
   BUILD: {
     iconName: 'build',
     title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
-      const startedAtDate = startedAt ? DateTime.fromISO(startedAt).toJSDate() : null;
-      const completedAtDate = completedAt ? DateTime.fromISO(completedAt).toJSDate() : null;
+      const startedAtDate = startedAt ? DateTime.fromISO(startedAt) : null;
+      const completedAtDate = completedAt ? DateTime.fromISO(completedAt) : null;
 
       switch (status) {
         case 'NOT_STARTED':
@@ -31,11 +30,11 @@ const cardConfigurationByType = {
         case 'RUNNING':
           return 'Building';
         case 'SUCCEEDED':
-          return `Built in ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Built in ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'FAILED':
-          return `Build failed after ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Build failed after ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'ABORTED':
-          return `Build aborted after ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Build aborted after ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'UNKNOWN':
           return 'Unable to find the status of this build';
       }
@@ -44,8 +43,8 @@ const cardConfigurationByType = {
   BAKE: {
     iconName: 'bake',
     title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
-      const startedAtDate = startedAt ? DateTime.fromISO(startedAt).toJSDate() : null;
-      const completedAtDate = completedAt ? DateTime.fromISO(completedAt).toJSDate() : null;
+      const startedAtDate = startedAt ? DateTime.fromISO(startedAt) : null;
+      const completedAtDate = completedAt ? DateTime.fromISO(completedAt) : null;
 
       switch (status) {
         case 'NOT_STARTED':
@@ -53,11 +52,11 @@ const cardConfigurationByType = {
         case 'RUNNING':
           return 'Baking';
         case 'SUCCEEDED':
-          return `Baked in ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Baked in ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'FAILED':
-          return `Baking failed after ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Baking failed after ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'ABORTED':
-          return `Baking aborted after ${distanceInWords(startedAtDate, completedAtDate)}`;
+          return `Baking aborted after ${timeDiffToString(startedAtDate, completedAtDate)}`;
         case 'UNKNOWN':
           return 'Unable to find the status of this bake';
       }

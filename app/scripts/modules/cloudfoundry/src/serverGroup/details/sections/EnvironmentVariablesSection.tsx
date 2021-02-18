@@ -1,7 +1,8 @@
-import React from 'react';
 import { isEmpty } from 'lodash';
+import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
+
 import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
 
 export class EnvironmentVariablesSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {

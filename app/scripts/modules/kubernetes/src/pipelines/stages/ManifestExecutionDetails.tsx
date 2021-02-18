@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
-import { ManifestCoordinates, ILabelSelectors, IManifestNamesByNamespace } from './ManifestCoordinates';
+
+import { ILabelSelectors, IManifestNamesByNamespace, ManifestCoordinates } from './ManifestCoordinates';
 
 interface IManifestExecutionDetailsProps extends IExecutionDetailsSectionProps {
   context: {

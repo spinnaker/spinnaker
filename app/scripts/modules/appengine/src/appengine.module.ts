@@ -9,15 +9,15 @@ import './helpContents/appengineHelpContents';
 import { APPENGINE_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { APPENGINE_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { APPENGINE_PIPELINE_MODULE } from './pipeline/pipeline.module';
+import './pipeline/stages/deployAppengineConfig/deployAppengineConfigStage';
 import { APPENGINE_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL } from './serverGroup/configure/wizard/basicSettings.controller';
 import { APPENGINE_CLONE_SERVER_GROUP_CTRL } from './serverGroup/configure/wizard/cloneServerGroup.controller';
+import { CONFIG_FILE_ARTIFACT_LIST } from './serverGroup/configure/wizard/configFileArtifactList.module';
 import { APPENGINE_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
 import { APPENGINE_SERVER_GROUP_TRANSFORMER } from './serverGroup/transformer';
 import { APPENGINE_SERVER_GROUP_WRITER } from './serverGroup/writer/serverGroup.write.service';
 import './validation/ApplicationNameValidator';
-import { CONFIG_FILE_ARTIFACT_LIST } from './serverGroup/configure/wizard/configFileArtifactList.module';
-import './pipeline/stages/deployAppengineConfig/deployAppengineConfigStage';
 
 import './logo/appengine.logo.less';
 

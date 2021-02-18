@@ -1,15 +1,15 @@
-import React from 'react';
 import { get } from 'lodash';
+import React from 'react';
+
 import {
-  IExecutionDetailsSectionProps,
   ExecutionDetailsSection,
-  StageFailureMessage,
+  IExecutionDetailsSectionProps,
   IManifest,
+  StageFailureMessage,
 } from '@spinnaker/core';
 
-import { KubernetesManifestService, IStageManifest } from '../../../../manifest/manifest.service';
-
 import { ManifestStatus } from './ManifestStatus';
+import { IStageManifest, KubernetesManifestService } from '../../../../manifest/manifest.service';
 
 export interface IManifestSubscription {
   id: string;

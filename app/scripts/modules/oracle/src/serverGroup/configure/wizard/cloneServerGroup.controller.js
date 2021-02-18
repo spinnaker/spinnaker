@@ -1,8 +1,9 @@
 'use strict';
 
-import { module } from 'angular';
-import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
+
+import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
 export const ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER =
   'spinnaker.oracle.serverGroup.configure.cloneServerGroup';

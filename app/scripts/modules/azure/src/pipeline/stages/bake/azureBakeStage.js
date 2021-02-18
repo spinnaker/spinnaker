@@ -7,10 +7,11 @@ import {
   AuthenticationService,
   BakeExecutionLabel,
   BakeryReader,
-  Registry,
   PipelineTemplates,
+  Registry,
   SETTINGS,
 } from '@spinnaker/core';
+
 import { AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 
 export const AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE = 'spinnaker.azure.pipeline.stage.bakeStage';

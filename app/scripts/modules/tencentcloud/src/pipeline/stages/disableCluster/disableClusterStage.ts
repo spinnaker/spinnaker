@@ -1,6 +1,7 @@
-import { validate } from './disableClusterValidators';
 import { Registry } from '@spinnaker/core';
+
 import { DisableClusterConfig } from './DisableClusterConfig';
+import { validate } from './disableClusterValidators';
 
 Registry.pipeline.registerStage({
   provides: 'disableCluster',

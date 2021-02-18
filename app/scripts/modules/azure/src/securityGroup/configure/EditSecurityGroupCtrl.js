@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import {
@@ -10,8 +11,8 @@ import {
   SECURITY_GROUP_READER,
   TaskMonitor,
 } from '@spinnaker/core';
+
 import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL =
   'spinnaker.azure.securityGroup.azure.edit.controller';

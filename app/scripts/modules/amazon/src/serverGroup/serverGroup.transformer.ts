@@ -4,13 +4,13 @@ import { defaults } from 'lodash';
 import { IVpc } from '@spinnaker/core';
 
 import {
-  IScalingAdjustmentView,
-  IScalingPolicyView,
-  IScalingPolicyAlarmView,
   IAmazonServerGroup,
-  IStepAdjustmentView,
-  IScalingPolicy,
   IAmazonServerGroupView,
+  IScalingAdjustmentView,
+  IScalingPolicy,
+  IScalingPolicyAlarmView,
+  IScalingPolicyView,
+  IStepAdjustmentView,
   ITargetTrackingPolicy,
 } from '../domain';
 import { VpcReader } from '../vpc/VpcReader';

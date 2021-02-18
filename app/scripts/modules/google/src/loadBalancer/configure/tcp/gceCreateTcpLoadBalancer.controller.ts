@@ -1,6 +1,8 @@
-import { module, IScope } from 'angular';
-import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
+import { IScope, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from 'google/domain/index';
+import { GCEProviderSettings } from 'google/gce.settings';
 import _ from 'lodash';
 
 import {
@@ -8,15 +10,13 @@ import {
   Application,
   IAccount,
   ICredentials,
-  ILoadBalancerUpsertCommand,
   IInstance,
+  ILoadBalancerUpsertCommand,
   IRegion,
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
 
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from 'google/domain/index';
-import { GCEProviderSettings } from 'google/gce.settings';
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,

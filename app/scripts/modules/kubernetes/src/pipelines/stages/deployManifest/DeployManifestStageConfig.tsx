@@ -1,5 +1,5 @@
-import React from 'react';
 import { cloneDeep } from 'lodash';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import { AccountService, FormikStageConfig, IAccountDetails, IStage, IStageConfigProps } from '@spinnaker/core';

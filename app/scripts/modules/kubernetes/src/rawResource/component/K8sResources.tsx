@@ -1,12 +1,15 @@
-import { Application, ApplicationDataSource, FormField, ReactSelectInput } from '@spinnaker/core';
 import React from 'react';
+
+import { Application, ApplicationDataSource, FormField, ReactSelectInput } from '@spinnaker/core';
+
+import { IK8sResourcesFiltersState } from './K8sResourcesFilters';
+import { RawResourceUtils } from './RawResourceUtils';
 import { FiltersPubSub } from '../controller/FiltersPubSub';
-import { KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY } from '../rawResource.dataSource';
 import { RawResource } from './group/RawResource';
 import { RawResourceGroups } from './group/RawResourceGroups';
-import { IK8sResourcesFiltersState } from './K8sResourcesFilters';
+import { KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY } from '../rawResource.dataSource';
+
 import './K8sResources.less';
-import { RawResourceUtils } from './RawResourceUtils';
 
 export interface IK8sResourcesProps {
   app: Application;

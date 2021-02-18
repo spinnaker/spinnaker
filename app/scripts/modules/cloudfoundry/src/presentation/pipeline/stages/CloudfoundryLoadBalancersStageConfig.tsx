@@ -1,5 +1,5 @@
+import { Formik } from 'formik';
 import React from 'react';
-
 import { Observable, Subject } from 'rxjs';
 
 import {
@@ -14,9 +14,8 @@ import {
   StageConstants,
 } from '@spinnaker/core';
 
-import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 import { Routes } from '../../forms/serverGroup';
-import { Formik } from 'formik';
+import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 
 interface ICloudfoundryLoadBalancerStageConfigProps extends IStageConfigProps {
   pipeline: IPipeline;

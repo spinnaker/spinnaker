@@ -3,7 +3,7 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { SECURITY_GROUP_READER, SERVER_GROUP_WRITER, TaskMonitor, FirewallLabels } from '@spinnaker/core';
+import { FirewallLabels, SECURITY_GROUP_READER, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 export const AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROLLER =
   'spinnaker.amazon.serverGroup.details.securityGroup.editSecurityGroups.modal.controller';

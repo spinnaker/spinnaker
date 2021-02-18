@@ -1,15 +1,14 @@
 import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
+import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
+import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
+import { getHealthCheckOptions, IGceHealthCheckOption } from 'google/healthCheck/healthCheckUtils';
 import { cloneDeep } from 'lodash';
 
 import { Application, TaskMonitor } from '@spinnaker/core';
 
-import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
-import { getHealthCheckOptions, IGceHealthCheckOption } from 'google/healthCheck/healthCheckUtils';
-
 import './upsertAutoHealingPolicy.modal.less';
-import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
 
 class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public autoHealingPolicy: IGceAutoHealingPolicy;

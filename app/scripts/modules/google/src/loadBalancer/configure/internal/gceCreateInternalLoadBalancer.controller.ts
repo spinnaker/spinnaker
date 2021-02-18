@@ -1,6 +1,9 @@
+import { StateService } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { StateService } from '@uirouter/angularjs';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
+import { GCEProviderSettings } from 'google/gce.settings';
 import _ from 'lodash';
 
 import {
@@ -13,15 +16,12 @@ import {
   TaskMonitor,
 } from '@spinnaker/core';
 
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
-import { GCEProviderSettings } from 'google/gce.settings';
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   GceCommonLoadBalancerCommandBuilder,
 } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_HEALTH_CHECK_SELECTOR_COMPONENT } from '../common/healthCheck.component';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}

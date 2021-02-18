@@ -36,6 +36,7 @@ export interface IAccountDetails extends IAccount {
   authorized: boolean;
   awsAccount?: string;
   awsVpc?: string;
+  bastionHost?: string;
   challengeDestructiveActions: boolean;
   cloudProvider: string;
   defaultKeyPair?: string;

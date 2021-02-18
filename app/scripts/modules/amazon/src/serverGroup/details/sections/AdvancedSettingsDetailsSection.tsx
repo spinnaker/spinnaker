@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CollapsibleSection, ModalInjector, confirmNotManaged } from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, ModalInjector } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 

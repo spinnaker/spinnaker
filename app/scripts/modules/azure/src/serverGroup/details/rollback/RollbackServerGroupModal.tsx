@@ -1,13 +1,12 @@
 import React from 'react';
-
-import Select from 'react-select';
 import { Modal } from 'react-bootstrap';
+import Select from 'react-select';
 
 import {
   IModalComponentProps,
   ModalClose,
-  noop,
   NgReact,
+  noop,
   ReactInjector,
   ReactModal,
   TaskMonitor,

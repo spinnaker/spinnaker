@@ -1,19 +1,20 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import {
   ConfirmationModalService,
   NetworkReader,
+  SERVER_GROUP_WRITER,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  SERVER_GROUP_WRITER,
   SubnetReader,
 } from '@spinnaker/core';
+
 import { ORACLE_IMAGE_IMAGE_READER } from '../../image/image.reader';
 import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';
 import { ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER =
   'spinnaker.oracle.serverGroup.details.controller';

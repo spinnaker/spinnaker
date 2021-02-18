@@ -4,11 +4,11 @@ import { module } from 'angular';
 
 import { ConfirmationModalService } from '@spinnaker/core';
 
-import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
 import { ScalingPolicyWriter } from './ScalingPolicyWriter';
+import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
 
 import './scalingPolicySummary.component.less';
-import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
 
 export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component';

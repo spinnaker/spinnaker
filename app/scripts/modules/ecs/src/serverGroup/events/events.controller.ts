@@ -1,8 +1,9 @@
 import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { IEventDescription, ServerGroupEventsReader } from './serverGroupEventsReader.service';
 import { IServerGroup } from '@spinnaker/core';
+
+import { IEventDescription, ServerGroupEventsReader } from './serverGroupEventsReader.service';
 
 export interface IScalingActivitiesViewState {
   loading: boolean;

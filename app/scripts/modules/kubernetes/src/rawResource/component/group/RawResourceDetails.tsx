@@ -1,28 +1,30 @@
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Subject } from 'rxjs';
+import { UISref } from '@uirouter/react';
 import { get } from 'lodash';
 import { DateTime } from 'luxon';
-import { UISref } from '@uirouter/react';
+import React from 'react';
 import { Dropdown } from 'react-bootstrap';
+import ReactGA from 'react-ga';
+import { Subject } from 'rxjs';
+
 import {
   AccountTag,
-  CollapsibleSection,
   CloudProviderLogo,
+  CollapsibleSection,
   ConfirmationModalService,
-  Overridable,
   IManifest,
   ManifestWriter,
+  Overridable,
   Spinner,
   timestamp,
 } from '@spinnaker/core';
-import { KubernetesManifestCommandBuilder } from '../../../manifest/manifestCommandBuilder.service';
-import { ManifestWizard } from '../../../manifest/wizard/ManifestWizard';
-import { KubernetesManifestService } from '../../../manifest/manifest.service';
-import { ManifestEvents } from '../../../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
-import { ManifestLabels } from '../../../manifest/ManifestLabels';
-import { IKubernetesManifestCondition, ManifestCondition } from '../../../manifest/status/ManifestCondition';
+
 import { RawResourceUtils } from '../RawResourceUtils';
+import { ManifestLabels } from '../../../manifest/ManifestLabels';
+import { KubernetesManifestService } from '../../../manifest/manifest.service';
+import { KubernetesManifestCommandBuilder } from '../../../manifest/manifestCommandBuilder.service';
+import { IKubernetesManifestCondition, ManifestCondition } from '../../../manifest/status/ManifestCondition';
+import { ManifestWizard } from '../../../manifest/wizard/ManifestWizard';
+import { ManifestEvents } from '../../../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
 
 export interface IRawResourceDetailsProps {
   app: any;

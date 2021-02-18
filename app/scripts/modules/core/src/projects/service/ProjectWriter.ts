@@ -1,5 +1,3 @@
-
-
 import { IProject, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
 

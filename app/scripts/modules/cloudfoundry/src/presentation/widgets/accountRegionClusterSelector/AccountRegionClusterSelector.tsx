@@ -1,10 +1,7 @@
-import React from 'react';
-
-import { Observable, Subject } from 'rxjs';
-
 import { first, isNil, uniq } from 'lodash';
-
-import Select, { Option, Creatable } from 'react-select';
+import React from 'react';
+import Select, { Creatable, Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
 
 import {
   Application,

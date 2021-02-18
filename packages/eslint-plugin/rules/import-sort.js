@@ -148,6 +148,24 @@ const getText = (importDeclarations) => {
 };
 
 /**
+ * Returns all non `ImportDeclaration` nodes that appear between the first and last `ImportDeclaration` nodes.
+ */
+const getAllNonImportDeclarationNodes = (body) => {
+  const importDeclarations = body.filter((node) => node.type === 'ImportDeclaration');
+  const startIndex = body.findIndex((node) => node.type === 'ImportDeclaration');
+  const lastIndex = body.findIndex((node) => node == importDeclarations[importDeclarations.length - 1]);
+
+  const nonImportDeclarationNodes = [];
+  for (let i = startIndex; i <= lastIndex; i++) {
+    if (body[i].type !== 'ImportDeclaration') {
+      nonImportDeclarationNodes.push(body[i]);
+    }
+  }
+
+  return nonImportDeclarationNodes;
+};
+
+/**
  * @type {RuleModule}
  *
  * Ensures the import declarations (along with their import specifiers) are sorted based on the following category
@@ -169,6 +187,9 @@ module.exports = {
         if (!importDeclarations.length) {
           return;
         }
+        // Nodes between first and last `ImportDeclarationNodes` that aren't of type `ImportDeclaration`. These nodes
+        // must be re-written at the end of the import declarations.
+        const nonImportDeclarationNodes = getAllNonImportDeclarationNodes(program.body);
         const start = importDeclarations[0].range[0];
         const end = importDeclarations[importDeclarations.length - 1].range[1];
         const originalTextOfImportDeclarations = getText(importDeclarations);
@@ -221,8 +242,18 @@ module.exports = {
           // Combine sorted declarations from each partition
           .join('\n\n');
 
+        const sourceCode = context.getSourceCode();
+        const nonImportDeclarationsText =
+          nonImportDeclarationNodes.length > 0
+            ? nonImportDeclarationNodes.map((node) => sourceCode.getText(node)).join('\n')
+            : null;
+
+        const fixedText = nonImportDeclarationsText
+          ? `${importDeclarationsText}\n\n${nonImportDeclarationsText}`
+          : importDeclarationsText;
+
         context.report({
-          fix: (fixer) => fixer.replaceTextRange([start, end], importDeclarationsText),
+          fix: (fixer) => fixer.replaceTextRange([start, end], fixedText),
           message: 'Sort the import statements',
           node: importDeclarations[0],
         });

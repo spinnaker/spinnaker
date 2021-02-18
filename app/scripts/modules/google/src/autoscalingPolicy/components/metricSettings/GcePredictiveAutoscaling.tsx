@@ -1,5 +1,4 @@
 import { module } from 'angular';
-
 import React from 'react';
 import { react2angular } from 'react2angular';
 
@@ -13,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 import { GceAutoScalingFieldLayout } from '../../GceAutoScalingFieldLayout';
-import { IGceAutoscalingPolicy, GcePredictiveMethod } from '../../IGceAutoscalingPolicy';
+import { GcePredictiveMethod, IGceAutoscalingPolicy } from '../../IGceAutoscalingPolicy';
 import { GCEProviderSettings } from '../../../gce.settings';
 
 interface IGcePredictiveAutoscalingProps {

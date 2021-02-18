@@ -1,6 +1,7 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
+import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
 import {
   AccountService,
   Application,
@@ -10,7 +11,6 @@ import {
   TaskExecutor,
 } from '@spinnaker/core';
 
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
 import { UpsertTargetTrackingController } from './upsertTargetTracking.controller';
 
 export interface IAlarmRenderingServerGroup {

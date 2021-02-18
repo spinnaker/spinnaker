@@ -1,9 +1,10 @@
-import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER } from './wizard/upsert.controller';
-import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_RESOURCES_CONTROLLER } from './wizard/resources.controller';
-import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER } from './wizard/ports.controller';
-('use strict');
-
 import { module } from 'angular';
+
+import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER } from './wizard/ports.controller';
+import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_RESOURCES_CONTROLLER } from './wizard/resources.controller';
+import { DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER } from './wizard/upsert.controller';
+
+('use strict');
 
 export const DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE = 'spinnaker.dcos.loadBalancer.configure';
 export const name = DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE; // for backwards compatibility

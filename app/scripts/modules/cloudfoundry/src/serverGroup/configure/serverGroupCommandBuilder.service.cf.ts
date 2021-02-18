@@ -1,6 +1,7 @@
-import { IStage, IPipeline, Application } from '@spinnaker/core';
-
 import { ICloudFoundryApplication, ICloudFoundryEnvVar, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+
+import { Application, IPipeline, IStage } from '@spinnaker/core';
+
 import {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryDeployConfiguration,

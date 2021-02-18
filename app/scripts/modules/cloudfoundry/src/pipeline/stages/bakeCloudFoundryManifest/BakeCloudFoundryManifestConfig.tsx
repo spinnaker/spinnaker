@@ -1,14 +1,14 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
 import { FormikErrors } from 'formik';
+import { cloneDeep } from 'lodash';
+import React from 'react';
 
 import {
+  FormikStageConfig,
+  FormValidator,
+  IArtifact,
   IExpectedArtifact,
   IStage,
-  FormValidator,
-  FormikStageConfig,
   IStageConfigProps,
-  IArtifact,
 } from '@spinnaker/core';
 
 import { BakeCloudFoundryManifestConfigForm } from './BakeCloudFoundryManifestConfigForm';

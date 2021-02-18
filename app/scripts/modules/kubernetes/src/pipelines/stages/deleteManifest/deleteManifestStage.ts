@@ -1,8 +1,8 @@
-import { Registry, IStage, ExecutionDetailsTasks } from '@spinnaker/core';
+import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 
+import { DeleteManifestStageConfig } from './DeleteManifestStageConfig';
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
-import { DeleteManifestStageConfig } from './DeleteManifestStageConfig';
 
 const STAGE_NAME = 'Delete (Manifest)';
 const STAGE_KEY = 'deleteManifest';

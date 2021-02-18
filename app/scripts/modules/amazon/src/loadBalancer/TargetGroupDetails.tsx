@@ -1,5 +1,6 @@
 import React from 'react';
-import { Overridable, IOverridableProps } from '@spinnaker/core';
+
+import { IOverridableProps, Overridable } from '@spinnaker/core';
 
 export interface ITargetGroupDetailsProps extends IOverridableProps {}
 

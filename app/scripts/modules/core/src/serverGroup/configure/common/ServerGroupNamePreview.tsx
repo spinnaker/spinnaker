@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { isEmpty } from 'lodash';
 
 export interface IServerGroupNamePreviewProps {
   createsNewCluster: boolean;
@@ -8,6 +9,9 @@ export interface IServerGroupNamePreviewProps {
   navigateToLatestServerGroup: () => void;
 }
 
+const SPEL_EXPRESSION_REGEX = /\${[^}]+}/g;
+const SPEL_WITH_DEFAULT_AND_ALPHANUMERICAL_REGEX = /^\${\s*#alphanumerical\(.*\)\s*\?:\s*[^\s]+\s*}$/;
+
 export const ServerGroupNamePreview = ({
   createsNewCluster,
   latestServerGroupName,
@@ -15,6 +19,28 @@ export const ServerGroupNamePreview = ({
   namePreview,
   navigateToLatestServerGroup,
 }: IServerGroupNamePreviewProps) => {
+  const spelMatches = namePreview.match(SPEL_EXPRESSION_REGEX);
+  if (!isEmpty(spelMatches)) {
+    const anyInvalidSpel = [...spelMatches].some((match) => !SPEL_WITH_DEFAULT_AND_ALPHANUMERICAL_REGEX.test(match));
+    return (
+      <div className="form-group">
+        <div className="col-md-12">
+          <div className={`well-compact ${anyInvalidSpel ? 'alert alert-warning' : 'well'}`}>
+            <h5 className="text-center">
+              <p>Your server group cluster will be determined by evaluating the expressions dynamically</p>
+              {anyInvalidSpel && (
+                <div className="text-left">
+                  NOTE: Please wrap your expression with #alphanumerical and provide a default value to make sure only
+                  valid values are used after evaluation. i.e {"${#alphanumerical(yourExpression) ?: 'defaultValue'}"}
+                </div>
+              )}
+            </h5>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const showPreviewAsWarning = (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
 
   return (

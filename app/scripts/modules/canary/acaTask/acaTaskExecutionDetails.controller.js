@@ -1,10 +1,11 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import { ClusterState, SETTINGS } from '@spinnaker/core';
+
 import { CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE } from '../canary/canaryDeployment/canaryDeploymentHistory.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER = 'spinnaker.canary.acaTask.details.controller';
 export const name = CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility

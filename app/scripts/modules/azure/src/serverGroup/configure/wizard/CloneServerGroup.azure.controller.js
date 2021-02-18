@@ -1,11 +1,12 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
-import { SERVER_GROUP_WRITER, TaskMonitor, ModalWizard, FirewallLabels } from '@spinnaker/core';
-import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
+import { FirewallLabels, ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
+
 import { AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../../serverGroup.transformer';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
 
 const Utility = require('../../../utility').default;
 

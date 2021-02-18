@@ -1,22 +1,22 @@
-import React from 'react';
 import { Field, FormikProps } from 'formik';
+import { intersection, set, union } from 'lodash';
+import React from 'react';
 import Select, { Option } from 'react-select';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import {
-  HelpField,
-  IWizardPageComponent,
   AccountTag,
-  MapEditor,
-  PlatformHealthOverride,
   Application,
   ChecklistInput,
+  HelpField,
+  IWizardPageComponent,
+  MapEditor,
+  PlatformHealthOverride,
   robotToHuman,
 } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
-import { intersection, set, union } from 'lodash';
 import { enabledProcesses, processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 export interface IServerGroupParametersProps {
   app: Application;

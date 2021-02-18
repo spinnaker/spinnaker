@@ -1,8 +1,9 @@
-import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from '../securityGroups/tagManager.service';
-import UI_SELECT from 'ui-select';
-('use strict');
-
 import { module } from 'angular';
+import UI_SELECT from 'ui-select';
+
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from '../securityGroups/tagManager.service';
+
+('use strict');
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE =
   'spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive';

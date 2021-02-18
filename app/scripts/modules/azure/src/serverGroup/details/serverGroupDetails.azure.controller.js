@@ -1,19 +1,19 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
   ConfirmationModalService,
+  FirewallLabels,
+  SERVER_GROUP_WRITER,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  SERVER_GROUP_WRITER,
-  FirewallLabels,
 } from '@spinnaker/core';
 
-import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
 
 require('../configure/serverGroup.configure.azure.module');
 

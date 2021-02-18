@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AccountService, Registry, PipelineConfigService, StageConstants } from '@spinnaker/core';
+import { AccountService, PipelineConfigService, Registry, StageConstants } from '@spinnaker/core';
 
 export const GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE = 'spinnaker.gce.pipeline.stage..tagImageStage';
 export const name = GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE; // for backwards compatibility

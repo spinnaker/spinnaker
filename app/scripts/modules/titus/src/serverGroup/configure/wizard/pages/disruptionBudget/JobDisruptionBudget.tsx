@@ -1,31 +1,27 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import { get, isEqual } from 'lodash';
+import React from 'react';
 import { Option } from 'react-select';
-import { isEqual, get } from 'lodash';
+import { IJobDisruptionBudget } from 'titus/domain';
 
 import {
   Application,
-  FormikFormField,
   CheckboxInput,
+  FormikFormField,
   HelpField,
-  TetheredSelect,
   LayoutProvider,
   ResponsiveFieldLayout,
+  TetheredSelect,
 } from '@spinnaker/core';
 
+import { policyOptions } from './PolicyOptions';
+import { rateOptions } from './RateOptions';
 import { WindowPicker } from './WindowPicker';
-
 import {
-  ITitusServerGroupCommand,
   defaultJobDisruptionBudget,
   getDefaultJobDisruptionBudgetForApp,
+  ITitusServerGroupCommand,
 } from '../../../serverGroupConfiguration.service';
-
-import { IJobDisruptionBudget } from 'titus/domain';
-
-import { rateOptions } from './RateOptions';
-
-import { policyOptions } from './PolicyOptions';
 
 export interface IJobDisruptionBudgetProps {
   formik: FormikProps<ITitusServerGroupCommand>;

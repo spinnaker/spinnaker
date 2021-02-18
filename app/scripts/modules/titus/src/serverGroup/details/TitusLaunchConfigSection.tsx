@@ -1,6 +1,7 @@
 import React from 'react';
-import { Overridable, LabeledValue, LabeledValueList } from '@spinnaker/core';
 import { ITitusServerGroup } from 'titus/domain';
+
+import { LabeledValue, LabeledValueList, Overridable } from '@spinnaker/core';
 
 interface ILaunchConfigSectionProps {
   serverGroup: ITitusServerGroup;

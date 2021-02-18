@@ -1,13 +1,13 @@
+import { get, last, sortBy } from 'lodash';
 import React from 'react';
-import { get, sortBy, last } from 'lodash';
 
 import {
-  IExecutionDetailsSectionProps,
-  ExecutionDetailsSection,
   AccountTag,
-  JobStageExecutionLogs,
   DefaultPodNameProvider,
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
   IJobOwnedPodStatus,
+  JobStageExecutionLogs,
   StageFailureMessage,
 } from '@spinnaker/core';
 

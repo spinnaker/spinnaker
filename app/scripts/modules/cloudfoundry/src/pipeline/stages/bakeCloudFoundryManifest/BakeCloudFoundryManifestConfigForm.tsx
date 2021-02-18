@@ -1,13 +1,13 @@
 import React from 'react';
 
 import {
-  StageConfigField,
+  ArtifactTypePatterns,
+  excludeAllTypesExcept,
   IArtifact,
   IExpectedArtifact,
-  excludeAllTypesExcept,
-  ArtifactTypePatterns,
-  StageArtifactSelectorDelegate,
   IFormikStageConfigInjectedProps,
+  StageArtifactSelectorDelegate,
+  StageConfigField,
   TextInput,
 } from '@spinnaker/core';
 

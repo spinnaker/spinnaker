@@ -1,10 +1,9 @@
 'use strict';
 
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { GCEProviderSettings } from '../gce.settings';
-
-import { module } from 'angular';
 
 export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadBalancer.transformer';
 export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility

@@ -1,6 +1,7 @@
+import { find, get, map } from 'lodash';
 import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
-import { get, find, map } from 'lodash';
+
 import { IAccountDetails } from '@spinnaker/core';
 
 export interface INamespaceSelectorProps {

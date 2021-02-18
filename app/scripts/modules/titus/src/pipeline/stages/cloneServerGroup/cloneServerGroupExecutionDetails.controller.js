@@ -1,10 +1,10 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import _ from 'lodash';
 
 import { ClusterState, UrlBuilder } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller';

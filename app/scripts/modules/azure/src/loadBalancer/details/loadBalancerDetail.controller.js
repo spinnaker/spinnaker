@@ -1,17 +1,17 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import {
   ConfirmationModalService,
+  FirewallLabels,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerWriter,
   SECURITY_GROUP_READER,
-  FirewallLabels,
 } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
   'spinnaker.azure.loadBalancer.details.controller';

@@ -1,8 +1,9 @@
 import React from 'react';
-import { IDockerTrigger, Registry, IExecutionTriggerStatusComponentProps } from '@spinnaker/core';
 
-import { DockerTriggerTemplate } from './DockerTriggerTemplate';
+import { IDockerTrigger, IExecutionTriggerStatusComponentProps, Registry } from '@spinnaker/core';
+
 import { DockerTriggerConfig } from './DockerTriggerConfig';
+import { DockerTriggerTemplate } from './DockerTriggerTemplate';
 
 const DockerTriggerExecutionStatus = (props: IExecutionTriggerStatusComponentProps) => {
   const trigger = props.trigger as IDockerTrigger;

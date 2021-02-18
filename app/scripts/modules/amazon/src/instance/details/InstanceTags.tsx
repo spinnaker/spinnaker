@@ -1,5 +1,5 @@
-import React from 'react';
 import { orderBy } from 'lodash';
+import React from 'react';
 
 import { CollapsibleSection, LabeledValue } from '@spinnaker/core';
 

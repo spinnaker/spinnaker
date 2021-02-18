@@ -1,10 +1,9 @@
-import { IAccountDetails, IServerGroup, IAsg } from '@spinnaker/core';
+import { IAccountDetails, IAsg, IServerGroup } from '@spinnaker/core';
 
 import { IAmazonLaunchTemplate } from './IAmazonLaunchTemplate';
 import { IScalingPolicyView } from './IAmazonScalingPolicy';
-import { ISuspendedProcess } from './IScalingProcess';
-
 import { IScalingPolicy } from './IScalingPolicy';
+import { ISuspendedProcess } from './IScalingProcess';
 
 export interface IAmazonAsg extends IAsg {
   availabilityZones: string[];

@@ -82,6 +82,21 @@ export interface IManagedEnvironmentSummary {
   }>;
 }
 
+export interface IVerification {
+  id: string;
+  type: string;
+  status: 'NOT_EVALUATED' | 'PENDING' | 'PASS' | 'FAIL' | 'OVERRIDE_PASS' | 'OVERRIDE_FAIL';
+  startedAt?: string;
+  completedAt?: string;
+  link?: string;
+}
+
+export interface IPinned {
+  at: string;
+  by: string;
+  comment?: string;
+}
+
 export interface IManagedArtifactVersion {
   version: string;
   displayName: string;
@@ -89,11 +104,7 @@ export interface IManagedArtifactVersion {
   environments: Array<{
     name: string;
     state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
-    pinned?: {
-      at: string;
-      by: string;
-      comment?: string;
-    };
+    pinned?: IPinned;
     vetoed?: {
       at: string;
       by: string;
@@ -105,6 +116,7 @@ export interface IManagedArtifactVersion {
     statefulConstraints?: IStatefulConstraint[];
     statelessConstraints?: IStatelessConstraint[];
     compareLink?: string;
+    verifications?: IVerification[];
   }>;
   lifecycleSteps?: Array<{
     // likely more scopes + types later, but hard-coding to avoid premature abstraction for now

@@ -1,23 +1,22 @@
-import React from 'react';
 import { defaultsDeep, set } from 'lodash';
+import React from 'react';
+import { ITitusResources } from 'titus/domain';
 
 import {
+  AccountSelectInput,
+  AccountService,
   AccountTag,
-  IStageConfigProps,
-  RegionSelectField,
-  StageConfigField,
+  FirewallLabels,
   HelpField,
   IAggregatedAccounts,
   IRegion,
-  AccountService,
-  FirewallLabels,
+  IStageConfigProps,
   MapEditor,
-  AccountSelectInput,
+  RegionSelectField,
   SpelNumberInput,
+  StageConfigField,
 } from '@spinnaker/core';
-
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
-import { ITitusResources } from 'titus/domain';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
 import { TitusProviderSettings } from '../../../titus.settings';

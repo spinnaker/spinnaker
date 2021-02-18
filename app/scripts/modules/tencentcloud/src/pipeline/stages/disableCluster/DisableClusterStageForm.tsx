@@ -1,15 +1,17 @@
 import React from 'react';
-const { useEffect, useState } = React;
+
 import {
   AccountService,
-  NgReact,
-  StageConfigField,
-  IAccount,
   FormikFormField,
+  IAccount,
   IFormikStageConfigInjectedProps,
+  NgReact,
   NumberInput,
   SelectInput,
+  StageConfigField,
 } from '@spinnaker/core';
+
+const { useEffect, useState } = React;
 const { AccountRegionClusterSelector } = NgReact;
 
 export function DisableClusterStageForm({ application, formik, pipeline }: IFormikStageConfigInjectedProps) {

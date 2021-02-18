@@ -1,6 +1,7 @@
-import { get, isNumber } from 'lodash';
-import { IValidator } from '@spinnaker/core';
 import { ITargetGroup } from 'amazon/domain';
+import { get, isNumber } from 'lodash';
+
+import { IValidator } from '@spinnaker/core';
 
 export const isNameInUse = (
   existingNames: { [account: string]: { [region: string]: string[] } },

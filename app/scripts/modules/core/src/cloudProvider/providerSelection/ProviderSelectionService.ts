@@ -1,7 +1,6 @@
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
 
-
 import { AccountService, IAccountDetails } from 'core/account';
 import { Application } from 'core/application';
 import { CloudProviderRegistry, ICloudProviderConfig } from '../CloudProviderRegistry';

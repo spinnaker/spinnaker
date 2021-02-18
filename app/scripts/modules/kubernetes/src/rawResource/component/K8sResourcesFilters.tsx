@@ -1,7 +1,9 @@
-import { Application, ApplicationDataSource, FilterSection, FilterCheckbox } from '@spinnaker/core';
 import React from 'react';
-import { FiltersPubSub } from '../controller/FiltersPubSub';
+
+import { Application, ApplicationDataSource, FilterCheckbox, FilterSection } from '@spinnaker/core';
+
 import { RawResourceUtils } from './RawResourceUtils';
+import { FiltersPubSub } from '../controller/FiltersPubSub';
 import { KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY } from '../rawResource.dataSource';
 
 export interface IK8sResourcesFiltersProps {

@@ -1,8 +1,8 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 import { Subject } from 'rxjs';
 
-import { IServerGroup } from '@spinnaker/core';
 import { IScalingPolicyAlarm, ITargetTrackingConfiguration } from '@spinnaker/amazon';
+import { IServerGroup } from '@spinnaker/core';
 
 import { ITargetTrackingState } from './upsertTargetTracking.controller';
 

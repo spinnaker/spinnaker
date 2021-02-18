@@ -1,24 +1,24 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import { chain, filter, find, has, isEmpty } from 'lodash';
-
-import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
 import {
   AccountService,
   ConfirmationModalService,
   FirewallLabels,
   OVERRIDE_REGISTRY,
-  ServerGroupReader,
   SERVER_GROUP_WRITER,
+  ServerGroupReader,
   ServerGroupWarningMessageService,
   SubnetReader,
 } from '@spinnaker/core';
+
 import { ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
 import { ECS_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';
 import { ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
 export const ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER = 'spinnaker.ecs.serverGroup.details.controller';
 export const name = ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER; // for backwards compatibility

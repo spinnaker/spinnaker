@@ -1,18 +1,18 @@
-import { get, upperFirst } from 'lodash';
+import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 import { safeLoad } from 'js-yaml';
+import { get, upperFirst } from 'lodash';
 
 import {
   ExecutionDetailsTasks,
-  PipelineConfigValidator,
-  Registry,
   IPipeline,
   IStage,
   IStageOrTriggerValidator,
   ITrigger,
   IValidatorConfig,
+  PipelineConfigValidator,
+  Registry,
 } from '@spinnaker/core';
 
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ICloudFoundryServiceManifestSource } from './ICloudFoundryServiceManifestSource';
 

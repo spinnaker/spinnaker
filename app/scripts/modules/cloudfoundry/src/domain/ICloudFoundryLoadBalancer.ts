@@ -1,7 +1,7 @@
 import { ILoadBalancer, ILoadBalancerUpsertCommand } from '@spinnaker/core';
 
-import { ICloudFoundryOrganization, ICloudFoundrySpace } from './ICloudFoundrySpace';
 import { ICloudFoundryServerGroup } from './ICloudFoundryServerGroup';
+import { ICloudFoundryOrganization, ICloudFoundrySpace } from './ICloudFoundrySpace';
 
 export interface ICloudFoundryDomain {
   id: string;

@@ -1,8 +1,10 @@
-import React from 'react';
 import { IScalingProcess } from 'amazon/domain';
+import React from 'react';
+
 import { CollapsibleSection, confirmNotManaged, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
-import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
+
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
 export interface IScalingProcessesDetailsSectionState {
   autoScalingProcesses: IScalingProcess[];

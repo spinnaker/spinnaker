@@ -1,8 +1,8 @@
 'use strict';
 
-import { ConfirmationModalService, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
-
 import * as angular from 'angular';
+
+import { ConfirmationModalService, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
 
 export const DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.loadBalancer.details.controller';
 export const name = DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility

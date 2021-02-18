@@ -1,22 +1,21 @@
-import React from 'react';
 import { Field, FormikErrors, FormikProps } from 'formik';
+import React from 'react';
 
 import {
-  DeploymentStrategySelector,
-  DeployingIntoManagedClusterWarning,
-  HelpField,
-  NameUtils,
-  RegionSelectField,
-  Application,
-  ReactInjector,
-  IServerGroup,
-  IWizardPageComponent,
   AccountSelectInput,
   AccountTag,
+  Application,
+  DeployingIntoManagedClusterWarning,
+  DeploymentStrategySelector,
+  HelpField,
+  IServerGroup,
+  IWizardPageComponent,
+  NameUtils,
+  ReactInjector,
+  RegionSelectField,
   ServerGroupDetailsField,
   ServerGroupNamePreview,
 } from '@spinnaker/core';
-
 import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';

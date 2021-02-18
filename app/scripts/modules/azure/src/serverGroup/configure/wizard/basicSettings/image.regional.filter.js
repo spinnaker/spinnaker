@@ -1,8 +1,7 @@
 'use strict';
 
-import _ from 'lodash';
-
 import { module } from 'angular';
+import _ from 'lodash';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER =
   'spinnaker.azure.serverGroup.configure.basicSettings.image.filter';

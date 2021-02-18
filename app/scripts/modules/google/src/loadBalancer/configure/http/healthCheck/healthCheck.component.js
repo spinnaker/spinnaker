@@ -1,8 +1,9 @@
 'use strict';
 
 import { module } from 'angular';
-import { HealthCheckTemplate } from '../templates';
 import _ from 'lodash';
+
+import { HealthCheckTemplate } from '../templates';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT =
   'spinnaker.deck.httpLoadBalancer.healthCheck.component';

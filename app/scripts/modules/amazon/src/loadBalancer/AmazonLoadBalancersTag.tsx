@@ -1,23 +1,23 @@
 // This is all mercilessly copied from LoadBalancersTag.tsx. This should be cleaned up at some point
 // Probably when we convert clusters view to React.
 
+import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
+import { sortBy } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { sortBy } from 'lodash';
 
 import {
   HealthCounts,
+  HoverablePopover,
   ILoadBalancer,
   ILoadBalancersTagProps,
   LoadBalancerDataUtils,
   ReactInjector,
-  Tooltip,
-  HoverablePopover,
   Spinner,
+  Tooltip,
 } from '@spinnaker/core';
 
 import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
-import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer | ITargetGroup;

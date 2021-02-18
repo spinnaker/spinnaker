@@ -4,8 +4,9 @@ import { module } from 'angular';
 
 import { AccountService, ConfirmationModalService, TaskExecutor } from '@spinnaker/core';
 
-import './scalingPolicySummary.component.less';
 import { TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
+
+import './scalingPolicySummary.component.less';
 
 export const TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
   'spinnaker.titus.serverGroup.details.scalingPolicy.alarmBasedSummary.component';

@@ -1,8 +1,7 @@
 'use strict';
 
-import _ from 'lodash';
-
 import { module } from 'angular';
+import _ from 'lodash';
 
 export const GOOGLE_COMMON_XPNNAMING_GCE_SERVICE = 'spinnaker.gce.common.xpnNaming.service';
 export const name = GOOGLE_COMMON_XPNNAMING_GCE_SERVICE; // for backwards compatibility

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { HelpField, HelpContentsRegistry, ValidationMessage } from '@spinnaker/core';
+
+import { HelpContentsRegistry, HelpField, ValidationMessage } from '@spinnaker/core';
 
 export interface IPolicyTypeSelectionModalProps {
   showCallback: () => void;

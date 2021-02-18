@@ -1,13 +1,13 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-
-import { Application, InstanceReader, RecentHistoryService, Spinner, ILoadBalancer } from '@spinnaker/core';
-
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
-import { CloudFoundryInstanceDetailsSection } from './sections';
-import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
 import { flattenDeep } from 'lodash';
+import React from 'react';
+
+import { Application, ILoadBalancer, InstanceReader, RecentHistoryService, Spinner } from '@spinnaker/core';
+
+import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
+import { CloudFoundryInstanceDetailsSection } from './sections';
 
 interface InstanceFromStateParams {
   instanceId: string;

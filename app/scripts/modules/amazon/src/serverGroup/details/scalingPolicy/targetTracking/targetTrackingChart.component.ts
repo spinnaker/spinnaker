@@ -1,10 +1,10 @@
+import { IScalingPolicyAlarm, ITargetTrackingConfiguration } from 'amazon/domain';
 import { IComponentController, IComponentOptions, module } from 'angular';
-import { Subject } from 'rxjs';
 import { Dictionary } from 'lodash';
+import { Subject } from 'rxjs';
 
 import { IServerGroup } from '@spinnaker/core';
 
-import { IScalingPolicyAlarm, ITargetTrackingConfiguration } from 'amazon/domain';
 import { ITargetTrackingState } from './upsertTargetTracking.controller';
 
 const predefinedMetricTypeMapping: Dictionary<string> = {

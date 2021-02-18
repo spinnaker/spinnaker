@@ -1,4 +1,3 @@
-
 import { cloneDeep } from 'lodash';
 
 import { ITask } from 'core/domain';

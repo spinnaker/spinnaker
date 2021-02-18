@@ -1,33 +1,30 @@
 'use strict';
 
-import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
-
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
+import { TitusReactInjector } from 'titus/reactShims';
 
 import {
   AccountService,
-  confirmNotManaged,
   ClusterTargetBuilder,
   ConfirmationModalService,
+  confirmNotManaged,
+  ReactModal,
+  SERVER_GROUP_WRITER,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  SERVER_GROUP_WRITER,
   SETTINGS,
-  ReactModal,
 } from '@spinnaker/core';
 
-import { TitusReactInjector } from 'titus/reactShims';
-
-import { DISRUPTION_BUDGET_DETAILS_SECTION } from './disruptionBudget/DisruptionBudgetSection';
-import { SERVICE_JOB_PROCESSES_DETAILS_SECTION } from './serviceJobProcesses/ServiceJobProcessesSection';
-import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
-
-import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
-import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from '../configure/ServerGroupCommandBuilder';
+import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
+import { DISRUPTION_BUDGET_DETAILS_SECTION } from './disruptionBudget/DisruptionBudgetSection';
+import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
+import { SERVICE_JOB_PROCESSES_DETAILS_SECTION } from './serviceJobProcesses/ServiceJobProcessesSection';
+import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 
 export const TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER =
   'spinnaker.serverGroup.details.titus.controller';

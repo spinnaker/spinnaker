@@ -1,19 +1,18 @@
-import React from 'react';
 import { chain, xor } from 'lodash';
 import { $q } from 'ngimport';
+import React from 'react';
 
+import { SecurityGroupSelector, ServerGroupSecurityGroupsRemoved, VpcReader } from '@spinnaker/amazon';
 import {
+  AccountService,
   AccountTag,
   FirewallLabels,
-  ISecurityGroup,
-  IAggregatedAccounts,
-  IVpc,
   IAccountDetails,
+  IAggregatedAccounts,
+  ISecurityGroup,
+  IVpc,
   ReactInjector,
-  AccountService,
 } from '@spinnaker/core';
-
-import { ServerGroupSecurityGroupsRemoved, SecurityGroupSelector, VpcReader } from '@spinnaker/amazon';
 
 export interface ITitusSecurityGroupPickerProps {
   account: string;

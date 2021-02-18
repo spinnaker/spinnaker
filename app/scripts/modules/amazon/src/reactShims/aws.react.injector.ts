@@ -1,10 +1,11 @@
 import IInjectorService = angular.auto.IInjectorService;
 
-import { ReactInject, FunctionReader } from '@spinnaker/core';
+import { EvaluateCloudFormationChangeSetExecutionService } from 'amazon/pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
+
+import { FunctionReader, ReactInject } from '@spinnaker/core';
 
 import { AwsServerGroupConfigurationService } from '../serverGroup/configure/serverGroupConfiguration.service';
 import { AwsServerGroupTransformer } from '../serverGroup/serverGroup.transformer';
-import { EvaluateCloudFormationChangeSetExecutionService } from 'amazon/pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
 
 // prettier-ignore
 export class AwsReactInject extends ReactInject {

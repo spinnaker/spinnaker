@@ -6,9 +6,9 @@ import {
   Registry,
 } from '@spinnaker/core';
 
+import { PatchManifestStageConfig } from './PatchManifestStageConfig';
 import { DeployStatus } from '../deployManifest/manifestStatus/DeployStatus';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
-import { PatchManifestStageConfig } from './PatchManifestStageConfig';
 
 export class PatchStatus extends DeployStatus {
   public static title = 'PatchStatus';

@@ -1,8 +1,8 @@
 import { module } from 'angular';
+import { IAppengineStageScope } from 'appengine/domain';
 
 import { Registry } from '@spinnaker/core';
 
-import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {

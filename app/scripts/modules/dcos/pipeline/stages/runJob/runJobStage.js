@@ -1,15 +1,14 @@
 'use strict';
 
-import _ from 'lodash';
-
 import { module } from 'angular';
+import { DCOS_JOB_GENERAL_COMPONENT } from 'dcos/job/general.component';
+import { DCOS_JOB_LABELS_COMPONENT } from 'dcos/job/labels.component';
+import _ from 'lodash';
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from './dockerImageAndTagSelector.component';
 import { DcosProviderSettings } from '../../../dcos.settings';
-import { DCOS_JOB_GENERAL_COMPONENT } from 'dcos/job/general.component';
-import { DCOS_JOB_LABELS_COMPONENT } from 'dcos/job/labels.component';
+import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from './dockerImageAndTagSelector.component';
 
 export const DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.dcos.pipeline.stage.runJobStage';
 export const name = DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility

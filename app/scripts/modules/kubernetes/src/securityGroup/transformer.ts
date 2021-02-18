@@ -1,4 +1,4 @@
-import { module, IQService } from 'angular';
+import { IQService, module } from 'angular';
 
 import { ISecurityGroup } from '@spinnaker/core';
 

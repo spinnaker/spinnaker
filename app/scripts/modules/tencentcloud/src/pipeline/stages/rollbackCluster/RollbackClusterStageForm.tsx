@@ -1,14 +1,16 @@
 import React from 'react';
-const { useEffect, useState } = React;
+
 import {
   AccountService,
-  NgReact,
-  StageConfigField,
-  IAccount,
   FormikFormField,
+  IAccount,
   IFormikStageConfigInjectedProps,
+  NgReact,
   NumberInput,
+  StageConfigField,
 } from '@spinnaker/core';
+
+const { useEffect, useState } = React;
 const { AccountRegionClusterSelector } = NgReact;
 
 export function RollbackClusterStageForm({ application, formik, pipeline }: IFormikStageConfigInjectedProps) {

@@ -1,8 +1,8 @@
 import { ExecutionArtifactTab, ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import {
-  validateDeployAppengineConfigurationStage,
   DeployAppengineConfigurationConfig,
+  validateDeployAppengineConfigurationStage,
 } from './DeployAppengineConfigurationConfig';
 
 export const DEPLOY_APPENGINE_CONFIG_STAGE_KEY = 'deployAppEngineConfiguration';

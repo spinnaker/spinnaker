@@ -1,5 +1,5 @@
-import React from 'react';
 import { dump } from 'js-yaml';
+import React from 'react';
 
 import { CopyToClipboard, IManifest, ManifestYaml } from '@spinnaker/core';
 

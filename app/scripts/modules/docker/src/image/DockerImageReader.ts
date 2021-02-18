@@ -1,4 +1,4 @@
-import { REST, IFindImageParams, IFindTagsParams, IImage, RetryService } from '@spinnaker/core';
+import { IFindImageParams, IFindTagsParams, IImage, REST, RetryService } from '@spinnaker/core';
 
 export interface IDockerImage extends IImage {
   account: string;

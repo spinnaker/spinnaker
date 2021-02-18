@@ -1,6 +1,6 @@
-import { REST } from '@spinnaker/core';
-
 import { ICloudFoundryCluster } from 'cloudfoundry/domain';
+
+import { REST } from '@spinnaker/core';
 
 export class CloudFoundryImageReader {
   public static findImages(account: string): PromiseLike<ICloudFoundryCluster[]> {

@@ -3,9 +3,10 @@
 import { module } from 'angular';
 
 import { TaskMonitor } from '@spinnaker/core';
-import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
-import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT } from './resizeAutoscalingPolicy.component';
+
 import { GOOGLE_COMMON_FOOTER_DIRECTIVE } from '../../../common/footer.directive';
+import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT } from './resizeAutoscalingPolicy.component';
+import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
 
 export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER =
   'spinnaker.google.serverGroup.details.resize.controller';

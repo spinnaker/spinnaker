@@ -1,8 +1,9 @@
-import React from 'react';
-import { FormikFormField, IWizardPageComponent, TextInput, NumberInput, HelpField } from '@spinnaker/core';
-import { FormikProps } from 'formik';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 import { IAmazonFunction } from 'amazon/domain';
+import { IAmazonFunctionUpsertCommand } from 'amazon/index';
+import { FormikProps } from 'formik';
+import React from 'react';
+
+import { FormikFormField, HelpField, IWizardPageComponent, NumberInput, TextInput } from '@spinnaker/core';
 
 export interface IFunctionSettingsProps {
   formik: FormikProps<IAmazonFunctionUpsertCommand>;

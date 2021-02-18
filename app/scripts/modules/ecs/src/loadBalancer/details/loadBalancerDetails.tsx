@@ -1,6 +1,7 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
-import { AccountTag, Application, CollapsibleSection, timestamp, Spinner } from '@spinnaker/core';
+import React from 'react';
+
+import { AccountTag, Application, CollapsibleSection, Spinner, timestamp } from '@spinnaker/core';
 
 import { IEcsLoadBalancer } from '../../domain/IEcsLoadBalancer';
 import { EcsListener } from '../listener';

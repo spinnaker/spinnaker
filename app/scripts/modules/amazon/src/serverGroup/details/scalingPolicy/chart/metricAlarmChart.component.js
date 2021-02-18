@@ -1,14 +1,14 @@
 'use strict';
 
 import { module } from 'angular';
-import _ from 'lodash';
-import { Subject } from 'rxjs';
 // we need to explicitly import d3 because n3-charts depends on it being in the global namespace
 import 'd3';
+import _ from 'lodash';
+import 'n3-charts/build/LineChart';
+import { Subject } from 'rxjs';
 
 import { CloudMetricsReader } from '@spinnaker/core';
 
-import 'n3-charts/build/LineChart';
 import './LineChartHack.css';
 import './metricAlarmChart.component.less';
 

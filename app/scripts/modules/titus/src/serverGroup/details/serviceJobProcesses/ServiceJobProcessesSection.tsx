@@ -1,23 +1,23 @@
-import React from 'react';
 import { module } from 'angular';
+import React from 'react';
 import { react2angular } from 'react2angular';
+import { ITitusServerGroup } from 'titus/domain';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import {
+  Application,
+  ChecklistInput,
   FormikFormField,
   IModalComponentProps,
-  ChecklistInput,
   ReactModal,
-  TextAreaInput,
-  TaskMonitorModal,
-  Application,
   robotToHuman,
+  TaskMonitorModal,
+  TextAreaInput,
   withErrorBoundary,
 } from '@spinnaker/core';
 
-import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
-import { ITitusServerGroup } from 'titus/domain';
 import { enabledProcesses } from './ServiceJobProcesses';
+import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
 
 interface IEditTitusServiceJobProcessesValues {
   serviceJobProcesses: string[];

@@ -1,5 +1,5 @@
-import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
+import { module } from 'angular';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
 

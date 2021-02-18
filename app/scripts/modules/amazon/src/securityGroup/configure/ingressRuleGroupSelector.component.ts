@@ -1,15 +1,15 @@
-import { IController, IComponentOptions, module } from 'angular';
-import { Subject, Subscription } from 'rxjs';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IComponentOptions, IController, module } from 'angular';
 import { intersection, uniq } from 'lodash';
+import { Subject, Subscription } from 'rxjs';
 
 import {
-  ISecurityGroupRule,
-  ISecurityGroup,
-  IVpc,
   IAccountDetails,
+  ISecurityGroup,
+  ISecurityGroupRule,
   ISecurityGroupsByAccountSourceData,
+  IVpc,
 } from '@spinnaker/core';
-import { AWSProviderSettings } from 'amazon/aws.settings';
 
 interface IInfiniteScroll {
   currentItems: number;

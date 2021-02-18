@@ -1,9 +1,11 @@
 import { module } from 'angular';
+
 //import { StateParams } from '@uirouter/angularjs';
-import { ApplicationStateProvider, APPLICATION_STATE_PROVIDER, INestedState } from '@spinnaker/core';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
+
 import { K8sResources } from './component/K8sResources';
-import { RawResourceDetails } from './component/group/RawResourceDetails';
 import { K8sResourcesFilters } from './component/K8sResourcesFilters';
+import { RawResourceDetails } from './component/group/RawResourceDetails';
 
 export interface IKubernetesRawResourceStateParams {
   account: string;

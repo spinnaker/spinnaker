@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AccountService, StageConstants, Registry } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE = 'spinnaker.dcos.pipeline.stage.destroyAsgStage';
 export const name = DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE; // for backwards compatibility

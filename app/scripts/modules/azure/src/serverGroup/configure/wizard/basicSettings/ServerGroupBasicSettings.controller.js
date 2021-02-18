@@ -1,11 +1,12 @@
 'use strict';
 
-import { IMAGE_READER, ModalWizard } from '@spinnaker/core';
-import { AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER } from './image.regional.filter';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
-import * as angular from 'angular';
+import { IMAGE_READER, ModalWizard } from '@spinnaker/core';
+
+import { AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER } from './image.regional.filter';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_SERVERGROUPBASICSETTINGS_CONTROLLER =
   'spinnaker.azure.serverGroup.configure.basicSettings';

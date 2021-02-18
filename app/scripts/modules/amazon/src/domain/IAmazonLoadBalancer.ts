@@ -1,15 +1,15 @@
-import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
+import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
+
 import {
+  IInstance,
+  IInstanceCounts,
   ILoadBalancer,
   ILoadBalancerDeleteCommand,
   ILoadBalancerUpsertCommand,
-  IInstance,
-  IInstanceCounts,
   ISubnet,
 } from '@spinnaker/core';
 
-import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
-
+import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
 import { IAmazonServerGroup } from './IAmazonServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';

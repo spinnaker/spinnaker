@@ -1,5 +1,5 @@
-import React from 'react';
 import { Field, FormikProps } from 'formik';
+import React from 'react';
 
 import { IServerGroupCommand, IWizardPageComponent } from '@spinnaker/core';
 

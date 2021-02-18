@@ -1,5 +1,5 @@
-import React from 'react';
 import { isEmpty } from 'lodash';
+import React from 'react';
 
 import { ILayoutProps } from '@spinnaker/core';
 

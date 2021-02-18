@@ -99,6 +99,7 @@ import { ReactComponent as mdUnknown } from './vectors/mdUnknown.svg';
 import { ReactComponent as mdConstraintGeneric } from './vectors/mdConstraintGeneric.svg';
 import { ReactComponent as mdConstraintDependsOn } from './vectors/mdConstraintDependsOn.svg';
 import { ReactComponent as mdConstraintAllowedTimes } from './vectors/mdConstraintAllowedTimes.svg';
+import { ReactComponent as mdVerification } from './vectors/mdVerification.svg';
 import { ReactComponent as md } from './vectors/md.svg';
 
 // MEME Templating
@@ -194,6 +195,7 @@ export const iconsByName = {
   mdConstraintDependsOn,
   mdConstraintAllowedTimes,
   md,
+  mdVerification,
   menu,
   menuClose,
   pin,

@@ -1,5 +1,6 @@
+import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+
 import { CloudfoundryRunJobStageConfig } from './CloudfoundryRunJobStageConfig';
-import { IStage, Registry, ExecutionDetailsTasks } from '@spinnaker/core';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 Registry.pipeline.registerStage({

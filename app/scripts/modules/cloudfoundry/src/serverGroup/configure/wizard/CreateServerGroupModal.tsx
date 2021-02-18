@@ -1,6 +1,6 @@
-import React from 'react';
-
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { get } from 'lodash';
+import React from 'react';
 
 import {
   Application,
@@ -8,21 +8,20 @@ import {
   IPipeline,
   IStage,
   noop,
-  ReactModal,
   ReactInjector,
+  ReactModal,
   TaskMonitor,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
-import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';
-import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
-import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
+import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
 import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
+import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';
 import { CloudFoundryServerGroupCloneSettings } from './sections/cloneSettings/CloneSettings.cf';
+import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
+import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
 
 import './serverGroup.less';
 

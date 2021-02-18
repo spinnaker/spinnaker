@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { includes } from 'lodash';
+import React from 'react';
 
 interface IServiceTagsInputProps {
   tags: string[];

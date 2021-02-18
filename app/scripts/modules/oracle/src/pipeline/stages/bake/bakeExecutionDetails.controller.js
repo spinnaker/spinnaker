@@ -1,9 +1,9 @@
 'use strict';
 
-import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-
 import { module } from 'angular';
+
+import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
 
 export const ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.oracle.pipeline.stage.bake.executionDetails.controller';

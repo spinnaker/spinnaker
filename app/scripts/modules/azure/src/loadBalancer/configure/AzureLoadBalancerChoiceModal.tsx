@@ -2,12 +2,12 @@ import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 import {
+  CloudProviderRegistry,
   ILoadBalancerModalProps,
   ModalClose,
-  ReactModal,
-  noop,
-  CloudProviderRegistry,
   ModalInjector,
+  noop,
+  ReactModal,
 } from '@spinnaker/core';
 
 import { AzureLoadBalancerTypes, IAzureLoadBalancer } from '../../utility';

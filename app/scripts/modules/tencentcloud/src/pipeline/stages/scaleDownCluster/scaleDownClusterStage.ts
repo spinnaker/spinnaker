@@ -1,6 +1,7 @@
-import { validate } from './scaledownClusterValidators';
 import { Registry } from '@spinnaker/core';
+
 import { ScaleDownClusterConfig } from './ScaleDownClusterConfig';
+import { validate } from './scaledownClusterValidators';
 
 Registry.pipeline.registerStage({
   provides: 'scaleDownCluster',

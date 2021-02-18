@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from 'appengine/domain/index';
 import { camelCase, chain, cloneDeep, filter, get, has, reduce } from 'lodash';
 
 import {
@@ -9,8 +10,6 @@ import {
   ILoadBalancerUpsertCommand,
   IServerGroup,
 } from '@spinnaker/core';
-
-import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from 'appengine/domain/index';
 
 export interface IAppengineAllocationDescription {
   serverGroupName?: string;

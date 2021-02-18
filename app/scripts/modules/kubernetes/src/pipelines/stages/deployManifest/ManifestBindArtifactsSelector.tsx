@@ -1,11 +1,11 @@
 import React from 'react';
 
 import {
+  ArtifactTypePatterns,
   IArtifact,
   IExpectedArtifact,
   IPipeline,
   IStage,
-  ArtifactTypePatterns,
   StageArtifactSelector,
 } from '@spinnaker/core';
 

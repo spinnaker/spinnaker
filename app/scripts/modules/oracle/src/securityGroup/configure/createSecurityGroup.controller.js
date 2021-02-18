@@ -1,8 +1,8 @@
 'use strict';
 
-import { FirewallLabels } from '@spinnaker/core';
-
 import { module } from 'angular';
+
+import { FirewallLabels } from '@spinnaker/core';
 
 export const ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER =
   'spinnaker.oracle.securityGroup.create.controller';

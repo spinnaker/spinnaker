@@ -1,7 +1,8 @@
+import { Form, FormikContext } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Form, FormikContext } from 'formik';
 import { ITitusServerGroup } from 'titus/domain';
+
 import {
   Application,
   FormikFormField,
@@ -17,6 +18,7 @@ import {
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
+
 import { useTaskMonitor } from './useTaskMonitor';
 
 const { useState, useEffect, useMemo } = React;

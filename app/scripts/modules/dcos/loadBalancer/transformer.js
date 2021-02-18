@@ -1,10 +1,10 @@
 'use strict';
 
+import { module } from 'angular';
 import _ from 'lodash';
 
-import { module } from 'angular';
-
 import { AccountService } from '@spinnaker/core';
+
 import { DcosProviderSettings } from '../dcos.settings';
 
 export const DCOS_LOADBALANCER_TRANSFORMER = 'spinnaker.dcos.loadBalancer.transformer';

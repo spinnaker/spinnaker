@@ -1,22 +1,21 @@
+import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
+import { get, values } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { get, values } from 'lodash';
 
 import {
   Application,
   ApplicationReader,
   ConfirmationModalService,
+  HelpField,
   LoadBalancerWriter,
   ManagedMenuItem,
-  SETTINGS,
   NgReact,
-  HelpField,
+  SETTINGS,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
-
-import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
+import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
 
 export interface ILoadBalancerActionsProps {
   app: Application;

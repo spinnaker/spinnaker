@@ -1,5 +1,3 @@
-
-
 import { Application } from 'core/application';
 import { ModalInjector } from 'core/reactShims';
 import { IJob, TaskExecutor, ITaskCommand } from 'core/task/taskExecutor';

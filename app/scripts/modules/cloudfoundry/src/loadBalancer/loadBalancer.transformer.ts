@@ -1,3 +1,9 @@
+import {
+  ICloudFoundryLoadBalancer,
+  ICloudFoundryLoadBalancerUpsertCommand,
+  ICloudFoundryServerGroup,
+  ICloudFoundrySpace,
+} from 'cloudfoundry/domain';
 import { camelCase, chain, cloneDeep, has } from 'lodash';
 
 import {
@@ -8,13 +14,6 @@ import {
   ILoadBalancerUpsertCommand,
   IServerGroup,
 } from '@spinnaker/core';
-
-import {
-  ICloudFoundryLoadBalancer,
-  ICloudFoundryLoadBalancerUpsertCommand,
-  ICloudFoundryServerGroup,
-  ICloudFoundrySpace,
-} from 'cloudfoundry/domain';
 
 export class CloudFoundryLoadBalancerUpsertDescription
   implements ILoadBalancerUpsertCommand, ICloudFoundryLoadBalancer {

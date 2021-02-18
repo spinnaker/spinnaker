@@ -1,9 +1,10 @@
 import { module } from 'angular';
 
 import { EXECUTION_ARTIFACT_TAB, ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+
+import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { ManifestTrafficStageConfig } from './ManifestTrafficStageConfig';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
-import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 
 const STAGE_NAME = 'Disable (Manifest)';
 const STAGE_KEY = 'disableManifest';

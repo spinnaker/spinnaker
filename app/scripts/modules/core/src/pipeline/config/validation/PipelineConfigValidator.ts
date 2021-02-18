@@ -1,4 +1,3 @@
-
 import { Subject, Subscription } from 'rxjs';
 import { $log, $q } from 'ngimport';
 import { values, flatten, isNumber } from 'lodash';

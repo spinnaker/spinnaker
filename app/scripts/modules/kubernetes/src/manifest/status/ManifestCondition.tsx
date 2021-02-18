@@ -1,6 +1,7 @@
-import React from 'react';
-import { relativeTime } from '@spinnaker/core';
 import { DateTime } from 'luxon';
+import React from 'react';
+
+import { relativeTime } from '@spinnaker/core';
 
 export interface IKubernetesManifestCondition {
   status: string;

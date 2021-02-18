@@ -1,8 +1,10 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import { orderBy } from 'lodash';
+import React from 'react';
+
 import { CollapsibleSection, FirewallLabels } from '@spinnaker/core';
+
 import { IAmazonInstance } from '../../domain';
 
 export interface IInstanceSecurityGroupsProps {
