@@ -52,7 +52,7 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
     super(DOCKER_IMAGE);
     this.accountName = accountName;
     for (int i = 0; i < STARTUP_NAMESPACES; i++) {
-      this.availableNamespaces.put("testns" + i, true);
+      this.availableNamespaces.put("testns" + String.format("%02d", i), true);
     }
 
     // arguments to docker run
@@ -75,10 +75,11 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
     return kubecfgPath;
   }
 
-  public String getAvailableNamespace() {
+  public String getAvailableNamespace() throws IOException, InterruptedException {
     for (Map.Entry<String, Boolean> entry : availableNamespaces.entrySet()) {
       if (entry.getValue()) {
         entry.setValue(false);
+        execKubectl("create ns " + entry.getKey());
         return entry.getKey();
       }
     }
@@ -132,10 +133,7 @@ public class KubernetesCluster extends GenericContainer<KubernetesCluster> {
     try {
       this.kubecfgPath = copyKubecfgFromCluster(containerName);
       fixKubeEndpoint(this.kubecfgPath);
-      for (String ns : availableNamespaces.keySet()) {
-        execKubectl("create ns " + ns);
-      }
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new RuntimeException(
           "Unable to initialize kubectl or kubeconfig.yml files, or unable to create initial namespaces",
           e);

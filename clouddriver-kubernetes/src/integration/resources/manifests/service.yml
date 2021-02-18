@@ -1,9 +1,9 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: nginx
+  name: myservice
   labels:
-    app: nginx
+    app: myservice
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +12,5 @@ spec:
       port: 80
       targetPort: 80
   selector:
-    app: nginx
+    app: myapp
   sessionAffinity: None

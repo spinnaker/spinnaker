@@ -1,29 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: myapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: myapp
   template:
     metadata:
       labels:
-        app: nginx
+        app: myapp
     spec:
       containers:
-        - image: 'index.docker.io/library/nginx:1.14.0'
-          name: nginx
-          ports:
-            - containerPort: 80
+        - image: 'index.docker.io/library/alpine:3.12'
+          name: myapp
+          command:
+            - tail
+            - -f
+            - /dev/null
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: nginx
-  name: nginx
+    app: myservice
+  name: myservice
 spec:
   type: ClusterIP
   ports:
@@ -32,5 +34,5 @@ spec:
       protocol: TCP
       targetPort: 80
   selector:
-    app: nginx
+    app: myapp
   sessionAffinity: None

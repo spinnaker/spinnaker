@@ -33,12 +33,12 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
-          + "Given a nginx deployment manifest with no namespace set\n"
+          + "Given a deployment manifest with no namespace set\n"
           + "  And a namespace override\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx pod is up and running in the overridden namespace\n===")
+          + "Then a pod is up and running in the overridden namespace\n===")
   @Test
   public void shouldDeployManifestFromText() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
@@ -55,7 +55,7 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, overrideNamespace, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, overrideNamespace, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + overrideNamespace + " get pods");
@@ -63,30 +63,30 @@ public class DeployManifestIT extends BaseTest {
         kubeCluster.execKubectl(
             "-n "
                 + overrideNamespace
-                + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+                + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given a nginx deployment manifest with default namespace set\n"
+          + "Given a deployment manifest with default namespace set\n"
           + "  And a namespace override that is not listed in account's namespaces\n"
           + "When sending deploy manifest request\n"
           + "Then deployment fails with DescriptionValidationException\n===")
   @Test
-  public void shouldNotDeployToNamespaceNotListed() throws IOException, InterruptedException {
+  public void shouldNotDeployToNamespaceNotListed() {
     // ------------------------- given --------------------------
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
             .withValue("metadata.namespace", "default")
             .asList();
-    String overrideNamespace = kubeCluster.getAvailableNamespace();
+    String overrideNamespace = "nonexistent";
     System.out.println("> Using namespace " + overrideNamespace);
 
     // ------------------------- when --------------------------
     List<Map<String, Object>> body =
         KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
-            .withValue("deployManifest.account", "account2")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
             .withValue("deployManifest.namespaceOverride", overrideNamespace)
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
@@ -106,11 +106,11 @@ public class DeployManifestIT extends BaseTest {
 
   @DisplayName(
       ".\n===\n"
-          + "Given a nginx deployment manifest with no namespace set\n"
+          + "Given a deployment manifest with no namespace set\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx pod is up and running in the default namespace\n===")
+          + "Then a pod is up and running in the default namespace\n===")
   @Test
   public void shouldDeployManifestToDefaultNs() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
@@ -120,18 +120,18 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- when --------------------------
     List<Map<String, Object>> body =
         KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
-            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.account", ACCOUNT2_NAME)
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, "default", "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, "default", "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n default get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n default" + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n default" + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
   }
 
   @DisplayName(
@@ -140,14 +140,14 @@ public class DeployManifestIT extends BaseTest {
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx service and pod exist in the target cluster\n===")
+          + "Then a service and pod exist in the target cluster\n===")
   @Test
   public void shouldDeployMultidocManifest() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     String ns = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + ns);
     List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/multi_nginx.yml")
+        KubeTestUtils.loadYaml("classpath:manifests/multi_deployment_service.yml")
             .withValue("metadata.namespace", ns)
             .asList();
 
@@ -158,24 +158,24 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", manifest)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx", "service nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp", "service myservice");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String services = kubeCluster.execKubectl("-n " + ns + " get services");
     assertTrue(
-        Strings.isNotEmpty(kubeCluster.execKubectl("-n " + ns + " get services nginx")),
-        "Expected service nginx to exist. Services: " + services);
+        Strings.isNotEmpty(kubeCluster.execKubectl("-n " + ns + " get services myservice")),
+        "Expected service myservice to exist. Services: " + services);
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx deployed with spinnaker\n"
-          + "  And nginx manifest updated with a new tag version\n"
+          + "Given a deployment deployed with spinnaker\n"
+          + "  And it gets updated with a new tag version\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
@@ -185,8 +185,8 @@ public class DeployManifestIT extends BaseTest {
     // ------------------------- given --------------------------
     String ns = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + ns);
-    String oldImage = "index.docker.io/library/nginx:1.14.0";
-    String newImage = "index.docker.io/library/nginx:1.15.0";
+    String oldImage = "index.docker.io/library/alpine:3.11";
+    String newImage = "index.docker.io/library/alpine:3.12";
 
     List<Map<String, Object>> oldManifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
@@ -200,13 +200,13 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", oldManifest)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
     String currentImage =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.containers[0].image}'");
-    assertEquals(oldImage, currentImage, "Expected correct nginx image to be deployed");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(oldImage, currentImage, "Expected correct myapp image to be deployed");
 
     List<Map<String, Object>> newManifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
@@ -221,37 +221,37 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.moniker.app", APP1_NAME)
             .withValue("deployManifest.manifests", newManifest)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     currentImage =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.containers[0].image}'");
-    assertEquals(newImage, currentImage, "Expected correct nginx image to be deployed");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(newImage, currentImage, "Expected correct myapp image to be deployed");
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx manifest without image tag\n"
-          + "  And optional nginx docker artifact present\n"
+          + "Given a deployment manifest without image tag\n"
+          + "  And optional docker artifact present\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx artifact is deployed\n===")
+          + "Then the docker artifact is deployed\n===")
   @Test
   public void shouldBindOptionalDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     String ns = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + ns);
-    String imageNoTag = "index.docker.io/library/nginx";
-    String imageWithTag = "index.docker.io/library/nginx:1.15.0";
+    String imageNoTag = "index.docker.io/library/alpine";
+    String imageWithTag = "index.docker.io/library/alpine:3.12";
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
@@ -274,37 +274,37 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String imageDeployed =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.containers[0].image}'");
-    assertEquals(imageWithTag, imageDeployed, "Expected correct nginx image to be deployed");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(imageWithTag, imageDeployed, "Expected correct myapp image to be deployed");
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx manifest without image tag\n"
-          + "  And required nginx docker artifact present\n"
+          + "Given a deployment manifest without image tag\n"
+          + "  And required docker artifact present\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx artifact is deployed\n===")
+          + "Then the docker artifact is deployed\n===")
   @Test
   public void shouldBindRequiredDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     String ns = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + ns);
-    String imageNoTag = "index.docker.io/library/nginx";
-    String imageWithTag = "index.docker.io/library/nginx:1.15.0";
+    String imageNoTag = "index.docker.io/library/alpine";
+    String imageWithTag = "index.docker.io/library/alpine:3.12";
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
@@ -327,39 +327,39 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.requiredArtifacts[0]", artifact)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String imageDeployed =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.containers[0].image}'");
-    assertEquals(imageWithTag, imageDeployed, "Expected correct nginx image to be deployed");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(imageWithTag, imageDeployed, "Expected correct myapp image to be deployed");
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx manifest without image tag\n"
-          + "  And required nginx docker artifact present\n"
-          + "  And optional nginx docker artifact present\n"
+          + "Given a deployment manifest without image tag\n"
+          + "  And required docker artifact present\n"
+          + "  And optional docker artifact present\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then required nginx artifact is deployed\n===")
+          + "Then required docker artifact is deployed\n===")
   @Test
   public void shouldBindRequiredOverOptionalDockerImage() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
     String ns = kubeCluster.getAvailableNamespace();
     System.out.println("> Using namespace " + ns);
-    String imageNoTag = "index.docker.io/library/nginx";
-    String requiredImage = "index.docker.io/library/nginx:1.16.0";
-    String optionalImage = "index.docker.io/library/nginx:1.15.0";
+    String imageNoTag = "index.docker.io/library/alpine";
+    String requiredImage = "index.docker.io/library/alpine:3.11";
+    String optionalImage = "index.docker.io/library/alpine:3.12";
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/deployment.yml")
@@ -390,31 +390,31 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.requiredArtifacts[0]", requiredArtifact)
             .withValue("deployManifest.optionalArtifacts[0]", optionalArtifact)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String imageDeployed =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.containers[0].image}'");
-    assertEquals(requiredImage, imageDeployed, "Expected correct nginx image to be deployed");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.containers[0].image}'");
+    assertEquals(requiredImage, imageDeployed, "Expected correct myapp image to be deployed");
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx manifest referencing an unversioned configmap\n"
+          + "Given a manifest referencing an unversioned configmap\n"
           + "  And versioned configmap deployed\n"
           + "  And versioned configmap artifact\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx is deployed mounting versioned configmap\n===")
+          + "Then the manifest is deployed mounting versioned configmap\n===")
   @Test
   public void shouldBindVersionedConfigMap() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
@@ -454,32 +454,32 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String cmNameDeployed =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.volumes[0].configMap.name}'");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.volumes[0].configMap.name}'");
     assertEquals(
         cmName + "-" + version, cmNameDeployed, "Expected correct configmap to be referenced");
   }
 
   @DisplayName(
       ".\n===\n"
-          + "Given nginx manifest referencing an unversioned secret\n"
+          + "Given a manifest referencing an unversioned secret\n"
           + "  And versioned secret deployed\n"
           + "  And versioned secret artifact\n"
           + "When sending deploy manifest request\n"
           + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
-          + "Then nginx is deployed mounting versioned secret\n===")
+          + "Then the manifest is deployed mounting versioned secret\n===")
   @Test
   public void shouldBindVersionedSecret() throws IOException, InterruptedException {
     // ------------------------- given --------------------------
@@ -519,19 +519,19 @@ public class DeployManifestIT extends BaseTest {
             .withValue("deployManifest.manifests", manifest)
             .withValue("deployManifest.optionalArtifacts[0]", artifact)
             .asList();
-    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment nginx");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "deployment myapp");
 
     // ------------------------- then --------------------------
     String pods = kubeCluster.execKubectl("-n " + ns + " get pods");
     String readyPods =
         kubeCluster.execKubectl(
-            "-n " + ns + " get deployment nginx -o=jsonpath='{.status.readyReplicas}'");
-    assertEquals("1", readyPods, "Expected one ready pod for nginx deployment. Pods:\n" + pods);
+            "-n " + ns + " get deployment myapp -o=jsonpath='{.status.readyReplicas}'");
+    assertEquals("1", readyPods, "Expected one ready pod for myapp deployment. Pods:\n" + pods);
     String secretNameDeployed =
         kubeCluster.execKubectl(
             "-n "
                 + ns
-                + " get deployment nginx -o=jsonpath='{.spec.template.spec.volumes[0].secret.secretName}'");
+                + " get deployment myapp -o=jsonpath='{.spec.template.spec.volumes[0].secret.secretName}'");
     assertEquals(
         secretName + "-" + version, secretNameDeployed, "Expected correct secret to be referenced");
   }

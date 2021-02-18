@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.it.containers.KubernetesCluster;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.io.IOException;
@@ -205,6 +204,8 @@ public abstract class KubeTestUtils {
     System.out.println(
         "< Deploy task completed in " + ((System.currentTimeMillis() - start) / 1000) + " seconds");
 
+    Arrays.sort(objectNames);
+    Collections.sort(deployedObjectNames);
     assertEquals(
         Arrays.asList(objectNames),
         deployedObjectNames,
@@ -309,50 +310,21 @@ public abstract class KubeTestUtils {
     }
   }
 
-  public static void deployIfMissing(
-      String baseUrl,
-      String account,
-      String namespace,
-      String kind,
-      String name,
-      String app,
-      KubernetesCluster kubeCluster)
-      throws InterruptedException, IOException {
-    deployIfMissing(baseUrl, account, namespace, kind, name, app, null, kubeCluster);
+  public static void deployAndWaitStable(
+      String baseUrl, String account, String namespace, String kind, String name, String app)
+      throws InterruptedException {
+    deployAndWaitStable(baseUrl, account, namespace, kind, name, app, null);
   }
 
-  public static void deployIfMissing(
+  public static void deployAndWaitStable(
       String baseUrl,
       String account,
       String namespace,
       String kind,
       String name,
       String app,
-      String image,
-      KubernetesCluster kubeCluster)
-      throws InterruptedException, IOException {
-
-    String path = "";
-    if (image != null) {
-      path = ".spec.template.spec.containers[0].image";
-    }
-
-    String output =
-        kubeCluster.execKubectl(
-            "-n "
-                + namespace
-                + " get "
-                + kind
-                + " -o=jsonpath='{.items[?(@.metadata.name==\""
-                + name
-                + "\")]"
-                + path
-                + "}'");
-    if (!output.isEmpty()) {
-      if (image == null || output.contains(image)) {
-        return;
-      }
-    }
+      String image)
+      throws InterruptedException {
 
     TestResourceFile manifest =
         KubeTestUtils.loadYaml("classpath:manifests/" + kind + ".yml")

@@ -16,9 +16,46 @@ kubernetes:
       dockerRegistries: []
       configureImagePullSecrets: true
       cacheThreads: 3
-      namespaces: []
+      namespaces:
+        - testns00
+        - testns01
+        - testns02
+        - testns03
+        - testns04
+        - testns05
+        - testns06
+        - testns07
+        - testns08
+        - testns09
+        - testns10
+        - testns11
+        - testns12
+        - testns13
+        - testns14
+        - testns15
+        - testns16
+        - testns17
+        - testns18
+        - testns19
+        - testns20
+        - testns21
+        - testns22
+        - testns23
+        - testns24
+        - testns25
+        - testns26
+        - testns27
+        - testns28
+        - testns29
+        - testns30
       omitNamespaces: []
-      kinds: []
+      kinds:
+        - pod
+        - replicaset
+        - deployment
+        - service
+        - configmap
+        - secret
       omitKinds: []
       customResources: []
       cachingPolicies: []
@@ -35,8 +72,7 @@ kubernetes:
       dockerRegistries: []
       configureImagePullSecrets: true
       cacheThreads: 1
-      namespaces:
-      - default
+      namespaces: []
       omitNamespaces: []
       kinds: []
       omitKinds: []
@@ -47,6 +83,8 @@ kubernetes:
       onlySpinnakerManaged: true
       metrics: false
       kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
+
+logging.level.com.netflix.spinnaker.cats.sql.cluster: DEBUG
 
 sql:
   enabled: true
