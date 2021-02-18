@@ -1,16 +1,18 @@
 import React from 'react';
-const { useEffect, useState } = React;
+
 import {
   AccountService,
-  NgReact,
-  StageConfigField,
-  IAccount,
+  CheckboxInput,
   FormikFormField,
+  IAccount,
   IFormikStageConfigInjectedProps,
+  NgReact,
   NumberInput,
   SelectInput,
-  CheckboxInput,
+  StageConfigField,
 } from '@spinnaker/core';
+
+const { useEffect, useState } = React;
 const { AccountRegionClusterSelector } = NgReact;
 
 export function ShrinkClusterStageForm({ application, formik, pipeline }: IFormikStageConfigInjectedProps) {

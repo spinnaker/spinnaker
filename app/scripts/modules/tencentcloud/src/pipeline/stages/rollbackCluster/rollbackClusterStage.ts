@@ -1,6 +1,7 @@
-import { validate } from './rollbackClusterValidators';
 import { Registry } from '@spinnaker/core';
+
 import { RollbackClusterConfig } from './RollbackClusterConfig';
+import { validate } from './rollbackClusterValidators';
 
 Registry.pipeline.registerStage({
   provides: 'rollbackCluster',

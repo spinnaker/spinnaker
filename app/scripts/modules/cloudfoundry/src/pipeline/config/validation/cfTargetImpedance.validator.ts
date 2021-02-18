@@ -2,10 +2,10 @@ import {
   IPipeline,
   IStage,
   IStageOrTriggerTypeConfig,
-  NameUtils,
-  PipelineConfigService,
   IStageOrTriggerValidator,
   IValidatorConfig,
+  NameUtils,
+  PipelineConfigService,
   PipelineConfigValidator,
 } from '@spinnaker/core';
 

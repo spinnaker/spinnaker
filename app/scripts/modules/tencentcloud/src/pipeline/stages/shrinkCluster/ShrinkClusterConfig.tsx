@@ -1,7 +1,8 @@
-import React from 'react';
 import { cloneDeep } from 'lodash';
+import React from 'react';
 
 import { FormikStageConfig, IStageConfigProps } from '@spinnaker/core';
+
 import { ShrinkClusterStageForm } from './ShrinkClusterStageForm';
 
 export function ShrinkClusterConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {

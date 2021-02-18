@@ -1,12 +1,11 @@
-import React from 'react';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 import { FormikErrors, FormikProps } from 'formik';
+import React from 'react';
 
 import { IWizardPageComponent, NgReact } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
-
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { CpuCreditsToggle } from '../instanceType/CpuCreditsToggle';
+import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupInstanceTypeProps {
   formik: FormikProps<IAmazonServerGroupCommand>;

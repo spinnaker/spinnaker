@@ -1,16 +1,16 @@
 'use strict';
 
 import { module } from 'angular';
-
 import 'n3-charts/build/LineChart';
+
 import { TaskMonitor } from '@spinnaker/core';
 
-import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT } from './alarm/alarmConfigurer.component';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION_COMPONENT } from './simple/simplePolicyAction.component';
+import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
 
 import './upsertScalingPolicy.modal.less';
-import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION_COMPONENT } from './simple/simplePolicyAction.component';
-import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT } from './alarm/alarmConfigurer.component';
 
 export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller';

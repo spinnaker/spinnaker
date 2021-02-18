@@ -1,7 +1,7 @@
-import { module, IQService } from 'angular';
-import { chain, camelCase } from 'lodash';
+import { IQService, module } from 'angular';
+import { camelCase, chain } from 'lodash';
 
-import { IServerGroup, IInstanceCounts } from '@spinnaker/core';
+import { IInstanceCounts, IServerGroup } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from '../interfaces';
 

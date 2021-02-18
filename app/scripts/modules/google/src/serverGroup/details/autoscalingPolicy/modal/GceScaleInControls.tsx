@@ -1,8 +1,7 @@
 import { module } from 'angular';
-
+import { isEmpty } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
-import { isEmpty } from 'lodash';
 
 import {
   CheckboxInput,

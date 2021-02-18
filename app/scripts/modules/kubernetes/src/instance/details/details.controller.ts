@@ -1,20 +1,20 @@
+import { StateService } from '@uirouter/angularjs';
 import { IController, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { flattenDeep } from 'lodash';
-import { StateService } from '@uirouter/angularjs';
 
 import {
   Application,
-  InstanceReader,
-  RecentHistoryService,
-  IManifest,
   ILoadBalancer,
+  IManifest,
+  InstanceReader,
   ManifestReader,
+  RecentHistoryService,
 } from '@spinnaker/core';
 
 import { IKubernetesInstance } from '../../interfaces';
-import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
+import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 
 interface InstanceFromStateParams {
   instanceId: string;

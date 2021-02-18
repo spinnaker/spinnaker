@@ -1,24 +1,24 @@
-import React from 'react';
-import { isEqual } from 'lodash';
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
+import { isEqual } from 'lodash';
 import prettyMilliseconds from 'pretty-ms';
-
-import { IServerGroupDetailsSectionProps, HelpField, withErrorBoundary } from '@spinnaker/core';
+import React from 'react';
+import { react2angular } from 'react2angular';
 import { TitusReactInjector } from 'titus/reactShims';
 
+import { HelpField, IServerGroupDetailsSectionProps, withErrorBoundary } from '@spinnaker/core';
+
+import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
 import {
   getDefaultJobDisruptionBudgetForApp,
   ITitusServerGroupCommand,
 } from '../../configure/serverGroupConfiguration.service';
+import {
+  DisruptionBudgetDescription,
+  IFieldOption,
+} from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
 import { policyOptions } from '../../configure/wizard/pages/disruptionBudget/PolicyOptions';
 import { rateOptions } from '../../configure/wizard/pages/disruptionBudget/RateOptions';
-import {
-  IFieldOption,
-  DisruptionBudgetDescription,
-} from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';
-import { ITitusServerGroup, IJobDisruptionBudget } from '../../../domain';
-import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
+import { IJobDisruptionBudget, ITitusServerGroup } from '../../../domain';
 
 interface IDisruptionBudgetSection extends IServerGroupDetailsSectionProps {
   serverGroup: ITitusServerGroup;

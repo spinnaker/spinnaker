@@ -2,9 +2,9 @@
 
 import { module } from 'angular';
 import _ from 'lodash';
+import { Observable, Subject } from 'rxjs';
 
 import { CloudMetricsReader } from '@spinnaker/core';
-import { Observable, Subject } from 'rxjs';
 
 import './dimensionsEditor.component.less';
 

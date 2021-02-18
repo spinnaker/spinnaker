@@ -1,10 +1,10 @@
-import { withErrorBoundary } from '@spinnaker/core';
 import { module } from 'angular';
-
 import { chain } from 'lodash';
 import React from 'react';
 import { Async, AutocompleteResult, Option } from 'react-select';
 import { react2angular } from 'react2angular';
+
+import { withErrorBoundary } from '@spinnaker/core';
 
 import { IGceImage } from '../image';
 

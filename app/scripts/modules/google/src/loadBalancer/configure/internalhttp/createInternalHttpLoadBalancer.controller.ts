@@ -1,21 +1,21 @@
+import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 import { IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
+import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
+import { IGceHttpLoadBalancer } from 'google/domain';
 
 import { Application, TaskMonitor } from '@spinnaker/core';
 
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
-import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from '../http/templates';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from '../http/backendService/backendService.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../http/basicSettings/basicSettings.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE } from '../http/commandBuilder.service';
-import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT } from '../http/healthCheck/healthCheck.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT } from '../http/hostRule/hostRule.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE } from '../http/httpLoadBalancer.write.service';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT } from '../http/listeners/listener.component';
+import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from '../http/templates';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from '../http/transformer.service';
-import { IGceHttpLoadBalancer } from 'google/domain';
 
 import '../http/httpLoadBalancerWizard.component.less';
 

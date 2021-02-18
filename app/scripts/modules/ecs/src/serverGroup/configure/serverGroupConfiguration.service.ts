@@ -1,6 +1,7 @@
-import { module, IQService } from 'angular';
+import { IQService, module } from 'angular';
 import { chain, clone, extend, find, flatten, has, intersection, keys, some, xor } from 'lodash';
 
+import { IAmazonLoadBalancer } from '@spinnaker/amazon';
 import {
   AccountService,
   CACHE_INITIALIZER_SERVICE,
@@ -8,7 +9,6 @@ import {
   IArtifact,
   IDeploymentStrategy,
   IPipeline,
-  IStage,
   IRegion,
   IServerGroupCommand,
   IServerGroupCommandBackingData,
@@ -16,33 +16,32 @@ import {
   IServerGroupCommandDirty,
   IServerGroupCommandResult,
   IServerGroupCommandViewState,
+  IStage,
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
   NameUtils,
+  SECURITY_GROUP_READER,
+  SecurityGroupReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
   SubnetReader,
-  SECURITY_GROUP_READER,
-  SecurityGroupReader,
-  // ISecurityGroup,
 } from '@spinnaker/core';
-
-import { IAmazonLoadBalancer } from '@spinnaker/amazon';
 import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
-import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
-import { EcsClusterReader } from '../../ecsCluster/ecsCluster.read.service';
-import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
-import { IRoleDescriptor } from '../../iamRoles/IRole';
-import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
-import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
-import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
-import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
+
 import { IEcsCapacityProviderDetails } from '../../ecsCluster/IEcsCapacityProviderDetails';
-import { SecretReader } from '../../secrets/secret.read.service';
+import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
+import { EcsClusterReader } from '../../ecsCluster/ecsCluster.read.service';
+import { IRoleDescriptor } from '../../iamRoles/IRole';
+import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
+import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
+import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
+import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
+import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
 import { ISecretDescriptor } from '../../secrets/ISecret';
-import { ServiceDiscoveryReader } from '../../serviceDiscovery/serviceDiscovery.read.service';
+import { SecretReader } from '../../secrets/secret.read.service';
 import { IServiceDiscoveryRegistryDescriptor } from '../../serviceDiscovery/IServiceDiscovery';
+import { ServiceDiscoveryReader } from '../../serviceDiscovery/serviceDiscovery.read.service';
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroups?: string[];

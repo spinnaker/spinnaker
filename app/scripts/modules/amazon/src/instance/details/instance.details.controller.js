@@ -1,22 +1,22 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
-import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from './utils';
 
 import {
   CloudProviderRegistry,
   ConfirmationModalService,
+  FirewallLabels,
   InstanceReader,
   RecentHistoryService,
   SETTINGS,
-  FirewallLabels,
 } from '@spinnaker/core';
 
-import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import { AmazonInstanceWriter } from '../amazon.instance.write.service';
+import { applyHealthCheckInfoToTargetGroups, getAllTargetGroups } from './utils';
+import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
 
 export const AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.amazon.instance.details.controller';
 export const name = AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility

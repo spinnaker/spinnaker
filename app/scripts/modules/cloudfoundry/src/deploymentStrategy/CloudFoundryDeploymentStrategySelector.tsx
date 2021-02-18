@@ -1,6 +1,6 @@
+import { defaultsDeep, unset } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { defaultsDeep, unset } from 'lodash';
 
 import {
   CoreRedBlackAdditionalFields,

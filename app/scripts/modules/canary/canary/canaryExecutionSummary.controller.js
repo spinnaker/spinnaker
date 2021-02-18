@@ -1,11 +1,12 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import { Registry } from '@spinnaker/core';
-import { CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER } from './actions/generateScore.controller';
+
 import { CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER } from './actions/endCanary.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER } from './actions/generateScore.controller';
 
 export const CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER = 'spinnaker.canary.summary.controller';
 export const name = CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER; // for backwards compatibility

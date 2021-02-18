@@ -1,5 +1,6 @@
 import React from 'react';
-import { HelpField, FormikFormField, CheckboxInput } from '@spinnaker/core';
+
+import { CheckboxInput, FormikFormField, HelpField } from '@spinnaker/core';
 
 export interface INLBAdvancedSettingsProps {
   showDualstack: boolean;

@@ -1,9 +1,11 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import { defaults, filter, flatMap } from 'lodash';
-import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from '@spinnaker/amazon';
 
+import { applyHealthCheckInfoToTargetGroups, getAllTargetGroups } from '@spinnaker/amazon';
 import {
   AccountService,
   CloudProviderRegistry,
@@ -14,9 +16,8 @@ import {
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
+
 import { TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE } from '../../securityGroup/securityGroup.read.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.titus.controller';
 export const name = TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility

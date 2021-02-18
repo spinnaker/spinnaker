@@ -1,9 +1,8 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
+import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
+import React from 'react';
 
 import { AccountTag, CollapsibleSection } from '@spinnaker/core';
-
-import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryLoadBalancerDetailsSectionProps {
   loadBalancer: ICloudFoundryLoadBalancer;

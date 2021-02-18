@@ -5,11 +5,12 @@ import { module } from 'angular';
 import {
   AccountService,
   AuthenticationService,
-  BakeryReader,
   BakeExecutionLabel,
-  Registry,
+  BakeryReader,
   PipelineTemplates,
+  Registry,
 } from '@spinnaker/core';
+
 import { ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 
 export const ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE = 'spinnaker.oracle.pipeline.stage.bakeStage';

@@ -1,10 +1,9 @@
 'use strict';
 
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { AzureProviderSettings } from '../azure.settings';
-
-import { module } from 'angular';
 
 export const AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.azure.loadBalancer.transformer';
 export const name = AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility

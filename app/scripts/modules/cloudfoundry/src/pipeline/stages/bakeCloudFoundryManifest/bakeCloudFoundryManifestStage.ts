@@ -1,10 +1,10 @@
 import {
-  ExecutionArtifactTab,
-  ExpectedArtifactService,
   ArtifactReferenceService,
+  ExecutionArtifactTab,
+  ExecutionDetailsTasks,
+  ExpectedArtifactService,
   IArtifact,
   IStage,
-  ExecutionDetailsTasks,
   Registry,
 } from '@spinnaker/core';
 

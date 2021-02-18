@@ -1,9 +1,9 @@
 import { module } from 'angular';
+import { AppengineHealth } from 'appengine/common/appengineHealth';
+import { IAppengineStageScope } from 'appengine/domain';
 
 import { Registry } from '@spinnaker/core';
 
-import { AppengineHealth } from 'appengine/common/appengineHealth';
-import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {

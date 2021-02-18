@@ -1,7 +1,8 @@
-import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_SERVICE } from './hostAndPathRules.service';
-('use strict');
-
 import { module } from 'angular';
+
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_SERVICE } from './hostAndPathRules.service';
+
+('use strict');
 
 export const GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER =
   'spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller';

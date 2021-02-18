@@ -7,9 +7,9 @@ import {
   Registry,
 } from '@spinnaker/core';
 
-import { DeployStatus } from './manifestStatus/DeployStatus';
 import { DeployManifestStageConfig } from './DeployManifestStageConfig';
 import { deployManifestValidators } from './deployManifest.validator';
+import { DeployStatus } from './manifestStatus/DeployStatus';
 
 Registry.pipeline.registerStage({
   label: 'Deploy (Manifest)',

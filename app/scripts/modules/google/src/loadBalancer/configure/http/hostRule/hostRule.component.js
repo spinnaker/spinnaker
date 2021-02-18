@@ -1,8 +1,9 @@
 'use strict';
 
 import { module } from 'angular';
-import { PathRuleTemplate } from '../templates';
+
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_PATHRULE_PATHRULE_COMPONENT } from '../pathRule/pathRule.component';
+import { PathRuleTemplate } from '../templates';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT =
   'spinnaker.deck.gce.httpLoadBalancer.hostRule.component';

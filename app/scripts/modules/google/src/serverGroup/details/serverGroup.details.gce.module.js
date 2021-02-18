@@ -1,11 +1,11 @@
 'use strict';
 
+import { module } from 'angular';
+
 import { GCE_ADD_AUTOHEALING_POLICY_BUTTON } from './autoHealingPolicy/addAutoHealingPolicyButton.component';
 import { GCE_AUTOHEALING_POLICY_DETAILS } from './autoHealingPolicy/autoHealingPolicy.component';
 import { GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL } from './autoHealingPolicy/modal/upsertAutoHealingPolicy.modal.controller';
 import { GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER } from './serverGroupDetails.gce.controller';
-
-import { module } from 'angular';
 
 export const GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE = 'spinnaker.serverGroup.details.gce';
 export const name = GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE; // for backwards compatibility

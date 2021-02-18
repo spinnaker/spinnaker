@@ -1,4 +1,4 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { uniq } from 'lodash';
 
 import { Application, AppListExtractor, StageConstants } from '@spinnaker/core';

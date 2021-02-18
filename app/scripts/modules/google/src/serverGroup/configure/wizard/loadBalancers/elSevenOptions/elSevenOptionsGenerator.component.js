@@ -1,7 +1,8 @@
-import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_BACKENDSERVICESELECTOR_COMPONENT } from './backendServiceSelector.component';
-('use strict');
-
 import * as angular from 'angular';
+
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_BACKENDSERVICESELECTOR_COMPONENT } from './backendServiceSelector.component';
+
+('use strict');
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT =
   'spinnaker.deck.gce.elSevenOptionsGenerator.component';

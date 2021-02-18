@@ -1,7 +1,7 @@
-import React from 'react';
-
-import { Dropdown, Tooltip } from 'react-bootstrap';
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { filter, find, get, orderBy } from 'lodash';
+import React from 'react';
+import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import {
   ClusterTargetBuilder,
@@ -15,13 +15,12 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { CloudFoundryServerGroupCommandBuilder } from '../configure';
 import { CloudFoundryCreateServerGroupModal } from '../configure/wizard/CreateServerGroupModal';
-import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
-import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
 import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';
 import { CloudFoundryUnmapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryUnmapLoadBalancersModal';
-import { CloudFoundryServerGroupCommandBuilder } from '../configure';
+import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
+import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
 
 export interface ICloudFoundryServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: ICloudFoundryServerGroup;

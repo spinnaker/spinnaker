@@ -1,8 +1,9 @@
 'use strict';
 
-import _ from 'lodash';
-import { GCE_ADDRESS_SELECTOR } from '../../common/addressSelector.component';
 import { module } from 'angular';
+import _ from 'lodash';
+
+import { GCE_ADDRESS_SELECTOR } from '../../common/addressSelector.component';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT =
   'spinnaker.deck.gce.httpLoadBalancer.listener.component';

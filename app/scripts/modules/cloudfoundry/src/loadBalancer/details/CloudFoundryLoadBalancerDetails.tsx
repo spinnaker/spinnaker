@@ -1,13 +1,14 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
+import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
+import React from 'react';
 
 import { Application, LoadBalancerWriter, Spinner } from '@spinnaker/core';
+
 import { CloudFoundryLoadBalancerActions } from './CloudFoundryLoadBalancerActions';
 import { CloudFoundryLoadBalancerDetailsSection } from './sections';
-import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
-import { CloudFoundryLoadBalancerStatusSection } from './sections/CloudFoundryLoadBalancerStatusSection';
 import { CloudFoundryLoadBalancerLinksSection } from './sections/CloudFoundryLoadBalancerLinksSection';
+import { CloudFoundryLoadBalancerStatusSection } from './sections/CloudFoundryLoadBalancerStatusSection';
 
 interface ILoadBalancer {
   name: string;

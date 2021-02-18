@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
 import { module } from 'angular';
+import React, { useState } from 'react';
 import { react2angular } from 'react2angular';
 
 import {
-  StageConfigField,
-  TextInput,
   CheckboxInput,
-  ReactSelectInput,
   IStage,
   IStageConfigProps,
+  ReactSelectInput,
+  StageConfigField,
+  TextInput,
   withErrorBoundary,
 } from '@spinnaker/core';
 

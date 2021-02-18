@@ -1,13 +1,13 @@
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
 import {
   IArtifact,
+  IArtifactAccountPair,
   IExpectedArtifact,
   IPipeline,
   IStage,
   StageArtifactSelector,
-  IArtifactAccountPair,
 } from '@spinnaker/core';
 
 interface IConfigFileArtifactListProps {

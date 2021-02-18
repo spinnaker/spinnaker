@@ -1,9 +1,9 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IScalingPolicy } from 'amazon/domain';
+import { IComponentOptions, IController, module } from 'angular';
 
 import { Application, IServerGroup } from '@spinnaker/core';
 
 import { ScalingPolicyTypeRegistry } from './ScalingPolicyTypeRegistry';
-import { IScalingPolicy } from 'amazon/domain';
 
 export class ScalingPolicyDetailsSummaryController implements IController {
   public templateUrl: string;

@@ -1,20 +1,18 @@
 import React from 'react';
-
 import { Option } from 'react-select';
-
 import { Observable, Subject } from 'rxjs';
 
 import {
   AccountService,
+  ArtifactTypePatterns,
   IAccount,
+  IArtifact,
   IExpectedArtifact,
   IRegion,
   IStageConfigProps,
   ReactSelectInput,
-  StageConfigField,
   StageArtifactSelector,
-  IArtifact,
-  ArtifactTypePatterns,
+  StageConfigField,
 } from '@spinnaker/core';
 
 import { CreateServiceInstanceDirectInput } from './CreateServiceInstanceDirectInput';

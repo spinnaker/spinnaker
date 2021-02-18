@@ -1,19 +1,21 @@
+import { IAmazonFunction, IAmazonFunctionSourceData } from 'amazon/domain';
+import { AwsReactInjector } from 'amazon/reactShims';
+import { isEmpty } from 'lodash';
 import React from 'react';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+
 import {
-  Details,
-  CollapsibleSection,
-  IFunction,
-  Application,
   AccountTag,
+  Application,
+  CollapsibleSection,
+  Details,
+  IFunction,
   IOverridableProps,
   Overrides,
 } from '@spinnaker/core';
-import { IAmazonFunctionSourceData, IAmazonFunction } from 'amazon/domain';
+
 import { FunctionActions } from './FunctionActions';
-import { AwsReactInjector } from 'amazon/reactShims';
-import { isEmpty } from 'lodash';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
 
 export interface IFunctionFromStateParams {
   account: string;

@@ -1,8 +1,8 @@
+import { Form, FormikErrors } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Form, FormikErrors } from 'formik';
 
-import { TextInput, FormikFormField, ModalClose, ReactModal, SpinFormik, SubmitButton, noop } from '@spinnaker/core';
+import { FormikFormField, ModalClose, noop, ReactModal, SpinFormik, SubmitButton, TextInput } from '@spinnaker/core';
 
 import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
 

@@ -1,9 +1,10 @@
-import React from 'react';
 import { defaults } from 'lodash';
+import React from 'react';
 
 import { IStage, IStageConfigProps } from '@spinnaker/core';
-import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
+
 import { IManifestSelector, SelectorMode } from '../../../manifest/selector/IManifestSelector';
+import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
 
 export interface IKubernetesManifestStageConfigProps extends IStageConfigProps {
   stage: IManifestSelector & IStage;

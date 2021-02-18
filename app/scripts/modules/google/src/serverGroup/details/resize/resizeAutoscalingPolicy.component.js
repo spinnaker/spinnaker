@@ -1,9 +1,9 @@
 'use strict';
 
-import _ from 'lodash';
-import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../autoscalingPolicy/autoscalingPolicy.write.service';
-
 import * as angular from 'angular';
+import _ from 'lodash';
+
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../autoscalingPolicy/autoscalingPolicy.write.service';
 
 export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT =
   'spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component';

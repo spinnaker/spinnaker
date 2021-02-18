@@ -1,5 +1,5 @@
-import React from 'react';
 import { set } from 'lodash';
+import React from 'react';
 
 import { HelpField, IDeploymentStrategyAdditionalFieldsProps, IServerGroupCommand } from '@spinnaker/core';
 

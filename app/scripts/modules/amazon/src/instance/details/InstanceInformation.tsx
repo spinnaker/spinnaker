@@ -1,6 +1,6 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
+import React from 'react';
 
 import { AccountTag, LabeledValue, timestamp } from '@spinnaker/core';
 

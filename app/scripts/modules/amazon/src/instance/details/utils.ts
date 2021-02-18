@@ -1,5 +1,5 @@
+import { IAmazonApplicationLoadBalancer, IAmazonHealth, IAmazonNetworkLoadBalancer, ITargetGroup } from 'amazon/domain';
 import { flatten, isNil } from 'lodash';
-import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancer, ITargetGroup, IAmazonHealth } from 'amazon/domain';
 
 export const getAllTargetGroups = (
   loadBalancers: IAmazonApplicationLoadBalancer[] | IAmazonNetworkLoadBalancer[],

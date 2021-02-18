@@ -1,6 +1,7 @@
-import { validate } from './shrinkClusterValidators';
 import { Registry } from '@spinnaker/core';
+
 import { ShrinkClusterConfig } from './ShrinkClusterConfig';
+import { validate } from './shrinkClusterValidators';
 
 Registry.pipeline.registerStage({
   provides: 'shrinkCluster',

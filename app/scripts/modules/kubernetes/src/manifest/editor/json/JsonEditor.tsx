@@ -1,9 +1,8 @@
+import 'brace/mode/json';
+import 'brace/theme/textmate';
+import { $log } from 'ngimport';
 import React from 'react';
 import AceEditor from 'react-ace';
-import { $log } from 'ngimport';
-
-import 'brace/theme/textmate';
-import 'brace/mode/json';
 
 export interface IJsonEditorProps {
   value: string;

@@ -1,8 +1,8 @@
 'use strict';
 
-import { REST } from '@spinnaker/core';
-
 import { module } from 'angular';
+
+import { REST } from '@spinnaker/core';
 
 export const DCOS_IMAGE_IMAGE_READER = 'spinnaker.dcos.image.reader';
 export const name = DCOS_IMAGE_IMAGE_READER; // for backwards compatibility

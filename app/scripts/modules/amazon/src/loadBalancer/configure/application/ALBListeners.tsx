@@ -1,8 +1,24 @@
-import React from 'react';
-import { $q } from 'ngimport';
-import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
-import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
+import {
+  ALBListenerProtocol,
+  IALBListenerCertificate,
+  IALBTargetGroupDescription,
+  IAmazonApplicationLoadBalancerUpsertCommand,
+  IAmazonCertificate,
+  IListenerAction,
+  IListenerActionType,
+  IListenerDescription,
+  IListenerRule,
+  IListenerRuleCondition,
+  IRedirectActionConfig,
+  ListenerRuleConditionField,
+} from 'amazon/domain';
 import { FormikErrors, FormikProps } from 'formik';
+import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
+import { $q } from 'ngimport';
+import React from 'react';
+import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
 
 import {
   Application,
@@ -14,27 +30,10 @@ import {
   ValidationMessage,
 } from '@spinnaker/core';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import {
-  ALBListenerProtocol,
-  IALBListenerCertificate,
-  IAmazonCertificate,
-  IListenerDescription,
-  IALBTargetGroupDescription,
-  IAmazonApplicationLoadBalancerUpsertCommand,
-  IListenerAction,
-  IListenerRule,
-  IListenerRuleCondition,
-  ListenerRuleConditionField,
-  IRedirectActionConfig,
-  IListenerActionType,
-} from 'amazon/domain';
-import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
-import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
-
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
-import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';
+import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
+import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 
 export interface IALBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };

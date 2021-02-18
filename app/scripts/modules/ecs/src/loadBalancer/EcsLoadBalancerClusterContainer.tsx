@@ -1,10 +1,10 @@
-import React from 'react';
 import { isEqual } from 'lodash';
+import React from 'react';
 
 import { ILoadBalancerClusterContainerProps } from '@spinnaker/core';
 
-import { IEcsLoadBalancer } from '../domain/IEcsLoadBalancer';
 import { EcsTargetGroup } from './TargetGroup';
+import { IEcsLoadBalancer } from '../domain/IEcsLoadBalancer';
 
 export class EcsLoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps> {
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {

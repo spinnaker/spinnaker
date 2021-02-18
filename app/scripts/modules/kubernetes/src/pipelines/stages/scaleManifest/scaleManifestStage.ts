@@ -1,9 +1,10 @@
 import { module } from 'angular';
 
-import { Registry, IStage, ExecutionDetailsTasks } from '@spinnaker/core';
-import { KubernetesV2ScaleManifestConfigCtrl } from './scaleManifestConfig.controller';
-import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from '../../../manifest/scale/scaleSettingsForm.component';
+import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
+import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from '../../../manifest/scale/scaleSettingsForm.component';
+import { KubernetesV2ScaleManifestConfigCtrl } from './scaleManifestConfig.controller';
 
 export const KUBERNETES_SCALE_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.scaleManifestStage';
 const STAGE_KEY = 'scaleManifest';

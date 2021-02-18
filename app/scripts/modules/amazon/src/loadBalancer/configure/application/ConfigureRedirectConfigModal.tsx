@@ -1,22 +1,21 @@
-import React from 'react';
-import { Modal } from 'react-bootstrap';
+import { IRedirectActionConfig } from 'amazon/domain';
 import { Form } from 'formik';
 import { pickBy } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
 
 import {
-  TextInput,
   FormikFormField,
+  HelpField,
   ModalClose,
-  ReactModal,
-  SubmitButton,
   noop,
+  ReactModal,
+  ReactSelectInput,
   SelectInput,
   SpinFormik,
-  HelpField,
-  ReactSelectInput,
+  SubmitButton,
+  TextInput,
 } from '@spinnaker/core';
-
-import { IRedirectActionConfig } from 'amazon/domain';
 
 import './ConfigureConfigModal.css';
 

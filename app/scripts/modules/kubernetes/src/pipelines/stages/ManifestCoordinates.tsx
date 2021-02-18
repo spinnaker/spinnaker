@@ -1,5 +1,5 @@
+import { flatten, get } from 'lodash';
 import React from 'react';
-import { get, flatten } from 'lodash';
 
 import { StageConstants } from '@spinnaker/core';
 

@@ -1,20 +1,20 @@
 'use strict';
 
 import { module } from 'angular';
+import { GCE_ADDRESS_READER } from 'google/address/address.reader';
+import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { GCEProviderSettings } from 'google/gce.settings';
+import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
 import _ from 'lodash';
 
 import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
 
-import { GCE_ADDRESS_READER } from 'google/address/address.reader';
-import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
-import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../../httpLoadBalancerUtils.service';
-import { GCEProviderSettings } from 'google/gce.settings';
-import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
-import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../../../backendService/backendService.reader';
+import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../../httpLoadBalancerUtils.service';
+import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from './transformer.service';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE =
   'spinnaker.deck.gce.httpLoadBalancer.backing.service';

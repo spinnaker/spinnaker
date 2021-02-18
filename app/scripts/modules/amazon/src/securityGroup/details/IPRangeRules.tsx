@@ -1,5 +1,6 @@
 import React from 'react';
-import { Overridable, CollapsibleSection, LabeledValue, LabeledValueList } from '@spinnaker/core';
+
+import { CollapsibleSection, LabeledValue, LabeledValueList, Overridable } from '@spinnaker/core';
 
 export interface IIPRangeRulesProps {
   ipRules: IIPRangeRulesDetails[];

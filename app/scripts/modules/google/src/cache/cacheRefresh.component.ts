@@ -1,4 +1,4 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService, InfrastructureCaches } from '@spinnaker/core';
 

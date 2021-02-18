@@ -1,5 +1,5 @@
-import React from 'react';
 import { isString } from 'lodash';
+import React from 'react';
 
 import { HelpField } from '@spinnaker/core';
 

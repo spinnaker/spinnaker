@@ -1,23 +1,23 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
-import { Observable, Subject } from 'rxjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import { GceImageReader } from 'google/image';
 import { extend } from 'lodash';
+import { Observable, Subject } from 'rxjs';
 
 import {
   ArtifactTypePatterns,
-  ExpectedArtifactSelectorViewController,
   excludeAllTypesExcept,
+  ExpectedArtifactSelectorViewController,
   IMAGE_READER,
   NgGCEImageArtifactDelegate,
 } from '@spinnaker/core';
 
-import { GceImageReader } from 'google/image';
-import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';
 import { GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE } from '../../../../gceNetworkSelectField.directive';
+import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';
 import { GOOGLE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE } from '../../../../subnet/subnetSelectField.directive';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER =
   'spinnaker.google.serverGroup.configure.wizard.basicSettings.controller';

@@ -1,6 +1,7 @@
 import React from 'react';
-import { CollapsibleSection, LabeledValue, LinkWithClipboard } from '@spinnaker/core';
+
 import { InstanceInformation } from '@spinnaker/amazon';
+import { CollapsibleSection, LabeledValue, LinkWithClipboard } from '@spinnaker/core';
 
 import { ITitusInstance } from '../../domain';
 

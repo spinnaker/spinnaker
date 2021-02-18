@@ -1,10 +1,10 @@
-import React from 'react';
 import { isEqual } from 'lodash';
+import React from 'react';
 
 import { ILoadBalancerClusterContainerProps, LoadBalancerClusterContainer } from '@spinnaker/core';
 
-import { IAmazonApplicationLoadBalancer } from '../domain/IAmazonLoadBalancer';
 import { TargetGroup } from './TargetGroup';
+import { IAmazonApplicationLoadBalancer } from '../domain/IAmazonLoadBalancer';
 
 export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps> {
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {

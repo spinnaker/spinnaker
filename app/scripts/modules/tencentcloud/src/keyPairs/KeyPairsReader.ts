@@ -1,6 +1,6 @@
-import { REST } from '@spinnaker/core';
-
 import { IKeyPair } from 'tencentcloud/domain';
+
+import { REST } from '@spinnaker/core';
 
 export class KeyPairsReader {
   public static listKeyPairs(): PromiseLike<IKeyPair[]> {

@@ -1,14 +1,15 @@
-import { module, IController, IScope } from 'angular';
+import { IController, IScope, module } from 'angular';
 
-import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 import {
   AccountService,
   ExpectedArtifactSelectorViewController,
-  NgAppengineConfigArtifactDelegate,
+  IArtifact,
   IArtifactAccount,
   IArtifactAccountPair,
-  IArtifact,
+  NgAppengineConfigArtifactDelegate,
 } from '@spinnaker/core';
+
+import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 
 import './serverGroupWizard.less';
 

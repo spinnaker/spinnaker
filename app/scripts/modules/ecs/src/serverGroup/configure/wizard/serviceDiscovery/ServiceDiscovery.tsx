@@ -1,13 +1,15 @@
-import React from 'react';
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
+import React from 'react';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
+import { react2angular } from 'react2angular';
+
+import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+
 import {
   IEcsServerGroupCommand,
   IEcsServiceDiscoveryRegistryAssociation,
 } from '../../serverGroupConfiguration.service';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
 
 export interface IServiceDiscoveryProps {
   command: IEcsServerGroupCommand;

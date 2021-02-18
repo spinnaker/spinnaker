@@ -1,22 +1,22 @@
+import { groupBy, sortBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { groupBy, sortBy } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
 import {
-  ModalClose,
-  TetheredSelect,
   AccountTag,
   Application,
-  IServerGroup,
-  noop,
-  IManifest,
-  IServerGroupManager,
-  robotToHuman,
-  ManifestReader,
-  ISecurityGroup,
   ILoadBalancer,
+  IManifest,
+  ISecurityGroup,
+  IServerGroup,
+  IServerGroupManager,
+  ManifestReader,
+  ModalClose,
+  noop,
+  robotToHuman,
+  TetheredSelect,
 } from '@spinnaker/core';
 
 export interface IManifestCopierProps {

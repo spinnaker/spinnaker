@@ -1,3 +1,5 @@
+import { IGceServerGroup } from 'google/domain';
+import { GceImageReader, IGceImage, ImageSelect } from 'google/image';
 import React from 'react';
 
 import {
@@ -10,9 +12,7 @@ import {
   WizardPage,
 } from '@spinnaker/core';
 
-import { IGceServerGroup } from 'google/domain';
 import { StatefulMIGService } from './StatefulMIGService';
-import { GceImageReader, IGceImage, ImageSelect } from 'google/image';
 
 interface IUpdateBootImageButtonProps {
   application: Application;

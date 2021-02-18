@@ -1,18 +1,17 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
 
+import { VpcReader } from '@spinnaker/amazon';
 import {
   CloudProviderRegistry,
-  RecentHistoryService,
-  SECURITY_GROUP_READER,
   FirewallLabels,
   MANAGED_RESOURCE_DETAILS_INDICATOR,
+  RecentHistoryService,
+  SECURITY_GROUP_READER,
 } from '@spinnaker/core';
-
-import { VpcReader } from '@spinnaker/amazon';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ECS_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.ecs.securityGroup.details.controller';

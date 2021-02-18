@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { REST, InfrastructureCaches } from '@spinnaker/core';
+import { InfrastructureCaches, REST } from '@spinnaker/core';
 
 export const GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER = 'spinnaker.deck.gce.backendService.reader.service';
 export const name = GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER; // for backwards compatibility

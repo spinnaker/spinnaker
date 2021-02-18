@@ -3,9 +3,10 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { AccountService, TaskMonitor, FirewallLabels } from '@spinnaker/core';
-import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
+import { AccountService, FirewallLabels, TaskMonitor } from '@spinnaker/core';
+
 import { AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL } from '../configure/CreateSecurityGroupCtrl';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
 
 export const AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER = 'spinnaker.azure.securityGroup.clone.controller';
 export const name = AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER; // for backwards compatibility

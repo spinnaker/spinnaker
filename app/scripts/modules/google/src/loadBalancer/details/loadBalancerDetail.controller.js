@@ -1,20 +1,20 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 import _ from 'lodash';
 
 import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../httpLoadBalancerUtils.service';
-import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from '../configure/choice/loadBalancerTypeToWizardMap.constant';
+
 import { GCE_BACKEND_SERVICE_DETAILS_COMPONENT } from './backendService/backendService.component';
 import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter';
-
+import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
-import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from './hostAndPathRules/hostAndPathRulesButton.component';
-import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT } from './loadBalancerType/loadBalancerType.component';
 import { GOOGLE_LOADBALANCER_DETAILS_HEALTHCHECK_HEALTHCHECK_COMPONENT } from './healthCheck/healthCheck.component';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from './hostAndPathRules/hostAndPathRulesButton.component';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../httpLoadBalancerUtils.service';
+import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT } from './loadBalancerType/loadBalancerType.component';
 
 export const GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
   'spinnaker.loadBalancer.gce.details.controller';

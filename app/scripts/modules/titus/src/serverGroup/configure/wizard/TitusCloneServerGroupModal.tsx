@@ -1,28 +1,26 @@
-import React from 'react';
 import { get, isEqual } from 'lodash';
+import React from 'react';
 
+import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
 import {
+  AccountTag,
   Application,
   DeployInitializer,
   FirewallLabels,
   IModalComponentProps,
   IStage,
+  noop,
   ReactInjector,
   ReactModal,
   TaskMonitor,
   WizardModal,
   WizardPage,
-  noop,
-  AccountTag,
 } from '@spinnaker/core';
 
-import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
+import { ServerGroupBasicSettings, ServerGroupParameters, ServerGroupResources } from './pages';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
-
-import { ITitusServerGroupCommand, getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
 import { TitusReactInjector } from '../../../reactShims';
-
-import { ServerGroupBasicSettings, ServerGroupResources, ServerGroupParameters } from './pages';
+import { getDefaultJobDisruptionBudgetForApp, ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
 
 export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
   title: string;

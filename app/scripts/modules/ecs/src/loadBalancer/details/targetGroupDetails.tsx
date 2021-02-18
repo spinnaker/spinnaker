@@ -1,8 +1,9 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
+import React from 'react';
+
 import { AccountTag, Application, CollapsibleSection, Spinner } from '@spinnaker/core';
 
-import { IEcsTargetGroup, IEcsLoadBalancer } from '../../domain/IEcsLoadBalancer';
+import { IEcsLoadBalancer, IEcsTargetGroup } from '../../domain/IEcsLoadBalancer';
 
 interface IEcsTargetGroupFromStateParams {
   loadBalancerName: string;

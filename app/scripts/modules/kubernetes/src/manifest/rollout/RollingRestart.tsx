@@ -1,9 +1,8 @@
 import { module } from 'angular';
-
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application, ManifestWriter, ConfirmationModalService, withErrorBoundary } from '@spinnaker/core';
+import { Application, ConfirmationModalService, ManifestWriter, withErrorBoundary } from '@spinnaker/core';
 
 import { IKubernetesServerGroupManager } from '../../interfaces';
 

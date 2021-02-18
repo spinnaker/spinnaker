@@ -1,13 +1,14 @@
+import { UISref } from '@uirouter/react';
+import { get } from 'lodash';
+import { DateTime } from 'luxon';
 import React from 'react';
 
-import { get } from 'lodash';
-import { UISref } from '@uirouter/react';
-import { DateTime } from 'luxon';
-import { IManifest, Spinner, CloudProviderLogo, CollapsibleSection, AccountTag, timestamp } from '@spinnaker/core';
-import { KubernetesManifestService } from '../manifest/manifest.service';
-import { ManifestEvents } from '../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
+import { AccountTag, CloudProviderLogo, CollapsibleSection, IManifest, Spinner, timestamp } from '@spinnaker/core';
+
 import { ManifestLabels } from '../manifest/ManifestLabels';
+import { KubernetesManifestService } from '../manifest/manifest.service';
 import { ManifestCondition } from '../manifest/status/ManifestCondition';
+import { ManifestEvents } from '../pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
 
 export interface IKubernetesResourceDetailsProps {
   app: any;

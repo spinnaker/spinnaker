@@ -1,6 +1,7 @@
 import React from 'react';
-import { CheckboxInput, StageConfigField } from '@spinnaker/core';
 import Select, { Option } from 'react-select';
+
+import { CheckboxInput, StageConfigField } from '@spinnaker/core';
 
 export interface IPatchManifestOptionsFormProps {
   record: boolean;

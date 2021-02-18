@@ -4,12 +4,12 @@ import { module } from 'angular';
 
 import { Registry } from '@spinnaker/core';
 
+import { CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENT_MODULE } from './canaryDeployment/canaryDeployment.module';
+import { CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER } from './canaryExecutionDetails.controller';
+import { CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER } from './canaryExecutionSummary.controller';
 import { CANARY_SCORE_COMPONENT } from './canaryScore.component';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 import { CANARY_CANARY_CANARYSTAGE } from './canaryStage';
-import { CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER } from './canaryExecutionDetails.controller';
-import { CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER } from './canaryExecutionSummary.controller';
-import { CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENT_MODULE } from './canaryDeployment/canaryDeployment.module';
 import { CANARY_CANARY_CANARYSTAGE_TRANSFORMER } from './canaryStage.transformer';
 import { CANARY_CANARY_CANARYSTATUS_DIRECTIVE } from './canaryStatus.directive';
 

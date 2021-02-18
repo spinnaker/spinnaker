@@ -1,15 +1,17 @@
-import * as React from 'react';
 import { module } from 'angular';
-import { uniqWith, isEqual } from 'lodash';
+import { isEqual, uniqWith } from 'lodash';
+import * as React from 'react';
+import { Alert } from 'react-bootstrap';
+import { Option } from 'react-select';
 import { react2angular } from 'react2angular';
+
+import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+
 import {
   IEcsDockerImage,
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../../serverGroupConfiguration.service';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
-import { Alert } from 'react-bootstrap';
-import { Option } from 'react-select';
 
 export interface IContainerProps {
   command: IEcsServerGroupCommand;

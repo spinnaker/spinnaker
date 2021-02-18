@@ -1,11 +1,11 @@
+import { IAmazonServerGroupView } from 'amazon/domain';
+import { AwsReactInjector } from 'amazon/reactShims';
 import React from 'react';
 
 import { Application, ModalInjector } from '@spinnaker/core';
 
-import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
-import { AwsReactInjector } from 'amazon/reactShims';
-import { IAmazonServerGroupView } from 'amazon/domain';
+import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;

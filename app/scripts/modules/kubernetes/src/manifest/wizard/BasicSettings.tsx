@@ -1,5 +1,5 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
 
 import { AccountSelectInput, HelpField, IAccount } from '@spinnaker/core';
 

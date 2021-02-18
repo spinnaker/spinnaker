@@ -1,9 +1,8 @@
+import { IGceServerGroup } from 'google/domain';
+import { GCEProviderSettings } from 'google/gce.settings';
 import { has } from 'lodash';
 
 import { TaskExecutor } from '@spinnaker/core';
-
-import { IGceServerGroup } from 'google/domain';
-import { GCEProviderSettings } from 'google/gce.settings';
 
 export class StatefulMIGService {
   public static markDiskStateful(applicationName: string, deviceName: string, serverGroup: IGceServerGroup) {

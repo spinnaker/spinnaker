@@ -1,9 +1,10 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
+
 import { IWizardPageComponent } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { AvailabilityZoneSelector } from '../../../AvailabilityZoneSelector';
+import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupZonesProps {
   formik: FormikProps<IAmazonServerGroupCommand>;

@@ -1,8 +1,8 @@
+import { FormikProps } from 'formik';
 import React from 'react';
 import { Option } from 'react-select';
-import { FormikProps } from 'formik';
 
-import { HelpField, IWizardPageComponent, TetheredSelect, ReactInjector } from '@spinnaker/core';
+import { HelpField, IWizardPageComponent, ReactInjector, TetheredSelect } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 

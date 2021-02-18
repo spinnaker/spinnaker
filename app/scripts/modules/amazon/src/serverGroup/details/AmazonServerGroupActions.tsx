@@ -1,6 +1,8 @@
+import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
+import { AwsReactInjector } from 'amazon/reactShims';
+import { filter, find, get, orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
-import { filter, find, get, orderBy } from 'lodash';
 
 import {
   ClusterTargetBuilder,
@@ -17,10 +19,8 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
-import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
-import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonServerGroupCommand } from '../configure';
+import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
 import {
   AmazonResizeServerGroupModal,
   IAmazonResizeServerGroupModalProps,

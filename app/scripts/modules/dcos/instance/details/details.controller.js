@@ -1,5 +1,6 @@
 'use strict';
 
+import { module } from 'angular';
 import _ from 'lodash';
 
 import {
@@ -10,8 +11,6 @@ import {
   RecentHistoryService,
   ServerGroupTemplates,
 } from '@spinnaker/core';
-
-import { module } from 'angular';
 
 export const DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.instance.details.controller';
 export const name = DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility

@@ -1,16 +1,16 @@
 import {
-  Registry,
   ExecutionDetailsTasks,
+  ICustomValidator,
   IPipeline,
   IStage,
-  IValidatorConfig,
   IStageOrTriggerTypeConfig,
-  ICustomValidator,
+  IValidatorConfig,
+  Registry,
 } from '@spinnaker/core';
 
-import { DeployStatus } from '../deployManifest/manifestStatus/DeployStatus';
 import { KubernetesV2RunJobStageConfig } from './KubernetesV2RunJobStageConfig';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
+import { DeployStatus } from '../deployManifest/manifestStatus/DeployStatus';
 
 Registry.pipeline.registerStage({
   label: 'Run Job (Manifest)',

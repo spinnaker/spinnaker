@@ -2,19 +2,19 @@ import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import {
-  StageConfigField,
-  IArtifact,
-  excludeAllTypesExcept,
-  ArtifactTypePatterns,
-  StageArtifactSelectorDelegate,
-  IFormikStageConfigInjectedProps,
-  TextInput,
   AccountService,
+  Application,
+  ArtifactTypePatterns,
+  excludeAllTypesExcept,
   IAccount,
+  IArtifact,
+  IFormikStageConfigInjectedProps,
   IRegion,
   NgReact,
-  Application,
+  StageArtifactSelectorDelegate,
+  StageConfigField,
   StageConstants,
+  TextInput,
 } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from '../../../presentation/widgets/accountRegionClusterSelector';

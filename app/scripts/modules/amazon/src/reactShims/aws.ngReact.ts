@@ -1,11 +1,11 @@
-import React from 'react';
+import { IScalingPolicySummaryProps } from 'amazon/serverGroup/details/scalingPolicy/ScalingPolicySummary';
+import { scalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
 import { angular2react } from 'angular2react';
-import IInjectorService = angular.auto.IInjectorService;
+import React from 'react';
 
 import { ReactInject } from '@spinnaker/core';
 
-import { scalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
-import { IScalingPolicySummaryProps } from 'amazon/serverGroup/details/scalingPolicy/ScalingPolicySummary';
+import IInjectorService = angular.auto.IInjectorService;
 
 // prettier-ignore
 export class AwsNgReactInjector extends ReactInject {

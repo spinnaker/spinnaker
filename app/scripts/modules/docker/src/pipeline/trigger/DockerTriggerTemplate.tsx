@@ -1,16 +1,16 @@
-import React from 'react';
-import { Option } from 'react-select';
 import { get } from 'lodash';
 import { $q } from 'ngimport';
+import React from 'react';
+import { Option } from 'react-select';
 import { Observable, Subject, Subscription } from 'rxjs';
 
 import {
+  HelpField,
   IDockerTrigger,
+  IPipelineCommand,
   ITriggerTemplateComponentProps,
   Spinner,
   TetheredSelect,
-  IPipelineCommand,
-  HelpField,
 } from '@spinnaker/core';
 
 import { DockerImageReader, IDockerLookupType } from '../../image';

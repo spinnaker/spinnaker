@@ -1,11 +1,11 @@
-import React from 'react';
 import { FormikErrors } from 'formik';
+import React from 'react';
 
 import { IWizardPageComponent, Overridable } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
-import { ServerGroupAdvancedSettingsCommon } from './ServerGroupAdvancedSettingsCommon';
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
+import { ServerGroupAdvancedSettingsCommon } from './ServerGroupAdvancedSettingsCommon';
+import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 @Overridable('aws.serverGroup.advancedSettings')
 export class ServerGroupAdvancedSettingsInner

@@ -5,11 +5,11 @@ import { isString, toInteger } from 'lodash';
 
 import {
   AccountService,
+  AppListExtractor,
   AuthenticationService,
   CloudProviderRegistry,
-  ProviderSelectionService,
-  AppListExtractor,
   NameUtils,
+  ProviderSelectionService,
   Registry,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   SETTINGS,

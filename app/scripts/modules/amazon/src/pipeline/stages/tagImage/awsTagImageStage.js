@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { Registry, PipelineConfigService, StageConstants } from '@spinnaker/core';
+import { PipelineConfigService, Registry, StageConstants } from '@spinnaker/core';
 
 export const AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE = 'spinnaker.amazon.pipeline.stage.tagImageStage';
 export const name = AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE; // for backwards compatibility

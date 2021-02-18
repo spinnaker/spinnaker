@@ -1,6 +1,7 @@
+import { StateService } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService } from '@uirouter/angularjs';
+import { IAppengineLoadBalancer } from 'appengine/domain';
 import { cloneDeep } from 'lodash';
 
 import {
@@ -10,8 +11,6 @@ import {
   ILoadBalancerDeleteCommand,
   LoadBalancerWriter,
 } from '@spinnaker/core';
-
-import { IAppengineLoadBalancer } from 'appengine/domain';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;

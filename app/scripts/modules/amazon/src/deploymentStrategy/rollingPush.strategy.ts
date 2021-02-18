@@ -1,6 +1,7 @@
 import { DeploymentStrategyRegistry, IServerGroupCommand } from '@spinnaker/core';
-import { AWSProviderSettings } from '../aws.settings';
+
 import { AdditionalFields } from './AdditionalFields';
+import { AWSProviderSettings } from '../aws.settings';
 
 export interface IRollingPushTermination {
   concurrentRelaunches: number;

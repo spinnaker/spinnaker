@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import {
   ConfirmationModalService,
-  ServerGroupWarningMessageService,
-  ServerGroupReader,
   SERVER_GROUP_WRITER,
+  ServerGroupReader,
   ServerGroupTemplates,
+  ServerGroupWarningMessageService,
 } from '@spinnaker/core';
+
 import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE } from '../configure/configure.dcos.module';
 import { DCOS_SERVERGROUP_PARAMSMIXIN } from '../paramsMixin';
 

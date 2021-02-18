@@ -1,8 +1,9 @@
-import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER } from './hostAndPathRules.controller';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-('use strict');
-
 import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER } from './hostAndPathRules.controller';
+
+('use strict');
 
 export const GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT =
   'spinnaker.deck.gce.loadBalancer.hostAndPathRulesButton.component';

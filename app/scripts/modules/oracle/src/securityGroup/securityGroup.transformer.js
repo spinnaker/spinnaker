@@ -1,10 +1,9 @@
 'use strict';
 
 import { module } from 'angular';
+import _ from 'lodash';
 
 import { NetworkReader } from '@spinnaker/core';
-
-import _ from 'lodash';
 
 export const ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER = 'spinnaker.oracle.securityGroup.transformer';
 export const name = ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER; // for backwards compatibility

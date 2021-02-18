@@ -3,7 +3,9 @@
 import { module } from 'angular';
 
 import { CloudProviderRegistry } from '@spinnaker/core';
+
 import { DCOS_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
+import { DCOS_COMMON_SELECTFIELD_DIRECTIVE } from './common/selectField.directive';
 import './help/dcos.help';
 import { DCOS_INSTANCE_DETAILS_DETAILS_DCOS_MODULE } from './instance/details/details.dcos.module';
 import { DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE } from './loadBalancer/configure/configure.dcos.module';
@@ -23,7 +25,6 @@ import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE } from './serverGroup/
 import { DCOS_SERVERGROUP_DETAILS_DETAILS_DCOS_MODULE } from './serverGroup/details/details.dcos.module';
 import { DCOS_SERVERGROUP_TRANSFORMER } from './serverGroup/transformer';
 import { DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applicationName.validator';
-import { DCOS_COMMON_SELECTFIELD_DIRECTIVE } from './common/selectField.directive';
 
 require('./logo/dcos.logo.less');
 

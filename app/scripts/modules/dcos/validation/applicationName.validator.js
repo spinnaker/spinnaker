@@ -1,8 +1,8 @@
 'use strict';
 
-import { ApplicationNameValidator } from '@spinnaker/core';
-
 import { module } from 'angular';
+
+import { ApplicationNameValidator } from '@spinnaker/core';
 
 export const DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR = 'spinnaker.dcos.validation.applicationName';
 export const name = DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR; // for backwards compatibility

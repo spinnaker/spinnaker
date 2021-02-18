@@ -1,4 +1,4 @@
-import { IPipeline, IStage, IValidatorConfig, ICustomValidator } from '@spinnaker/core';
+import { ICustomValidator, IPipeline, IStage, IValidatorConfig } from '@spinnaker/core';
 
 import { IManifestSelector, SelectorMode } from '../../../manifest/selector/IManifestSelector';
 

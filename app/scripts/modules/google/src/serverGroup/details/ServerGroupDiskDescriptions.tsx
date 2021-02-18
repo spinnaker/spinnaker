@@ -1,5 +1,4 @@
 import { module } from 'angular';
-
 import { get, last } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
@@ -7,8 +6,8 @@ import { react2angular } from 'react2angular';
 import { Application, withErrorBoundary } from '@spinnaker/core';
 
 import { IGceDisk, IGceServerGroup } from '../../domain';
-import { StatefulMIGService } from './stateful/StatefulMIGService';
 import { MarkDiskStatefulButton } from './stateful/MarkDiskStatefulButton';
+import { StatefulMIGService } from './stateful/StatefulMIGService';
 import { UpdateBootImageButton } from './stateful/UpdateBootImageButton';
 
 interface IServerGroupDiskDescriptionProps {

@@ -1,28 +1,28 @@
+import { get, isEmpty } from 'lodash';
+import { $q } from 'ngimport';
 import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
-import { $q } from 'ngimport';
-import { get, isEmpty } from 'lodash';
 
 import {
-  AppListExtractor,
-  Application,
-  NgReact,
-  StageConstants,
-  IAccountDetails,
-  SETTINGS,
-  StageConfigField,
   AccountSelectInput,
   AccountService,
+  Application,
+  AppListExtractor,
+  IAccountDetails,
+  IServerGroup,
+  NgReact,
   noop,
   ScopeClusterSelector,
-  IServerGroup,
+  SETTINGS,
+  StageConfigField,
+  StageConstants,
 } from '@spinnaker/core';
 
+import { IManifestLabelSelector } from './IManifestLabelSelector';
 import { IManifestSelector, SelectorMode, SelectorModeDataMap } from './IManifestSelector';
 import { ManifestKindSearchService } from '../ManifestKindSearch';
 import LabelEditor from './labelEditor/LabelEditor';
-import { IManifestLabelSelector } from './IManifestLabelSelector';
 
 export interface IManifestSelectorProps {
   selector: IManifestSelector;

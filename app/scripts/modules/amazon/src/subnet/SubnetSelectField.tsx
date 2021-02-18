@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Application, ISubnet, HelpField, Markdown } from '@spinnaker/core';
-import { AWSProviderSettings } from '../aws.settings';
+import { Application, HelpField, ISubnet, Markdown } from '@spinnaker/core';
 
 import { SubnetSelectInput } from './SubnetSelectInput';
+import { AWSProviderSettings } from '../aws.settings';
 
 export interface ISubnetSelectFieldProps {
   application: Application;

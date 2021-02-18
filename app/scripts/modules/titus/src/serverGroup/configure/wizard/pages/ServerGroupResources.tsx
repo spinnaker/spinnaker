@@ -1,10 +1,10 @@
+import { FormikProps } from 'formik';
 import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { HelpField, IWizardPageComponent, SpelNumberInput } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
-import { FormikProps } from 'formik';
 
 const mountPermOptions = [
   { label: 'Read and Write', value: 'RW' },

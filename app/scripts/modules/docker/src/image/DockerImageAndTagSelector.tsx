@@ -1,6 +1,6 @@
+import { groupBy, reduce, trim, uniq } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { groupBy, reduce, trim, uniq } from 'lodash';
 
 import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, ValidationMessage } from '@spinnaker/core';
 

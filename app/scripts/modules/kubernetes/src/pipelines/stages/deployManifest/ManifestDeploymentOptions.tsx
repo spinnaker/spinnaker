@@ -1,12 +1,12 @@
-import React from 'react';
 import { cloneDeep, map, set, split } from 'lodash';
+import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 
 import { IAccountDetails, IDeploymentStrategy, Markdown, StageConfigField } from '@spinnaker/core';
 
+import { NamespaceSelector } from './NamespaceSelector';
 import { ManifestKindSearchService } from '../../../manifest/ManifestKindSearch';
 import { rolloutStrategies } from '../../../rolloutStrategy';
-import { NamespaceSelector } from './NamespaceSelector';
 
 export interface ITrafficManagementConfig {
   enabled: boolean;

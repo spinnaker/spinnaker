@@ -1,10 +1,9 @@
-import React from 'react';
-
+import { ICloudFoundryServiceInstance } from 'cloudfoundry/domain';
 import { isEmpty } from 'lodash';
+import React from 'react';
 
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { ICloudFoundryServiceInstance } from 'cloudfoundry/domain';
 import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
 
 export class BoundServicesSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {

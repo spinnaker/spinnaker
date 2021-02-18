@@ -1,6 +1,6 @@
-import { IComponentOptions, IController, ISCEService, IInterpolateService, module } from 'angular';
-import { get, partition } from 'lodash';
+import { IComponentOptions, IController, IInterpolateService, ISCEService, module } from 'angular';
 import DOMPurify from 'dompurify';
+import { get, partition } from 'lodash';
 
 interface IAnnotationsMap {
   [key: string]: string;

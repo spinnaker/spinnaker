@@ -3,8 +3,9 @@
 import { module } from 'angular';
 
 import { AuthenticationService, Registry } from '@spinnaker/core';
-import { TitusProviderSettings } from '../../../titus.settings';
+
 import { TITUS_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
+import { TitusProviderSettings } from '../../../titus.settings';
 
 export const TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE = 'spinnaker.titus.pipeline.stage.titusBakeStage';
 export const name = TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE; // for backwards compatibility

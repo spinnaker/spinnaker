@@ -1,6 +1,8 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import {
@@ -10,8 +12,6 @@ import {
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.azure.instance.detail.controller';
 export const name = AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility

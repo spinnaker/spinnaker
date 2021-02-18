@@ -1,11 +1,10 @@
-import React from 'react';
+import { AwsImageReader, IAmazonImage } from 'amazon/image';
 import { $q } from 'ngimport';
-import { ReactSelectProps, HandlerRendererResult, MenuRendererProps, Option, OptionValues } from 'react-select';
-import { Subject, Observable, BehaviorSubject } from 'rxjs';
+import React from 'react';
+import { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
-
-import { AwsImageReader, IAmazonImage } from 'amazon/image';
 
 export interface IAmazonImageSelectorProps {
   onChange: (value: IAmazonImage) => void;

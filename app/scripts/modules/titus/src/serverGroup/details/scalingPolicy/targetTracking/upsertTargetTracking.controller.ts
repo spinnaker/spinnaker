@@ -1,10 +1,7 @@
 import { IComponentController } from 'angular';
-
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 import { Subject } from 'rxjs';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
-
-import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
 
 import {
   ITargetTrackingConfiguration,
@@ -12,6 +9,8 @@ import {
   IUpsertScalingPolicyCommand,
   ScalingPolicyWriter,
 } from '@spinnaker/amazon';
+import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
+
 import { IAlarmRenderingServerGroup } from './targetTrackingSummary.component';
 
 export interface ITargetTrackingState {

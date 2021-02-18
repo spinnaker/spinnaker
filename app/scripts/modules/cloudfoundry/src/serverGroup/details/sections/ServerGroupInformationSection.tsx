@@ -1,8 +1,8 @@
+import { ICloudFoundryBuildpack } from 'cloudfoundry/domain';
 import React from 'react';
 
 import { AccountTag, CollapsibleSection, timestamp } from '@spinnaker/core';
 
-import { ICloudFoundryBuildpack } from 'cloudfoundry/domain';
 import { ICloudFoundryServerGroupDetailsSectionProps } from './ICloudFoundryServerGroupDetailsSectionProps';
 
 export class ServerGroupInformationSection extends React.Component<ICloudFoundryServerGroupDetailsSectionProps> {

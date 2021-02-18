@@ -1,8 +1,8 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
 import { FormikErrors } from 'formik';
+import { cloneDeep } from 'lodash';
+import React from 'react';
 
-import { IStage, FormValidator, FormikStageConfig, IStageConfigProps } from '@spinnaker/core';
+import { FormikStageConfig, FormValidator, IStage, IStageConfigProps } from '@spinnaker/core';
 
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
 

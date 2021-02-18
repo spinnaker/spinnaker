@@ -1,5 +1,6 @@
-import { IAccountDetails, IServerGroup } from '@spinnaker/core';
 import { IScalingPolicyView } from '@spinnaker/amazon';
+import { IAccountDetails, IServerGroup } from '@spinnaker/core';
+
 import { IJobDisruptionBudget } from './IJobDisruptionBudget';
 import { ITitusPolicy } from './ITitusScalingPolicy';
 import { ITitusServiceJobProcesses } from './ITitusServiceJobProcesses';

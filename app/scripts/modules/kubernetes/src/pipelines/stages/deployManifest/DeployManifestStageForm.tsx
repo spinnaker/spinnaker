@@ -1,5 +1,5 @@
-import React from 'react';
 import { capitalize, get, isEmpty, map } from 'lodash';
+import React from 'react';
 import { Option } from 'react-select';
 
 import {
@@ -11,19 +11,19 @@ import {
   IFormikStageConfigInjectedProps,
   IManifest,
   RadioButtonInput,
-  StageConfigField,
   StageArtifactSelectorDelegate,
+  StageConfigField,
   yamlDocumentsToString,
   YamlEditor,
 } from '@spinnaker/core';
 
-import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 import { CopyFromTemplateButton } from './CopyFromTemplateButton';
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
-import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 import { ManifestBindArtifactsSelector } from './ManifestBindArtifactsSelector';
+import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 import { NamespaceSelector } from './NamespaceSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 
 interface IDeployManifestStageConfigFormProps {
   accounts: IAccountDetails[];

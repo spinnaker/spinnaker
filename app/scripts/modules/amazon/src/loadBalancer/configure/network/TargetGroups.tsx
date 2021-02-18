@@ -1,23 +1,23 @@
-import React from 'react';
-import { filter, flatten, groupBy, set, uniq } from 'lodash';
+import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 import { FormikErrors, FormikProps } from 'formik';
+import { filter, flatten, groupBy, set, uniq } from 'lodash';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import {
   Application,
+  CheckboxInput,
+  FormValidator,
   HelpField,
   IWizardPageComponent,
   spelNumberCheck,
-  SpInput,
   SpelNumberInput,
+  SpInput,
   ValidationMessage,
-  FormValidator,
   Validators,
-  CheckboxInput,
 } from '@spinnaker/core';
-import { isNameLong, isNameInUse } from '../common/targetGroupValidators';
 
-import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
+import { isNameInUse, isNameLong } from '../common/targetGroupValidators';
 
 export interface ITargetGroupsProps {
   app: Application;

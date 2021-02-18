@@ -1,26 +1,26 @@
+import { capitalize, map } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { map, capitalize } from 'lodash';
 
 import {
-  ArtifactTypePatterns,
-  IStageConfigProps,
   AccountService,
-  YamlEditor,
-  yamlDocumentsToString,
+  ArtifactTypePatterns,
   IAccount,
-  StageArtifactSelector,
-  IExpectedArtifact,
   IArtifact,
+  IExpectedArtifact,
+  IStageConfigProps,
+  RadioButtonInput,
+  StageArtifactSelector,
   StageArtifactSelectorDelegate,
   StageConfigField,
-  RadioButtonInput,
+  yamlDocumentsToString,
+  YamlEditor,
 } from '@spinnaker/core';
 
-import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
 import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 
 export interface IKubernetesRunJobStageConfigState {
   credentials: IAccount[];

@@ -1,7 +1,6 @@
-import { IAccountDetails, IServerGroup, IAsg } from '@spinnaker/core';
+import { IAccountDetails, IAsg, IServerGroup } from '@spinnaker/core';
 
-import { ISuspendedProcess, IScalingPolicyView } from '.';
-
+import { IScalingPolicyView, ISuspendedProcess } from '.';
 import { IScalingPolicy } from './IScalingPolicy';
 
 export interface ITencentcloudAsg extends IAsg {

@@ -1,7 +1,8 @@
-import React from 'react';
 import { get } from 'lodash';
+import React from 'react';
 
 import { HoverablePopover } from '@spinnaker/core';
+
 import './manifestLabels.less';
 
 // TODO(dpeach) https://github.com/spinnaker/spinnaker/issues/3239

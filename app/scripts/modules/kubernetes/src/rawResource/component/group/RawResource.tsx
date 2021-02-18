@@ -1,8 +1,11 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
+import React from 'react';
+
 import { CloudProviderLogo } from '@spinnaker/core';
-import './RawResource.less';
+
 import { RawResourceUtils } from '../RawResourceUtils';
+
+import './RawResource.less';
 
 interface IRawResourceProps {
   resource: IApiKubernetesResource;

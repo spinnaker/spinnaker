@@ -1,4 +1,7 @@
 import { module } from 'angular';
+import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from 'google/certificate/certificate.reader';
+import { IGceHealthCheck } from 'google/domain/healthCheck';
+import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
 import _ from 'lodash';
 
 import {
@@ -12,10 +15,6 @@ import {
   NetworkReader,
   SubnetReader,
 } from '@spinnaker/core';
-
-import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from 'google/certificate/certificate.reader';
-import { IGceHealthCheck } from 'google/domain/healthCheck';
-import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {

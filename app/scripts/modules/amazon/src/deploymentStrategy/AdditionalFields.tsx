@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IDeploymentStrategyAdditionalFieldsProps, HelpField } from '@spinnaker/core';
+import { HelpField, IDeploymentStrategyAdditionalFieldsProps } from '@spinnaker/core';
+
 import { AWSProviderSettings } from '../aws.settings';
 import { IRollingPushCommand } from './rollingPush.strategy';
 

@@ -1,11 +1,12 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
-import { AccountService, LoadBalancerWriter, TaskMonitor, ModalWizard } from '@spinnaker/core';
-import { GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from '../../loadBalancer.transformer';
+import { AccountService, LoadBalancerWriter, ModalWizard, TaskMonitor } from '@spinnaker/core';
+
 import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../gceRegionSelectField.directive';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from '../../loadBalancer.transformer';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER =
   'spinnaker.loadBalancer.gce.create.controller';

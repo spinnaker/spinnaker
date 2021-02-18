@@ -1,5 +1,5 @@
-import React from 'react';
 import { get, keys } from 'lodash';
+import React from 'react';
 
 import './manifestLabels.less';
 

@@ -1,6 +1,7 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
-import { LoadBalancerServerGroup, IInstanceCounts } from '@spinnaker/core';
+import React from 'react';
+
+import { IInstanceCounts, LoadBalancerServerGroup } from '@spinnaker/core';
 
 import { IEcsLoadBalancer, IEcsTargetGroup } from '../domain/IEcsLoadBalancer';
 

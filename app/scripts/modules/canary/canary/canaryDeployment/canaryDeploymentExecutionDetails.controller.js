@@ -1,10 +1,11 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import { ClusterState, UrlBuilder } from '@spinnaker/core';
+
 import { CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE } from './canaryDeploymentHistory.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.canary.canaryDeployment.details.controller';

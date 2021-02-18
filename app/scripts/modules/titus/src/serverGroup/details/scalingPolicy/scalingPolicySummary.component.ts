@@ -1,8 +1,7 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
+import { ITitusPolicy } from 'titus/domain';
 
 import { Application, IServerGroup } from '@spinnaker/core';
-
-import { ITitusPolicy } from 'titus/domain';
 
 class ScalingPolicyDetailsSummaryController implements IController {
   public templateUrl: string;

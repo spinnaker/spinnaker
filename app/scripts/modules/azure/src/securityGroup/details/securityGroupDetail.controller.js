@@ -1,12 +1,13 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
 
-import { SECURITY_GROUP_READER, ConfirmationModalService, FirewallLabels } from '@spinnaker/core';
-import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
+import { ConfirmationModalService, FirewallLabels, SECURITY_GROUP_READER } from '@spinnaker/core';
+
 import { AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
 
 export const AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.azure.securityGroup.azure.details.controller';

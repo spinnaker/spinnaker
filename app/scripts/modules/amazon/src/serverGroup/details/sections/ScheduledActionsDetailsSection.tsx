@@ -1,11 +1,10 @@
+import { IScalingProcess } from 'amazon/domain';
 import React from 'react';
 
 import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
 
-import { IScalingProcess } from 'amazon/domain';
-import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
-
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 import { ScheduledAction } from '../scheduledAction/ScheduledAction';
 
 export interface IScheduledActionsDetailsSectionState {

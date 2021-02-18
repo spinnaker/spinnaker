@@ -1,5 +1,6 @@
-import { CloudfoundryCloneServerGroupStageConfig } from './CloudfoundryCloneServerGroupStageConfig';
 import { IStage, Registry } from '@spinnaker/core';
+
+import { CloudfoundryCloneServerGroupStageConfig } from './CloudfoundryCloneServerGroupStageConfig';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],

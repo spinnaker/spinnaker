@@ -2,9 +2,8 @@ import React from 'react';
 
 import { FormikFormField, HelpField, NumberInput } from '@spinnaker/core';
 
-import { defaultJobDisruptionBudget } from '../../../serverGroupConfiguration.service';
-
 import { IFieldOption, IFieldOptionComponentProps } from './JobDisruptionBudget';
+import { defaultJobDisruptionBudget } from '../../../serverGroupConfiguration.service';
 
 const RatePercentagePerInterval = (componentProps: IFieldOptionComponentProps) => (
   <>

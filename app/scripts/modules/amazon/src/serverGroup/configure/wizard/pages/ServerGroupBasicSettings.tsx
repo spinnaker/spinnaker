@@ -1,26 +1,25 @@
-import React from 'react';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IAmazonImage } from 'amazon/image';
+import { SubnetSelectField } from 'amazon/subnet';
 import { Field, FormikErrors, FormikProps } from 'formik';
+import React from 'react';
 
 import {
   AccountSelectInput,
+  Application,
+  DeployingIntoManagedClusterWarning,
   DeploymentStrategySelector,
   HelpField,
-  NameUtils,
-  RegionSelectField,
-  Application,
-  ReactInjector,
   IServerGroup,
   IWizardPageComponent,
   Markdown,
-  DeployingIntoManagedClusterWarning,
-  TaskReason,
+  NameUtils,
+  ReactInjector,
+  RegionSelectField,
   ServerGroupDetailsField,
   ServerGroupNamePreview,
+  TaskReason,
 } from '@spinnaker/core';
-
-import { IAmazonImage } from 'amazon/image';
-import { SubnetSelectField } from 'amazon/subnet';
-import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StageConfigField, noop } from '@spinnaker/core';
+import { noop, StageConfigField } from '@spinnaker/core';
 
 import { IDeleteOptions } from '../../../manifest/delete/delete.controller';
 

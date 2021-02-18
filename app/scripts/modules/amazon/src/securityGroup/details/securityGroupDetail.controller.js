@@ -1,5 +1,6 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
 
@@ -7,17 +8,16 @@ import {
   CloudProviderRegistry,
   ConfirmationModalService,
   confirmNotManaged,
-  RecentHistoryService,
-  SECURITY_GROUP_READER,
-  SecurityGroupWriter,
   FirewallLabels,
   MANAGED_RESOURCE_DETAILS_INDICATOR,
   noop,
+  RecentHistoryService,
+  SECURITY_GROUP_READER,
+  SecurityGroupWriter,
 } from '@spinnaker/core';
 
-import { VpcReader } from '../../vpc/VpcReader';
 import { AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { VpcReader } from '../../vpc/VpcReader';
 
 export const AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.amazon.securityGroup.details.controller';
