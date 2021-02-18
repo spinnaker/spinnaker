@@ -79,12 +79,20 @@ trait RetrofitStubs {
   }
 
   DockerEvent createDockerEvent(String inTag) {
+    return createDockerEvent(inTag, null)
+  }
+
+  DockerEvent createDockerEvent(String inTag, String inDigest) {
     def tag = "tag"
     if (inTag) {
       tag = inTag
     }
+    def digest = "sha"
+    if (inDigest) {
+      digest = inDigest
+    }
     def res = new DockerEvent()
-    res.content = new DockerEvent.Content("account", "registry", "repository", tag, "sha")
+    res.content = new DockerEvent.Content("account", "registry", "repository", tag, digest)
     res.details = new Metadata([type: DockerEvent.TYPE, source: "spock"])
     return res
   }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
@@ -55,8 +54,8 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     matchingPipelines[0].name == pipeline.name
 
     where:
-    event               | trigger              | triggerType
-    createDockerEvent() | enabledDockerTrigger | 'docker'
+    event                                       | trigger              | triggerType
+    createDockerEvent(enabledDockerTrigger.tag) | enabledDockerTrigger | 'docker'
   }
 
   def "attaches docker trigger to the pipeline"() {
@@ -76,7 +75,35 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     matchingPipelines[0].receivedArtifacts.get(0) == artifact
 
     where:
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
+    artifact = Artifact.builder()
+      .type("docker/image")
+      .name(event.content.registry + "/" + event.content.repository)
+      .version(event.content.tag)
+      .reference(event.content.registry + "/" + event.content.repository + ":" + event.content.tag)
+      .build()
+    pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger, enabledDockerTrigger, disabledDockerTrigger)
+  }
+
+  def "attaches docker trigger digest to the pipeline"() {
+    given:
+    def pipelines = handlerSupport.pipelineCache(pipeline)
+
+    when:
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
+
+    then:
+    matchingPipelines.size() == 1
+    matchingPipelines[0].trigger.type == enabledDockerTrigger.type
+    matchingPipelines[0].trigger.account == enabledDockerTrigger.account
+    matchingPipelines[0].trigger.repository == enabledDockerTrigger.repository
+    matchingPipelines[0].trigger.tag == "tag"
+    matchingPipelines[0].trigger.digest == "sha123"
+    matchingPipelines[0].receivedArtifacts.size() == 1
+    matchingPipelines[0].receivedArtifacts.get(0) == artifact
+
+    where:
+    event = createDockerEvent("tag", "sha123")
     artifact = Artifact.builder()
       .type("docker/image")
       .name(event.content.registry + "/" + event.content.repository)
@@ -97,7 +124,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     matchingPipelines.size() == pipelines.size()
 
     where:
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
     pipelines = (1..2).collect {
       Pipeline.builder()
         .application("application")
@@ -125,7 +152,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     nonJenkinsTrigger     | "non-Jenkins"
 
     pipeline = createPipelineWith(trigger)
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
   }
 
   @Unroll
@@ -146,7 +173,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     enabledDockerTrigger.withRepository("notRepository")  | "different repository"
 
     pipeline = createPipelineWith(trigger)
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
   }
 
 
@@ -167,7 +194,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     enabledDockerTrigger.withAccount(null)     | "account"
     enabledDockerTrigger.withRepository(null)  | "repository"
 
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
     goodPipeline = createPipelineWith(enabledDockerTrigger)
     badPipeline = createPipelineWith(trigger)
   }
@@ -248,6 +275,6 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
     trigger                               | field
     enabledDockerTrigger.withTag("\\d+")  | "regex tag"
 
-    event = createDockerEvent()
+    event = createDockerEvent(enabledDockerTrigger.tag)
   }
 }

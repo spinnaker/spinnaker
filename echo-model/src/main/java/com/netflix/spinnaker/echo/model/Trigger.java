@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
       "account",
       "repository",
       "tag",
+      "digest",
       "parameters",
       "payloadConstraints",
       "attributeConstraints",
@@ -230,6 +231,10 @@ public class Trigger {
 
   public Trigger atTag(final String tag) {
     return this.toBuilder().buildNumber(null).hash(null).tag(tag).build();
+  }
+
+  public Trigger atTag(final String tag, final String digest) {
+    return this.toBuilder().buildNumber(null).hash(null).tag(tag).digest(digest).build();
   }
 
   public Trigger atPayload(final Map payload) {
