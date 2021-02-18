@@ -1,14 +1,14 @@
-import * as React from 'react';
-import { isEmpty, trim } from 'lodash';
 import { UISref, useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import { isEmpty, trim } from 'lodash';
+import * as React from 'react';
 
-import { Application } from '../../application';
-import { useDataSource } from '../../presentation';
-import { Spinner } from '../../widgets';
 import { BuildDetailsScrollContainerContext } from './BuildDetailsScrollContainerContext';
 import { BuildInfoDetails } from './BuildInfoDetails';
 import { BuildInfoSummaryCard } from './BuildInfoSummaryCard';
+import { Application } from '../../application';
 import { ICiBuild } from '../domain';
+import { useDataSource } from '../../presentation';
+import { Spinner } from '../../widgets';
 
 import './builds.less';
 

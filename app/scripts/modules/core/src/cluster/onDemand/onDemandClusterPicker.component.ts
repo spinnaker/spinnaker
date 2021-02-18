@@ -1,5 +1,4 @@
-import { IController, IComponentOptions, IScope, module } from 'angular';
-
+import { IComponentOptions, IController, IScope, module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IClusterSummary } from 'core/domain/ICluster';
 import { ClusterState } from 'core/state';

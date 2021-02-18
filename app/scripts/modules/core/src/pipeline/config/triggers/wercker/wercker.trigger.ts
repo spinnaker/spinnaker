@@ -1,9 +1,9 @@
 'use strict';
 
-import { WerckerTrigger } from './WerckerTrigger';
-
 import { ArtifactTypePatterns } from 'core/artifact';
 import { Registry } from 'core/registry';
+
+import { WerckerTrigger } from './WerckerTrigger';
 import { WerckerTriggerTemplate } from './WerckerTriggerTemplate';
 
 Registry.pipeline.registerTrigger({

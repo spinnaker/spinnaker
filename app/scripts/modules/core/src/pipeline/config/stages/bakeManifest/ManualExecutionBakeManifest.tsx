@@ -1,8 +1,8 @@
+import { IArtifact, IExpectedArtifact, ITrigger } from 'core/domain';
+import { CheckboxInput } from 'core/presentation';
 import React from 'react';
 
-import { CheckboxInput } from 'core/presentation';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
-import { IArtifact, IExpectedArtifact, ITrigger } from 'core/domain';
 import { HelmMatch } from '../../triggers/artifacts/helm/HelmArtifactEditor';
 import { HELM_TRIGGER_TYPE } from '../../triggers/helm/helm.trigger';
 

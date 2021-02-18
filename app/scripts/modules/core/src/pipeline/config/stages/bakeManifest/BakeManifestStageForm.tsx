@@ -1,15 +1,14 @@
-import React from 'react';
-import { isNil } from 'lodash';
-
 import { ExpectedArtifactService } from 'core/artifact';
 import { IExpectedArtifact } from 'core/domain';
 import { ReactSelectInput } from 'core/presentation';
+import { isNil } from 'lodash';
+import React from 'react';
 
-import { StageConfigField } from '../common';
 import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { BakeKustomizeConfigForm } from './kustomize/BakeKustomizeConfigForm';
+import { HELM_RENDERERS, ManifestRenderers } from './ManifestRenderers';
+import { StageConfigField } from '../common';
 import { BakeHelmConfigForm } from './helm/BakeHelmConfigForm';
-import { ManifestRenderers, HELM_RENDERERS } from './ManifestRenderers';
+import { BakeKustomizeConfigForm } from './kustomize/BakeKustomizeConfigForm';
 import { BASE_64_ARTIFACT_ACCOUNT, BASE_64_ARTIFACT_TYPE } from '../../triggers/artifacts/base64/Base64ArtifactEditor';
 
 export function BakeManifestStageForm({ application, formik, pipeline }: IFormikStageConfigInjectedProps) {

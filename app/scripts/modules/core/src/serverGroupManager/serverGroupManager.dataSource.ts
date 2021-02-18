@@ -1,8 +1,8 @@
 import { IQService, module } from 'angular';
-
 import { Application, ApplicationDataSourceRegistry } from 'core/application';
-import { ServerGroupManagerReader } from './ServerGroupManagerReader';
 import { IServerGroupManager } from 'core/domain/IServerGroupManager';
+
+import { ServerGroupManagerReader } from './ServerGroupManagerReader';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
 export const SERVER_GROUP_MANAGER_DATA_SOURCE = 'spinnaker.core.serverGroupManager.dataSource';

@@ -1,7 +1,8 @@
-import React from 'react';
+import { Application } from 'core/application';
 import { IServerGroupCommand } from 'core/serverGroup';
 import { FormikProps } from 'formik';
-import { Application } from 'core/application';
+import React from 'react';
+
 import { toggleResourcePause } from './toggleResourceManagement';
 
 export interface IDeployingIntoManagedClusterWarningProps {

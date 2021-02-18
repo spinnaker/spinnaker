@@ -1,13 +1,12 @@
-import React from 'react';
+import { IExecution, IExpectedArtifact } from 'core/domain';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline';
+import { Registry } from 'core/registry';
 import { get, has } from 'lodash';
-
-import { IExpectedArtifact, IExecution } from 'core/domain';
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';
+import React from 'react';
 
 import { ArtifactIconList } from './ArtifactIconList';
 
 import '../artifactTab.less';
-import { Registry } from 'core/registry';
 
 export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'artifactStatus';

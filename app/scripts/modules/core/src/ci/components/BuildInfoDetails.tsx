@@ -1,11 +1,11 @@
-import * as React from 'react';
 import { UISref, useCurrentStateAndParams } from '@uirouter/react';
 import * as classNames from 'classnames';
+import * as React from 'react';
 
-import { duration, relativeTime } from '../../utils';
-import { ICiBuild } from '../domain';
-import { BuildInfoLogsTab } from './BuildInfoLogsTab';
 import { BuildInfoArtifactsTab } from './BuildInfoArtifactsTab';
+import { BuildInfoLogsTab } from './BuildInfoLogsTab';
+import { ICiBuild } from '../domain';
+import { duration, relativeTime } from '../../utils';
 
 const infoConfigByBuildStatus: { [key: string]: { statusClass?: string; text: string } } = {
   SUCCEEDED: {

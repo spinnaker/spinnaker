@@ -1,11 +1,10 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { IExpectedArtifact } from 'core/domain';
+import { TetheredSelect } from 'core/presentation';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { UUIDGenerator } from 'core/utils';
 import React from 'react';
 import { react2angular } from 'react2angular';
-
-import { UUIDGenerator } from 'core/utils';
-import { TetheredSelect } from 'core/presentation';
-import { IExpectedArtifact } from 'core/domain';
 
 export interface IExpectedArtifactSourceOption {
   source: {

@@ -1,5 +1,5 @@
-import React from 'react';
 import { take } from 'lodash';
+import React from 'react';
 
 import { IStatusBubbleProps, StatusBubble } from '../StatusBubble';
 

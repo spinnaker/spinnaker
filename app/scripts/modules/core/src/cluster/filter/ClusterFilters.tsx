@@ -1,23 +1,22 @@
-import React from 'react';
-import { useOnStateChanged, StateDeclaration } from '@uirouter/react';
-import { compact, uniq, map } from 'lodash';
-
+import { StateDeclaration, useOnStateChanged } from '@uirouter/react';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
-import { ClusterState } from 'core/state';
-import { FilterCheckbox, ISortFilter, digestDependentFilters } from 'core/filterModel';
+import { digestDependentFilters, FilterCheckbox, ISortFilter } from 'core/filterModel';
 import { robotToHuman, useDataSource, useObservable } from 'core/presentation';
+import { ClusterState } from 'core/state';
+import { compact, map, uniq } from 'lodash';
+import React from 'react';
+
+import { FilterSearch } from './FilterSearch';
+import { FilterSection } from './FilterSection';
+import LabelFilter from './LabelFilter';
+import { poolBuilder } from './clusterDependentFilterHelper.service';
 import {
   buildLabelsMap,
+  ILabelFilter,
   labelFiltersToTrueKeyObject,
   trueKeyObjectToLabelFilters,
-  ILabelFilter,
 } from './labelFilterUtils';
-
-import { poolBuilder } from './clusterDependentFilterHelper.service';
-import { FilterSection } from './FilterSection';
-import { FilterSearch } from './FilterSearch';
-import LabelFilter from './LabelFilter';
 
 export interface IClusterFiltersProps {
   app: Application;

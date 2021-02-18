@@ -1,13 +1,13 @@
-import React from 'react';
+import { INotification, INotificationTypeConfig } from 'core/domain';
+import { FormikFormField, TextAreaInput } from 'core/presentation';
+import { Registry } from 'core/registry';
 import { FormikProps } from 'formik';
+import React from 'react';
 import { Option } from 'react-select';
 
-import { INotification, INotificationTypeConfig } from 'core/domain';
-import { Registry } from 'core/registry';
-import { FormikFormField, TextAreaInput } from 'core/presentation';
-import { NotificationSelector } from '../selector/NotificationSelector';
-import { NotificationTransformer } from '../notification.transformer';
 import { WhenChecklistInput } from './WhenChecklistInput';
+import { NotificationTransformer } from '../notification.transformer';
+import { NotificationSelector } from '../selector/NotificationSelector';
 import { MANUAL_JUDGEMENT_WHEN_OPTIONS, PIPELINE_WHEN_OPTIONS, STAGE_WHEN_OPTIONS } from './whenOptions';
 
 import './editNotification.less';

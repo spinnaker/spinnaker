@@ -1,7 +1,6 @@
-import React from 'react';
-
 import { HelpField } from 'core/help/HelpField';
 import { Placement } from 'core/presentation';
+import React from 'react';
 
 import { IVariableMetadata } from './PipelineTemplateReader';
 

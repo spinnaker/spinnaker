@@ -1,11 +1,12 @@
-import { module, IQService } from 'angular';
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
+import { IQService, module } from 'angular';
 import { Application } from 'core/application/application.model';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
-import { IFunction } from 'core/domain';
-import { FUNCTION_READ_SERVICE, FunctionReader } from './function.read.service';
+import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
+import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { SETTINGS } from 'core/config/settings';
+import { IFunction } from 'core/domain';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
+
+import { FUNCTION_READ_SERVICE, FunctionReader } from './function.read.service';
 
 export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
 module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([

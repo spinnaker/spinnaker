@@ -1,14 +1,14 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import React from 'react';
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
-import ReactGA from 'react-ga';
 import classNames from 'classnames';
-
-import { NgReact } from 'core/reactShims';
-import { Application } from '../../application.model';
-import { ValidationMessage, useLatestCallback } from 'core/presentation';
 import { ManagedWriter } from 'core/managed';
+import { useLatestCallback, ValidationMessage } from 'core/presentation';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { NgReact } from 'core/reactShims';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { react2angular } from 'react2angular';
+
+import { Application } from '../../application.model';
 
 import './ManagedResourceConfig.less';
 

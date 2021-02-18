@@ -1,13 +1,12 @@
+import classNames from 'classnames';
+import { IInstance, ILoadBalancerHealth, IServerGroup } from 'core/domain';
+import { Tooltip } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
+import { timestamp } from 'core/utils/timeFormatters';
+import { isEqual } from 'lodash';
 import React from 'react';
 import { Subject } from 'rxjs';
-import { isEqual } from 'lodash';
-import classNames from 'classnames';
-
-import { IServerGroup, IInstance, ILoadBalancerHealth } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-import { timestamp } from 'core/utils/timeFormatters';
-import { Tooltip } from 'core/presentation';
-import { ClusterState } from 'core/state';
 
 export interface IInstanceListBodyProps {
   serverGroup: IServerGroup;

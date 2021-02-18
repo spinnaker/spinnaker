@@ -1,7 +1,8 @@
-import React from 'react';
 import { FormikFormField, SelectInput, StandardFieldLayout } from 'core/presentation';
-import { FormikStageConfig } from '../../stages/FormikStageConfig';
 import { LayoutProvider } from 'core/presentation';
+import React from 'react';
+
+import { FormikStageConfig } from '../../stages/FormikStageConfig';
 
 export function PluginTrigger(props: any) {
   const options = [

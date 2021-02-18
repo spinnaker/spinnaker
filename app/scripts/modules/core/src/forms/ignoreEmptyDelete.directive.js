@@ -1,7 +1,7 @@
-import UI_SELECT from 'ui-select';
-('use strict');
-
 import { module } from 'angular';
+import UI_SELECT from 'ui-select';
+
+('use strict');
 
 export const CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE = 'spinnaker.core.utils.ignoreEmptyDelete.directive';
 export const name = CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE; // for backwards compatibility

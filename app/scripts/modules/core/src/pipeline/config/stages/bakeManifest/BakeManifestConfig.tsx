@@ -1,14 +1,13 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
-import { FormikErrors } from 'formik';
-
 import { IExpectedArtifact, IStage } from 'core/domain';
 import { FormValidator } from 'core/presentation';
+import { FormikErrors } from 'formik';
+import { cloneDeep } from 'lodash';
+import React from 'react';
 
-import { FormikStageConfig } from '../FormikStageConfig';
-import { IStageConfigProps } from '../common';
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
+import { FormikStageConfig } from '../FormikStageConfig';
 import { HELM_RENDERERS } from './ManifestRenderers';
+import { IStageConfigProps } from '../common';
 
 export function BakeManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults = React.useMemo(() => {

@@ -1,5 +1,6 @@
-import { copy, module } from 'angular';
 import { StateRegistry } from '@uirouter/core';
+import { copy, module } from 'angular';
+
 import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {

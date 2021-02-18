@@ -1,17 +1,17 @@
-import React from 'react';
-import { useRecoilState } from 'recoil';
 import { useCurrentStateAndParams, useSrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-
-import { NgReact } from 'core/reactShims';
 import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
 import { CollapsibleSectionStateCache } from 'core/cache';
-import { Overridable } from 'core/overrideRegistry';
-import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { HelpMenu } from 'core/help/HelpMenu';
-import './SpinnakerHeader.css';
+import { Overridable } from 'core/overrideRegistry';
+import { NgReact } from 'core/reactShims';
+import { GlobalSearch } from 'core/search/global/GlobalSearch';
+import React from 'react';
+import { useRecoilState } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
+
+import './SpinnakerHeader.css';
 
 @UIRouterContext
 @Overridable('spinnakerHeader')

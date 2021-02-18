@@ -1,12 +1,10 @@
+import 'brace/mode/json';
+import { IPipeline, IPipelineLock, IStage } from 'core/domain';
+import { IModalComponentProps, JsonEditor } from 'core/presentation';
+import { JsonUtils, noop } from 'core/utils';
 import React from 'react';
-
 import { Modal } from 'react-bootstrap';
 
-import 'brace/mode/json';
-
-import { IPipeline, IPipelineLock, IStage } from 'core/domain';
-import { JsonUtils, noop } from 'core/utils';
-import { IModalComponentProps, JsonEditor } from 'core/presentation';
 import { PipelineJSONService } from '../../services/pipelineJSON.service';
 
 export interface IEditPipelineJsonModalProps extends IModalComponentProps {

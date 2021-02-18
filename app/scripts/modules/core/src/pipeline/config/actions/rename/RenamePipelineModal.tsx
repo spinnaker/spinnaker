@@ -1,12 +1,6 @@
-import React from 'react';
-import { map, without, get } from 'lodash';
-import { Modal } from 'react-bootstrap';
-import { Form } from 'formik';
-
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
-import { PipelineConfigService } from '../../services/PipelineConfigService';
 import {
   FormikFormField,
   IModalComponentProps,
@@ -15,6 +9,12 @@ import {
   TextInput,
   Validators,
 } from 'core/presentation';
+import { Form } from 'formik';
+import { get, map, without } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface IRenamePipelineModalProps extends IModalComponentProps {
   application: Application;

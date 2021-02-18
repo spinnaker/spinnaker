@@ -1,13 +1,12 @@
 'use strict';
 
 import { module } from 'angular';
-
+import { AccountService } from 'core/account/AccountService';
+import { SETTINGS } from 'core/config/settings';
+import { Registry } from 'core/registry';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { AccountService } from 'core/account/AccountService';
-import { Registry } from 'core/registry';
-import { SETTINGS } from 'core/config/settings';
 import { StageConfigWrapper } from '../StageConfigWrapper';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE =

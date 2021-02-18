@@ -1,13 +1,12 @@
-import React from 'react';
-import { set } from 'lodash';
-import { Option } from 'react-select';
-
 import { IEntityTag } from 'core/domain';
 import { HelpField } from 'core/help/HelpField';
+import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
 import { UUIDGenerator } from 'core/utils';
+import { set } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
 
 import './TagEditor.less';
-import { FormField, TextInput, ReactSelectInput } from 'core/presentation';
 
 export type EntityTagType = 'notice' | 'alert' | 'custom';
 

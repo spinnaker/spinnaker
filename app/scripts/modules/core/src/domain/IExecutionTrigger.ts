@@ -1,5 +1,5 @@
-import { IExecution } from './IExecution';
 import { IArtifact } from './IArtifact';
+import { IExecution } from './IExecution';
 import { IExpectedArtifact } from './IExpectedArtifact';
 import { ITrigger } from './ITrigger';
 

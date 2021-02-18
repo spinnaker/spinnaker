@@ -1,12 +1,11 @@
 'use strict';
 
+import { module } from 'angular';
+import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
-
-import { IgorService, BuildServiceType } from 'core/ci/igor.service';
-import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
 import { pickBy } from 'lodash';
 
-import { module } from 'angular';
+import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
 
 export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE = 'spinnaker.core.pipeline.stage.jenkinsStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE; // for backwards compatibility

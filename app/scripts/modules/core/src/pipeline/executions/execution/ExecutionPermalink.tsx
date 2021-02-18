@@ -1,5 +1,5 @@
-import { CopyToClipboard } from 'core/utils';
 import { ReactInjector } from 'core/reactShims';
+import { CopyToClipboard } from 'core/utils';
 import React from 'react';
 import ReactGA from 'react-ga';
 

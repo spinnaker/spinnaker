@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { CollapsibleSectionStateCache } from 'core/cache';
+import React from 'react';
 
 export interface ICollapsibleSectionProps {
   outerDivClassName?: string;

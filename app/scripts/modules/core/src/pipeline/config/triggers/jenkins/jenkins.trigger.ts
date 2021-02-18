@@ -1,10 +1,10 @@
 'use strict';
 
-import { JenkinsTrigger } from './JenkinsTrigger';
 import { Registry } from 'core/registry';
 
-import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
+import { JenkinsTrigger } from './JenkinsTrigger';
 import { JenkinsTriggerExecutionStatus } from './JenkinsTriggerExecutionStatus';
+import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
 
 Registry.pipeline.registerTrigger({
   component: JenkinsTrigger,

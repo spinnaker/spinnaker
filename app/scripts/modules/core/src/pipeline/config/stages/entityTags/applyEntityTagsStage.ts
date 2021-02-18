@@ -1,8 +1,8 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { ApplyEntityTagsExecutionDetails } from './ApplyEntityTagsExecutionDetails';
 import { ApplyEntityTagsStageConfig } from './ApplyEntityTagsStageConfig';
+import { ExecutionDetailsTasks } from '../common';
 
 Registry.pipeline.registerStage({
   label: 'Entity Tags',

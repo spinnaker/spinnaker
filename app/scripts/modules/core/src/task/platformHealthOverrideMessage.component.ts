@@ -1,8 +1,7 @@
-import { IController, IComponentOptions, module } from 'angular';
-import { get } from 'lodash';
-
+import { IComponentOptions, IController, module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IInstanceCounts, IStage, ITask, ITaskStep, ITimedItem } from 'core/domain';
+import { get } from 'lodash';
 import { Duration } from 'luxon';
 
 class PlatformHealthOverrideMessageController implements IController {

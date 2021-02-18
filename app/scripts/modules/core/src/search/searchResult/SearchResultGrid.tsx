@@ -1,10 +1,9 @@
-import React from 'react';
-import { kebabCase } from 'lodash';
-
 import { Spinner } from 'core/widgets';
+import { kebabCase } from 'lodash';
+import React from 'react';
 
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchStatus } from './SearchResults';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 
 export interface ISearchResultGridProps {
   resultSet: ISearchResultSet;

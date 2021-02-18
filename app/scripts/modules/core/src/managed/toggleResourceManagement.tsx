@@ -1,9 +1,8 @@
-import React from 'react';
-import { $q } from 'ngimport';
-
-import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
 import { Application } from 'core/application';
 import { ConfirmationModalService } from 'core/confirmationModal';
+import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
+import { $q } from 'ngimport';
+import React from 'react';
 
 import { ManagedWriter } from './ManagedWriter';
 

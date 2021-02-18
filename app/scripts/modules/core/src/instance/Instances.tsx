@@ -1,8 +1,9 @@
-import React from 'react';
-import { UIRouter, Transition } from '@uirouter/core';
-import { UIViewAddress, useRouter, useParentView } from '@uirouter/react';
-import { Subscription } from 'rxjs';
+import { Transition, UIRouter } from '@uirouter/core';
+import { UIViewAddress, useParentView, useRouter } from '@uirouter/react';
 import { IInstance } from 'core/domain';
+import React from 'react';
+import { Subscription } from 'rxjs';
+
 import { Instance } from './Instance';
 
 export interface IInstancesProps {

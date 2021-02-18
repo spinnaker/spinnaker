@@ -1,22 +1,20 @@
-import React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-
-import { Debounce } from 'lodash-decorators';
+import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 import { flatten } from 'lodash';
+import { Debounce } from 'lodash-decorators';
+import React from 'react';
 import ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
 
+import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
+import { GlobalSearchResults } from './GlobalSearchResults';
+import { IChildComponentProps, RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { ISearchResult } from '../search.service';
-import { ReactInjector } from 'core/reactShims';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import { searchRank } from '../searchRank.filter';
-import { RecentlyViewedItems, IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
-import { ClusterState } from 'core/state';
-
-import { GlobalSearchResults } from './GlobalSearchResults';
-import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 
 const SLASH_KEY = 191;
 const MIN_SEARCH_LENGTH = 3;

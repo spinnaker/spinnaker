@@ -1,8 +1,9 @@
 import { isNil } from 'lodash';
 import { $http } from 'ngimport';
+
+import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
-import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 
 type IPrimitive = string | boolean | number;
 type IParams = Record<string, IPrimitive | IPrimitive[]>;

@@ -1,29 +1,27 @@
+import classNames from 'classnames';
 import React, { memo, useState } from 'react';
 import ReactGA from 'react-ga';
-import classNames from 'classnames';
-
-import {
-  IStatefulConstraint,
-  StatefulConstraintStatus,
-  IStatelessConstraint,
-  IManagedApplicationEnvironmentSummary,
-  IManagedArtifactVersionEnvironment,
-} from '../../../domain';
-import { Application, ApplicationDataSource } from '../../../application';
-import { IRequestStatus } from '../../../presentation';
 
 import { Button } from '../../Button';
+import { IUpdateConstraintStatusRequest, ManagedWriter } from '../../ManagedWriter';
 import { StatusCard } from '../../StatusCard';
-
-import { ManagedWriter, IUpdateConstraintStatusRequest } from '../../ManagedWriter';
+import { Application, ApplicationDataSource } from '../../../application';
 import {
-  isConstraintSupported,
-  isConstraintStateful,
-  getConstraintIcon,
-  getConstraintTimestamp,
-  getConstraintSummary,
   getConstraintActions,
+  getConstraintIcon,
+  getConstraintSummary,
+  getConstraintTimestamp,
+  isConstraintStateful,
+  isConstraintSupported,
 } from './constraintRegistry';
+import {
+  IManagedApplicationEnvironmentSummary,
+  IManagedArtifactVersionEnvironment,
+  IStatefulConstraint,
+  IStatelessConstraint,
+  StatefulConstraintStatus,
+} from '../../../domain';
+import { IRequestStatus } from '../../../presentation';
 
 import './ConstraintCard.less';
 

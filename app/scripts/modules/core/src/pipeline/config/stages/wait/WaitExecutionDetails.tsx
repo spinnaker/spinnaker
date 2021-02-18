@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { SkipWait } from './SkipWait';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
-import { SkipWait } from './SkipWait';
 
 export function WaitExecutionDetails(props: IExecutionDetailsSectionProps) {
   return (

@@ -1,9 +1,8 @@
-import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
-
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, Application } from 'core/application';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
+import { module } from 'angular';
+import { Application, APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
 import { CloudProviderRegistry } from 'core/cloudProvider';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InstanceDetails } from './details/InstanceDetails';

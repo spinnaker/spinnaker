@@ -1,10 +1,10 @@
 // Random deck initialization code
+import { StateService } from '@uirouter/core';
 import { IRootScopeService } from 'angular';
+import { CacheInitializerService } from 'core/cache';
+import { SETTINGS } from 'core/config';
 
 import { bootstrapModule } from './bootstrap.module';
-import { SETTINGS } from 'core/config';
-import { CacheInitializerService } from 'core/cache';
-import { StateService } from '@uirouter/core';
 
 bootstrapModule.run([
   '$rootScope',

@@ -1,7 +1,6 @@
-import * as React from 'react';
-
 import { IExecutionTriggerStatusComponentProps } from 'core/domain';
 import { IHelmTrigger } from 'core/domain/IHelmTrigger';
+import * as React from 'react';
 
 export const HelmTriggerExecutionStatus = (props: IExecutionTriggerStatusComponentProps) => {
   const trigger = props.trigger as IHelmTrigger;

@@ -1,7 +1,6 @@
-import React from 'react';
-
 import { IPipeline } from 'core/domain';
 import { FormField, TextAreaInput } from 'core/presentation';
+import React from 'react';
 
 export interface IDescriptionPageContentProps {
   pipeline: IPipeline;

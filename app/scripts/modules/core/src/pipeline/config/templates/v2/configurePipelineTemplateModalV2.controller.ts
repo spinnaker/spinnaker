@@ -1,20 +1,19 @@
-import { module, IController, IScope, IHttpPromiseCallbackArg } from 'angular';
+import { IController, IHttpPromiseCallbackArg, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { without, chain, has } from 'lodash';
-
 import { Application } from 'core/application/application.model';
 import { IPipelineTemplateConfigV2 } from 'core/domain';
-import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
-import { VariableValidatorService } from '../validators/variableValidator.service';
+import { chain, has, without } from 'lodash';
 
 import {
-  PipelineTemplateReader,
-  IVariableMetadata,
-  IPipelineTemplatePlanResponse,
   IPipelineTemplate,
   IPipelineTemplatePlanError,
+  IPipelineTemplatePlanResponse,
+  IVariableMetadata,
+  PipelineTemplateReader,
 } from '../PipelineTemplateReader';
 import { IVariable } from '../inputs/variableInput.service';
+import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
+import { VariableValidatorService } from '../validators/variableValidator.service';
 
 export interface IVariableMetadataGroup {
   name: string;

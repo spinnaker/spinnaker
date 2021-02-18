@@ -1,15 +1,15 @@
-import React from 'react';
-import { isEmpty } from 'lodash';
 import { Meta } from '@storybook/react';
+import { isEmpty } from 'lodash';
+import React from 'react';
 
 import {
   ChecklistInput,
   DayPickerInput,
   FormikFormField,
   NumberInput,
-  SpinFormik,
   RadioButtonInput,
   ReactSelectInput,
+  SpinFormik,
   TextAreaInput,
   TextInput,
 } from '../';

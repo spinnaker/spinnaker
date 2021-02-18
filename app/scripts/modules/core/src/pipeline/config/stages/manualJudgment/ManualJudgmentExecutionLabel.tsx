@@ -1,10 +1,10 @@
+import { Application } from 'core/application/application.model';
+import { IExecution, IExecutionStageSummary } from 'core/domain';
+import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
-import { IExecutionStageSummary, IExecution } from 'core/domain';
-import { Application } from 'core/application/application.model';
-import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
 
 export interface IManualJudgmentExecutionLabelProps {

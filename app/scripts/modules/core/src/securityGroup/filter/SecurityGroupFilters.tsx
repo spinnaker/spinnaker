@@ -1,15 +1,14 @@
-import React from 'react';
 import { useOnStateChanged } from '@uirouter/react';
-import { chain, compact, uniq, map } from 'lodash';
-
 import { Application } from 'core/application';
-import { ISortFilter, digestDependentFilters } from 'core/filterModel';
-import { useDataSource, useObservable } from 'core/presentation';
-import { FilterCheckbox } from 'core/filterModel/FilterCheckBox';
 import { FilterSearch } from 'core/cluster/filter/FilterSearch';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
-import { SecurityGroupState } from 'core/state';
 import { ISecurityGroup } from 'core/domain';
+import { digestDependentFilters, ISortFilter } from 'core/filterModel';
+import { FilterCheckbox } from 'core/filterModel/FilterCheckBox';
+import { useDataSource, useObservable } from 'core/presentation';
+import { SecurityGroupState } from 'core/state';
+import { chain, compact, map, uniq } from 'lodash';
+import React from 'react';
 
 export interface ISecurityGroupFiltersProps {
   app: Application;

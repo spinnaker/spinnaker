@@ -1,6 +1,7 @@
 import { IController, module } from 'angular';
-import { V2_WIZARD_PAGE_COMPONENT } from './v2wizardPage.component';
+
 import { ModalWizard } from './ModalWizard';
+import { V2_WIZARD_PAGE_COMPONENT } from './v2wizardPage.component';
 
 import './modalWizard.less';
 

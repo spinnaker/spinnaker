@@ -1,18 +1,17 @@
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
+import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfig.component';
+import { SETTINGS } from 'core/config/settings';
 import { cloneDeep } from 'lodash';
 
-import { APPLICATION_DATA_SOURCE_EDITOR } from './dataSources/applicationDataSourceEditor.component';
-import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfig.component';
-import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfig.component';
-import { SETTINGS } from 'core/config/settings';
-import { ApplicationWriter } from '../service/ApplicationWriter';
-import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 import { CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE } from './applicationAttributes.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE } from './applicationNotifications.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT } from './applicationSnapshotSection.component';
+import { APPLICATION_DATA_SOURCE_EDITOR } from './dataSources/applicationDataSourceEditor.component';
+import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 import { CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT } from './links/applicationLinks.component';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-
-import { module } from 'angular';
+import { ApplicationWriter } from '../service/ApplicationWriter';
+import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfig.component';
 
 export const CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER = 'spinnaker.core.application.config.controller';
 export const name = CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER; // for backwards compatibility

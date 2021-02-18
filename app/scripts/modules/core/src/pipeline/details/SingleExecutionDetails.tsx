@@ -1,17 +1,17 @@
+import { UISref } from '@uirouter/react';
+import { Application } from 'core/application/application.model';
+import { IExecution, IPipeline } from 'core/domain';
+import { ISortFilter } from 'core/filterModel';
+import { Tooltip } from 'core/presentation';
+import { IStateChange, ReactInjector } from 'core/reactShims';
+import { IScheduler, SchedulerFactory } from 'core/scheduler';
+import { ExecutionState } from 'core/state';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
-import { UISref } from '@uirouter/react';
 
-import { Application } from 'core/application/application.model';
-import { IExecution, IPipeline } from 'core/domain';
 import { Execution } from '../executions/execution/Execution';
-import { IScheduler, SchedulerFactory } from 'core/scheduler';
 import { ManualExecutionModal } from '../manualExecution';
-import { ReactInjector, IStateChange } from 'core/reactShims';
-import { Tooltip } from 'core/presentation';
-import { ISortFilter } from 'core/filterModel';
-import { ExecutionState } from 'core/state';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 
 import './singleExecutionDetails.less';

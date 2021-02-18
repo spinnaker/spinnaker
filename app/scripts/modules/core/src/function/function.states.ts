@@ -1,14 +1,13 @@
-import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
-
-import { INestedState, StateConfigProvider } from 'core/navigation';
+import { module } from 'angular';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { filterModelConfig } from './filter/FunctionFilterModel';
-import { Functions } from './Functions';
+import { SETTINGS } from 'core/config/settings';
+import { INestedState, StateConfigProvider } from 'core/navigation';
 
 import { FunctionDetails } from './FunctionDetails';
+import { Functions } from './Functions';
+import { filterModelConfig } from './filter/FunctionFilterModel';
 import { FunctionFilters } from './filter/FunctionFilters';
-import { SETTINGS } from 'core/config/settings';
 export const FUNCTION_STATES = 'spinnaker.core.functions.states';
 module(FUNCTION_STATES, [APPLICATION_STATE_PROVIDER]).config([
   'applicationStateProvider',

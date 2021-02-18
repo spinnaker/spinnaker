@@ -1,9 +1,10 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
-
 import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { react2angular } from 'react2angular';
+
 import { TaskProgressBar } from './TaskProgressBar';
+
+('use strict');
 
 export const CORE_TASK_TASKPROGRESSBAR_DIRECTIVE = 'spinnaker.core.task.progressBar.directive';
 export const name = CORE_TASK_TASKPROGRESSBAR_DIRECTIVE; // for backwards compatibility

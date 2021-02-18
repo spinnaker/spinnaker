@@ -1,7 +1,6 @@
-import React from 'react';
-
 import { NgReact } from 'core/reactShims';
 import { noop } from 'core/utils';
+import React from 'react';
 
 export interface ISubmitButtonProps {
   className?: string;

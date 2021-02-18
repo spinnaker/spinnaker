@@ -1,23 +1,22 @@
-import { uniq, isNil, cloneDeep, intersection, memoize, fromPairs } from 'lodash';
-
+import { IAccountDetails } from 'core/account/AccountService';
 import { Application } from 'core/application/application.model';
+import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
+import { SETTINGS } from 'core/config/settings';
 import {
+  IArtifactEditorProps,
+  IArtifactKindConfig,
   IExecution,
   INotificationTypeConfig,
   IStage,
-  ITriggerTypeConfig,
-  IStageTypeConfig,
-  IArtifactKindConfig,
   IStageOrTriggerTypeConfig,
-  IArtifactEditorProps,
+  IStageTypeConfig,
+  ITriggerTypeConfig,
 } from 'core/domain';
-import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
-import { SETTINGS } from 'core/config/settings';
-import { IAccountDetails } from 'core/account/AccountService';
-import { PreconfiguredJobReader } from './stages/preconfiguredJob';
+import { cloneDeep, fromPairs, intersection, isNil, memoize, uniq } from 'lodash';
+import { ComponentType, SFC } from 'react';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
-import { ComponentType, SFC } from 'react';
+import { PreconfiguredJobReader } from './stages/preconfiguredJob';
 import { artifactKindConfigs } from './triggers/artifacts';
 
 export interface ITransformer {

@@ -1,9 +1,9 @@
-import React from 'react';
+import { Markdown } from 'core/presentation';
 import { groupBy } from 'lodash';
+import React from 'react';
 
 import { EntityName } from './EntityName';
 import { INotification } from './NotificationsPopover';
-import { Markdown } from 'core/presentation';
 
 export interface IMessageNotifications {
   message: string;

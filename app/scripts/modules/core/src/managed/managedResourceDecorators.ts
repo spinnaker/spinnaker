@@ -1,6 +1,6 @@
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config';
-import { IServerGroup, ILoadBalancer, IManagedResourceSummary, ISecurityGroup } from 'core/domain';
+import { ILoadBalancer, IManagedResourceSummary, ISecurityGroup, IServerGroup } from 'core/domain';
 import { IMoniker } from 'core/naming';
 
 import { getKindName, getResourceKindForLoadBalancerType } from './ManagedReader';

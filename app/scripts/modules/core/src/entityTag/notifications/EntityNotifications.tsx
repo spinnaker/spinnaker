@@ -1,11 +1,11 @@
+import { Application } from 'core/application';
+import { IEntityTag, IEntityTags } from 'core/domain';
+import { Placement } from 'core/presentation';
+import { noop } from 'core/utils';
 import React from 'react';
 
-import { IEntityTags, IEntityTag } from 'core/domain';
-import { Placement } from 'core/presentation';
-import { Application } from 'core/application';
-import { noop } from 'core/utils';
-import { NotificationsPopover } from './NotificationsPopover';
 import { EphemeralPopover } from './EphemeralPopover';
+import { NotificationsPopover } from './NotificationsPopover';
 
 export interface IEntityNotificationsProps {
   entity: any;

@@ -1,15 +1,15 @@
-import React from 'react';
+import { IAccount } from 'core/account';
+import { ICache, ViewStateCache } from 'core/cache';
+import { InsightMenu } from 'core/insight/InsightMenu';
+import { Spinner } from 'core/widgets';
 import { isEqual } from 'lodash';
+import React from 'react';
 import { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
-import { IAccount } from 'core/account';
-import { ICache, ViewStateCache } from 'core/cache';
-import { ApplicationReader, IApplicationSummary } from '../service/ApplicationReader';
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
-import { InsightMenu } from 'core/insight/InsightMenu';
-import { Spinner } from 'core/widgets';
+import { ApplicationReader, IApplicationSummary } from '../service/ApplicationReader';
 
 import '../applications.less';
 

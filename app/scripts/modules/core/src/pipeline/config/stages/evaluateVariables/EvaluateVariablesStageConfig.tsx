@@ -1,13 +1,8 @@
-import React from 'react';
-import { countBy } from 'lodash';
-import { FieldArray } from 'formik';
-
 import { IStage } from 'core/domain';
-import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
-import { IStageConfigProps } from '../common';
 import {
-  FormValidator,
+  errorMessage,
   FormikFormField,
+  FormValidator,
   ILayoutProps,
   IStageForSpelPreview,
   IValidator,
@@ -18,12 +13,16 @@ import {
   StandardFieldLayout,
   TextInput,
   Tooltip,
-  ValidationMessage,
-  errorMessage,
   useIsMountedRef,
+  ValidationMessage,
 } from 'core/presentation';
+import { FieldArray } from 'formik';
+import { countBy } from 'lodash';
+import React from 'react';
 
 import { ExecutionAndStagePicker, IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
+import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { IStageConfigProps } from '../common';
 
 import './EvaluateVariablesStageConfig.less';
 

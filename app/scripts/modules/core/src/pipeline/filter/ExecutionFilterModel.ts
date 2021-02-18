@@ -1,12 +1,11 @@
+import { ICache, ViewStateCache } from 'core/cache';
+import { SETTINGS } from 'core/config/settings';
+import { IExecutionGroup } from 'core/domain';
+import { FilterModelService } from 'core/filterModel';
+import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { ReactInjector } from 'core/reactShims';
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
-
-import { SETTINGS } from 'core/config/settings';
-import { ICache, ViewStateCache } from 'core/cache';
-import { IExecutionGroup } from 'core/domain';
-import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
-import { FilterModelService } from 'core/filterModel';
-import { ReactInjector } from 'core/reactShims';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },

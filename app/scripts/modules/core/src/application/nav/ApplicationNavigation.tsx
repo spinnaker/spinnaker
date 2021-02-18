@@ -1,22 +1,21 @@
+import { useCurrentStateAndParams } from '@uirouter/react';
+import { SETTINGS } from 'core/config/settings';
+import { PagerDutyWriter } from 'core/pagerDuty';
+import { find, isEqual } from 'lodash';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
-import { useCurrentStateAndParams } from '@uirouter/react';
-import { find, isEqual } from 'lodash';
-import { SETTINGS } from 'core/config/settings';
+
+import { Icon } from '@spinnaker/presentation';
 
 import { AppRefresher } from './AppRefresher';
 import { NavSection } from './NavSection';
-import { Tooltip, useIsMobile, usePrevious } from '../../presentation';
-
-import { navigationCategoryRegistry } from './navigationCategory.registry';
-import { verticalNavExpandedAtom } from './navAtoms';
-import { PagerDutyWriter } from 'core/pagerDuty';
 import { Application } from '../application.model';
+import { verticalNavExpandedAtom } from './navAtoms';
+import { navigationCategoryRegistry } from './navigationCategory.registry';
+import { Tooltip, useIsMobile, usePrevious } from '../../presentation';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 
 import './verticalNav.less';
-
-import { Icon } from '@spinnaker/presentation';
 
 export interface IApplicationNavigationProps {
   app: Application;

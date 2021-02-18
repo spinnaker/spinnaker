@@ -1,10 +1,10 @@
-import React from 'react';
-import { get, isEmpty } from 'lodash';
-
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
-import { StageFailureMessage } from '../../../details';
 import { IExecutionStage } from 'core/domain';
+import { get, isEmpty } from 'lodash';
+import React from 'react';
+
 import { DeploymentMonitorReader, IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageFailureMessage } from '../../../details';
 
 interface IAdditionalData {
   link: string;

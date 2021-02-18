@@ -1,11 +1,10 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import React from 'react';
-
 import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { timestamp } from 'core/utils';
+import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { IExecutionBuildLinkProps } from './ExecutionBuildLink';
-import { timestamp } from 'core/utils';
 
 export interface IExecutionBuildTitleProps extends IExecutionBuildLinkProps {
   defaultToTimestamp?: boolean;

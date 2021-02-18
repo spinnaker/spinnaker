@@ -1,5 +1,5 @@
-import { join } from 'lodash';
 import { INotification } from 'core/domain';
+import { join } from 'lodash';
 
 export class NotificationTransformer {
   public static getNotificationWhenDisplayName = (whenOption: string, level?: string, stageType?: string): string => {

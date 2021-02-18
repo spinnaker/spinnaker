@@ -1,10 +1,15 @@
-import React, { ReactNode } from 'react';
 import { UISref } from '@uirouter/react';
+import { ApplicationReader, IApplicationSummary } from 'core/application';
+import { SETTINGS } from 'core/config';
+import { Overridable } from 'core/overrideRegistry';
+import { Markdown } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+import { relativeTime } from 'core/utils/timeFormatters';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { DateTime } from 'luxon';
-import { Observable } from 'rxjs';
+import React, { ReactNode } from 'react';
 import {
   AutoSizer,
   CellMeasurer,
@@ -16,21 +21,14 @@ import {
   TableCellProps,
   TableHeaderProps,
 } from 'react-virtualized';
+import { Observable } from 'rxjs';
 
-// defined in react-virtualized but TS complains about not finding it so we duplicate it here
-type SortDirectionType = 'ASC' | 'DESC';
-
-import { ApplicationReader, IApplicationSummary } from 'core/application';
-import { relativeTime } from 'core/utils/timeFormatters';
+import { PageButton } from './PageButton';
 import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
-import { ReactInjector } from 'core/reactShims';
-import { SETTINGS } from 'core/config';
-import { Markdown } from 'core/presentation';
-import { Overridable } from 'core/overrideRegistry';
 
 import './pager.less';
 
-import { PageButton } from './PageButton';
+type SortDirectionType = 'ASC' | 'DESC';
 
 export interface IUserDisplay {
   level: number;

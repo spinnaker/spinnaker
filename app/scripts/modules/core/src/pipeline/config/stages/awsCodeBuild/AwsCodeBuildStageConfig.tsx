@@ -1,7 +1,6 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
-
 import { FormikStageConfig, IFormikStageConfigInjectedProps, IStage, IStageConfigProps } from 'core';
+import { cloneDeep } from 'lodash';
+import React from 'react';
 
 import { AwsCodeBuildStageForm } from './AwsCodeBuildStageForm';
 import { validate } from './AwsCodeBuildValidator';

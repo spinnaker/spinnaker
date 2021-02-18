@@ -1,4 +1,4 @@
-import { isPlainObject, isArray, isNumber, isString } from 'lodash';
+import { isArray, isNumber, isPlainObject, isString } from 'lodash';
 
 const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
 

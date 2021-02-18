@@ -1,8 +1,7 @@
-import React from 'react';
 import classNames from 'classnames';
-
-import { noop } from 'core/utils';
 import { Tooltip } from 'core/presentation';
+import { noop } from 'core/utils';
+import React from 'react';
 
 export interface IExecutionActionProps {
   children: React.ReactNode;

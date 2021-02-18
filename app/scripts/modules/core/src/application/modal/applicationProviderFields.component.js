@@ -1,10 +1,9 @@
 'use strict';
 
-import _ from 'lodash';
+import { module } from 'angular';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
-
-import { module } from 'angular';
+import _ from 'lodash';
 
 export const CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT =
   'spinnaker.core.application.modal.applicationProviderFields.directive';

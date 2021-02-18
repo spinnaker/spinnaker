@@ -1,13 +1,12 @@
+import { IQueryParams, UrlBuilder } from 'core/navigation';
 import { isEmpty } from 'lodash';
-import { Observable, Subject } from 'rxjs';
-
-import { UrlBuilder, IQueryParams } from 'core/navigation';
 import { uniqBy } from 'lodash';
+import { Observable, Subject } from 'rxjs';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
 import { ISearchResult, ISearchResults } from '../search.service';
-import { SearchResultType } from '../searchResult/searchResultType';
 import { SearchStatus } from '../searchResult/SearchResults';
+import { SearchResultType } from '../searchResult/searchResultType';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 
 export class InfrastructureSearchServiceV2 {

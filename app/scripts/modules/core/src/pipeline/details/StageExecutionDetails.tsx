@@ -1,13 +1,13 @@
-import React from 'react';
-import { Subscription } from 'rxjs';
-
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import { ExecutionFilterService } from '../filter/executionFilter.service';
 import { Registry } from 'core/registry';
-import { StepDetails } from './StepDetails';
+import React from 'react';
+import { Subscription } from 'rxjs';
+
 import { StageSummary } from './StageSummary';
+import { StepDetails } from './StepDetails';
+import { ExecutionFilterService } from '../filter/executionFilter.service';
 
 import './stageExecutionDetails.less';
 

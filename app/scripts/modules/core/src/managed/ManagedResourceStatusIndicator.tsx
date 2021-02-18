@@ -1,13 +1,14 @@
-import React from 'react';
 import classNames from 'classnames';
-
-import { IManagedResourceSummary } from 'core/domain';
 import { Application } from 'core/application';
-import { viewConfigurationByStatus } from './managedResourceStatusConfig';
+import { IManagedResourceSummary } from 'core/domain';
+import React from 'react';
+
+import { Icon } from '@spinnaker/presentation';
 
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
+import { viewConfigurationByStatus } from './managedResourceStatusConfig';
+
 import './ManagedResourceStatusIndicator.less';
-import { Icon } from '@spinnaker/presentation';
 
 export interface IManagedResourceStatusIndicatorProps {
   shape: 'square' | 'circle';

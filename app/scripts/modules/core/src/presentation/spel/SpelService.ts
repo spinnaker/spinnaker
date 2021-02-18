@@ -1,6 +1,6 @@
+import { REST } from 'core/api';
 import { isString } from 'lodash';
 
-import { REST } from 'core/api';
 import { parseSpelExpressions } from '../forms/inputs/expression';
 
 interface IEvaluationException {

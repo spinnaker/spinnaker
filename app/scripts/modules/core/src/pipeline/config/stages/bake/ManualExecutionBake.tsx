@@ -1,8 +1,8 @@
-import React from 'react';
-import { get } from 'lodash';
-
-import { FormField, CheckboxInput } from 'core/presentation';
 import { HelpField } from 'core/help/HelpField';
+import { CheckboxInput, FormField } from 'core/presentation';
+import { get } from 'lodash';
+import React from 'react';
+
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export class ManualExecutionBake extends React.Component<ITriggerTemplateComponentProps> {

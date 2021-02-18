@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { IHelmTrigger } from 'core/domain/IHelmTrigger';
+import React from 'react';
 
 import { HelmTriggerTemplate, IHelmTriggerTemplateState } from './HelmTriggerTemplate';
 

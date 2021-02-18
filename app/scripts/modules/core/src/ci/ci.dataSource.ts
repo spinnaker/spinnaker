@@ -1,10 +1,10 @@
 import { IQService, module } from 'angular';
 import { isEmpty } from 'lodash';
 
-import { Application, ApplicationDataSourceRegistry, navigationCategoryRegistry } from '../application';
 import { CIReader } from './CIReader';
-import { ICiBuild } from './domain';
+import { Application, ApplicationDataSourceRegistry, navigationCategoryRegistry } from '../application';
 import { SETTINGS } from '../config/settings';
+import { ICiBuild } from './domain';
 
 export const CI_DATASOURCE = 'spinnaker.ci.dataSource';
 export const name = CI_DATASOURCE;

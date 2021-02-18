@@ -1,9 +1,8 @@
-import React from 'react';
 import classNames from 'classnames';
-
-import { Tooltip } from '../presentation';
+import React from 'react';
 
 import { ReactComponent as Star } from './icons/star.svg';
+import { Tooltip } from '../presentation';
 
 import './EnvironmentBadge.less';
 

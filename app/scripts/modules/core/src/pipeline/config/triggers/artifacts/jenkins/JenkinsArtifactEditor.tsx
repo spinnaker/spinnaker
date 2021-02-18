@@ -1,17 +1,15 @@
-import React from 'react';
-
-import { cloneDeep } from 'lodash';
-import { Option } from 'react-select';
-
-import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from 'core/domain';
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IgorService } from 'core/ci';
-import { StageConfigField } from '../../../stages/common';
+import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from 'core/domain';
 import { TetheredSelect } from 'core/presentation';
 import { SpelText } from 'core/widgets';
+import { cloneDeep } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
 
-import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { ArtifactEditor } from '../ArtifactEditor';
+import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
+import { StageConfigField } from '../../../stages/common';
 
 const TYPE = 'jenkins/file';
 

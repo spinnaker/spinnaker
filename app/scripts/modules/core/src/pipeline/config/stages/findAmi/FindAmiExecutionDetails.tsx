@@ -1,9 +1,8 @@
+import { AccountTag } from 'core/account';
 import React from 'react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { AccountTag } from 'core/account';
-
 import { IFindAmiStageContext } from './findAmiStage';
 
 export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {

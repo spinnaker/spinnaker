@@ -1,10 +1,10 @@
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-import { unset, get } from 'lodash';
-
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { IModalComponentProps } from 'core/presentation';
+import { get, unset } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface IUnlockPipelineModalProps extends IModalComponentProps {

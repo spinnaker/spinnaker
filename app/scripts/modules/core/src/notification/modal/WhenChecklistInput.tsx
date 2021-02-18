@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   createFakeReactSyntheticEvent,
   IFormInputProps,
@@ -7,6 +5,7 @@ import {
   orEmptyString,
   validationClassName,
 } from 'core/presentation';
+import React from 'react';
 
 const { useEffect } = React;
 

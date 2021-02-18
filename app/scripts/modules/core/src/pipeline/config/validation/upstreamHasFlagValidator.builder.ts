@@ -1,12 +1,12 @@
-import { Registry } from 'core/registry';
 import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
+import { Registry } from 'core/registry';
+import { map, uniq } from 'lodash';
 
 import { IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 import {
-  StageOrTriggerBeforeTypeValidator,
   IStageOrTriggerBeforeTypeValidationConfig,
+  StageOrTriggerBeforeTypeValidator,
 } from './stageOrTriggerBeforeType.validator';
-import { uniq, map } from 'lodash';
 
 export interface IUpstreamFlagProvidedValidationConfig extends IValidatorConfig {
   getProviders?: Function;

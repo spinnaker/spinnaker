@@ -1,11 +1,11 @@
+import classNames from 'classnames';
+import { ArtifactIcon } from 'core/artifact';
+import { IPipeline, IStage } from 'core/domain';
 import React from 'react';
 import { Subject } from 'rxjs';
-import classNames from 'classnames';
 
 import { EditAwsCodeBuildSourceModal } from './EditAwsCodeBuildSourceModal';
 import { IAwsCodeBuildSource } from './IAwsCodeBuildSource';
-import { IPipeline, IStage } from 'core/domain';
-import { ArtifactIcon } from 'core/artifact';
 
 export interface IAwsCodeBuildSourceListProps {
   stage: IStage;

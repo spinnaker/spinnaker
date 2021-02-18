@@ -1,21 +1,21 @@
 import { IArtifactKindConfig } from 'core/domain';
 
-import { Base64Match, Base64Default } from './base64/Base64ArtifactEditor';
-import { BitbucketMatch, BitbucketDefault } from './bitbucket/BitbucketArtifactEditor';
-import { CustomMatch, CustomDefault } from './custom/CustomArtifactEditor';
-import { DockerMatch, DockerDefault } from './docker/DockerArtifactEditor';
-import { GcsMatch, GcsDefault } from './gcs/GcsArtifactEditor';
-import { GithubMatch, GithubDefault } from './github/GithubArtifactEditor';
-import { GitRepoMatch, GitRepoDefault } from './gitrepo/GitRepoArtifactEditor';
-import { GitlabMatch, GitlabDefault } from './gitlab/GitlabArtifactEditor';
-import { HelmMatch, HelmDefault } from './helm/HelmArtifactEditor';
-import { HttpMatch, HttpDefault } from './http/HttpArtifactEditor';
-import { IvyMatch, IvyDefault } from './ivy/IvyArtifactEditor';
-import { JenkinsMatch, JenkinsDefault } from './jenkins/JenkinsArtifactEditor';
-import { KubernetesMatch, KubernetesDefault } from './kubernetes/KubernetesArtifactEditor';
-import { MavenMatch, MavenDefault } from './maven/MavenArtifactEditor';
-import { S3Match, S3Default } from './s3/S3ArtifactEditor';
-import { OracleMatch, OracleDefault } from './oracle/OracleArtifactEditor';
+import { Base64Default, Base64Match } from './base64/Base64ArtifactEditor';
+import { BitbucketDefault, BitbucketMatch } from './bitbucket/BitbucketArtifactEditor';
+import { CustomDefault, CustomMatch } from './custom/CustomArtifactEditor';
+import { DockerDefault, DockerMatch } from './docker/DockerArtifactEditor';
+import { GcsDefault, GcsMatch } from './gcs/GcsArtifactEditor';
+import { GithubDefault, GithubMatch } from './github/GithubArtifactEditor';
+import { GitlabDefault, GitlabMatch } from './gitlab/GitlabArtifactEditor';
+import { GitRepoDefault, GitRepoMatch } from './gitrepo/GitRepoArtifactEditor';
+import { HelmDefault, HelmMatch } from './helm/HelmArtifactEditor';
+import { HttpDefault, HttpMatch } from './http/HttpArtifactEditor';
+import { IvyDefault, IvyMatch } from './ivy/IvyArtifactEditor';
+import { JenkinsDefault, JenkinsMatch } from './jenkins/JenkinsArtifactEditor';
+import { KubernetesDefault, KubernetesMatch } from './kubernetes/KubernetesArtifactEditor';
+import { MavenDefault, MavenMatch } from './maven/MavenArtifactEditor';
+import { OracleDefault, OracleMatch } from './oracle/OracleArtifactEditor';
+import { S3Default, S3Match } from './s3/S3ArtifactEditor';
 
 export const artifactKindConfigs: IArtifactKindConfig[] = [
   Base64Match,

@@ -1,8 +1,8 @@
-import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { TaskReader } from './task.read.service';
+import * as angular from 'angular';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
-import * as angular from 'angular';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import { TaskReader } from './task.read.service';
 
 export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';
 export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility

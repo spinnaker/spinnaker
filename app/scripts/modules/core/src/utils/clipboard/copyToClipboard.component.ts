@@ -1,4 +1,4 @@
-import { IController, IComponentOptions, IScope, ITimeoutService, module } from 'angular';
+import { IComponentOptions, IController, IScope, ITimeoutService, module } from 'angular';
 import Clipboard from 'clipboard';
 
 import './copyToClipboard.component.less';

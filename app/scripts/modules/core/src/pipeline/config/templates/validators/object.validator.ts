@@ -1,6 +1,7 @@
 import { load } from 'js-yaml';
-import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
+
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
+import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
 
 class ObjectValidator implements IVariableValidator {
   public handles(type: string) {

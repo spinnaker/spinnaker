@@ -1,7 +1,8 @@
-import { compact, flatten, uniq } from 'lodash';
 import { IInstance, IServerGroup } from 'core/domain';
-import { Application } from '../application.model';
 import { IMoniker } from 'core/naming/IMoniker';
+import { compact, flatten, uniq } from 'lodash';
+
+import { Application } from '../application.model';
 
 export type IServerGroupFilter = (s: IServerGroup) => boolean;
 

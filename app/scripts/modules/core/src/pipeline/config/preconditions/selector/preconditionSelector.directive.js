@@ -3,7 +3,7 @@
 import { module } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
-import { isNil, first } from 'lodash';
+import { first, isNil } from 'lodash';
 
 export const CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE =
   'spinnaker.core.pipeline.config.preconditions.selector';

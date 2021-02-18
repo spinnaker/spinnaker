@@ -1,7 +1,8 @@
-import { ExecutionService } from '../../pipeline';
-import { IPipeline, IExecution, IStage } from '../../domain';
-import { JsonListBuilder } from './JsonListBuilder';
 import { IQService } from 'angular';
+
+import { JsonListBuilder } from './JsonListBuilder';
+import { IExecution, IPipeline, IStage } from '../../domain';
+import { ExecutionService } from '../../pipeline';
 
 interface IBracket {
   open: string;

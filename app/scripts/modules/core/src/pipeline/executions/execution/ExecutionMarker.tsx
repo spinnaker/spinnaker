@@ -1,14 +1,13 @@
+import { Application } from 'core/application/application.model';
+import { SETTINGS } from 'core/config/settings';
+import { IExecution, IExecutionStageSummary } from 'core/domain';
+import { duration } from 'core/utils/timeFormatters';
 import React from 'react';
 import ReactGA from 'react-ga';
 
-import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
-import { duration } from 'core/utils/timeFormatters';
-
-import { Application } from 'core/application/application.model';
-import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
 import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
-import { SETTINGS } from 'core/config/settings';
+import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
+import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
 
 import './executionMarker.less';
 

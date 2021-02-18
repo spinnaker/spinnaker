@@ -1,11 +1,11 @@
+import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from 'core/artifact';
+import { IArtifact } from 'core/domain';
+import { Overridable } from 'core/overrideRegistry';
+import { TextInput } from 'core/presentation';
 import React from 'react';
 
-import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
-import { StageArtifactSelectorDelegate, ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
-import { Overridable } from 'core/overrideRegistry';
-import { IArtifact } from 'core/domain';
-import { TextInput } from 'core/presentation';
+import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 
 @Overridable('bakeKustomizeConfigForm')
 export class BakeKustomizeConfigForm extends React.Component<IFormikStageConfigInjectedProps> {

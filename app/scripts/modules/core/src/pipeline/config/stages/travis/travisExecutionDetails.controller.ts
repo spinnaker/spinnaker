@@ -1,5 +1,5 @@
-import { IController, IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
+import { IController, IScope, module } from 'angular';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,

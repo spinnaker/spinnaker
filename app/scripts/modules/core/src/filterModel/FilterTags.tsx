@@ -1,6 +1,6 @@
+import { CollapsibleSectionStateCache } from 'core/cache';
 import React from 'react';
 import ReactGA from 'react-ga';
-import { CollapsibleSectionStateCache } from 'core/cache';
 
 export interface IFilter {
   label: string;

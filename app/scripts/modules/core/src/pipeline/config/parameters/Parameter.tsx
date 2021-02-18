@@ -1,11 +1,11 @@
-import React from 'react';
 import classNames from 'classnames';
-
 import { IParameter } from 'core/domain';
 import { HelpField } from 'core/help';
 import { Tooltip } from 'core/presentation';
-import { StageConfigField } from '../stages/common';
+import React from 'react';
 import { SortableHandle } from 'react-sortable-hoc';
+
+import { StageConfigField } from '../stages/common';
 
 export interface IParameterOption {
   value: string;

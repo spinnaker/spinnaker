@@ -1,13 +1,12 @@
 'use strict';
 
-import _ from 'lodash';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
 import { hri as HumanReadableIds } from 'human-readable-ids';
+import _ from 'lodash';
 
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
 import { PipelineTemplateV2Service } from './templates/v2/pipelineTemplateV2.service';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-
-import { module } from 'angular';
 
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER = 'spinnaker.core.pipeline.config.controller';
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER; // for backwards compatibility

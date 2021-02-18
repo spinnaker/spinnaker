@@ -1,8 +1,8 @@
-import React from 'react';
-
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 import { IFunctionGroup } from 'core/domain';
+import React from 'react';
+
 import Function from './Function';
 
 export interface IFunctionPodProps {

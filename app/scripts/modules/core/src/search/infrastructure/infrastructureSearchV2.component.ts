@@ -1,10 +1,9 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
-
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { react2angular } from 'react2angular';
 
 import { SearchV2 } from './SearchV2';
 

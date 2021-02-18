@@ -1,12 +1,12 @@
-import React from 'react';
-
-import { StageFailureMessage } from '../../../details';
-import { IExecutionDetailsSectionProps } from '../common';
 import { IStage } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { timestamp } from 'core/utils/timeFormatters';
-import { ExecutionDetailsSection } from '../common';
+import React from 'react';
+
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
+import { IExecutionDetailsSectionProps } from '../common';
+import { ExecutionDetailsSection } from '../common';
+import { StageFailureMessage } from '../../../details';
 
 export interface IManualJudgmentExecutionDetailsState {
   parentDeployStage: IStage;

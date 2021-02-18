@@ -1,7 +1,3 @@
-import React from 'react';
-import { Option } from 'react-select';
-import { get } from 'lodash';
-
 import {
   ArtifactTypePatterns,
   excludeAllTypesExcept,
@@ -9,8 +5,8 @@ import {
   FormikSpelContextProvider,
   IArtifact,
   IExpectedArtifact,
-  IFormInputProps,
   IFormikStageConfigInjectedProps,
+  IFormInputProps,
   IgorService,
   RadioButtonInput,
   ReactSelectInput,
@@ -21,6 +17,9 @@ import {
   yamlDocumentsToString,
   YamlEditor,
 } from 'core';
+import { get } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
 
 import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
 

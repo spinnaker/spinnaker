@@ -1,13 +1,12 @@
-import React from 'react';
-import { get } from 'lodash';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-
 import { IExecutionStage, ITaskStep } from 'core/domain';
-import { robotToHuman, Markdown } from 'core/presentation';
 import { EventBus } from 'core/event/EventBus';
+import { Markdown, robotToHuman } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { TrafficGuardHelperLink } from 'core/task/TrafficGuardHelperLink';
+import { get } from 'lodash';
+import React from 'react';
 
 export interface IStageFailureMessageProps {
   message?: string;

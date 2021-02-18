@@ -1,3 +1,5 @@
+import { module } from 'angular';
+import { IStage } from 'core/domain';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 /*
  * Copyright 2018 Schibsted ASA.
@@ -15,12 +17,8 @@ import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import React from 'react';
-import { module } from 'angular';
 import { react2angular } from 'react2angular';
-
-import { IStage } from 'core/domain';
 
 export interface IStageNameProps {
   stages: IStage[];

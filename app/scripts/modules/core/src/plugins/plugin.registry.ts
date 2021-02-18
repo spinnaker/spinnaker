@@ -1,7 +1,8 @@
 import { $http } from 'ngimport';
-import { SETTINGS } from '../config/settings';
+
 import { REST } from '../api/ApiService';
-import { registerPluginExtensions, IDeckPlugin } from './deck.plugin';
+import { SETTINGS } from '../config/settings';
+import { IDeckPlugin, registerPluginExtensions } from './deck.plugin';
 
 /** The shape of plugin metadata objects in plugin-manifest.json */
 export interface IPluginMetaData {

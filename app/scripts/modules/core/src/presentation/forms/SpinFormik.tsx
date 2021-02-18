@@ -1,9 +1,7 @@
-import React from 'react';
-
-import { set } from 'lodash';
-import { Formik, FormikConfig } from 'formik';
-
 import { traverseObject } from 'core/utils';
+import { Formik, FormikConfig } from 'formik';
+import { set } from 'lodash';
+import React from 'react';
 
 /**
  * This component wraps the <Formik/> component, applying fixes and spinnaker opinions

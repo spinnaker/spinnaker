@@ -1,7 +1,6 @@
-import React from 'react';
-import { DateTime } from 'luxon';
-
 import { SETTINGS } from 'core/config/settings';
+import { DateTime } from 'luxon';
+import React from 'react';
 
 export const SystemTimezone = () => {
   const zone = SETTINGS.defaultTimeZone;

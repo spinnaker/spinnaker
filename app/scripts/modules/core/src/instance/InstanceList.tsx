@@ -1,12 +1,12 @@
-import React from 'react';
-import { Subject } from 'rxjs';
-import { isEqual } from 'lodash';
-
-import { IServerGroup, IInstance } from 'core/domain';
-import { InstanceListBody } from './InstanceListBody';
+import { IInstance, IServerGroup } from 'core/domain';
 import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
+import { isEqual } from 'lodash';
+import React from 'react';
+import { Subject } from 'rxjs';
+
+import { InstanceListBody } from './InstanceListBody';
 
 export interface IInstanceListProps {
   hasDiscovery: boolean;

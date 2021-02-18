@@ -1,28 +1,26 @@
-import React, { useMemo } from 'react';
-import classNames from 'classnames';
-import { DateTime } from 'luxon';
 import { UISref } from '@uirouter/react';
+import classNames from 'classnames';
+import { AccountTag } from 'core/account';
+import { IManagedResourceDiff, IManagedResourceEvent, IManagedResourceSummary } from 'core/domain';
+import { relativeTime, timestamp } from 'core/utils';
+import { Spinner } from 'core/widgets';
+import { DateTime } from 'luxon';
+import React, { useMemo } from 'react';
 
+import { ManagedReader } from '../ManagedReader';
+import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
 import {
   IModalComponentProps,
-  ModalHeader,
   ModalBody,
-  Table,
-  TableRow,
-  TableCell,
+  ModalHeader,
+  showModal,
   standardGridTableLayout,
+  Table,
+  TableCell,
+  TableRow,
   usePollingData,
   usePrevious,
-  showModal,
 } from '../../presentation';
-
-import { relativeTime, timestamp } from 'core/utils';
-import { IManagedResourceSummary, IManagedResourceDiff, IManagedResourceEvent } from 'core/domain';
-import { AccountTag } from 'core/account';
-import { ManagedReader } from '../ManagedReader';
-import { Spinner } from 'core/widgets';
-
-import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
 
 import './ManagedResourceHistoryModal.less';
 

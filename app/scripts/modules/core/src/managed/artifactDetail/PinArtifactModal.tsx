@@ -4,27 +4,25 @@ import { Option } from 'react-select';
 
 import { Illustration } from '@spinnaker/presentation';
 
-import {
-  IModalComponentProps,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ReactSelectInput,
-  FormikFormField,
-  TextAreaInput,
-  showModal,
-  SpinFormik,
-  ValidationMessage,
-} from '../../presentation';
-import { HelpField } from '../../help';
-import { IManagedArtifactVersion, IManagedResourceSummary } from '../../domain';
-import { Application } from '../../application';
-
-import { ManagedWriter } from '../ManagedWriter';
 import { Button } from '../Button';
 import { EnvironmentBadge } from '../EnvironmentBadge';
-
+import { ManagedWriter } from '../ManagedWriter';
+import { Application } from '../../application';
 import { getArtifactVersionDisplayName } from '../displayNames';
+import { IManagedArtifactVersion, IManagedResourceSummary } from '../../domain';
+import { HelpField } from '../../help';
+import {
+  FormikFormField,
+  IModalComponentProps,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ReactSelectInput,
+  showModal,
+  SpinFormik,
+  TextAreaInput,
+  ValidationMessage,
+} from '../../presentation';
 import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
 
 const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';

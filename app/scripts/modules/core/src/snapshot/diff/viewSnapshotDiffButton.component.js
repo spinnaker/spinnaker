@@ -1,12 +1,11 @@
 'use strict';
 
-import _ from 'lodash';
-
+import { module } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER } from './snapshotDiff.modal.controller';
+import _ from 'lodash';
 
-import { module } from 'angular';
+import { CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER } from './snapshotDiff.modal.controller';
 
 export const CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT = 'spinnaker.deck.core.viewSnapshotDiff.component';
 export const name = CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT; // for backwards compatibility

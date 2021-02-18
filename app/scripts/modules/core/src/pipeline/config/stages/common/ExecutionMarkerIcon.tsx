@@ -1,5 +1,5 @@
-import React from 'react';
 import { IExecutionStageSummary } from 'core/domain/IExecutionStage';
+import React from 'react';
 
 export interface IExecutionMarkerIconProps {
   stage: IExecutionStageSummary;

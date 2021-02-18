@@ -1,10 +1,10 @@
+import { ConfirmationModalService } from 'core/confirmationModal';
+import { ReactInjector } from 'core/reactShims';
+import { FirewallLabel } from 'core/securityGroup/label';
 import React from 'react';
 
 import { Application } from '../application.model';
 import { ApplicationWriter } from '../service/ApplicationWriter';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { ReactInjector } from 'core/reactShims';
-import { FirewallLabel } from 'core/securityGroup/label';
 
 export interface IDeleteApplicationSection {
   application: Application;

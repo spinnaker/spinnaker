@@ -1,9 +1,9 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-import { CopyToClipboard } from 'core/utils/clipboard/CopyToClipboard';
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
+import { CopyToClipboard } from 'core/utils/clipboard/CopyToClipboard';
+import { Spinner } from 'core/widgets/spinners/Spinner';
+import React from 'react';
 
 import './InstanceDetailsHeader.less';
 

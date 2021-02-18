@@ -1,13 +1,11 @@
-import React from 'react';
-import classNames from 'classnames';
-import { clone } from 'lodash';
 import { UISref, UISrefActive } from '@uirouter/react';
-
-import { IServerGroup, IInstance } from 'core/domain';
-
+import classNames from 'classnames';
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
+import { IInstance, IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Instances } from 'core/instance/Instances';
+import { clone } from 'lodash';
+import React from 'react';
 
 export interface ILoadBalancerServerGroupProps {
   region: string;

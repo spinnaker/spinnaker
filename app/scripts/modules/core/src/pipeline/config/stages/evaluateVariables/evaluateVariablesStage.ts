@@ -1,8 +1,8 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { EvaluateVariablesExecutionDetails } from './EvaluateVariablesExecutionDetails';
 import { EvaluateVariablesStageConfig, validateEvaluateVariablesStage } from './EvaluateVariablesStageConfig';
+import { ExecutionDetailsTasks } from '../common';
 
 Registry.pipeline.registerStage({
   label: 'Evaluate Variables',

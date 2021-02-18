@@ -1,7 +1,7 @@
-import React from 'react';
-
 import classNames from 'classnames';
 import { IInstance } from 'core/domain';
+import React from 'react';
+
 import { Tooltip } from '../presentation';
 
 export interface IInstanceProps {

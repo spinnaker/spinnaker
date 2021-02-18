@@ -1,5 +1,6 @@
-import { HelpContentsRegistry } from './helpContents.registry';
 import { SETTINGS } from 'core/config/settings';
+
+import { HelpContentsRegistry } from './helpContents.registry';
 
 export interface IHelpContents {
   [key: string]: string;

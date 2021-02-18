@@ -1,7 +1,7 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { ExecutionWindowExecutionDetails } from './ExecutionWindowExecutionDetails';
+import { ExecutionDetailsTasks } from '../common';
 import { ExecutionWindowsTransformer } from './executionWindows.transformer';
 
 Registry.pipeline.registerStage({

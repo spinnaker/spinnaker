@@ -1,8 +1,8 @@
-import React from 'react';
-import { filter } from 'lodash';
-
-import { IPipeline } from 'core/domain/IPipeline';
 import { SETTINGS } from 'core/config';
+import { IPipeline } from 'core/domain/IPipeline';
+import { filter } from 'lodash';
+import React from 'react';
+
 import { QuietPeriodBadge } from './QuietPeriodBadge';
 
 export interface ITriggersTagProps {

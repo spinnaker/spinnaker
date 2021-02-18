@@ -1,10 +1,9 @@
-import React from 'react';
-
-import { Formik, Form } from 'formik';
-import { Modal } from 'react-bootstrap';
-import { FormValidator, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
 import { INotification } from 'core/domain';
-import { SubmitButton, ModalClose } from 'core/modal';
+import { ModalClose, SubmitButton } from 'core/modal';
+import { FormValidator, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
+import { Form, Formik } from 'formik';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
 
 import { NotificationDetails } from './NotificationDetails';
 

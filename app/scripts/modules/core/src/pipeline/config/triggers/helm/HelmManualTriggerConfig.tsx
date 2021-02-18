@@ -1,10 +1,9 @@
+import { IHelmTrigger } from 'core/domain/IHelmTrigger';
+import { $q } from 'ngimport';
 import React from 'react';
 
-import { $q } from 'ngimport';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
-import { IHelmTrigger } from 'core/domain/IHelmTrigger';
-
 import { HelmTriggerTemplate, IHelmTriggerTemplateState } from './HelmTriggerTemplate';
+import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 const HelmManualTriggerConfig = (props: ITriggerTemplateComponentProps) => {
   const onHelmChanged = (changes: IHelmTriggerTemplateState) => {

@@ -1,7 +1,7 @@
-import React from 'react';
-import { extend } from 'lodash';
-
 import { IParameter, IPipeline } from 'core/domain';
+import { extend } from 'lodash';
+import React from 'react';
+
 import { Parameters } from '../parameters/Parameters';
 
 export interface IParametersPageContentProps {

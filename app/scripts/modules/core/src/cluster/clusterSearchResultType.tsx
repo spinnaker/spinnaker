@@ -1,28 +1,26 @@
-import React from 'react';
-import { uniqBy } from 'lodash';
-import { Observable } from 'rxjs';
-
 import { IQueryParams } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
 import { Registry } from 'core/registry';
-import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
-
 import {
-  searchResultTypeRegistry,
   AccountCell,
+  DefaultSearchResultTab,
+  HeaderCell,
   HrefCell,
   ISearchColumn,
-  DefaultSearchResultTab,
+  ISearchResult,
+  ISearchResults,
+  ISearchResultSet,
+  SearchResultType,
+  searchResultTypeRegistry,
   SearchStatus,
-  HeaderCell,
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-  ISearchResult,
-  SearchResultType,
-  ISearchResultSet,
-  ISearchResults,
 } from 'core/search';
+import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
+import { uniqBy } from 'lodash';
+import React from 'react';
+import { Observable } from 'rxjs';
 
 export interface IClusterSearchResult extends ISearchResult {
   account: string;

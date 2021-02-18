@@ -1,6 +1,5 @@
 import { module } from 'angular';
-
-import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/navigation';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
 
 import { Pager } from './Pager';
 

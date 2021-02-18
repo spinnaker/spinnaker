@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { isEmpty } from 'lodash';
+import * as React from 'react';
 
 export interface IServerGroupNamePreviewProps {
   createsNewCluster: boolean;

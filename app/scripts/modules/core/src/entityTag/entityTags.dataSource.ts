@@ -1,12 +1,12 @@
-import { module, IQService } from 'angular';
-
+import { IQService, module } from 'angular';
 import { ApplicationDataSourceRegistry } from 'core/application';
 import { Application } from 'core/application/application.model';
-import { EntityTagsReader } from './EntityTagsReader';
-import { IEntityTags } from 'core/domain/IEntityTags';
-import { noop } from 'core/utils';
-import { LOAD_BALANCER_READ_SERVICE } from 'core/loadBalancer/loadBalancer.read.service';
 import { SETTINGS } from 'core/config/settings';
+import { IEntityTags } from 'core/domain/IEntityTags';
+import { LOAD_BALANCER_READ_SERVICE } from 'core/loadBalancer/loadBalancer.read.service';
+import { noop } from 'core/utils';
+
+import { EntityTagsReader } from './EntityTagsReader';
 
 export const ENTITY_TAGS_DATA_SOURCE = 'spinnaker.core.entityTag.dataSource';
 module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([

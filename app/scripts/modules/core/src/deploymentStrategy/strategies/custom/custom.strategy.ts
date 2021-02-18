@@ -1,5 +1,5 @@
-import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 import { AdditionalFields } from './AdditionalFields';
+import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Custom',

@@ -1,12 +1,12 @@
-import { module, IQService } from 'angular';
-
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
-import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
+import { IQService, module } from 'angular';
 import { Application } from 'core/application/application.model';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
+import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
+import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { ILoadBalancer } from 'core/domain';
-import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from './loadBalancer.read.service';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToLoadBalancers } from 'core/managed';
+
+import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from './loadBalancer.read.service';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
 module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([

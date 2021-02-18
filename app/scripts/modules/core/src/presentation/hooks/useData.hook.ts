@@ -1,7 +1,7 @@
 import { isNil } from 'lodash';
 import { useMemo, useRef } from 'react';
 
-import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise.hook';
+import { IUseLatestPromiseResult, useLatestPromise } from './useLatestPromise.hook';
 
 /**
  * A react hook which invokes a promise factory callback whenever any of its dependencies changes.

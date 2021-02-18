@@ -1,6 +1,7 @@
-import React from 'react';
-import { IClusterMatch } from './clusterMatches.component';
 import { AccountTag } from 'core/account';
+import React from 'react';
+
+import { IClusterMatch } from './clusterMatches.component';
 
 export interface IClusterMatchesProps {
   matches: IClusterMatch[];

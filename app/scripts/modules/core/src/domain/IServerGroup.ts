@@ -1,11 +1,12 @@
+import { IMoniker } from 'core/naming';
+import { ICapacity } from 'core/serverGroup';
+
 import { IEntityTags } from './IEntityTags';
 import { IExecution } from './IExecution';
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { IManagedResource } from './IManagedEntity';
 import { ITask } from './ITask';
-import { IMoniker } from 'core/naming';
-import { ICapacity } from 'core/serverGroup';
 
 // remnant from legacy code
 export interface IAsg {

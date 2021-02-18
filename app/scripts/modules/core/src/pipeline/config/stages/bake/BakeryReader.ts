@@ -1,10 +1,8 @@
-import { get, has } from 'lodash';
-
-import { $q } from 'ngimport';
-
 import { AccountService } from 'core/account/AccountService';
 import { REST } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
+import { get, has } from 'lodash';
+import { $q } from 'ngimport';
 
 export interface IBaseImage {
   id: string;

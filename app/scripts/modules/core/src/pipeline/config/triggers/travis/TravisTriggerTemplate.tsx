@@ -1,7 +1,7 @@
+import { BuildServiceType } from 'core/ci';
 import React from 'react';
 
 import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
-import { BuildServiceType } from 'core/ci';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export class TravisTriggerTemplate extends React.Component<ITriggerTemplateComponentProps> {

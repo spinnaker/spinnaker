@@ -1,12 +1,11 @@
+import 'brace/mode/yaml';
+import 'brace/theme/textmate';
+import { loadAll, YAMLException } from 'js-yaml';
+import { $log } from 'ngimport';
 import React from 'react';
 import AceEditor, { Annotation } from 'react-ace';
-import { $log } from 'ngimport';
-import { loadAll, YAMLException } from 'js-yaml';
 
 import { yamlStringToDocuments } from './yamlEditorUtils';
-
-import 'brace/theme/textmate';
-import 'brace/mode/yaml';
 
 export interface IYamlEditorProps {
   value: string;

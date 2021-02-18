@@ -1,15 +1,14 @@
-import React, { memo, useMemo } from 'react';
 import { DateTime } from 'luxon';
+import React, { memo, useMemo } from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
 
+import { Button } from '../Button';
+import { Pill } from '../Pill';
+import { IStatusCardProps, StatusCard } from '../StatusCard';
+import { getArtifactVersionDisplayName } from '../displayNames';
 import { IManagedArtifactVersion } from '../../domain';
 import { Markdown } from '../../presentation';
-
-import { getArtifactVersionDisplayName } from '../displayNames';
-import { StatusCard, IStatusCardProps } from '../StatusCard';
-import { Pill } from '../Pill';
-import { Button } from '../Button';
 
 interface CardTitleMetadata {
   deployedAt?: string;

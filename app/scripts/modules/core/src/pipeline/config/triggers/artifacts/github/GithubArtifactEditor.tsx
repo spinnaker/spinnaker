@@ -1,13 +1,12 @@
+import { ArtifactTypePatterns } from 'core/artifact';
+import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
+import { SpelText } from 'core/widgets';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { StageConfigField } from '../../../stages/common';
-import { SpelText } from 'core/widgets';
-
-import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { ArtifactEditor } from '../ArtifactEditor';
+import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
+import { StageConfigField } from '../../../stages/common';
 
 const TYPE = 'github/file';
 

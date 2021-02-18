@@ -1,9 +1,8 @@
+import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
+import { ReactInjector } from 'core/reactShims';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
-
-import { ReactInjector } from 'core/reactShims';
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface IExecutionDetailsSectionNavProps {
   sections: string[];

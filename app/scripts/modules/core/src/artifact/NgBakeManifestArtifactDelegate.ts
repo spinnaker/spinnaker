@@ -1,12 +1,11 @@
 import { IScope } from 'angular';
-
-import { IExpectedArtifact, IArtifactSource, IStage, IPipeline } from 'core/domain';
-import { IExpectedArtifactSelectorViewControllerDelegate } from './ExpectedArtifactSelectorViewController';
-import { ExpectedArtifactService } from './expectedArtifact.service';
-import { Registry } from 'core/registry';
 import { IArtifactAccount } from 'core/account';
+import { IArtifactSource, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
+import { Registry } from 'core/registry';
 
+import { IExpectedArtifactSelectorViewControllerDelegate } from './ExpectedArtifactSelectorViewController';
 import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
+import { ExpectedArtifactService } from './expectedArtifact.service';
 
 export class NgBakeManifestArtifactDelegate
   extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>

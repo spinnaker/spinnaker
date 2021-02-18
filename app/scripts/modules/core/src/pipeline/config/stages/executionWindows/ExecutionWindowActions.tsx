@@ -1,12 +1,12 @@
-import React from 'react';
-import { get } from 'lodash';
-
-import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { ConfirmationModalService } from 'core/confirmationModal';
+import { IExecution, IExecutionStage } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import { timePickerTime } from 'core/utils/timeFormatters';
 import { SystemTimezone } from 'core/utils/SystemTimezone';
+import { timePickerTime } from 'core/utils/timeFormatters';
+import { get } from 'lodash';
+import React from 'react';
+
 import { DAYS_OF_WEEK } from './daysOfWeek';
 
 export interface IExecutionWindowActionsProps {

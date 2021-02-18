@@ -1,8 +1,7 @@
-import React from 'react';
-import { head } from 'lodash';
-
 import { IExecution } from 'core/domain';
 import { timestamp } from 'core/utils/timeFormatters';
+import { head } from 'lodash';
+import React from 'react';
 
 export interface ICurrentlyRunningExecutionsProps {
   currentlyRunningExecutions: IExecution[];

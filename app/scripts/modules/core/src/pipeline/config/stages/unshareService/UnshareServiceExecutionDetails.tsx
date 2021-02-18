@@ -1,8 +1,8 @@
+import { AccountTag } from 'core/account';
 import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { AccountTag } from 'core/account';
 
 export function UnshareServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

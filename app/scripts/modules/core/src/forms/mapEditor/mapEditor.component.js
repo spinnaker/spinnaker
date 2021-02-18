@@ -3,8 +3,9 @@
 import * as angular from 'angular';
 import { isString } from 'lodash';
 
-import './mapEditor.component.less';
 import { CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE } from '../../validation/validateUnique.directive';
+
+import './mapEditor.component.less';
 
 export const CORE_FORMS_MAPEDITOR_MAPEDITOR_COMPONENT = 'spinnaker.core.forms.mapEditor.component';
 export const name = CORE_FORMS_MAPEDITOR_MAPEDITOR_COMPONENT; // for backwards compatibility

@@ -1,8 +1,7 @@
 'use strict';
 
-import { Registry } from 'core/registry';
-
 import { module } from 'angular';
+import { Registry } from 'core/registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.core.pipeline.stage.runJobStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility

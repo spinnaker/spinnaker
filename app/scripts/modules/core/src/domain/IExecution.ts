@@ -1,8 +1,8 @@
-import { IEntityTags } from './IEntityTags';
-import { IOrchestratedItem } from './IOrchestratedItem';
-import { IExecutionTrigger } from './IExecutionTrigger';
-import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
 import { IAuthentication } from './IAuthentication';
+import { IEntityTags } from './IEntityTags';
+import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
+import { IExecutionTrigger } from './IExecutionTrigger';
+import { IOrchestratedItem } from './IOrchestratedItem';
 import { IPipeline } from './IPipeline';
 
 export interface IExecution extends IOrchestratedItem {

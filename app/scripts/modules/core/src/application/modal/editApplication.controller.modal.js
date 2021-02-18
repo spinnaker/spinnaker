@@ -1,14 +1,13 @@
 'use strict';
 
+import * as angular from 'angular';
+import { AccountService } from 'core/account/AccountService';
+import { SETTINGS } from 'core/config/settings';
+import { TaskReader } from 'core/task/task.read.service';
 import _ from 'lodash';
 
-import { AccountService } from 'core/account/AccountService';
-import { ApplicationWriter } from '../service/ApplicationWriter';
-import { TaskReader } from 'core/task/task.read.service';
-import { SETTINGS } from 'core/config/settings';
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
-
-import * as angular from 'angular';
+import { ApplicationWriter } from '../service/ApplicationWriter';
 
 export const CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL = 'spinnaker.editApplication.modal.controller';
 export const name = CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL; // for backwards compatibility

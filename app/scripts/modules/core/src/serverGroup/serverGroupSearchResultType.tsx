@@ -1,24 +1,23 @@
-import React from 'react';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-
 import { REST } from 'core/api';
-import { IServerGroup, IInstanceCounts } from 'core/domain';
+import { IInstanceCounts, IServerGroup } from 'core/domain';
 import {
   AccountCell,
   BasicCell,
-  HrefCell,
-  HealthCountsCell,
-  searchResultTypeRegistry,
-  ISearchColumn,
   DefaultSearchResultTab,
-  ISearchResult,
   HeaderCell,
+  HealthCountsCell,
+  HrefCell,
+  ISearchColumn,
+  ISearchResult,
+  ISearchResultSet,
+  SearchResultType,
+  searchResultTypeRegistry,
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-  SearchResultType,
-  ISearchResultSet,
 } from 'core/search';
+import React from 'react';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import './serverGroup.less';
 

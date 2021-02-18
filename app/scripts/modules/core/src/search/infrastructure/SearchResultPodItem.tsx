@@ -1,11 +1,10 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-
-import { ISearchResult } from './SearchResultPods';
 import { Tooltip } from 'core/presentation';
+import React from 'react';
 
 import { SearchResult } from './SearchResult';
+import { ISearchResult } from './SearchResultPods';
 
 export interface ISearchResultPodItemProps {
   categoryName: string;

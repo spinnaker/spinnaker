@@ -1,10 +1,10 @@
 import { IHttpPromiseCallbackArg } from 'angular';
-
 import { ITask } from 'core/domain';
+import { $q } from 'ngimport';
+
+import { AuthenticationService } from '../authentication/AuthenticationService';
 import { TaskReader } from './task.read.service';
 import { TaskWriter } from './task.write.service';
-import { AuthenticationService } from '../authentication/AuthenticationService';
-import { $q } from 'ngimport';
 
 export interface IJob {
   [attribute: string]: any;

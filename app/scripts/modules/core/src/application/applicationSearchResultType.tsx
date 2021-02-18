@@ -1,20 +1,19 @@
-import React from 'react';
-
 import {
   AccountCell,
   BasicCell,
-  HrefCell,
-  searchResultTypeRegistry,
-  ISearchResult,
   DefaultSearchResultTab,
   HeaderCell,
+  HrefCell,
+  ISearchColumn,
+  ISearchResult,
+  ISearchResultSet,
+  SearchResultType,
+  searchResultTypeRegistry,
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-  ISearchColumn,
-  ISearchResultSet,
-  SearchResultType,
 } from 'core/search';
+import React from 'react';
 
 export interface IApplicationSearchResult extends ISearchResult {
   accounts: string[];

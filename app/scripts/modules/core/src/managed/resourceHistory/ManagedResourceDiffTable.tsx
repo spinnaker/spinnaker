@@ -1,7 +1,6 @@
-import React from 'react';
-
-import { Table, TableRow, TableCell, minimalNativeTableLayout, BreakString, SingleLineString } from 'core/presentation';
 import { IManagedResourceDiff } from 'core/domain';
+import { BreakString, minimalNativeTableLayout, SingleLineString, Table, TableCell, TableRow } from 'core/presentation';
+import React from 'react';
 
 const { memo } = React;
 

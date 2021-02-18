@@ -1,9 +1,9 @@
 'use strict';
 
-import _ from 'lodash';
-import { ModalWizard } from './ModalWizard';
-
 import { module } from 'angular';
+import _ from 'lodash';
+
+import { ModalWizard } from './ModalWizard';
 
 /**
  * Propagates standard Angular form validation to ModalWizard.

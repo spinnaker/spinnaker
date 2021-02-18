@@ -1,7 +1,6 @@
-import { useObservableValue } from './useObservableValue.hook';
-import { useLatestCallback } from './useLatestCallback.hook';
-
 import { ApplicationDataSource, IFetchStatus } from '../../application';
+import { useLatestCallback } from './useLatestCallback.hook';
+import { useObservableValue } from './useObservableValue.hook';
 
 export interface IDataSourceResult<T> extends IFetchStatus {
   data: T;

@@ -1,6 +1,7 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { react2angular } from 'react2angular';
+
 import { BannerContainer } from './BannerContainer';
 
 export const CORE_BANNER_CONTAINER_COMPONENT = 'spinnaker.core.banner.container';

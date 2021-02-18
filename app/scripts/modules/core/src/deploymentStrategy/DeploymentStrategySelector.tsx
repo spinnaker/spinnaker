@@ -1,10 +1,9 @@
-import React from 'react';
-import Select, { Option } from 'react-select';
-import { unset } from 'lodash';
-
 import { HelpField } from 'core/help/HelpField';
 import { Markdown } from 'core/presentation';
 import { IServerGroupCommand } from 'core/serverGroup';
+import { unset } from 'lodash';
+import React from 'react';
+import Select, { Option } from 'react-select';
 
 import {
   DeploymentStrategyRegistry,

@@ -1,8 +1,8 @@
+import { ReactModal, toMarkdown } from 'core/presentation';
+import { ITaskMonitorConfig, TaskMonitor } from 'core/task';
 import { $q } from 'ngimport';
 
 import { ConfirmModal, IConfirmModalProps } from './ConfirmModal';
-import { ReactModal, toMarkdown } from 'core/presentation';
-import { ITaskMonitorConfig, TaskMonitor } from 'core/task';
 
 export interface IConfirmationModalPassthroughProps {
   account?: string;

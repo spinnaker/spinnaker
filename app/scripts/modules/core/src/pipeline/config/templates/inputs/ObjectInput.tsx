@@ -1,12 +1,13 @@
 import React from 'react';
+
+import { VariableError } from '../VariableError';
 import {
-  IVariableInputBuilder,
-  VariableInputService,
   IVariable,
+  IVariableInputBuilder,
   IVariableProps,
   IVariableState,
+  VariableInputService,
 } from './variableInput.service';
-import { VariableError } from '../VariableError';
 
 class ObjectInput extends React.Component<IVariableProps, IVariableState> {
   public render() {

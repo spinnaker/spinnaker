@@ -1,8 +1,3 @@
-import React from 'react';
-import { get } from 'lodash';
-
-import { Formik, FormikProps, Form } from 'formik';
-import { Modal } from 'react-bootstrap';
 import {
   FormikFormField,
   FormValidator,
@@ -10,16 +5,21 @@ import {
   IArtifact,
   IExpectedArtifact,
   IFormInputProps,
+  IModalComponentProps,
   IPipeline,
   IStage,
-  IModalComponentProps,
   ReactModal,
   ReactSelectInput,
   SpinFormik,
   StageArtifactSelector,
   TextInput,
 } from 'core';
-import { SubmitButton, ModalClose } from 'core/modal';
+import { ModalClose, SubmitButton } from 'core/modal';
+import { Form, Formik, FormikProps } from 'formik';
+import { get } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
 
 export interface IEditAwsCodeBuildSourceModalProps extends IModalComponentProps {

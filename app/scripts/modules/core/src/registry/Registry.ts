@@ -1,5 +1,5 @@
-import { PipelineRegistry } from 'core/pipeline/config/PipelineRegistry';
 import { UrlBuilderRegistry } from 'core/navigation/UrlBuilderRegistry';
+import { PipelineRegistry } from 'core/pipeline/config/PipelineRegistry';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
 export class Registry {

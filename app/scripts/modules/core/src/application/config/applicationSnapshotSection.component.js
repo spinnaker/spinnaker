@@ -1,11 +1,10 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
-
 import { ConfirmationModalService } from 'core/confirmationModal/confirmationModal.service';
 import { SnapshotWriter } from 'core/snapshot/SnapshotWriter';
 import { CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT } from 'core/snapshot/diff/viewSnapshotDiffButton.component';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT =
   'spinnaker.core.application.config.serialize.component';

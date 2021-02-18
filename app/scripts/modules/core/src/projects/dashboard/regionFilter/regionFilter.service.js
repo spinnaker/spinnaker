@@ -1,9 +1,8 @@
 'use strict';
 
-import _ from 'lodash';
-import { FilterModelService } from 'core/filterModel';
-
 import { module } from 'angular';
+import { FilterModelService } from 'core/filterModel';
+import _ from 'lodash';
 
 export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE =
   'spinnaker.deck.projects.dashboard.regionFilter.service';

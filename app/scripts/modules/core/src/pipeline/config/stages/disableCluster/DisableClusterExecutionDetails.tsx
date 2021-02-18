@@ -1,9 +1,9 @@
+import { AccountTag } from 'core/account';
 import React from 'react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
-import { StageExecutionLogs, StageFailureMessage } from '../../../details';
-import { AccountTag } from 'core/account';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { ServerGroupStageContext } from '../common/ServerGroupStageContext';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

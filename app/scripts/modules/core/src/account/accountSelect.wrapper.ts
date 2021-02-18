@@ -1,6 +1,7 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { react2angular } from 'react2angular';
+
 import { AccountSelectInput } from './AccountSelectInput';
 
 export const ACCOUNT_SELECT_WRAPPER = 'spinnaker.core.account.select.wrapper';

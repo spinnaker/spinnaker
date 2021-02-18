@@ -1,9 +1,10 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
-import { StageConfigField } from '../../stages/common';
 import { IArtifact, IArtifactEditorProps } from 'core/domain';
 import { SpelText } from 'core/widgets';
+import { cloneDeep } from 'lodash';
+import React from 'react';
+
 import { ArtifactEditor } from './ArtifactEditor';
+import { StageConfigField } from '../../stages/common';
 
 export const singleFieldArtifactEditor = (
   fieldKey: keyof IArtifact,

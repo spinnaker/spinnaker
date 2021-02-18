@@ -1,12 +1,12 @@
-import { module, IComponentController, IScope, IComponentOptions } from 'angular';
+import { IComponentController, IComponentOptions, IScope, module } from 'angular';
+import { CloudProviderRegistry } from 'core/cloudProvider';
+import { IInstanceTypeCategory, InstanceTypeService } from 'core/instance';
+import { ModalWizard } from 'core/modal/wizard/ModalWizard';
+import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from 'core/presentation/isVisible/isVisible.directive';
 import { includes } from 'lodash';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ModalWizard } from 'core/modal/wizard/ModalWizard';
-import { InstanceTypeService, IInstanceTypeCategory } from 'core/instance';
-import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
-import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from 'core/presentation/isVisible/isVisible.directive';
+import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 class V2InstanceArchetypeSelectorController implements IComponentController {
   private command: IServerGroupCommand;

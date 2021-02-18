@@ -2,8 +2,8 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { TaskMonitor } from './TaskMonitor';
-import { TaskMonitorStatus } from './TaskMonitorStatus';
 import { TaskMonitorError } from './TaskMonitorError';
+import { TaskMonitorStatus } from './TaskMonitorStatus';
 
 import './multiTaskMonitor.component.less';
 

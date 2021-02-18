@@ -1,8 +1,7 @@
-import React from 'react';
+import { IExecution, IPipeline } from 'core/domain';
 import { keyBy, truncate } from 'lodash';
 import memoizeOne from 'memoize-one';
-
-import { IExecution, IPipeline } from 'core/domain';
+import React from 'react';
 
 import { ExecutionParameters, IDisplayableParameter } from './ExecutionParameters';
 import { ResolvedArtifactList } from './ResolvedArtifactList';

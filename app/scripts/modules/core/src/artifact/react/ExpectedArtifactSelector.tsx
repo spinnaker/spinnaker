@@ -1,16 +1,15 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { IArtifact, IExpectedArtifact } from 'core/domain';
+import { TetheredSelect } from 'core/presentation';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { TetheredSelect } from 'core/presentation';
-import { IExpectedArtifact, IArtifact } from 'core/domain';
-
-import { ArtifactIcon } from './ArtifactIcon';
-import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';
+import { ArtifactIcon } from './ArtifactIcon';
 import { EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactKindSelector';
 import { EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactSourceSelector';
+import { ExpectedArtifactService } from '../expectedArtifact.service';
 
 export interface IExpectedArtifactSelectorProps {
   expectedArtifacts: IExpectedArtifact[];

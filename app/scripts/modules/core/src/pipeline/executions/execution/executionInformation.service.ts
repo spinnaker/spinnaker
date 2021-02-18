@@ -1,6 +1,7 @@
 import { REST } from 'core/api/ApiService';
-import { ExecutionsTransformer } from '../../service/ExecutionsTransformer';
 import { IExecution, IPipeline } from 'core/domain';
+
+import { ExecutionsTransformer } from '../../service/ExecutionsTransformer';
 
 export class ExecutionInformationService {
   private static instance: ExecutionInformationService;

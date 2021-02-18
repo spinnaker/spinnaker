@@ -1,6 +1,6 @@
-import React from 'react';
-import { isString } from 'lodash';
 import { Tooltip } from 'core/presentation';
+import { isString } from 'lodash';
+import React from 'react';
 
 export interface INumberInputProps {
   value: number | string;

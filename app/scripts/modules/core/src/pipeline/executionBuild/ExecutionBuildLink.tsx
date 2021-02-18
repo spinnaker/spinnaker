@@ -1,7 +1,7 @@
+import { IExecution } from 'core/domain';
 import React from 'react';
 import ReactGA from 'react-ga';
 
-import { IExecution } from 'core/domain';
 import './ExecutionBuildLink.less';
 
 export interface IExecutionBuildLinkProps {

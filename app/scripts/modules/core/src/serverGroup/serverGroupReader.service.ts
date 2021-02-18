@@ -1,7 +1,6 @@
-import { $log } from 'ngimport';
-
 import { REST } from 'core/api/ApiService';
 import { IServerGroup } from 'core/domain';
+import { $log } from 'ngimport';
 
 export class ServerGroupReader {
   public static getScalingActivities(serverGroup: IServerGroup): PromiseLike<any[]> {

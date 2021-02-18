@@ -1,14 +1,13 @@
-import React from 'react';
-import { DateTime } from 'luxon';
-
 import { IPinned } from 'core/domain';
+import { DateTime } from 'luxon';
+import React from 'react';
 
-import { Markdown } from '../../presentation';
-import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
+import { IArtifactDetailProps } from './ArtifactDetail';
 import { Button } from '../Button';
 import { StatusCard } from '../StatusCard';
-import { IArtifactDetailProps } from './ArtifactDetail';
 import { showUnpinArtifactModal } from './UnpinArtifactModal';
+import { Markdown } from '../../presentation';
+import { useApplicationContext } from '../../presentation/hooks/useApplicationContext.hook';
 
 interface PinnedCardProps extends Pick<IArtifactDetailProps, 'resourcesByEnvironment' | 'reference' | 'version'> {
   environmentName: string;

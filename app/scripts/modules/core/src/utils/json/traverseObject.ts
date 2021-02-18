@@ -1,4 +1,4 @@
-import { forIn, isPlainObject, isNumber, isNull, isUndefined } from 'lodash';
+import { forIn, isNull, isNumber, isPlainObject, isUndefined } from 'lodash';
 
 /**
  * Deeply walks an object tree and invokes `callback` for each node

@@ -1,7 +1,6 @@
-import { module, IDeferred, IQService } from 'angular';
+import { IDeferred, IQService, module } from 'angular';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
 import { Observable, Subject } from 'rxjs';
-
-import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import { ISearchResult } from '../search.service';

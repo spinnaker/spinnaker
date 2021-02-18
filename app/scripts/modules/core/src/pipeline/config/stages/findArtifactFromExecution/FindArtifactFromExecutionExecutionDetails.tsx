@@ -1,8 +1,8 @@
+import { JsonUtils } from 'core/utils';
 import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
-import { JsonUtils } from 'core/utils';
 
 export class FindArtifactFromExecutionExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'artifactDetails';

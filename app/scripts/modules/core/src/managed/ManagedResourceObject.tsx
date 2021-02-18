@@ -1,18 +1,18 @@
-import React, { memo } from 'react';
 import { useSref } from '@uirouter/react';
-
 import { Application } from 'core/application';
-import { IManagedResourceSummary, IManagedEnvironmentSummary, IManagedArtifactSummary } from '../domain/IManagedEntity';
-import { getKindName } from './ManagedReader';
+import React, { memo } from 'react';
 
+import { Icon } from '@spinnaker/presentation';
+
+import { getKindName } from './ManagedReader';
+import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
-import { getResourceIcon, getExperimentalDisplayLink } from './resources/resourceRegistry';
-import { getArtifactVersionDisplayName } from './displayNames';
 import { StatusBubble } from './StatusBubble';
+import { getArtifactVersionDisplayName } from './displayNames';
+import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain/IManagedEntity';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
-import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
-import { Icon } from '@spinnaker/presentation';
+import { getExperimentalDisplayLink, getResourceIcon } from './resources/resourceRegistry';
 
 export interface IManagedResourceObjectProps {
   application: Application;

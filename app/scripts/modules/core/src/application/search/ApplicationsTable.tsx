@@ -1,9 +1,9 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
-
-import { timestamp } from 'core/utils';
-import { IApplicationSummary } from '../service/ApplicationReader';
 import { SortToggle } from 'core/presentation';
+import { timestamp } from 'core/utils';
+import React from 'react';
+
+import { IApplicationSummary } from '../service/ApplicationReader';
 
 export interface IApplicationTableProps {
   applications: IApplicationSummary[];

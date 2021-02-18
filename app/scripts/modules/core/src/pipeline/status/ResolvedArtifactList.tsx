@@ -1,6 +1,6 @@
+import { IArtifact, IExpectedArtifact } from 'core/domain';
 import React from 'react';
 
-import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { Artifact } from './Artifact';
 
 import './artifactList.less';

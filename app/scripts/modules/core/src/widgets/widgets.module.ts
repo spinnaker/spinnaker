@@ -1,13 +1,13 @@
 import { module } from 'angular';
 
 import { SPINNER_WRAPPER } from './Spinner';
-import { ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER } from './accountRegionClusterSelectorWrapper.component';
 import { CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT } from './accountNamespaceClusterSelector.component';
 import { CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT } from './accountRegionClusterSelector.component';
-import { CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE } from './scopeClusterSelector.directive';
-import { CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR } from './spelText/spelText.decorator';
-import { CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT } from './spelText/spelSelect.component';
+import { ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER } from './accountRegionClusterSelectorWrapper.component';
 import { CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT } from './actionIcons/actionIcons.component';
+import { CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE } from './scopeClusterSelector.directive';
+import { CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT } from './spelText/spelSelect.component';
+import { CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR } from './spelText/spelText.decorator';
 
 export const WIDGETS_MODULE = 'spinnaker.core.widgets';
 module(WIDGETS_MODULE, [

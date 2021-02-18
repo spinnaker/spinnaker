@@ -1,5 +1,5 @@
-import React from 'react';
 import { HelpField } from 'core/help/HelpField';
+import React from 'react';
 
 export interface IStageConfigFieldProps {
   label: string;

@@ -1,9 +1,9 @@
-import React from 'react';
-import { MenuItem } from 'react-bootstrap';
-import { $q } from 'ngimport';
-
 import { Application } from 'core/application';
 import { IManagedResource } from 'core/domain';
+import { $q } from 'ngimport';
+import React from 'react';
+import { MenuItem } from 'react-bootstrap';
+
 import { confirmNotManaged } from './toggleResourceManagement';
 
 interface IManagedMenuItemProps {

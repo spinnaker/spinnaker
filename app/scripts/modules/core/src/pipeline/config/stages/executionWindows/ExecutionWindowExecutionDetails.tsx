@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
-import { StageFailureMessage, StageExecutionLogs } from '../../../details';
 import { ExecutionWindowActions } from './ExecutionWindowActions';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function ExecutionWindowExecutionDetails(props: IExecutionDetailsSectionProps) {
   return (

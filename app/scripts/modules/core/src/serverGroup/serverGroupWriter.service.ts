@@ -1,11 +1,11 @@
 import { module } from 'angular';
-
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
-import { FirewallLabels } from 'core/securityGroup/label';
-import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { IMoniker, NameUtils } from 'core/naming';
+import { FirewallLabels } from 'core/securityGroup/label';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+
+import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup.transformer';
 
 export interface ICapacity {

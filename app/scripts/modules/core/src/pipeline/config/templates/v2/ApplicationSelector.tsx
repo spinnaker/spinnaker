@@ -1,7 +1,6 @@
+import { IApplicationSummary } from 'core/application';
 import React from 'react';
 import Select, { Option } from 'react-select';
-
-import { IApplicationSummary } from 'core/application';
 
 interface IApplicatonSelectorProps {
   applications: IApplicationSummary[];

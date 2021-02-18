@@ -2,9 +2,9 @@
 
 import { module } from 'angular';
 
-import { SECURITY_GROUP_STATES } from './securityGroup.states';
 import { SECURITY_GROUP_FILTER } from './filter/securityGroup.filter.component';
 import { SECURITY_GROUP_DATA_SOURCE } from './securityGroup.dataSource';
+import { SECURITY_GROUP_STATES } from './securityGroup.states';
 import './securityGroupSearchResultType';
 
 export const CORE_SECURITYGROUP_SECURITYGROUP_MODULE = 'spinnaker.core.securityGroup';

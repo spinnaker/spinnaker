@@ -1,15 +1,15 @@
-import React from 'react';
-import Select, { Option } from 'react-select';
-import { set } from 'lodash';
-
-import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
-import { NgReact } from 'core/reactShims';
-import { IServerGroupCommand } from 'core/serverGroup';
 import {
   DeploymentMonitorReader,
   IDeploymentMonitorDefinition,
 } from 'core/pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
+import { NgReact } from 'core/reactShims';
+import { IServerGroupCommand } from 'core/serverGroup';
+import { set } from 'lodash';
+import React from 'react';
+import Select, { Option } from 'react-select';
+
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 
 export interface IMonitoredDeployCommand extends IServerGroupCommand {
   delayBeforeScaleDownSec: string;

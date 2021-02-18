@@ -1,16 +1,16 @@
-import React from 'react';
-
-import 'jquery-textcomplete';
-import './spel.less';
-
+import { StateService } from '@uirouter/core';
 import classNames from 'classnames';
 import $ from 'jquery';
+import 'jquery-textcomplete';
 import { $q, $timeout } from 'ngimport';
-import { SpelAutocompleteService } from './SpelAutocompleteService';
-import { ExecutionService } from '../../pipeline/service/execution.service';
-import { StateService } from '@uirouter/core';
-import { IPipeline } from '../../domain';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
+
+import { SpelAutocompleteService } from './SpelAutocompleteService';
+import { IPipeline } from '../../domain';
+import { ExecutionService } from '../../pipeline/service/execution.service';
+
+import './spel.less';
 
 export interface ISpelTextProps {
   placeholder: string;

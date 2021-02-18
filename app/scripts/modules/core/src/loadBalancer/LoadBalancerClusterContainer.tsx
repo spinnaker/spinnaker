@@ -1,7 +1,6 @@
-import React from 'react';
-import { isEqual, orderBy } from 'lodash';
-
 import { ILoadBalancer, IServerGroup } from 'core/domain';
+import { isEqual, orderBy } from 'lodash';
+import React from 'react';
 
 import { LoadBalancerInstances } from './LoadBalancerInstances';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';

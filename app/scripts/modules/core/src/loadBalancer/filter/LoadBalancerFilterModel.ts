@@ -1,6 +1,6 @@
 import { ILoadBalancerGroup } from 'core/domain';
-import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { FilterModelService } from 'core/filterModel';
+import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'account', param: 'acct', type: 'trueKeyObject' },

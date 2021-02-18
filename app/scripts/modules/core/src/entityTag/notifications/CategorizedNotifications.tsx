@@ -1,5 +1,5 @@
-import React from 'react';
 import { uniq } from 'lodash';
+import React from 'react';
 
 import { GroupedNotificationList } from './GroupedNotificationList';
 import { NotificationCategory } from './NotificationCategory';

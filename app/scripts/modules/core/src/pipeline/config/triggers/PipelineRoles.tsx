@@ -1,8 +1,7 @@
-import React from 'react';
-import Select, { Option } from 'react-select';
-
 import { AuthenticationService } from 'core/authentication';
 import { HelpField } from 'core/help';
+import React from 'react';
+import Select, { Option } from 'react-select';
 
 const { useState, useEffect } = React;
 

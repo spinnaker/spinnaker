@@ -1,5 +1,6 @@
-import { PagerDutyReader, IPagerDutyService } from './pagerDuty.read.service';
-import { module, IComponentController, IComponentOptions } from 'angular';
+import { IComponentController, IComponentOptions, module } from 'angular';
+
+import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 export class PagerDutyTagComponentController implements IComponentController {
   public apiKey: any;

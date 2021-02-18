@@ -1,18 +1,18 @@
-import React from 'react';
-import { get } from 'lodash';
-
-import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application';
-import { IServerGroup } from 'core/domain';
-import { IJenkinsViewModel, IDockerViewModel } from './ServerGroup';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { HealthCounts } from 'core/healthCounts';
-import { NameUtils } from 'core/naming';
-import { CloudProviderLogo } from 'core/cloudProvider';
-import { LoadBalancersTagWrapper } from 'core/loadBalancer';
-import { ISortFilter } from 'core/filterModel';
-import { Overridable } from 'core/overrideRegistry';
 import { ArtifactIconService } from 'core/artifact';
+import { CloudProviderLogo } from 'core/cloudProvider';
+import { IServerGroup } from 'core/domain';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
+import { ISortFilter } from 'core/filterModel';
+import { HealthCounts } from 'core/healthCounts';
+import { LoadBalancersTagWrapper } from 'core/loadBalancer';
+import { NameUtils } from 'core/naming';
+import { Overridable } from 'core/overrideRegistry';
+import { NgReact } from 'core/reactShims';
+import { get } from 'lodash';
+import React from 'react';
+
+import { IDockerViewModel, IJenkinsViewModel } from './ServerGroup';
 
 export interface IServerGroupHeaderProps {
   application: Application;

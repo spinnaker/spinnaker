@@ -1,9 +1,9 @@
 import { Application } from 'core/application/application.model';
 
 import { IExecution } from './IExecution';
-import { IStageTypeConfig, IExecutionDetailsSection } from './IStageTypeConfig';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IStage } from './IStage';
+import { IExecutionDetailsSection, IStageTypeConfig } from './IStageTypeConfig';
 import { ITaskStep } from './ITaskStep';
 
 export interface IRestartDetails {

@@ -1,16 +1,15 @@
-import React from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import { get } from 'lodash';
-
 import { Application, ApplicationModelBuilder } from 'core/application';
-import { IPagerDutyService } from './pagerDuty.read.service';
-import { PagerDutyWriter } from './pagerDuty.write.service';
-import { NgReact, ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
 import { SubmitButton } from 'core/modal';
+import { NgReact, ReactInjector } from 'core/reactShims';
 import { TaskMonitor } from 'core/task';
+import { get } from 'lodash';
+import React from 'react';
+import { Button, Modal } from 'react-bootstrap';
 
 import { IPageButtonProps } from './PageButton';
+import { IPagerDutyService } from './pagerDuty.read.service';
+import { PagerDutyWriter } from './pagerDuty.write.service';
 
 export interface IPageModalProps {
   applications?: Application[];

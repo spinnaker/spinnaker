@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 export function ApplyEntityTagsExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { current, name, stage } = props;

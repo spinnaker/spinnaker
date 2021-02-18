@@ -1,10 +1,10 @@
 import React from 'react';
-import { Subject, Observable } from 'rxjs';
 import { get } from 'lodash';
+import { Observable, Subject } from 'rxjs';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ReactInjector, AngularJSAdapter } from 'core/reactShims';
 import { AccountService, IAccountDetails } from 'core/account/AccountService';
+import { CloudProviderRegistry } from 'core/cloudProvider';
+import { AngularJSAdapter, ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
 
 export interface IOverridableProps {

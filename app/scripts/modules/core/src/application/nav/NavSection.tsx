@@ -1,8 +1,8 @@
 import React from 'react';
-import { NavRoute } from './NavRoute';
 
-import { ApplicationDataSource } from '../service/applicationDataSource';
+import { NavRoute } from './NavRoute';
 import { Application } from '../application.model';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface INavigationSectionProps {
   dataSources: ApplicationDataSource[];

@@ -1,10 +1,9 @@
 import * as React from 'react';
 
-import { useIsMobile, useDeepObjectDiff } from '../hooks';
-
-import { ITableRowLayoutProps } from './TableRow';
 import { ITableCellLayoutProps } from './TableCell';
 import { TableContext } from './TableContext';
+import { ITableRowLayoutProps } from './TableRow';
+import { useDeepObjectDiff, useIsMobile } from '../hooks';
 
 const { useState, useMemo } = React;
 

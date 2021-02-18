@@ -1,10 +1,9 @@
-import React from 'react';
-import { FormikProps } from 'formik';
-import { Option } from 'react-select';
-
 import { BuildServiceType, IgorService } from 'core/ci';
 import { IConcourseTrigger } from 'core/domain';
 import { FormikFormField, ReactSelectInput, useData } from 'core/presentation';
+import { FormikProps } from 'formik';
+import React from 'react';
+import { Option } from 'react-select';
 
 import { ConcourseService } from './concourse.service';
 

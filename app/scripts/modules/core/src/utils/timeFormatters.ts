@@ -1,9 +1,8 @@
 import { module } from 'angular';
-import { DateTime, Duration } from 'luxon';
-import * as distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import { react2angular } from 'react2angular';
-
 import { SETTINGS } from 'core/config/settings';
+import * as distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
+import { DateTime, Duration } from 'luxon';
+import { react2angular } from 'react2angular';
 
 import { SystemTimezone } from './SystemTimezone';
 

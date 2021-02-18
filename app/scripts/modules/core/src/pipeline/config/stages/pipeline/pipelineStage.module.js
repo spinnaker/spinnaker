@@ -1,7 +1,8 @@
-import { CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE } from './pipelineStage';
-('use strict');
-
 import { module } from 'angular';
+
+import { CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE } from './pipelineStage';
+
+('use strict');
 
 export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE = 'spinnaker.core.pipeline.stage.pipeline';
 export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE; // for backwards compatibility

@@ -1,5 +1,5 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { react2angular } from 'react2angular';
 
 import { CustomBannerConfig } from './CustomBannerConfig';

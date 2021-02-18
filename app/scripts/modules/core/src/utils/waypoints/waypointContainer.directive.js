@@ -1,8 +1,8 @@
 'use strict';
 
-import { WaypointService } from './waypoint.service';
-
 import { module } from 'angular';
+
+import { WaypointService } from './waypoint.service';
 
 export const CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE = 'spinnaker.core.utils.waypoints.container.directive';
 export const name = CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE; // for backwards compatibility

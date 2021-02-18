@@ -1,7 +1,7 @@
-import React from 'react';
-
 import { Markdown } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils';
+import React from 'react';
+
 import { INotification } from './NotificationsPopover';
 
 export interface INotificationListProps {

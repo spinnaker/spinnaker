@@ -1,5 +1,5 @@
+import { IOverridableProps, Overridable } from 'core/overrideRegistry';
 import React from 'react';
-import { Overridable, IOverridableProps } from 'core/overrideRegistry';
 
 export interface IServerGroupManagerDetailsProps extends IOverridableProps {}
 

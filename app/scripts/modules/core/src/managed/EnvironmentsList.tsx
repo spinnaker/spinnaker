@@ -1,12 +1,10 @@
-import React from 'react';
-import { pickBy, values } from 'lodash';
-
 import { Application } from 'core/application';
-import { IManagedEnvironmentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain';
+import { pickBy, values } from 'lodash';
+import React from 'react';
 
 import { ManagedResourceObject } from './ManagedResourceObject';
+import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain';
 import { EnvironmentRow } from './environment/EnvironmentRow';
-
 import { isResourceKindSupported } from './resources/resourceRegistry';
 
 function shouldDisplayResource(resource: IManagedResourceSummary) {

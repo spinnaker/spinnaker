@@ -1,12 +1,12 @@
+import { Application } from 'core/application';
+import { IManifest } from 'core/domain/IManifest';
+import { isEmpty, template } from 'lodash';
 import React from 'react';
-import { template, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
 import { JobManifestPodLogs } from './JobManifestPodLogs';
-import { IManifest } from 'core/domain/IManifest';
-import { Application } from 'core/application';
-import { IPodNameProvider } from '../PodNameProvider';
 import { ManifestReader } from '../ManifestReader';
+import { IPodNameProvider } from '../PodNameProvider';
 
 interface IJobStageExecutionLogsProps {
   deployedName: string;

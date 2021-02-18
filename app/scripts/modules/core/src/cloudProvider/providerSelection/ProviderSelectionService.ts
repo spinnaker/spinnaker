@@ -1,10 +1,10 @@
+import { AccountService, IAccountDetails } from 'core/account';
+import { Application } from 'core/application';
+import { SETTINGS } from 'core/config';
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
 
-import { AccountService, IAccountDetails } from 'core/account';
-import { Application } from 'core/application';
 import { CloudProviderRegistry, ICloudProviderConfig } from '../CloudProviderRegistry';
-import { SETTINGS } from 'core/config';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
 
 export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;

@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
+import React from 'react';
 
 import { NexusReaderService } from './nexusReader.service';
 

@@ -1,9 +1,9 @@
 import { IQService, module } from 'angular';
-import { isString, isFunction } from 'lodash';
-
-import IInjectorService = angular.auto.IInjectorService;
+import { isFunction, isString } from 'lodash';
 
 import { CloudProviderRegistry } from './CloudProviderRegistry';
+
+import IInjectorService = angular.auto.IInjectorService;
 
 export class ProviderServiceDelegate {
   public static $inject = ['$injector', '$q'];

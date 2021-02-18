@@ -1,16 +1,16 @@
 'use strict';
 
 import { module } from 'angular';
-import _ from 'lodash';
-
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
 import { UrlBuilder } from 'core/navigation';
 import { ClusterState } from 'core/state';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
+import _ from 'lodash';
+
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from '../regionFilter/regionFilter.service';
 
 import './projectCluster.less';
-import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from '../regionFilter/regionFilter.service';
 
 export const CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE =
   'spinnaker.core.projects.dashboard.clusters.projectCluster.directive';

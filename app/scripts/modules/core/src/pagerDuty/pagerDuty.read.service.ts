@@ -1,6 +1,5 @@
-import { Observable } from 'rxjs';
-
 import { REST } from 'core/api/ApiService';
+import { Observable } from 'rxjs';
 
 export interface IPagerDutyService {
   id: string;

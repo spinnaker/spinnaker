@@ -1,12 +1,13 @@
 import React from 'react';
-import {
-  IVariableInputBuilder,
-  VariableInputService,
-  IVariable,
-  IVariableState,
-  IVariableProps,
-} from './variableInput.service';
+
 import { VariableError } from '../VariableError';
+import {
+  IVariable,
+  IVariableInputBuilder,
+  IVariableProps,
+  IVariableState,
+  VariableInputService,
+} from './variableInput.service';
 
 class NumberInput extends React.Component<IVariableProps, IVariableState> {
   public render() {

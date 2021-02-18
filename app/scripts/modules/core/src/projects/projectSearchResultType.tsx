@@ -1,20 +1,19 @@
-import React from 'react';
-
+import { IProjectConfig } from 'core/domain';
 import {
-  searchResultTypeRegistry,
   BasicCell,
-  HrefCell,
-  ISearchResult,
-  HeaderCell,
   DefaultSearchResultTab,
+  HeaderCell,
+  HrefCell,
+  ISearchColumn,
+  ISearchResult,
+  ISearchResultSet,
+  SearchResultType,
+  searchResultTypeRegistry,
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-  ISearchColumn,
-  SearchResultType,
-  ISearchResultSet,
 } from 'core/search';
-import { IProjectConfig } from 'core/domain';
+import React from 'react';
 
 export interface IProjectSearchResult extends ISearchResult {
   applications: string[];

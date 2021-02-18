@@ -1,37 +1,38 @@
-import React from 'react';
 import { angular2react } from 'angular2react';
-import IInjectorService = angular.auto.IInjectorService;
-
-import { addEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
-import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
-import { buttonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
-import { entitySourceComponent } from 'core/entityTag/entitySource.component';
-import { helpFieldWrapperComponent } from '../help/helpField.component';
-import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
-import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
-import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
-import { IEntitySourceProps } from 'core/entityTag/EntitySource';
-import { IHelpFieldProps } from '../help/HelpField';
-import { ILegacySpinnerProps, spinnerWrapperComponent } from '../widgets/Spinner';
-import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
-import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
-import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExecutionDetailsWrapper';
-import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
 import { IViewChangesLinkProps } from 'core/diffs/ViewChangesLink';
-import { IViewScalingActivitiesLinkProps } from 'core/serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
-import { ReactInject } from './react.injector';
-import { stageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
-import { stepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
-import { targetSelectComponent, ITargetSelectProps } from 'core/pipeline/config/targetSelect.component';
-import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
 import { viewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
-import { viewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
-import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/common/InstanceArchetypeSelector';
-import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
-import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
-import { v2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
+import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
+import { IEntitySourceProps } from 'core/entityTag/EntitySource';
+import { addEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
+import { entitySourceComponent } from 'core/entityTag/entitySource.component';
 import { INumberListProps } from 'core/forms/numberList/NumberList';
 import { numberListWrapperComponent } from 'core/forms/numberList/numberList.component';
+import { ITargetSelectProps, targetSelectComponent } from 'core/pipeline/config/targetSelect.component';
+import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
+import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExecutionDetailsWrapper';
+import { stageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
+import { stepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
+import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/common/InstanceArchetypeSelector';
+import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
+import { v2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
+import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
+import { IViewScalingActivitiesLinkProps } from 'core/serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
+import { viewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
+import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
+import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
+import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
+import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
+import React from 'react';
+
+import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
+import { buttonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
+import { IHelpFieldProps } from '../help/HelpField';
+import { helpFieldWrapperComponent } from '../help/helpField.component';
+import { ReactInject } from './react.injector';
+import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
+import { ILegacySpinnerProps, spinnerWrapperComponent } from '../widgets/Spinner';
+
+import IInjectorService = angular.auto.IInjectorService;
 
 // prettier-ignore
 export class NgReactInjector extends ReactInject {

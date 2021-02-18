@@ -1,9 +1,11 @@
 import { module } from 'angular';
 import 'ngimport';
-import { STATE_EVENTS } from './state.events';
-import { ReactInjector } from './react.injector';
+
 import { ModalInjector } from './modal.injector';
 import { NgReact } from './ngReact';
+import { ReactInjector } from './react.injector';
+import { STATE_EVENTS } from './state.events';
+
 import './react.uirouter.css';
 
 export const REACT_MODULE = 'spinnaker.core.react';

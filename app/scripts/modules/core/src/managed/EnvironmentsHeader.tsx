@@ -1,11 +1,12 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { Application } from '../application';
-import { showToggleManagedResourceModal } from './ToggleManagedResourceForApplication';
-import './EnvironmentsHeader.less';
-
 import { Illustration, IllustrationName } from '@spinnaker/presentation';
+
+import { showToggleManagedResourceModal } from './ToggleManagedResourceForApplication';
+import { Application } from '../application';
+
+import './EnvironmentsHeader.less';
 
 interface IEnvironmentsHeaderProps {
   app: Application;

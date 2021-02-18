@@ -1,6 +1,6 @@
+import { HelpField } from 'core/help/HelpField';
 import React from 'react';
 
-import { HelpField } from 'core/help/HelpField';
 import './FilterSearch.less';
 
 export interface IFilterSearchProps {

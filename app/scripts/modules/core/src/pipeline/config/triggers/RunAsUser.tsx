@@ -1,7 +1,6 @@
-import React from 'react';
-
 import { IFormInputProps, ReactSelectInput, useLatestPromise } from 'core/presentation';
 import { ServiceAccountReader } from 'core/serviceAccount';
+import React from 'react';
 
 export interface IRunAsUserInputProps extends IFormInputProps {
   application: string;

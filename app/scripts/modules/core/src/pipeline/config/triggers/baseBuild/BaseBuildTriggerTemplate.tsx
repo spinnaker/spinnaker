@@ -1,19 +1,17 @@
-import React from 'react';
-
+import { BuildServiceType, IgorService } from 'core/ci';
+import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from 'core/domain';
+import { TextInput } from 'core/presentation';
+import { TetheredSelect } from 'core/presentation/TetheredSelect';
+import { timestamp } from 'core/utils/timeFormatters';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 import { capitalize, get } from 'lodash';
-import { Option } from 'react-select';
 import { $q } from 'ngimport';
-
+import React from 'react';
+import { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
 
-import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from 'core/domain';
-import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
-import { IgorService, BuildServiceType } from 'core/ci';
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import { buildDisplayName } from '../../../executionBuild/buildDisplayName.filter';
-import { timestamp } from 'core/utils/timeFormatters';
-import { TetheredSelect } from 'core/presentation/TetheredSelect';
-import { TextInput } from 'core/presentation';
+import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export interface IBaseBuildTriggerTemplateProps extends ITriggerTemplateComponentProps {
   buildTriggerType: BuildServiceType;

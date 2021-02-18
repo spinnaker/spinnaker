@@ -1,8 +1,8 @@
-import { IController, IComponentOptions, copy, module, toJson } from 'angular';
+import { copy, IComponentOptions, IController, module, toJson } from 'angular';
 import { cloneDeep } from 'lodash';
 
-import { ApplicationWriter } from '../../service/ApplicationWriter';
 import { Application } from '../../application.model';
+import { ApplicationWriter } from '../../service/ApplicationWriter';
 
 export interface IConfigSectionFooterViewState {
   originalConfig: any;

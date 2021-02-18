@@ -1,7 +1,9 @@
-import React from 'react';
 import { ValidationMessage } from 'core/presentation';
+import React from 'react';
+
 import { IPipeline } from '../../domain';
 import { SpelText } from '../../widgets';
+
 import './MapPair.css';
 
 export interface IMapPair {

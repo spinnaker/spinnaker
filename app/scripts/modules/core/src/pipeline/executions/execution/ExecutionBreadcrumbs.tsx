@@ -1,9 +1,9 @@
+import { useCurrentStateAndParams, useSref } from '@uirouter/react';
+import { IExecution } from 'core/domain';
 import React, { MouseEventHandler } from 'react';
-import { useSref, useCurrentStateAndParams } from '@uirouter/react';
 import ReactGA from 'react-ga';
 
 import { ExecutionInformationService } from './executionInformation.service';
-import { IExecution } from 'core/domain';
 
 export interface IExecutionBreadcrumbsProps {
   execution: IExecution;

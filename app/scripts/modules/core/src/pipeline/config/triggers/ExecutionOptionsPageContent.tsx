@@ -1,8 +1,7 @@
-import React from 'react';
-
 import { IPipeline } from 'core/domain';
-import { CheckboxInput, FormField } from 'core/presentation';
 import { HelpField } from 'core/help';
+import { CheckboxInput, FormField } from 'core/presentation';
+import React from 'react';
 
 export interface IExecutionOptionsPageContentProps {
   pipeline: IPipeline;

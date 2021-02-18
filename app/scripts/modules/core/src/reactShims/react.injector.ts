@@ -1,23 +1,23 @@
-import { IQService, IRootScopeService, IScope } from 'angular';
-import IInjectorService = angular.auto.IInjectorService;
-
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
+import { IQService, IRootScopeService, IScope } from 'angular';
+import { ImageReader } from 'core/image/image.reader';
+import { InstanceTypeService, InstanceWriter } from 'core/instance';
+import { PageTitleService } from 'core/pageTitle';
+import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { ClusterService } from '../cluster/cluster.service';
-import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
-import { ExecutionService } from '../pipeline/service/execution.service';
-import { ImageReader } from 'core/image/image.reader';
-import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
-import { InsightFilterStateModel } from '../insight/insightFilterState.model';
-import { InstanceTypeService, InstanceWriter } from 'core/instance';
-import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
-import { OverrideRegistry } from '../overrideRegistry/override.registry';
-import { PageTitleService } from 'core/pageTitle';
 import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { ClusterService } from '../cluster/cluster.service';
+import { InsightFilterStateModel } from '../insight/insightFilterState.model';
+import { OverrideRegistry } from '../overrideRegistry/override.registry';
+import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
+import { ExecutionService } from '../pipeline/service/execution.service';
+import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
 import { StateEvents } from './state.events';
+
+import IInjectorService = angular.auto.IInjectorService;
 
 export abstract class ReactInject {
   protected $injector: IInjectorService;

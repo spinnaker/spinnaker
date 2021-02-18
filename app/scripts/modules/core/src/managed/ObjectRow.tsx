@@ -1,8 +1,8 @@
 import React from 'react';
 
-import './ObjectRow.less';
-
 import { Icon, IconNames } from '@spinnaker/presentation';
+
+import './ObjectRow.less';
 
 interface IObjectRowProps {
   content?: JSX.Element;

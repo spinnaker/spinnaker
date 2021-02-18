@@ -1,4 +1,4 @@
-import { UIRouter, Transition, Glob, UIRouterPlugin } from '@uirouter/core';
+import { Glob, Transition, UIRouter, UIRouterPlugin } from '@uirouter/core';
 
 import { bootstrapModule } from './bootstrap.module';
 

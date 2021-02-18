@@ -1,9 +1,9 @@
 import React from 'react';
 import { Observable } from 'rxjs';
 
-import { ISearchParams, ISearchResult, ISearchResults, SearchService } from '../search.service';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { DefaultSearchResultTab } from './DefaultSearchResultTab';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { ISearchParams, ISearchResult, ISearchResults, SearchService } from '../search.service';
 
 export interface ISearchResultSetProps<T extends ISearchResult> {
   resultSet: ISearchResultSet<T>;

@@ -1,9 +1,9 @@
+import { SystemTimezone } from 'core/utils/SystemTimezone';
 import React from 'react';
 import Select, { Option } from 'react-select';
 
-import { SystemTimezone } from 'core/utils/SystemTimezone';
-import { HOURS, MINUTES } from './cronSelectOptions';
 import { ICronTriggerConfigProps } from './cronConfig';
+import { HOURS, MINUTES } from './cronSelectOptions';
 
 export interface ICronDailyState {
   subTab: string;

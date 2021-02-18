@@ -1,6 +1,7 @@
+import { IArtifactAccount } from 'core/account';
+
 import { IArtifact } from './IArtifact';
 import { IPipeline } from './IPipeline';
-import { IArtifactAccount } from 'core/account';
 
 export interface IArtifactEditorProps {
   account: IArtifactAccount;

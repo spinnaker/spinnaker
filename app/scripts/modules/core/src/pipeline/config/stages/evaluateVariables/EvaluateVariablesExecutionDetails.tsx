@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
-import { StageFailureMessage, StageExecutionLogs } from '../../../details';
-import { Markdown } from '../../../../presentation';
-
 import { IEvaluatedVariable } from './EvaluateVariablesStageConfig';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
+import { Markdown } from '../../../../presentation';
 
 export function EvaluateVariablesExecutionDetails(props: IExecutionDetailsSectionProps) {
   const {

@@ -1,11 +1,10 @@
 import { module } from 'angular';
-
+import { ExecutionArtifactTab } from 'core/artifact/react/ExecutionArtifactTab';
 import { Registry } from 'core/registry';
 
 import { ExecutionDetailsTasks } from '../common';
-import { FindArtifactFromExecutionCtrl } from '../findArtifactFromExecution/findArtifactFromExecution.controller';
 import { FindArtifactFromExecutionExecutionDetails } from '../findArtifactFromExecution/FindArtifactFromExecutionExecutionDetails';
-import { ExecutionArtifactTab } from 'core/artifact/react/ExecutionArtifactTab';
+import { FindArtifactFromExecutionCtrl } from '../findArtifactFromExecution/findArtifactFromExecution.controller';
 
 export const FIND_ARTIFACT_FROM_EXECUTION_STAGE = 'spinnaker.core.pipeline.stage.findArtifactStage';
 

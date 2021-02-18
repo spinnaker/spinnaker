@@ -1,8 +1,8 @@
 import { module } from 'angular';
+import { Application } from 'core/application';
+import { IExecution, IExecutionStage } from 'core/domain';
 
 import { EXECUTION_SERVICE, ExecutionService } from '../../../service/execution.service';
-import { IExecution, IExecutionStage } from 'core/domain';
-import { Application } from 'core/application';
 
 export class ManualJudgmentService {
   public static $inject = ['executionService'];

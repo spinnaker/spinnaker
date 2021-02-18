@@ -1,7 +1,7 @@
-import { isEmpty, defaultsDeep } from 'lodash';
-import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
+import { defaultsDeep, isEmpty } from 'lodash';
 
 import { AdditionalFields, RollbackType } from './AdditionalFields';
+import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Monitored Deploy',

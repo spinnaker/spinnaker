@@ -1,10 +1,12 @@
+import { StateParams, StateService } from '@uirouter/core';
 import { IController, module } from 'angular';
-import { PageNavigationState } from './PageNavigationState';
-import { isFunction, throttle } from 'lodash';
-import { StateService, StateParams } from '@uirouter/core';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
-import { PAGE_SECTION_COMPONENT } from './pageSection.component';
 import { UUIDGenerator } from 'core/utils/uuid.service';
+import { isFunction, throttle } from 'lodash';
+
+import { PageNavigationState } from './PageNavigationState';
+import { PAGE_SECTION_COMPONENT } from './pageSection.component';
+
 import './pageNavigation.less';
 
 class PageNavigatorController implements IController {

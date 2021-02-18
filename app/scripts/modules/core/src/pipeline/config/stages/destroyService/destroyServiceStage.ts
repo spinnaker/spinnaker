@@ -1,7 +1,7 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { DestroyServiceExecutionDetails } from './DestroyServiceExecutionDetails';
+import { ExecutionDetailsTasks } from '../common';
 
 Registry.pipeline.registerStage({
   executionDetailsSections: [DestroyServiceExecutionDetails, ExecutionDetailsTasks],

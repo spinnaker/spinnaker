@@ -1,15 +1,14 @@
+import { noop } from 'core/utils';
+import { isNil } from 'lodash';
 import React from 'react';
 import Select, { Option, OptionValues, ReactSelectProps } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
-import { isNil } from 'lodash';
 
-import { noop } from 'core/utils';
-
+import { StringsAsOptions } from './StringsAsOptions';
+import { TetheredSelect } from '../../TetheredSelect';
 import { IFormInputProps, IFormInputValidation, OmitControlledInputPropsFrom } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
-import { StringsAsOptions } from './StringsAsOptions';
 import { useValidationData } from '../validation';
-import { TetheredSelect } from '../../TetheredSelect';
 
 export interface IReactSelectInputProps<T = OptionValues>
   extends IFormInputProps,

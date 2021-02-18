@@ -1,10 +1,10 @@
+import { module } from 'angular';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
-
 import { react2angular } from 'react2angular';
+
 import { InstanceLoadBalancerHealth } from './InstanceLoadBalancerHealth';
 
-import { module } from 'angular';
+('use strict');
 
 export const CORE_INSTANCE_LOADBALANCER_INSTANCELOADBALANCERHEALTH_DIRECTIVE =
   'spinnaker.core.instance.loadBalancer.health.directive';

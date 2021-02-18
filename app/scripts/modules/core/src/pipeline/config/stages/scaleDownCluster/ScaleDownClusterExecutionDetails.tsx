@@ -1,9 +1,9 @@
+import { AccountTag } from 'core/account';
 import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
-import { StageExecutionLogs, StageFailureMessage } from '../../../details';
-import { AccountTag } from 'core/account';
 import { ServerGroupStageContext } from '../common/ServerGroupStageContext';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function ScaleDownClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

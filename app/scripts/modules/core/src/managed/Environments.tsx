@@ -1,19 +1,18 @@
-import React, { useMemo } from 'react';
-import { pick, isEqual, keyBy } from 'lodash';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
-import { useTransition, animated } from 'react-spring';
-
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets';
-import { useDataSource } from '../presentation/hooks';
-import { Application, ApplicationDataSource } from '../application';
-import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '../domain';
+import { isEqual, keyBy, pick } from 'lodash';
+import React, { useMemo } from 'react';
+import { animated, useTransition } from 'react-spring';
 
 import { ColumnHeader } from './ColumnHeader';
-import { ArtifactsList } from './artifactsList/ArtifactsList';
-import { EnvironmentsList } from './EnvironmentsList';
-import { ArtifactDetail } from './artifactDetail/ArtifactDetail';
 import { EnvironmentsHeader } from './EnvironmentsHeader';
+import { EnvironmentsList } from './EnvironmentsList';
+import { Application, ApplicationDataSource } from '../application';
+import { ArtifactDetail } from './artifactDetail/ArtifactDetail';
+import { ArtifactsList } from './artifactsList/ArtifactsList';
+import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '../domain';
+import { useDataSource } from '../presentation/hooks';
 
 import './Environments.less';
 

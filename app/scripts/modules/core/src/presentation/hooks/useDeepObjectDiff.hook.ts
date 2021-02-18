@@ -1,5 +1,5 @@
-import React from 'react';
 import { isEqual } from 'lodash';
+import React from 'react';
 
 const { useRef } = React;
 

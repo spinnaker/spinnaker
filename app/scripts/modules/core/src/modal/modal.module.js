@@ -2,14 +2,14 @@
 
 import { module } from 'angular';
 
-import { V2_MODAL_WIZARD_COMPONENT } from './wizard/v2modalWizard.component';
 import { MODAL_CLOSE_COMPONENT } from './buttons/modalClose.component';
 import { SUBMIT_BUTTON_COMPONENT } from './buttons/submitButton.component';
-
-import './modals.less';
 import { CORE_MODAL_MODALOVERLAY_DIRECTIVE } from './modalOverlay.directive';
 import { CORE_MODAL_MODALPAGE_DIRECTIVE } from './modalPage.directive';
+import { V2_MODAL_WIZARD_COMPONENT } from './wizard/v2modalWizard.component';
 import { CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE } from './wizard/wizardSubFormValidation.service';
+
+import './modals.less';
 
 export const CORE_MODAL_MODAL_MODULE = 'spinnaker.core.modal';
 export const name = CORE_MODAL_MODAL_MODULE; // for backwards compatibility

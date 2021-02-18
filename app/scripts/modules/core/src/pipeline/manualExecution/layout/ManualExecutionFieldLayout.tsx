@@ -1,7 +1,6 @@
-import React from 'react';
-import { isEmpty } from 'lodash';
-
 import { ILayoutProps } from 'core/presentation';
+import { isEmpty } from 'lodash';
+import React from 'react';
 
 export function ManualExecutionFieldLayout(props: ILayoutProps) {
   const { label, help, input, actions, validation, required } = props;

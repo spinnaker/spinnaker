@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 
-import { ModalWizard, IModalWizardPageState } from './ModalWizard';
+import { IModalWizardPageState, ModalWizard } from './ModalWizard';
 /**
  * Wizard page directive
  * possible attributes:

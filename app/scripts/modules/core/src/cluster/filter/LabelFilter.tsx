@@ -1,8 +1,8 @@
+import { noop } from 'core/utils';
+import { get, without } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { get, without } from 'lodash';
 
-import { noop } from 'core/utils';
 import { ILabelFilter } from './labelFilterUtils';
 
 import './LabelFilter.less';
