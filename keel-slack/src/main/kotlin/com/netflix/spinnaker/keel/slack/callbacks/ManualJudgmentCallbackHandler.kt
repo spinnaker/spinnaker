@@ -102,9 +102,16 @@ class ManualJudgmentCallbackHandler(
     }
   }
 
-  fun fallbackText(payload: BlockActionPayload) =
-     "@${payload.user.name} hit " +
-      "${actionsMap[payload.actions.first().value]} on <!date^${clock.instant().epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
+  fun fallbackText(payload: BlockActionPayload): String {
+    val action = actionsMap[payload.actions.first().value]
+    val emoji = if (action == "approve") {
+      ":white_check_mark:"
+    } else {
+      ":x:"
+    }
+     return "@${payload.user.name} hit " +
+      "$emoji $action on <!date^${clock.instant().epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>"
+  }
 
   val BlockActionPayload.constraintId
     get() = actions.first().actionId.split(":").first()

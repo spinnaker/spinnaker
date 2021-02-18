@@ -17,7 +17,7 @@ class PausedNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
 ) : SlackNotificationHandler<SlackPausedNotification> {
 
-  override val types = listOf(NotificationType.APPLICATION_PAUSED)
+  override val supportedTypes = listOf(NotificationType.APPLICATION_PAUSED)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -53,7 +53,7 @@ class PausedNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 

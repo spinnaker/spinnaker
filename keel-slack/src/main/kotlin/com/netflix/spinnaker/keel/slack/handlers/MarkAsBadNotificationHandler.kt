@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
@@ -16,10 +15,9 @@ import org.springframework.stereotype.Component
 class MarkAsBadNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackMarkAsBadNotification> {
 
-  override val types = listOf(NotificationType.ARTIFACT_MARK_AS_BAD)
+  override val supportedTypes = listOf(NotificationType.ARTIFACT_MARK_AS_BAD)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackMarkAsBadNotification, channel: String) {
@@ -30,29 +28,25 @@ class MarkAsBadNotificationHandler(
       val env = Strings.toRootUpperCase(targetEnvironment)
       val buildNumber = vetoedArtifact.buildMetadata?.number ?: vetoedArtifact.buildMetadata?.id
       val headerText = "#$buildNumber Marked as bad in $env"
+      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/marked_as_bad.png"
 
-      val vetoedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${vetoedArtifact.reference}/${vetoedArtifact.version}"
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)
         }
 
         section {
-          with(vetoedArtifact) {
-            if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-              markdownText("*Version:* <$vetoedArtifactUrl|#${buildMetadata?.number}> " +
-                "by @${gitMetadata?.author}\n " +
-                "*Where:* $env\n\n " +
-                "${gitMetadata?.commitInfo?.message}")
-              accessory {
-                image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/marked_as_bad.png", altText = "vetoed")
-              }
-            }
-          }
+          gitDataGenerator.generateCommitInfo(
+            this,
+            application,
+            imageUrl,
+            vetoedArtifact,
+            "vetoed",
+            env = env)
         }
 
         section {
-          gitDataGenerator.generateData(this, application, vetoedArtifact)
+          gitDataGenerator.generateScmInfo(this, application, vetoedArtifact)
         }
         context {
           elements {
@@ -61,7 +55,7 @@ class MarkAsBadNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 }

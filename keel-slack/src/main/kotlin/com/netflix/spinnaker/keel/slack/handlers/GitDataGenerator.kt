@@ -21,18 +21,18 @@ class GitDataGenerator(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  fun generateStashRepoLink(gitMetadata: GitMetadata): String {
+  private fun generateStashRepoLink(gitMetadata: GitMetadata): String {
       val baseScmUrl = gitMetadata.commitInfo?.link?.let { getScmBaseLink(scmInfo, it) }
       return "$baseScmUrl/projects/${gitMetadata.project}/repos/${gitMetadata.repo?.name}"
   }
 
   /**
-   * generateGitData will create a slack section blocks, which looks like:
+   * generateScmInfo will create a slack section blocks, which looks like:
    * "spkr/keel › PR#7 › master › c25a357"
    * Or: "spkr/keel › master › c25a358" (if it's a commit without a PR)
    * Each component will have the corresponding link attached to SCM
    */
-  fun generateData(sectionBlockBuilder: SectionBlockBuilder, application: String, artifact: PublishedArtifact): SectionBlockBuilder {
+  fun generateScmInfo(sectionBlockBuilder: SectionBlockBuilder, application: String, artifact: PublishedArtifact): SectionBlockBuilder {
     with(sectionBlockBuilder) {
       var details = ""
       val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
@@ -48,7 +48,7 @@ class GitDataGenerator(
             }
             //if the commit is not a part of a PR, don't include PR's data
             if (Strings.isNotEmpty(pullRequest?.number)) {
-              details += "<${pullRequest?.url}|PR#${pullRequest?.number}> ›"
+              details += "<${pullRequest?.url}|PR#${pullRequest?.number}> › "
             }
 
             if (commitInfo != null && commitInfo!!.sha != null && commitInfo!!.sha?.length!! >= 7) {
@@ -66,6 +66,48 @@ class GitDataGenerator(
           // action id will be consisted by 3 sections with ":" between them to keep it consistent
           actionId("button:url:more")
           url(artifactUrl)
+        }
+      }
+      return this
+    }
+  }
+
+  /**
+   * generateCommitInfo will create a slack section blocks, which looks like:
+   * "Version: #36 by @emburns
+      Where:  TESTING
+              Update README.md"
+   * Or (if [olderVersion] exists):
+   *      "Version: #93 → #94 by @msrc
+          Where: TEST"
+   */
+  fun generateCommitInfo(sectionBlockBuilder: SectionBlockBuilder,
+                         application: String,
+                         imageUrl: String,
+                         artifact: PublishedArtifact,
+                         altText: String,
+                         olderVersion: String?  = null,
+                         env: String? = null): SectionBlockBuilder {
+    var details = ""
+    if (olderVersion != null && olderVersion.isNotEmpty()) {
+      details += "~$olderVersion~ →"
+    }
+    var envDetails = ""
+    if (env != null) {
+      envDetails +=  "*Where:* $env\n\n "
+    }
+
+    val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
+    with(sectionBlockBuilder) {
+      with(artifact) {
+        if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
+          markdownText("*Version:* $details <$artifactUrl|#${buildMetadata!!.number}> " +
+            "by @${gitMetadata!!.author}\n " + envDetails +
+            "${gitMetadata!!.commitInfo?.message}")
+
+          accessory {
+            image(imageUrl = imageUrl, altText = altText)
+          }
         }
       }
       return this

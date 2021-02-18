@@ -17,13 +17,13 @@ class ResumedNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackResumedNotification> {
 
-  override val types = listOf(NotificationType.APPLICATION_RESUMED)
+  override val supportedTypes = listOf(NotificationType.APPLICATION_RESUMED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-
   override fun sendMessage(notification: SlackResumedNotification, channel: String) {
-    log.debug("Sending resume management notification for application ${notification.application}")
     with(notification) {
+      log.debug("Sending resume management notification for application $application")
+
       val appUrl = "$spinnakerBaseUrl/#/applications/${application}"
       val username = user?.let { slackService.getUsernameByEmail(it) }
       val headerText = "Management resumed for $application"
@@ -52,7 +52,7 @@ class ResumedNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 

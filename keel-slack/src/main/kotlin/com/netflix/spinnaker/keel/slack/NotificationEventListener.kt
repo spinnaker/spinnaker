@@ -1,13 +1,14 @@
 package com.netflix.spinnaker.keel.slack
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
 import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationFrequency.verbose
 import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
@@ -23,11 +24,11 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_PAUSED
 import com.netflix.spinnaker.keel.notifications.NotificationType.APPLICATION_RESUMED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
-import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEEDED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_MARK_AS_BAD
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_PINNED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_UNPINNED
-import com.netflix.spinnaker.keel.notifications.NotificationType.DELIVEY_CONFIG_UPDATED
+import com.netflix.spinnaker.keel.notifications.NotificationType.DELIVER_CONFIG_UPDATED
 import com.netflix.spinnaker.keel.notifications.NotificationType.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_APPROVED
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
@@ -47,7 +48,7 @@ import com.netflix.spinnaker.keel.notifications.NotificationType as Type
 
 /**
  * Responsible to listening to notification events, and fetching the information needed
- * for sending a notification, based on NotificationType.
+ * for sending a slack notification, based on NotificationType.
  */
 @Component
 class NotificationEventListener(
@@ -60,15 +61,20 @@ class NotificationEventListener(
   @EventListener(PinnedNotification::class)
   fun onPinnedNotification(notification: PinnedNotification) {
     with(notification) {
+      val configAndArtifact = getConfigAndArtifact(
+        application = config.application,
+        artifactReference = pin.reference,
+        version = pin.version,
+        config = config) ?: return
+
       val deliveryArtifact = config.artifacts.find {
         it.reference == pin.reference
       } ?: return
 
-      val pinnedArtifact = repository.getArtifactVersion(deliveryArtifact, pin.version, null)
       val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, pin.targetEnvironment, deliveryArtifact, PromotionStatus.CURRENT)
 
-      if (pinnedArtifact == null || currentArtifact == null) {
-        log.debug("can't send notification as either pinned artifact or current artifacts information is missing")
+      if (currentArtifact == null) {
+        log.debug("can't send pinned notification as current artifacts information is missing")
         return
       }
 
@@ -77,14 +83,13 @@ class NotificationEventListener(
         SlackPinnedNotification(
           pin = pin,
           currentArtifact = currentArtifact,
-          pinnedArtifact = pinnedArtifact.copy(reference = pin.reference),
+          pinnedArtifact = configAndArtifact.second,
           application = config.application,
           time = clock.instant()
         ),
         ARTIFACT_PINNED,
         pin.targetEnvironment)
     }
-
   }
 
 
@@ -92,13 +97,13 @@ class NotificationEventListener(
   fun onUnpinnedNotification(notification: UnpinnedNotification) {
     with(notification) {
       if (pinnedEnvironment == null) {
-        log.debug("no pinned artifacts exists for application ${config.application} and environment $targetEnvironment")
+        log.debug("can't send unpinned notification, as no pinned artifact exists for application ${config.application} and environment $targetEnvironment")
         return
       }
 
       val latestApprovedArtifactVersion = repository.latestVersionApprovedIn(config, pinnedEnvironment!!.artifact, targetEnvironment)
       if (latestApprovedArtifactVersion == null) {
-        log.debug("latestApprovedArtifactVersion is null for application ${config.application}, env $targetEnvironment. Can't send UnpinnedNotification")
+        log.debug("last approved artifact version is null for application ${config.application}, env $targetEnvironment. Can't send unpinned notification")
         return
       }
 
@@ -116,28 +121,21 @@ class NotificationEventListener(
         ),
         ARTIFACT_UNPINNED,
         targetEnvironment)
-
-      log.debug("no environment $targetEnvironment was found in the config named ${config.name}")
-
     }
   }
 
   @EventListener(MarkAsBadNotification::class)
   fun onMarkAsBadNotification(notification: MarkAsBadNotification) {
     with(notification) {
-      val deliveryArtifact = config.artifacts.find {
-        it.reference == veto.reference
-      } ?: return
-
-      val vetoedArtifact = repository.getArtifactVersion(deliveryArtifact, veto.version, null)
-      if (vetoedArtifact == null) {
-        log.debug("vetoedArtifact is null for application ${config.application}. Can't send MarkAsBadNotification notification")
-        return
-      }
+      val configAndArtifact = getConfigAndArtifact(
+        application = config.application,
+        artifactReference = veto.reference,
+        version = veto.version,
+        config = config) ?: return
 
       sendSlackMessage(config,
         SlackMarkAsBadNotification(
-          vetoedArtifact = vetoedArtifact.copy(reference = deliveryArtifact.reference),
+          vetoedArtifact = configAndArtifact.second,
           user = user,
           targetEnvironment = veto.targetEnvironment,
           time = clock.instant(),
@@ -163,7 +161,6 @@ class NotificationEventListener(
         ),
         APPLICATION_PAUSED)
     }
-
   }
 
   @EventListener(ApplicationActuationResumed::class)
@@ -184,24 +181,23 @@ class NotificationEventListener(
   @EventListener(LifecycleEvent::class)
   fun onLifecycleEvent(notification: LifecycleEvent) {
     with(notification) {
-      val config = repository.getDeliveryConfig(artifactRef.split(":")[0])
-      val deliveryArtifact = config.artifacts.find {
+      val configAndArtifact = getConfigAndArtifact(
+        deliveryConfigName = artifactRef.split(":")[0],
+        artifactReference = artifactRef.split(":")[1],
+        version = artifactVersion) ?: return
+
+      val deliveryArtifact = configAndArtifact.first.artifacts.find {
         it.reference == artifactRef.split(":")[1]
       } ?: return
 
-      val artifact = repository.getArtifactVersion(deliveryArtifact, artifactVersion, null)
-      if (artifact == null) {
-        log.debug("artifact version is null for application ${config.application}. Can't send $type notification")
-        return
-      }
-
+      // we only send notifications for failures
       if (status == LifecycleEventStatus.FAILED) {
-        sendSlackMessage(config,
+        sendSlackMessage(configAndArtifact.first,
           SlackLifecycleNotification(
             time = clock.instant(),
-            artifact = artifact.copy(reference = deliveryArtifact.reference),
+            artifact = configAndArtifact.second,
             eventType = type,
-            application = config.application
+            application = configAndArtifact.first.application
           ),
           LIFECYCLE_EVENT,
           artifact = deliveryArtifact)
@@ -214,7 +210,7 @@ class NotificationEventListener(
     with(notification) {
       val artifact = repository.getArtifactVersion(deliveryArtifact, artifactVersion, null)
       if (artifact == null) {
-        log.debug("artifact version is null for application ${config.application}. Can't send DeployedArtifactNotification.")
+        log.debug("artifact version is null for application ${config.application}. Can't send deployed artifact notification.")
         return
       }
 
@@ -229,7 +225,7 @@ class NotificationEventListener(
           priorVersion = priorVersion,
           status = DeploymentStatus.SUCCEEDED
         ),
-        ARTIFACT_DEPLOYMENT_SUCCEDEED,
+        ARTIFACT_DEPLOYMENT_SUCCEEDED,
         targetEnvironment)
     }
   }
@@ -237,23 +233,17 @@ class NotificationEventListener(
   @EventListener(ArtifactVersionVetoed::class)
   fun onArtifactVersionVetoed(notification: ArtifactVersionVetoed) {
     with(notification) {
-      val config = repository.getDeliveryConfigForApplication(application)
 
-      val deliveryArtifact = config.artifacts.find {
-        it.reference == veto.reference
-      } ?: return
+      val configAndArtifact = getConfigAndArtifact(
+        application = application,
+        artifactReference = veto.reference,
+        version = veto.version) ?: return
 
-      val artifact = repository.getArtifactVersion(deliveryArtifact, veto.version, null)
-      if (artifact == null) {
-        log.debug("artifact version is null for application ${config.application}. Can't send failed deployment notification.")
-        return
-      }
-
-      sendSlackMessage(config,
+      sendSlackMessage(configAndArtifact.first,
         SlackArtifactDeploymentNotification(
           time = clock.instant(),
-          application = config.application,
-          artifact = artifact.copy(reference = deliveryArtifact.reference),
+          application = application,
+          artifact = configAndArtifact.second,
           targetEnvironment = veto.targetEnvironment,
           status = DeploymentStatus.FAILED
         ),
@@ -272,27 +262,27 @@ class NotificationEventListener(
         previousState == null &&
         currentState.status == ConstraintStatus.PENDING
       ) {
-        val config = repository.getDeliveryConfig(currentState.deliveryConfigName)
 
-        val deliveryArtifact = config.artifacts.find {
-          it.reference == currentState.artifactReference
-        }.also {
-          if (it == null) log.debug("Artifact with reference ${currentState.artifactReference}  not found in delivery config")
+        val configAndArtifact = currentState.artifactReference?.let {
+          getConfigAndArtifact(
+            deliveryConfigName = currentState.deliveryConfigName,
+            artifactReference = it,
+            version = currentState.artifactVersion
+          )
         } ?: return
 
-        val artifactCandidate = repository.getArtifactVersion(deliveryArtifact, currentState.artifactVersion, null)
-        if (artifactCandidate == null) {
-          log.debug("$deliveryArtifact version ${currentState.artifactVersion} not found. Can't send manual judgement notification.")
-          return
-        }
-        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
+        val deliveryArtifact = configAndArtifact.first.artifacts.find {
+          it.reference == currentState.artifactReference
+        }?: return
+
+        val currentArtifact = repository.getArtifactVersionByPromotionStatus(configAndArtifact.first, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
 
         sendSlackMessage(
-          config,
+          configAndArtifact.first,
           SlackManualJudgmentNotification(
             time = clock.instant(),
-            application = config.application,
-            artifactCandidate = artifactCandidate.copy(reference = deliveryArtifact.reference),
+            application = configAndArtifact.first.application,
+            artifactCandidate = configAndArtifact.second,
             targetEnvironment = currentState.environmentName,
             currentArtifact = currentArtifact,
             deliveryArtifact = deliveryArtifact,
@@ -309,23 +299,14 @@ class NotificationEventListener(
     log.debug("Received verification completed event: $notification")
     with(notification) {
       if (status != ConstraintStatus.PASS && status != ConstraintStatus.FAIL) {
-        log.debug("Not sending notification for verification completed with status $status it's not pass/fail. Ignoring notification for" +
+        log.debug("can't send notification for verification completed with status $status it's not pass/fail. Ignoring notification for" +
           "application $application")
         return
       }
-      val config = repository.getDeliveryConfig(notification.deliveryConfigName)
 
-      val deliveryArtifact = config.artifacts.find {
-        it.reference == notification.artifactReference
-      }.also {
-        if (it == null) log.debug("Artifact with reference ${notification.artifactReference}  not found in delivery config")
-      } ?: return
-
-      val artifactVersion = repository.getArtifactVersion(deliveryArtifact, notification.artifactVersion, null)
-      if (artifactVersion == null) {
-        log.debug("artifact version is null for application ${config.application}. Can't send verification completed notification.")
-        return
-      }
+      val configAndArtifact = getConfigAndArtifact(deliveryConfigName = deliveryConfigName,
+        artifactReference = artifactReference,
+        version = artifactVersion) ?: return
 
       val type = when (status) {
         ConstraintStatus.PASS -> TEST_PASSED
@@ -335,13 +316,12 @@ class NotificationEventListener(
       }
 
       sendSlackMessage(
-        config,
+        configAndArtifact.first,
         SlackVerificationCompletedNotification(
           time = clock.instant(),
-          application = config.application,
-          artifact = artifactVersion.copy(reference = deliveryArtifact.reference),
+          application = configAndArtifact.first.application,
+          artifact = configAndArtifact.second,
           targetEnvironment = environmentName,
-          deliveryArtifact = deliveryArtifact,
           status = status
         ),
         type,
@@ -350,38 +330,47 @@ class NotificationEventListener(
   }
 
 
-  private inline fun <reified T : SlackNotificationEvent> sendSlackMessage(config: DeliveryConfig, message: T, type: Type,
+  private inline fun <reified T : SlackNotificationEvent> sendSlackMessage(config: DeliveryConfig,
+                                                                           message: T,
+                                                                           type: Type,
                                                                            targetEnvironment: String? = null,
                                                                            artifact: DeliveryArtifact? = null) {
     val handler: SlackNotificationHandler<T>? = handlers.supporting(type)
-
     if (handler == null) {
       log.debug("no handler was found for notification type ${T::class.java}. Can't send slack notification.")
       return
     }
 
-    //if targetEnvironment is not null, use only its notifications. Else, use all notifications configured for all environments.
-    val environments: Set<Environment> = config.environments.filter {
-      targetEnvironment == null || it.name == targetEnvironment
-    }.filter {
-      //if artifact is not null, make sure it used in the environment prior to sending the notification
-      artifact == null || artifact.isUsedIn(it)
-    }.toSet()
+    val notifications = getNotificationsConfig(config, targetEnvironment, artifact)
 
-    environments.flatMap { it.notifications }
-      .filter { it.type == NotificationType.slack }
-      .filter { translateFrequencyToEvents(it.frequency).contains(type) }
+    notifications
+      .filter { shouldSend(it, type) }
       .groupBy { it.address }
       .forEach { (channel, _) ->
         handler.sendMessage(message, channel)
       }
   }
 
+  private fun getNotificationsConfig(config: DeliveryConfig, targetEnvironment: String?, artifact: DeliveryArtifact?): Set<NotificationConfig> {
+    return config.environments
+      // if targetEnvironment is not null, use only its notifications. Else, use all notifications configured for all environments.
+      .filter { targetEnvironment == null || it.name == targetEnvironment }
+      // if artifact is not null, make sure it used in the environment prior to sending the notification
+      .filter { artifact == null || artifact.isUsedIn(it) }
+      .flatMap { it.notifications }
+      .toSet()
+  }
 
-  fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
+  // return true of the notification type is slack, and the notification type included in the frequencies list below
+  private fun shouldSend(config: NotificationConfig, type: Type): Boolean {
+    return config.type == NotificationType.slack && translateFrequencyToEvents(config.frequency).contains(type)
+  }
+
+
+  private fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
     val quietNotifications = listOf(ARTIFACT_MARK_AS_BAD, ARTIFACT_PINNED, ARTIFACT_UNPINNED, LIFECYCLE_EVENT, APPLICATION_PAUSED,
       APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
-    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEDEED, DELIVEY_CONFIG_UPDATED, TEST_PASSED)
+    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, DELIVER_CONFIG_UPDATED, TEST_PASSED)
     val verboseNotifications = normalNotifications + listOf(MANUAL_JUDGMENT_REJECTED, MANUAL_JUDGMENT_APPROVED)
 
     return when (frequency) {
@@ -389,6 +378,35 @@ class NotificationEventListener(
       normal -> normalNotifications
       quiet -> quietNotifications
     }
+  }
+
+  // helper function to get the config file and the right artifact for sending the notification
+  private fun getConfigAndArtifact(application: String? = null,
+                                   deliveryConfigName: String? = null,
+                                   artifactReference: String,
+                                   version: String,
+                                   config: DeliveryConfig? = null)
+    : Pair<DeliveryConfig, PublishedArtifact>? {
+    //get the config either by name, application name or directly from the notification
+    val deliveryConfig = config ?: application?.let { repository.getDeliveryConfigForApplication(it) }
+    ?: deliveryConfigName?.let { repository.getDeliveryConfig(it) }
+      .also {
+        if (it == null) log.debug("delivery config is null. Can't send notification.")
+      } ?: return null
+
+
+    val deliveryArtifact = deliveryConfig.artifacts.find {
+      it.reference == artifactReference
+    }.also {
+      if (it == null) log.debug("can't find artifact $artifactReference in config ${deliveryConfig.name}. Can't send notification.")
+    } ?: return null
+
+    val artifact = repository.getArtifactVersion(deliveryArtifact, version, null)
+      .also {
+        if (it == null) log.debug("artifact version is null for application ${deliveryConfig.application}. Can't send notification.")
+      } ?: return null
+
+    return Pair(deliveryConfig, artifact.copy(reference = deliveryArtifact.reference))
   }
 }
 

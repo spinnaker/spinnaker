@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
-import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
+import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEEDED
 import com.netflix.spinnaker.keel.slack.DeploymentStatus
 import com.netflix.spinnaker.keel.slack.SlackArtifactDeploymentNotification
 import com.netflix.spinnaker.keel.slack.SlackService
@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Sends notification based on artifact deployment status --> deployed successfully, or failed to deployed
+ * Sends notification based on artifact deployment status --> deployed successfully, or failed to deploy
  */
 @Component
 class ArtifactDeploymentNotificationHandler(
@@ -21,12 +21,12 @@ class ArtifactDeploymentNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackArtifactDeploymentNotification> {
 
-  override val types = listOf(ARTIFACT_DEPLOYMENT_SUCCEDEED, ARTIFACT_DEPLOYMENT_FAILED)
+  override val supportedTypes = listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, ARTIFACT_DEPLOYMENT_FAILED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackArtifactDeploymentNotification, channel: String) {
     with(notification) {
-      log.debug("Sending artifact deployment $status for application ${notification.application}")
+      log.debug("Sending artifact deployment notification with status $status for application ${notification.application}")
 
       val imageUrl = when (status) {
         DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail.png"
@@ -40,37 +40,33 @@ class ArtifactDeploymentNotificationHandler(
         DeploymentStatus.SUCCEEDED -> "Deployed to $env"
       }
 
-      val deployedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)
         }
 
         section {
-          with(artifact) {
-            var details = ""
-            if (priorVersion != null) {
-              val priorArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
-              details += "~<$priorArtifactUrl|#${priorVersion.buildMetadata?.number}>~ →"
-            }
-            if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-              markdownText("*Version:* $details <$deployedArtifactUrl|#${buildMetadata?.number}> " +
-                "by @${gitMetadata?.author}\n " +
-                "*Where:* $env\n\n " +
-                "${gitMetadata?.commitInfo?.message}")
-              accessory {
-                image(imageUrl = imageUrl, altText = "artifact_deployment")
-              }
-            }
+          var details = ""
+          if (priorVersion != null) {
+            val priorArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
+            details += "<$priorArtifactUrl|#${priorVersion.buildMetadata?.number}>"
           }
+
+          gitDataGenerator.generateCommitInfo(this,
+            application,
+            imageUrl,
+            artifact,
+            "artifact_deployment",
+            details,
+            env)
         }
 
         section {
-          gitDataGenerator.generateData(this, application, artifact)
+          gitDataGenerator.generateScmInfo(this, application, artifact)
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 }

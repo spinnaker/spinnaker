@@ -124,37 +124,37 @@ class NotificationEventListenerTests : JUnit5Minutests {
     val gitDataGenerator: GitDataGenerator = mockk()
     val pinnedNotificationHandler: PinnedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
+        supportedTypes
       } returns listOf(Type.ARTIFACT_PINNED)
     }
 
     val unpinnedNotificationHandler: UnpinnedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
+        supportedTypes
       } returns listOf(Type.ARTIFACT_UNPINNED)
     }
 
     val pausedNotificationHandler: PausedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
+        supportedTypes
       } returns listOf(Type.APPLICATION_PAUSED)
     }
 
     val lifecycleEventNotificationHandler: LifecycleEventNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
+        supportedTypes
       } returns listOf(Type.LIFECYCLE_EVENT)
     }
 
     val artifactDeployedNotificationHandler: ArtifactDeploymentNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
-      } returns listOf(Type.ARTIFACT_DEPLOYMENT_SUCCEDEED, Type.ARTIFACT_DEPLOYMENT_FAILED)
+        supportedTypes
+      } returns listOf(Type.ARTIFACT_DEPLOYMENT_SUCCEEDED, Type.ARTIFACT_DEPLOYMENT_FAILED)
     }
 
     val verificationCompletedNotificationHandler: VerificationCompletedNotificationHandler = mockk(relaxUnitFun = true) {
       every {
-        types
+        supportedTypes
       } returns listOf(Type.TEST_FAILED, Type.TEST_PASSED)
     }
 
@@ -232,7 +232,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
         } just Runs
 
         every {
-          gitDataGenerator.generateData(any(), any(), any())
+          gitDataGenerator.generateScmInfo(any(), any(), any())
         } returns SectionBlockBuilder()
 
 

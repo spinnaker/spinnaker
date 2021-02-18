@@ -83,7 +83,6 @@ data class SlackVerificationCompletedNotification(
   val artifact: PublishedArtifact,
   override val time: Instant,
   val targetEnvironment: String,
-  val deliveryArtifact: DeliveryArtifact,
   val status: ConstraintStatus,
   override val application: String
 ) : SlackNotificationEvent(time, application)

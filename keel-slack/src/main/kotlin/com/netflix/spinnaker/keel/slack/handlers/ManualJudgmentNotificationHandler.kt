@@ -9,49 +9,45 @@ import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+/**
+ * Sends notification when manual judgment is awaiting
+ */
 @Component
 class ManualJudgmentNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  private val scmInfo: ScmInfo,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val scmInfo: ScmInfo
 ) : SlackNotificationHandler<SlackManualJudgmentNotification> {
 
-  override val types = listOf(NotificationType.MANUAL_JUDGMENT_AWAIT)
+  override val supportedTypes = listOf(NotificationType.MANUAL_JUDGMENT_AWAIT)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   override fun sendMessage(notification: SlackManualJudgmentNotification, channel: String) {
-    log.debug("Sending manual judgment notification for application ${notification.application}")
+    log.debug("Sending manual judgment await notification for application ${notification.application}")
 
     with(notification) {
       val compareLink = generateCompareLink(scmInfo, artifactCandidate, currentArtifact, deliveryArtifact)
       val env = Strings.toRootUpperCase(targetEnvironment)
       val headerText = "Awaiting manual judgement"
+      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_needed.png"
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)
         }
 
         section {
-          with(artifactCandidate) {
-            val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${reference}/${version}"
-
-            if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-              markdownText("*Version:* <$artifactUrl|#${buildMetadata?.number}> " +
-                "by @${gitMetadata?.author}\n " +
-                "*Where:* $env\n\n " +
-                "${gitMetadata?.commitInfo?.message}")
-              accessory {
-                image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_needed.png", altText = "mj_needed")
-              }
-            }
-          }
+          gitDataGenerator.generateCommitInfo(
+            this,
+            application,
+            imageUrl,
+            artifactCandidate,
+            "mj_needed",
+            env = env)
         }
 
         section {
-          gitDataGenerator.generateData(this, application, artifactCandidate)
+          gitDataGenerator.generateScmInfo(this, application, artifactCandidate)
         }
 
         actions {
@@ -91,7 +87,7 @@ class ManualJudgmentNotificationHandler(
           }
         }
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 }

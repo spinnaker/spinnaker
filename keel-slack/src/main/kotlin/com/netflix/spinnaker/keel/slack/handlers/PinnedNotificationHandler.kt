@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
@@ -15,21 +14,20 @@ import org.springframework.stereotype.Component
 @Component
 class PinnedNotificationHandler(
   private val slackService: SlackService,
-  private val gitDataGenerator: GitDataGenerator,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val gitDataGenerator: GitDataGenerator
 ) : SlackNotificationHandler<SlackPinnedNotification> {
 
-  override val types = listOf(NotificationType.ARTIFACT_PINNED)
+  override val supportedTypes = listOf(NotificationType.ARTIFACT_PINNED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackPinnedNotification, channel: String) {
-    log.debug("Sending pinned artifact notification for application ${notification.application}")
-
     with(notification) {
+      log.debug("Sending pinned artifact notification for application $application")
+
       val env = Strings.toRootUpperCase(pin.targetEnvironment)
       val username = pin.pinnedBy?.let { slackService.getUsernameByEmail(it) }
-      val pinnedArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${pinnedArtifact.reference}/${pinnedArtifact.version}"
       val headerText = "$env is pinned"
+      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/pinned.png"
 
       val blocks = withBlocks {
         header {
@@ -37,21 +35,20 @@ class PinnedNotificationHandler(
         }
 
         section {
-          with(pinnedArtifact) {
-            if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-              markdownText("*Version:* ~#${currentArtifact.buildMetadata?.number}~ → <$pinnedArtifactUrl|#${buildMetadata?.number}> " +
-                "by @${gitMetadata?.author}\n " +
-                "*Where:* $env\n\n " +
-                "${gitMetadata?.commitInfo?.message}")
-              accessory {
-                image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/pinned.png", altText = "pinned")
-              }
-            }
-          }
+          val olderVersion = "#${currentArtifact.buildMetadata?.number}"
+          gitDataGenerator.generateCommitInfo(this,
+            application,
+            imageUrl,
+            pinnedArtifact,
+            "pinned",
+            olderVersion,
+            env)
         }
 
         section {
-          gitDataGenerator.generateData(this, application, pinnedArtifact)
+          gitDataGenerator.generateScmInfo(this,
+            application,
+            pinnedArtifact)
         }
         context {
           elements {
@@ -60,7 +57,7 @@ class PinnedNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 

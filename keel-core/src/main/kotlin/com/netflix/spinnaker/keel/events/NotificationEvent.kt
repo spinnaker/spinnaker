@@ -63,6 +63,6 @@ data class ArtifactDeployedNotification(
   val deliveryArtifact: DeliveryArtifact,
   val targetEnvironment: String
 ) : NotificationEvent() {
-  override val type = NotificationType.ARTIFACT_DEPLOYMENT_SUCCEDEED
+  override val type = NotificationType.ARTIFACT_DEPLOYMENT_SUCCEEDED
   override val scope = NotificationScope.ARTIFACT
 }

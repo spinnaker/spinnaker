@@ -19,17 +19,17 @@ class UnpinnedNotificationHandler(
   @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
 ) : SlackNotificationHandler<SlackUnpinnedNotification> {
 
-  override val types = listOf(NotificationType.ARTIFACT_UNPINNED)
+  override val supportedTypes = listOf(NotificationType.ARTIFACT_UNPINNED)
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun sendMessage(notification: SlackUnpinnedNotification, channel: String) {
-    log.debug("Sending unpinned artifact notification for application ${notification.application}")
-
     with(notification) {
+      log.debug("Sending unpinned artifact notification for application $application")
+
       val env = Strings.toRootUpperCase(targetEnvironment)
-      val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${latestArtifact?.reference}/${latestArtifact?.version}"
       val username = slackService.getUsernameByEmail(user)
       val headerText = "$env was unpinned"
+      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/unpinned.png"
 
       val blocks = withBlocks {
         header {
@@ -37,22 +37,21 @@ class UnpinnedNotificationHandler(
         }
 
         section {
-          if (latestArtifact?.buildMetadata != null
-            && latestArtifact.gitMetadata != null && latestArtifact.gitMetadata!!.commitInfo != null) {
-
-            markdownText("*Version:* ~#${pinnedArtifact?.buildMetadata?.number}~ → <$artifactUrl|#${latestArtifact.buildMetadata!!.number}> " +
-              "by @${latestArtifact.gitMetadata!!.author}\n " +
-              "*Where:* $env\n\n " +
-              "${latestArtifact.gitMetadata!!.commitInfo?.message}")
-            accessory {
-              image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/unpinned.png", altText = "unpinned")
-            }
+          val olderVersion = "#${pinnedArtifact?.buildMetadata?.number}"
+          if (latestArtifact != null) {
+            gitDataGenerator.generateCommitInfo(this,
+              application,
+              imageUrl,
+              latestArtifact,
+              "vetoed",
+              olderVersion,
+              env)
           }
         }
 
         section {
           if (latestArtifact != null) {
-            gitDataGenerator.generateData(this, application, latestArtifact)
+            gitDataGenerator.generateScmInfo(this, application, latestArtifact)
           }
         }
         context {
@@ -62,7 +61,7 @@ class UnpinnedNotificationHandler(
         }
 
       }
-      slackService.sendSlackNotification(channel, blocks, application = application, type = types, fallbackText = headerText)
+      slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
 }
