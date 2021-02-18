@@ -47,6 +47,7 @@ import React  from 'react';
 
 const {useState, useCallback} = React;
 
+import { Application } from 'core/application';
 import Bar from "./bar";
 import angular from 'angular';
 // Some comment about react-select
@@ -70,6 +71,7 @@ import React from 'react';
 import * as Select from 'react-select';
 
 import { LabeledValueList as LabeledValueL, SomeThingElse } from '@spinnaker/core';
+import { Application } from 'core/application';
 
 import Bar from './bar';
 import Baz from '../../../test/baz';

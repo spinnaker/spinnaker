@@ -3,6 +3,7 @@
 
 const CSS_IMPORT = /\.(css|less|scss|sass)$/;
 const MODULE_PATH_REGEX = /[./]*(.*)$/;
+const SPINNAKER_MODULE_PREFIX = /^(core|docker|amazon|titus|google|kubernetes|ecs|huaweicloud|appengine|oracle|cloudfoundry|azure|tencentcloud)\/.*/;
 /**
  * Function supplied to an array's sort method that works on the path and module name skipping ., .. and /
  */
@@ -205,6 +206,8 @@ module.exports = {
               partitions.spinnaker.push(declarationNode);
             } else if (declarationNode.source.value.startsWith('.')) {
               partitions.relativeModule.push(declarationNode);
+            } else if (SPINNAKER_MODULE_PREFIX.test(declarationNode.source.value)) {
+              partitions.spinnaker.push(declarationNode);
             } else {
               partitions.package.push(declarationNode);
             }
