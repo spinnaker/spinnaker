@@ -32,7 +32,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAU
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Propagation.REQUIRED
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
@@ -46,10 +46,10 @@ interface KeelRepository : KeelReadOnlyRepository {
   val publisher: ApplicationEventPublisher
   val log: Logger
 
-  @Transactional(propagation = Propagation.REQUIRED)
+  @Transactional(propagation = REQUIRED)
   fun upsertDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig): DeliveryConfig
 
-  @Transactional(propagation = Propagation.REQUIRED)
+  @Transactional(propagation = REQUIRED)
   fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig
 
   fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) {
@@ -69,13 +69,15 @@ interface KeelRepository : KeelReadOnlyRepository {
       val diff = DefaultResourceDiff(resource.spec, existingResource.spec)
       if (diff.hasChanges() || resource.kind.version != existingResource.kind.version) {
         log.debug("Updating ${resource.id}")
-        storeResource(resource)
-        appendResourceHistory(ResourceUpdated(resource, diff.toDeltaJson(), clock))
+        storeResource(resource).also { updatedResource ->
+          appendResourceHistory(ResourceUpdated(updatedResource, diff.toDeltaJson(), clock))
+        }
       }
     } else {
       log.debug("Creating $resource")
-      storeResource(resource)
-      appendResourceHistory(ResourceCreated(resource, clock))
+      storeResource(resource).also { updatedResource ->
+        appendResourceHistory(ResourceCreated(updatedResource, clock))
+      }
     }
   }
 
@@ -124,7 +126,7 @@ interface KeelRepository : KeelReadOnlyRepository {
   // START ResourceRepository methods
   fun allResources(callback: (ResourceHeader) -> Unit)
 
-  fun storeResource(resource: Resource<*>)
+  fun <T : ResourceSpec> storeResource(resource: Resource<T>): Resource<T>
 
   fun deleteResource(id: String)
 

@@ -7,6 +7,9 @@ interface ResourceMixin {
   val id: String
 
   @get:JsonIgnore
+  val version: Int
+
+  @get:JsonIgnore
   val serviceAccount: String
 
   @get:JsonIgnore

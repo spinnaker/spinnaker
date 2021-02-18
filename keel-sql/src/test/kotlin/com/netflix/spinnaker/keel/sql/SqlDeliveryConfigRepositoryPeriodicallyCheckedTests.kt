@@ -23,7 +23,7 @@ import strikt.assertions.isEqualTo
 import java.time.Clock
 import java.time.Duration
 
-internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
+internal class SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
   DeliveryConfigRepositoryPeriodicallyCheckedTests<SqlDeliveryConfigRepository>() {
 
   private val jooq = testDatabase.context
@@ -143,6 +143,7 @@ internal object SqlDeliveryConfigRepositoryPeriodicallyCheckedTests :
                 kind = v1.kind,
                 metadata = mapOf(
                   "id" to spec.id,
+                  "version" to 1,
                   "application" to spec.application
                 ),
                 spec = spec

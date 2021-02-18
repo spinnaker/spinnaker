@@ -599,6 +599,29 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         }
       }
 
+      context("updating an existing delivery config with a new version of a resource") {
+        before {
+          storeArtifacts()
+          storeResources()
+          store()
+
+          val resource = deliveryConfig.environments.first().resources.first { it.kind == parseKind("ec2/cluster@v1") }
+            .run {
+              copy(spec = DummyResourceSpec(id = id, application = application))
+            }
+
+          resourceRepository.store(resource)
+        }
+
+        test("retrieving the delivery config includes the new version of the resource") {
+          getByName()
+            .isSuccess()
+            .get { resources.map(Resource<*>::version) }
+            .hasSize(deliveryConfig.resources.size)
+            .contains(2)
+        }
+      }
+
       context("notifications") {
         before {
           repository.store(deliveryConfig.copy(

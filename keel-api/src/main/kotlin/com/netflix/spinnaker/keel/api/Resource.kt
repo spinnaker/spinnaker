@@ -16,6 +16,9 @@ data class Resource<out T : ResourceSpec>(
   val id: String
     get() = metadata.getValue("id").toString()
 
+  val version: Int
+    get() = metadata.getValue("version") as Int
+
   val serviceAccount: String
     get() = metadata.getValue("serviceAccount").toString()
 

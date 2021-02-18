@@ -294,9 +294,11 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           test("stores the resource") {
             val persistedResource = subject.getResource(resource.id)
             expectThat(persistedResource) {
-              isA<Resource<DummyResourceSpec>>()
-              get { id }.isEqualTo(resource.id)
-              get { (spec as DummyResourceSpec).data }.isEqualTo("o hai")
+              get(Resource<*>::id) isEqualTo resource.id
+              get(Resource<*>::version) isEqualTo 1
+              get(Resource<*>::spec)
+                .isA<DummyResourceSpec>()
+                  .get(DummyResourceSpec::data) isEqualTo "o hai"
             }
           }
 
@@ -327,16 +329,17 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             }
 
             test("stores the updated resource") {
-              expectThat(subject.getResource(resource.id))
-                .get { spec }
+              expectThat(subject.getResource(resource.id)) {
+                get(Resource<*>::version) isEqualTo 2
+                get(Resource<*>::spec)
                 .isA<DummyResourceSpec>()
-                .get { data }
-                .isEqualTo("kthxbye")
+                .get(DummyResourceSpec::data) isEqualTo "kthxbye"
+              }
             }
 
             test("records that the resource was updated") {
               verify {
-                resourceRepository.appendHistory(ofType<ResourceCreated>())
+                resourceRepository.appendHistory(ofType<ResourceUpdated>())
               }
             }
 
@@ -352,6 +355,12 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             before {
               resourcesDueForCheck()
               subject.upsertResource(resource, deliveryConfig.name)
+            }
+
+            test("does not update the resource version") {
+              expectThat(subject.getResource(resource.id)) {
+                get(Resource<*>::version) isEqualTo 1
+              }
             }
 
             test("does not record that the resource was updated") {

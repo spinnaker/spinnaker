@@ -134,6 +134,7 @@ class ResourceActuator(
             ResourceActuationVetoed(
               resource.kind,
               resource.id,
+              resource.version,
               resource.spec.application,
               response.message,
               response.vetoName,

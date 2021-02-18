@@ -46,9 +46,9 @@ import com.netflix.spinnaker.keel.sql.deliveryconfigs.resourcesForEnvironment
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
-import org.jooq.SelectConditionStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
+import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.select
 import org.jooq.util.mysql.MySQLDSL.values
 import org.slf4j.LoggerFactory
@@ -111,7 +111,7 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(ENVIRONMENT_RESOURCE)
         .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid(deliveryConfigName, environmentName)))
-        .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceId.uid))
+        .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.`in`(resourceId.uids))
         .execute()
     }
   }
@@ -202,19 +202,27 @@ class SqlDeliveryConfigRepository(
         .fetchOne(DELIVERY_CONFIG.UID)
     } ?: throw NoDeliveryConfigForApplication(application)
 
-  private fun getResourceUIDs(application: String): SelectConditionStep<Record1<String>>? =
+  private fun getResourceUIDs(application: String): Select<Record1<String>> =
     jooq
       .select(RESOURCE.UID)
       .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
+      .innerJoin(
+        select(RESOURCE.ID, max(RESOURCE.VERSION).`as`("MAX_VERSION"))
+          .from(RESOURCE)
+          .where(RESOURCE.APPLICATION.eq(application))
+          .groupBy(RESOURCE.ID)
+          .asTable("GROUPED_RESOURCE")
+      )
+      .on(RESOURCE.ID.eq(field("GROUPED_RESOURCE.ID")))
+      .and(RESOURCE.VERSION.eq(field("GROUPED_RESOURCE.MAX_VERSION")))
 
-  private fun getResourceIDs(application: String): SelectConditionStep<Record1<String>>? =
+  private fun getResourceIDs(application: String): Select<Record1<String>> =
     jooq
-      .select(RESOURCE.ID)
+      .selectDistinct(RESOURCE.ID)
       .from(RESOURCE)
       .where(RESOURCE.APPLICATION.eq(application))
 
-  private fun getArtifactUIDs(deliveryConfigUid: String): SelectConditionStep<Record1<String>>? =
+  private fun getArtifactUIDs(deliveryConfigUid: String): Select<Record1<String>> =
     jooq
       .select(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
       .from(DELIVERY_CONFIG_ARTIFACT)
@@ -303,17 +311,29 @@ class SqlDeliveryConfigRepository(
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
             .set(
               ENVIRONMENT_RESOURCE.RESOURCE_UID,
-              select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))
+              select(RESOURCE.UID)
+                .from(RESOURCE)
+                .innerJoin(
+                  select(RESOURCE.ID, max(RESOURCE.VERSION).`as`("MAX_VERSION"))
+                    .from(RESOURCE)
+                    .where(RESOURCE.ID.eq(resource.id))
+                    .groupBy(RESOURCE.ID)
+                    .asTable("GROUPED_RESOURCE")
+                )
+                .on(RESOURCE.ID.eq(field("GROUPED_RESOURCE.ID")))
+                .and(RESOURCE.VERSION.eq(field("GROUPED_RESOURCE.MAX_VERSION")))
             )
             .onDuplicateKeyIgnore()
             .execute()
-          // delete any other environment's link to this same resource (in case we are moving it
-          // from one environment to another)
+          // delete any other environment's link to any version of this same resource (in case we
+          // are moving it from one environment to another)
           jooq.deleteFrom(ENVIRONMENT_RESOURCE)
             .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.notEqual(environmentUID))
             .and(
-              ENVIRONMENT_RESOURCE.RESOURCE_UID.equal(
-                select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id))
+              ENVIRONMENT_RESOURCE.RESOURCE_UID.`in`(
+                select(RESOURCE.UID)
+                  .from(RESOURCE)
+                  .where(RESOURCE.ID.eq(resource.id))
               )
             )
             .execute()
@@ -1075,7 +1095,7 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  private val String.uid: Select<Record1<String>>
+  private val String.uids: Select<Record1<String>>
     get() = select(RESOURCE.UID)
       .from(RESOURCE)
       .where(RESOURCE.ID.eq(this))

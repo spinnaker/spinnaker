@@ -38,10 +38,6 @@ import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
-import java.time.Clock
-import java.time.Duration
-import java.time.Period
-import java.util.UUID.randomUUID
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -55,6 +51,10 @@ import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.map
+import java.time.Clock
+import java.time.Duration
+import java.time.Period
+import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
 
@@ -176,6 +176,25 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           expectThat(subject.get<DummyResourceSpec>(resource.id))
             .get(Resource<*>::spec)
             .isEqualTo(updatedResource.spec)
+        }
+
+        test("the resource version is incremented") {
+          expectThat(subject.get<DummyResourceSpec>(resource.id))
+            .get(Resource<*>::version) isEqualTo 2
+        }
+
+        context("when deleted") {
+          before {
+            subject.delete(resource.id)
+          }
+
+          test("all versions of the resource are deleted") {
+            expectCatching {
+              subject.get(resource.id)
+            }
+              .isFailure()
+              .isA<NoSuchResourceException>()
+          }
         }
       }
 

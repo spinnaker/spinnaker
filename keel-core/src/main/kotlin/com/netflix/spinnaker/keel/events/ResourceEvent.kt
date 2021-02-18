@@ -36,10 +36,10 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
-import java.time.Clock
-import java.time.Instant
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.Instant
 
 @JsonTypeInfo(
   use = Id.NAME,
@@ -71,6 +71,7 @@ abstract class ResourceEvent(
   override val scope = EventScope.RESOURCE
   abstract val kind: ResourceKind
   abstract val id: String
+  abstract val version: Int
 
   override val ref: String
     get() = id
@@ -82,6 +83,7 @@ abstract class ResourceEvent(
 data class ResourceCreated(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -89,6 +91,7 @@ data class ResourceCreated(
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant()
   )
@@ -103,6 +106,7 @@ data class ResourceCreated(
 data class ResourceUpdated(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
@@ -110,6 +114,7 @@ data class ResourceUpdated(
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     delta,
     clock.instant()
@@ -119,12 +124,14 @@ data class ResourceUpdated(
 data class ResourceDeleted(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant()
   )
@@ -145,6 +152,7 @@ sealed class ResourceCheckResult(
 data class ResourceMissing(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -154,6 +162,7 @@ data class ResourceMissing(
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant()
   )
@@ -167,6 +176,7 @@ data class ResourceMissing(
 data class ResourceDeltaDetected(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
@@ -177,6 +187,7 @@ data class ResourceDeltaDetected(
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     delta,
     clock.instant()
@@ -190,6 +201,7 @@ data class ResourceDeltaDetected(
 data class ResourceActuationLaunched(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val plugin: String,
   val tasks: List<Task>,
@@ -199,6 +211,7 @@ data class ResourceActuationLaunched(
     this(
       resource.kind,
       resource.id,
+      resource.version,
       resource.application,
       plugin,
       tasks,
@@ -212,6 +225,7 @@ data class ResourceActuationLaunched(
 data class ResourceActuationPaused(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant,
   override val triggeredBy: String?
@@ -222,6 +236,7 @@ data class ResourceActuationPaused(
   constructor(resource: Resource<*>, timestamp: Instant, triggeredBy: String) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     timestamp,
     triggeredBy
@@ -243,6 +258,7 @@ data class ResourceActuationPaused(
 data class ResourceActuationVetoed(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val reason: String?,
   val veto: String? = null,
@@ -255,6 +271,7 @@ data class ResourceActuationVetoed(
   constructor(resource: Resource<*>, reason: String?, veto: String? = null, suggestedStatus: ResourceStatus? = null, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     reason,
     veto,
@@ -269,6 +286,7 @@ data class ResourceActuationVetoed(
 data class ResourceActuationResumed(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val triggeredBy: String?,
   override val timestamp: Instant
@@ -279,6 +297,7 @@ data class ResourceActuationResumed(
   constructor(resource: Resource<*>, triggeredBy: String, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     triggeredBy,
     clock.instant()
@@ -293,6 +312,7 @@ data class ResourceActuationResumed(
 data class ResourceTaskFailed(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val reason: String?,
   val tasks: List<Task> = emptyList(),
@@ -302,6 +322,7 @@ data class ResourceTaskFailed(
   constructor(resource: Resource<*>, reason: String?, tasks: List<Task>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     reason,
     tasks,
@@ -315,6 +336,7 @@ data class ResourceTaskFailed(
 data class ResourceTaskSucceeded(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   val tasks: List<Task> = emptyList(),
   override val timestamp: Instant
@@ -323,6 +345,7 @@ data class ResourceTaskSucceeded(
   constructor(resource: Resource<*>, tasks: List<Task>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     tasks,
     clock.instant()
@@ -336,6 +359,7 @@ data class ResourceTaskSucceeded(
 data class ResourceDeltaResolved(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -345,6 +369,7 @@ data class ResourceDeltaResolved(
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant()
   )
@@ -353,6 +378,7 @@ data class ResourceDeltaResolved(
 data class ResourceValid(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -366,6 +392,7 @@ data class ResourceValid(
     this(
       resource.kind,
       resource.id,
+      resource.version,
       resource.application,
       clock.instant()
     )
@@ -374,6 +401,7 @@ data class ResourceValid(
 data class ResourceCheckUnresolvable(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant,
   override val message: String?
@@ -388,6 +416,7 @@ data class ResourceCheckUnresolvable(
     this(
       resource.kind,
       resource.id,
+      resource.version,
       resource.application,
       clock.instant(),
       exception.message
@@ -423,6 +452,7 @@ enum class ResourceCheckErrorOrigin {
 data class ResourceCheckError(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant,
   val exceptionType: Class<out SpinnakerException>,
@@ -437,6 +467,7 @@ data class ResourceCheckError(
   constructor(resource: Resource<*>, exception: SpinnakerException, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant(),
     exception.javaClass,
@@ -447,6 +478,7 @@ data class ResourceCheckError(
 data class ResourceDiffNotActionable(
   override val kind: ResourceKind,
   override val id: String,
+  override val version: Int,
   override val application: String,
   override val timestamp: Instant,
   override val message: String?
@@ -457,6 +489,7 @@ data class ResourceDiffNotActionable(
   constructor(resource: Resource<*>, message: String?, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
+    resource.version,
     resource.application,
     clock.instant(),
     message
