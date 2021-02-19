@@ -1,14 +1,15 @@
-import React from 'react';
-import { Observable, Subject } from 'rxjs';
 import classNames from 'classnames';
 import { capitalize, filter, flatten, get, isEmpty } from 'lodash';
+import React from 'react';
+import { Observable, Subject } from 'rxjs';
 
 import { Application } from 'core/application';
 import { INotification, INotificationTypeConfig } from 'core/domain';
 import { Registry } from 'core/registry';
+
 import { AppNotificationsService } from './AppNotificationsService';
-import { NotificationTransformer } from './notification.transformer';
 import { EditNotificationModal } from './modal/EditNotificationModal';
+import { NotificationTransformer } from './notification.transformer';
 
 export interface INotificationsListProps {
   application?: Application;
