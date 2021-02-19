@@ -51,7 +51,9 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
         targetHealthyDeployPercentage: 100,
         env: {},
         labels: {},
-        containerAttributes: {},
+        containerAttributes: {
+          'titusParameter.agent.assignIPv6Address': 'true',
+        },
         cloudProvider: 'titus',
         selectedProvider: 'titus',
         iamProfile: defaultIamProfile,
@@ -93,6 +95,14 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
 
       const serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
+      const isTestEnv = serverGroup.awsAccount === 'test';
+      const containerAttributes = isTestEnv
+        ? {
+            ...serverGroup.containerAttributes,
+            'titusParameter.agent.assignIPv6Address': 'true',
+          }
+        : serverGroup.containerAttributes;
+
       const command = {
         application: application.name,
         disruptionBudget: serverGroup.disruptionBudget,
@@ -104,7 +114,7 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
         region: serverGroup.region,
         env: serverGroup.env,
         labels: serverGroup.labels,
-        containerAttributes: serverGroup.containerAttributes,
+        containerAttributes,
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile,
         capacityGroup: serverGroup.capacityGroup,
