@@ -192,6 +192,7 @@
     "karma-webpack": "4.0.2",
     "less": "^2.7.2",
     "less-loader": "4.1.0",
+    "lint-staged": "^10.5.4",
     "loader-utils": "1.2.3",
     "md5": "^2.2.1",
     "minimist": "^1.2.3",
@@ -203,7 +204,6 @@
     "postcss-loader": "3.0.0",
     "postcss-nested": "^4.2.1",
     "prettier": "2.1.2",
-    "pretty-quick": "^1.11.1",
     "prompts": "^2.3.1",
     "react-addons-test-utils": "15.6.2",
     "react-test-renderer": "16.3.2",
@@ -234,7 +234,11 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged"
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "app/**/*.{js,jsx,ts,tsx,html,css,less}": "prettier --write",
+    "app/**/*.{js,jsx,ts,tsx}": "eslint --fix" 
   }
 }
