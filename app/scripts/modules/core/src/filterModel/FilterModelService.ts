@@ -1,5 +1,6 @@
-import { ReactInjector } from 'core/reactShims';
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
+
+import { ReactInjector } from 'core/reactShims';
 
 import { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
 

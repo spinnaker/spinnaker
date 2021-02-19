@@ -1,4 +1,6 @@
 import { angular2react } from 'angular2react';
+import React from 'react';
+
 import { IViewChangesLinkProps } from 'core/diffs/ViewChangesLink';
 import { viewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
@@ -22,7 +24,6 @@ import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
 import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
 import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
 import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
-import React from 'react';
 
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { buttonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';

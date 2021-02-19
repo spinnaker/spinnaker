@@ -1,9 +1,9 @@
 import classNames from 'classnames';
-import { Application } from 'core/application';
-import { IManagedResourceSummary } from 'core/domain';
 import React from 'react';
 
 import { Icon } from '@spinnaker/presentation';
+import { Application } from 'core/application';
+import { IManagedResourceSummary } from 'core/domain';
 
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';

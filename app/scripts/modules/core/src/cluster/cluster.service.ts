@@ -1,4 +1,6 @@
 import { IQService, module } from 'angular';
+import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
+
 import { REST } from 'core/api';
 import { Application } from 'core/application';
 import { ArtifactReferenceService } from 'core/artifact';
@@ -16,7 +18,6 @@ import {
 import { FilterModelService } from 'core/filterModel';
 import { NameUtils } from 'core/naming';
 import { ClusterState } from 'core/state';
-import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
 
 import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup/serverGroup.transformer';
 import { taskMatcher } from './task.matcher';

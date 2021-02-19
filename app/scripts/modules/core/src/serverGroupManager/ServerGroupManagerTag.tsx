@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { Application } from 'core/application';
 import { IServerGroup, IServerGroupManager } from 'core/domain';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
-import React from 'react';
 
 import { IServerGroupManagerStateParams } from './serverGroupManager.states';
 

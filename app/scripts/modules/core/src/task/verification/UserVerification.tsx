@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { AccountService } from 'core/account';
 import { HelpField } from 'core/help/HelpField';
 import { Markdown } from 'core/presentation';
-import React from 'react';
 
 const { useEffect, useState } = React;
 

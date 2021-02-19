@@ -1,6 +1,7 @@
+import React from 'react';
+
 import { Tooltip } from 'core/presentation';
 import { Spinner } from 'core/widgets';
-import React from 'react';
 
 import { SearchStatus } from './SearchResults';
 import { SearchService } from '../search.service';

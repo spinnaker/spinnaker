@@ -1,6 +1,7 @@
 import { Application } from 'core';
-import { IFunctionGroup } from 'core/domain';
 import React from 'react';
+
+import { IFunctionGroup } from 'core/domain';
 
 import { FunctionPod } from './FunctionPod';
 

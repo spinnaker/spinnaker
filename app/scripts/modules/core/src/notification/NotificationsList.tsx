@@ -1,10 +1,11 @@
 import classNames from 'classnames';
-import { Application } from 'core/application';
-import { INotification, INotificationTypeConfig } from 'core/domain';
-import { Registry } from 'core/registry';
-import { useData } from 'core/presentation';
 import { capitalize, filter, flatten, get, isEmpty } from 'lodash';
 import React from 'react';
+
+import { Application } from 'core/application';
+import { INotification, INotificationTypeConfig } from 'core/domain';
+import { useData } from 'core/presentation';
+import { Registry } from 'core/registry';
 
 import { AppNotificationsService, IAppNotifications } from './AppNotificationsService';
 import { EditNotificationModal } from './modal/EditNotificationModal';

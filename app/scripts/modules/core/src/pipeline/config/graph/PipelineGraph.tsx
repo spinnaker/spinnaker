@@ -1,12 +1,13 @@
 import classNames from 'classnames';
-import { IExecution, IPipeline } from 'core/domain';
-import { UUIDGenerator } from 'core/utils/uuid.service';
 import DOMPurify from 'dompurify';
 import $ from 'jquery';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Debounce, Throttle } from 'lodash-decorators';
 import React from 'react';
 import { Subscription } from 'rxjs';
+
+import { IExecution, IPipeline } from 'core/domain';
+import { UUIDGenerator } from 'core/utils/uuid.service';
 
 import { PipelineGraphLink } from './PipelineGraphLink';
 import { PipelineGraphNode } from './PipelineGraphNode';

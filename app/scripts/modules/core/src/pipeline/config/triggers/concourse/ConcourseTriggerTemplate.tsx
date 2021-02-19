@@ -1,7 +1,8 @@
-import { BuildServiceType } from 'core/ci';
-import { timestamp } from 'core/utils/timeFormatters';
 import React from 'react';
 import { Option } from 'react-select';
+
+import { BuildServiceType } from 'core/ci';
+import { timestamp } from 'core/utils/timeFormatters';
 
 import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';

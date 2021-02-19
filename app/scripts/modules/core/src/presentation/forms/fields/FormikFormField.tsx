@@ -1,7 +1,8 @@
-import { firstDefined } from 'core/utils';
 import { FastField, Field, FieldProps, FormikConsumer, FormikContext } from 'formik';
 import { isString, toPath } from 'lodash';
 import React from 'react';
+
+import { firstDefined } from 'core/utils';
 
 import { WatchValue } from '../../WatchValue';
 import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';

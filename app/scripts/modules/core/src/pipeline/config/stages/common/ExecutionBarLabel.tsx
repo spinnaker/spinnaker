@@ -1,9 +1,10 @@
+import React from 'react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+
 import { IExecutionStageLabelProps } from 'core/domain';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
-import React from 'react';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
 import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';

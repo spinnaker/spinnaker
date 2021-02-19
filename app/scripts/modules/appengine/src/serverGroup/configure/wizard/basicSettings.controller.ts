@@ -1,6 +1,5 @@
 import { StateService } from '@uirouter/angularjs';
 import { extend, IController, IControllerService, IScope, module } from 'angular';
-import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 import { set } from 'lodash';
 
 import {
@@ -11,6 +10,7 @@ import {
   IExpectedArtifact,
   NgAppEngineDeployArtifactDelegate,
 } from '@spinnaker/core';
+import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
 

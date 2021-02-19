@@ -1,10 +1,11 @@
+import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
+import React from 'react';
+
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';
 import { IWizardPageComponent } from 'core/modal';
 import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
-import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
-import React from 'react';
 
 export interface IClustersProps {
   accounts: IAccount[];

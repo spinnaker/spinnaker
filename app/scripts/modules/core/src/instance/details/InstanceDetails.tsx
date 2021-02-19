@@ -1,10 +1,11 @@
+import React from 'react';
+import { Observable, Subject } from 'rxjs';
+
 import { AccountService } from 'core/account/AccountService';
 import { Application } from 'core/application';
 import { IMoniker, NameUtils } from 'core/naming';
 import { IOverridableProps, Overridable } from 'core/overrideRegistry';
 import { Spinner } from 'core/widgets';
-import React from 'react';
-import { Observable, Subject } from 'rxjs';
 
 import { InstanceDetailsPane } from './InstanceDetailsPane';
 

@@ -1,4 +1,3 @@
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { get } from 'lodash';
 import React from 'react';
 
@@ -14,6 +13,7 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';

@@ -1,11 +1,12 @@
 import { module } from 'angular';
-import { AccountService, IArtifactAccount } from 'core/account';
-import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import React from 'react';
 import Select from 'react-select';
 import { react2angular } from 'react2angular';
 import { Observable, Subject } from 'rxjs';
+
+import { AccountService, IArtifactAccount } from 'core/account';
+import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 
 import { ArtifactEditor } from './ArtifactEditor';
 import { ArtifactIcon } from './ArtifactIcon';

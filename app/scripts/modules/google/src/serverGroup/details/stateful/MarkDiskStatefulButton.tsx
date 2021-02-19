@@ -1,7 +1,7 @@
-import { IGceServerGroup } from 'google/domain';
 import React from 'react';
 
 import { Application, ConfirmationModalService } from '@spinnaker/core';
+import { IGceServerGroup } from 'google/domain';
 
 import { StatefulMIGService } from './StatefulMIGService';
 

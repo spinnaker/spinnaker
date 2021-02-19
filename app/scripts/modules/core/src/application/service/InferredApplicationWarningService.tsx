@@ -1,5 +1,6 @@
-import { NotifierService } from 'core/widgets/notifier/notifier.service';
 import React from 'react';
+
+import { NotifierService } from 'core/widgets/notifier/notifier.service';
 
 import { Application } from '../application.model';
 

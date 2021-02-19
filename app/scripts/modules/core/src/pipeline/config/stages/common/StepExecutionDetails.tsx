@@ -1,7 +1,8 @@
-import { IExecutionDetailsProps, IExecutionDetailsState } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 import { isEqual } from 'lodash';
 import React from 'react';
+
+import { IExecutionDetailsProps, IExecutionDetailsState } from 'core/domain';
+import { ReactInjector } from 'core/reactShims';
 
 import { ExecutionDetailsSectionNav } from '../../../details';
 

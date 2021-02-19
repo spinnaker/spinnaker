@@ -1,9 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
+import _ from 'lodash';
+
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import _ from 'lodash';
 
 import { CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER } from './snapshotDiff.modal.controller';
 

@@ -1,10 +1,11 @@
+import { isEqual, keyBy } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
 import { IExecution, IPipeline, IStage } from 'core/domain';
 import { FormField, IStageForSpelPreview, ReactSelectInput, useData } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
-import { isEqual, keyBy } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
 
 import { ExecutionStatus } from '../../../status/ExecutionStatus';
 

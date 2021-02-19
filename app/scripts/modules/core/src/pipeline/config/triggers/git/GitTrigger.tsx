@@ -1,10 +1,11 @@
+import { FormikProps } from 'formik';
+import React from 'react';
+
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config/settings';
 import { IGitTrigger } from 'core/domain';
 import { HelpField } from 'core/help';
 import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
-import { FormikProps } from 'formik';
-import React from 'react';
 
 export interface IGitTriggerConfigProps {
   formik: FormikProps<IGitTrigger>;

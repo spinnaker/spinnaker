@@ -1,6 +1,7 @@
-import { IStage } from 'core/domain';
 import { find, get } from 'lodash';
 import React from 'react';
+
+import { IStage } from 'core/domain';
 
 import { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common/ExecutionDetailsSection';

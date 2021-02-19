@@ -1,12 +1,6 @@
 'use strict';
 
 import * as angular from 'angular';
-import { GCEProviderSettings } from 'google/gce.settings';
-import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
-import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
-import { GceImageReader } from 'google/image';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
-import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 import _ from 'lodash';
 
 import {
@@ -17,6 +11,12 @@ import {
   SECURITY_GROUP_READER,
   SubnetReader,
 } from '@spinnaker/core';
+import { GCEProviderSettings } from 'google/gce.settings';
+import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
+import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
+import { GceImageReader } from 'google/image';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './../../instance/custom/customInstanceBuilder.gce.service';
 import { GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE } from '../../instance/gceInstanceType.service';

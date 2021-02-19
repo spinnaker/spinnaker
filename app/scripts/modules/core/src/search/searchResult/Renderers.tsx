@@ -1,9 +1,10 @@
+import { kebabCase, startCase } from 'lodash';
+import React from 'react';
+
 import { AccountTag } from 'core/account';
 import { IInstanceCounts } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts';
 import { Spinner } from 'core/widgets';
-import { kebabCase, startCase } from 'lodash';
-import React from 'react';
 
 export interface ISearchColumn {
   key: string;

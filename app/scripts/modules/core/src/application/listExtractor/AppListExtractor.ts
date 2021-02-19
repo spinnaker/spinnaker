@@ -1,6 +1,7 @@
+import { compact, flatten, uniq } from 'lodash';
+
 import { IInstance, IServerGroup } from 'core/domain';
 import { IMoniker } from 'core/naming/IMoniker';
-import { compact, flatten, uniq } from 'lodash';
 
 import { Application } from '../application.model';
 

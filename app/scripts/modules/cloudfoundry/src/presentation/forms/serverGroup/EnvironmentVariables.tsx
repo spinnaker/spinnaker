@@ -1,9 +1,9 @@
-import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { FieldArray, getIn } from 'formik';
 import React from 'react';
 
 import { FormikFormField, TextInput } from '@spinnaker/core';
+import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
+import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
 export interface IEnvironmentVariablesProps {
   fieldName: string;

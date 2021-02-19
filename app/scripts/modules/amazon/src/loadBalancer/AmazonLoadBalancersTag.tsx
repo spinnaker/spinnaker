@@ -1,7 +1,6 @@
 // This is all mercilessly copied from LoadBalancersTag.tsx. This should be cleaned up at some point
 // Probably when we convert clusters view to React.
 
-import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
 import { sortBy } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
@@ -16,6 +15,7 @@ import {
   Spinner,
   Tooltip,
 } from '@spinnaker/core';
+import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
 
 import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
 

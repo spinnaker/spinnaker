@@ -1,11 +1,12 @@
 'use strict';
 
 import { module } from 'angular';
+import _ from 'lodash';
+
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { RecentHistoryService } from 'core/history/recentHistory.service';
 import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
-import _ from 'lodash';
 
 import { CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE } from './cluster/projectCluster.directive';
 import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';

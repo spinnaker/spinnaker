@@ -1,10 +1,11 @@
 import classNames from 'classnames';
-import { IExecutionStageSummary } from 'core/domain';
-import { LabelComponent, Markdown } from 'core/presentation';
-import { Popover } from 'core/presentation/Popover';
 import { get } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
+
+import { IExecutionStageSummary } from 'core/domain';
+import { LabelComponent, Markdown } from 'core/presentation';
+import { Popover } from 'core/presentation/Popover';
 
 import { IPipelineGraphNode } from './pipelineGraph.service';
 import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';

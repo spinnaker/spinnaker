@@ -1,4 +1,3 @@
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 import { FormikErrors, FormikProps } from 'formik';
 import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import React from 'react';
@@ -15,6 +14,7 @@ import {
   ValidationMessage,
   Validators,
 } from '@spinnaker/core';
+import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { isNameInUse, isNameLong, isValidHealthCheckInterval, isValidTimeout } from '../common/targetGroupValidators';
 

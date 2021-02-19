@@ -1,14 +1,14 @@
 'use strict';
 
 import { module } from 'angular';
+import _ from 'lodash';
+
+import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
 import { GCE_ADDRESS_READER } from 'google/address/address.reader';
 import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
 import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 import { GCEProviderSettings } from 'google/gce.settings';
 import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
-import _ from 'lodash';
-
-import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../../../backendService/backendService.reader';
 import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';

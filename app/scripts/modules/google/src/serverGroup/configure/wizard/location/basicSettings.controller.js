@@ -3,7 +3,6 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { GceImageReader } from 'google/image';
 import { extend } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
@@ -14,6 +13,7 @@ import {
   IMAGE_READER,
   NgGCEImageArtifactDelegate,
 } from '@spinnaker/core';
+import { GceImageReader } from 'google/image';
 
 import { GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE } from '../../../../gceNetworkSelectField.directive';
 import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';

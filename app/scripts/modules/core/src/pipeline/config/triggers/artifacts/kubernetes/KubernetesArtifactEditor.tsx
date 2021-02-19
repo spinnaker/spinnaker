@@ -1,9 +1,10 @@
-import { ArtifactTypePatterns } from 'core/artifact';
-import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { SpelText } from 'core/widgets';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
+
+import { ArtifactTypePatterns } from 'core/artifact';
+import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
+import { SpelText } from 'core/widgets';
 
 import { ArtifactEditor } from '../ArtifactEditor';
 import { StageConfigField } from '../../../stages/common';

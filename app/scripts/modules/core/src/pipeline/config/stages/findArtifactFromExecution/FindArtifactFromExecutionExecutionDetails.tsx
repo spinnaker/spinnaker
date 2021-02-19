@@ -1,5 +1,6 @@
-import { JsonUtils } from 'core/utils';
 import React from 'react';
+
+import { JsonUtils } from 'core/utils';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';

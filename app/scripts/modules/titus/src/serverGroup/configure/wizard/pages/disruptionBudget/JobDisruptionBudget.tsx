@@ -2,7 +2,6 @@ import { FormikProps } from 'formik';
 import { get, isEqual } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
-import { IJobDisruptionBudget } from 'titus/domain';
 
 import {
   Application,
@@ -13,6 +12,7 @@ import {
   ResponsiveFieldLayout,
   TetheredSelect,
 } from '@spinnaker/core';
+import { IJobDisruptionBudget } from 'titus/domain';
 
 import { policyOptions } from './PolicyOptions';
 import { rateOptions } from './RateOptions';

@@ -1,10 +1,11 @@
-import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
-import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
-import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import { Option } from 'react-select';
+
+import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
+import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
+import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
 
 import { AccountService, IAccount } from './AccountService';
 import { IFormInputProps } from '../presentation/forms/inputs';

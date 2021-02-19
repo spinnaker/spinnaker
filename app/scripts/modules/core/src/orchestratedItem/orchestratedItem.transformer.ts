@@ -1,7 +1,8 @@
-import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 import { distanceInWords } from 'date-fns';
 import { $log } from 'ngimport';
+
+import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
+import { ReactInjector } from 'core/reactShims';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {

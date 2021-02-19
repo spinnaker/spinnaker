@@ -1,4 +1,3 @@
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { Form, Formik } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
@@ -18,6 +17,7 @@ import {
   TaskMonitor,
   TaskReason,
 } from '@spinnaker/core';
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryRollbackServerGroupModalProps extends IModalComponentProps {
   application: Application;

@@ -1,3 +1,6 @@
+import { FormikProps } from 'formik';
+import React from 'react';
+
 import { SETTINGS } from 'core/config/settings';
 import { IPubsubTrigger } from 'core/domain';
 import { MapEditorInput } from 'core/forms';
@@ -5,8 +8,6 @@ import { HelpField } from 'core/help';
 import { FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
 import { PubsubSubscriptionReader } from 'core/pubsub';
 import { Spinner } from 'core/widgets';
-import { FormikProps } from 'formik';
-import React from 'react';
 
 export interface IPubsubTriggerProps {
   formik: FormikProps<IPubsubTrigger>;

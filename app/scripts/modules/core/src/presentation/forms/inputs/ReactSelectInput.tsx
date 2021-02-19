@@ -1,8 +1,9 @@
-import { noop } from 'core/utils';
 import { isNil } from 'lodash';
 import React from 'react';
 import Select, { Option, OptionValues, ReactSelectProps } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
+
+import { noop } from 'core/utils';
 
 import { StringsAsOptions } from './StringsAsOptions';
 import { TetheredSelect } from '../../TetheredSelect';

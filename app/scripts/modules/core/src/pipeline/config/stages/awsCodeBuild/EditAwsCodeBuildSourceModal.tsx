@@ -14,11 +14,12 @@ import {
   StageArtifactSelector,
   TextInput,
 } from 'core';
-import { ModalClose, SubmitButton } from 'core/modal';
 import { Form, Formik, FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+
+import { ModalClose, SubmitButton } from 'core/modal';
 
 import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
 

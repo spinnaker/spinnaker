@@ -1,6 +1,7 @@
-import { IPipeline } from 'core/domain';
 import { isString } from 'lodash';
 import React from 'react';
+
+import { IPipeline } from 'core/domain';
 
 import { IMapPair, MapPair } from './MapPair';
 

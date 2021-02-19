@@ -1,4 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
@@ -11,6 +10,7 @@ import {
   noop,
   ReactModal,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 

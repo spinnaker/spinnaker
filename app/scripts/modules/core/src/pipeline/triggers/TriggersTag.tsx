@@ -1,7 +1,8 @@
-import { SETTINGS } from 'core/config';
-import { IPipeline } from 'core/domain/IPipeline';
 import { filter } from 'lodash';
 import React from 'react';
+
+import { SETTINGS } from 'core/config';
+import { IPipeline } from 'core/domain/IPipeline';
 
 import { QuietPeriodBadge } from './QuietPeriodBadge';
 

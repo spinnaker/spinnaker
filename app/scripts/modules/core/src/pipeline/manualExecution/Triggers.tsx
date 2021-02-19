@@ -1,11 +1,12 @@
-import { IPipelineCommand, ITrigger } from 'core/domain';
-import { FormField } from 'core/presentation';
-import { Registry } from 'core/registry';
 import { FormikProps } from 'formik';
 import { clone, head } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
+
+import { IPipelineCommand, ITrigger } from 'core/domain';
+import { FormField } from 'core/presentation';
+import { Registry } from 'core/registry';
 
 import { ITriggerTemplateComponentProps, TriggerTemplate } from './TriggerTemplate';
 

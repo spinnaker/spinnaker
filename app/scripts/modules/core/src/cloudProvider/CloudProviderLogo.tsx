@@ -1,5 +1,6 @@
-import { Tooltip } from 'core/presentation/Tooltip';
 import React from 'react';
+
+import { Tooltip } from 'core/presentation/Tooltip';
 
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 

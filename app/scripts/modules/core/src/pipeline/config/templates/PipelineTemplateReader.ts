@@ -1,9 +1,10 @@
+import { flatten } from 'lodash';
+import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { IPipelineTemplateConfigV2 } from 'core/domain';
 import { IPipeline } from 'core/domain/IPipeline';
 import { IPipelineTemplateV2Collections } from 'core/domain/IPipelineTemplateV2';
-import { flatten } from 'lodash';
-import { $q } from 'ngimport';
 
 import { PipelineTemplateV2Service } from './v2/pipelineTemplateV2.service';
 

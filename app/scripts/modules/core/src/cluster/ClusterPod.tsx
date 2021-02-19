@@ -1,4 +1,7 @@
 import classNames from 'classnames';
+import { groupBy, map, orderBy, partition } from 'lodash';
+import React from 'react';
+
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
@@ -8,8 +11,6 @@ import { Tooltip } from 'core/presentation';
 import { ServerGroup } from 'core/serverGroup/ServerGroup';
 import { ServerGroupManager } from 'core/serverGroupManager/ServerGroupManager';
 import { ClusterState } from 'core/state';
-import { groupBy, map, orderBy, partition } from 'lodash';
-import React from 'react';
 
 import { ClusterPodTitleWrapper } from './ClusterPodTitleWrapper';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';

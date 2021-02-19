@@ -1,12 +1,13 @@
+import { pick, uniq } from 'lodash';
+import React from 'react';
+import ReactGA from 'react-ga';
+
 import { Application } from 'core/application';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { IEntityTag, IEntityTags } from 'core/domain';
 import { HoverablePopover, IHoverablePopoverContentsProps, Placement } from 'core/presentation';
 import { ITaskMonitorConfig } from 'core/task';
 import { noop } from 'core/utils';
-import { pick, uniq } from 'lodash';
-import React from 'react';
-import ReactGA from 'react-ga';
 
 import { CategorizedNotifications } from './CategorizedNotifications';
 import { EntityTagEditor, IEntityTagEditorProps } from '../EntityTagEditor';

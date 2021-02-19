@@ -1,9 +1,10 @@
+import React from 'react';
+
 import { IExecutionStage } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { displayableTasks } from 'core/task/displayableTasks.filter';
 import { duration } from 'core/utils/timeFormatters';
-import React from 'react';
 
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
 

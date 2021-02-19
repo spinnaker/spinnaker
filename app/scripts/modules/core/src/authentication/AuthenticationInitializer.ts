@@ -1,8 +1,9 @@
 import { IHttpPromiseCallbackArg } from 'angular';
-import { SETTINGS } from 'core/config/settings';
-import { ModalInjector } from 'core/reactShims/modal.injector';
 import { $http, $location, $rootScope } from 'ngimport';
 import { Observable, Subscription } from 'rxjs';
+
+import { SETTINGS } from 'core/config/settings';
+import { ModalInjector } from 'core/reactShims/modal.injector';
 
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';

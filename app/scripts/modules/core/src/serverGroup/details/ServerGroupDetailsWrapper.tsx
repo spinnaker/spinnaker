@@ -1,10 +1,11 @@
+import { $q, $templateCache } from 'ngimport';
+import React from 'react';
+import { Observable } from 'rxjs';
+
 import { Application } from 'core/application';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { IServerGroup } from 'core/domain';
 import { AngularJSAdapter, ReactInjector } from 'core/reactShims';
-import { $q, $templateCache } from 'ngimport';
-import React from 'react';
-import { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
 

@@ -1,6 +1,7 @@
-import { IRecentHistoryEntry } from 'core/history';
 import { get } from 'lodash';
 import React from 'react';
+
+import { IRecentHistoryEntry } from 'core/history';
 
 import { ProjectSummaryPod } from './ProjectSummaryPod';
 import { SearchResultPod } from './SearchResultPod';

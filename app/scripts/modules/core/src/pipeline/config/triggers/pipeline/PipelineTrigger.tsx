@@ -1,8 +1,9 @@
+import { FormikProps } from 'formik';
+import React from 'react';
+
 import { ApplicationReader } from 'core/application';
 import { IPipelineTrigger } from 'core/domain';
 import { ChecklistInput, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
-import { FormikProps } from 'formik';
-import React from 'react';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 

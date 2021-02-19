@@ -1,6 +1,7 @@
-import { IPinned } from 'core/domain';
 import { DateTime } from 'luxon';
 import React from 'react';
+
+import { IPinned } from 'core/domain';
 
 import { IArtifactDetailProps } from './ArtifactDetail';
 import { Button } from '../Button';

@@ -1,4 +1,11 @@
 import classNames from 'classnames';
+import { get, isEmpty, isEqual, orderBy, uniq } from 'lodash';
+import { Debounce } from 'lodash-decorators';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application';
 import { FilterSearch } from 'core/cluster/filter/FilterSearch';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
@@ -6,12 +13,6 @@ import { IExecution, IPipeline } from 'core/domain';
 import { IFilterTag } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
-import { get, isEmpty, isEqual, orderBy, uniq } from 'lodash';
-import { Debounce } from 'lodash-decorators';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
-import { Subscription } from 'rxjs';
 
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { ExecutionFilterService } from './executionFilter.service';

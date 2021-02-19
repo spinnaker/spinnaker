@@ -1,9 +1,10 @@
 import { Ng1StateDeclaration } from '@uirouter/angularjs';
 import { module } from 'angular';
-import { DeckCacheFactory, ICache } from 'core/cache';
-import { UUIDGenerator } from 'core/utils/uuid.service';
 import { find, isUndefined, omit, omitBy, sortBy } from 'lodash';
 import { Duration } from 'luxon';
+
+import { DeckCacheFactory, ICache } from 'core/cache';
+import { UUIDGenerator } from 'core/utils/uuid.service';
 import IAngularEvent = angular.IAngularEvent;
 
 export interface ICacheEntryStateMigrator {

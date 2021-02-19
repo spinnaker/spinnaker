@@ -2,8 +2,9 @@
 
 import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { SETTINGS } from 'core/config/settings';
 import _ from 'lodash';
+
+import { SETTINGS } from 'core/config/settings';
 
 import { CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER } from './editLinks.modal.controller';
 import { CONFIG_SECTION_FOOTER } from '../footer/configSectionFooter.component';

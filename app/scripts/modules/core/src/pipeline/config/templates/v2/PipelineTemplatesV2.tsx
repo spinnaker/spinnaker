@@ -1,4 +1,10 @@
 import { UISref } from '@uirouter/react';
+import { flatMap, get, memoize } from 'lodash';
+import { DateTime } from 'luxon';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+import { Subscription } from 'rxjs';
+
 import {
   IPipelineTemplateV2,
   IPipelineTemplateV2Collections,
@@ -6,11 +12,6 @@ import {
 } from 'core/domain/IPipelineTemplateV2';
 import { ReactSelectInput } from 'core/presentation';
 import { IStateChange, ReactInjector } from 'core/reactShims';
-import { flatMap, get, memoize } from 'lodash';
-import { DateTime } from 'luxon';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-import { Subscription } from 'rxjs';
 
 import { DeletePipelineTemplateV2Modal } from './DeletePipelineTemplateV2Modal';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';

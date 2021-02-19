@@ -1,11 +1,12 @@
+import { cloneDeep } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IgorService } from 'core/ci';
 import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from 'core/domain';
 import { TetheredSelect } from 'core/presentation';
 import { SpelText } from 'core/widgets';
-import { cloneDeep } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
 
 import { ArtifactEditor } from '../ArtifactEditor';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';

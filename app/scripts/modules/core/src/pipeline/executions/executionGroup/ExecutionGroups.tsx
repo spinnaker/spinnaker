@@ -1,10 +1,11 @@
+import React from 'react';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application/application.model';
 import { BannerContainer } from 'core/banner';
 import { IExecutionGroup } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
-import React from 'react';
-import { Subscription } from 'rxjs';
 
 import { ExecutionGroup } from './ExecutionGroup';
 import { ExecutionFilterService } from '../../filter/executionFilter.service';

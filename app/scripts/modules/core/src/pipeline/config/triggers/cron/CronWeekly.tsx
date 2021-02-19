@@ -1,6 +1,7 @@
-import { SystemTimezone } from 'core/utils/SystemTimezone';
 import React from 'react';
 import Select, { Option } from 'react-select';
+
+import { SystemTimezone } from 'core/utils/SystemTimezone';
 
 import { ICronTriggerConfigProps } from './cronConfig';
 import { HOURS, MINUTES, WEEKDAYS } from './cronSelectOptions';

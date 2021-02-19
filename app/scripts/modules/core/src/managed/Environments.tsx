@@ -1,9 +1,10 @@
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
-import { SETTINGS } from 'core/config/settings';
-import { Spinner } from 'core/widgets';
 import { isEqual, keyBy, pick } from 'lodash';
 import React, { useMemo } from 'react';
 import { animated, useTransition } from 'react-spring';
+
+import { SETTINGS } from 'core/config/settings';
+import { Spinner } from 'core/widgets';
 
 import { ColumnHeader } from './ColumnHeader';
 import { EnvironmentsHeader } from './EnvironmentsHeader';

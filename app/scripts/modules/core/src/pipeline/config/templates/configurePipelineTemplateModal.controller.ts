@@ -1,8 +1,9 @@
 import { IController, IHttpPromiseCallbackArg, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { Application } from 'core/application/application.model';
 import { dump, load } from 'js-yaml';
 import { chain, has, without } from 'lodash';
+
+import { Application } from 'core/application/application.model';
 
 import {
   IPipelineTemplate,

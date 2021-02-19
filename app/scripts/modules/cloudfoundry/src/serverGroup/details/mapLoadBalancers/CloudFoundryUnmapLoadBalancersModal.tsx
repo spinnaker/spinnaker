@@ -1,5 +1,3 @@
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { Routes } from 'cloudfoundry/presentation/forms/serverGroup';
 import { Form, Formik } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
@@ -17,6 +15,8 @@ import {
   SpinFormik,
   TaskMonitor,
 } from '@spinnaker/core';
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { Routes } from 'cloudfoundry/presentation/forms/serverGroup';
 
 export interface ICloudFoundryLoadBalancerLinksModalProps extends IModalComponentProps {
   application: Application;

@@ -1,5 +1,6 @@
-import { CloudProviderRegistry } from 'core/cloudProvider';
 import React from 'react';
+
+import { CloudProviderRegistry } from 'core/cloudProvider';
 
 import { OverrideRegistry } from './override.registry';
 

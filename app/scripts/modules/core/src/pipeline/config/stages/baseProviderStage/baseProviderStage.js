@@ -1,11 +1,12 @@
 'use strict';
 
 import { module } from 'angular';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import { AccountService } from 'core/account/AccountService';
 import { SETTINGS } from 'core/config/settings';
 import { Registry } from 'core/registry';
-import React from 'react';
-import ReactDOM from 'react-dom';
 
 import { StageConfigWrapper } from '../StageConfigWrapper';
 

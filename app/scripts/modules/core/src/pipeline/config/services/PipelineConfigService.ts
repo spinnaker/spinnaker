@@ -1,10 +1,11 @@
+import { cloneDeep, sortBy, uniq } from 'lodash';
+import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { AuthenticationService } from 'core/authentication/AuthenticationService';
 import { ViewStateCache } from 'core/cache';
 import { IPipeline } from 'core/domain/IPipeline';
 import { IStage } from 'core/domain/IStage';
-import { cloneDeep, sortBy, uniq } from 'lodash';
-import { $q } from 'ngimport';
 
 import { PipelineTemplateV2Service } from '../templates/v2/pipelineTemplateV2.service';
 

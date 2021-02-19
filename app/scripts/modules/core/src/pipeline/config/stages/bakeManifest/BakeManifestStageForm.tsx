@@ -1,8 +1,9 @@
+import { isNil } from 'lodash';
+import React from 'react';
+
 import { ExpectedArtifactService } from 'core/artifact';
 import { IExpectedArtifact } from 'core/domain';
 import { ReactSelectInput } from 'core/presentation';
-import { isNil } from 'lodash';
-import React from 'react';
 
 import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { HELM_RENDERERS, ManifestRenderers } from './ManifestRenderers';

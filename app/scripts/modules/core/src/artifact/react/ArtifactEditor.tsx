@@ -1,3 +1,6 @@
+import { cloneDeep, head } from 'lodash';
+import React from 'react';
+
 import { IArtifactAccount } from 'core/account';
 import { IArtifact, IPipeline } from 'core/domain';
 import { StageConfigField } from 'core/pipeline/config/stages/common';
@@ -7,8 +10,6 @@ import {
 } from 'core/pipeline/config/triggers/artifacts/custom/CustomArtifactEditor';
 import { Registry } from 'core/registry';
 import { UUIDGenerator } from 'core/utils';
-import { cloneDeep, head } from 'lodash';
-import React from 'react';
 
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
 

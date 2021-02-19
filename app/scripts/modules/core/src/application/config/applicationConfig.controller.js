@@ -1,8 +1,9 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import { cloneDeep } from 'lodash';
+
 import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfig.component';
 import { SETTINGS } from 'core/config/settings';
-import { cloneDeep } from 'lodash';
 
 import { CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE } from './applicationAttributes.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE } from './applicationNotifications.directive';

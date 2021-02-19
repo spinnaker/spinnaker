@@ -1,9 +1,10 @@
 import classNames from 'classnames';
+import React from 'react';
+
 import { AccountTag } from 'core/account';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { ManagedResourceStatusIndicator } from 'core/managed';
-import React from 'react';
 
 import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 

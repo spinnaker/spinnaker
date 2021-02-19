@@ -1,7 +1,8 @@
-import { HoverablePopover, Markdown, Placement } from 'core/presentation';
 import { isUndefined } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
+
+import { HoverablePopover, Markdown, Placement } from 'core/presentation';
 
 import { HelpTextExpandedContext } from './HelpTextExpandedContext';
 import { HelpContentsRegistry } from './helpContents.registry';

@@ -1,4 +1,3 @@
-import { AwsReactInjector } from 'amazon/reactShims';
 import { get } from 'lodash';
 import React from 'react';
 
@@ -14,6 +13,7 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
+import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import {

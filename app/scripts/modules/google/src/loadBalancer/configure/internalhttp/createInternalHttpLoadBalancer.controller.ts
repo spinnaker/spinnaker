@@ -1,10 +1,10 @@
 import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 import { IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
-import { IGceHttpLoadBalancer } from 'google/domain';
 
 import { Application, TaskMonitor } from '@spinnaker/core';
+import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
+import { IGceHttpLoadBalancer } from 'google/domain';
 
 import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from '../http/backendService/backendService.component';

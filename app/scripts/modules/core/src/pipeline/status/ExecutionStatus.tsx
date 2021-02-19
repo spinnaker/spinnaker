@@ -1,3 +1,6 @@
+import { has } from 'lodash';
+import React from 'react';
+
 import { IExecution } from 'core/domain';
 import { ISortFilter } from 'core/filterModel';
 import { HoverablePopover } from 'core/presentation';
@@ -6,8 +9,6 @@ import { SchedulerFactory } from 'core/scheduler';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import { ExecutionState } from 'core/state';
 import { relativeTime, timestamp } from 'core/utils';
-import { has } from 'lodash';
-import React from 'react';
 
 import { ExecutionUserStatus } from './ExecutionUserStatus';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';

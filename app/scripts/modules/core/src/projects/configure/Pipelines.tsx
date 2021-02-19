@@ -1,11 +1,12 @@
+import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
+import { chain, get, isEqual } from 'lodash';
+import React from 'react';
+
 import { IPipeline, IProject, IProjectPipeline } from 'core/domain';
 import { IWizardPageComponent } from 'core/modal';
 import { PipelineConfigService } from 'core/pipeline';
 import { FormikFormField, ReactSelectInput, StringsAsOptions } from 'core/presentation';
 import { Spinner } from 'core/widgets';
-import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
-import { chain, get, isEqual } from 'lodash';
-import React from 'react';
 
 export interface IPipelinesProps {
   formik: FormikProps<IProject>;

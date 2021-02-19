@@ -1,9 +1,10 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import { react2angular } from 'react2angular';
+
 import { ViewStateCache } from 'core/cache';
 import { InsightMenu as ProjectInsightMenu } from 'core/insight/InsightMenu';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import { react2angular } from 'react2angular';
 
 import { ConfigureProjectModal } from './configure';
 import { INSIGHT_MENU_DIRECTIVE } from '../insight/insightmenu.directive';

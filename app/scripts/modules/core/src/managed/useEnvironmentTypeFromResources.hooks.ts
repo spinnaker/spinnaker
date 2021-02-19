@@ -1,7 +1,8 @@
-import { AccountService } from 'core/account';
-import { useData } from 'core/presentation';
 import { uniq } from 'lodash';
 import { $q } from 'ngimport';
+
+import { AccountService } from 'core/account';
+import { useData } from 'core/presentation';
 
 import { IManagedResourceSummary } from '../domain';
 

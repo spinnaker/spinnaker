@@ -1,14 +1,15 @@
+import { capitalize, get } from 'lodash';
+import { $q } from 'ngimport';
+import React from 'react';
+import { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
+
 import { BuildServiceType, IgorService } from 'core/ci';
 import { IBuild, IBuildInfo, IBuildTrigger, IPipelineCommand } from 'core/domain';
 import { TextInput } from 'core/presentation';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
 import { timestamp } from 'core/utils/timeFormatters';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { capitalize, get } from 'lodash';
-import { $q } from 'ngimport';
-import React from 'react';
-import { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
 
 import { buildDisplayName } from '../../../executionBuild/buildDisplayName.filter';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';

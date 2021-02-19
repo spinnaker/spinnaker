@@ -1,5 +1,6 @@
-import { IContextualValidator } from 'core/pipeline';
 import React from 'react';
+
+import { IContextualValidator } from 'core/pipeline';
 
 import { IValidatorConfig } from '../pipeline/config/validation/PipelineConfigValidator';
 import { ITriggerTemplateComponentProps } from '../pipeline/manualExecution/TriggerTemplate';

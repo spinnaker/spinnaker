@@ -1,9 +1,10 @@
+import { cloneDeep, has } from 'lodash';
+import React from 'react';
+
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
 import { CopyToClipboard } from 'core/utils';
 import { SpelText } from 'core/widgets';
-import { cloneDeep, has } from 'lodash';
-import React from 'react';
 
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { StageConfigField } from '../../../stages/common';

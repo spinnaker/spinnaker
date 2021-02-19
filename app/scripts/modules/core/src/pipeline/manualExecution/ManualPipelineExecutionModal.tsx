@@ -1,3 +1,9 @@
+import { Form, Formik } from 'formik';
+import { assign, clone, compact, extend, get, head, isArray, isEmpty, isEqual, pickBy, uniq } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+import { Observable, Subject } from 'rxjs';
+
 import { Application } from 'core/application';
 import { AuthenticationService } from 'core/authentication';
 import { SETTINGS } from 'core/config/settings';
@@ -24,11 +30,6 @@ import {
   SpinFormik,
 } from 'core/presentation';
 import { Registry } from 'core/registry';
-import { Form, Formik } from 'formik';
-import { assign, clone, compact, extend, get, head, isArray, isEmpty, isEqual, pickBy, uniq } from 'lodash';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-import { Observable, Subject } from 'rxjs';
 
 import { CurrentlyRunningExecutions } from './CurrentlyRunningExecutions';
 import { DryRun } from './DryRun';

@@ -1,5 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 import { FormikErrors, FormikValues } from 'formik';
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
@@ -16,6 +14,8 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { AdvancedSettings } from './AdvancedSettings';
 import { HealthCheck } from './HealthCheck';

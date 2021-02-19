@@ -1,9 +1,10 @@
 import { IComponentController, IComponentOptions, IScope, module } from 'angular';
+import { includes } from 'lodash';
+
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { IInstanceTypeCategory, InstanceTypeService } from 'core/instance';
 import { ModalWizard } from 'core/modal/wizard/ModalWizard';
 import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from 'core/presentation/isVisible/isVisible.directive';
-import { includes } from 'lodash';
 
 import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';

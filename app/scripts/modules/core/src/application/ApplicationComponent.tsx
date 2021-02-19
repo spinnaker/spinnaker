@@ -1,7 +1,8 @@
 import { UIView } from '@uirouter/react';
+import React from 'react';
+
 import { RecentHistoryService } from 'core/history';
 import { DebugWindow } from 'core/utils/consoleDebug';
-import React from 'react';
 
 import { ApplicationContextProvider } from './ApplicationContext';
 import { Application } from './application.model';

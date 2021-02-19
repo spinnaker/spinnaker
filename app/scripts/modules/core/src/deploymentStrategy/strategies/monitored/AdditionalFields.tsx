@@ -1,3 +1,7 @@
+import { set } from 'lodash';
+import React from 'react';
+import Select, { Option } from 'react-select';
+
 import { HelpField } from 'core/help/HelpField';
 import {
   DeploymentMonitorReader,
@@ -5,9 +9,6 @@ import {
 } from 'core/pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
 import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';
-import { set } from 'lodash';
-import React from 'react';
-import Select, { Option } from 'react-select';
 
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 

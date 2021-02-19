@@ -1,6 +1,8 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { StateService } from '@uirouter/core';
 import { IQService, ITimeoutService, module } from 'angular';
+import { get, identity, pickBy } from 'lodash';
+
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
@@ -13,7 +15,6 @@ import { ExecutionState } from 'core/state';
 import { JsonUtils } from 'core/utils';
 import { DebugWindow } from 'core/utils/consoleDebug';
 import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
-import { get, identity, pickBy } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';

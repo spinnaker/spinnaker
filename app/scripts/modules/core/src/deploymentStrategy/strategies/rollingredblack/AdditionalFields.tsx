@@ -1,8 +1,9 @@
+import { set } from 'lodash';
+import React from 'react';
+
 import { HelpField } from 'core/help/HelpField';
 import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';
-import { set } from 'lodash';
-import React from 'react';
 
 import { PipelineSelector } from '../PipelineSelector';
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';

@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { IStage } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { timestamp } from 'core/utils/timeFormatters';
-import React from 'react';
 
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
 import { IExecutionDetailsSectionProps } from '../common';

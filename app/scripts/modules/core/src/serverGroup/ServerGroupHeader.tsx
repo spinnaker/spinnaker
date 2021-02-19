@@ -1,3 +1,6 @@
+import { get } from 'lodash';
+import React from 'react';
+
 import { Application } from 'core/application';
 import { ArtifactIconService } from 'core/artifact';
 import { CloudProviderLogo } from 'core/cloudProvider';
@@ -9,8 +12,6 @@ import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { NameUtils } from 'core/naming';
 import { Overridable } from 'core/overrideRegistry';
 import { NgReact } from 'core/reactShims';
-import { get } from 'lodash';
-import React from 'react';
 
 import { IDockerViewModel, IJenkinsViewModel } from './ServerGroup';
 

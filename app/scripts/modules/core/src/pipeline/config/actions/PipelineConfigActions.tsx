@@ -1,6 +1,7 @@
-import { IPipeline } from 'core/domain';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
+
+import { IPipeline } from 'core/domain';
 
 import { PipelineConfigAction } from './PipelineConfigAction';
 

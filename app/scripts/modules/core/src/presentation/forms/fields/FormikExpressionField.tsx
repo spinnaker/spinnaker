@@ -1,5 +1,6 @@
-import { firstDefined } from 'core/utils';
 import React from 'react';
+
+import { firstDefined } from 'core/utils';
 
 import { FormikFormField, IFormikFormFieldProps } from './FormikFormField';
 import { ExpressionError, ExpressionInput, ExpressionPreview, IExpressionChange, ISpelError } from '../inputs';

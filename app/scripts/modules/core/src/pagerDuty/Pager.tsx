@@ -1,10 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { ApplicationReader, IApplicationSummary } from 'core/application';
-import { SETTINGS } from 'core/config';
-import { Overridable } from 'core/overrideRegistry';
-import { Markdown } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
-import { relativeTime } from 'core/utils/timeFormatters';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
@@ -22,6 +16,13 @@ import {
   TableHeaderProps,
 } from 'react-virtualized';
 import { Observable } from 'rxjs';
+
+import { ApplicationReader, IApplicationSummary } from 'core/application';
+import { SETTINGS } from 'core/config';
+import { Overridable } from 'core/overrideRegistry';
+import { Markdown } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+import { relativeTime } from 'core/utils/timeFormatters';
 
 import { PageButton } from './PageButton';
 import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';

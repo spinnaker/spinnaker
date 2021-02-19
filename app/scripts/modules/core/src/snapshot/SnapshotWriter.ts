@@ -1,3 +1,6 @@
+import { isString } from 'lodash';
+import { $q } from 'ngimport';
+
 import { IAccountDetails } from 'core/account';
 import { AccountService } from 'core/account/AccountService';
 import { Application } from 'core/application';
@@ -5,8 +8,6 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ITask } from 'core/domain';
 import { IJob } from 'core/task';
 import { TaskExecutor } from 'core/task/taskExecutor';
-import { isString } from 'lodash';
-import { $q } from 'ngimport';
 
 export class SnapshotWriter {
   private static buildSaveSnapshotJobs(app: Application, accountDetails: IAccountDetails[]): IJob[] {

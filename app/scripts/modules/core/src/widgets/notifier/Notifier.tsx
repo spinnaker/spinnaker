@@ -1,6 +1,7 @@
-import { Markdown } from 'core/presentation';
 import React from 'react';
 import { Subscription } from 'rxjs';
+
+import { Markdown } from 'core/presentation';
 
 import { INotifier, NotifierService } from './notifier.service';
 

@@ -1,10 +1,11 @@
+import * as React from 'react';
+
 import { IAccountDetails } from 'core/account';
 import { Application } from 'core/application';
 import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 import { Tooltip } from 'core/presentation';
 import { ModalInjector } from 'core/reactShims';
-import * as React from 'react';
 
 import { FirewallLabels } from './label/FirewallLabels';
 

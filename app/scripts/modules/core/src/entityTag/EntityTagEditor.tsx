@@ -1,3 +1,7 @@
+import { Form } from 'formik';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { Application } from 'core/application';
 import { IEntityRef, IEntityTag } from 'core/domain';
 import { HelpField } from 'core/help';
@@ -14,9 +18,6 @@ import {
 import { NgReact } from 'core/reactShims';
 import { TaskMonitor } from 'core/task';
 import { noop, UUIDGenerator } from 'core/utils';
-import { Form } from 'formik';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
 
 import { EntityRefBuilder } from './entityRef.builder';
 import { EntityTagWriter } from './entityTags.write.service';

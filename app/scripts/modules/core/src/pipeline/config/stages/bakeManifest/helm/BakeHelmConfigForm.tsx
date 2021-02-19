@@ -1,9 +1,10 @@
+import React from 'react';
+
 import { AccountService } from 'core/account';
 import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { MapEditor } from 'core/forms';
 import { CheckboxInput, TextInput } from 'core/presentation';
-import React from 'react';
 
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';

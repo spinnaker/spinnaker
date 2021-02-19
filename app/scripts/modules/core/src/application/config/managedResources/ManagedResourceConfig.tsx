@@ -1,12 +1,13 @@
 import { module } from 'angular';
 import classNames from 'classnames';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { react2angular } from 'react2angular';
+
 import { ManagedWriter } from 'core/managed';
 import { useLatestCallback, ValidationMessage } from 'core/presentation';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { NgReact } from 'core/reactShims';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { react2angular } from 'react2angular';
 
 import { Application } from '../../application.model';
 

@@ -3,9 +3,9 @@ import { isEqual } from 'lodash';
 import prettyMilliseconds from 'pretty-ms';
 import React from 'react';
 import { react2angular } from 'react2angular';
-import { TitusReactInjector } from 'titus/reactShims';
 
 import { HelpField, IServerGroupDetailsSectionProps, withErrorBoundary } from '@spinnaker/core';
+import { TitusReactInjector } from 'titus/reactShims';
 
 import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
 import {

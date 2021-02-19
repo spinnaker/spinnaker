@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Application } from 'core/application';
 import { ArtifactReferenceService } from 'core/artifact';
 import { SETTINGS } from 'core/config/settings';
@@ -5,7 +7,6 @@ import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
 import { HelpField } from 'core/help';
 import { CheckboxInput, FormField } from 'core/presentation';
 import { Registry } from 'core/registry';
-import React from 'react';
 
 import { PipelineRoles } from './PipelineRoles';
 import { Trigger } from './Trigger';

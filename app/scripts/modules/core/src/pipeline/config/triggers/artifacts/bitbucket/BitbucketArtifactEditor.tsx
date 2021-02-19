@@ -1,8 +1,9 @@
+import { cloneDeep } from 'lodash';
+import React from 'react';
+
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
 import { SpelText } from 'core/widgets';
-import { cloneDeep } from 'lodash';
-import React from 'react';
 
 import { ArtifactEditor } from '../ArtifactEditor';
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';

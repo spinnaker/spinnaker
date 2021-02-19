@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { robotToHuman } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils';
 import { Spinner } from 'core/widgets';
-import React from 'react';
 
 import { StatusGlyph } from '../StatusGlyph';
 import { TaskMonitor } from './TaskMonitor';

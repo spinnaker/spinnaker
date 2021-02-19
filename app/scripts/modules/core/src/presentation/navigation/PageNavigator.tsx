@@ -1,8 +1,9 @@
+import { isFunction, throttle } from 'lodash';
+import React from 'react';
+
 import { ReactInjector } from 'core/reactShims';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 import { UUIDGenerator } from 'core/utils/uuid.service';
-import { isFunction, throttle } from 'lodash';
-import React from 'react';
 
 export interface INavigationPage {
   key: string;

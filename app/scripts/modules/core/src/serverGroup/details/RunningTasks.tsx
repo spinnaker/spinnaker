@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Application } from 'core/application/application.model';
 import { IExecution, IServerGroup, ITask } from 'core/domain';
 import { CollapsibleSection, robotToHuman } from 'core/presentation';
@@ -5,7 +7,6 @@ import { PlatformHealthOverrideMessage } from 'core/task/PlatformHealthOverrideM
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { displayableTasks } from 'core/task/displayableTasks.filter';
 import { duration } from 'core/utils/timeFormatters';
-import React from 'react';
 
 export interface IRunningTasksProps {
   application: Application;

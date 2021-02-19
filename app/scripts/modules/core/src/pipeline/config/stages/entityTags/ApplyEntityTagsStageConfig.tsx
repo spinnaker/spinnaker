@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { SETTINGS } from 'core/config';
 import { IEntityRef, IEntityTag, IStage } from 'core/domain';
 import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
-import React from 'react';
 
 import { TagEditor } from './TagEditor';
 import { IStageConfigProps, StageConfigField } from '../common';

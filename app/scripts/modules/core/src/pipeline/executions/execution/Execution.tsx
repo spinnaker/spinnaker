@@ -1,5 +1,11 @@
 import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
+import { isEqual } from 'lodash';
+import { $location } from 'ngimport';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { Subscription } from 'rxjs';
+
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 // react components
@@ -12,11 +18,6 @@ import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
 import { duration, timestamp } from 'core/utils/timeFormatters';
-import { isEqual } from 'lodash';
-import { $location } from 'ngimport';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Subscription } from 'rxjs';
 
 import { ExecutionBreadcrumbs } from './ExecutionBreadcrumbs';
 import { ExecutionMarker } from './ExecutionMarker';

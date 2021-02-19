@@ -1,13 +1,14 @@
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+import React from 'react';
+import { Button } from 'react-bootstrap';
+
 import { Application } from 'core/application';
 import { CacheInitializerService } from 'core/cache';
 import { OverrideRegistry } from 'core/overrideRegistry';
 import { ConfigureProjectModal } from 'core/projects';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
-import React from 'react';
-import { Button } from 'react-bootstrap';
 
 export interface IInsightMenuProps {
   createApp?: boolean;

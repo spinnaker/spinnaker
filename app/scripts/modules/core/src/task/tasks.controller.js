@@ -2,10 +2,11 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import _ from 'lodash';
+
 import { ViewStateCache } from 'core/cache';
 import { SETTINGS } from 'core/config/settings';
 import { ConfirmationModalService } from 'core/confirmationModal';
-import _ from 'lodash';
 
 import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { TaskWriter } from './task.write.service';

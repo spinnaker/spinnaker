@@ -1,8 +1,9 @@
-import { AuthenticationService } from 'core/authentication';
 import { cloneDeep, compact, intersection, uniq, without } from 'lodash';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import Select, { Creatable, Option } from 'react-select';
+
+import { AuthenticationService } from 'core/authentication';
 
 import './PermissionsConfigurer.less';
 

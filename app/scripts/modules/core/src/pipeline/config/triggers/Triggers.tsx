@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';
 import { PageNavigator, PageSection } from 'core/presentation';
-import React from 'react';
 
 import { DescriptionPageContent } from './DescriptionPageContent';
 import { ExecutionOptionsPageContent } from './ExecutionOptionsPageContent';

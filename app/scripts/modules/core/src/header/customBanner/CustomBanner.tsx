@@ -1,10 +1,11 @@
+import { get } from 'lodash';
+import React from 'react';
+
 import { ICustomBannerConfig } from 'core/application/config/customBanner/CustomBannerConfig';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { Markdown } from 'core/presentation/Markdown';
 import { ReactInjector } from 'core/reactShims';
 import { noop } from 'core/utils';
-import { get } from 'lodash';
-import React from 'react';
 
 import './CustomBanner.less';
 

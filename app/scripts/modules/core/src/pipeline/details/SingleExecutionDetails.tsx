@@ -1,4 +1,8 @@
 import { UISref } from '@uirouter/react';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application/application.model';
 import { IExecution, IPipeline } from 'core/domain';
 import { ISortFilter } from 'core/filterModel';
@@ -6,9 +10,6 @@ import { Tooltip } from 'core/presentation';
 import { IStateChange, ReactInjector } from 'core/reactShims';
 import { IScheduler, SchedulerFactory } from 'core/scheduler';
 import { ExecutionState } from 'core/state';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Subscription } from 'rxjs';
 
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';

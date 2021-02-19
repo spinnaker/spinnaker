@@ -1,10 +1,11 @@
-import { IParameter, IPipeline, IPipelineCommand, ITrigger } from 'core/domain';
-import { FormField, TetheredSelect } from 'core/presentation';
 import { FormikProps } from 'formik';
 import { head } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
+
+import { IParameter, IPipeline, IPipelineCommand, ITrigger } from 'core/domain';
+import { FormField, TetheredSelect } from 'core/presentation';
 
 import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from '../config/templates';
 

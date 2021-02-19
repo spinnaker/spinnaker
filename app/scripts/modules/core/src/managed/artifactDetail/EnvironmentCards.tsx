@@ -1,6 +1,7 @@
 import { useRouter } from '@uirouter/react';
-import { IManagedArtifactVersionEnvironment } from 'core/domain';
 import React from 'react';
+
+import { IManagedArtifactVersionEnvironment } from 'core/domain';
 
 import { IArtifactDetailProps } from './ArtifactDetail';
 import { Button } from '../Button';

@@ -1,8 +1,9 @@
 import classNames from 'classnames';
-import { ITask } from 'core/domain';
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+
+import { ITask } from 'core/domain';
+import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface ITaskProgressBarProps {
   task: ITask;

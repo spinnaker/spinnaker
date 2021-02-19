@@ -1,11 +1,12 @@
+import { get, has } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
 import { IExecution, IPipeline, IPipelineTrigger } from 'core/domain';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { get, has } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
 
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';

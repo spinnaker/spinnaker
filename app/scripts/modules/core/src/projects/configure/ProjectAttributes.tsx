@@ -1,8 +1,9 @@
+import { FormikErrors, FormikProps } from 'formik';
+import React from 'react';
+
 import { IProject } from 'core/domain';
 import { IWizardPageComponent } from 'core/modal';
 import { FormField, FormikFormField, TextInput } from 'core/presentation';
-import { FormikErrors, FormikProps } from 'formik';
-import React from 'react';
 
 export interface IProjectAttributesProps {
   allProjects: IProject[];

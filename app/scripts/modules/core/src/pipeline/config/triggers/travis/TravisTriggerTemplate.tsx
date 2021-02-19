@@ -1,5 +1,6 @@
-import { BuildServiceType } from 'core/ci';
 import React from 'react';
+
+import { BuildServiceType } from 'core/ci';
 
 import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';

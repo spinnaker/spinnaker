@@ -1,5 +1,6 @@
-import { AccountTag } from 'core/account';
 import React from 'react';
+
+import { AccountTag } from 'core/account';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';

@@ -2,7 +2,6 @@ import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 import angular, { IController, module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP, { IModalService } from 'angular-ui-bootstrap';
 import { sortBy } from 'lodash';
-import { ILoadBalancerDetails, IOracleLoadBalancer } from 'oracle/domain/IOracleLoadBalancer';
 
 import {
   Application,
@@ -13,6 +12,7 @@ import {
   LoadBalancerWriter,
   SecurityGroupReader,
 } from '@spinnaker/core';
+import { ILoadBalancerDetails, IOracleLoadBalancer } from 'oracle/domain/IOracleLoadBalancer';
 
 import { OracleLoadBalancerController } from '../configure/createLoadBalancer.controller';
 

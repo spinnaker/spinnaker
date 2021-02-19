@@ -1,8 +1,9 @@
 import classNames from 'classnames';
-import { ArtifactIcon } from 'core/artifact';
-import { IPipeline, IStage } from 'core/domain';
 import React from 'react';
 import { Subject } from 'rxjs';
+
+import { ArtifactIcon } from 'core/artifact';
+import { IPipeline, IStage } from 'core/domain';
 
 import { EditAwsCodeBuildSourceModal } from './EditAwsCodeBuildSourceModal';
 import { IAwsCodeBuildSource } from './IAwsCodeBuildSource';

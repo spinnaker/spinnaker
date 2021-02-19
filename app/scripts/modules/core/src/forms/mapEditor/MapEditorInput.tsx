@@ -1,7 +1,8 @@
-import { IPipeline } from 'core/domain';
-import { createFakeReactSyntheticEvent, IFormInputProps, IValidator, IValidatorResult } from 'core/presentation';
 import { defaults, isFunction, isNil, isString } from 'lodash';
 import React from 'react';
+
+import { IPipeline } from 'core/domain';
+import { createFakeReactSyntheticEvent, IFormInputProps, IValidator, IValidatorResult } from 'core/presentation';
 
 import { IMapPair, MapPair } from './MapPair';
 

@@ -1,7 +1,8 @@
 import { UISref } from '@uirouter/react';
+import React from 'react';
+
 import { SortToggle } from 'core/presentation';
 import { timestamp } from 'core/utils';
-import React from 'react';
 
 import { IApplicationSummary } from '../service/ApplicationReader';
 

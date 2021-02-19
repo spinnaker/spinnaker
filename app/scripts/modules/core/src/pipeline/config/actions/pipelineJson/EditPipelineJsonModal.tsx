@@ -1,9 +1,10 @@
 import 'brace/mode/json';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { IPipeline, IPipelineLock, IStage } from 'core/domain';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
 import { JsonUtils, noop } from 'core/utils';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
 
 import { PipelineJSONService } from '../../services/pipelineJSON.service';
 

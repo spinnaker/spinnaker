@@ -1,13 +1,14 @@
+import { groupBy, sortBy } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+import { Option } from 'react-select';
+
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
 import { ReactInjector } from 'core/reactShims';
-import { groupBy, sortBy } from 'lodash';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
 
 import { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';

@@ -1,7 +1,8 @@
 import { UIView } from '@uirouter/react';
-import { SpinErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import * as React from 'react';
 import { RecoilRoot } from 'recoil';
+
+import { SpinErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 
 import { SpinnakerHeader } from '../header/SpinnakerHeader';
 import { CustomBanner } from '../header/customBanner/CustomBanner';

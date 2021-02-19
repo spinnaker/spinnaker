@@ -1,3 +1,9 @@
+import { Form } from 'formik';
+import { flatten, isEmpty } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+import { Option } from 'react-select';
+
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
@@ -11,11 +17,6 @@ import {
   useData,
   useLatestPromise,
 } from 'core/presentation';
-import { Form } from 'formik';
-import { flatten, isEmpty } from 'lodash';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
-import { Option } from 'react-select';
 
 import { CopyStageCard, ICopyStageCardProps } from './CopyStageCard';
 

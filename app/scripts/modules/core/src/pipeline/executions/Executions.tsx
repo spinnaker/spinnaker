@@ -1,3 +1,9 @@
+import { get } from 'lodash';
+import { $q } from 'ngimport';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application';
 import { IExecution, IPipeline, IPipelineCommand } from 'core/domain';
 import { FilterCollapse, FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
@@ -8,11 +14,6 @@ import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { get } from 'lodash';
-import { $q } from 'ngimport';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Subscription } from 'rxjs';
 
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';

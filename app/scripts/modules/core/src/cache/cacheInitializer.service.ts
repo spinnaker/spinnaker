@@ -1,9 +1,10 @@
 import { IQService, module, noop } from 'angular';
+import { cloneDeep, uniq } from 'lodash';
+import { Duration } from 'luxon';
+
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
-import { cloneDeep, uniq } from 'lodash';
-import { Duration } from 'luxon';
 
 import { ICacheConfig } from './deckCacheFactory';
 import { IInfrastructureCacheConfig, INFRASTRUCTURE_CACHE_CONFIG } from './infrastructureCacheConfig';

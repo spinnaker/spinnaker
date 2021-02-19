@@ -1,8 +1,9 @@
+import React from 'react';
+import { Option } from 'react-select';
+
 import { INotificationTypeConfig } from 'core/domain';
 import { FormikFormField, ReactSelectInput } from 'core/presentation';
 import { Registry } from 'core/registry';
-import React from 'react';
-import { Option } from 'react-select';
 
 import './notificationSelector.less';
 

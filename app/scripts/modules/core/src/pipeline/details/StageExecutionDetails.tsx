@@ -1,9 +1,10 @@
+import React from 'react';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { Registry } from 'core/registry';
-import React from 'react';
-import { Subscription } from 'rxjs';
 
 import { StageSummary } from './StageSummary';
 import { StepDetails } from './StepDetails';

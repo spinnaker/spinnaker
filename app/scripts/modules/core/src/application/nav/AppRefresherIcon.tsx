@@ -1,10 +1,10 @@
-import { Tooltip } from 'core/presentation';
-import { SchedulerFactory } from 'core/scheduler';
-import { relativeTime, timestamp } from 'core/utils/timeFormatters';
 import { $window } from 'ngimport';
 import React from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
+import { Tooltip } from 'core/presentation';
+import { SchedulerFactory } from 'core/scheduler';
+import { relativeTime, timestamp } from 'core/utils/timeFormatters';
 
 import { ApplicationFreshIcon } from '../ApplicationFreshIcon';
 

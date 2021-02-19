@@ -1,6 +1,7 @@
-import { Spinner } from 'core/widgets';
 import { kebabCase } from 'lodash';
 import React from 'react';
+
+import { Spinner } from 'core/widgets';
 
 import { SearchStatus } from './SearchResults';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';

@@ -1,7 +1,8 @@
-import { IServerGroup } from 'core/domain';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import ReactGA from 'react-ga';
+
+import { IServerGroup } from 'core/domain';
 
 export class ServerGroupInsightActions extends React.Component<{ serverGroup: IServerGroup }> {
   private onClick(label: string): void {

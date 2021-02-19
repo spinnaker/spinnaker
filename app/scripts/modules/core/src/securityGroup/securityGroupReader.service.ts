@@ -1,4 +1,7 @@
 import { ILogService, IQService, module } from 'angular';
+import { filter, forOwn, has, uniq } from 'lodash';
+import { cloneDeep } from 'lodash';
+
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache';
@@ -10,8 +13,6 @@ import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { IComponentName, NameUtils } from 'core/naming';
 import { IMoniker } from 'core/naming/IMoniker';
 import { ISearchResults, SearchService } from 'core/search/search.service';
-import { filter, forOwn, has, uniq } from 'lodash';
-import { cloneDeep } from 'lodash';
 
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import {

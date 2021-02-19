@@ -1,5 +1,6 @@
-import { Application } from 'core/application';
 import React from 'react';
+
+import { Application } from 'core/application';
 
 import { PageModal } from './PageModal';
 import { IPagerDutyService } from './pagerDuty.read.service';

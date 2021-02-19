@@ -1,3 +1,6 @@
+import { cloneDeep, fromPairs, intersection, isNil, memoize, uniq } from 'lodash';
+import { ComponentType, SFC } from 'react';
+
 import { IAccountDetails } from 'core/account/AccountService';
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
@@ -12,8 +15,6 @@ import {
   IStageTypeConfig,
   ITriggerTypeConfig,
 } from 'core/domain';
-import { cloneDeep, fromPairs, intersection, isNil, memoize, uniq } from 'lodash';
-import { ComponentType, SFC } from 'react';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { PreconfiguredJobReader } from './stages/preconfiguredJob';

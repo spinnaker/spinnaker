@@ -1,6 +1,7 @@
-import { IHelmTrigger } from 'core/domain/IHelmTrigger';
 import { $q } from 'ngimport';
 import React from 'react';
+
+import { IHelmTrigger } from 'core/domain/IHelmTrigger';
 
 import { HelmTriggerTemplate, IHelmTriggerTemplateState } from './HelmTriggerTemplate';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';

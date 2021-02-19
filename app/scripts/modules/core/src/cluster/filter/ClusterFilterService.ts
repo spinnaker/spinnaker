@@ -1,12 +1,13 @@
+import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
+import { Debounce } from 'lodash-decorators';
+import { $log } from 'ngimport';
+import { Subject } from 'rxjs';
+
 import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from 'core/domain';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
-import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
-import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
-import { Subject } from 'rxjs';
 
 import { ILabelFilter, trueKeyObjectToLabelFilters } from './labelFilterUtils';
 

@@ -1,9 +1,9 @@
 import { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
-import { IJobTimeWindow } from 'titus/domain';
 
 import { ChecklistInput, FormikFormField, HelpField, NumberInput, ReactSelectInput, SpinFormik } from '@spinnaker/core';
+import { IJobTimeWindow } from 'titus/domain';
 
 import { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
 

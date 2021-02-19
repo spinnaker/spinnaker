@@ -13,9 +13,10 @@ import {
   useData,
   YamlEditor,
 } from 'core';
-import { CheckboxInput } from 'core/presentation';
 import { get } from 'lodash';
 import React from 'react';
+
+import { CheckboxInput } from 'core/presentation';
 
 import { AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
 import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';

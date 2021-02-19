@@ -1,4 +1,3 @@
-import { FormikAccountRegionClusterSelector } from 'cloudfoundry/presentation';
 import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
@@ -14,6 +13,7 @@ import {
   ReactSelectInput,
   StageConstants,
 } from '@spinnaker/core';
+import { FormikAccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 

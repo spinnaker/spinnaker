@@ -1,5 +1,3 @@
-import { IAmazonFunction, IAmazonFunctionSourceData } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 import { isEmpty } from 'lodash';
 import React from 'react';
 import { Observable } from 'rxjs/Observable';
@@ -14,6 +12,8 @@ import {
   IOverridableProps,
   Overrides,
 } from '@spinnaker/core';
+import { IAmazonFunction, IAmazonFunctionSourceData } from 'amazon/domain';
+import { AwsReactInjector } from 'amazon/reactShims';
 
 import { FunctionActions } from './FunctionActions';
 

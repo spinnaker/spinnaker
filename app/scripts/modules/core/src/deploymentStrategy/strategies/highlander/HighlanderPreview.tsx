@@ -1,10 +1,11 @@
+import * as React from 'react';
+
 import { REST } from 'core/api';
 import { IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts';
 import { NameUtils } from 'core/naming';
 import { useData } from 'core/presentation';
 import { Spinner } from 'core/widgets';
-import * as React from 'react';
 
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 

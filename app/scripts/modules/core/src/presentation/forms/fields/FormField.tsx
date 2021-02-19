@@ -1,5 +1,6 @@
-import { firstDefined, noop } from 'core/utils';
 import React from 'react';
+
+import { firstDefined, noop } from 'core/utils';
 
 import { createFieldValidator } from './FormikFormField';
 import { IControlledInputProps, IFormInputProps, IFormInputValidation } from '../inputs';

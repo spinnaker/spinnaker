@@ -1,4 +1,9 @@
 import classnames from 'classnames';
+import { flatten, uniq, without } from 'lodash';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { Observable, Subject, Subscription } from 'rxjs';
+
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
@@ -18,10 +23,6 @@ import { ExecutionState } from 'core/state';
 import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { flatten, uniq, without } from 'lodash';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Observable, Subject, Subscription } from 'rxjs';
 
 import { MigrationTag } from './MigrationTag';
 import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';

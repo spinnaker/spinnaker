@@ -1,8 +1,9 @@
-import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
-import { ReactInjector } from 'core/reactShims';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
+
+import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
+import { ReactInjector } from 'core/reactShims';
 
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
 

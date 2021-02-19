@@ -1,9 +1,10 @@
 import { UISref } from '@uirouter/react';
 import { Spinner } from 'core';
-import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { duration, relativeTime, timestamp } from 'core/utils';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+
+import { IExecution, IExecutionStageSummary } from 'core/domain';
+import { duration, relativeTime, timestamp } from 'core/utils';
 
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { ExecutionInformationService } from './executionInformation.service';

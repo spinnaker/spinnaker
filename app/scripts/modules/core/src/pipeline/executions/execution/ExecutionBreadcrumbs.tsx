@@ -1,7 +1,8 @@
 import { useCurrentStateAndParams, useSref } from '@uirouter/react';
-import { IExecution } from 'core/domain';
 import React, { MouseEventHandler } from 'react';
 import ReactGA from 'react-ga';
+
+import { IExecution } from 'core/domain';
 
 import { ExecutionInformationService } from './executionInformation.service';
 

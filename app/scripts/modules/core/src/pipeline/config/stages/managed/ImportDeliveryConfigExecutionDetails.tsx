@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { SETTINGS } from 'core/config';
 import { IGitTrigger } from 'core/domain';
 import { CollapsibleSection, Markdown } from 'core/presentation';
-import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';

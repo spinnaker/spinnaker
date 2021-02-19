@@ -3,7 +3,6 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
 import _ from 'lodash';
-import { TitusReactInjector } from 'titus/reactShims';
 
 import {
   AccountService,
@@ -16,6 +15,7 @@ import {
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
+import { TitusReactInjector } from 'titus/reactShims';
 
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from '../configure/ServerGroupCommandBuilder';
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';

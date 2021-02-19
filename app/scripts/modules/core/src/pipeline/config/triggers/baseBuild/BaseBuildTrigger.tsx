@@ -1,9 +1,10 @@
+import { FormikProps } from 'formik';
+import React from 'react';
+
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBuildTrigger } from 'core/domain';
 import { HelpField } from 'core/help';
 import { FormikFormField, TextInput, useLatestPromise } from 'core/presentation';
-import { FormikProps } from 'formik';
-import React from 'react';
 
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 

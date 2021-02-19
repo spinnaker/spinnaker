@@ -1,6 +1,7 @@
-import { Tooltip } from 'core/presentation';
 import { isArray, isObject, isString } from 'lodash';
 import React from 'react';
+
+import { Tooltip } from 'core/presentation';
 
 import { WizardPage } from './WizardPage';
 

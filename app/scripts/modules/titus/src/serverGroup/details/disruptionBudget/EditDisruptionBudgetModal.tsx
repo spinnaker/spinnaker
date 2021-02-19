@@ -1,6 +1,5 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { ITitusServerGroup } from 'titus/domain';
 
 import {
   Application,
@@ -14,6 +13,7 @@ import {
   TaskExecutor,
   TaskMonitor,
 } from '@spinnaker/core';
+import { ITitusServerGroup } from 'titus/domain';
 
 import { ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
 import { JobDisruptionBudget } from '../../configure/wizard/pages/disruptionBudget/JobDisruptionBudget';

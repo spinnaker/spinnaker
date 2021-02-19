@@ -1,4 +1,7 @@
 import { UISref } from '@uirouter/react';
+import React from 'react';
+import { Subject } from 'rxjs';
+
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { SETTINGS } from 'core/config/settings';
 import { IServerGroup } from 'core/domain';
@@ -7,8 +10,6 @@ import { ManagedResourceDetailsIndicator } from 'core/managed';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import React from 'react';
-import { Subject } from 'rxjs';
 
 import { RunningTasks } from './RunningTasks';
 import { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';

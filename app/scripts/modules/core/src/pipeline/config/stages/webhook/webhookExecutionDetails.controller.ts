@@ -1,7 +1,8 @@
 import { StateParams } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
-import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
 import { get } from 'lodash';
+
+import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,

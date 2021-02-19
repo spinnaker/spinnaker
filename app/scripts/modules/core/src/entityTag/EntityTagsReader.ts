@@ -1,3 +1,5 @@
+import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
@@ -10,7 +12,6 @@ import {
   IServerGroup,
   IServerGroupManager,
 } from 'core/domain';
-import { $q } from 'ngimport';
 
 import { ICreationMetadataTag, IEntityTag, IEntityTags } from '../domain/IEntityTags';
 

@@ -1,5 +1,7 @@
 import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
+import * as React from 'react';
+
 import { Application } from 'core/application';
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from 'core/domain';
@@ -7,7 +9,6 @@ import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifica
 import { ManagedResourceStatusIndicator } from 'core/managed';
 import { ReactInjector } from 'core/reactShims';
 import { SecurityGroupState } from 'core/state';
-import * as React from 'react';
 
 import './securityGroup.less';
 

@@ -1,3 +1,8 @@
+import { FormikErrors } from 'formik';
+import { flatten, isNumber, values } from 'lodash';
+import { $log, $q } from 'ngimport';
+import { Subject, Subscription } from 'rxjs';
+
 import {
   IPipeline,
   IStage,
@@ -7,10 +12,6 @@ import {
   ITriggerTypeConfig,
 } from 'core/domain';
 import { Registry } from 'core/registry';
-import { FormikErrors } from 'formik';
-import { flatten, isNumber, values } from 'lodash';
-import { $log, $q } from 'ngimport';
-import { Subject, Subscription } from 'rxjs';
 
 export interface IStageValidationResults {
   stage: IStage;

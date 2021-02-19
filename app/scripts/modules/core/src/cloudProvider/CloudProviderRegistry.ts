@@ -1,6 +1,7 @@
 /* tslint:disable: no-console */
-import { SETTINGS } from 'core/config/settings';
 import { cloneDeep, uniq, without } from 'lodash';
+
+import { SETTINGS } from 'core/config/settings';
 
 export interface ICloudProviderLogo {
   path: string;

@@ -1,9 +1,9 @@
 import { module } from 'angular';
+
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
 import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
 import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
-
-import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './helpContents/oracleHelpContents';
 import { ORACLE_IMAGE_IMAGE_READER } from './image/image.reader';

@@ -1,3 +1,6 @@
+import { FormikProps } from 'formik';
+import React from 'react';
+
 import { AccountService, IArtifactAccount } from 'core/account';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
 import { HelpField } from 'core/help';
@@ -7,8 +10,6 @@ import { FormikFormField } from 'core/presentation/forms';
 import { CheckboxInput, TextInput } from 'core/presentation/forms/inputs';
 import { TaskMonitor } from 'core/task';
 import { noop } from 'core/utils';
-import { FormikProps } from 'formik';
-import React from 'react';
 
 import { ArtifactEditor } from './ArtifactEditor';
 import { ExpectedArtifactService } from '../expectedArtifact.service';

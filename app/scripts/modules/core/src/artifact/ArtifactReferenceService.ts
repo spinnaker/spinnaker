@@ -1,6 +1,7 @@
+import { get, noop, set } from 'lodash';
+
 import { IStage } from 'core/domain';
 import { Registry } from 'core/registry';
-import { get, noop, set } from 'lodash';
 
 export class ArtifactReferenceService {
   /**

@@ -1,7 +1,8 @@
-import { IInstance } from 'core/domain';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import ReactGA from 'react-ga';
+
+import { IInstance } from 'core/domain';
 
 export interface Insight {
   label: string;

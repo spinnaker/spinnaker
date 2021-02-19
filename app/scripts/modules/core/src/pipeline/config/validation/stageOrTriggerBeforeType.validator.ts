@@ -1,6 +1,7 @@
 import { IDeferred } from 'angular';
-import { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
 import { $q } from 'ngimport';
+
+import { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
 
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 import { PipelineConfigService } from '../services/PipelineConfigService';

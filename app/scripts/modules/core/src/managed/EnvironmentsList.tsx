@@ -1,6 +1,7 @@
-import { Application } from 'core/application';
 import { pickBy, values } from 'lodash';
 import React from 'react';
+
+import { Application } from 'core/application';
 
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain';

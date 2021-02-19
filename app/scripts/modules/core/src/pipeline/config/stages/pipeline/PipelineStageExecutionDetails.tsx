@@ -1,7 +1,8 @@
 import { UISref } from '@uirouter/react';
+import React from 'react';
+
 import { IPipeline } from 'core/domain';
 import { useLatestPromise } from 'core/presentation/hooks/useLatestPromise.hook';
-import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';

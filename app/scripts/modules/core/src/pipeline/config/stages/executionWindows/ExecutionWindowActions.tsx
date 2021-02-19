@@ -1,11 +1,12 @@
+import { get } from 'lodash';
+import React from 'react';
+
 import { Application } from 'core/application/application.model';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { IExecution, IExecutionStage } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { SystemTimezone } from 'core/utils/SystemTimezone';
 import { timePickerTime } from 'core/utils/timeFormatters';
-import { get } from 'lodash';
-import React from 'react';
 
 import { DAYS_OF_WEEK } from './daysOfWeek';
 

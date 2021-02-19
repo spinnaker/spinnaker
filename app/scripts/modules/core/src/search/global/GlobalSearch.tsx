@@ -1,13 +1,14 @@
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
-import { ClusterState } from 'core/state';
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
+
+import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';

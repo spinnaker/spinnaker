@@ -1,7 +1,8 @@
 import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { IServerGroup } from 'core/domain';
 import _ from 'lodash';
+
+import { IServerGroup } from 'core/domain';
 
 import { ServerGroupReader } from '../../serverGroupReader.service';
 

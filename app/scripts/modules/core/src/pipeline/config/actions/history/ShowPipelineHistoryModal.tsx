@@ -1,11 +1,12 @@
+import { isEmpty } from 'lodash';
+import React from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { FormField, IModalComponentProps, ReactSelectInput, useData } from 'core/presentation';
 import { IJsonDiff, JsonUtils, timestamp } from 'core/utils';
 import { Spinner } from 'core/widgets';
-import { isEmpty } from 'lodash';
-import React from 'react';
-import { Modal } from 'react-bootstrap';
 
 import { DiffSummary } from './DiffSummary';
 import { DiffView } from './DiffView';

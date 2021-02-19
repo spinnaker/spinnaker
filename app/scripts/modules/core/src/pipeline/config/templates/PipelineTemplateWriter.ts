@@ -1,6 +1,7 @@
+import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
-import { $q } from 'ngimport';
 
 export class PipelineTemplateWriter {
   public static savePipelineTemplateV2(template: IPipelineTemplateV2): PromiseLike<any> {

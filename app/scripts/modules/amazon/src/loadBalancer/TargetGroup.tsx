@@ -1,9 +1,9 @@
 import { UISref, UISrefActive } from '@uirouter/react';
-import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
 import { orderBy } from 'lodash';
 import React from 'react';
 
 import { HealthCounts, LoadBalancerInstances, LoadBalancerServerGroup } from '@spinnaker/core';
+import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
 
 import './targetGroup.less';
 

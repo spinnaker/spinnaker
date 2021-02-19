@@ -1,11 +1,11 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { SETTINGS } from 'core/config/settings';
-import { PagerDutyWriter } from 'core/pagerDuty';
 import { find, isEqual } from 'lodash';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
+import { SETTINGS } from 'core/config/settings';
+import { PagerDutyWriter } from 'core/pagerDuty';
 
 import { AppRefresher } from './AppRefresher';
 import { NavSection } from './NavSection';

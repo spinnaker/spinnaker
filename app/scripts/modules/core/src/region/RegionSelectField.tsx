@@ -1,6 +1,7 @@
-import { IRegion } from 'core/account';
 import { $rootScope } from 'ngimport';
 import React from 'react';
+
+import { IRegion } from 'core/account';
 
 import { RegionSelectInput } from './RegionSelectInput';
 

@@ -1,6 +1,7 @@
+import { map, uniq } from 'lodash';
+
 import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
 import { Registry } from 'core/registry';
-import { map, uniq } from 'lodash';
 
 import { IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 import {

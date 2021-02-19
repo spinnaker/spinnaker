@@ -1,5 +1,3 @@
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
-import { VpcReader } from 'amazon/vpc';
 import { FormikErrors, FormikProps } from 'formik';
 import { forOwn, uniqBy } from 'lodash';
 import React from 'react';
@@ -21,6 +19,8 @@ import {
   SubnetReader,
   TetheredSelect,
 } from '@spinnaker/core';
+import { IAmazonFunctionUpsertCommand } from 'amazon/index';
+import { VpcReader } from 'amazon/vpc';
 
 export interface ISubnetOption {
   subnetId: string;

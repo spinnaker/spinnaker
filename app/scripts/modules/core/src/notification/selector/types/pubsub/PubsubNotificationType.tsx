@@ -1,6 +1,7 @@
+import React from 'react';
+
 import { INotificationTypeCustomConfig } from 'core/domain';
 import { FormikFormField, TextInput } from 'core/presentation';
-import React from 'react';
 
 export class PubsubNotificationType extends React.Component<INotificationTypeCustomConfig> {
   public render() {

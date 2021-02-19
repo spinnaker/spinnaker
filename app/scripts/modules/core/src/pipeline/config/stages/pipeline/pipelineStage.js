@@ -1,9 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
+import { pickBy } from 'lodash';
+
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { Registry } from 'core/registry';
-import { pickBy } from 'lodash';
 
 import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
 import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';

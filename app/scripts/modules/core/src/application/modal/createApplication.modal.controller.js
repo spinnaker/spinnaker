@@ -2,11 +2,12 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
+import _ from 'lodash';
+
 import { AccountService } from 'core/account/AccountService';
 import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 import { SETTINGS } from 'core/config/settings';
 import { TaskReader } from 'core/task/task.read.service';
-import _ from 'lodash';
 
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 import { ApplicationReader } from '../service/ApplicationReader';

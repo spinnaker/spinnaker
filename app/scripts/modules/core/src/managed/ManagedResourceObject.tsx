@@ -1,8 +1,8 @@
 import { useSref } from '@uirouter/react';
-import { Application } from 'core/application';
 import React, { memo } from 'react';
 
 import { Icon } from '@spinnaker/presentation';
+import { Application } from 'core/application';
 
 import { getKindName } from './ManagedReader';
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';

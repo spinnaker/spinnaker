@@ -1,11 +1,12 @@
 import classNames from 'classnames';
+import React from 'react';
+
 import { Application } from 'core/application';
 import { IClusterSubgroup } from 'core/cluster';
 import { IInstanceCounts, IServerGroup } from 'core/domain';
 import { ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ServerGroup } from 'core/serverGroup';
-import React from 'react';
 
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
 

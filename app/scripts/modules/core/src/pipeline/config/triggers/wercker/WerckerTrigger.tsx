@@ -1,10 +1,11 @@
+import { FormikProps } from 'formik';
+import { uniq } from 'lodash';
+import React from 'react';
+
 import { Application } from 'core/application';
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IWerckerTrigger } from 'core/domain';
 import { FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
-import { FormikProps } from 'formik';
-import { uniq } from 'lodash';
-import React from 'react';
 
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 import { IBaseBuildTriggerConfigProps } from '../baseBuild/BaseBuildTrigger';

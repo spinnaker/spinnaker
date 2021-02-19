@@ -1,10 +1,11 @@
 import AnsiUp from 'ansi_up';
 import classNames from 'classnames';
-import { IInstanceConsoleOutput, IInstanceMultiOutputLog, InstanceReader } from 'core/instance/InstanceReader';
 import DOMPurify from 'dompurify';
 import { bindAll } from 'lodash';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
+
+import { IInstanceConsoleOutput, IInstanceMultiOutputLog, InstanceReader } from 'core/instance/InstanceReader';
 
 import { IPodNameProvider } from '../PodNameProvider';
 

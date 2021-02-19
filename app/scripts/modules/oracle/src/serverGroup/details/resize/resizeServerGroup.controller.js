@@ -1,9 +1,9 @@
 'use strict';
 
 import { module } from 'angular';
-import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
 
 import { TaskMonitor } from '@spinnaker/core';
+import { ORACLE_COMMON_FOOTER_COMPONENT } from 'oracle/common/footer.component';
 
 import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
 

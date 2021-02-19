@@ -1,11 +1,12 @@
-import { SpinFormik } from 'core/presentation';
-import { NgReact } from 'core/reactShims';
-import { TaskMonitor } from 'core/task';
-import { Spinner } from 'core/widgets';
 import { Form, Formik, FormikProps } from 'formik';
 import { merge, without } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+
+import { SpinFormik } from 'core/presentation';
+import { NgReact } from 'core/reactShims';
+import { TaskMonitor } from 'core/task';
+import { Spinner } from 'core/widgets';
 
 import { WizardPage } from './WizardPage';
 import { WizardStepLabel } from './WizardStepLabel';

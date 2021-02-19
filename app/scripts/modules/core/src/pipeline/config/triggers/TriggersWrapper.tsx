@@ -1,5 +1,6 @@
-import { IPipeline } from 'core/domain';
 import React from 'react';
+
+import { IPipeline } from 'core/domain';
 
 import { ITriggersProps, Triggers } from './Triggers';
 

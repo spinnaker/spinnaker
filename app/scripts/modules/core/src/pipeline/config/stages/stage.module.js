@@ -1,15 +1,16 @@
 'use strict';
 
 import { module } from 'angular';
+import { defaultsDeep, extend, omit } from 'lodash';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import { AccountService } from 'core/account/AccountService';
 import { REST } from 'core/api';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { ReactModal } from 'core/presentation';
 import { Registry } from 'core/registry';
-import { defaultsDeep, extend, omit } from 'lodash';
-import React from 'react';
-import ReactDOM from 'react-dom';
 
 import { StageConfigWrapper } from './StageConfigWrapper';
 import { STAGE_NAME } from './StageName';

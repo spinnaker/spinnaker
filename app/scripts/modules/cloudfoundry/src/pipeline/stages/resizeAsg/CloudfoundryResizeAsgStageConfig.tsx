@@ -1,4 +1,3 @@
-import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
@@ -10,6 +9,7 @@ import {
   StageConfigField,
   StageConstants,
 } from '@spinnaker/core';
+import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
 export interface ICloudfoundryResizeAsgStageConfigState {
   accounts: IAccount[];

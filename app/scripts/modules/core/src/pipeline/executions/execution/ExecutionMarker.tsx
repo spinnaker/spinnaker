@@ -1,9 +1,10 @@
+import React from 'react';
+import ReactGA from 'react-ga';
+
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
 import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { duration } from 'core/utils/timeFormatters';
-import React from 'react';
-import ReactGA from 'react-ga';
 
 import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';

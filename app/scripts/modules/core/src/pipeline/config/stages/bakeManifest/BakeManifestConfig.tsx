@@ -1,8 +1,9 @@
-import { IExpectedArtifact, IStage } from 'core/domain';
-import { FormValidator } from 'core/presentation';
 import { FormikErrors } from 'formik';
 import { cloneDeep } from 'lodash';
 import React from 'react';
+
+import { IExpectedArtifact, IStage } from 'core/domain';
+import { FormValidator } from 'core/presentation';
 
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
 import { FormikStageConfig } from '../FormikStageConfig';

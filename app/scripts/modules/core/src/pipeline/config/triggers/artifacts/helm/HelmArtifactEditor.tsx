@@ -1,10 +1,11 @@
+import { cloneDeep } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
 import { TetheredCreatable, TetheredSelect } from 'core/presentation';
 import { Spinner } from 'core/widgets';
-import { cloneDeep } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
 
 import { ArtifactService } from '../ArtifactService';
 import { StageConfigField } from '../../../stages/common';

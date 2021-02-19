@@ -1,4 +1,3 @@
-import { FormikConfigField } from 'cloudfoundry/presentation';
 import { FormikProps } from 'formik';
 import React from 'react';
 
@@ -11,6 +10,7 @@ import {
   IWizardPageComponent,
   StageArtifactSelector,
 } from '@spinnaker/core';
+import { FormikConfigField } from 'cloudfoundry/presentation';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 

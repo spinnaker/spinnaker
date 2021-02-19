@@ -1,3 +1,6 @@
+import { hri as HumanReadableIds } from 'human-readable-ids';
+import { get } from 'lodash';
+
 import {
   IArtifact,
   IArtifactKindConfig,
@@ -10,8 +13,6 @@ import {
 import { PipelineConfigService } from 'core/pipeline';
 import { Registry } from 'core/registry';
 import { UUIDGenerator } from 'core/utils';
-import { hri as HumanReadableIds } from 'human-readable-ids';
-import { get } from 'lodash';
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {

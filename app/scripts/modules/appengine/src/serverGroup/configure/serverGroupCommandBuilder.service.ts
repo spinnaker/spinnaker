@@ -1,12 +1,4 @@
 import { IQService, module } from 'angular';
-import { AppengineProviderSettings } from 'appengine/appengine.settings';
-import {
-  GitCredentialType,
-  IAppengineAccount,
-  IAppengineGitTrigger,
-  IAppengineJenkinsTrigger,
-  IAppengineServerGroup,
-} from 'appengine/domain';
 
 import {
   AccountService,
@@ -20,6 +12,14 @@ import {
   IStage,
   StorageAccountReader,
 } from '@spinnaker/core';
+import { AppengineProviderSettings } from 'appengine/appengine.settings';
+import {
+  GitCredentialType,
+  IAppengineAccount,
+  IAppengineGitTrigger,
+  IAppengineJenkinsTrigger,
+  IAppengineServerGroup,
+} from 'appengine/domain';
 
 import { AppengineDeployDescription } from '../transformer';
 

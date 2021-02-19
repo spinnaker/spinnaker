@@ -1,11 +1,12 @@
 import { IQResolveReject } from 'angular';
+import { chain, intersection, uniq, zipObject } from 'lodash';
+import { $log, $q } from 'ngimport';
+import { Observable } from 'rxjs';
+
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
-import { chain, intersection, uniq, zipObject } from 'lodash';
-import { $log, $q } from 'ngimport';
-import { Observable } from 'rxjs';
 
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 

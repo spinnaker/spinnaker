@@ -1,7 +1,7 @@
-import { IAmazonInstance } from 'amazon/domain';
 import React from 'react';
 
 import { CollapsibleSection, LabeledValue, SubnetTag } from '@spinnaker/core';
+import { IAmazonInstance } from 'amazon/domain';
 
 import { InstanceInformation } from './InstanceInformation';
 import { VpcTag } from '../../vpc/VpcTag';

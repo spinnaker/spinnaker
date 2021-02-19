@@ -1,3 +1,7 @@
+import { uniqBy } from 'lodash';
+import React from 'react';
+import { Observable } from 'rxjs';
+
 import { IQueryParams } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
 import { Registry } from 'core/registry';
@@ -18,9 +22,6 @@ import {
   SearchTableRow,
 } from 'core/search';
 import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
-import { uniqBy } from 'lodash';
-import React from 'react';
-import { Observable } from 'rxjs';
 
 export interface IClusterSearchResult extends ISearchResult {
   account: string;

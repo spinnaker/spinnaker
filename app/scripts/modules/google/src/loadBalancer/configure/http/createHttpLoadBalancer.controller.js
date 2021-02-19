@@ -3,9 +3,9 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 
 import { TaskMonitor } from '@spinnaker/core';
+import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from './backendService/backendService.component';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from './basicSettings/basicSettings.component';

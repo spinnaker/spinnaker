@@ -1,7 +1,8 @@
-import { IExecution, IExecutionTriggerStatusComponentProps, IPipelineTrigger, ITrigger } from 'core/domain';
-import { IAuthentication } from 'core/domain/IAuthentication';
 import { has } from 'lodash';
 import React from 'react';
+
+import { IExecution, IExecutionTriggerStatusComponentProps, IPipelineTrigger, ITrigger } from 'core/domain';
+import { IAuthentication } from 'core/domain/IAuthentication';
 
 export class ExecutionUserStatus extends React.Component<IExecutionTriggerStatusComponentProps> {
   public render() {

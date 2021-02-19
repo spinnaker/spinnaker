@@ -1,5 +1,6 @@
-import { FormikFormField, TextInput } from 'core/presentation';
 import React from 'react';
+
+import { FormikFormField, TextInput } from 'core/presentation';
 
 import { FormikStageConfig } from '../FormikStageConfig';
 import { IStageConfigProps } from '../common';

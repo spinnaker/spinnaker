@@ -1,7 +1,8 @@
-import { IQueryParams, UrlBuilder } from 'core/navigation';
 import { isEmpty } from 'lodash';
 import { uniqBy } from 'lodash';
 import { Observable, Subject } from 'rxjs';
+
+import { IQueryParams, UrlBuilder } from 'core/navigation';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
 import { ISearchResult, ISearchResults } from '../search.service';

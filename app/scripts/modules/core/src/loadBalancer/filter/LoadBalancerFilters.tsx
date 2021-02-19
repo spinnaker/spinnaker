@@ -1,12 +1,13 @@
+import { chain, cloneDeep, compact, debounce, map, uniq } from 'lodash';
+import { $rootScope } from 'ngimport';
+import React from 'react';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application';
 import { FilterSearch } from 'core/cluster/filter/FilterSearch';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { digestDependentFilters, FilterCheckbox, ISortFilter } from 'core/filterModel';
 import { LoadBalancerState } from 'core/state';
-import { chain, cloneDeep, compact, debounce, map, uniq } from 'lodash';
-import { $rootScope } from 'ngimport';
-import React from 'react';
-import { Subscription } from 'rxjs';
 
 const poolValueCoordinates = [
   { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },

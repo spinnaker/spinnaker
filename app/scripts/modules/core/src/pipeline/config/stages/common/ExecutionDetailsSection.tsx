@@ -1,5 +1,6 @@
-import { IExecutionDetailsProps } from 'core/domain';
 import React from 'react';
+
+import { IExecutionDetailsProps } from 'core/domain';
 
 export interface IExecutionDetailsSectionWrapperProps {
   children?: any;

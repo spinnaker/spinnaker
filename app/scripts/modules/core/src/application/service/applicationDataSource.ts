@@ -1,11 +1,12 @@
 import { IScope } from 'angular';
+import { $log, $q } from 'ngimport';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+
 import { IEntityTags } from 'core/domain';
 import { IconNames, robotToHuman } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { FirewallLabels } from 'core/securityGroup';
 import { toIPromise } from 'core/utils';
-import { $log, $q } from 'ngimport';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { Application } from '../application.model';
 

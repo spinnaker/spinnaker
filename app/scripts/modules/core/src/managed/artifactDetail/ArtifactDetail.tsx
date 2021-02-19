@@ -1,12 +1,13 @@
 import classNames from 'classnames';
+import { DateTime } from 'luxon';
+import React, { useMemo } from 'react';
+
 import {
   IManagedArtifactSummary,
   IManagedArtifactVersion,
   IManagedEnvironmentSummary,
   IManagedResourceSummary,
 } from 'core/domain';
-import { DateTime } from 'luxon';
-import React, { useMemo } from 'react';
 
 import { AbsoluteTimestamp } from '../AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';

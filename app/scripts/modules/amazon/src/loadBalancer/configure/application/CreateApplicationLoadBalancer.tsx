@@ -1,5 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
@@ -15,6 +13,8 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import { ALBAdvancedSettings } from './ALBAdvancedSettings';
 import { ALBListeners } from './ALBListeners';

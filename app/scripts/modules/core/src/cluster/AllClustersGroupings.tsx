@@ -1,11 +1,12 @@
 import { UIRouterContext } from '@uirouter/react-hybrid';
+import React from 'react';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application';
 import { ISortFilter } from 'core/filterModel';
 import { IStateChange, ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
-import React from 'react';
-import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
-import { Subscription } from 'rxjs';
 
 import { ClusterPod } from './ClusterPod';
 import { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';

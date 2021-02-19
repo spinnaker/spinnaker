@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 import { ILoadBalancerGroup } from 'core/domain';
 import { ManagedResourceStatusIndicator } from 'core/managed';
-import React from 'react';
 
 import { LoadBalancer } from './LoadBalancer';
 

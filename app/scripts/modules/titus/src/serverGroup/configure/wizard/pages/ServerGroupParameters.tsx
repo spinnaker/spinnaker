@@ -2,7 +2,6 @@ import { Field, FormikProps } from 'formik';
 import { intersection, set, union } from 'lodash';
 import React from 'react';
 import Select, { Option } from 'react-select';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import {
   AccountTag,
@@ -14,6 +13,7 @@ import {
   PlatformHealthOverride,
   robotToHuman,
 } from '@spinnaker/core';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 import { enabledProcesses, processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';

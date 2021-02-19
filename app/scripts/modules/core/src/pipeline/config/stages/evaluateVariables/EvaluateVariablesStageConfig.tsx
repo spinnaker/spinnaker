@@ -1,3 +1,7 @@
+import { FieldArray } from 'formik';
+import { countBy } from 'lodash';
+import React from 'react';
+
 import { IStage } from 'core/domain';
 import {
   errorMessage,
@@ -16,9 +20,6 @@ import {
   useIsMountedRef,
   ValidationMessage,
 } from 'core/presentation';
-import { FieldArray } from 'formik';
-import { countBy } from 'lodash';
-import React from 'react';
 
 import { ExecutionAndStagePicker, IExecutionAndStagePickerProps } from './ExecutionAndStagePicker';
 import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';

@@ -1,4 +1,10 @@
 import classNames from 'classnames';
+import { has } from 'lodash';
+import { $interpolate } from 'ngimport';
+import React from 'react';
+import ReactGA from 'react-ga';
+import { Subscription } from 'rxjs';
+
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config';
 import { IInstance, IServerGroup } from 'core/domain';
@@ -8,11 +14,6 @@ import { Instances } from 'core/instance/Instances';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
 import { ScrollToService } from 'core/utils';
-import { has } from 'lodash';
-import { $interpolate } from 'ngimport';
-import React from 'react';
-import ReactGA from 'react-ga';
-import { Subscription } from 'rxjs';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
 

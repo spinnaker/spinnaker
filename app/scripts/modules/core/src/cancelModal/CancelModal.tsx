@@ -1,8 +1,9 @@
-import { ModalClose, SubmitButton } from 'core/modal';
-import { Markdown, ReactModal } from 'core/presentation';
 import { Field, FieldProps, Form, Formik } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+
+import { ModalClose, SubmitButton } from 'core/modal';
+import { Markdown, ReactModal } from 'core/presentation';
 
 export interface ICancelModalProps {
   body?: string;

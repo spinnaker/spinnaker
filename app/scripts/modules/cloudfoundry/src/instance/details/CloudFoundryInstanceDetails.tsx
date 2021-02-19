@@ -1,10 +1,10 @@
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 import { flattenDeep } from 'lodash';
 import React from 'react';
 
 import { Application, ILoadBalancer, InstanceReader, RecentHistoryService, Spinner } from '@spinnaker/core';
+import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 
 import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
 import { CloudFoundryInstanceDetailsSection } from './sections';

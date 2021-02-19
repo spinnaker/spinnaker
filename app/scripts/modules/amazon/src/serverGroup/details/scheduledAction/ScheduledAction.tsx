@@ -1,5 +1,6 @@
-import { IScheduledAction } from 'amazon/domain';
 import React from 'react';
+
+import { IScheduledAction } from 'amazon/domain';
 
 export interface IScheduledActionProps {
   action: IScheduledAction;

@@ -2,13 +2,14 @@
 
 import { module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import _ from 'lodash';
+
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ProviderSelectionService } from 'core/cloudProvider/providerSelection/ProviderSelectionService';
 import { SETTINGS } from 'core/config/settings';
 import { MANAGED_RESOURCE_STATUS_INDICATOR } from 'core/managed';
 import { SecurityGroupState } from 'core/state';
 import { noop } from 'core/utils';
-import _ from 'lodash';
 
 import { FirewallLabels } from './label/FirewallLabels';
 

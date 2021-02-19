@@ -1,11 +1,12 @@
 import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
+import { DateTime } from 'luxon';
+import React, { useMemo } from 'react';
+
 import { AccountTag } from 'core/account';
 import { IManagedResourceDiff, IManagedResourceEvent, IManagedResourceSummary } from 'core/domain';
 import { relativeTime, timestamp } from 'core/utils';
 import { Spinner } from 'core/widgets';
-import { DateTime } from 'luxon';
-import React, { useMemo } from 'react';
 
 import { ManagedReader } from '../ManagedReader';
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';

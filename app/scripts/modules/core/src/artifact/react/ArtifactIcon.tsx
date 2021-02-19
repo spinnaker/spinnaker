@@ -1,5 +1,6 @@
-import { IArtifact, IArtifactKindConfig, IExpectedArtifact } from 'core/domain';
 import React from 'react';
+
+import { IArtifact, IArtifactKindConfig, IExpectedArtifact } from 'core/domain';
 
 import { ArtifactIconService } from '../ArtifactIconService';
 import { ExpectedArtifactService } from '../expectedArtifact.service';

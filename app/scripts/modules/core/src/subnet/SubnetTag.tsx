@@ -1,5 +1,6 @@
-import { CopyToClipboard } from 'core/utils';
 import React from 'react';
+
+import { CopyToClipboard } from 'core/utils';
 
 import { SubnetReader } from './subnet.read.service';
 

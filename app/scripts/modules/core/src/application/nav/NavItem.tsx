@@ -1,8 +1,8 @@
-import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 
 import { Icon } from '@spinnaker/presentation';
+import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 
 import { Application } from '../application.model';
 import { IEntityTags } from '../../domain';

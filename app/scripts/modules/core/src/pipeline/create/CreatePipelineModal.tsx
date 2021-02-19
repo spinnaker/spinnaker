@@ -1,5 +1,12 @@
 import { UISref } from '@uirouter/react';
 import { IHttpPromiseCallbackArg } from 'angular';
+import { cloneDeep, get, uniqBy } from 'lodash';
+import { Debounce } from 'lodash-decorators';
+import { $log } from 'ngimport';
+import React from 'react';
+import { Button, Modal } from 'react-bootstrap';
+import Select, { Option } from 'react-select';
+
 import { Application } from 'core/application/application.model';
 import { SETTINGS } from 'core/config/settings';
 import { IPipeline } from 'core/domain/IPipeline';
@@ -7,12 +14,6 @@ import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
 import { Overridable } from 'core/overrideRegistry';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { cloneDeep, get, uniqBy } from 'lodash';
-import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
-import React from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import Select, { Option } from 'react-select';
 
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 import { TemplateDescription } from './TemplateDescription';

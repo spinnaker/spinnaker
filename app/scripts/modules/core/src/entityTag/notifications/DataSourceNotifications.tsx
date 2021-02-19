@@ -1,9 +1,10 @@
 import { module } from 'angular';
+import React from 'react';
+import { react2angular } from 'react2angular';
+
 import { Application } from 'core/application';
 import { IEntityTag, IEntityTags } from 'core/domain';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { NotificationsPopover } from './NotificationsPopover';
 

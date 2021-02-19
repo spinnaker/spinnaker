@@ -1,9 +1,10 @@
-import { INotification, INotificationTypeConfig } from 'core/domain';
-import { FormikFormField, TextAreaInput } from 'core/presentation';
-import { Registry } from 'core/registry';
 import { FormikProps } from 'formik';
 import React from 'react';
 import { Option } from 'react-select';
+
+import { INotification, INotificationTypeConfig } from 'core/domain';
+import { FormikFormField, TextAreaInput } from 'core/presentation';
+import { Registry } from 'core/registry';
 
 import { WhenChecklistInput } from './WhenChecklistInput';
 import { NotificationTransformer } from '../notification.transformer';

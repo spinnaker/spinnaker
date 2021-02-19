@@ -1,11 +1,12 @@
 import { module } from 'angular';
+import { cloneDeep } from 'lodash';
+import React from 'react';
+import { react2angular } from 'react2angular';
+
 import { IArtifactAccount } from 'core/account';
 import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from 'core/domain';
 import { StageConfigField } from 'core/pipeline';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import { cloneDeep } from 'lodash';
-import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
 import {

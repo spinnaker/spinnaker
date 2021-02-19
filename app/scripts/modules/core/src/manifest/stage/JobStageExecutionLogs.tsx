@@ -1,8 +1,9 @@
-import { Application } from 'core/application';
-import { IManifest } from 'core/domain/IManifest';
 import { isEmpty, template } from 'lodash';
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
+
+import { Application } from 'core/application';
+import { IManifest } from 'core/domain/IManifest';
 
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { ManifestReader } from '../ManifestReader';

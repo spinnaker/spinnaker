@@ -1,4 +1,3 @@
-import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/CloudFoundryDeploymentStrategySelector';
 import { FormikErrors, FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
@@ -15,6 +14,7 @@ import {
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
+import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/CloudFoundryDeploymentStrategySelector';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 

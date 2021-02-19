@@ -1,6 +1,7 @@
 import { UISref } from '@uirouter/react';
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import React from 'react';
+
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 interface IDetailsProps {
   loading: boolean;

@@ -1,3 +1,8 @@
+import { FormikProps } from 'formik';
+import { get } from 'lodash';
+import React from 'react';
+
+import { Application } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
 import {
@@ -6,11 +11,6 @@ import {
   IAmazonClassicLoadBalancerUpsertCommand,
   IClassicListenerDescription,
 } from 'amazon/domain';
-import { FormikProps } from 'formik';
-import { get } from 'lodash';
-import React from 'react';
-
-import { Application } from '@spinnaker/core';
 
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 

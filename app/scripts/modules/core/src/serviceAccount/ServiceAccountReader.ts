@@ -1,6 +1,7 @@
+import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
-import { $q } from 'ngimport';
 
 export class ServiceAccountReader {
   public static getServiceAccounts(): PromiseLike<string[]> {

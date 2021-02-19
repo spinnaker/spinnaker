@@ -1,4 +1,9 @@
 import classNames from 'classnames';
+import { FormikProps } from 'formik';
+import { isEqual, pick } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
+
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config/settings';
 import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from 'core/domain';
@@ -15,10 +20,6 @@ import {
   WatchValue,
 } from 'core/presentation';
 import { Registry } from 'core/registry';
-import { FormikProps } from 'formik';
-import { isEqual, pick } from 'lodash';
-import React from 'react';
-import { Option } from 'react-select';
 
 import { RunAsUserInput } from './RunAsUser';
 import { TriggerArtifactConstraintSelectorInput } from './artifacts';

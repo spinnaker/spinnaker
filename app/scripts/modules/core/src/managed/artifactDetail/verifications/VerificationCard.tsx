@@ -1,5 +1,6 @@
-import { IVerification } from 'core/domain';
 import React from 'react';
+
+import { IVerification } from 'core/domain';
 
 import { Button } from '../../Button';
 import { DurationRender } from '../../RelativeTimestamp';

@@ -1,8 +1,9 @@
-import { UUIDGenerator } from 'core/utils';
 import React from 'react';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import { Observable, Subject } from 'rxjs';
+
+import { UUIDGenerator } from 'core/utils';
 
 import { Placement } from './Placement';
 

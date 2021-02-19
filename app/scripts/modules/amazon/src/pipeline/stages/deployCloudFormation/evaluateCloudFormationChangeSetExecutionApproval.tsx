@@ -1,9 +1,9 @@
-import { AwsReactInjector } from 'amazon/reactShims';
 import React, { useState } from 'react';
 
 import { IExecution, IExecutionStage } from '@spinnaker/core';
 import { Application } from '@spinnaker/core';
 import { NgReact } from '@spinnaker/core';
+import { AwsReactInjector } from 'amazon/reactShims';
 
 export interface IEvaluateCloudFormationChangeSetExecutionApprovalProps {
   execution: IExecution;

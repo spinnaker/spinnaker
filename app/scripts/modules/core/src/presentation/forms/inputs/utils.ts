@@ -1,6 +1,7 @@
 import classNames from 'classnames';
-import { noop } from 'core/utils';
 import { isNil, isString } from 'lodash';
+
+import { noop } from 'core/utils';
 
 import { IFormInputValidation } from './interface';
 

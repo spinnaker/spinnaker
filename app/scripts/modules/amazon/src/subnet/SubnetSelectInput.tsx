@@ -1,4 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { get } from 'lodash';
 import React from 'react';
 import { Option } from 'react-select';
@@ -13,6 +12,7 @@ import {
   SelectInput,
   SETTINGS,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 export interface ISubnetSelectInputProps extends Omit<ISelectInputProps, 'options'> {
   value: string;

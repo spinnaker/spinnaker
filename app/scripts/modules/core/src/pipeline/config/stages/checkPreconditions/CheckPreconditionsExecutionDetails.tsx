@@ -1,6 +1,7 @@
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { get, isBoolean, isString } from 'lodash';
 import React from 'react';
+
+import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';

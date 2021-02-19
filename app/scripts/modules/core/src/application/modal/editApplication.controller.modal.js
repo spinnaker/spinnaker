@@ -1,10 +1,11 @@
 'use strict';
 
 import * as angular from 'angular';
+import _ from 'lodash';
+
 import { AccountService } from 'core/account/AccountService';
 import { SETTINGS } from 'core/config/settings';
 import { TaskReader } from 'core/task/task.read.service';
-import _ from 'lodash';
 
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 import { ApplicationWriter } from '../service/ApplicationWriter';

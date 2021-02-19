@@ -1,7 +1,8 @@
-import { REST } from 'core/api/ApiService';
 import React from 'react';
 import Select from 'react-select';
 import { Observable } from 'rxjs';
+
+import { REST } from 'core/api/ApiService';
 
 import { IStageConfigProps, StageConfigField } from '../common';
 

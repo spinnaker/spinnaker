@@ -1,5 +1,6 @@
-import { Tooltip } from 'core/presentation';
 import React from 'react';
+
+import { Tooltip } from 'core/presentation';
 
 export interface IQuietPeriodBadgeProps {
   start: Date;

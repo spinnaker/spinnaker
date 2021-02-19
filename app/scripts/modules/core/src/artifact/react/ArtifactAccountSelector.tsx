@@ -1,9 +1,10 @@
 import { module } from 'angular';
+import React from 'react';
+import { react2angular } from 'react2angular';
+
 import { IArtifactAccount } from 'core/account';
 import { TetheredSelect } from 'core/presentation';
 import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ArtifactIcon } from './ArtifactIcon';
 

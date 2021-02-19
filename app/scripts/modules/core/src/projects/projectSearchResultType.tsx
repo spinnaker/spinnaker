@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { IProjectConfig } from 'core/domain';
 import {
   BasicCell,
@@ -13,7 +15,6 @@ import {
   SearchTableHeader,
   SearchTableRow,
 } from 'core/search';
-import React from 'react';
 
 export interface IProjectSearchResult extends ISearchResult {
   applications: string[];

@@ -1,6 +1,7 @@
 import { IHttpPromiseCallbackArg } from 'angular';
-import { ITask } from 'core/domain';
 import { $q } from 'ngimport';
+
+import { ITask } from 'core/domain';
 
 import { AuthenticationService } from '../authentication/AuthenticationService';
 import { TaskReader } from './task.read.service';

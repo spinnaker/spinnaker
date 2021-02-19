@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { Application } from 'core/application';
 import { IEntityTag, IEntityTags } from 'core/domain';
 import { Placement } from 'core/presentation';
 import { noop } from 'core/utils';
-import React from 'react';
 
 import { EphemeralPopover } from './EphemeralPopover';
 import { NotificationsPopover } from './NotificationsPopover';

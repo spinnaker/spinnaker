@@ -1,9 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
+import _ from 'lodash';
+
 import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
-import _ from 'lodash';
 
 export const CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT =
   'spinnaker.core.accountNamespaceClusterSelector.directive';

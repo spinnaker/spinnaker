@@ -1,5 +1,6 @@
-import { IPipelineRef } from 'core/domain';
 import React from 'react';
+
+import { IPipelineRef } from 'core/domain';
 
 export interface IPipelineRefListProps {
   title: string;

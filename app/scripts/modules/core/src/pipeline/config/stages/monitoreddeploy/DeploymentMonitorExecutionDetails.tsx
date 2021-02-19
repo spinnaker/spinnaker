@@ -1,6 +1,7 @@
-import { IExecutionStage } from 'core/domain';
 import { get, isEmpty } from 'lodash';
 import React from 'react';
+
+import { IExecutionStage } from 'core/domain';
 
 import { DeploymentMonitorReader, IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';

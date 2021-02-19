@@ -1,3 +1,6 @@
+import React from 'react';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+
 import { REST } from 'core/api';
 import { IInstanceCounts, IServerGroup } from 'core/domain';
 import {
@@ -16,8 +19,6 @@ import {
   SearchTableHeader,
   SearchTableRow,
 } from 'core/search';
-import React from 'react';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import './serverGroup.less';
 

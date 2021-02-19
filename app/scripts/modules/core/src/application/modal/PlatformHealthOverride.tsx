@@ -1,6 +1,7 @@
-import { HelpField } from 'core/help/HelpField';
 import { isEqual } from 'lodash';
 import React from 'react';
+
+import { HelpField } from 'core/help/HelpField';
 
 export interface IPlatformHealthOverrideProps {
   interestingHealthProviderNames: string[];

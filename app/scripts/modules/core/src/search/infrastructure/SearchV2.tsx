@@ -1,10 +1,11 @@
+import { isEmpty, pickBy } from 'lodash';
+import React from 'react';
+import { Observable, Subject } from 'rxjs';
+
 import { InsightMenu } from 'core/insight/InsightMenu';
 import { IQueryParams } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
 import { ITag } from 'core/widgets';
-import { isEmpty, pickBy } from 'lodash';
-import React from 'react';
-import { Observable, Subject } from 'rxjs';
 
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';

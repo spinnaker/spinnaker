@@ -1,6 +1,7 @@
 import { UISref } from '@uirouter/react';
-import { SETTINGS } from 'core/config/settings';
 import React from 'react';
+
+import { SETTINGS } from 'core/config/settings';
 
 import { SearchResult } from '../infrastructure/SearchResult';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';

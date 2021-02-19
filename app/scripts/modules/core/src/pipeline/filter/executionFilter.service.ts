@@ -1,13 +1,14 @@
-import { Application } from 'core/application/application.model';
-import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { Registry } from 'core/registry';
-import { ExecutionState } from 'core/state';
 import { chain, compact, forOwn, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { DateTime, Duration } from 'luxon';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
+
+import { Application } from 'core/application/application.model';
+import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
+import { FilterModelService, ISortFilter } from 'core/filterModel';
+import { Registry } from 'core/registry';
+import { ExecutionState } from 'core/state';
 
 const boundaries = [
   {

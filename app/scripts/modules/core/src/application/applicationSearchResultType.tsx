@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   AccountCell,
   BasicCell,
@@ -13,7 +15,6 @@ import {
   SearchTableHeader,
   SearchTableRow,
 } from 'core/search';
-import React from 'react';
 
 export interface IApplicationSearchResult extends ISearchResult {
   accounts: string[];

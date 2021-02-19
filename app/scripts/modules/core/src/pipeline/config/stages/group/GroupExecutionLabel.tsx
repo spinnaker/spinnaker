@@ -1,7 +1,8 @@
+import React from 'react';
+
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import React from 'react';
 
 import { GroupExecutionPopover } from './GroupExecutionPopover';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';

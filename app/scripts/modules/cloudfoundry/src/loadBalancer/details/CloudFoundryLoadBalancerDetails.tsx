@@ -1,9 +1,9 @@
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
 import React from 'react';
 
 import { Application, LoadBalancerWriter, Spinner } from '@spinnaker/core';
+import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
 
 import { CloudFoundryLoadBalancerActions } from './CloudFoundryLoadBalancerActions';
 import { CloudFoundryLoadBalancerDetailsSection } from './sections';

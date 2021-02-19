@@ -1,5 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 import { FormikErrors, FormikProps } from 'formik';
 import { get, isEqual, partition, uniq } from 'lodash';
 import React from 'react';
@@ -15,6 +13,8 @@ import {
   Spinner,
   timestamp,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 
 export interface ISecurityGroupsProps {
   formik: FormikProps<IAmazonLoadBalancerUpsertCommand>;

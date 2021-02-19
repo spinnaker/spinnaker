@@ -1,9 +1,10 @@
 'use strict';
 
 import { module } from 'angular';
+import { pickBy } from 'lodash';
+
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
-import { pickBy } from 'lodash';
 
 import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
 

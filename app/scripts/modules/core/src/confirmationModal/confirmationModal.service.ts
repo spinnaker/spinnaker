@@ -1,6 +1,7 @@
+import { $q } from 'ngimport';
+
 import { ReactModal, toMarkdown } from 'core/presentation';
 import { ITaskMonitorConfig, TaskMonitor } from 'core/task';
-import { $q } from 'ngimport';
 
 import { ConfirmModal, IConfirmModalProps } from './ConfirmModal';
 

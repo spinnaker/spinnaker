@@ -1,10 +1,11 @@
 'use strict';
 
 import * as angular from 'angular';
+import _ from 'lodash';
+
 import { ViewStateCache } from 'core/cache';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { ReactModal } from 'core/presentation';
-import _ from 'lodash';
 
 import { DeletePipelineModal } from './actions/delete/DeletePipelineModal';
 import { DisablePipelineModal } from './actions/disable/DisablePipelineModal';

@@ -1,5 +1,6 @@
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import React from 'react';
+
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 export interface IConfigSectionFooterProps {
   isDirty: boolean;

@@ -1,5 +1,6 @@
-import { robotToHuman } from 'core/presentation';
 import React from 'react';
+
+import { robotToHuman } from 'core/presentation';
 
 import { SearchResultPodItem } from './SearchResultPodItem';
 import { ISearchResultPodData } from './SearchResultPods';

@@ -1,5 +1,6 @@
-import { IStage } from 'core/domain';
 import React from 'react';
+
+import { IStage } from 'core/domain';
 
 export interface ILabelComponentProps {
   stage: IStage;

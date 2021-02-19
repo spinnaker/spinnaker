@@ -1,7 +1,8 @@
 import classNames from 'classnames';
+import React from 'react';
+
 import { FirewallLabels } from 'core/securityGroup';
 import { ITag, Key, TagList } from 'core/widgets';
-import React from 'react';
 
 import { Filter } from './Filter';
 import { Filters, IFiltersLayout } from './Filters';

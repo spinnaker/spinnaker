@@ -1,9 +1,9 @@
-import { IAmazonNetworkLoadBalancerUpsertCommand, IListenerDescription, NLBListenerProtocol } from 'amazon/domain';
 import { FormikProps } from 'formik';
 import { difference, flatten, uniq, uniqBy } from 'lodash';
 import React from 'react';
 
 import { IWizardPageComponent, ValidationMessage } from '@spinnaker/core';
+import { IAmazonNetworkLoadBalancerUpsertCommand, IListenerDescription, NLBListenerProtocol } from 'amazon/domain';
 
 export interface INLBListenersProps {
   formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
