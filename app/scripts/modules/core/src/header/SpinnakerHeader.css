@@ -11,6 +11,8 @@
 }
 
 .spinnaker-header .navbar-header .navbar-menu-icon {
+  display: flex;
+  justify-content: center;
   min-width: 24px;
   cursor: pointer;
   width: 60px;
