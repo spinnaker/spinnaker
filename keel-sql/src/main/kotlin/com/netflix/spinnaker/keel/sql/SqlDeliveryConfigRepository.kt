@@ -202,19 +202,15 @@ class SqlDeliveryConfigRepository(
         .fetchOne(DELIVERY_CONFIG.UID)
     } ?: throw NoDeliveryConfigForApplication(application)
 
+  /**
+   * This deliberately returns _all_ resource UIDs not just the latest versions as it is used when
+   * deleting the resources associated with a delivery config.
+   */
   private fun getResourceUIDs(application: String): Select<Record1<String>> =
     jooq
       .select(RESOURCE.UID)
       .from(RESOURCE)
-      .innerJoin(
-        select(RESOURCE.ID, max(RESOURCE.VERSION).`as`("MAX_VERSION"))
-          .from(RESOURCE)
-          .where(RESOURCE.APPLICATION.eq(application))
-          .groupBy(RESOURCE.ID)
-          .asTable("GROUPED_RESOURCE")
-      )
-      .on(RESOURCE.ID.eq(field("GROUPED_RESOURCE.ID")))
-      .and(RESOURCE.VERSION.eq(field("GROUPED_RESOURCE.MAX_VERSION")))
+      .where(RESOURCE.APPLICATION.eq(application))
 
   private fun getResourceIDs(application: String): Select<Record1<String>> =
     jooq

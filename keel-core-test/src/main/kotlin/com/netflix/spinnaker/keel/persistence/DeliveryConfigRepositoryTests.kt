@@ -34,6 +34,7 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -43,6 +44,7 @@ import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
+import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Duration
 
@@ -486,8 +488,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
       context("deleting a delivery config") {
         before {
-          store()
           storeResources()
+          store()
           resourceRepository.appendHistory(ApplicationActuationPaused(deliveryConfig.application, "test"))
           pausedRepository.pauseApplication(deliveryConfig.application, "test")
           deliveryConfig.resources.forEach { resource ->
@@ -531,6 +533,26 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             deliveryConfig.resources.forEach { resource ->
               expectThat(pausedRepository.getPause(PauseScope.RESOURCE, resource.id)).isNull()
             }
+          }
+
+          test("deletes any older versions of resources") {
+            with(deliveryConfig.resources.first()) {
+              val newResourceVersion = resource(
+                kind = kind,
+                id = spec.id,
+                application = application
+              )
+              resourceRepository.store(newResourceVersion)
+            }
+
+            expectThat(repository.get(deliveryConfig.name).resources)
+              .hasSize(4)
+              .map { it.version }
+              .containsExactlyInAnyOrder(1, 1, 1, 2)
+
+            repository.deleteByApplication(deliveryConfig.application)
+
+            expectThat(resourceRepository.getResourcesByApplication(deliveryConfig.application)).isEmpty()
           }
         }
 
