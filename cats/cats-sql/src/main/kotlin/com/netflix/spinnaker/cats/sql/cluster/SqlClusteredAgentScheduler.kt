@@ -213,16 +213,17 @@ class SqlClusteredAgentScheduler(
     log.debug("Next agents to run: {}, max: {}", candidateAgentLocks.keys, availableAgents)
 
     val trimmedCandidates = mutableMapOf<String, AgentExecutionAction>()
-    candidateAgentLocks
-      .forEach { k, v ->
+    candidateAgentLocks.entries
+      .shuffled()
+      .forEach {
         if (trimmedCandidates.size >= availableAgents) {
           log.warn(
-            "Dropping caching agents! Wanted to run {} agents, but a max of {} was configured and there are " +
+            "Dropping caching agent: {}. Wanted to run {} agents, but a max of {} was configured and there are " +
               "already {} currently running. Consider increasing sql.agent.max-concurrent-agents",
-          candidateAgentLocks.size, maxConcurrentAgents, skip)
+          it.key, candidateAgentLocks.size, maxConcurrentAgents, skip)
           return@forEach
         }
-        trimmedCandidates[k] = v
+        trimmedCandidates[it.key] = it.value
       }
 
     return trimmedCandidates
