@@ -35,7 +35,7 @@ class GitDataGenerator(
   fun generateScmInfo(sectionBlockBuilder: SectionBlockBuilder, application: String, artifact: PublishedArtifact): SectionBlockBuilder {
     with(sectionBlockBuilder) {
       var details = ""
-      val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
+      val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
 
         with(artifact.gitMetadata) {
           if (this != null) {
@@ -97,7 +97,7 @@ class GitDataGenerator(
       envDetails +=  "*Where:* $env\n\n "
     }
 
-    val artifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${artifact.version}"
+    val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
     with(sectionBlockBuilder) {
       with(artifact) {
         if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
@@ -113,5 +113,8 @@ class GitDataGenerator(
       return this
     }
   }
+
+  fun generateArtifactUrl(application: String, reference: String, version: String) =
+    "$spinnakerBaseUrl/#/applications/${application}/environments/${reference}/${version}"
 
 }

@@ -50,6 +50,20 @@ class ManualJudgmentNotificationHandler(
           gitDataGenerator.generateScmInfo(this, application, artifactCandidate)
         }
 
+        // Add a warning section in case there's a pinned artifact
+        if (pinnedArtifact != null){
+          section {
+            markdownText(":warning: Another version is pinned here. You will need to unpin it first to promote this version.")
+            accessory {
+              button {
+                text("See pinned version", emoji = true)
+                actionId("button:url:pinned")
+                url(gitDataGenerator.generateArtifactUrl(application, pinnedArtifact.reference, pinnedArtifact.version))
+              }
+            }
+          }
+        }
+
         actions {
           elements {
             button {

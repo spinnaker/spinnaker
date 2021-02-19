@@ -72,6 +72,7 @@ data class SlackArtifactDeploymentNotification(
 data class SlackManualJudgmentNotification(
   val artifactCandidate: PublishedArtifact,
   val currentArtifact: PublishedArtifact? = null,
+  val pinnedArtifact: PublishedArtifact? = null,
   override val time: Instant,
   val targetEnvironment: String,
   val deliveryArtifact: DeliveryArtifact,

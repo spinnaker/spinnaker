@@ -61,7 +61,7 @@ class NotificationEventListener(
   @EventListener(PinnedNotification::class)
   fun onPinnedNotification(notification: PinnedNotification) {
     with(notification) {
-      val configAndArtifact = getConfigAndArtifact(
+      val (_, artifact) = getConfigAndArtifact(
         application = config.application,
         artifactReference = pin.reference,
         version = pin.version,
@@ -83,7 +83,7 @@ class NotificationEventListener(
         SlackPinnedNotification(
           pin = pin,
           currentArtifact = currentArtifact,
-          pinnedArtifact = configAndArtifact.second,
+          pinnedArtifact = artifact,
           application = config.application,
           time = clock.instant()
         ),
@@ -127,7 +127,7 @@ class NotificationEventListener(
   @EventListener(MarkAsBadNotification::class)
   fun onMarkAsBadNotification(notification: MarkAsBadNotification) {
     with(notification) {
-      val configAndArtifact = getConfigAndArtifact(
+      val (_, artifact) = getConfigAndArtifact(
         application = config.application,
         artifactReference = veto.reference,
         version = veto.version,
@@ -135,7 +135,7 @@ class NotificationEventListener(
 
       sendSlackMessage(config,
         SlackMarkAsBadNotification(
-          vetoedArtifact = configAndArtifact.second,
+          vetoedArtifact = artifact,
           user = user,
           targetEnvironment = veto.targetEnvironment,
           time = clock.instant(),
@@ -181,23 +181,23 @@ class NotificationEventListener(
   @EventListener(LifecycleEvent::class)
   fun onLifecycleEvent(notification: LifecycleEvent) {
     with(notification) {
-      val configAndArtifact = getConfigAndArtifact(
+      val (config, artifact) = getConfigAndArtifact(
         deliveryConfigName = artifactRef.split(":")[0],
         artifactReference = artifactRef.split(":")[1],
         version = artifactVersion) ?: return
 
-      val deliveryArtifact = configAndArtifact.first.artifacts.find {
+      val deliveryArtifact = config.artifacts.find {
         it.reference == artifactRef.split(":")[1]
       } ?: return
 
       // we only send notifications for failures
       if (status == LifecycleEventStatus.FAILED) {
-        sendSlackMessage(configAndArtifact.first,
+        sendSlackMessage(config,
           SlackLifecycleNotification(
             time = clock.instant(),
-            artifact = configAndArtifact.second,
+            artifact = artifact,
             eventType = type,
-            application = configAndArtifact.first.application
+            application = config.application
           ),
           LIFECYCLE_EVENT,
           artifact = deliveryArtifact)
@@ -233,17 +233,16 @@ class NotificationEventListener(
   @EventListener(ArtifactVersionVetoed::class)
   fun onArtifactVersionVetoed(notification: ArtifactVersionVetoed) {
     with(notification) {
-
-      val configAndArtifact = getConfigAndArtifact(
+      val (config, artifact) = getConfigAndArtifact(
         application = application,
         artifactReference = veto.reference,
         version = veto.version) ?: return
 
-      sendSlackMessage(configAndArtifact.first,
+      sendSlackMessage(config,
         SlackArtifactDeploymentNotification(
           time = clock.instant(),
           application = application,
-          artifact = configAndArtifact.second,
+          artifact = artifact,
           targetEnvironment = veto.targetEnvironment,
           status = DeploymentStatus.FAILED
         ),
@@ -263,7 +262,7 @@ class NotificationEventListener(
         currentState.status == ConstraintStatus.PENDING
       ) {
 
-        val configAndArtifact = currentState.artifactReference?.let {
+        val (config, artifact) = currentState.artifactReference?.let {
           getConfigAndArtifact(
             deliveryConfigName = currentState.deliveryConfigName,
             artifactReference = it,
@@ -271,21 +270,29 @@ class NotificationEventListener(
           )
         } ?: return
 
-        val deliveryArtifact = configAndArtifact.first.artifacts.find {
+        val deliveryArtifact = config.artifacts.find {
           it.reference == currentState.artifactReference
-        }?: return
+        } ?: return
 
-        val currentArtifact = repository.getArtifactVersionByPromotionStatus(configAndArtifact.first, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
+        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
+
+        // fetch the pinned artifact, if exists
+        val pinnedArtifact =
+          repository.getPinnedVersion(config, currentState.environmentName, deliveryArtifact.reference)?.let {
+            repository.getArtifactVersion(deliveryArtifact, it, null)
+              ?.copy(reference = deliveryArtifact.reference)
+          }
 
         sendSlackMessage(
-          configAndArtifact.first,
+          config,
           SlackManualJudgmentNotification(
             time = clock.instant(),
-            application = configAndArtifact.first.application,
-            artifactCandidate = configAndArtifact.second,
+            application = config.application,
+            artifactCandidate = artifact,
             targetEnvironment = currentState.environmentName,
             currentArtifact = currentArtifact,
             deliveryArtifact = deliveryArtifact,
+            pinnedArtifact = pinnedArtifact,
             stateUid = currentState.uid
           ),
           MANUAL_JUDGMENT_AWAIT,
@@ -304,9 +311,10 @@ class NotificationEventListener(
         return
       }
 
-      val configAndArtifact = getConfigAndArtifact(deliveryConfigName = deliveryConfigName,
-        artifactReference = artifactReference,
-        version = artifactVersion) ?: return
+      val (config, artifact) = getConfigAndArtifact(deliveryConfigName = deliveryConfigName,
+          artifactReference = artifactReference,
+          version = artifactVersion)
+       ?: return
 
       val type = when (status) {
         ConstraintStatus.PASS -> TEST_PASSED
@@ -316,11 +324,11 @@ class NotificationEventListener(
       }
 
       sendSlackMessage(
-        configAndArtifact.first,
+        config,
         SlackVerificationCompletedNotification(
           time = clock.instant(),
-          application = configAndArtifact.first.application,
-          artifact = configAndArtifact.second,
+          application = config.application,
+          artifact = artifact,
           targetEnvironment = environmentName,
           status = status
         ),
