@@ -86,7 +86,7 @@ class OrcaTaskLauncher(
     notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
-    correlationId: String,
+    correlationId: String?,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>>,

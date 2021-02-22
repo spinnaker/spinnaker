@@ -38,7 +38,7 @@ interface TaskLauncher {
     notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
-    correlationId: String,
+    correlationId: String? = null,
     stages: List<Map<String, Any?>>,
     artifacts: List<Map<String, Any?>> = emptyList(),
     parameters: Map<String, Any> = emptyMap()
@@ -62,7 +62,7 @@ interface TaskLauncher {
     notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
-    correlationId: String,
+    correlationId: String? = null,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>> = emptyList(),

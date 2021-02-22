@@ -26,7 +26,7 @@ data class OrchestrationRequest(
 class Job(type: String, m: Map<String, Any?>) : HashMap<String, Any?>(m + mapOf("type" to type, "user" to "Spinnaker"))
 
 data class OrchestrationTrigger(
-  val correlationId: String,
+  val correlationId: String?,
   val notifications: List<OrcaNotification>,
   val type: String = "keel",
   val user: String = "keel",
