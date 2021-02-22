@@ -453,7 +453,6 @@ class RedisPermissionsRepositorySpec extends Specification {
                "user3"       : user3.merge(unrestricted),
                "user4"       : user4.merge(unrestricted),
                "user5"       : user5.merge(unrestricted),
-               "USER5"       : user5.merge(unrestricted),
                (UNRESTRICTED): unrestricted]
 
     when:
