@@ -20,4 +20,9 @@ interface Front50Service {
     @Path("name") name: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Application
+
+  @GET("/v2/applications")
+  suspend fun allApplications(
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<Application>
 }
