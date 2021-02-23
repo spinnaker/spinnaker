@@ -7,10 +7,7 @@ beforeEach(() => {
           expected = '';
         }
         if (node !== undefined) {
-          actual = node
-            .text()
-            .trim()
-            .replace(/\s+/g, ' ');
+          actual = node.text().trim().replace(/\s+/g, " ");
         }
         const result: jasmine.CustomMatcherResult = { pass: expected === actual };
         if (result.pass) {

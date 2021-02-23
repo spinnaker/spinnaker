@@ -1,3 +1,4 @@
+/* eslint-disable @spinnaker/import-sort */
 import { configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 
