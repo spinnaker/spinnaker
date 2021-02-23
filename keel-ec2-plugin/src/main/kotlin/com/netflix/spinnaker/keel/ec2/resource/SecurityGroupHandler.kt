@@ -73,7 +73,7 @@ open class SecurityGroupHandler(
             region = region.name
           ),
           description = overrides[region.name]?.description ?: description,
-          inboundRules = overrides[region.name]?.inboundRules ?: inboundRules
+          inboundRules = (overrides[region.name]?.inboundRules ?: emptySet()) + inboundRules
         )
       }.toMap()
     }
