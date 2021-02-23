@@ -5,7 +5,12 @@ import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { InfrastructureCaches } from 'core/cache';
 import { ISecurityGroup } from 'core/domain';
-import { ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader } from './securityGroupReader.service';
+import {
+  ISecurityGroupDetail,
+  SECURITY_GROUP_READER,
+  SecurityGroupReader,
+  ISecurityGroupsByAccountSourceData,
+} from './securityGroupReader.service';
 import {
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   SecurityGroupTransformerService,
@@ -178,5 +183,48 @@ describe('Service: securityGroupReader', function () {
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');
     expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
+  });
+
+  it('Should not fetch groups again while fetching', async () => {
+    const http = mockHttpClient();
+    const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
+      key: 'securityGroups',
+      loader: () => $q.resolve([]),
+      onLoad: (_app, _data) => $q.resolve(_data),
+      defaultData: [],
+    });
+
+    application.getDataSource('securityGroups').refresh();
+
+    const groupName1 = 'testGroup1';
+    http.expectGET('/securityGroups').respond(200, {
+      [groupName1]: {
+        aws: {
+          'us-east-1': [{ name: 'hello', id: 'hello-id', vpcId: null }],
+        },
+      },
+    });
+
+    let data: ISecurityGroupsByAccountSourceData;
+    reader.getAllSecurityGroups().then((results) => (data = results));
+    reader.getAllSecurityGroups().then((results) => (data = results));
+    await http.flush();
+    expect(data[groupName1]).toBeDefined(`Group ${groupName1} is missing`);
+    expect(http.receivedRequests.length).toBe(1, 'Should only fetch once');
+
+    const groupName2 = 'testGroup2';
+    http.expectGET('/securityGroups').respond(200, {
+      [groupName2]: {
+        aws: {
+          'us-east-1': [{ name: 'hello', id: 'hello-id', vpcId: null }],
+        },
+      },
+    });
+
+    reader.getAllSecurityGroups().then((results) => (data = results));
+    await http.flush();
+    expect(http.receivedRequests.length).toBe(2, 'Should fetch again');
+    expect(data[groupName1]).toBeUndefined(`Group ${groupName1} is defined`);
+    expect(data[groupName2]).toBeDefined(`Group ${groupName2} is missing`);
   });
 });

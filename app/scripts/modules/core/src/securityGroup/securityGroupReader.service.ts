@@ -295,20 +295,30 @@ export class SecurityGroupReader {
     private providerServiceDelegate: ProviderServiceDelegate,
   ) {}
 
+  private getAllSecurityGroupsPromise: PromiseLike<ISecurityGroupsByAccountSourceData>;
+
   public getAllSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
     const cache = InfrastructureCaches.get('securityGroups');
     const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
       return this.$q.resolve(this.decompress(cloneDeep(cached)));
+    } else if (this.getAllSecurityGroupsPromise) {
+      return this.getAllSecurityGroupsPromise;
     }
-    return REST('/securityGroups')
+
+    this.getAllSecurityGroupsPromise = REST('/securityGroups')
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
         if (cache) {
           cache.put('allGroups', this.compress(groupsByAccount));
         }
         return groupsByAccount;
+      })
+      .finally(() => {
+        delete this.getAllSecurityGroupsPromise;
       });
+
+    return this.getAllSecurityGroupsPromise;
   }
 
   private compress(data: ISecurityGroupsByAccountSourceData): any {
