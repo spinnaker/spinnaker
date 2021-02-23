@@ -21,6 +21,7 @@ import static java.util.Collections.emptyMap;
 
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -68,6 +69,13 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
 
     if (stage.getContext().containsKey("expectedArtifacts")) {
       builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+    }
+  }
+
+  @Override
+  public void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
+    if (shouldSkipDownstreamOutput(stage)) {
+      stage.setOutputs(emptyMap());
     }
   }
 
@@ -124,5 +132,13 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
   @Override
   public boolean canManuallySkip(StageExecution stage) {
     return (Boolean) stage.getContext().getOrDefault("skippable", false);
+  }
+
+  private boolean shouldSkipDownstreamOutput(StageExecution stage) {
+    return stage
+        .getContext()
+        .getOrDefault("skipDownstreamOutput", "false")
+        .toString()
+        .equals("true");
   }
 }
