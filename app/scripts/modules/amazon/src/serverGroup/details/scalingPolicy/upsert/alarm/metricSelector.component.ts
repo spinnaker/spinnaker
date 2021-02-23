@@ -1,9 +1,9 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IComponentOptions, IController, module } from 'angular';
 import { Dictionary } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { CloudMetricsReader, ICloudMetricDescriptor, IMetricAlarmDimension, IServerGroup } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IConfigurableMetric } from '../../ScalingPolicyWriter';
 import { NAMESPACES } from './namespaces';

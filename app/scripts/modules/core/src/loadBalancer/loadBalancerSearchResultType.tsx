@@ -3,17 +3,17 @@ import React from 'react';
 import {
   AccountCell,
   BasicCell,
-  HrefCell,
-  searchResultTypeRegistry,
-  ISearchColumn,
   DefaultSearchResultTab,
-  ISearchResult,
   HeaderCell,
+  HrefCell,
+  ISearchColumn,
+  ISearchResult,
+  ISearchResultSet,
+  SearchResultType,
+  searchResultTypeRegistry,
   SearchTableBody,
   SearchTableHeader,
   SearchTableRow,
-  SearchResultType,
-  ISearchResultSet,
 } from 'core/search';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {

@@ -1,5 +1,4 @@
-import { module, IController, IComponentOptions, IScope } from 'angular';
-
+import { IComponentOptions, IController, IScope, module } from 'angular';
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IStageTypeConfig } from 'core/domain';
 

@@ -1,12 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import {
-  IAmazonLoadBalancerSourceData,
-  IApplicationLoadBalancerSourceData,
-  IKeyPair,
-  IScalingProcess,
-} from 'amazon/domain';
-import { AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE } from 'amazon/instance/awsInstanceType.service';
-import { KeyPairsReader } from 'amazon/keyPairs';
 import { module } from 'angular';
 import {
   chain,
@@ -51,6 +42,15 @@ import {
   setMatchingResourceSummary,
   SubnetReader,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import {
+  IAmazonLoadBalancerSourceData,
+  IApplicationLoadBalancerSourceData,
+  IKeyPair,
+  IScalingProcess,
+} from 'amazon/domain';
+import { AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE } from 'amazon/instance/awsInstanceType.service';
+import { KeyPairsReader } from 'amazon/keyPairs';
 
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
 

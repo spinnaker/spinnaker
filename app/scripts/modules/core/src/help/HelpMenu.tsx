@@ -1,6 +1,6 @@
-import React from 'react';
-import { Dropdown, MenuItem, Glyphicon } from 'react-bootstrap';
 import { UISref } from '@uirouter/react';
+import React from 'react';
+import { Dropdown, Glyphicon, MenuItem } from 'react-bootstrap';
 
 import { SETTINGS } from 'core/config';
 

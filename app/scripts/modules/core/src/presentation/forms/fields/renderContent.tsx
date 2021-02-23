@@ -1,5 +1,5 @@
-import React from 'react';
 import { isFunction } from 'lodash';
+import React from 'react';
 
 /**
  * A helper for rendering "render prop" contents

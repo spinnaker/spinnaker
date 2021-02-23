@@ -1,6 +1,7 @@
-import { IValidator } from './validation';
-import { isNumber } from 'lodash';
 import { robotToHuman } from 'core';
+import { isNumber } from 'lodash';
+
+import { IValidator } from './validation';
 
 const THIS_FIELD = 'This field';
 

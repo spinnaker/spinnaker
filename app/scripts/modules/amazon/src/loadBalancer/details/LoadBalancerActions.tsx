@@ -1,4 +1,3 @@
-import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
 import { get, values } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
@@ -13,6 +12,7 @@ import {
   NgReact,
   SETTINGS,
 } from '@spinnaker/core';
+import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
 
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
 import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';

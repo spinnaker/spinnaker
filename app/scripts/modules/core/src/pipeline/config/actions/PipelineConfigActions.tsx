@@ -2,6 +2,7 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import { IPipeline } from 'core/domain';
+
 import { PipelineConfigAction } from './PipelineConfigAction';
 
 export interface IPipelineConfigActionsProps {

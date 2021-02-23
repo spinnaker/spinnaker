@@ -1,10 +1,11 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
-
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
 import { RegionSelectField } from './RegionSelectField';
+
+('use strict');
 
 export const CORE_REGION_REGIONSELECTFIELD_DIRECTIVE = 'spinnaker.core.region.regionSelectField.directive';
 export const name = CORE_REGION_REGIONSELECTFIELD_DIRECTIVE; // for backwards compatibility

@@ -1,8 +1,6 @@
 'use strict';
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { VpcReader } from 'amazon/vpc/VpcReader';
 import { module } from 'angular';
 import _ from 'lodash';
 import { Subject } from 'rxjs';
@@ -18,6 +16,8 @@ import {
   SecurityGroupWriter,
   TaskMonitor,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { VpcReader } from 'amazon/vpc/VpcReader';
 
 export const AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER =
   'spinnaker.amazon.securityGroup.baseConfig.controller';

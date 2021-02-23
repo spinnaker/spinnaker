@@ -1,4 +1,4 @@
-import { Transition, HookResult, TargetState } from '@uirouter/core';
+import { HookResult, TargetState, Transition } from '@uirouter/core';
 
 type ParamChangedCallback = (newVal: any, oldVal?: any) => HookResult | TargetState;
 

@@ -2,8 +2,9 @@ import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { SystemTimezone } from 'core/utils/SystemTimezone';
-import { HOURS, MINUTES, MONTHS_DAYS_WITH_LASTS, MONTH_WEEKS, WEEKDAYS } from './cronSelectOptions';
+
 import { ICronTriggerConfigProps } from './cronConfig';
+import { HOURS, MINUTES, MONTH_WEEKS, MONTHS_DAYS_WITH_LASTS, WEEKDAYS } from './cronSelectOptions';
 
 export interface ICronMonthlyState {
   subTab: string;

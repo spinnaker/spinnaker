@@ -1,4 +1,3 @@
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup';
 import { FormikProps } from 'formik';
 import { get } from 'lodash';
 import React from 'react';
@@ -13,6 +12,7 @@ import {
   IServerGroupFilter,
   ReactSelectInput,
 } from '@spinnaker/core';
+import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup';
 
 export interface IFormikAccountRegionClusterSelectorProps {
   accounts: IAccount[];

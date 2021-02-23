@@ -1,10 +1,10 @@
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain';
 import { IComponentController } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
+import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain';
 
 import { IUpsertScalingPolicyCommand, ScalingPolicyWriter } from '../ScalingPolicyWriter';
 

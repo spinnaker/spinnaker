@@ -2,14 +2,6 @@ import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 import { IController, module } from 'angular';
 import ANGULAR_UI_BOOTSTRAP, { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeep, trimEnd } from 'lodash';
-import {
-  IOracleBackEndSet,
-  IOracleListener,
-  IOracleListenerCertificate,
-  IOracleLoadBalancer,
-  IOracleSubnet,
-  LoadBalancingPolicy,
-} from 'oracle/domain/IOracleLoadBalancer';
 
 import {
   AccountService,
@@ -25,6 +17,14 @@ import {
   SubnetReader,
   TaskMonitor,
 } from '@spinnaker/core';
+import {
+  IOracleBackEndSet,
+  IOracleListener,
+  IOracleListenerCertificate,
+  IOracleLoadBalancer,
+  IOracleSubnet,
+  LoadBalancingPolicy,
+} from 'oracle/domain/IOracleLoadBalancer';
 
 import { ORACLE_LOAD_BALANCER_TRANSFORMER, OracleLoadBalancerTransformer } from '../loadBalancer.transformer';
 

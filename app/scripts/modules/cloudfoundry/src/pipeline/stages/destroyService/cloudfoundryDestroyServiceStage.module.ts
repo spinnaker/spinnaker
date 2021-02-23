@@ -1,6 +1,5 @@
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
-
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 
 import { CloudfoundryDestroyServiceStageConfig } from './CloudfoundryDestroyServiceStageConfig';
 

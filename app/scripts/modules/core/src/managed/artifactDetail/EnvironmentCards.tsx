@@ -1,17 +1,17 @@
-import React from 'react';
 import { useRouter } from '@uirouter/react';
+import React from 'react';
 
 import { IManagedArtifactVersionEnvironment } from 'core/domain';
 
-import { Button } from '../Button';
-import { StatusCard } from '../StatusCard';
-import { logCategories, useLogEvent } from '../utils/logging';
 import { IArtifactDetailProps } from './ArtifactDetail';
+import { Button } from '../Button';
+import { PinnedCard } from './PinnedCard';
+import { StatusCard } from '../StatusCard';
+import { VersionStateCard } from './VersionStateCard';
 import { ConstraintCard } from './constraints/ConstraintCard';
 import { isConstraintSupported } from './constraints/constraintRegistry';
-import { PinnedCard } from './PinnedCard';
+import { logCategories, useLogEvent } from '../utils/logging';
 import { VerificationCard } from './verifications/VerificationCard';
-import { VersionStateCard } from './VersionStateCard';
 
 interface IEnvironmentCardsProps
   extends Pick<

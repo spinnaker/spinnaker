@@ -1,7 +1,8 @@
 import { FormikProps } from 'formik';
-import { useEffect, useState } from 'react';
-import { usePrevious } from '../../hooks';
 import { get } from 'lodash';
+import { useEffect, useState } from 'react';
+
+import { usePrevious } from '../../hooks';
 
 /**
  * Sometimes a form allows the user to choose between multiple mutually exclusive sets of fields.

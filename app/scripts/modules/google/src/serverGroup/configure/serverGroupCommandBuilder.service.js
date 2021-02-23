@@ -1,12 +1,12 @@
 'use strict';
 
 import * as angular from 'angular';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
-import { GCEProviderSettings } from 'google/gce.settings';
-import { parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 import _ from 'lodash';
 
 import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { GCEProviderSettings } from 'google/gce.settings';
+import { parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './../../instance/custom/customInstanceBuilder.gce.service';
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE } from './wizard/hiddenMetadataKeys.value';

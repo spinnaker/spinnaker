@@ -1,8 +1,8 @@
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain/ITargetTrackingPolicy';
 import { IComponentController, IComponentOptions, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application, ConfirmationModalService, IServerGroup, ITaskMonitorConfig } from '@spinnaker/core';
+import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain/ITargetTrackingPolicy';
 
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 import { UpsertTargetTrackingController } from './upsertTargetTracking.controller';

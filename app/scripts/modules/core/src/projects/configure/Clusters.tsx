@@ -1,5 +1,5 @@
-import React from 'react';
 import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
+import React from 'react';
 
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';

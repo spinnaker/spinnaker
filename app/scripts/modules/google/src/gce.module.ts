@@ -1,7 +1,7 @@
 import { module } from 'angular';
-import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 
 import { GCE_PREDICTIVE_AUTOSCALING } from './autoscalingPolicy/components/metricSettings/GcePredictiveAutoscaling';
 import { GOOGLE_CACHE_CACHECONFIGURER_SERVICE } from './cache/cacheConfigurer.service';

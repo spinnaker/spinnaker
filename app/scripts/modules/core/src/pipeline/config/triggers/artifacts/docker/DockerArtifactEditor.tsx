@@ -1,13 +1,13 @@
-import React from 'react';
 import { cloneDeep, isNil } from 'lodash';
+import React from 'react';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { StageConfigField } from '../../../stages/common';
 import { SpelText } from 'core/widgets';
 
-import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
 import { ArtifactEditor } from '../ArtifactEditor';
+import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
+import { StageConfigField } from '../../../stages/common';
 
 const TYPE = 'docker/image';
 

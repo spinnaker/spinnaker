@@ -1,5 +1,5 @@
+import { isEqual, isFunction } from 'lodash';
 import React from 'react';
-import { isFunction, isEqual } from 'lodash';
 
 import { IWizardModalApi } from './WizardModal';
 

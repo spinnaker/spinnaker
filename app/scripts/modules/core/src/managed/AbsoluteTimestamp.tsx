@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
 import { DateTime } from 'luxon';
+import React, { memo } from 'react';
 
 import { SETTINGS } from '../config';
 import { CopyToClipboard } from '../utils';

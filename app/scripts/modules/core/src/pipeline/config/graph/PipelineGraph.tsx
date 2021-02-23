@@ -1,24 +1,24 @@
-import React from 'react';
+import classNames from 'classnames';
 import DOMPurify from 'dompurify';
 import $ from 'jquery';
-import classNames from 'classnames';
-import { Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
+import { Debounce, Throttle } from 'lodash-decorators';
+import React from 'react';
 import { Subscription } from 'rxjs';
 
-import type { IExecution, IPipeline } from 'core/domain';
-import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
+import { IExecution, IPipeline } from 'core/domain';
 import { UUIDGenerator } from 'core/utils/uuid.service';
-import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 
+import { PipelineGraphLink } from './PipelineGraphLink';
+import { PipelineGraphNode } from './PipelineGraphNode';
 import {
   IExecutionViewState,
   IPipelineGraphLink,
   IPipelineGraphNode,
   PipelineGraphService,
 } from './pipelineGraph.service';
-import { PipelineGraphLink } from './PipelineGraphLink';
-import { PipelineGraphNode } from './PipelineGraphNode';
+import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
+import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 
 import './pipelineGraph.less';
 

@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { ICapacity } from '../../serverGroupWriter.service';
 import { CurrentCapacity } from './CurrentCapacity';
 import { DesiredCapacity } from './DesiredCapacity';
+import { ICapacity } from '../../serverGroupWriter.service';
 
 interface ICapacityDetailsSectionProps {
   capacity: ICapacity;

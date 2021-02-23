@@ -1,5 +1,5 @@
-import React from 'react';
 import { flatten, map } from 'lodash';
+import React from 'react';
 import { Subscription } from 'rxjs';
 
 import { IInstance, IServerGroup } from 'core/domain';

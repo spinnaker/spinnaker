@@ -1,23 +1,24 @@
+import { ILogService, IQService, module } from 'angular';
 import { filter, forOwn, has, uniq } from 'lodash';
-import { module, ILogService, IQService } from 'angular';
+import { cloneDeep } from 'lodash';
 
 import { REST } from 'core/api/ApiService';
-import { IComponentName, NameUtils } from 'core/naming';
-import { InfrastructureCaches } from 'core/cache';
 import { Application } from 'core/application/application.model';
-import { ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage } from 'core/domain';
+import { InfrastructureCaches } from 'core/cache';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
+import { SETTINGS } from 'core/config/settings';
+import { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from 'core/domain';
+import { IEntityTags } from 'core/domain/IEntityTags';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
+import { IComponentName, NameUtils } from 'core/naming';
+import { IMoniker } from 'core/naming/IMoniker';
+import { ISearchResults, SearchService } from 'core/search/search.service';
+
+import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import {
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   SecurityGroupTransformerService,
 } from './securityGroupTransformer.service';
-import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
-import { SETTINGS } from 'core/config/settings';
-import { SearchService, ISearchResults } from 'core/search/search.service';
-import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
-import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
-import { IMoniker } from 'core/naming/IMoniker';
-import { IEntityTags } from 'core/domain/IEntityTags';
-import { cloneDeep } from 'lodash';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {

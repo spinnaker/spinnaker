@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { IVariableMetadata } from './PipelineTemplateReader';
-import { IVariable, IVariableInputBuilder, VariableInputService } from './inputs/variableInput.service';
 import { VariableMetadataHelpField } from './VariableMetadataHelpField';
+import { IVariable, IVariableInputBuilder, VariableInputService } from './inputs/variableInput.service';
 
 import './Variable.less';
 

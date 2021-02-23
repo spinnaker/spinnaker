@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { StageFailureMessage, StageExecutionLogs } from '../../../details';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './';
 import { AccountTag } from 'core/account';
+
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSectionProps & { action: string }) {
   const { action, stage } = props;

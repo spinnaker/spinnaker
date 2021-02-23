@@ -1,5 +1,3 @@
-import { AwsModalFooter } from 'amazon/common';
-import { IAmazonServerGroup } from 'amazon/domain';
 import { Form, Formik, FormikErrors, FormikProps } from 'formik';
 import { pickBy } from 'lodash';
 import React from 'react';
@@ -27,6 +25,8 @@ import {
   TaskReason,
   ValidationMessage,
 } from '@spinnaker/core';
+import { AwsModalFooter } from 'amazon/common';
+import { IAmazonServerGroup } from 'amazon/domain';
 
 export interface IAmazonResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;

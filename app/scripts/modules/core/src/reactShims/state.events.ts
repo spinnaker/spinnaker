@@ -1,5 +1,5 @@
-import { module, IRootScopeService, IAngularEvent } from 'angular';
 import { StateDeclaration } from '@uirouter/angularjs';
+import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Subject } from 'rxjs';
 
 export interface IStateChange {

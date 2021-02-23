@@ -1,6 +1,7 @@
 import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
-import { BaseRequiredFieldValidator, IRequiredField } from './baseRequiredField.validator';
+
 import { PipelineConfigValidator } from './PipelineConfigValidator';
+import { BaseRequiredFieldValidator, IRequiredField } from './baseRequiredField.validator';
 import { IBaseRequiredFieldValidationConfig } from './baseRequiredField.validator';
 
 export interface IMultiRequiredField extends IBaseRequiredFieldValidationConfig {

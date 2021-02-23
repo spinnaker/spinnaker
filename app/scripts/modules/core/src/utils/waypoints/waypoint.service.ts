@@ -1,6 +1,6 @@
-import { sortBy, throttle } from 'lodash';
 import { IScope } from 'angular';
-import { $timeout, $rootScope } from 'ngimport';
+import { sortBy, throttle } from 'lodash';
+import { $rootScope, $timeout } from 'ngimport';
 
 interface IViewPlacement {
   top: number;

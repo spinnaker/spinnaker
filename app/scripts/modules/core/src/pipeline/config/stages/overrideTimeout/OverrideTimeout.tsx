@@ -1,10 +1,10 @@
-import React from 'react';
 import { get } from 'lodash';
 import { Duration } from 'luxon';
+import React from 'react';
 
 import { IStage } from 'core/domain';
-import { CheckboxInput, NumberInput } from 'core/presentation';
 import { HelpField } from 'core/help';
+import { CheckboxInput, NumberInput } from 'core/presentation';
 
 const { useEffect, useState } = React;
 

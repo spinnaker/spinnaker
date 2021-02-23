@@ -1,8 +1,8 @@
 import { module } from 'angular';
+import { SETTINGS } from 'core/config/settings';
 
 import { AuthenticationInitializer } from '../AuthenticationInitializer';
 import { AuthenticationService } from '../AuthenticationService';
-import { SETTINGS } from 'core/config/settings';
 
 export const AUTHENTICATION_USER_MENU = 'spinnaker.core.authentication.userMenu.directive';
 

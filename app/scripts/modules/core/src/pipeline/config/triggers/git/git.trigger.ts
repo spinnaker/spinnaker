@@ -1,7 +1,7 @@
-import { GitTrigger } from './GitTrigger';
-
 import { ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
 import { Registry } from 'core/registry';
+
+import { GitTrigger } from './GitTrigger';
 import { GitTriggerExecutionStatus } from './GitTriggerExecutionStatus';
 
 Registry.pipeline.registerTrigger({

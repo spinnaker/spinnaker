@@ -1,5 +1,5 @@
-import React from 'react';
 import { FormikErrors, FormikProps } from 'formik';
+import React from 'react';
 
 import { IProject } from 'core/domain';
 import { IWizardPageComponent } from 'core/modal';

@@ -3,8 +3,9 @@ import React from 'react';
 import { Application } from 'core/application';
 import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { IFunction } from 'core/domain';
-import { IFunctionUpsertCommand } from './function.write.service';
 import { IModalComponentProps, Tooltip } from 'core/presentation';
+
+import { IFunctionUpsertCommand } from './function.write.service';
 
 export interface IFunctionModalProps extends IModalComponentProps {
   className?: string;

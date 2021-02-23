@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
@@ -11,6 +10,7 @@ import {
   ISecurityGroupsByAccount,
   ModalInjector,
 } from '@spinnaker/core';
+import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { INetworkInterface } from '../../../domain/IAmazonLaunchTemplate';

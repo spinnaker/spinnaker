@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { Application } from 'core/application';
 import { IAccountDetails } from 'core/account';
-import { CloudProviderRegistry, ProviderSelectionService, ICloudProviderConfig } from 'core/cloudProvider';
+import { Application } from 'core/application';
+import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
-import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
-import { ModalInjector } from 'core/reactShims';
 import { IModalComponentProps, Tooltip } from 'core/presentation';
+import { ModalInjector } from 'core/reactShims';
+
+import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
 
 export interface ILoadBalancerModalProps extends IModalComponentProps {
   className?: string;

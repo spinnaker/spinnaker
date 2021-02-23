@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { showModal } from '../../../presentation';
 import { ConsoleOutputModal } from './ConsoleOutputModal';
 import { IInstance } from '../../../domain';
+import { showModal } from '../../../presentation';
 
 export interface IConsoleOutputProps {
   instance: IInstance;

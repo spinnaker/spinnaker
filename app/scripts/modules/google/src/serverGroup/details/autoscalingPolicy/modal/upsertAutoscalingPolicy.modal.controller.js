@@ -1,11 +1,11 @@
 'use strict';
 
 import { module } from 'angular';
+
+import { TaskMonitor } from '@spinnaker/core';
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT } from 'google/autoscalingPolicy/components/basicSettings/basicSettings.component';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT } from 'google/autoscalingPolicy/components/metricSettings/metricSettings.component';
-
-import { TaskMonitor } from '@spinnaker/core';
 
 import './upsertAutoscalingPolicy.modal.less';
 

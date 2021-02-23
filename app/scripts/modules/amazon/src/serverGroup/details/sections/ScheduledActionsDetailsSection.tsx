@@ -1,7 +1,7 @@
-import { IScalingProcess } from 'amazon/domain';
 import React from 'react';
 
 import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
+import { IScalingProcess } from 'amazon/domain';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';

@@ -7,6 +7,7 @@ import { ConfirmationModalService } from 'core/confirmationModal';
 import { DIFF_SUMMARY_COMPONENT } from 'core/pipeline/config/actions/history/diffSummary.component';
 import { DIFF_VIEW_COMPONENT } from 'core/pipeline/config/actions/history/diffView.component';
 import { JsonUtils } from 'core/utils/json/JsonUtils';
+
 import { SnapshotReader } from '../SnapshotReader';
 import { SnapshotWriter } from '../SnapshotWriter';
 

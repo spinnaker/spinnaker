@@ -1,4 +1,5 @@
 import { join } from 'lodash';
+
 import { INotification } from 'core/domain';
 
 export class NotificationTransformer {

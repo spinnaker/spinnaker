@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
 import classNames from 'classnames';
+import React, { useState } from 'react';
 
 import { Icon } from '@spinnaker/presentation';
 
-import { IManagedResourceSummary, IManagedEnvironmentSummary } from '../../domain';
-import { StatusBubble } from '../StatusBubble';
 import { EnvironmentBadge } from '../EnvironmentBadge';
+import { StatusBubble } from '../StatusBubble';
+import { IManagedEnvironmentSummary, IManagedResourceSummary } from '../../domain';
 import { useEnvironmentTypeFromResources } from '../useEnvironmentTypeFromResources.hooks';
 
 import './EnvironmentRow.less';

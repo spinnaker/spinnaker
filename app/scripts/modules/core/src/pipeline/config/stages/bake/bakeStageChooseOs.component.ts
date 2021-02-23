@@ -1,4 +1,4 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { SETTINGS } from 'core/config/settings';
 
 export interface IBaseOsOption {

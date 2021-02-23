@@ -1,6 +1,6 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import ReactGA from 'react-ga';
 
 import './CopyToClipboard.less';
 

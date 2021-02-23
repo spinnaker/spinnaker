@@ -1,15 +1,15 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
 import classNames from 'classnames';
+import React from 'react';
 
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ILoadBalancer, IServerGroup, ILoadBalancerGroup } from 'core/domain';
+import { ILoadBalancer, ILoadBalancerGroup, IServerGroup } from 'core/domain';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
+import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { ManagedResourceStatusIndicator } from 'core/managed';
 
-import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 
 export interface ILoadBalancerProps {
   application: Application;

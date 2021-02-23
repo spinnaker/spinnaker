@@ -3,12 +3,12 @@ import React from 'react';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 import { Subscription } from 'rxjs';
 
-import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Application } from 'core/application';
-import { ClusterPod } from './ClusterPod';
 import { ISortFilter } from 'core/filterModel';
+import { IStateChange, ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
 
+import { ClusterPod } from './ClusterPod';
 import { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
 
 export interface IAllClustersGroupingsProps {

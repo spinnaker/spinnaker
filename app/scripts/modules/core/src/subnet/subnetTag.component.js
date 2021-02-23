@@ -1,10 +1,11 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
-
-import { SubnetTag } from './SubnetTag';
+import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
-import { module } from 'angular';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
+import { SubnetTag } from './SubnetTag';
+
+('use strict');
 
 export const CORE_SUBNET_SUBNETTAG_COMPONENT = 'spinnaker.core.subnet.tag.component';
 export const name = CORE_SUBNET_SUBNETTAG_COMPONENT; // for backwards compatibility

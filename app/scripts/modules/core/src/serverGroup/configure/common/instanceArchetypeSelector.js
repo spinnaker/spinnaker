@@ -1,9 +1,10 @@
-import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
-import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from '../../../presentation/isVisible/isVisible.directive';
-import { CORE_SERVERGROUP_CONFIGURE_COMMON_DIRTYINSTANCETYPENOTIFICATION_COMPONENT } from './dirtyInstanceTypeNotification.component';
-('use strict');
-
 import { module } from 'angular';
+
+import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
+import { CORE_SERVERGROUP_CONFIGURE_COMMON_DIRTYINSTANCETYPENOTIFICATION_COMPONENT } from './dirtyInstanceTypeNotification.component';
+import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from '../../../presentation/isVisible/isVisible.directive';
+
+('use strict');
 
 export const CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR =
   'spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector';

@@ -1,11 +1,11 @@
+import { DateTime } from 'luxon';
 import React, { memo } from 'react';
 import ReactGA from 'react-ga';
-import { DateTime } from 'luxon';
 
-import { IManagedArtifactVersionLifecycleStep } from '../../domain';
-import { Application } from '../../application';
-import { StatusCard } from '../StatusCard';
 import { Button } from '../Button';
+import { StatusCard } from '../StatusCard';
+import { Application } from '../../application';
+import { IManagedArtifactVersionLifecycleStep } from '../../domain';
 import { timeDiffToString } from '../../utils';
 
 const cardAppearanceByStatus = {

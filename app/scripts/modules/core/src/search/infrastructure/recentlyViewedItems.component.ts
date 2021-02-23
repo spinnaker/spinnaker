@@ -1,6 +1,8 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
 import { RecentlyViewedItems } from './RecentlyViewedItems';
 
 export const RECENTLY_VIEWED_ITEMS_COMPONENT = 'spinnaker.core.search.infrastructure.recentlyViewedItems.component';

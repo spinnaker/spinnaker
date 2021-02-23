@@ -1,4 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IComponentOptions, IController, module } from 'angular';
 import { intersection, uniq } from 'lodash';
 import { Subject, Subscription } from 'rxjs';
@@ -10,6 +9,7 @@ import {
   ISecurityGroupsByAccountSourceData,
   IVpc,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 interface IInfiniteScroll {
   currentItems: number;

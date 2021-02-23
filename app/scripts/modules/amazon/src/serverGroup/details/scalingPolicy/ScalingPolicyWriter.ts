@@ -1,3 +1,4 @@
+import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
 import {
   AlarmComparisonOperator,
   AlarmStatisticType,
@@ -7,8 +8,6 @@ import {
   ScalingPolicyAdjustmentType,
   StandardUnitType,
 } from 'amazon/domain';
-
-import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
 
 export interface IUpsertScalingPolicyCommand extends IJob {
   type?: string; // Orca/Clouddriver operation type

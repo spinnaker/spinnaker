@@ -3,8 +3,8 @@ import { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
+import { IParameter, IPipeline } from 'core/domain';
 import { HelpField } from 'core/help/HelpField';
-import { IPipeline, IParameter } from 'core/domain';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Spinner } from 'core/widgets';
 

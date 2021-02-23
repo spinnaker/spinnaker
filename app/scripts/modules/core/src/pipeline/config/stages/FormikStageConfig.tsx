@@ -1,9 +1,9 @@
+import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
-import { FormikProps, FormikErrors } from 'formik';
 
-import { IStage, IPipeline, ITrigger } from 'core/domain';
 import { Application } from 'core/application';
-import { LayoutProvider, ResponsiveFieldLayout, WatchValue, SpinFormik } from 'core/presentation';
+import { IPipeline, IStage, ITrigger } from 'core/domain';
+import { LayoutProvider, ResponsiveFieldLayout, SpinFormik, WatchValue } from 'core/presentation';
 
 export interface IFormikStageConfigInjectedProps {
   application: Application;

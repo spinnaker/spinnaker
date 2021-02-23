@@ -2,9 +2,9 @@ import React from 'react';
 
 import { IVerification } from 'core/domain';
 
-import { IStatusCardProps, StatusCard } from '../../StatusCard';
 import { Button } from '../../Button';
 import { DurationRender } from '../../RelativeTimestamp';
+import { IStatusCardProps, StatusCard } from '../../StatusCard';
 
 const statusToText: { [key in IVerification['status']]: string } = {
   NOT_EVALUATED: 'Verification has not started yet',

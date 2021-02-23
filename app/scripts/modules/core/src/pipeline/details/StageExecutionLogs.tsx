@@ -1,5 +1,5 @@
-import React from 'react';
 import { get } from 'lodash';
+import React from 'react';
 
 import { IStage } from 'core/domain';
 

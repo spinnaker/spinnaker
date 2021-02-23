@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { IEntityTags } from 'core/domain';
 import { AccountTag } from 'core/account';
+import { IEntityTags } from 'core/domain';
 
 export interface IEntityNameProps {
   tag: IEntityTags;

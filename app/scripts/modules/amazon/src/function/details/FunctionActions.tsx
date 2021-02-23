@@ -1,4 +1,3 @@
-import { IAmazonFunction, IAmazonFunctionDeleteCommand } from 'amazon/domain';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
@@ -10,6 +9,7 @@ import {
   NgReact,
   SETTINGS,
 } from '@spinnaker/core';
+import { IAmazonFunction, IAmazonFunctionDeleteCommand } from 'amazon/domain';
 
 import { IFunctionFromStateParams } from './AmazonFunctionDetails';
 import { CreateLambdaFunction } from '../CreateLambdaFunction';

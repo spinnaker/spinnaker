@@ -1,6 +1,5 @@
 import { defaultsDeep, set } from 'lodash';
 import React from 'react';
-import { ITitusResources } from 'titus/domain';
 
 import {
   AccountSelectInput,
@@ -17,6 +16,7 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
+import { ITitusResources } from 'titus/domain';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
 import { TitusProviderSettings } from '../../../titus.settings';

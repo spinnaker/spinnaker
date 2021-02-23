@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
+import React, { useMemo } from 'react';
 
 import {
   IManagedArtifactSummary,
@@ -9,18 +9,18 @@ import {
   IManagedResourceSummary,
 } from 'core/domain';
 
-import { Application } from '../../application';
-import { useEventListener, Markdown, CollapsibleElement } from '../../presentation';
 import { AbsoluteTimestamp } from '../AbsoluteTimestamp';
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
+import { Button } from '../Button';
+import { EnvironmentCards } from './EnvironmentCards';
 import { ManagedResourceObject } from '../ManagedResourceObject';
-import { EnvironmentRow } from '../environment/EnvironmentRow';
+import { showMarkArtifactAsBadModal } from './MarkArtifactAsBadModal';
+import { showPinArtifactModal } from './PinArtifactModal';
 import { PreDeploymentRow } from './PreDeploymentRow';
 import { PreDeploymentStepCard } from './PreDeploymentStepCard';
-import { Button } from '../Button';
-import { showPinArtifactModal } from './PinArtifactModal';
-import { showMarkArtifactAsBadModal } from './MarkArtifactAsBadModal';
-import { EnvironmentCards } from './EnvironmentCards';
+import { Application } from '../../application';
+import { EnvironmentRow } from '../environment/EnvironmentRow';
+import { CollapsibleElement, Markdown, useEventListener } from '../../presentation';
 import { isResourceKindSupported } from '../resources/resourceRegistry';
 import { logCategories, useLogEvent } from '../utils/logging';
 

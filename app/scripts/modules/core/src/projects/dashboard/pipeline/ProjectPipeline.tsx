@@ -1,10 +1,10 @@
-import React from 'react';
 import { has } from 'lodash';
+import React from 'react';
 
 import { Application } from 'core/application/application.model';
+import { IExecution } from 'core/domain';
 import { ExecutionBuildLink } from 'core/pipeline/executionBuild/ExecutionBuildLink';
 import { ExecutionMarker } from 'core/pipeline/executions/execution/ExecutionMarker';
-import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';
 

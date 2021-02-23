@@ -1,9 +1,9 @@
 import React from 'react';
-import { useInternalValidator } from './hooks/useInternalValidator.hook';
-import { composeValidators, IValidator, Validators } from '../validation';
-import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 
+import { useInternalValidator } from './hooks/useInternalValidator.hook';
+import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 import { orEmptyString, validationClassName } from './utils';
+import { composeValidators, IValidator, Validators } from '../validation';
 
 import './NumberInput.css';
 

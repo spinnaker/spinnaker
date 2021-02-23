@@ -1,7 +1,8 @@
 import React from 'react';
+
+import { IAuthentication } from './IAuthentication';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 import { ITrigger } from './ITrigger';
-import { IAuthentication } from './IAuthentication';
 
 export interface IExecutionTriggerStatusComponentProps {
   trigger: ITrigger;

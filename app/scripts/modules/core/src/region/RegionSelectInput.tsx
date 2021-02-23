@@ -1,6 +1,8 @@
 import React from 'react';
-import { IRegion } from 'core/account/AccountService';
 import { Option } from 'react-select';
+
+import { IRegion } from 'core/account/AccountService';
+
 import { IFormInputProps, SelectInput } from '../presentation';
 
 export interface IRegionSelectInputProps extends IFormInputProps {

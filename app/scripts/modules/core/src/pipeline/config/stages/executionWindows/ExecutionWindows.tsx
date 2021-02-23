@@ -1,7 +1,7 @@
-import React from 'react';
-import { extend, get, isEqual } from 'lodash';
-import { Option } from 'react-select';
 import { format } from 'date-fns';
+import { extend, get, isEqual } from 'lodash';
+import React from 'react';
+import { Option } from 'react-select';
 
 import { IStage } from 'core/domain';
 import { CheckboxInput, NumberInput, ReactSelectInput, TextAreaInput, TextInput, Tooltip } from 'core/presentation';

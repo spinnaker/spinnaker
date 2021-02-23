@@ -1,14 +1,5 @@
 import { StateService } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import {
-  IAmazonApplicationLoadBalancer,
-  IAmazonLoadBalancer,
-  IAmazonLoadBalancerSourceData,
-  IApplicationLoadBalancerSourceData,
-  IClassicLoadBalancerSourceData,
-  IListenerAction,
-  ITargetGroup,
-} from 'amazon/domain';
 import { IController, IQService, IScope, module } from 'angular';
 import { head, sortBy } from 'lodash';
 
@@ -27,6 +18,15 @@ import {
   SETTINGS,
   SubnetReader,
 } from '@spinnaker/core';
+import {
+  IAmazonApplicationLoadBalancer,
+  IAmazonLoadBalancer,
+  IAmazonLoadBalancerSourceData,
+  IApplicationLoadBalancerSourceData,
+  IClassicLoadBalancerSourceData,
+  IListenerAction,
+  ITargetGroup,
+} from 'amazon/domain';
 
 import { LOAD_BALANCER_ACTIONS } from './loadBalancerActions.component';
 

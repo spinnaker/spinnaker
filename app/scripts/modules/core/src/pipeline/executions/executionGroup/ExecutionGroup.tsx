@@ -1,14 +1,12 @@
+import classnames from 'classnames';
+import { flatten, uniq, without } from 'lodash';
 import React from 'react';
 import ReactGA from 'react-ga';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { flatten, uniq, without } from 'lodash';
-import classnames from 'classnames';
 
+import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { Execution } from '../execution/Execution';
-import { ExecutionAction } from '../executionAction/ExecutionAction';
 import {
   IExecution,
   IExecutionGroup,
@@ -17,20 +15,22 @@ import {
   IPipelineCommand,
   IPipelineTemplateConfigV2,
 } from 'core/domain';
-import { NextRunTag } from '../../triggers/NextRunTag';
-import { Popover } from 'core/presentation/Popover';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { Placement } from 'core/presentation/Placement';
-import { ExecutionState } from 'core/state';
-import { IRetryablePromise } from 'core/utils/retryablePromise';
-import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
-
-import { TriggersTag } from '../../triggers/TriggersTag';
-import { AccountTag } from 'core/account';
-import { MigrationTag } from './MigrationTag';
+import { Popover } from 'core/presentation/Popover';
 import { ReactInjector } from 'core/reactShims';
-import { ManualExecutionModal } from '../../manualExecution';
-import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
+import { ExecutionState } from 'core/state';
+import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
+import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { Spinner } from 'core/widgets/spinners/Spinner';
+
+import { MigrationTag } from './MigrationTag';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
+import { Execution } from '../execution/Execution';
+import { ExecutionAction } from '../executionAction/ExecutionAction';
+import { ManualExecutionModal } from '../../manualExecution';
+import { NextRunTag } from '../../triggers/NextRunTag';
+import { TriggersTag } from '../../triggers/TriggersTag';
 
 import './executionGroup.less';
 

@@ -1,3 +1,5 @@
+import React, { useMemo } from 'react';
+
 import { ApplicationReader } from 'core/application';
 import {
   asyncMessage,
@@ -8,7 +10,6 @@ import {
   useInternalValidator,
   useLatestCallback,
 } from 'core/presentation';
-import React, { useMemo } from 'react';
 
 interface IApplicationsPickerInputProps extends IFormInputProps {
   /** When true, selects multiple apps. The picker returns an array of applications */

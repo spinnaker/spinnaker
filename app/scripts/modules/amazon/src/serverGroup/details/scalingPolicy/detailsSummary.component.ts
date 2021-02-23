@@ -1,7 +1,7 @@
-import { IScalingPolicy } from 'amazon/domain';
 import { IComponentOptions, IController, module } from 'angular';
 
 import { Application, IServerGroup } from '@spinnaker/core';
+import { IScalingPolicy } from 'amazon/domain';
 
 import { ScalingPolicyTypeRegistry } from './ScalingPolicyTypeRegistry';
 

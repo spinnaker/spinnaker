@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
+
 import { DefaultClusterPodTitle } from './DefaultClusterPodTitle';
 import { IClusterSubgroup } from './filter/ClusterFilterService';
 

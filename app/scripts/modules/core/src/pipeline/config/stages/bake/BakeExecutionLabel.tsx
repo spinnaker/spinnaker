@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { IExecutionStageSummary } from 'core/domain';
 
 export class BakeExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }> {

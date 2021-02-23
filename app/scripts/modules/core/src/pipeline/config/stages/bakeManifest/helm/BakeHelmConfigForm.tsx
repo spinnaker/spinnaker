@@ -1,12 +1,13 @@
 import React from 'react';
 
 import { AccountService } from 'core/account';
-import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
-import { CheckboxInput, TextInput } from 'core/presentation';
-import { MapEditor } from 'core/forms';
+import { ArtifactTypePatterns, excludeAllTypesExcept, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
-import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDelegate } from 'core/artifact';
+import { MapEditor } from 'core/forms';
+import { CheckboxInput, TextInput } from 'core/presentation';
+
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
+import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 
 export interface IBakeHelmConfigFormState {
   gitRepoArtifactAccountNames: string[];

@@ -1,5 +1,5 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
 
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBuildTrigger } from 'core/domain';

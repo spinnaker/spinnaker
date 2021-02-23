@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
-import { SETTINGS, INotificationSettings } from 'core/config';
+
+import { INotificationSettings, SETTINGS } from 'core/config';
 import { INotificationTypeConfig } from 'core/domain';
 import { Registry } from 'core/registry';
 

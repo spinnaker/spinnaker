@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { IPipelineRef } from 'core/domain';
 
 export interface IPipelineRefListProps {

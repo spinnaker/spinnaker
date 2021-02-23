@@ -1,11 +1,12 @@
-import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
-import classNames from 'classnames';
-import { bindAll } from 'lodash';
-import DOMPurify from 'dompurify';
 import AnsiUp from 'ansi_up';
+import classNames from 'classnames';
+import DOMPurify from 'dompurify';
+import { bindAll } from 'lodash';
+import React from 'react';
+import { Button, Modal } from 'react-bootstrap';
 
-import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from 'core/instance/InstanceReader';
+import { IInstanceConsoleOutput, IInstanceMultiOutputLog, InstanceReader } from 'core/instance/InstanceReader';
+
 import { IPodNameProvider } from '../PodNameProvider';
 
 // IJobManifestPodLogs is the data needed to get logs

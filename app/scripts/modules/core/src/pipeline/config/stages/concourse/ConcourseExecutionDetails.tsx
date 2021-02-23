@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
-import { StageFailureMessage, StageExecutionLogs } from '../../../details';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 
 export function ConcourseExecutionDetails(props: IExecutionDetailsSectionProps) {
   const {

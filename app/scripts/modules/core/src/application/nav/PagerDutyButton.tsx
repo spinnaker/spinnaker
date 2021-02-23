@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Application } from '../application.model';
 import { PagerDutyWriter } from 'core/pagerDuty';
 import { Tooltip } from 'core/presentation';
+
+import { Application } from '../application.model';
 
 export interface IPagerDutyButtonProps {
   app: Application;

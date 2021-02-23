@@ -1,5 +1,5 @@
-import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
+import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
 
 class StringValidator implements IVariableValidator {
   public handles(type: string) {

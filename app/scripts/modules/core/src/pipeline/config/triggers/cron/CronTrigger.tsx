@@ -2,12 +2,12 @@ import React from 'react';
 
 import { FormField, ReactSelectInput } from 'core/presentation';
 
-import { CronMinutes } from './CronMinutes';
-import { CronHourly } from './CronHourly';
-import { CronDaily } from './CronDaily';
-import { CronWeekly } from './CronWeekly';
-import { CronMonthly } from './CronMonthly';
 import { CronAdvance } from './CronAdvance';
+import { CronDaily } from './CronDaily';
+import { CronHourly } from './CronHourly';
+import { CronMinutes } from './CronMinutes';
+import { CronMonthly } from './CronMonthly';
+import { CronWeekly } from './CronWeekly';
 import { ICronTriggerConfigProps } from './cronConfig';
 
 import './cronTrigger.less';

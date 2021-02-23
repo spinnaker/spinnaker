@@ -1,13 +1,13 @@
-import { IController, IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
+import { IController, IScope, module } from 'angular';
 import { get } from 'lodash';
+
+import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
 } from '../../../details/executionDetailsSection.service';
-
-import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
 
 export class WebhookExecutionDetailsCtrl implements IController {
   public configSections = ['webhookConfig', 'taskStatus', 'artifactStatus'];

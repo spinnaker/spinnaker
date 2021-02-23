@@ -1,9 +1,9 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
 
-import { HelpField } from 'core/help';
 import { IParameter, IPipelineCommand } from 'core/domain';
-import { FormikFormField, ReactSelectInput, TextInput, DayPickerInput } from 'core/presentation';
+import { HelpField } from 'core/help';
+import { DayPickerInput, FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 
 export interface IParametersProps {
   formik: FormikProps<IPipelineCommand>;

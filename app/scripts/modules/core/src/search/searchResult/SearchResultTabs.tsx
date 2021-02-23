@@ -1,9 +1,9 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
+import React from 'react';
 
-import { SearchResultType } from './searchResultType';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { SearchResultType } from './searchResultType';
 
 export interface ISearchResultTabsProps {
   resultSets: ISearchResultSet[];

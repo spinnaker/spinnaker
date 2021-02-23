@@ -1,3 +1,4 @@
+/* eslint-disable @spinnaker/import-sort */
 import { module } from 'angular';
 
 import 'bootstrap/dist/css/bootstrap.css';

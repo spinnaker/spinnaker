@@ -1,11 +1,10 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
-
+import { FormField, IStage, ReactSelectInput } from 'core';
+import { get } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
-import { get } from 'lodash';
 
-import { FormField, IStage, ReactSelectInput } from 'core';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 
 import { STATUS_OPTIONS } from './stageStatusOptions';
 

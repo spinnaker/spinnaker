@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { ConfirmationModalService } from 'core/confirmationModal';
+import { IExecution, IExecutionStage } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils/timeFormatters';
+
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
 
 export const DEFAULT_SKIP_WAIT_TEXT = 'The pipeline will proceed immediately, marking this stage completed.';

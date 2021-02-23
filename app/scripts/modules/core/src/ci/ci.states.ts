@@ -1,9 +1,9 @@
 import { module } from 'angular';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from '../application';
-import { INestedState } from '../navigation';
 import { Builds } from './components/Builds';
 import { SETTINGS } from '../config/settings';
+import { INestedState } from '../navigation';
 
 export const CI_STATES = 'spinnaker.ci.states';
 export const name = CI_STATES;

@@ -1,3 +1,4 @@
+import { CloudProviderRegistry } from '@spinnaker/core';
 import 'cloudfoundry/common/applicationName.validator';
 import { CloudFoundryInstanceDetails } from 'cloudfoundry/instance/details';
 import {
@@ -24,8 +25,6 @@ import {
   ServerGroupInformationSection,
   ServerGroupSizingSection,
 } from 'cloudfoundry/serverGroup';
-
-import { CloudProviderRegistry } from '@spinnaker/core';
 
 import './help/cloudfoundry.help';
 import cloudFoundryLogo from './logo/cf.logo.svg';

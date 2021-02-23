@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { useObservable } from '../../presentation/hooks';
-import { Application } from '../application.model';
-import { IFetchStatus } from '../service/applicationDataSource';
-
 import { AppRefresherIcon } from './AppRefresherIcon';
+import { Application } from '../application.model';
+import { useObservable } from '../../presentation/hooks';
+import { IFetchStatus } from '../service/applicationDataSource';
 
 export interface IAppRefresherProps {
   app: Application;

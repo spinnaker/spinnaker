@@ -1,10 +1,11 @@
 import { UISref } from '@uirouter/react';
+import React from 'react';
 
 import { SETTINGS } from 'core/config/settings';
-import { ISearchResult } from '../search.service';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+
 import { SearchResult } from '../infrastructure/SearchResult';
-import React from 'react';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { ISearchResult } from '../search.service';
 
 export interface IGlobalSearchResultsProps {
   categories: ISearchResultSet[];

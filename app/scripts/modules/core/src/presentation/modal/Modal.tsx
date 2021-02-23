@@ -1,12 +1,11 @@
+import { isNumber } from 'lodash';
 import React, { useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
-import { isNumber } from 'lodash';
-
-import { useLatestCallback, useContainerClassNames, useEventListener } from '../hooks';
-import { TabBoundary } from '../TabBoundary';
 
 import { ModalContext } from './ModalContext';
+import { TabBoundary } from '../TabBoundary';
+import { useContainerClassNames, useEventListener, useLatestCallback } from '../hooks';
 
 import './Modal.less';
 

@@ -1,8 +1,8 @@
 import React from 'react';
 
-import './ColumnHeader.less';
-
 import { Icon, IconNames } from '@spinnaker/presentation';
+
+import './ColumnHeader.less';
 
 export interface IColumnHeaderProps {
   text: string;

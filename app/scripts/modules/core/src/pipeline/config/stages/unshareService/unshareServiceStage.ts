@@ -1,7 +1,7 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { UnshareServiceExecutionDetails } from './UnshareServiceExecutionDetails';
+import { ExecutionDetailsTasks } from '../common';
 
 Registry.pipeline.registerStage({
   executionDetailsSections: [UnshareServiceExecutionDetails, ExecutionDetailsTasks],

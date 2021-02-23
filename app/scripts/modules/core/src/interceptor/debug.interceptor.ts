@@ -1,5 +1,6 @@
-import { module, IRequestConfig, IHttpInterceptor, IHttpProvider } from 'angular';
-import { $log, $location } from 'ngimport';
+import { IHttpInterceptor, IHttpProvider, IRequestConfig, module } from 'angular';
+import { $location, $log } from 'ngimport';
+
 import { JsonUtils } from 'core/utils';
 
 export class DebugInterceptor implements IHttpInterceptor {

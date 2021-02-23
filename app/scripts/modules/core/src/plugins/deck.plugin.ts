@@ -1,9 +1,10 @@
 import { toPairs } from 'lodash';
+
 import { IStageTypeConfig } from 'core/domain';
 import { HelpContentsRegistry } from 'core/help';
+import { IResourceKindConfig, registerResourceKind } from 'core/managed';
 import { Registry } from 'core/registry';
 import { SearchResultType, searchResultTypeRegistry } from 'core/search';
-import { IResourceKindConfig, registerResourceKind } from 'core/managed';
 
 export interface IDeckPlugin {
   /** Custom Stage UI (configuration and execution details) */

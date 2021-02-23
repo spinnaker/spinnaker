@@ -1,11 +1,11 @@
-import React from 'react';
 import { get } from 'lodash';
+import React from 'react';
 
 import { IRecentHistoryEntry } from 'core/history';
-import { SearchResultType } from '../searchResult/searchResultType';
 
-import { SearchResultPod } from './SearchResultPod';
 import { ProjectSummaryPod } from './ProjectSummaryPod';
+import { SearchResultPod } from './SearchResultPod';
+import { SearchResultType } from '../searchResult/searchResultType';
 
 export type ISearchResult = IRecentHistoryEntry & { displayName: string; account?: string };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { IExecutionStageSummary } from 'core/domain/IExecutionStage';
 
 export interface IExecutionMarkerIconProps {

@@ -1,4 +1,4 @@
-import { module, IComponentOptions } from 'angular';
+import { IComponentOptions, module } from 'angular';
 
 import { IStageConstant } from './stages/stageConstants';
 

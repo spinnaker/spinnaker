@@ -1,31 +1,29 @@
 'use strict';
 
+import * as angular from 'angular';
 import _ from 'lodash';
 
 import { ViewStateCache } from 'core/cache';
-
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { ReactModal } from 'core/presentation';
 
-import * as angular from 'angular';
-
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
-import { PIPELINE_CONFIG_ACTIONS } from './actions/pipelineConfigActions.module';
-import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
-import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
-import { PipelineConfigService } from './services/PipelineConfigService';
-import { CopyStageModal } from './copyStage/CopyStageModal';
-import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
-import { EditPipelineJsonModal } from './actions/pipelineJson/EditPipelineJsonModal';
 import { DeletePipelineModal } from './actions/delete/DeletePipelineModal';
 import { DisablePipelineModal } from './actions/disable/DisablePipelineModal';
 import { EnablePipelineModal } from './actions/enable/EnablePipelineModal';
-import { LockPipelineModal } from './actions/lock/LockPipelineModal';
-import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
-import { RenamePipelineModal } from './actions/rename/RenamePipelineModal';
 import { ShowPipelineHistoryModal } from './actions/history/ShowPipelineHistoryModal';
+import { LockPipelineModal } from './actions/lock/LockPipelineModal';
+import { PIPELINE_CONFIG_ACTIONS } from './actions/pipelineConfigActions.module';
+import { EditPipelineJsonModal } from './actions/pipelineJson/EditPipelineJsonModal';
+import { RenamePipelineModal } from './actions/rename/RenamePipelineModal';
 import { ShowPipelineTemplateJsonModal } from './actions/templateJson/ShowPipelineTemplateJsonModal';
-import { PipelineTemplateV2Service } from './templates/v2/pipelineTemplateV2.service';
+import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
+import { CopyStageModal } from './copyStage/CopyStageModal';
+import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
+import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
+import { PipelineConfigService } from './services/PipelineConfigService';
 import { PipelineTemplateWriter } from './templates/PipelineTemplateWriter';
+import { PipelineTemplateV2Service } from './templates/v2/pipelineTemplateV2.service';
+import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIGURER = 'spinnaker.core.pipeline.config.pipelineConfigurer';
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIGURER; // for backwards compatibility

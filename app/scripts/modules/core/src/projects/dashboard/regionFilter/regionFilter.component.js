@@ -2,8 +2,9 @@
 
 import { module } from 'angular';
 
-import './regionFilter.component.less';
 import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter.service';
+
+import './regionFilter.component.less';
 
 export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT =
   'spinnaker.deck.projects.dashboard.regionFilter.component';

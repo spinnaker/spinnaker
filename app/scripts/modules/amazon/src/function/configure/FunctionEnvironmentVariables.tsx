@@ -1,6 +1,3 @@
-import { awsArnValidator } from 'amazon/aws.validators';
-import { IAmazonFunction } from 'amazon/domain';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 import { FormikProps } from 'formik';
 import React from 'react';
 
@@ -12,6 +9,9 @@ import {
   MapEditorInput,
   TextInput,
 } from '@spinnaker/core';
+import { awsArnValidator } from 'amazon/aws.validators';
+import { IAmazonFunction } from 'amazon/domain';
+import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 
 export interface IFunctionEnvironmentVariablesProps {
   formik: FormikProps<IAmazonFunctionUpsertCommand>;

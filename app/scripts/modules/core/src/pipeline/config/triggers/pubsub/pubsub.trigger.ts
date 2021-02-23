@@ -1,6 +1,7 @@
 import { ArtifactTypePatterns } from 'core/artifact';
-import { PubsubTrigger } from './PubsubTrigger';
 import { Registry } from 'core/registry';
+
+import { PubsubTrigger } from './PubsubTrigger';
 
 Registry.pipeline.registerTrigger({
   component: PubsubTrigger,

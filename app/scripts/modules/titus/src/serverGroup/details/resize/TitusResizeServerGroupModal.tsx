@@ -1,7 +1,6 @@
 import { Form, FormikContext } from 'formik';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { ITitusServerGroup } from 'titus/domain';
 
 import {
   Application,
@@ -18,6 +17,7 @@ import {
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
+import { ITitusServerGroup } from 'titus/domain';
 
 import { useTaskMonitor } from './useTaskMonitor';
 

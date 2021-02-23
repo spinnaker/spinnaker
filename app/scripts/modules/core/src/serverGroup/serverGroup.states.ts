@@ -1,10 +1,9 @@
-import { module } from 'angular';
-
 import { StateParams } from '@uirouter/angularjs';
-import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/navigation/state.provider';
+import { module } from 'angular';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { filterModelConfig } from 'core/cluster/filter/ClusterFilterModel';
 import { ClusterFilters } from 'core/cluster/filter/ClusterFilters';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 

@@ -1,12 +1,12 @@
-import React from 'react';
-import ReactGA from 'react-ga';
 import { get } from 'lodash';
+import React from 'react';
 import { Dropdown } from 'react-bootstrap';
+import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
 
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 

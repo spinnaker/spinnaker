@@ -1,8 +1,6 @@
 import { StateService } from '@uirouter/angularjs';
 import { IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from 'google/domain/index';
-import { GCEProviderSettings } from 'google/gce.settings';
 import _ from 'lodash';
 
 import {
@@ -16,6 +14,8 @@ import {
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from 'google/domain/index';
+import { GCEProviderSettings } from 'google/gce.settings';
 
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {

@@ -1,14 +1,15 @@
 'use strict';
 
 import * as angular from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
+
+import { CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER } from './editLinks.modal.controller';
 import { CONFIG_SECTION_FOOTER } from '../footer/configSectionFooter.component';
 
 import './applicationLinks.component.less';
-import { CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER } from './editLinks.modal.controller';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT =
   'spinnaker.core.application.config.applicationLinks.component';

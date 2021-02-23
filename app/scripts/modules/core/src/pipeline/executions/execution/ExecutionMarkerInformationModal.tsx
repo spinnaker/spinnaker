@@ -1,14 +1,14 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
+import { Spinner } from 'core';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { relativeTime, timestamp, duration } from 'core/utils';
-import { Spinner } from 'core';
-import { PipelineGraph } from '../../config/graph/PipelineGraph';
-import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
+import { duration, relativeTime, timestamp } from 'core/utils';
 
+import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { ExecutionInformationService } from './executionInformation.service';
+import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
 
 import './executionMarkerInformationModal.less';
 

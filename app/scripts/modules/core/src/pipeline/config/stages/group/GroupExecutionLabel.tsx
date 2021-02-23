@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { IExecutionStageSummary, IExecution } from 'core/domain';
 import { Application } from 'core/application/application.model';
-import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
+import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
 import { GroupExecutionPopover } from './GroupExecutionPopover';
+import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
 
 import './groupStage.less';
 

@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { ITableLayoutProps } from './Table';
-import { ITableRowLayoutProps } from './TableRow';
 import { ITableCellLayoutProps } from './TableCell';
+import { ITableRowLayoutProps } from './TableRow';
 
 import './minimalNativeTableLayout.less';
 

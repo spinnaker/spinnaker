@@ -1,12 +1,13 @@
-import React from 'react';
 import { find, get } from 'lodash';
+import React from 'react';
 
 import { AccountTag } from 'core/account';
+import { UrlBuilder } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
+
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageFailureMessage } from '../../../details';
-import { ClusterState } from 'core/state';
-import { UrlBuilder } from 'core/navigation';
 
 export interface IDeployResult {
   type: string;

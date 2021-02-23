@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { Spinner } from 'core/widgets';
+
 import { REST } from 'core/api';
-import { useData } from 'core/presentation';
-import { NameUtils } from 'core/naming';
 import { IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts';
+import { NameUtils } from 'core/naming';
+import { useData } from 'core/presentation';
+import { Spinner } from 'core/widgets';
+
 import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 
 export function HighlanderPreview(props: IDeploymentStrategyAdditionalFieldsProps) {

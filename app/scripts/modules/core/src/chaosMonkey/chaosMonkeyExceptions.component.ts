@@ -1,11 +1,12 @@
-import { uniq } from 'lodash';
 import { module } from 'angular';
+import { uniq } from 'lodash';
 
-import { AccountService, IAccountDetails, IRegion, IAggregatedAccounts } from 'core/account/AccountService';
+import { AccountService, IAccountDetails, IAggregatedAccounts, IRegion } from 'core/account/AccountService';
 import { Application } from 'core/application/application.model';
-import { ChaosMonkeyConfig, IChaosMonkeyExceptionRule } from './chaosMonkeyConfig.component';
-import { IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
 import { ClusterMatcher, IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
+import { IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
+
+import { ChaosMonkeyConfig, IChaosMonkeyExceptionRule } from './chaosMonkeyConfig.component';
 
 import './chaosMonkeyExceptions.component.less';
 

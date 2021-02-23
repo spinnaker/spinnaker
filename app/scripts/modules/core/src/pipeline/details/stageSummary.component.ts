@@ -1,11 +1,11 @@
-import { module, IController, IComponentOptions, IScope } from 'angular';
 import { StateParams, StateService } from '@uirouter/angularjs';
+import { IComponentOptions, IController, IScope, module } from 'angular';
 import { HtmlRenderer, Parser } from 'commonmark';
-
 import { Application } from 'core/application';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
 import { Registry } from 'core/registry';
-import { ConfirmationModalService } from 'core/confirmationModal';
+
 import { ExecutionService } from '../service/execution.service';
 
 export class StageSummaryController implements IController {

@@ -1,18 +1,18 @@
 import * as React from 'react';
 
 import { Application } from 'core/application/application.model';
-import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
-import { ISecurityGroupGroup } from 'core/domain';
 import { BannerContainer } from 'core/banner';
-import { SecurityGroupState } from 'core/state';
-import { Spinner } from 'core/widgets/spinners/Spinner';
-import { ISortFilter } from 'core/filterModel';
 import { SETTINGS } from 'core/config';
-
-import { FirewallLabels } from './label/FirewallLabels';
-import { SecurityGroupPod } from './SecurityGroupPod';
-import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
+import { ISecurityGroupGroup } from 'core/domain';
+import { ISortFilter } from 'core/filterModel';
+import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
+import { SecurityGroupState } from 'core/state';
 import { noop } from 'core/utils';
+import { Spinner } from 'core/widgets/spinners/Spinner';
+
+import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
+import { SecurityGroupPod } from './SecurityGroupPod';
+import { FirewallLabels } from './label/FirewallLabels';
 
 const { useEffect, useState } = React;
 

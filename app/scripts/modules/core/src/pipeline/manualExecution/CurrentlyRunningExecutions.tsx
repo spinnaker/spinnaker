@@ -1,5 +1,5 @@
-import React from 'react';
 import { head } from 'lodash';
+import React from 'react';
 
 import { IExecution } from 'core/domain';
 import { timestamp } from 'core/utils/timeFormatters';

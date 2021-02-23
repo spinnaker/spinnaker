@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { CopyToClipboard } from 'core/utils';
 
 export interface ILinkWithClipboardProps {

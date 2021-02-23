@@ -1,13 +1,13 @@
-import React from 'react';
 import { DateTime } from 'luxon';
+import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
 
 import {
-  IStatefulConstraint,
-  StatefulConstraintStatus,
-  IStatelessConstraint,
   IManagedArtifactVersionEnvironment,
+  IStatefulConstraint,
+  IStatelessConstraint,
+  StatefulConstraintStatus,
 } from '../../../domain';
 
 const NO_FAILURE_MESSAGE = 'no details available';

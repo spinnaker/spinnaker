@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { Application } from 'core/application';
-import { IServerGroupManager, IServerGroup } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
+import { IServerGroup, IServerGroupManager } from 'core/domain';
 import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
+
 import { IServerGroupManagerStateParams } from './serverGroupManager.states';
 
 export interface IServerGroupManagerTagProps {

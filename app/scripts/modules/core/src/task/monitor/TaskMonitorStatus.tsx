@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { TaskMonitor } from './TaskMonitor';
-import { displayableTasks } from '../displayableTasks.filter';
-import { StatusGlyph } from '../StatusGlyph';
 import { robotToHuman } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils';
 import { Spinner } from 'core/widgets';
-import { ReactInjector } from 'core/reactShims';
+
+import { StatusGlyph } from '../StatusGlyph';
+import { TaskMonitor } from './TaskMonitor';
+import { displayableTasks } from '../displayableTasks.filter';
 
 export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => (
   <>

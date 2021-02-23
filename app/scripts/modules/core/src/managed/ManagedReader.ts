@@ -1,13 +1,13 @@
-import { get, set, flatMap } from 'lodash';
+import { flatMap, get, set } from 'lodash';
 
 import { REST } from 'core/api';
 import {
   IManagedApplicationSummary,
-  ManagedResourceStatus,
-  IManagedResourceEventHistoryResponse,
-  IManagedResourceEventHistory,
   IManagedResourceDiff,
   IManagedResourceEvent,
+  IManagedResourceEventHistory,
+  IManagedResourceEventHistoryResponse,
+  ManagedResourceStatus,
 } from 'core/domain';
 
 const KIND_NAME_MATCHER = /.*\/(.*?)@/i;

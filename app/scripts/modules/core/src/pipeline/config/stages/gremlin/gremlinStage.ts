@@ -1,8 +1,8 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../common';
 import { GremlinExecutionDetails } from './GremlinExecutionDetails';
 import { GremlinStageConfig } from './GremlinStageConfig';
+import { ExecutionDetailsTasks } from '../common';
 
 Registry.pipeline.registerStage({
   label: 'Gremlin',

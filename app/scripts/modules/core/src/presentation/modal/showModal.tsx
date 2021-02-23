@@ -1,8 +1,8 @@
+import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 
-import { Modal, IModalProps } from './Modal';
+import { IModalProps, Modal } from './Modal';
 
 /** The Modal content Component will be passed these two props */
 export interface IModalComponentProps<C = any, D = any> {

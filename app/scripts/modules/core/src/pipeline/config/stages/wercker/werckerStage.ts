@@ -1,9 +1,9 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-
-import { Registry } from 'core/registry';
-import { IgorService, BuildServiceType } from 'core/ci/igor.service';
+import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
+import { Registry } from 'core/registry';
+
 import { WerckerExecutionLabel } from './WerckerExecutionLabel';
 
 export interface IWerckerStageViewState {

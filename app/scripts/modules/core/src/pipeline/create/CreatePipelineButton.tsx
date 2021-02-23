@@ -2,8 +2,8 @@ import React from 'react';
 import ReactGA from 'react-ga';
 
 import { Application } from 'core/application';
-import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
 
 import { CreatePipelineModal } from './CreatePipelineModal';
 

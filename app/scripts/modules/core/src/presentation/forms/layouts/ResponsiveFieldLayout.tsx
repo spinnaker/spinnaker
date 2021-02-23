@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { HelpTextExpandedContext } from 'core/help';
-import { IFormInputValidation } from '../inputs';
-import { ValidationMessage } from '../validation';
 
+import { IFormInputValidation } from '../inputs';
 import { ILayoutProps } from './interface';
+import { ValidationMessage } from '../validation';
 
 import '../forms.less';
 

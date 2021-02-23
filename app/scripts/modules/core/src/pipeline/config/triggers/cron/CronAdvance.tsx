@@ -1,10 +1,10 @@
 import React from 'react';
-
 import { Observable, Subject } from 'rxjs';
 
 import { HelpField } from 'core/help';
-import { CronValidatorService } from './cronValidator.service';
+
 import { ICronTriggerConfigProps } from './cronConfig';
+import { CronValidatorService } from './cronValidator.service';
 
 export interface ICronAdvanceState {
   description?: string;

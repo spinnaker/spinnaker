@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { ITriggerTemplateComponentProps } from '../pipeline/manualExecution/TriggerTemplate';
-import { IValidatorConfig } from '../pipeline/config/validation/PipelineConfigValidator';
 import { IContextualValidator } from 'core/pipeline';
+
+import { IValidatorConfig } from '../pipeline/config/validation/PipelineConfigValidator';
+import { ITriggerTemplateComponentProps } from '../pipeline/manualExecution/TriggerTemplate';
 
 export interface IStageOrTriggerTypeConfig {
   manualExecutionComponent?: React.ComponentType<ITriggerTemplateComponentProps>;

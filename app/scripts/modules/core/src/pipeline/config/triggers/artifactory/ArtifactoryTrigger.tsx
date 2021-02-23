@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FormikFormField, ReactSelectInput, errorMessage, useLatestPromise } from 'core/presentation';
+import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
 
 import { ArtifactoryReaderService } from './artifactoryReader.service';
 

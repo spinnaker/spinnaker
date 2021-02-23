@@ -1,3 +1,4 @@
+/* eslint-disable @spinnaker/import-sort */
 import React from 'react';
 import AceEditor, { AceEditorProps, Annotation } from 'react-ace';
 

@@ -1,12 +1,12 @@
-import React from 'react';
 import { cloneDeep, extend } from 'lodash';
+import React from 'react';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { StageConfigField } from '../../../stages/common';
 import { SpelText } from 'core/widgets';
 
 import { ArtifactEditor } from '../ArtifactEditor';
+import { StageConfigField } from '../../../stages/common';
 
 export const TYPE = 'custom/object';
 export const CUSTOM_ARTIFACT_ACCOUNT = 'custom-artifact';

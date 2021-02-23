@@ -1,4 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import * as angular from 'angular';
 import _ from 'lodash';
 
@@ -9,6 +8,7 @@ import {
   NameUtils,
   SubnetReader,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 

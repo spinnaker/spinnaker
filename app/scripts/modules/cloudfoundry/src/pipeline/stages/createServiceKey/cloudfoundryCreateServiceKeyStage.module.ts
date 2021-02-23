@@ -1,6 +1,5 @@
-import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
-
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
 
 import { CloudfoundryCreateServiceKeyStageConfig } from './CloudfoundryCreateServiceKeyStageConfig';
 

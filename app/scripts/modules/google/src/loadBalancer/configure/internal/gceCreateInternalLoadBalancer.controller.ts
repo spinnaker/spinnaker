@@ -1,9 +1,6 @@
 import { StateService } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
-import { GCEProviderSettings } from 'google/gce.settings';
 import _ from 'lodash';
 
 import {
@@ -15,6 +12,9 @@ import {
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
+import { GCEProviderSettings } from 'google/gce.settings';
 
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {

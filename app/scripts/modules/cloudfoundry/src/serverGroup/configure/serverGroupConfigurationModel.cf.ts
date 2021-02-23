@@ -1,6 +1,5 @@
-import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
-
 import { IArtifact, IPipeline, IServerGroupCommand, IStage } from '@spinnaker/core';
+import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
   // clone server group model

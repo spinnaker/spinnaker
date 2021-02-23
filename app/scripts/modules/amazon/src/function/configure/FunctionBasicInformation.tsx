@@ -1,6 +1,3 @@
-import { s3BucketNameValidator } from 'amazon/aws.validators';
-import { IAmazonFunction } from 'amazon/domain';
-import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 import classNames from 'classnames';
 import { FormikErrors, FormikProps } from 'formik';
 import React from 'react';
@@ -19,6 +16,9 @@ import {
   ReactSelectInput,
   TextInput,
 } from '@spinnaker/core';
+import { s3BucketNameValidator } from 'amazon/aws.validators';
+import { IAmazonFunction } from 'amazon/domain';
+import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 
 const availableRuntimes = [
   'nodejs10.x',

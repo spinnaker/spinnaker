@@ -1,13 +1,10 @@
-import React from 'react';
-import { get } from 'lodash';
-
 import {
   FormikFormField,
   HelpField,
   IArtifact,
   IExpectedArtifact,
-  IFormInputProps,
   IFormikStageConfigInjectedProps,
+  IFormInputProps,
   IgorService,
   MapEditorInput,
   ReactSelectInput,
@@ -16,9 +13,13 @@ import {
   useData,
   YamlEditor,
 } from 'core';
+import { get } from 'lodash';
+import React from 'react';
+
 import { CheckboxInput } from 'core/presentation';
-import { EXCLUDED_ARTIFACT_TYPES, SOURCE_TYPES, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
+
 import { AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
+import { EXCLUDED_ARTIFACT_TYPES, IAwsCodeBuildSource, SOURCE_TYPES } from './IAwsCodeBuildSource';
 
 export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;

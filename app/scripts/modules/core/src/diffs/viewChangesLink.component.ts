@@ -1,11 +1,12 @@
-import { extend } from 'lodash';
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
+import { extend } from 'lodash';
 
 import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IJenkinsInfo } from 'core/domain';
-import { ICommit, COMMIT_HISTORY_COMPONENT } from './commitHistory.component';
 import { EXECUTION_SERVICE, ExecutionService } from 'core/pipeline/service/execution.service';
-import { JAR_DIFF_COMPONENT, IJarDiff } from './jarDiff.component';
+
+import { COMMIT_HISTORY_COMPONENT, ICommit } from './commitHistory.component';
+import { IJarDiff, JAR_DIFF_COMPONENT } from './jarDiff.component';
 
 export interface IViewChangesConfig {
   buildInfo?: IBuildDiffInfo;

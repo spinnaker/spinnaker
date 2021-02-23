@@ -1,8 +1,7 @@
 'use strict';
 
-import _ from 'lodash';
-
 import { module } from 'angular';
+import _ from 'lodash';
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER =
   'spinnaker.core.pipeline.stage.deploy.transformer';

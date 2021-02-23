@@ -1,9 +1,9 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { Field } from 'formik';
 import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';

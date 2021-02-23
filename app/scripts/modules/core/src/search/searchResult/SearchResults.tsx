@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { SearchResultType } from './searchResultType';
 import { Searching, SearchResultGrid } from './SearchResultGrid';
 import { SearchResultTabs } from './SearchResultTabs';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { SearchResultType } from './searchResultType';
 
 import './searchResults.less';
 

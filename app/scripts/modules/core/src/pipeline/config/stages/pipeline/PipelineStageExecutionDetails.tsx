@@ -1,10 +1,11 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
+import React from 'react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
-import { StageFailureMessage } from '../../../details';
 import { IPipeline } from 'core/domain';
 import { useLatestPromise } from 'core/presentation/hooks/useLatestPromise.hook';
+
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageFailureMessage } from '../../../details';
 
 export function PipelineStageExecutionDetails(props: IExecutionDetailsSectionProps) {
   const {

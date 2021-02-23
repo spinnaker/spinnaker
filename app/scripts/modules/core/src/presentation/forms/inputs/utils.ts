@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { isString, isNil } from 'lodash';
+import { isNil, isString } from 'lodash';
 
 import { noop } from 'core/utils';
 

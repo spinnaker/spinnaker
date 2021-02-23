@@ -1,10 +1,10 @@
-import React from 'react';
 import { get } from 'lodash';
+import { Duration } from 'luxon';
+import React from 'react';
 
 import { Application } from 'core/application/application.model';
 import { IInstanceCounts, IStage, ITask, ITaskStep, ITimedItem } from 'core/domain';
 import { Tooltip } from 'core/presentation';
-import { Duration } from 'luxon';
 
 export interface IPlatformHealthOverrideMessageProps {
   application: Application;

@@ -1,4 +1,4 @@
-import { module, isDefined, ILogService } from 'angular';
+import { ILogService, isDefined, module } from 'angular';
 
 replace.$inject = ['$log'];
 function replace($log: ILogService): Function {

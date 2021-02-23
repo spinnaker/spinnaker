@@ -1,4 +1,3 @@
-import { FormikAccountRegionSelector } from 'appengine/common/FormikAccountRegionSelector';
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
@@ -12,6 +11,7 @@ import {
   IFormikStageConfigInjectedProps,
   StageArtifactSelectorDelegate,
 } from '@spinnaker/core';
+import { FormikAccountRegionSelector } from 'appengine/common/FormikAccountRegionSelector';
 
 export interface IAppEngineDeployConfigSettingsState {
   accounts: IAccount[];

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { IArtifact } from 'core/domain';
+
 import { Artifact } from './Artifact';
 
 import './artifactList.less';

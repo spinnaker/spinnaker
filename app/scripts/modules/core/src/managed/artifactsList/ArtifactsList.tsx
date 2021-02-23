@@ -1,22 +1,20 @@
-import React, { useMemo, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Icon, IconNames } from '@spinnaker/presentation';
 
+import { ISelectedArtifactVersion } from '../Environments';
+import { Pill } from '../Pill';
+import { RelativeTimestamp } from '../RelativeTimestamp';
+import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
+import { getConstraintIcon, isConstraintSupported } from '../artifactDetail/constraints/constraintRegistry';
 import {
   IManagedArtifactSummary,
   IManagedArtifactVersion,
   IStatefulConstraint,
   StatefulConstraintStatus,
 } from '../../domain/IManagedEntity';
-
-import { isConstraintSupported, getConstraintIcon } from '../artifactDetail/constraints/constraintRegistry';
-
-import { ISelectedArtifactVersion } from '../Environments';
-import { Pill } from '../Pill';
-import { RelativeTimestamp } from '../RelativeTimestamp';
-import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
 
 import './ArtifactRow.less';
 

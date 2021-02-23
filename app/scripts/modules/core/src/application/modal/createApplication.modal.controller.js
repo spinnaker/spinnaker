@@ -1,18 +1,19 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
 import _ from 'lodash';
+
 import { AccountService } from 'core/account/AccountService';
+import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
+import { SETTINGS } from 'core/config/settings';
+import { TaskReader } from 'core/task/task.read.service';
+
+import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 import { ApplicationReader } from '../service/ApplicationReader';
 import { ApplicationWriter } from '../service/ApplicationWriter';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
-import { TaskReader } from 'core/task/task.read.service';
 import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';
-import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
-import { SETTINGS } from 'core/config/settings';
-import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-
-import { module } from 'angular';
 
 export const CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER =
   'spinnaker.application.create.modal.controller';

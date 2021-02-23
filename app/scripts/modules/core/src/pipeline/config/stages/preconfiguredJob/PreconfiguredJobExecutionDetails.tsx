@@ -1,13 +1,14 @@
+import { get, last, sortBy } from 'lodash';
 import React from 'react';
-import { get, sortBy, last } from 'lodash';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { AccountService } from 'core/account';
+import { IJobOwnedPodStatus, IStage } from 'core/domain';
+import { DefaultPodNameProvider } from 'core/manifest';
+import { JobStageExecutionLogs } from 'core/manifest/stage/JobStageExecutionLogs';
+
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 import { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
-import { JobStageExecutionLogs } from 'core/manifest/stage/JobStageExecutionLogs';
-import { IStage, IJobOwnedPodStatus } from 'core/domain';
-import { AccountService } from 'core/account';
-import { DefaultPodNameProvider } from 'core/manifest';
 
 export interface ITitusExecutionLogsProps {
   stage: IStage;

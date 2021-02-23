@@ -1,8 +1,9 @@
-import React from 'react';
 import { $rootScope } from 'ngimport';
+import React from 'react';
 
-import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+
 import './FilterCollapse.less';
 
 export class FilterCollapse extends React.Component<{}> {

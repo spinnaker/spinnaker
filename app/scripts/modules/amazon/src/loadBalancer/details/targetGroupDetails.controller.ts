@@ -1,9 +1,9 @@
 import { StateService } from '@uirouter/angularjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
 import { IController, IQService, IScope, module } from 'angular';
 
 import { Application, ILoadBalancer, MANAGED_RESOURCE_DETAILS_INDICATOR } from '@spinnaker/core';
+import { IAmazonApplicationLoadBalancer, ITargetGroup } from 'amazon/domain/IAmazonLoadBalancer';
 
 export interface ITargetGroupFromStateParams {
   accountId: string;

@@ -1,5 +1,5 @@
-import React from 'react';
 import { cloneDeep } from 'lodash';
+import React from 'react';
 
 import { IServerGroupCommand } from 'core/serverGroup';
 

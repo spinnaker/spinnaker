@@ -1,26 +1,24 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
-
-import _ from 'lodash';
-
 import * as angular from 'angular';
-
+import _ from 'lodash';
 import { react2angular } from 'react2angular';
 
-import { FirewallLabels } from 'core/securityGroup/label';
-import { SEARCH_RANK_FILTER } from '../searchRank.filter';
+import { InsightMenu as SearchInsightMenu } from 'core/insight/InsightMenu';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
-import { INFRASTRUCTURE_SEARCH_SERVICE } from './infrastructureSearch.service';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import { ConfigureProjectModal } from 'core/projects';
+import { FirewallLabels } from 'core/securityGroup/label';
+import { ClusterState } from 'core/state';
 import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
-import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
+
 import { PROJECT_SUMMARY_POD_COMPONENT } from '../infrastructure/projectSummaryPod.component';
 import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewedItems.component';
-import { ClusterState } from 'core/state';
-
+import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
+import { INFRASTRUCTURE_SEARCH_SERVICE } from './infrastructureSearch.service';
 import { SearchService } from '../search.service';
-import { ConfigureProjectModal } from 'core/projects';
-import { InsightMenu as SearchInsightMenu } from 'core/insight/InsightMenu';
+import { SEARCH_RANK_FILTER } from '../searchRank.filter';
+
+('use strict');
 
 export const CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER = 'spinnaker.search.infrastructure.controller';
 export const name = CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER; // for backwards compatibility

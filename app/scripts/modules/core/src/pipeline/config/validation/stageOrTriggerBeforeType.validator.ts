@@ -2,8 +2,9 @@ import { IDeferred } from 'angular';
 import { $q } from 'ngimport';
 
 import { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
-import { PipelineConfigService } from '../services/PipelineConfigService';
+
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
+import { PipelineConfigService } from '../services/PipelineConfigService';
 
 export interface IStageOrTriggerBeforeTypeValidationConfig extends IValidatorConfig {
   getStageTypes?: Function;

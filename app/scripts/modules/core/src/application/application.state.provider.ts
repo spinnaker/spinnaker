@@ -1,12 +1,12 @@
-import { IServiceProvider, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
+import { IServiceProvider, module } from 'angular';
+import { InsightLayout } from 'core/insight/InsightLayout';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 
-import { Application } from './application.model';
 import { ApplicationComponent } from './ApplicationComponent';
+import { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationReader } from './service/ApplicationReader';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
-import { InsightLayout } from 'core/insight/InsightLayout';
 import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
 
 export class ApplicationStateProvider implements IServiceProvider {

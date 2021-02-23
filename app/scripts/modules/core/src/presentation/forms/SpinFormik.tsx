@@ -1,7 +1,6 @@
-import React from 'react';
-
-import { set } from 'lodash';
 import { Formik, FormikConfig } from 'formik';
+import { set } from 'lodash';
+import React from 'react';
 
 import { traverseObject } from 'core/utils';
 

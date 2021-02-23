@@ -1,8 +1,6 @@
 import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
-import { ITitusServerGroup } from 'titus/domain';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import {
   Application,
@@ -15,6 +13,8 @@ import {
   TextAreaInput,
   withErrorBoundary,
 } from '@spinnaker/core';
+import { ITitusServerGroup } from 'titus/domain';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import { enabledProcesses } from './ServiceJobProcesses';
 import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';

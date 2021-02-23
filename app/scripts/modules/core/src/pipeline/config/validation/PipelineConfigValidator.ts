@@ -1,7 +1,7 @@
-import { Subject, Subscription } from 'rxjs';
-import { $log, $q } from 'ngimport';
-import { values, flatten, isNumber } from 'lodash';
 import { FormikErrors } from 'formik';
+import { flatten, isNumber, values } from 'lodash';
+import { $log, $q } from 'ngimport';
+import { Subject, Subscription } from 'rxjs';
 
 import {
   IPipeline,

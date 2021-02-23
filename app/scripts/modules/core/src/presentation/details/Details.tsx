@@ -1,5 +1,5 @@
-import React from 'react';
 import { UISref } from '@uirouter/react';
+import React from 'react';
 
 import { Spinner } from 'core/widgets/spinners/Spinner';
 

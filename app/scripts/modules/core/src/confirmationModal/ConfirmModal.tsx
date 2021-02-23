@@ -1,12 +1,13 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { TaskMonitor, TaskReason, UserVerification } from 'core/task';
+import { PlatformHealthOverride } from 'core/application/modal/PlatformHealthOverride';
+import { ModalClose } from 'core/modal';
 import { IModalComponentProps, Markdown } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
+import { TaskMonitor, TaskReason, UserVerification } from 'core/task';
 import { MultiTaskMonitor } from 'core/task/monitor/MultiTaskMonitor';
-import { ModalClose } from 'core/modal';
-import { PlatformHealthOverride } from 'core/application/modal/PlatformHealthOverride';
+
 import { IConfirmationModalPassthroughProps } from './confirmationModal.service';
 
 export interface IConfirmModalProps extends IModalComponentProps, IConfirmationModalPassthroughProps {

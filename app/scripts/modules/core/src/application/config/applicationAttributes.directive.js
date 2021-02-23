@@ -1,12 +1,12 @@
 'use strict';
 
+import { module } from 'angular';
 import { get } from 'lodash';
 
-import { module } from 'angular';
-
-import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
-import { CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL } from '../modal/editApplication.controller.modal';
 import { SETTINGS } from 'core/config/settings';
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+
+import { CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL } from '../modal/editApplication.controller.modal';
 
 export const CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE =
   'spinnaker.core.application.config.attributes.directive';

@@ -1,11 +1,12 @@
-import { ApplicationNavigation } from './nav/ApplicationNavigation';
-import React from 'react';
 import { UIView } from '@uirouter/react';
+import React from 'react';
+
+import { RecentHistoryService } from 'core/history';
+import { DebugWindow } from 'core/utils/consoleDebug';
 
 import { ApplicationContextProvider } from './ApplicationContext';
 import { Application } from './application.model';
-import { RecentHistoryService } from 'core/history';
-import { DebugWindow } from 'core/utils/consoleDebug';
+import { ApplicationNavigation } from './nav/ApplicationNavigation';
 
 import './application.less';
 

@@ -1,11 +1,11 @@
-import {
-  CloudFoundryRecentLogs,
-  CloudFoundryRecentLogsType,
-} from 'cloudfoundry/presentation/widgets/recentLogs/CloudFoundryRecentLogs';
 import { get } from 'lodash';
 import React from 'react';
 
 import { AccountTag, ExecutionDetailsSection, IExecutionDetailsSectionProps } from '@spinnaker/core';
+import {
+  CloudFoundryRecentLogs,
+  CloudFoundryRecentLogsType,
+} from 'cloudfoundry/presentation/widgets/recentLogs/CloudFoundryRecentLogs';
 
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'runJobDetails';

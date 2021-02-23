@@ -8,13 +8,12 @@ import { IModalComponentProps, ReactModal } from 'core/presentation';
 import { TaskMonitor } from 'core/task';
 import { noop } from 'core/utils';
 
-import { ProjectReader } from '../service/ProjectReader';
-import { ProjectWriter } from '../service/ProjectWriter';
-
 import { Applications } from './Applications';
 import { Clusters } from './Clusters';
 import { Pipelines } from './Pipelines';
 import { ProjectAttributes } from './ProjectAttributes';
+import { ProjectReader } from '../service/ProjectReader';
+import { ProjectWriter } from '../service/ProjectWriter';
 
 import './ConfigureProjectModal.css';
 

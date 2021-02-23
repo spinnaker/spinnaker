@@ -1,12 +1,12 @@
+import { set } from 'lodash';
 import React from 'react';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
 import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';
 
 import { PipelineSelector } from '../PipelineSelector';
-import { set } from 'lodash';
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 
 export interface IRollingRedBlackCommand extends IServerGroupCommand {
   delayBeforeDisableSec: string;

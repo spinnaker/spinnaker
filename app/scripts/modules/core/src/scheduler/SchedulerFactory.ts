@@ -1,5 +1,5 @@
+import { $log, $timeout, $window } from 'ngimport';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { $log, $window, $timeout } from 'ngimport';
 
 import { SETTINGS } from 'core/config/settings';
 

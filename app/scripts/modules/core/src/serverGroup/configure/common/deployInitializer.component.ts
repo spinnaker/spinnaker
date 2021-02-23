@@ -1,10 +1,10 @@
-import { IController, IComponentOptions, module } from 'angular';
-
+import { IComponentOptions, IController, module } from 'angular';
 import { groupBy, sortBy } from 'lodash';
 
-import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
+import { IServerGroup } from 'core/domain';
+
 import { ServerGroupReader } from '../../serverGroupReader.service';
 
 export interface IDeployTemplate {

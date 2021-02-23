@@ -1,6 +1,6 @@
-import React from 'react';
-import { IScope, element } from 'angular';
+import { element, IScope } from 'angular';
 import { $compile, $controller, $templateRequest } from 'ngimport';
+import React from 'react';
 
 export interface IRenderAngularJSBaseProps extends React.HTMLProps<HTMLDivElement> {
   controller?: string;

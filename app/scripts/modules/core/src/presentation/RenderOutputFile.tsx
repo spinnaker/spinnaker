@@ -1,5 +1,5 @@
-import React from 'react';
 import { dump as dumpYaml } from 'js-yaml';
+import React from 'react';
 
 interface IRenderOutputFileProps {
   outputFileObject: object;

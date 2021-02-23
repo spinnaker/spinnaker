@@ -1,13 +1,13 @@
 'use strict';
 
-import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
+import * as angular from 'angular';
 import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
+import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 import { NameUtils } from 'core/naming';
 import { Registry } from 'core/registry';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { StageConstants } from '../stageConstants';
 
-import * as angular from 'angular';
+import { StageConstants } from '../stageConstants';
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE = 'spinnaker.core.pipeline.stage.deployStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE; // for backwards compatibility

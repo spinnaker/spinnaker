@@ -1,8 +1,9 @@
-import ReactGA from 'react-ga';
-import React, { ErrorInfo } from 'react';
-import { module } from 'angular';
-import { UIRouter, StateObject } from '@uirouter/core';
+import { StateObject, UIRouter } from '@uirouter/core';
 import { ReactViewDeclaration } from '@uirouter/react';
+import { module } from 'angular';
+import React, { ErrorInfo } from 'react';
+import ReactGA from 'react-ga';
+
 import { CollapsibleSection } from './collapsibleSection/CollapsibleSection';
 import { ValidationMessage } from './forms/validation/ValidationMessage';
 

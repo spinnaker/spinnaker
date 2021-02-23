@@ -1,5 +1,5 @@
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { IServerGroup } from 'core/domain';
+import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 
 import { Application } from './application.model';
 import { IDataSourceConfig } from './service/applicationDataSource';

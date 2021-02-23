@@ -1,6 +1,6 @@
+import classNames from 'classnames';
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import classNames from 'classnames';
 
 import { ITask } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';

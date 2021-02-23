@@ -1,8 +1,8 @@
-import { IAmazonServerGroupView } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 import React from 'react';
 
 import { Application, ModalInjector } from '@spinnaker/core';
+import { IAmazonServerGroupView } from 'amazon/domain';
+import { AwsReactInjector } from 'amazon/reactShims';
 
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';

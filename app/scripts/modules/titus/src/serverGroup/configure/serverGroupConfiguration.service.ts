@@ -2,8 +2,6 @@ import { module } from 'angular';
 import { chain, cloneDeep, flatten, intersection, xor } from 'lodash';
 import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
-import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 import {
   IAmazonApplicationLoadBalancer,
@@ -31,6 +29,8 @@ import {
   SecurityGroupReader,
   setMatchingResourceSummary,
 } from '@spinnaker/core';
+import { IJobDisruptionBudget, ITitusResources } from 'titus/domain';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];

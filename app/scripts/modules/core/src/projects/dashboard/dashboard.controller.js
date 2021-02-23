@@ -4,16 +4,17 @@ import { module } from 'angular';
 import _ from 'lodash';
 
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 import { RecentHistoryService } from 'core/history/recentHistory.service';
+import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
+
+import { CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE } from './cluster/projectCluster.directive';
 import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT } from './regionFilter/regionFilter.component';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter/regionFilter.service';
 import { ProjectReader } from '../service/ProjectReader';
 
 import './dashboard.less';
-import { CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE } from './cluster/projectCluster.directive';
-import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT } from './regionFilter/regionFilter.component';
-import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter/regionFilter.service';
 
 export const CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER = 'spinnaker.core.projects.dashboard.controller';
 export const name = CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER; // for backwards compatibility

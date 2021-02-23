@@ -1,5 +1,4 @@
 import { IController, IQService, module } from 'angular';
-import { IAppengineInstance } from 'appengine/domain';
 import { cloneDeep, flattenDeep } from 'lodash';
 
 import {
@@ -10,6 +9,7 @@ import {
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
+import { IAppengineInstance } from 'appengine/domain';
 
 interface InstanceFromStateParams {
   instanceId: string;

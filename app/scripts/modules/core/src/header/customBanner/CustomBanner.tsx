@@ -1,5 +1,5 @@
-import React from 'react';
 import { get } from 'lodash';
+import React from 'react';
 
 import { ICustomBannerConfig } from 'core/application/config/customBanner/CustomBannerConfig';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';

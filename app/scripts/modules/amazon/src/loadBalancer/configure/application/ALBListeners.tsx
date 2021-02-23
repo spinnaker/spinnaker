@@ -1,3 +1,18 @@
+import { FormikErrors, FormikProps } from 'formik';
+import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
+import { $q } from 'ngimport';
+import React from 'react';
+import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
+
+import {
+  Application,
+  ConfirmationModalService,
+  CustomLabels,
+  HelpField,
+  IWizardPageComponent,
+  Tooltip,
+  ValidationMessage,
+} from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
 import {
@@ -14,21 +29,6 @@ import {
   IRedirectActionConfig,
   ListenerRuleConditionField,
 } from 'amazon/domain';
-import { FormikErrors, FormikProps } from 'formik';
-import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
-import { $q } from 'ngimport';
-import React from 'react';
-import { arrayMove, SortableContainer, SortableElement, SortableHandle, SortEnd } from 'react-sortable-hoc';
-
-import {
-  Application,
-  ConfirmationModalService,
-  CustomLabels,
-  HelpField,
-  IWizardPageComponent,
-  Tooltip,
-  ValidationMessage,
-} from '@spinnaker/core';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
 import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Overridable, IOverridableProps } from 'core/overrideRegistry';
+
+import { IOverridableProps, Overridable } from 'core/overrideRegistry';
 
 export interface IFunctionDetailsProps extends IOverridableProps {}
 

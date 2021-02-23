@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 
 import { SchedulerFactory } from 'core/scheduler';
 
+import { useData } from './useData.hook';
 import { useLatestCallback } from './useLatestCallback.hook';
 import { IUseLatestPromiseResult } from './useLatestPromise.hook';
-import { useData } from './useData.hook';
 
 /**
  * A react hook which invokes a promise factory callback whenever any of its dependencies

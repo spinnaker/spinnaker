@@ -1,11 +1,11 @@
-import React from 'react';
 import { Form } from 'formik';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import { Application } from 'core/application';
 import { IEntityRef, IEntityTag } from 'core/domain';
 import { HelpField } from 'core/help';
-import { SubmitButton, ModalClose } from 'core/modal';
+import { ModalClose, SubmitButton } from 'core/modal';
 import {
   FormField,
   FormikFormField,

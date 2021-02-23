@@ -1,21 +1,20 @@
 import { ArtifactTypePatterns } from './ArtifactTypes';
-
-import unknownArtifactIcon from './icons/unknown-type-artifact.svg';
+import bitbucketFileIcon from './icons/bitbucket-file-artifact.svg';
 import dockerIcon from './icons/docker-image-artifact.svg';
-import kubernetesIcon from './icons/kubernetes-artifact.svg';
 import embeddedBase64Icon from './icons/embedded-base64-artifact.svg';
 import gcsObjectIcon from './icons/gcs-file-artifact.svg';
-import gitHubFileIcon from './icons/github-file-artifact.svg';
 import gitRepoIcon from './icons/git-repo-artifact.svg';
+import gitHubFileIcon from './icons/github-file-artifact.svg';
 import gitLabFileIcon from './icons/gitlab-file-artifact.svg';
-import bitbucketFileIcon from './icons/bitbucket-file-artifact.svg';
-import s3ObjectIcon from './icons/s3-object-artifact.svg';
 import helmChartIcon from './icons/helm-chart-artifact.svg';
+import httpFileIcon from './icons/http-artifact.svg';
 import ivyFileIcon from './icons/ivy-artifact.svg';
 import jenkinsFileIcon from './icons/jenkins-file-artifact.svg';
+import kubernetesIcon from './icons/kubernetes-artifact.svg';
 import mavenFileIcon from './icons/maven-artifact.svg';
-import httpFileIcon from './icons/http-artifact.svg';
 import oracleObjectIcon from './icons/oracle-object-artifact.svg';
+import s3ObjectIcon from './icons/s3-object-artifact.svg';
+import unknownArtifactIcon from './icons/unknown-type-artifact.svg';
 
 interface IArtifactIcon {
   type: RegExp;

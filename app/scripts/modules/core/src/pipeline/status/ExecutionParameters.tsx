@@ -1,7 +1,7 @@
 import React from 'react';
 
-import './executionStatus.less';
 import './executionParameters.less';
+import './executionStatus.less';
 
 export interface IExecutionParametersProps {
   shouldShowAllParams: boolean;

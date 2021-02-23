@@ -1,22 +1,23 @@
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { StateService } from '@uirouter/core';
 import { IQService, ITimeoutService, module } from 'angular';
 import { get, identity, pickBy } from 'lodash';
-import { StateService } from '@uirouter/core';
 
 import { REST } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
-import { ExecutionsTransformer } from './ExecutionsTransformer';
-import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
-import { JsonUtils } from 'core/utils';
-import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
-import { DebugWindow } from 'core/utils/consoleDebug';
+import { SETTINGS } from 'core/config/settings';
+import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
 import { IPipeline } from 'core/domain/IPipeline';
 import { ISortFilter } from 'core/filterModel';
-import { ExecutionState } from 'core/state';
-import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
 import { ReactInjector } from 'core/reactShims';
+import { ExecutionState } from 'core/state';
+import { JsonUtils } from 'core/utils';
+import { DebugWindow } from 'core/utils/consoleDebug';
+import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
+
+import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {

@@ -1,6 +1,7 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Dropdown } from 'react-bootstrap';
+import ReactGA from 'react-ga';
+
 import { IInstance } from 'core/domain';
 
 export interface Insight {

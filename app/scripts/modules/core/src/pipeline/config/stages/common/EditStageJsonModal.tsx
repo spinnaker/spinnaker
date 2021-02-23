@@ -1,12 +1,11 @@
-import React from 'react';
+import 'brace/mode/json';
 import { cloneDeepWith } from 'lodash';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import 'brace/mode/json';
-
 import { IStage } from 'core/domain';
-import { JsonUtils, noop } from 'core/utils';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
+import { JsonUtils, noop } from 'core/utils';
 
 export interface IEditStageJsonModalProps extends IModalComponentProps {
   stage: IStage;

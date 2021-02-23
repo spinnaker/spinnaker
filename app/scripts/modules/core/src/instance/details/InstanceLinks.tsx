@@ -1,13 +1,12 @@
-import React from 'react';
 import _ from 'lodash';
-
 import { $interpolate } from 'ngimport';
-import { SETTINGS } from '../../config/settings';
-import { CollapsibleSection } from '../../presentation';
+import React from 'react';
 
 import { Application } from '../../application';
+import { SETTINGS } from '../../config/settings';
 import { IInstance } from '../../domain';
 import { IMoniker } from '../../naming';
+import { CollapsibleSection } from '../../presentation';
 
 export interface IInstanceLinksProps {
   address: string;

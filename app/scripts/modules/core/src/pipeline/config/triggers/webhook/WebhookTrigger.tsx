@@ -1,5 +1,5 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
 
 import { SETTINGS } from 'core/config/settings';
 import { IWebhookTrigger } from 'core/domain';

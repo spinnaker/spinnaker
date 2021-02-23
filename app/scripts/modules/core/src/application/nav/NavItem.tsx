@@ -1,15 +1,14 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 
+import { Icon } from '@spinnaker/presentation';
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
-import { Tooltip, useDataSource } from '../../presentation';
-import { verticalNavExpandedAtom } from './navAtoms';
 
-import { ApplicationDataSource } from '../service/applicationDataSource';
 import { Application } from '../application.model';
 import { IEntityTags } from '../../domain';
-
-import { Icon } from '@spinnaker/presentation';
+import { verticalNavExpandedAtom } from './navAtoms';
+import { Tooltip, useDataSource } from '../../presentation';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface INavItemProps {
   app: Application;

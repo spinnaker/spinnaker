@@ -1,7 +1,7 @@
-import { ApplicationDataSourceRegistry } from '../service/ApplicationDataSourceRegistry';
-import { APP_CONFIG_STATES } from './appConfig.states';
-
 import { module } from 'angular';
+
+import { APP_CONFIG_STATES } from './appConfig.states';
+import { ApplicationDataSourceRegistry } from '../service/ApplicationDataSourceRegistry';
 
 export const CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE = 'spinnaker.core.application.config.dataSource';
 export const name = CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE; // for backwards compatibility

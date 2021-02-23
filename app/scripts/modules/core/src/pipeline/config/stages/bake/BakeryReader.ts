@@ -1,5 +1,4 @@
 import { get, has } from 'lodash';
-
 import { $q } from 'ngimport';
 
 import { AccountService } from 'core/account/AccountService';

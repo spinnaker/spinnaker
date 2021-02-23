@@ -1,6 +1,3 @@
-import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonImage } from 'amazon/image';
-import { SubnetSelectField } from 'amazon/subnet';
 import { Field, FormikErrors, FormikProps } from 'formik';
 import React from 'react';
 
@@ -20,6 +17,9 @@ import {
   ServerGroupNamePreview,
   TaskReason,
 } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { IAmazonImage } from 'amazon/image';
+import { SubnetSelectField } from 'amazon/subnet';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';

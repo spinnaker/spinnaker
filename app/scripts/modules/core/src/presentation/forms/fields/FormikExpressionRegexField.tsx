@@ -1,16 +1,15 @@
-import React from 'react';
 import { getIn } from 'formik';
+import React from 'react';
 
-import { CollapsibleSection } from '../../collapsibleSection/CollapsibleSection';
-import { ExpressionError } from '../inputs/expression/ExpressionError';
+import { IFormikExpressionFieldProps } from './FormikExpressionField';
 import { FormikForm } from '../FormikForm';
 import { FormikFormField } from './FormikFormField';
+import { CollapsibleSection } from '../../collapsibleSection/CollapsibleSection';
+import { ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
+import { TextInput } from '../inputs/TextInput';
+import { ExpressionError } from '../inputs/expression/ExpressionError';
 import { ILayoutProps } from '../layouts';
 import { errorMessage, messageMessage } from '../validation/categories';
-import { TextInput } from '../inputs/TextInput';
-
-import { ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
-import { IFormikExpressionFieldProps } from './FormikExpressionField';
 
 export interface IRegexpProps {
   RegexHelp?: JSX.Element;

@@ -1,10 +1,11 @@
 import { IDeferred } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { $timeout, $q } from 'ngimport';
+import { $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ITask } from 'core/domain';
+
 import { TaskReader } from '../task.read.service';
 
 export interface ITaskMonitorConfig {

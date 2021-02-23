@@ -1,12 +1,12 @@
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
-import { Key, ITag, TagList } from 'core/widgets';
 import { FirewallLabels } from 'core/securityGroup';
+import { ITag, Key, TagList } from 'core/widgets';
 
-import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
-import { Filters, IFiltersLayout } from './Filters';
 import { Filter } from './Filter';
+import { Filters, IFiltersLayout } from './Filters';
+import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 
 import './search.less';
 

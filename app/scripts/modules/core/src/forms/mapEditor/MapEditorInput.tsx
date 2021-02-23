@@ -1,5 +1,5 @@
+import { defaults, isFunction, isNil, isString } from 'lodash';
 import React from 'react';
-import { defaults, isNil, isFunction, isString } from 'lodash';
 
 import { IPipeline } from 'core/domain';
 import { createFakeReactSyntheticEvent, IFormInputProps, IValidator, IValidatorResult } from 'core/presentation';

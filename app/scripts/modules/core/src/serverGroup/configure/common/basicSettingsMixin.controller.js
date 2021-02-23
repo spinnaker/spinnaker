@@ -1,13 +1,12 @@
 'use strict';
 
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { module } from 'angular';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import { IMAGE_READER } from 'core/image/image.reader';
 import { NameUtils } from 'core/naming';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
-
-import { module } from 'angular';
 
 export const CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER =
   'spinnaker.core.serverGroup.basicSettings.controller';

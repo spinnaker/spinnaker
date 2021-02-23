@@ -1,6 +1,6 @@
 import { module } from 'angular';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 
-import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 export class ServerGroupConfigurationService {

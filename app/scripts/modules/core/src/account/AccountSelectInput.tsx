@@ -1,14 +1,14 @@
-import React from 'react';
-import { $q } from 'ngimport';
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
+import { $q } from 'ngimport';
+import React from 'react';
 import { Option } from 'react-select';
 
-import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
 import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
 import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
+import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
 
-import { IFormInputProps } from '../presentation/forms/inputs';
 import { AccountService, IAccount } from './AccountService';
+import { IFormInputProps } from '../presentation/forms/inputs';
 
 export interface IAccountSelectInputProps extends IFormInputProps {
   accounts: IAccount[] | string[];

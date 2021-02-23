@@ -1,6 +1,8 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
 import { StageArtifactSelectorDelegate } from './react/StageArtifactSelectorDelegate';
 
 export const STAGE_ARTIFACT_SELECTOR_DELEGATE = 'spinnaker.core.artifact.stageArtifactSelectorDelegate';

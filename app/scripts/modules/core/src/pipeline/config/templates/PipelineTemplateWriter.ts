@@ -1,4 +1,5 @@
 import { $q } from 'ngimport';
+
 import { REST } from 'core/api/ApiService';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 

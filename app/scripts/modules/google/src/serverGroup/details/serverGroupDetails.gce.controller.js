@@ -2,7 +2,6 @@
 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import * as angular from 'angular';
-import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 import _ from 'lodash';
 
 import {
@@ -16,6 +15,7 @@ import {
   ServerGroupTemplates,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_ADDAUTOSCALINGPOLICYBUTTON_COMPONENT } from './autoscalingPolicy/addAutoscalingPolicyButton.component';
 import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE } from './autoscalingPolicy/autoscalingPolicy.directive';

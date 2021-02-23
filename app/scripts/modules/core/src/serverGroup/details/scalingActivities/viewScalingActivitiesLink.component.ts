@@ -1,5 +1,6 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+
 import { SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl } from './scalingActivities.controller';
 
 class ViewScalingActivitiesLinkCtrl implements IController {

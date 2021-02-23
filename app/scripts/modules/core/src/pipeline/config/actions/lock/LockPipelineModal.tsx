@@ -1,11 +1,12 @@
+import { get } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { get } from 'lodash';
 
 import { IPipeline, IPipelineLock } from 'core/domain';
+import { HelpField } from 'core/help';
 import { ModalClose } from 'core/modal';
 import { CheckboxInput, FormField, IModalComponentProps, TextInput } from 'core/presentation';
-import { HelpField } from 'core/help';
+
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface ILockPipelineModalProps extends IModalComponentProps {

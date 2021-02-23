@@ -1,6 +1,7 @@
-import React from 'react';
-import { ReactInjector } from 'core/reactShims';
 import { UISref } from '@uirouter/react';
+import React from 'react';
+
+import { ReactInjector } from 'core/reactShims';
 
 export const InstanceDetailsPane = (props: { children: React.ReactNode }) => {
   const isStandalone = ReactInjector.$uiRouter.globals.current.name === 'instanceDetails';

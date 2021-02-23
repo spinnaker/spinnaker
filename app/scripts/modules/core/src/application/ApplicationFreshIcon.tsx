@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Overridable } from '../overrideRegistry/Overridable';
-
 import { Illustration } from '@spinnaker/presentation';
+
+import { Overridable } from '../overrideRegistry/Overridable';
 
 @Overridable('applicationIcon')
 export class ApplicationFreshIcon extends React.Component<{}> {

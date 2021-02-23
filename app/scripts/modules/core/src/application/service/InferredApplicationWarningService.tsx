@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Application } from '../application.model';
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
+
+import { Application } from '../application.model';
 
 export class InferredApplicationWarningService {
   private static viewedApplications: string[] = [];

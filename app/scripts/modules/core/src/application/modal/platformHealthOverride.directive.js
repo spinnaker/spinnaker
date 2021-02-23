@@ -1,8 +1,7 @@
 'use strict';
 
-import _ from 'lodash';
-
 import * as angular from 'angular';
+import _ from 'lodash';
 
 export const CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE =
   'spinnaker.application.platformHealthOverrideCheckbox.directive';

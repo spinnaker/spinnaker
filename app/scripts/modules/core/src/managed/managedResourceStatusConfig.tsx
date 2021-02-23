@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactGA from 'react-ga';
 
+import { IconNames } from '@spinnaker/presentation';
 import { Application } from 'core/application';
 import { IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
-import { IconNames } from '@spinnaker/presentation';
 
 interface IViewConfiguration {
   appearance: 'info' | 'warning' | 'error';

@@ -1,34 +1,34 @@
-import React from 'react';
-import ReactGA from 'react-ga';
 import { UISref } from '@uirouter/react';
+import classNames from 'classnames';
 import { isEqual } from 'lodash';
 import { $location } from 'ngimport';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
-import classNames from 'classnames';
 
-import { Application } from 'core/application/application.model';
-import { ConfirmationModalService } from 'core/confirmationModal';
-import { StageExecutionDetails } from '../../details/StageExecutionDetails';
-import { ExecutionStatus } from '../../status/ExecutionStatus';
-import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
-import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
-import type { IExecution, IRestartDetails, IPipeline } from 'core/domain';
-import { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
-import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
-import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
-import { ReactInjector } from 'core/reactShims';
-import { duration, timestamp } from 'core/utils/timeFormatters';
-import { ISortFilter } from 'core/filterModel';
-import { ExecutionState } from 'core/state';
-
+import { Application } from 'core/application/application.model';
 // react components
 import { CancelModal } from 'core/cancelModal/CancelModal';
+import { SETTINGS } from 'core/config/settings';
+import { ConfirmationModalService } from 'core/confirmationModal';
+import { IExecution, IPipeline, IRestartDetails } from 'core/domain';
+import { ISortFilter } from 'core/filterModel';
+import { Tooltip } from 'core/presentation/Tooltip';
+import { ReactInjector } from 'core/reactShims';
+import { ExecutionState } from 'core/state';
+import { duration, timestamp } from 'core/utils/timeFormatters';
+
 import { ExecutionBreadcrumbs } from './ExecutionBreadcrumbs';
 import { ExecutionMarker } from './ExecutionMarker';
 import { ExecutionPermalink } from './ExecutionPermalink';
+import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
-import { Tooltip } from 'core/presentation/Tooltip';
+import { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
+import { StageExecutionDetails } from '../../details/StageExecutionDetails';
+import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
+import { ExecutionStatus } from '../../status/ExecutionStatus';
+import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
 
 import './execution.less';
 

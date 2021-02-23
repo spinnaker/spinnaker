@@ -1,5 +1,6 @@
-import { traverseObject } from './traverseObject';
 import { set } from 'lodash';
+
+import { traverseObject } from './traverseObject';
 
 export function filterObjectValues<T extends object>(
   object: T,

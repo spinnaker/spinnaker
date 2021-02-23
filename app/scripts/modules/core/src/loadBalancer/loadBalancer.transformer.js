@@ -1,7 +1,6 @@
 'use strict';
 
 import { module } from 'angular';
-
 import { chain, flow } from 'lodash';
 
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';

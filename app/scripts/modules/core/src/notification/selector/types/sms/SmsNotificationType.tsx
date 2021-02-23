@@ -1,6 +1,7 @@
 import React from 'react';
-import { FormikFormField, TextInput } from 'core/presentation';
+
 import { INotificationTypeCustomConfig } from 'core/domain';
+import { FormikFormField, TextInput } from 'core/presentation';
 
 export class SmsNotificationType extends React.Component<INotificationTypeCustomConfig> {
   private validate = (value: string) => {

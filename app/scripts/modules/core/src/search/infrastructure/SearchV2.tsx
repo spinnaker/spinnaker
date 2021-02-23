@@ -1,18 +1,18 @@
+import { isEmpty, pickBy } from 'lodash';
 import React from 'react';
-import { pickBy, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
-import { ITag } from 'core/widgets';
-import { ReactInjector } from 'core/reactShims';
-import { IQueryParams } from 'core/navigation';
 import { InsightMenu } from 'core/insight/InsightMenu';
+import { IQueryParams } from 'core/navigation';
+import { ReactInjector } from 'core/reactShims';
+import { ITag } from 'core/widgets';
 
-import { Search } from '../widgets';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { SearchResults, SearchStatus, searchResultTypeRegistry } from '../searchResult';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { InfrastructureSearchServiceV2 } from '../infrastructure/infrastructureSearchV2.service';
+import { SearchResults, searchResultTypeRegistry, SearchStatus } from '../searchResult';
+import { Search } from '../widgets';
 
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];

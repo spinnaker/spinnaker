@@ -1,11 +1,12 @@
-import * as React from 'react';
 import { UIView } from '@uirouter/react';
-import { SpinErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+import * as React from 'react';
 import { RecoilRoot } from 'recoil';
 
+import { SpinErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
+import { SpinnakerHeader } from '../header/SpinnakerHeader';
 import { CustomBanner } from '../header/customBanner/CustomBanner';
 import { Notifier } from '../widgets/notifier/Notifier';
-import { SpinnakerHeader } from '../header/SpinnakerHeader';
 import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface ISpinnakerContainerProps {

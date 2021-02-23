@@ -1,5 +1,5 @@
-import React from 'react';
 import { isEqual, orderBy } from 'lodash';
+import React from 'react';
 
 import { ILoadBalancer, IServerGroup } from 'core/domain';
 

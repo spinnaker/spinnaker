@@ -1,5 +1,6 @@
-import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
+import React from 'react';
+
 import { Application } from 'core/application/application.model';
 import { IFunction } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';

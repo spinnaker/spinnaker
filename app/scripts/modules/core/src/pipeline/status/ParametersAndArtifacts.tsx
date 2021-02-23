@@ -1,6 +1,6 @@
-import React from 'react';
 import { keyBy, truncate } from 'lodash';
 import memoizeOne from 'memoize-one';
+import React from 'react';
 
 import { IExecution, IPipeline } from 'core/domain';
 

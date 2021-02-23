@@ -1,17 +1,17 @@
 import React from 'react';
-import ReactGA from 'react-ga';
 import { Dropdown, MenuItem } from 'react-bootstrap';
+import ReactGA from 'react-ga';
 
-import { SETTINGS } from 'core/config/settings';
-import { HoverablePopover } from 'core/presentation';
-import { HelpField } from 'core/help';
 import { Application } from 'core/application';
+import { SETTINGS } from 'core/config/settings';
 import { IManagedResourceSummary } from 'core/domain';
+import { HelpField } from 'core/help';
+import { HoverablePopover } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 
-import { toggleResourcePause } from './toggleResourceManagement';
-import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
 import managedDeliveryLogo from './icons/md-logo-color.svg';
+import { showManagedResourceHistoryModal } from './resourceHistory/ManagedResourceHistoryModal';
+import { toggleResourcePause } from './toggleResourceManagement';
 
 import './ManagedResourceDetailsIndicator.css';
 

@@ -1,19 +1,18 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
-('use strict');
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import { module } from 'angular';
-
 import { react2angular } from 'react2angular';
 
-import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
-import { INSIGHT_MENU_DIRECTIVE } from '../insight/insightmenu.directive';
 import { ViewStateCache } from 'core/cache';
+import { InsightMenu as ProjectInsightMenu } from 'core/insight/InsightMenu';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 
 import { ConfigureProjectModal } from './configure';
-import { ProjectReader } from './service/ProjectReader';
+import { INSIGHT_MENU_DIRECTIVE } from '../insight/insightmenu.directive';
+import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
 import { CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE } from '../presentation/sortToggle/sorttoggle.directive';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { ProjectReader } from './service/ProjectReader';
 
-import { InsightMenu as ProjectInsightMenu } from 'core/insight/InsightMenu';
+('use strict');
 
 export const CORE_PROJECTS_PROJECTS_CONTROLLER = 'spinnaker.projects.controller';
 export const name = CORE_PROJECTS_PROJECTS_CONTROLLER; // for backwards compatibility

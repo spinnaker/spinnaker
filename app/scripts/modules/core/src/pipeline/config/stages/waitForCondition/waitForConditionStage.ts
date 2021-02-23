@@ -1,8 +1,8 @@
 import { Registry } from 'core/registry';
 
+import { WaitForConditionExecutionDetails } from './WaitForConditionExecutionDetails';
 import { ExecutionDetailsTasks } from '../common';
 import { WaitForConditionTransformer } from './waitForCondition.transformer';
-import { WaitForConditionExecutionDetails } from './WaitForConditionExecutionDetails';
 
 Registry.pipeline.registerStage({
   label: 'Wait For Condition',

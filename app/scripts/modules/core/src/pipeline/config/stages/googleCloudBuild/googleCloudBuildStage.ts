@@ -6,8 +6,8 @@ import {
   Registry,
 } from 'core';
 
-import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
 import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
+import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
 import { validate } from './googleCloudBuildValidators';
 
 Registry.pipeline.registerStage({

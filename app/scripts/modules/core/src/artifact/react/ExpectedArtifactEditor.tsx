@@ -1,24 +1,24 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
+import { cloneDeep } from 'lodash';
 import React from 'react';
 import { react2angular } from 'react2angular';
-import { cloneDeep } from 'lodash';
 
-import { IExpectedArtifact, IArtifactKindConfig, IArtifact, IPipeline } from 'core/domain';
 import { IArtifactAccount } from 'core/account';
+import { IArtifact, IArtifactKindConfig, IExpectedArtifact, IPipeline } from 'core/domain';
 import { StageConfigField } from 'core/pipeline';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 
-import { ExpectedArtifactService } from '../expectedArtifact.service';
+import { ArtifactAccountSelector } from './ArtifactAccountSelector';
 import {
-  ExpectedArtifactKindSelector,
   EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT,
+  ExpectedArtifactKindSelector,
 } from './ExpectedArtifactKindSelector';
 import {
+  EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT,
   ExpectedArtifactSourceSelector,
   IExpectedArtifactSourceOption,
-  EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT,
 } from './ExpectedArtifactSourceSelector';
-import { ArtifactAccountSelector } from './ArtifactAccountSelector';
+import { ExpectedArtifactService } from '../expectedArtifact.service';
 
 export interface IExpectedArtifactEditorProps {
   default?: IExpectedArtifact;

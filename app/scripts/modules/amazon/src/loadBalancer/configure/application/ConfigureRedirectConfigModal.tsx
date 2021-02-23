@@ -1,4 +1,3 @@
-import { IRedirectActionConfig } from 'amazon/domain';
 import { Form } from 'formik';
 import { pickBy } from 'lodash';
 import React from 'react';
@@ -16,6 +15,7 @@ import {
   SubmitButton,
   TextInput,
 } from '@spinnaker/core';
+import { IRedirectActionConfig } from 'amazon/domain';
 
 import './ConfigureConfigModal.css';
 

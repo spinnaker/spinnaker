@@ -2,8 +2,8 @@
 
 import { module } from 'angular';
 
-import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from './bakeStageChooseOs.component';
 import { CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE } from './bakeStage';
+import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from './bakeStageChooseOs.component';
 import { CORE_PIPELINE_CONFIG_STAGES_BAKE_MODAL_ADDEXTENDEDATTRIBUTE_CONTROLLER_MODAL } from './modal/addExtendedAttribute.controller.modal';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_MODULE = 'spinnaker.core.pipeline.stage.bake';

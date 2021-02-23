@@ -1,8 +1,9 @@
 import { $q } from 'ngimport';
 
-import { ConfirmModal, IConfirmModalProps } from './ConfirmModal';
 import { ReactModal, toMarkdown } from 'core/presentation';
 import { ITaskMonitorConfig, TaskMonitor } from 'core/task';
+
+import { ConfirmModal, IConfirmModalProps } from './ConfirmModal';
 
 export interface IConfirmationModalPassthroughProps {
   account?: string;

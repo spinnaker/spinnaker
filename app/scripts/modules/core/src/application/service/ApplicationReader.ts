@@ -1,9 +1,10 @@
 import { REST } from 'core/api';
 import { SchedulerFactory } from 'core/scheduler';
-import { Application } from '../application.model';
-import { ApplicationDataSource } from '../service/applicationDataSource';
+
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
+import { Application } from '../application.model';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];

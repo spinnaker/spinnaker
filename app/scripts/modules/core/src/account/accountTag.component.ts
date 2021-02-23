@@ -1,4 +1,4 @@
-import { module, IController, IComponentOptions } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 
 import { AccountService } from './AccountService';
 

@@ -1,5 +1,6 @@
+import { IModalProvider, ITooltipProvider } from 'angular-ui-bootstrap';
+
 import { bootstrapModule } from './bootstrap.module';
-import { ITooltipProvider, IModalProvider } from 'angular-ui-bootstrap';
 
 bootstrapModule.config([
   '$uibTooltipProvider',

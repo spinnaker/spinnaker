@@ -1,11 +1,11 @@
-import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
 import { module } from 'angular';
-
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { IEntityTags, IEntityTag } from 'core/domain';
 import { Application } from 'core/application';
+import { IEntityTag, IEntityTags } from 'core/domain';
+import { withErrorBoundary } from 'core/presentation/SpinErrorBoundary';
+
 import { NotificationsPopover } from './NotificationsPopover';
 
 export interface IDataSourceNotificationsProps {

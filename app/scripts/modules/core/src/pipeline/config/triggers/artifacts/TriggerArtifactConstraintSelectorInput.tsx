@@ -1,13 +1,13 @@
-import './triggerArtifactConstraintSelectorInput.less';
-
+import { partition } from 'lodash';
 import React from 'react';
 import Select from 'react-select';
-import { partition } from 'lodash';
 
 import { ArtifactTypePatterns, ExpectedArtifactModal, ExpectedArtifactService } from 'core/artifact';
 import { IExpectedArtifact, IPipeline } from 'core/domain';
-import { Registry } from 'core/registry';
 import { createFakeReactSyntheticEvent, IFormInputProps } from 'core/presentation';
+import { Registry } from 'core/registry';
+
+import './triggerArtifactConstraintSelectorInput.less';
 
 export interface ITriggerArtifactConstraintSelectorProps extends IFormInputProps {
   pipeline: IPipeline;

@@ -1,14 +1,14 @@
-import React from 'react';
 import { Form, FormikProps } from 'formik';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
 import { Application } from 'core/application';
+import { ModalClose, SubmitButton } from 'core/modal';
+import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
-import { SubmitButton, ModalClose } from 'core/modal';
 
-import { ITaskCommand, TaskExecutor } from '../taskExecutor';
 import { TaskMonitor } from '../monitor/TaskMonitor';
+import { ITaskCommand, TaskExecutor } from '../taskExecutor';
 
 interface ITaskMonitorModalProps<T> extends IModalComponentProps {
   application: Application;

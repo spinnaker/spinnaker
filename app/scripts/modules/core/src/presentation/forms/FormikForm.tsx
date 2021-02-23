@@ -1,5 +1,5 @@
-import React from 'react';
 import { connect, FormikContext } from 'formik';
+import React from 'react';
 
 interface IFormikFormProps<T> {
   render: (props: FormikContext<T>) => React.ReactElement<any>;

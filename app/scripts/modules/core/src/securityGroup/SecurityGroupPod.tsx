@@ -1,8 +1,10 @@
 import * as React from 'react';
+
 import { AccountTag } from 'core/account';
+import { Application } from 'core/application';
 import { ISecurityGroupGroup } from 'core/domain';
 import { ManagedResourceStatusIndicator } from 'core/managed';
-import { Application } from 'core/application';
+
 import { SecurityGroup } from './SecurityGroup';
 
 interface ISecurityGroupPodProps {

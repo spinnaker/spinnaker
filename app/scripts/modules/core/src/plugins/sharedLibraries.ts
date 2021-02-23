@@ -1,7 +1,7 @@
-import * as spinnakerCore from 'core';
 import * as uiRouterCore from '@uirouter/core';
 import * as uiRouterReact from '@uirouter/react';
 import * as uiRouterRx from '@uirouter/rx';
+import * as spinnakerCore from 'core';
 import * as lodash from 'lodash';
 import * as propTypes from 'prop-types';
 import * as react from 'react';

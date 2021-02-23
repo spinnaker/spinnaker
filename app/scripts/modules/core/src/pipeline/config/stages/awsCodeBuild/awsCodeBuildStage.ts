@@ -1,7 +1,7 @@
 import { ExecutionDetailsTasks, Registry } from 'core';
 
-import { AwsCodeBuildStageConfig } from './AwsCodeBuildStageConfig';
 import { AwsCodeBuildExecutionDetails } from './AwsCodeBuildExecutionDetails';
+import { AwsCodeBuildStageConfig } from './AwsCodeBuildStageConfig';
 import { validate } from './AwsCodeBuildValidator';
 
 Registry.pipeline.registerStage({

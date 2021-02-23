@@ -5,9 +5,10 @@ import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from 'core/domain';
-import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
+
 import { ILabelFilter, trueKeyObjectToLabelFilters } from './labelFilterUtils';
 
 export interface IParentGrouping {

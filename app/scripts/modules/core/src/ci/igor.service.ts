@@ -1,7 +1,7 @@
 import { $q } from 'ngimport';
 
 import { REST } from 'core/api/ApiService';
-import { IBuild, IJobConfig, IGcbTrigger } from 'core/domain';
+import { IBuild, IGcbTrigger, IJobConfig } from 'core/domain';
 
 export enum BuildServiceType {
   Jenkins = 'jenkins',

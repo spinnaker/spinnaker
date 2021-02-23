@@ -1,14 +1,14 @@
-import React from 'react';
-
-import '@uirouter/rx';
 import { Transition } from '@uirouter/core';
 import { UISref, UIView } from '@uirouter/react';
+import '@uirouter/rx';
+import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 import { Subject } from 'rxjs';
 
-import { ReactInjector } from 'core/reactShims';
 import { IProject } from 'core/domain';
 import { SpanDropdownTrigger } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+
 import { ConfigureProjectModal } from './configure/ConfigureProjectModal';
 
 import './project.less';

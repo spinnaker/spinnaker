@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { BuildServiceType } from 'core/ci';
+
+import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export class JenkinsTriggerTemplate extends React.Component<ITriggerTemplateComponentProps> {

@@ -1,5 +1,5 @@
-import { IconNames } from '../../presentation';
 import { IManagedResourceSummary } from '../../domain';
+import { IconNames } from '../../presentation';
 
 const UNKNOWN_RESOURCE_ICON = 'placeholder';
 

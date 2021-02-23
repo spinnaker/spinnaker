@@ -1,5 +1,5 @@
-import React from 'react';
 import { FormikProps } from 'formik';
+import React from 'react';
 import { Option } from 'react-select';
 
 import { BuildServiceType, IgorService } from 'core/ci';

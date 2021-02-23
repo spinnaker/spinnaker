@@ -1,3 +1,16 @@
+import { chain, filter, flatten, map } from 'lodash';
+import { $q } from 'ngimport';
+
+import {
+  AccountService,
+  Application,
+  IHealth,
+  IInstance,
+  IServerGroup,
+  IVpc,
+  NameUtils,
+  SETTINGS,
+} from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
   IALBListenerCertificate,
@@ -15,19 +28,6 @@ import {
   ITargetGroup,
 } from 'amazon/domain';
 import { VpcReader } from 'amazon/vpc/VpcReader';
-import { chain, filter, flatten, map } from 'lodash';
-import { $q } from 'ngimport';
-
-import {
-  AccountService,
-  Application,
-  IHealth,
-  IInstance,
-  IServerGroup,
-  IVpc,
-  NameUtils,
-  SETTINGS,
-} from '@spinnaker/core';
 
 export class AwsLoadBalancerTransformer {
   private updateHealthCounts(container: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {

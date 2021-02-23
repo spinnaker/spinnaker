@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { INotificationCategory } from './notificationCategories';
 import { INotification } from './NotificationsPopover';
+import { INotificationCategory } from './notificationCategories';
 
 export interface INotificationCategoryProps {
   category: INotificationCategory;

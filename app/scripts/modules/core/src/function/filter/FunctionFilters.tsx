@@ -1,12 +1,12 @@
-import React from 'react';
-import { chain, compact, debounce, uniq, map } from 'lodash';
+import { chain, compact, debounce, map, uniq } from 'lodash';
 import { $rootScope } from 'ngimport';
+import React from 'react';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
-import { ISortFilter, digestDependentFilters, FilterCheckbox } from 'core/filterModel';
-import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { FilterSearch } from 'core/cluster/filter/FilterSearch';
+import { FilterSection } from 'core/cluster/filter/FilterSection';
+import { digestDependentFilters, FilterCheckbox, ISortFilter } from 'core/filterModel';
 import { FunctionState } from 'core/state';
 
 const poolValueCoordinates = [

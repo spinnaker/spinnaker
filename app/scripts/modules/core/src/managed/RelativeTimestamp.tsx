@@ -1,9 +1,9 @@
-import React, { memo, useEffect, useState } from 'react';
 import { DateTime, Duration } from 'luxon';
+import React, { memo, useEffect, useState } from 'react';
 
 import { SETTINGS } from '../config';
+import { Tooltip, useInterval } from '../presentation';
 import { CopyToClipboard, timeDiffToString } from '../utils';
-import { useInterval, Tooltip } from '../presentation';
 
 export interface IRelativeTimestampProps {
   timestamp: DateTime;

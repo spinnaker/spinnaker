@@ -1,5 +1,5 @@
+import { isArray, isObject, isString } from 'lodash';
 import React from 'react';
-import { isArray, isString, isObject } from 'lodash';
 
 import { Tooltip } from 'core/presentation';
 

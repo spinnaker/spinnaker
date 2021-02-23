@@ -1,5 +1,3 @@
-import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
-
 import {
   IInstance,
   IInstanceCounts,
@@ -8,6 +6,7 @@ import {
   ILoadBalancerUpsertCommand,
   ISubnet,
 } from '@spinnaker/core';
+import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
 
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
 import { IAmazonServerGroup } from './IAmazonServerGroup';

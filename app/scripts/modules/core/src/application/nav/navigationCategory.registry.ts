@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+
 import { IconNames } from 'core/presentation';
 
 export interface INavigationCategory {

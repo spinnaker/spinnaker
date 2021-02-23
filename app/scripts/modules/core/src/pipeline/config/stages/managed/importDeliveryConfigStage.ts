@@ -1,10 +1,10 @@
-import { Registry } from 'core/registry';
-import { ExecutionDetailsTasks } from '../common';
-
-import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConfig';
-import { ImportDeliveryConfigExecutionDetails } from './ImportDeliveryConfigExecutionDetails';
-import { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
 import { SETTINGS } from 'core/config';
+import { Registry } from 'core/registry';
+
+import { ImportDeliveryConfigExecutionDetails } from './ImportDeliveryConfigExecutionDetails';
+import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConfig';
+import { ExecutionDetailsTasks } from '../common';
+import { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
 
 if (SETTINGS.feature.managedDelivery) {
   Registry.pipeline.registerStage({

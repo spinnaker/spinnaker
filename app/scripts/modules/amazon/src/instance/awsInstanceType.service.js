@@ -1,10 +1,10 @@
 'use strict';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { module } from 'angular';
 import _ from 'lodash';
 
 import { REST } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
 export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility

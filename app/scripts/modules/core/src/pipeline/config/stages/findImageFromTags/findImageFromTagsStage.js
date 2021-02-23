@@ -1,8 +1,7 @@
 'use strict';
 
-import { Registry } from 'core/registry';
-
 import { module } from 'angular';
+import { Registry } from 'core/registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE =
   'spinnaker.core.pipeline.stage.findImageFromTagsStage';

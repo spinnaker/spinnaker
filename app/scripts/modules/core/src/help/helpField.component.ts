@@ -1,7 +1,7 @@
-import { IController, IComponentOptions, ITimeoutService, module } from 'angular';
+import { IComponentOptions, IController, ITimeoutService, module } from 'angular';
+import ANGULARTICS from 'angulartics';
 
 import { HelpContentsRegistry } from './helpContents.registry';
-import ANGULARTICS from 'angulartics';
 
 export interface IHelpFieldContents {
   content: string;

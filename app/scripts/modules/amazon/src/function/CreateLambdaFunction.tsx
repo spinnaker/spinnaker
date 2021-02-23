@@ -1,4 +1,3 @@
-import { IAmazonFunction, IAmazonFunctionUpsertCommand } from 'amazon/domain';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
@@ -12,6 +11,7 @@ import {
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
+import { IAmazonFunction, IAmazonFunctionUpsertCommand } from 'amazon/domain';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';

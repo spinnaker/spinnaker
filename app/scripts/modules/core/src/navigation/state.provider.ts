@@ -1,5 +1,3 @@
-import { IServiceProvider, module } from 'angular';
-import { isEqual, isPlainObject } from 'lodash';
 import {
   Ng1StateDeclaration,
   Ng1ViewDeclaration,
@@ -7,13 +5,15 @@ import {
   UrlRouterProvider,
   UrlService,
 } from '@uirouter/angularjs';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import { ParamTypeDefinition, ReactViewDeclaration } from '@uirouter/react';
+import { IServiceProvider, module } from 'angular';
+import { isEqual, isPlainObject } from 'lodash';
 
-import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 import { IFilterConfig } from '../filterModel/IFilterModel';
+import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 
 import './navigation.less';
-import { ReactViewDeclaration, ParamTypeDefinition } from '@uirouter/react';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 // Typescript kludge to widen interfaces so INestedState can support both react and angular views
 export interface IReactHybridIntermediate extends Ng1StateDeclaration {

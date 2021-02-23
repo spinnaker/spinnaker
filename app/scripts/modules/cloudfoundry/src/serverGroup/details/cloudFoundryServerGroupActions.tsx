@@ -1,4 +1,3 @@
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { filter, find, get, orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
@@ -14,6 +13,7 @@ import {
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
+import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import { CloudFoundryServerGroupCommandBuilder } from '../configure';
 import { CloudFoundryCreateServerGroupModal } from '../configure/wizard/CreateServerGroupModal';

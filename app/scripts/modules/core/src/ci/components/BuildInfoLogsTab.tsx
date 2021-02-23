@@ -1,12 +1,12 @@
-import * as React from 'react';
-import { isEmpty, throttle } from 'lodash';
 import * as classNames from 'classnames';
+import { isEmpty, throttle } from 'lodash';
+import * as React from 'react';
 
-import { Spinner } from '../../widgets';
-import { Tooltip, useInterval } from '../../presentation';
-import { ICiBuild } from '../domain';
-import { CIReader } from '../CIReader';
 import { BuildDetailsScrollContainerContext } from './BuildDetailsScrollContainerContext';
+import { CIReader } from '../CIReader';
+import { ICiBuild } from '../domain';
+import { Tooltip, useInterval } from '../../presentation';
+import { Spinner } from '../../widgets';
 
 interface ILogResult {
   logs: string[];

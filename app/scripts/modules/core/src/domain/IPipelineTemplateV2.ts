@@ -1,5 +1,6 @@
-import { IPipeline } from './IPipeline';
 import { VariableType } from 'core/pipeline/config/templates/PipelineTemplateReader';
+
+import { IPipeline } from './IPipeline';
 
 export interface IPipelineTemplateV2 {
   id: string;

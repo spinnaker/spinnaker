@@ -1,5 +1,5 @@
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
 import { AccountTag } from 'core/account';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';

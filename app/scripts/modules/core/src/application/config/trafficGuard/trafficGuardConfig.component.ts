@@ -2,11 +2,12 @@ import { ILogService, module, toJson } from 'angular';
 import { cloneDeep, uniq } from 'lodash';
 
 import { AccountService, IAccountDetails, IAggregatedAccounts, IRegion } from 'core/account/AccountService';
-import { IConfigSectionFooterViewState } from '../footer/configSectionFooter.component';
-import { Application } from '../../application.model';
-import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
-import './trafficGuardConfig.help';
 import { ClusterMatcher, IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
+import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
+
+import { Application } from '../../application.model';
+import { IConfigSectionFooterViewState } from '../footer/configSectionFooter.component';
+import './trafficGuardConfig.help';
 
 export interface ITrafficGuardRule extends IClusterMatchRule {
   enabled: boolean;

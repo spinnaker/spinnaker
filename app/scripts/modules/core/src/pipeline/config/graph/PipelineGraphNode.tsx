@@ -1,14 +1,14 @@
-import React from 'react';
-import ReactGA from 'react-ga';
 import classNames from 'classnames';
 import { get } from 'lodash';
+import React from 'react';
+import ReactGA from 'react-ga';
 
 import { IExecutionStageSummary } from 'core/domain';
-import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';
 import { LabelComponent, Markdown } from 'core/presentation';
 import { Popover } from 'core/presentation/Popover';
 
 import { IPipelineGraphNode } from './pipelineGraph.service';
+import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';
 
 export interface IPipelineGraphNodeProps {
   isExecution: boolean;

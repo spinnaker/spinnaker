@@ -1,7 +1,6 @@
-import React from 'react';
-import { FormikProps } from 'formik';
-
 import { Application, HelpField, IServerGroupCommand, Overridable } from 'core';
+import { FormikProps } from 'formik';
+import React from 'react';
 
 export interface DetailsFieldProps<T extends IServerGroupCommand> {
   app: Application;

@@ -1,8 +1,8 @@
+import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import {
   CloudfoundryLoadBalancersExecutionDetails,
   CloudfoundryLoadBalancersStageConfig,
 } from 'cloudfoundry/presentation';
-import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => [stage.context.credentials],

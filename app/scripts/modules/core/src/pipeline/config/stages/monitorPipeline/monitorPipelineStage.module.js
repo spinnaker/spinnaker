@@ -1,7 +1,8 @@
-import { CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE } from './monitorPipelineStage';
-('use strict');
-
 import { module } from 'angular';
+
+import { CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE } from './monitorPipelineStage';
+
+('use strict');
 
 export const CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE_MODULE =
   'spinnaker.core.pipeline.stage.monitorPipeline';

@@ -1,26 +1,26 @@
-import { CreatePipelineButton } from '../create/CreatePipelineButton';
-import { IScheduler } from 'core/scheduler/SchedulerFactory';
-import React from 'react';
-import ReactGA from 'react-ga';
 import { get } from 'lodash';
 import { $q } from 'ngimport';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
-import { IPipeline, IPipelineCommand, IExecution } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-import { ManualExecutionModal } from '../manualExecution';
+import { IExecution, IPipeline, IPipelineCommand } from 'core/domain';
+import { FilterCollapse, FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Tooltip } from 'core/presentation/Tooltip';
-
-import { CreatePipeline } from '../config/CreatePipeline';
-import { ExecutionFilters } from '../filter/ExecutionFilters';
-import { ExecutionFilterService } from '../filter/executionFilter.service';
-import { ExecutionGroups } from './executionGroup/ExecutionGroups';
-import { FilterTags, FilterCollapse, IFilterTag, ISortFilter } from 'core/filterModel';
-import { Spinner } from 'core/widgets/spinners/Spinner';
+import { ReactInjector } from 'core/reactShims';
+import { SchedulerFactory } from 'core/scheduler';
+import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
-import { SchedulerFactory } from 'core/scheduler';
+import { Spinner } from 'core/widgets/spinners/Spinner';
+
+import { CreatePipeline } from '../config/CreatePipeline';
+import { CreatePipelineButton } from '../create/CreatePipelineButton';
+import { ExecutionGroups } from './executionGroup/ExecutionGroups';
+import { ExecutionFilters } from '../filter/ExecutionFilters';
+import { ExecutionFilterService } from '../filter/executionFilter.service';
+import { ManualExecutionModal } from '../manualExecution';
 
 import './executions.less';
 

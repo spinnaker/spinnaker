@@ -1,6 +1,6 @@
 import { Application } from 'core/application';
 import { ModalInjector } from 'core/reactShims';
-import { IJob, TaskExecutor, ITaskCommand } from 'core/task/taskExecutor';
+import { IJob, ITaskCommand, TaskExecutor } from 'core/task/taskExecutor';
 
 export class PagerDutyWriter {
   public static pageApplicationOwnerModal(app: Application): void {

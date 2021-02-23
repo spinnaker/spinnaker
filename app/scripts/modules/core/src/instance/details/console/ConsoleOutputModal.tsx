@@ -1,9 +1,9 @@
 import * as React from 'react';
 
+import { IInstanceMultiOutputLog, InstanceReader } from '../../InstanceReader';
 import { IInstance } from '../../../domain';
 import { IModalComponentProps, ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { Spinner } from '../../../widgets';
-import { InstanceReader, IInstanceMultiOutputLog } from '../../InstanceReader';
 
 import './ConsoleOutputModal.less';
 
