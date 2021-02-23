@@ -11,11 +11,12 @@ const val RUN_JOB_TYPE: String = "runJob"
  */
 data class ContainerJobConfig(
   /**
-   * Repository name associated with the container, e.g.: "acme/widget"
+   * image name, with optional tag. Examples:
+   *
+   *   acme/widget
+   *   acme/widget:latest
    */
-  val repository: String,
-  val tag: String? = "latest",
-  val digest: String? = null,
+  val image: String,
   val application: String,
   val location: TitusServerGroup.Location,
   val resources: TitusServerGroup.Resources = TitusServerGroup.Resources(
@@ -39,21 +40,11 @@ data class ContainerJobConfig(
   val waitForCompletion: Boolean = true
 ) {
   init {
-    require((tag == null) xor (digest == null)) {
-      "One, and only one, of digest or tag must be supplied"
-    }
     require(retries >= 0) {
       "Retries must be positive or zero"
     }
   }
 
-  /**
-   * ID that identifies an image, e.g.:
-   *
-   * acme/widget:latest
-   * acme/widget:sha256:780f11bfc03495da29f9e2d25bf55123330715fb494ac27f45c96f808fd2d4c5
-   */
-  val imageId: String = "$repository:${tag ?: digest}"
   val cloudProvider: String = "titus"
   val cloudProviderType: String = "aws"
 }
@@ -95,7 +86,7 @@ fun ContainerJobConfig.createRunJobStage() =
       "iamProfile" to iamInstanceProfile,
       "region" to location.region,
       "capacityGroup" to capacityGroup,
-      "imageId" to imageId,
+      "imageId" to image,
       "entryPoint" to entrypoint
     ),
 

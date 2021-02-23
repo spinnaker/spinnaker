@@ -67,7 +67,7 @@ class TestContainerVerificationEvaluator(
         taskLauncher.submitJob(
           type = VERIFICATION,
           subject = "container integration test for ${context.deliveryConfig.application}.${context.environmentName}",
-          description = "Verifying ${context.version} in environment ${context.environmentName} with test container ${verification.repository}:${verification.tag}",
+          description = "Verifying ${context.version} in environment ${context.environmentName} with test container ${verification.imageId}",
           user = context.deliveryConfig.serviceAccount,
           application = context.deliveryConfig.application,
           notifications = emptySet(),
@@ -75,10 +75,8 @@ class TestContainerVerificationEvaluator(
             ContainerJobConfig(
               application = verification.application ?: context.deliveryConfig.application,
               location = verification.location,
-              repository = verification.repository,
               credentials = verification.location.account,
-              tag = verification.tag,
-              digest = null
+              image = verification.imageId,
             ).createRunJobStage()
           )
         )

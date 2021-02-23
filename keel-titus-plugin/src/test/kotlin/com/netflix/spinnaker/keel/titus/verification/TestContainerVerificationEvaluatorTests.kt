@@ -47,13 +47,17 @@ internal class TestContainerVerificationEvaluatorTests {
     artifactReference = "fnord",
     version = "1.1"
   )
+
+  private val app = "fnord-test-app"
+  private val loc = Location(
+    account = "titustestvpc",
+    region = "ap-south-1"
+  )
+
   private val verification = TestContainerVerification(
     repository = "illuminati/fnord",
-    location = Location(
-      account = "titustestvpc",
-      region = "ap-south-1"
-    ),
-    application = "fnord-test-app"
+    location = loc,
+    application = app
   )
 
   @Test
@@ -80,6 +84,59 @@ internal class TestContainerVerificationEvaluatorTests {
         }
       )
     }
+  }
+
+  private fun verifyImageId(expectedImageId : String) {
+    verify {
+      taskLauncher.submitJob(
+        type = VERIFICATION,
+        user = any(),
+        application = any(),
+        notifications = any(),
+        subject = any(),
+        description = any(),
+        correlationId = any(),
+        stages = match {
+          expectedImageId == (it.first()["cluster"] as Map<String, Any>)["imageId"]
+        }
+      )
+    }
+  }
+
+  @Test
+  fun `image id specified by repository field and tag`() {
+    stubTaskLaunch()
+
+    subject.start(context, TestContainerVerification(repository="illuminati/fnord", tag="stable", location=loc, application=app))
+
+    verifyImageId("illuminati/fnord:stable")
+  }
+
+  @Test
+  fun `image id specified by repository field, no tag`() {
+    stubTaskLaunch()
+
+    subject.start(context, TestContainerVerification(repository="illuminati/fnord", location=loc, application=app))
+
+    verifyImageId("illuminati/fnord:latest")
+  }
+
+  @Test
+  fun `image id specified by image field and tag`() {
+    stubTaskLaunch()
+
+    subject.start(context, TestContainerVerification(image="acme/rollerskates:rocket", location=loc, application=app))
+
+    verifyImageId("acme/rollerskates:rocket")
+  }
+
+  @Test
+  fun `image id specified by image field, no tag`() {
+    stubTaskLaunch()
+
+    subject.start(context, TestContainerVerification(image="acme/rollerskates", location=loc, application=app))
+
+    verifyImageId("acme/rollerskates:latest")
   }
 
   @Test
