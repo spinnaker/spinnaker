@@ -77,14 +77,13 @@ internal class VerificationControllerTests
   @EnumSource(ConstraintStatus::class, names = ["OVERRIDE_PASS", "OVERRIDE_FAIL"])
   fun `verification status can be overridden by user request`(status: ConstraintStatus) {
     val payload = UpdateVerificationStatusRequest(
-      verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0",
       status = status,
       comment = "I swear this is fine"
     )
     val user = "fzlem@netflix.com"
-    val request = post("/${deliveryConfig.application}/environment/test/verifications")
+    val request = post("/application/${deliveryConfig.application}/environment/${environment.name}/verifications/${verification.id}")
       .header("X-SPINNAKER-USER", user)
       .contentType(APPLICATION_JSON)
       .accept(APPLICATION_JSON)
@@ -108,14 +107,13 @@ internal class VerificationControllerTests
   @EnumSource(ConstraintStatus::class, names = ["OVERRIDE_PASS", "OVERRIDE_FAIL"], mode = EXCLUDE)
   fun `only override statuses are accepted`(status: ConstraintStatus) {
     val payload = UpdateVerificationStatusRequest(
-      verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0",
       status = status,
       comment = "I swear this is fine"
     )
     val user = "fzlem@netflix.com"
-    val request = post("/${deliveryConfig.application}/environment/test/verifications")
+    val request = post("/application/${deliveryConfig.application}/environment/${environment.name}/verifications/${verification.id}")
       .header("X-SPINNAKER-USER", user)
       .contentType(APPLICATION_JSON)
       .accept(APPLICATION_JSON)
@@ -133,12 +131,11 @@ internal class VerificationControllerTests
   @NullSource
   fun `verification can be retried if not currently running`(currentStatus: ConstraintStatus?) {
     val payload = RetryVerificationRequest(
-      verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0"
     )
     val user = "fzlem@netflix.com"
-    val request = post("/${deliveryConfig.application}/environment/test/verifications/retry")
+    val request = post("/application/${deliveryConfig.application}/environment/${environment.name}/verifications/${verification.id}/retry")
       .header("X-SPINNAKER-USER", user)
       .contentType(APPLICATION_JSON)
       .accept(APPLICATION_JSON)
@@ -166,12 +163,11 @@ internal class VerificationControllerTests
   @EnumSource(ConstraintStatus::class, names = ["NOT_EVALUATED", "PENDING"])
   fun `verification cannot be retried if running`(currentStatus: ConstraintStatus) {
     val payload = RetryVerificationRequest(
-      verificationId = verification.id,
       artifactReference = artifact.reference,
       artifactVersion = "1.0.0"
     )
     val user = "fzlem@netflix.com"
-    val request = post("/${deliveryConfig.application}/environment/test/verifications/retry")
+    val request = post("/application/${deliveryConfig.application}/environment/${environment.name}/verifications/${verification.id}/retry")
       .header("X-SPINNAKER-USER", user)
       .contentType(APPLICATION_JSON)
       .accept(APPLICATION_JSON)
