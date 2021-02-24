@@ -43,6 +43,7 @@ class InterlinkSpec extends Specification {
   @Shared def delete = new DeleteInterlinkEvent(ORCHESTRATION, "execId").withPartition("partition")
   @Shared def patch = new PatchStageInterlinkEvent(ORCHESTRATION, "execId", "stageId",
       '{"id": "someId", "context": {"value": 42}}').withPartition("partition")
+  @Shared def restart = new RestartStageInterlinkEvent(PIPELINE, "execId", "stageId")
 
   @Unroll
   def "can parse execution event type #event.getEventType()"() {
@@ -59,7 +60,8 @@ class InterlinkSpec extends Specification {
         pause,
         resume,
         delete,
-        patch
+        patch,
+        restart
     ]
   }
 
@@ -81,6 +83,7 @@ class InterlinkSpec extends Specification {
     resume | "resume"
     delete | "delete"
     patch  | "updateStage"
+    restart | "restartStage"
   }
 
   @Unroll

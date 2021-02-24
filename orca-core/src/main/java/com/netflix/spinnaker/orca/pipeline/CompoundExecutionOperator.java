@@ -106,6 +106,19 @@ public class CompoundExecutionOperator {
         executionId);
   }
 
+  public PipelineExecution restartStage(@Nonnull String executionId, @Nonnull String stageId) {
+    PipelineExecution execution = repository.retrieve(ExecutionType.PIPELINE, executionId);
+    if (repository.handlesPartition(execution.getPartition())) {
+      runner.restart(execution, stageId);
+    } else {
+      log.info(
+          "Not pushing queue message action='restart' for execution with foreign partition='{}'",
+          execution.getPartition());
+      repository.restartStage(executionId, stageId);
+    }
+    return execution;
+  }
+
   private PipelineExecution doInternal(
       Consumer<PipelineExecution> runnerAction,
       Runnable repositoryAction,

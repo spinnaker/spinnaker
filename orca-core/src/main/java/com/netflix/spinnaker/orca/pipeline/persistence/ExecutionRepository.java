@@ -177,6 +177,11 @@ public interface ExecutionRepository {
         || partitionOfExecution.equals(getPartition()); // both are set and must match
   }
 
+  // defaulting to a no-op because in normal cases, this is a no-op for execution repositories
+  // execution repositories that support foreign peers can override this to support restarting
+  // foreign executions
+  default void restartStage(String executionId, String stageId) {}
+
   final class ExecutionCriteria {
     private int pageSize = 3500;
     private Collection<ExecutionStatus> statuses = new ArrayList<>();

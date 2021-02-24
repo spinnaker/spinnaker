@@ -83,10 +83,6 @@ public class PatchStageInterlinkEvent implements InterlinkEvent {
 
             if (stageFromMessage.getLastModified() != null) {
               stageFromRepo.setLastModified(stageFromMessage.getLastModified());
-            } else {
-              log.warn(
-                  "Unexpected state: stageFromMessage.getLastModified() is null, stageFromMessage={}",
-                  stageFromMessage);
             }
           });
     } catch (JsonProcessingException e) {

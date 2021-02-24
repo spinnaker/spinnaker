@@ -70,7 +70,7 @@ class TaskController {
   ExecutionRunner executionRunner
 
   @Autowired
-  CompoundExecutionOperator executionOperator;
+  CompoundExecutionOperator executionOperator
 
   @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
@@ -502,9 +502,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId) {
-    def pipeline = executionRepository.retrieve(PIPELINE, id)
-    executionRunner.restart(pipeline, stageId)
-    pipeline
+    return executionOperator.restartStage(id, stageId)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
