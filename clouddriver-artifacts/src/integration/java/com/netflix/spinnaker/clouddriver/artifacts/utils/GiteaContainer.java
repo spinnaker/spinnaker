@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.testcontainers.containers.GenericContainer;
 
 public class GiteaContainer extends GenericContainer<GiteaContainer> {
@@ -50,7 +51,7 @@ public class GiteaContainer extends GenericContainer<GiteaContainer> {
   @Override
   public void start() {
     super.start();
-    String baseUrl = "http://" + this.getContainerIpAddress() + ":" + this.getMappedPort(3000);
+    String baseUrl = getExternalBaseUrl();
     try {
       if (SSH_KEY_FILE.toFile().getParentFile().exists()) {
         FileUtils.forceDelete(SSH_KEY_FILE.toFile().getParentFile());
@@ -68,6 +69,11 @@ public class GiteaContainer extends GenericContainer<GiteaContainer> {
     } catch (IOException | InterruptedException e) {
       fail("Exception initializing gitea: " + e.getMessage());
     }
+  }
+
+  @NotNull
+  private String getExternalBaseUrl() {
+    return "http://" + this.getContainerIpAddress() + ":" + this.getMappedPort(3000);
   }
 
   public String httpUrl() {
@@ -181,5 +187,18 @@ public class GiteaContainer extends GenericContainer<GiteaContainer> {
     FileUtils.writeStringToFile(
         knownHosts.toFile(), "localhost " + publicKey, Charset.defaultCharset());
     return knownHosts;
+  }
+
+  public void addFileToRepo(String fileName) {
+    Map<String, Object> body = ImmutableMap.of("someKey", "someValue");
+    Response resp =
+        given()
+            .auth()
+            .preemptive()
+            .basic(USER, PASS)
+            .contentType("application/json")
+            .body(body)
+            .post(getExternalBaseUrl() + "/api/v1/repos/test/test/contents/" + fileName);
+    resp.then().statusCode(201);
   }
 }
