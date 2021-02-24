@@ -60,11 +60,11 @@ class RoutesTest {
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
-    RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path");
+    RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path/v1.0");
     assertThat(routeId).isNotNull();
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
     assertThat(routeId.getDomainGuid()).isEqualTo("domainGuid");
-    assertThat(routeId.getPath()).isEqualTo("/path");
+    assertThat(routeId.getPath()).isEqualTo("/path/v1.0");
   }
 
   @Test

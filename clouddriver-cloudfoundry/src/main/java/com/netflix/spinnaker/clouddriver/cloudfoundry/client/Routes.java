@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Routes {
   private static final Pattern VALID_ROUTE_REGEX =
-      Pattern.compile("^([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([/a-zA-Z0-9_-]+)?$");
+      Pattern.compile("^([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([/a-zA-Z0-9_.-]+)?$");
 
   private final String account;
   private final RouteService api;
