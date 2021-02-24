@@ -22,7 +22,9 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
+import com.netflix.spinnaker.gate.model.manageddelivery.OverrideVerificationRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
+import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
@@ -162,6 +164,20 @@ public interface KeelService {
 
   @POST("/application/{application}/mark/good")
   Response markGood(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
+
+  @POST("/application/{application}/environment/{environment}/verifications/{verificationId}")
+  Response overrideVerification(
+      @Path("application") String application,
+      @Path("environment") String environment,
+      @Path("verificationId") String verificationId,
+      @Body OverrideVerificationRequest payload);
+
+  @POST("/application/{application}/environment/{environment}/verifications/{verificationId}/retry")
+  Response retryVerification(
+      @Path("application") String application,
+      @Path("environment") String environment,
+      @Path("verificationId") String verificationId,
+      @Body RetryVerificationRequest payload);
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();

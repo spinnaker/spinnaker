@@ -8,7 +8,9 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
+import com.netflix.spinnaker.gate.model.manageddelivery.OverrideVerificationRequest;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
+import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
 import com.netflix.spinnaker.gate.services.NotificationService;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
@@ -344,6 +346,27 @@ public class ManagedController {
   void markGood(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
     keelService.markGood(application, veto);
+  }
+
+  @ApiOperation(value = "Override the status of a verification")
+  @PostMapping(path = "/{application}/environment/{environment}/verifications/{verificationId}")
+  void overrideVerification(
+      @PathVariable("application") String application,
+      @PathVariable("environment") String environment,
+      @PathVariable("verificationId") String verificationId,
+      @RequestBody OverrideVerificationRequest payload) {
+    keelService.overrideVerification(application, environment, verificationId, payload);
+  }
+
+  @ApiOperation(value = "Retry a verification")
+  @PostMapping(
+      path = "/{application}/environment/{environment}/verifications/{verificationId}/retry")
+  void retryVerification(
+      @PathVariable("application") String application,
+      @PathVariable("environment") String environment,
+      @PathVariable("verificationId") String verificationId,
+      @RequestBody RetryVerificationRequest payload) {
+    keelService.retryVerification(application, environment, verificationId, payload);
   }
 
   @PostMapping(
