@@ -42,7 +42,7 @@ class EcsCredentialsLifeCyclerHandlerSpec extends Specification {
 
     given:
     def handler = new EcsCredentialsLifeCycleHandler(ecsProvider, null, null, registry, null, objectMapper, null, ecsAccountMapper)
-    Set<Class> expectedClasses = [ IamRoleCachingAgent.class, EcsClusterCachingAgent.class, ServiceCachingAgent.class,
+    Set<Class> expectedClasses = [ ApplicationCachingAgent.class, IamRoleCachingAgent.class, EcsClusterCachingAgent.class, ServiceCachingAgent.class,
                          TaskCachingAgent.class, ContainerInstanceCachingAgent.class, TaskDefinitionCachingAgent.class,
                          TaskHealthCachingAgent.class, EcsCloudMetricAlarmCachingAgent.class, ScalableTargetsCachingAgent.class,
                          SecretCachingAgent.class, ServiceDiscoveryCachingAgent.class, TargetHealthCachingAgent.class,

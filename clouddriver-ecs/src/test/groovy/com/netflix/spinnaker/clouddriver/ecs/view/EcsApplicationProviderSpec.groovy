@@ -18,31 +18,28 @@ package com.netflix.spinnaker.clouddriver.ecs.view
 
 import com.amazonaws.services.ecs.model.DeploymentConfiguration
 import com.amazonaws.services.ecs.model.Service
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.ApplicationCacheClient
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsApplication
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TestServiceCachingAgentFactory
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials
 import com.netflix.spinnaker.clouddriver.model.Application
-import com.netflix.spinnaker.credentials.CredentialsRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
 class EcsApplicationProviderSpec extends Specification {
-  def mapper = new ObjectMapper()
   def cache = Mock(Cache)
-  def serviceCacheClient = new ServiceCacheClient(cache, mapper)
-  def credentialsRepository = Mock(CredentialsRepository)
+  def applicationCacheClient = new ApplicationCacheClient(cache)
   @Subject
-  def provider = new EcsApplicationProvider(credentialsRepository, serviceCacheClient)
+  def provider = new EcsApplicationProvider(applicationCacheClient)
 
   def 'should return an application'() {
     given:
     def accountName = 'test-account'
+    def region = 'us-east-1'
     def credentials = new NetflixECSCredentials(TestCredential.named(accountName))
     def appName = 'testapp'
     def serviceName = appName + '-kcats-liated'
@@ -65,10 +62,14 @@ class EcsApplicationProviderSpec extends Specification {
     )
     def attributes = TestServiceCachingAgentFactory.create(credentials,
       credentials.getRegions()[0].getName()).convertServiceToAttributes(service)
+    attributes.put("name", appName)
+    attributes.put("account", accountName)
+    attributes.put("region", region)
 
-    credentialsRepository.getAll() >> [credentials]
+    def relationships = [Keys.getServiceKey(accountName, region, serviceName)]
+
     cache.filterIdentifiers(_, _) >> []
-    cache.getAll(_, _) >> [new DefaultCacheData('key', attributes, [:])]
+    cache.get(_, _, _) >> new DefaultCacheData(appName, attributes, [(Keys.Namespace.SERVICES.ns):relationships])
 
     when:
     def retrievedApp = provider.getApplication(appName)

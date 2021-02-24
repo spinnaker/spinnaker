@@ -23,6 +23,8 @@ import com.netflix.spinnaker.cats.cache.Cache;
 class CommonCacheClient {
   static final String REGION = "us-west-2";
   static final String ACCOUNT = "test-account";
+  static final String APP_NAME = "testapp";
+  static final String SERVICE_NAME = "test-service";
 
   final Cache cacheView = mock(Cache.class);
 }

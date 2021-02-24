@@ -36,6 +36,7 @@ public class CommonCachingAgent {
   private static final String ECS_SERIVCE = "arn:aws:ecs:" + REGION + ":" + ACCOUNT_ID + ":";
   static final String ACCOUNT = "test-account";
   static final String APP_NAME = "testapp";
+  static final String APP_NAME_2 = "testapp-2";
   static final String ROLE_ARN = ECS_SERIVCE + "service/test-role";
   static final String STATUS = "RUNNING";
 
