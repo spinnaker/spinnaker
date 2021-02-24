@@ -68,6 +68,7 @@ import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -1136,6 +1137,23 @@ class ApplicationServiceTests : JUnit5Minutests {
           that(v(version4, "test")).containsExactly("smoke" to "PASS", "fuzz" to "PASS")
           that(v(version4, "staging")).containsExactly("end-to-end" to "PASS", "canary" to "PASS")
           that(v(version5, "test")).containsExactly("smoke" to "PENDING")
+        }
+      }
+
+      context("getVerificationStates throws an exception") {
+        before {
+          every {
+            repository.getVerificationStatesBatch(any())
+          }.throws(java.sql.SQLSyntaxErrorException("bad syntax"))
+        }
+
+        test("artifact summaries succeeds, with no verification info") {
+          val versions = applicationService.getArtifactSummariesFor(application1)[0].versions
+          versions.forEach {
+            expectThat(it.environments).all {
+              this.get { verifications }.isEmpty()
+            }
+          }
         }
       }
     }
