@@ -43,9 +43,11 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.all
+import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThanOrEqualTo
@@ -90,10 +92,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         verify { callback wasNot Called }
       }
 
-      test("getting state history throws an exception") {
-        expectThrows<NoSuchResourceId> {
-          subject.eventHistory("whatever")
-        }
+      test("getting state history returns an empty list") {
+        expectThat(subject.eventHistory("whatever"))
+          .isEmpty()
       }
 
       test("deleting a non-existent resource throws an exception") {
@@ -121,11 +122,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("it can be retrieved by id") {
-        val retrieved = subject.get<DummyResourceSpec>(resource.id)
-        expectThat(retrieved).isEqualTo(resource)
-      }
-
-      test("it can be retrieved by uid") {
         val retrieved = subject.get<DummyResourceSpec>(resource.id)
         expectThat(retrieved).isEqualTo(resource)
       }
@@ -169,7 +165,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         before {
           tick()
-          subject.store(updatedResource)
+          with(subject) {
+            store(updatedResource).also {
+              appendHistory(ResourceUpdated(it, mapOf("delta" to "some-difference"), clock))
+            }
+          }
         }
 
         test("it replaces the original resource") {
@@ -181,6 +181,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("the resource version is incremented") {
           expectThat(subject.get<DummyResourceSpec>(resource.id))
             .get(Resource<*>::version) isEqualTo 2
+        }
+
+        test("history includes events for the previous version of the resource") {
+          expectThat(subject.eventHistory(resource.id) as List<ResourceEvent>)
+            .map(ResourceEvent::version)
+            .contains(1, 2)
         }
 
         context("when deleted") {
@@ -321,9 +327,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("events for the resource are also deleted") {
-          expectThrows<NoSuchResourceException> {
-            subject.eventHistory(resource.id)
-          }
+          expectThat(subject.eventHistory(resource.id))
+            .isEmpty()
         }
 
         test("events for the resource's parent application remain") {
@@ -417,6 +422,10 @@ fun <T : List<E>, E> Assertion.Builder<T>.third(): Assertion.Builder<E> =
 
 fun <T : List<E>, E> Assertion.Builder<T>.fourth(): Assertion.Builder<E> =
   get("fourth element %s") { this[3] }
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> Assertion.Builder<List<*>>.areAll() : Assertion.Builder<List<T>> =
+  all { isA<T>() } as Assertion.Builder<List<T>>
 
 fun randomString(length: Int = 8) =
   randomUUID()

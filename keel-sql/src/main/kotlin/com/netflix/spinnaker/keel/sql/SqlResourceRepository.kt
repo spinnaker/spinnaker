@@ -28,8 +28,11 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
+import org.jooq.Record1
+import org.jooq.Select
 import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.max
+import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -203,8 +206,6 @@ open class SqlResourceRepository(
   override fun eventHistory(id: String, limit: Int): List<ResourceHistoryEvent> {
     require(limit > 0) { "limit must be a positive integer" }
 
-    val resource = get(id)
-
     return sqlRetry.withRetry(READ) {
       jooq
         .select(EVENT.JSON)
@@ -212,12 +213,12 @@ open class SqlResourceRepository(
         // look for resource events that match the resource...
         .where(
           EVENT.SCOPE.eq(EventScope.RESOURCE)
-            .and(EVENT.REF.eq(resource.uid))
+            .and(EVENT.REF.`in`(uidsForId(id)))
         )
         // ...or application events that match the application as they apply to all resources
         .or(
           EVENT.SCOPE.eq(EventScope.APPLICATION)
-            .and(EVENT.APPLICATION.eq(resource.application))
+            .and(EVENT.APPLICATION.eq(applicationForId(id)))
         )
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -367,6 +368,18 @@ open class SqlResourceRepository(
         .fetchOne(RESOURCE.UID)
         ?: throw IllegalStateException("Resource with id $id not found. Retrying.")
     }
+
+  private fun uidsForId(id: String): Select<Record1<String>> =
+    select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(id))
+      .orderBy(RESOURCE.UID.desc())
+
+  private fun applicationForId(id: String): Select<Record1<String>> =
+    select(RESOURCE.APPLICATION)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(id))
+      .limit(1)
 
   private val Resource<*>.uid: String
     get() = getResourceUid(id, version)
