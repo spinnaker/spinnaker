@@ -138,12 +138,10 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
     teamsMessage.addSection(section);
 
     log.info("Sending Microsoft Teams notification");
-    String baseUrl = "https://outlook.office.com/webhook/";
-    String completeLink =
+    String webhookUrl =
         Optional.ofNullable(preference).map(p -> (String) p.get("address")).orElse(null);
 
-    String partialWebhookURL = completeLink.substring(baseUrl.length());
-    Response response = teamsService.sendMessage(partialWebhookURL, teamsMessage);
+    Response response = teamsService.sendMessage(webhookUrl, teamsMessage);
 
     log.info(
         "Received response from Microsoft Teams Webhook  : {} {} for execution id {}. {}",

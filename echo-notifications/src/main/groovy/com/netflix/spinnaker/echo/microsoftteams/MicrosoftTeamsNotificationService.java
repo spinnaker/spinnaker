@@ -91,12 +91,9 @@ class MicrosoftTeamsNotificationService implements NotificationService {
 
     for (String webhookUrl : notification.getTo()) {
       log.info("Sending Microsoft Teams event notification");
-      log.debug("Teams Webhook Url: " + webhookUrl);
+      log.debug("Teams Webhook URL: {}", webhookUrl);
 
-      String baseUrl = "https://outlook.office.com/webhook/";
-      String completeLink = webhookUrl;
-      String partialWebhookURL = completeLink.substring(baseUrl.length());
-      teamsService.sendMessage(partialWebhookURL, teamsMessage);
+      teamsService.sendMessage(webhookUrl, teamsMessage);
     }
 
     return new EchoResponse.Void();

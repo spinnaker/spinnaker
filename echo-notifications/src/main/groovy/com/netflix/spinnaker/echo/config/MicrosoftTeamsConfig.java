@@ -16,19 +16,13 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
-import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsClient;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
-import retrofit.converter.JacksonConverter;
 
 @Configuration
 @ConditionalOnProperty("microsoftteams.enabled")
@@ -36,26 +30,10 @@ import retrofit.converter.JacksonConverter;
 public class MicrosoftTeamsConfig {
 
   @Bean
-  public Endpoint teamsEndpoint() {
-    return newFixedEndpoint("https://outlook.office.com/webhook");
-  }
-
-  @Bean
   public MicrosoftTeamsService microsoftTeamsService(
-      Endpoint teamsEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
-
+      Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
     log.info("Microsoft Teams service loaded");
 
-    MicrosoftTeamsClient microsoftTeamsClient =
-        new RestAdapter.Builder()
-            .setConverter(new JacksonConverter())
-            .setClient(retrofitClient)
-            .setEndpoint(teamsEndpoint)
-            .setLogLevel(retrofitLogLevel)
-            .setLog(new Slf4jRetrofitLogger(MicrosoftTeamsClient.class))
-            .build()
-            .create(MicrosoftTeamsClient.class);
-
-    return new MicrosoftTeamsService(microsoftTeamsClient);
+    return new MicrosoftTeamsService(retrofitClient, retrofitLogLevel);
   }
 }
