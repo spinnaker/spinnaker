@@ -1,7 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: { sourceType: 'module' },
-  plugins: ['@typescript-eslint', '@spinnaker/eslint-plugin', 'react-hooks', 'prettier'],
+  plugins: ['@typescript-eslint', '@spinnaker/eslint-plugin', 'react-hooks'],
   extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
   rules: {
     '@spinnaker/import-sort': 2,
@@ -32,7 +32,6 @@ module.exports = {
     'prefer-spread': 'off',
     // turn back on if https://github.com/eslint/eslint/issues/11899 fixes false positives
     'require-atomic-updates': 'off',
-    'prettier/prettier': 'error',
     'react-hooks/rules-of-hooks': 'error',
     // turn back on after addressing all violations
     // 'react-hooks/exhaustive-deps': 'warn',
