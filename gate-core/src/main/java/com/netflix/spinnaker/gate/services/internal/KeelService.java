@@ -32,10 +32,12 @@ import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
+import retrofit.http.Header;
 import retrofit.http.Headers;
 import retrofit.http.POST;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import retrofit.http.QueryMap;
 
 public interface KeelService {
 
@@ -181,4 +183,8 @@ public interface KeelService {
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();
+
+  @GET("/reports/onboarding")
+  Response getOnboardingReport(
+      @Header("Accept") String accept, @QueryMap Map<String, String> params);
 }

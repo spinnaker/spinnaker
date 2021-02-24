@@ -17,6 +17,7 @@ import groovy.util.logging.Slf4j;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
@@ -38,10 +39,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
+import retrofit.client.Response;
 
 @RequestMapping("/managed")
 @RestController
@@ -376,5 +380,27 @@ public class ManagedController {
   ResponseEntity<String> processNotificationCallback(
       @PathVariable String source, RequestEntity<String> request) {
     return notificationService.processNotificationCallback(source, request, "keel");
+  }
+
+  @ApiOperation(value = "Get a report of application onboarding")
+  @GetMapping(path = "/reports/onboarding")
+  ResponseEntity<byte[]> getOnboardingReport(
+      @RequestHeader(value = "Accept", defaultValue = "text/csv") String accept,
+      @RequestParam Map<String, String> params)
+      throws IOException {
+    Response keelResponse = keelService.getOnboardingReport(accept, params);
+
+    ResponseEntity response =
+        ResponseEntity.status(keelResponse.getStatus())
+            .header(
+                "Content-Type",
+                keelResponse.getHeaders().stream()
+                    .filter(header -> header.getName().equalsIgnoreCase("Content-Type"))
+                    .findFirst()
+                    .orElse(new Header("Content-Type", accept))
+                    .getValue())
+            .body(keelResponse.getBody().in().readAllBytes());
+
+    return response;
   }
 }
