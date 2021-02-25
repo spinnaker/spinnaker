@@ -59,11 +59,18 @@ class SlackService(
       }
 
       if (!response.isOk) {
-        log.warn("slack couldn't send the notification. error is: ${response.error}")
+        log.warn("slack couldn't send the notification $type for application $application in channel $channel. error is: ${response.error}, response: $response")
+        spectator.counter(
+          SLACK_MESSAGE_FAILED,
+          listOf(
+            BasicTag("notificationType", type.first().name),
+            BasicTag("application", application)
+          )
+        ).safeIncrement()
         return
       }
 
-      log.debug("slack notification $type for application $application and channel $channel was successfully sent.")
+      log.debug("slack notification $type for application $application in channel $channel was successfully sent.")
 
     } else {
       log.debug("new slack integration is not enabled")
@@ -115,6 +122,7 @@ class SlackService(
 
   companion object {
     private const val SLACK_MESSAGE_SENT = "keel.slack.message.sent"
+    private const val SLACK_MESSAGE_FAILED = "keel.slack.message.failed"
   }
 
   private fun Counter.safeIncrement() =
