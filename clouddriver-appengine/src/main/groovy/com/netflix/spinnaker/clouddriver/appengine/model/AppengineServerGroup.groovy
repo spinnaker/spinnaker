@@ -78,6 +78,24 @@ class AppengineServerGroup implements ServerGroup, Serializable {
     )
   }
 
+  def update(Version version, String account, String region, String loadBalancerName, Boolean isDisabled) {
+    this.account = account
+    this.region = region
+    this.name = version.getId()
+    this.loadBalancers.add(loadBalancerName)
+    this.createdTime = AppengineModelUtil.translateTime(version.getCreateTime())
+    this.disabled = isDisabled
+    this.scalingPolicy = AppengineModelUtil.getScalingPolicy(version)
+    this.servingStatus = version.getServingStatus() ? ServingStatus.valueOf(version.getServingStatus()) : null
+    this.env = version.getEnv() ? Environment.valueOf(version.getEnv().toUpperCase()) : null
+    this.httpUrl = AppengineModelUtil.getHttpUrl(version.getName())
+    this.httpsUrl = AppengineModelUtil.getHttpsUrl(version.getName())
+    this.instanceClass = version.getInstanceClass()
+    this.launchConfig.instanceType = this.instanceClass
+    this.zones = [region] as Set
+    this.allowsGradualTrafficMigration = versionAllowsGradualTrafficMigration(version)
+  }
+
   @Override
   ServerGroup.Capacity getCapacity() {
     Integer instanceCount = instances?.size() ?: 0

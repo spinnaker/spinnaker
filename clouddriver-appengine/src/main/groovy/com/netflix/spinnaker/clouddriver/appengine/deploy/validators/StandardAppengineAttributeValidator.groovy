@@ -187,7 +187,7 @@ class StandardAppengineAttributeValidator {
       if (!serverGroup) {
         reject.notFound << serverGroupName
         return reject
-      } else if (loadBalancerName && serverGroup?.loadBalancers[0] != loadBalancerName) {
+      } else if (loadBalancerName && serverGroup?.loadBalancers.contains(loadBalancerName) != true ) {
         reject.notRegisteredWithLoadBalancer << serverGroupName
         return reject
       } else {
