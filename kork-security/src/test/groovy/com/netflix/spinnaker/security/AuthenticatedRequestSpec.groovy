@@ -32,7 +32,7 @@ class AuthenticatedRequestSpec extends Specification {
     AuthenticatedRequest.getSpinnakerUser(new org.springframework.security.core.userdetails.User("spinnaker-other", "", [])).get() == "spinnaker-other"
   }
 
-  void "should extract allowed account details by priority (Principal > MDC"() {
+  void "should extract allowed account details by priority (Principal > MDC)"() {
     when:
     MDC.clear()
     MDC.put(Header.ACCOUNTS.header, "account1,account2")
@@ -101,11 +101,13 @@ class AuthenticatedRequestSpec extends Specification {
   void "should not fail when no headers are set"() {
     when:
     MDC.clear()
+    MDC.put("X-SPINNAKER-MY-ATTRIBUTE", null)
 
     then:
     Map allheaders = AuthenticatedRequest.getAuthenticationHeaders()
     allheaders == [
-            'X-SPINNAKER-USER': Optional.empty(),
-            'X-SPINNAKER-ACCOUNTS': Optional.empty()]
+      'X-SPINNAKER-USER'        : Optional.empty(),
+      'X-SPINNAKER-ACCOUNTS'    : Optional.empty(),
+      'X-SPINNAKER-MY-ATTRIBUTE': Optional.empty()]
   }
 }

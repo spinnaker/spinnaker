@@ -299,7 +299,7 @@ public class AuthenticatedRequest {
                 || Header.ACCOUNTS.getHeader().equalsIgnoreCase(header);
 
         if (isSpinnakerHeader && !isSpinnakerAuthHeader) {
-          headers.put(header, Optional.of(mdcEntry.getValue()));
+          headers.put(header, Optional.ofNullable(mdcEntry.getValue()));
         }
       }
     }
