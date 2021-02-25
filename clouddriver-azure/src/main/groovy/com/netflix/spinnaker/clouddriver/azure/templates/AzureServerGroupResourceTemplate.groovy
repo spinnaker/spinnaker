@@ -109,7 +109,7 @@ class AzureServerGroupResourceTemplate {
   interface TemplateVariables {}
 
   static class CoreServerGroupTemplateVariables implements TemplateVariables {
-    final String apiVersion = "2018-10-01"
+    final String apiVersion = "2019-03-01"
     String publicIPAddressName = ""
     String publicIPAddressID = ""
     String publicIPAddressType = ""
@@ -394,9 +394,11 @@ class AzureServerGroupResourceTemplate {
   static class VirtualMachineScaleSetProperty {
     Map<String, String> upgradePolicy = [:]
     ScaleSetVMProfile virtualMachineProfile
+    Boolean doNotRunExtensionsOnOverprovisionedVMs
 
     VirtualMachineScaleSetProperty(AzureServerGroupDescription description) {
       upgradePolicy["mode"] = description.upgradePolicy.toString()
+      doNotRunExtensionsOnOverprovisionedVMs = description.doNotRunExtensionsOnOverprovisionedVMs
 
       if (description.customScriptsSettings?.commandToExecute) {
         Collection<String> uriTemp = description.customScriptsSettings.fileUris

@@ -18,7 +18,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.microsoft.azure:adal4j:1.6.3'
-  implementation 'com.microsoft.azure:azure:1.19.0'
+  implementation 'com.microsoft.azure:azure:1.35.0'
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
