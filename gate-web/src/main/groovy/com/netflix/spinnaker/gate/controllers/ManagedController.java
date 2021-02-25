@@ -385,7 +385,7 @@ public class ManagedController {
   @ApiOperation(value = "Get a report of application onboarding")
   @GetMapping(path = "/reports/onboarding")
   ResponseEntity<byte[]> getOnboardingReport(
-      @RequestHeader(value = "Accept", defaultValue = "text/csv") String accept,
+      @RequestHeader(value = "Accept", defaultValue = "text/html") String accept,
       @RequestParam Map<String, String> params)
       throws IOException {
     Response keelResponse = keelService.getOnboardingReport(accept, params);
