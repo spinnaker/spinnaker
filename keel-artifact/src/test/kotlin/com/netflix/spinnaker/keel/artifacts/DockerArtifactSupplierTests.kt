@@ -48,7 +48,8 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       name = dockerArtifact.name,
       type = dockerArtifact.type,
       reference = dockerArtifact.reference,
-      version = versions.last()
+      version = versions.last(),
+      metadata = emptyMap()
     )
 
     val latestArtifactWithMetadata = PublishedArtifact(

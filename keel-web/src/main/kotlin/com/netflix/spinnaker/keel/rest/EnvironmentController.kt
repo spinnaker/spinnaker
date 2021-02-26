@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.services.EnvironmentService
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/environments"])
 class EnvironmentController(
-  private val repository: KeelRepository
+  private val environmentService: EnvironmentService
 ) {
 
   @GetMapping(
@@ -23,8 +23,5 @@ class EnvironmentController(
     and @authorizationSupport.hasCloudAccountPermission('READ', 'APPLICATION', #application)"""
   )
   fun list(@PathVariable("application") application: String) =
-    repository
-      .getDeliveryConfigForApplication(application)
-      .environments
-      .map { it.name }
+    environmentService.getEnvironmentViews(application)
 }

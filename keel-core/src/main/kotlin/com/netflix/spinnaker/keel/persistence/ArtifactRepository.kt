@@ -198,6 +198,11 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   )
 
   /**
+   * Gets all published artifacts that are current in an environment.
+   */
+  fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact>
+
+  /**
    * Fetches the status of artifact versions in the environments of [deliveryConfig].
    */
   fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>

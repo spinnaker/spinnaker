@@ -49,6 +49,28 @@ data class PublishedArtifact(
     buildMetadata = buildMetadata
   )
 
+  constructor(
+    name: String,
+    type: String,
+    version: String,
+    reference: String,
+    status: ArtifactStatus? = null,
+    createdAt: Instant? = null,
+    gitMetadata: GitMetadata? = null,
+    buildMetadata: BuildMetadata? = null
+  ) : this(
+    name = name,
+    type = type.toLowerCase(),
+    reference = reference,
+    version = version,
+    metadata = mapOf(
+      "releaseStatus" to status?.name,
+      "createdAt" to createdAt
+    ),
+    gitMetadata = gitMetadata,
+    buildMetadata = buildMetadata
+  )
+
   val status: ArtifactStatus? = metadata["releaseStatus"]?.toString()
     ?.let { ArtifactStatus.valueOf(it) }
 

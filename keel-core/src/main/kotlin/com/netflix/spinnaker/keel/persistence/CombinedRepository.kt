@@ -373,6 +373,12 @@ class CombinedRepository(
   override fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, version, targetEnvironment)
 
+  override fun getCurrentArtifactVersions(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String
+  ): List<PublishedArtifact> =
+    artifactRepository.getCurrentArtifactVersions(deliveryConfig, environmentName)
+
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
     artifactRepository.getEnvironmentSummaries(deliveryConfig)
 

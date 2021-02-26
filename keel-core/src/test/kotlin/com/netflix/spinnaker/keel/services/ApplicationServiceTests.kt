@@ -242,6 +242,7 @@ class ApplicationServiceTests : JUnit5Minutests {
         type = artifact.type,
         reference = artifact.reference,
         version = it,
+        createdAt = clock.instant().also { clock.tickMinutes(1) },
         gitMetadata = gitMetadata,
         buildMetadata = buildMetadata
       ) }
@@ -735,7 +736,7 @@ class ApplicationServiceTests : JUnit5Minutests {
               repository.artifactVersions(releaseArtifact, capture(maxArtifactVersions))
             } answers {
               lotsaVersions.subList(0, maxArtifactVersions.captured)
-                .map { PublishedArtifact(releaseArtifact.name, releaseArtifact.type, releaseArtifact.reference, it) }
+                .map { PublishedArtifact(name = releaseArtifact.name, type = releaseArtifact.type, reference = releaseArtifact.reference, version = it) }
             }
 
             every {

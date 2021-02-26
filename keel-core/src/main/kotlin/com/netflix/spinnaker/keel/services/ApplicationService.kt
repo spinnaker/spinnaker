@@ -198,9 +198,7 @@ class ApplicationService(
     return try {
       val startTime = now
       val deliveryConfig = repository.getDeliveryConfigForApplication(application)
-      val summaries = deliveryConfig.resources.map { resource ->
-        resource.toResourceSummary(deliveryConfig)
-      }
+      val summaries = getResourceSummaries(deliveryConfig)
       spectator.timer(
         RESOURCE_SUMMARY_CONSTRUCT_DURATION_ID,
         listOf(BasicTag("application", application))
@@ -211,7 +209,12 @@ class ApplicationService(
     }
   }
 
-  private fun Resource<*>.toResourceSummary(deliveryConfig: DeliveryConfig) =
+  fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> =
+    deliveryConfig.resources.map { resource ->
+      resource.toResourceSummary(deliveryConfig)
+    }
+
+  fun Resource<*>.toResourceSummary(deliveryConfig: DeliveryConfig) =
     ResourceSummary(
       resource = this,
       status = resourceStatusService.getStatus(id),

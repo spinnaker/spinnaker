@@ -577,6 +577,14 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             }
           }
 
+          test("querying for current returns the full artifact") {
+            val artifacts = subject.getCurrentArtifactVersions(manifest, testEnvironment.name)
+            expect {
+              that(artifacts.size).isEqualTo(1)
+              that(artifacts.first().version).isEqualTo(version1)
+            }
+          }
+
           context("a new version is promoted to the same environment") {
             before {
               clock.incrementBy(Duration.ofHours(1))

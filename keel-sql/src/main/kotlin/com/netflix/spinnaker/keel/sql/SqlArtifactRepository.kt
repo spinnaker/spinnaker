@@ -907,6 +907,43 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact> {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ARTIFACT_VERSIONS.NAME,
+          ARTIFACT_VERSIONS.TYPE,
+          ARTIFACT_VERSIONS.VERSION,
+          DELIVERY_ARTIFACT.REFERENCE,
+          ARTIFACT_VERSIONS.RELEASE_STATUS,
+          ARTIFACT_VERSIONS.CREATED_AT,
+          ARTIFACT_VERSIONS.GIT_METADATA,
+          ARTIFACT_VERSIONS.BUILD_METADATA
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .innerJoin(DELIVERY_ARTIFACT)
+        .on(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        .innerJoin(ARTIFACT_VERSIONS)
+        .on(DELIVERY_ARTIFACT.NAME.eq(ARTIFACT_VERSIONS.NAME))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(ARTIFACT_VERSIONS.TYPE))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
+        .fetch { (name, type, version, reference, status, createdAt, gitMetadata, buildMetadata) ->
+          PublishedArtifact(
+            name = name,
+            type = type,
+            version = version,
+            reference = reference,
+            status = status,
+            createdAt = createdAt,
+            gitMetadata = gitMetadata,
+            buildMetadata = buildMetadata,
+          )
+        }
+    }
+  }
+
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> {
     val pinnedEnvs = getPinnedEnvironments(deliveryConfig)
     return deliveryConfig.environments.map { environment ->

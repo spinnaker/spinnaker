@@ -168,6 +168,8 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>
 
+  fun getCurrentArtifactVersions(deliveryConfig: DeliveryConfig, environmentName: String): List<PublishedArtifact>
+
   fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin)
 
   fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment>
