@@ -1760,4 +1760,131 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     ex.message == "ECS account settings for account Test do not allow tagging as `serviceLongArnFormat` and `taskLongArnFormat` are not enabled."
   }
 
+  def 'should return valid task execution role arn for non-china and non-gov-cloud partition'() {
+    given:
+    def credentials = Mock(NetflixAssumeRoleAmazonCredentials) {
+      getName() >> { "test" }
+      getRegions() >> { [new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1a', 'us-west-1b'])] }
+      getAssumeRole() >> { 'role/test-role' }
+      getAccountId() >> { 'test' }
+    }
+    def resolvedArtifact = createResolvedArtifact()
+    def containerDef = createContainerDef()
+    def registerTaskDefRequest = createRegisterTaskDefRequest(containerDef)
+    def description = createDescription(resolvedArtifact);
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    String ecsServiceRole = operation.inferAssumedRoleArn(credentials);
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact(ecsServiceRole, new EcsServerGroupName('v1-ecs-test-v001'))
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "arn:aws:iam::test:role/test-role"
+  }
+
+  def 'should return valid task execution role arn for china partition'() {
+    given:
+    def credentials = Mock(NetflixAssumeRoleAmazonCredentials) {
+      getName() >> { "test" }
+      getRegions() >> { [new AmazonCredentials.AWSRegion('cn-north-1', ['cn-north-1a', 'cn-north-1b'])] }
+      getAssumeRole() >> { 'arn:aws-cn:iam:123123123123:role/test-role' }
+      getAccountId() >> { 'test' }
+    }
+    def resolvedArtifact = createResolvedArtifact()
+    def containerDef = createContainerDef()
+    def registerTaskDefRequest = createRegisterTaskDefRequest(containerDef)
+    def description = createDescription(resolvedArtifact);
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    String ecsServiceRole = operation.inferAssumedRoleArn(credentials);
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact(ecsServiceRole, new EcsServerGroupName('v1-ecs-test-v001'))
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "arn:aws-cn:iam:123123123123:role/test-role"
+  }
+
+  def 'should return valid task execution role arn for gov-cloud partition'() {
+    given:
+    def credentials = Mock(NetflixAssumeRoleAmazonCredentials) {
+      getName() >> { "test" }
+      getRegions() >> { [new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1a', 'us-west-1b'])] }
+      getAssumeRole() >> { 'arn:aws-us-gov:iam:123123123123:role/test-role' }
+      getAccountId() >> { 'test' }
+    }
+    def resolvedArtifact = createResolvedArtifact()
+    def containerDef = createContainerDef()
+    def registerTaskDefRequest = createRegisterTaskDefRequest(containerDef)
+    def description = createDescription(resolvedArtifact);
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    String ecsServiceRole = operation.inferAssumedRoleArn(credentials);
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact(ecsServiceRole, new EcsServerGroupName('v1-ecs-test-v001'))
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "arn:aws-us-gov:iam:123123123123:role/test-role"
+  }
+
+  def createResolvedArtifact (){
+    return  Artifact.builder()
+      .name("taskdef.json")
+      .reference("fake.github.com/repos/org/repo/taskdef.json")
+      .artifactAccount("my-github-acct")
+      .type("github/file")
+      .build()
+  }
+
+  def createContainerDef(){
+    return new ContainerDefinition()
+      .withName("web")
+      .withImage("PLACEHOLDER")
+      .withMemoryReservation(512)
+  }
+
+  def createRegisterTaskDefRequest(ContainerDefinition containerDef){
+    return new RegisterTaskDefinitionRequest().withContainerDefinitions([containerDef])
+  }
+
+  def createDescription(Artifact resolvedArtifact){
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'ecs'
+    description.getFreeFormDetails() >> 'test'
+    description.getEcsClusterName() >> 'test-cluster'
+    description.getIamRole() >> 'None (No IAM role)'
+    description.getLaunchType() >> 'FARGATE'
+    description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
+    description.getContainerToImageMap() >> [
+      web: "docker-image-url"
+    ]
+    return description
+  }
 }

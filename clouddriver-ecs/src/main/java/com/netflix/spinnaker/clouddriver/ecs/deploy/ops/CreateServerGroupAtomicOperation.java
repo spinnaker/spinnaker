@@ -743,8 +743,10 @@ public class CreateServerGroupAtomicOperation
           "The given kind of credentials is not supported, "
               + "please report this issue to the Spinnaker project on Github.");
     }
-
-    return String.format("arn:aws:iam::%s:%s", credentials.getAccountId(), role);
+    if (!role.startsWith("arn:")) {
+      return String.format("arn:aws:iam::%s:%s", credentials.getAccountId(), role);
+    }
+    return role;
   }
 
   private GetRoleResult checkRoleTrustRelations(String roleName) {
