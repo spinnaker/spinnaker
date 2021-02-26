@@ -12,7 +12,7 @@ import { useApplicationContext } from '../../presentation/hooks/useApplicationCo
 
 interface PinnedCardProps extends Pick<IArtifactDetailProps, 'resourcesByEnvironment' | 'reference' | 'version'> {
   environmentName: string;
-  pinned?: IPinned;
+  pinned: IPinned;
 }
 
 export const PinnedCard: React.FC<PinnedCardProps> = ({
@@ -23,12 +23,13 @@ export const PinnedCard: React.FC<PinnedCardProps> = ({
   reference,
 }) => {
   const application = useApplicationContext();
+  if (!application) return null;
   return (
     <StatusCard
       iconName="pin"
       appearance="warning"
       background={true}
-      timestamp={pinned?.at ? DateTime.fromISO(pinned.at) : null}
+      timestamp={DateTime.fromISO(pinned.at)}
       title={
         <span className="sp-group-margin-xs-xaxis">
           <span>Pinned</span> <span className="text-regular">—</span>{' '}

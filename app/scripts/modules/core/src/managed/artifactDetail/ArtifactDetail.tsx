@@ -82,10 +82,16 @@ export const ArtifactDetail = ({
     ?.filter(({ scope, type }) => scope === 'PRE_DEPLOYMENT' && SUPPORTED_PRE_DEPLOYMENT_TYPES.includes(type))
     .reverse();
 
+  const getPinnedVersion = (environmentName: string) => {
+    const envData = allEnvironments.find(({ name }) => name === environmentName);
+    const artifactData = envData?.artifacts.find(({ reference: referenceToMatch }) => referenceToMatch === reference);
+    return artifactData?.pinnedVersion;
+  };
+
   return (
     <>
       <ArtifactDetailHeader
-        reference={showReferenceNames ? reference : null}
+        reference={showReferenceNames ? reference : undefined}
         version={versionDetails}
         onRequestClose={onRequestClose}
       />
@@ -176,10 +182,6 @@ export const ArtifactDetail = ({
         {environments.map((environment) => {
           const { name: environmentName, state } = environment;
 
-          const { pinnedVersion } = allEnvironments
-            .find(({ name }) => name === environmentName)
-            .artifacts.find(({ reference: referenceToMatch }) => referenceToMatch === reference);
-
           return (
             <EnvironmentRow
               key={environmentName}
@@ -192,7 +194,7 @@ export const ArtifactDetail = ({
                 reference={reference}
                 version={versionDetails}
                 allVersions={allVersions}
-                pinnedVersion={pinnedVersion}
+                pinnedVersion={getPinnedVersion(environmentName)}
                 resourcesByEnvironment={resourcesByEnvironment}
               />
               <div className="resources-section">

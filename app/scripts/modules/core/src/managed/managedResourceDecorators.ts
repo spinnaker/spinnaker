@@ -5,7 +5,8 @@ import { IMoniker } from 'core/naming';
 
 import { getKindName, getResourceKindForLoadBalancerType } from './ManagedReader';
 
-const isMonikerEqual = (a: IMoniker, b: IMoniker) => a.app === b.app && a.stack === b.stack && a.detail === b.detail;
+const isMonikerEqual = (a?: IMoniker, b?: IMoniker) =>
+  a && b && a.app === b.app && a.stack === b.stack && a.detail === b.detail;
 
 const getResourcesOfKind = (application: Application, kinds: string[]) => {
   const resources: IManagedResourceSummary[] = application.managedResources.data.resources;
@@ -45,6 +46,7 @@ export const addManagedResourceMetadataToLoadBalancers = (application: Applicati
   loadBalancers.forEach((loadBalancer) => {
     const matchingResource = loadBalancerResources.find(
       ({ kind, moniker, locations: { account, regions } }) =>
+        loadBalancer.loadBalancerType &&
         getKindName(kind) === getResourceKindForLoadBalancerType(loadBalancer.loadBalancerType) &&
         isMonikerEqual(moniker, loadBalancer.moniker) &&
         account === loadBalancer.account &&

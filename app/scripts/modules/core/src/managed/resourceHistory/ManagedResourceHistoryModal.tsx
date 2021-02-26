@@ -101,7 +101,7 @@ const viewConfigurationByEventType = {
   },
 } as const;
 
-const mergeNewEvents = (next: IManagedResourceEvent[], previous: IManagedResourceEvent[]) => {
+const mergeNewEvents = (next: IManagedResourceEvent[], previous?: IManagedResourceEvent[] | null) => {
   // Because re-rendering the entire table can be expensive (especially if rows are expanded),
   // we want to try hard to maintain reference equality for events we've already rendered
   // so we can leverage memoization later.
@@ -136,13 +136,19 @@ const mergeNewEvents = (next: IManagedResourceEvent[], previous: IManagedResourc
   return combinedEvents;
 };
 
-const renderExpandedRowContent = (
-  level: 'info' | 'warning' | 'error',
-  diff: IManagedResourceDiff,
-  tasks: Array<{ id: string; name: string }>,
-  message: string,
-  dismissModal: () => any,
-) => {
+const renderExpandedRowContent = ({
+  level,
+  diff,
+  tasks,
+  dismissModal,
+  message,
+}: {
+  level: 'info' | 'warning' | 'error';
+  diff?: IManagedResourceDiff;
+  tasks?: Array<{ id: string; name: string }>;
+  message?: string;
+  dismissModal?: () => any;
+}) => {
   return (
     <div className="flex-container-v left">
       {message && (
@@ -159,7 +165,7 @@ const renderExpandedRowContent = (
         <div className="flex-container-v">
           {tasks.map(({ id, name }) => (
             <UISref key={id} to="home.applications.application.tasks.taskDetails" params={{ taskId: id }}>
-              <a className="sp-padding-xs-yaxis" onClick={() => dismissModal()}>
+              <a className="sp-padding-xs-yaxis" onClick={() => dismissModal?.()}>
                 {name}
               </a>
             </UISref>
@@ -188,7 +194,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
     EVENT_POLLING_INTERVAL,
     [],
   );
-  const previousHistoryEvents: IManagedResourceEvent[] = usePrevious(historyEvents);
+  const previousHistoryEvents: IManagedResourceEvent[] | null = usePrevious(historyEvents);
 
   const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
   const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
@@ -216,12 +222,12 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
               <Table
                 layout={tableLayout}
                 columns={['Where', 'What', 'When']}
-                expandable={historyEvents.some(
+                expandable={historyEvents?.some(
                   ({ delta, tasks, message, reason, exceptionMessage }) =>
                     delta || tasks || message || reason || exceptionMessage,
                 )}
               >
-                {historyEvents
+                {(historyEvents || [])
                   .filter(({ type }) => viewConfigurationByEventType[type])
                   .map(({ type, timestamp: eventTimestamp, delta, tasks, message, reason, exceptionMessage }) => {
                     const eventTimestampMillis = DateTime.fromISO(eventTimestamp).toMillis();
@@ -230,15 +236,16 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
                       <TableRow
                         key={type + eventTimestamp}
                         renderExpandedContent={
-                          hasDetails &&
-                          (() =>
-                            renderExpandedRowContent(
-                              viewConfigurationByEventType[type].level,
-                              delta,
-                              tasks,
-                              message || reason || exceptionMessage,
-                              dismissModal,
-                            ))
+                          hasDetails
+                            ? () =>
+                                renderExpandedRowContent({
+                                  level: viewConfigurationByEventType[type].level,
+                                  diff: delta,
+                                  tasks,
+                                  message: message || reason || exceptionMessage,
+                                  dismissModal,
+                                })
+                            : undefined
                         }
                       >
                         <TableCell>
@@ -249,11 +256,11 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
                           <i
                             className={classNames(
                               'event-type-icon ico ico--withLabel sp-margin-s-right',
-                              viewConfigurationByEventType[type].iconClass,
+                              viewConfigurationByEventType[type]?.iconClass,
                             )}
                           />{' '}
                           <span className="text-semibold event-type">
-                            {viewConfigurationByEventType[type].displayName}
+                            {viewConfigurationByEventType[type]?.displayName}
                           </span>
                         </TableCell>
                         <TableCell>

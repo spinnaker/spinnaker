@@ -31,8 +31,9 @@ export const getResourceKindForLoadBalancerType = (type: string) => {
   }
 };
 
-const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse[0]['delta']): IManagedResourceDiff =>
-  Object.keys(diff).reduce((transformed, key) => {
+const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse[0]['delta']): IManagedResourceDiff => {
+  if (!diff) return {};
+  return Object.keys(diff).reduce((transformed, key) => {
     const diffNode = diff[key];
     const fieldKeys = flatMap<string, string>(key.split('/').filter(Boolean), (fieldKey) => {
       // Region keys currently come wrapped in {}, which is distracting and not useful. Let's trim those off.
@@ -66,6 +67,7 @@ const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse
     });
     return transformed;
   }, {} as IManagedResourceDiff);
+};
 
 export class ManagedReader {
   private static decorateResources(response: IManagedApplicationSummary) {

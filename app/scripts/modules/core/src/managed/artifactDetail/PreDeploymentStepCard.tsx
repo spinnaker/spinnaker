@@ -23,6 +23,7 @@ const cardConfigurationByType = {
     title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
       const startedAtDate = startedAt ? DateTime.fromISO(startedAt) : null;
       const completedAtDate = completedAt ? DateTime.fromISO(completedAt) : null;
+      const timeDiff = startedAtDate && completedAtDate ? timeDiffToString(startedAtDate, completedAtDate) : undefined;
 
       switch (status) {
         case 'NOT_STARTED':
@@ -30,12 +31,13 @@ const cardConfigurationByType = {
         case 'RUNNING':
           return 'Building';
         case 'SUCCEEDED':
-          return `Built in ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Built ${timeDiff ? `in ${timeDiff}` : ''}`;
         case 'FAILED':
-          return `Build failed after ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Build failed ${timeDiff ? `after ${timeDiff}` : ''}`;
         case 'ABORTED':
-          return `Build aborted after ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Build aborted ${timeDiff ? `after ${timeDiff}` : ''}`;
         case 'UNKNOWN':
+        default:
           return 'Unable to find the status of this build';
       }
     },
@@ -45,6 +47,7 @@ const cardConfigurationByType = {
     title: ({ status, startedAt, completedAt }: IManagedArtifactVersionLifecycleStep) => {
       const startedAtDate = startedAt ? DateTime.fromISO(startedAt) : null;
       const completedAtDate = completedAt ? DateTime.fromISO(completedAt) : null;
+      const timeDiff = startedAtDate && completedAtDate ? timeDiffToString(startedAtDate, completedAtDate) : undefined;
 
       switch (status) {
         case 'NOT_STARTED':
@@ -52,12 +55,13 @@ const cardConfigurationByType = {
         case 'RUNNING':
           return 'Baking';
         case 'SUCCEEDED':
-          return `Baked in ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Baked ${timeDiff ? `in ${timeDiff}` : ''}`;
         case 'FAILED':
-          return `Baking failed after ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Baking failed ${timeDiff ? `after ${timeDiff}` : ''}`;
         case 'ABORTED':
-          return `Baking aborted after ${timeDiffToString(startedAtDate, completedAtDate)}`;
+          return `Baking aborted ${timeDiff ? `after ${timeDiff}` : ''}`;
         case 'UNKNOWN':
+        default:
           return 'Unable to find the status of this bake';
       }
     },
@@ -71,13 +75,13 @@ const logEvent = (label: string, application: string, reference: string, type: s
     label: `${application}:${reference}:${type}:${status}`,
   });
 
-const getTimestamp = (startedAt: string, completedAt: string) => {
+const getTimestamp = (startedAt?: string, completedAt?: string) => {
   if (completedAt) {
     return DateTime.fromISO(completedAt);
   } else if (startedAt) {
     return DateTime.fromISO(startedAt);
   } else {
-    return null;
+    return undefined;
   }
 };
 

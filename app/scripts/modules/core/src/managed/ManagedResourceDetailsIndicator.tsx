@@ -58,8 +58,9 @@ export const ManagedResourceDetailsIndicator = ({
   // events are getting trapped by React bootstrap menu
   const allowNavigation = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target && target.hasAttribute('href')) {
-      window.location.href = target.getAttribute('href');
+    const href = target?.getAttribute('href');
+    if (href) {
+      window.location.href = href;
     }
   };
 

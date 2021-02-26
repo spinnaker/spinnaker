@@ -19,7 +19,7 @@ interface IEnvironmentCardsProps
     'application' | 'reference' | 'version' | 'allVersions' | 'resourcesByEnvironment'
   > {
   environment: IManagedArtifactVersionEnvironment;
-  pinnedVersion: string;
+  pinnedVersion?: string;
 }
 
 export const EnvironmentCards: React.FC<IEnvironmentCardsProps> = ({
@@ -65,7 +65,7 @@ export const EnvironmentCards: React.FC<IEnvironmentCardsProps> = ({
     <PinnedCard
       resourcesByEnvironment={resourcesByEnvironment}
       environmentName={environmentName}
-      pinned={environment.pinned}
+      pinned={pinned}
       reference={reference}
       version={versionDetails}
     />

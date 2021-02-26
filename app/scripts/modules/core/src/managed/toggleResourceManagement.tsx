@@ -38,7 +38,7 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleCo
  */
 export const confirmNotManaged = (resource: IManagedResource, application: Application): PromiseLike<boolean> => {
   const { managedResourceSummary, isManaged } = resource;
-  if (!isManaged || managedResourceSummary.isPaused) {
+  if (!isManaged || !managedResourceSummary || managedResourceSummary.isPaused) {
     return $q.when(true);
   }
   const submitMethod = () => {

@@ -44,9 +44,9 @@ export function EnvironmentsList({
               .map((resource) => {
                 const artifactVersionsByState =
                   resource.artifact &&
-                  artifacts.find(({ reference }) => reference === resource.artifact.reference)?.versions;
+                  artifacts.find(({ reference }) => reference === resource.artifact?.reference)?.versions;
                 const artifactDetails =
-                  resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact.reference);
+                  resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact?.reference);
                 return (
                   <ManagedResourceObject
                     application={application}

@@ -13,7 +13,7 @@ const TIMEZONE = SETTINGS.feature.displayTimestampsInUserLocalTime ? undefined :
 
 export const AbsoluteTimestamp = memo(
   ({ timestamp: timestampInOriginalZone, clickToCopy }: IAbsoluteTimestampProps) => {
-    const timestamp = timestampInOriginalZone.setZone(TIMEZONE);
+    const timestamp = TIMEZONE ? timestampInOriginalZone.setZone(TIMEZONE) : timestampInOriginalZone;
 
     const fullTimestamp = timestamp.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
     const formattedTimestamp = timestamp.toFormat('MMM d, y HH:mm');

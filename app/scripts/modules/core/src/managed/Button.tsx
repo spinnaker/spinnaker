@@ -17,9 +17,9 @@ export interface IButtonProps {
 export const Button = ({ iconName, appearance = DEFAULT_APPEARANCE, disabled, onClick, children }: IButtonProps) => {
   return (
     <button
-      disabled={disabled ?? null}
+      disabled={disabled}
       className={`flex-container-h center middle text-bold action-button action-button-${appearance}`}
-      onClick={onClick ?? null}
+      onClick={onClick}
     >
       {iconName && (
         <div className="sp-margin-s-right flex-container-h center middle">
