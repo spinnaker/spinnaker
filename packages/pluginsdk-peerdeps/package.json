@@ -4,10 +4,8 @@
   "version": "0.0.8",
   "license": "Apache-2.0",
   "scripts": {
-    "usage": "cat USAGE.txt",
-    "stage": "npm run clean && ./sync-stage.sh",
-    "sync": "./sync-save.js",
-    "clean": "./clean.sh"
+    "sync": "./sync-versions-from-deck.js --source ../../package.json --dest package.json --no-peer --no-dev",
+    "interactive": "./upgrade-interactive.sh"
   },
   "files": [],
   "peerDependencies": {
@@ -39,24 +37,23 @@
     "typescript": "4.0.5",
     "utf-8-validate": "5.0.3"
   },
-  "peerDevDependencies.doc": "These will be installed as devDependencies by check-peer-dependencies --install",
-  "peerDevDependencies": [
-    "@rollup/plugin-commonjs",
-    "@rollup/plugin-node-resolve",
-    "@rollup/plugin-typescript",
-    "@spinnaker/eslint-plugin",
-    "@types/react",
-    "bufferutil",
-    "husky",
-    "npm-run-all",
-    "prettier",
-    "pretty-quick",
-    "rollup",
-    "rollup-plugin-external-globals",
-    "rollup-plugin-less",
-    "rollup-plugin-postcss",
-    "shx",
-    "typescript",
-    "utf-8-validate"
-  ]
+  "peerDependenciesMeta": {
+    "@rollup/plugin-commonjs": { "dev": true },
+    "@rollup/plugin-node-resolve": { "dev": true },
+    "@rollup/plugin-typescript": { "dev": true },
+    "@spinnaker/eslint-plugin": { "dev": true },
+    "@types/react": { "dev": true },
+    "bufferutil": { "dev": true },
+    "husky": { "dev": true },
+    "npm-run-all": { "dev": true },
+    "prettier": { "dev": true },
+    "pretty-quick": { "dev": true },
+    "rollup": { "dev": true },
+    "rollup-plugin-external-globals": { "dev": true },
+    "rollup-plugin-less": { "dev": true },
+    "rollup-plugin-postcss": { "dev": true },
+    "shx": { "dev": true },
+    "typescript": { "dev": true },
+    "utf-8-validate": { "dev": true }
+  }
 }
