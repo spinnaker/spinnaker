@@ -47,6 +47,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     long clientTimeoutMillis
     int paginateSize
     boolean trackDigests
+    boolean inspectDigests
     boolean sortTagsByDate
     boolean insecureRegistry
     List<String> repositories
@@ -142,6 +143,11 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
       return this
     }
 
+    Builder inspectDigests(boolean inspectDigests) {
+      this.inspectDigests = inspectDigests
+      return this
+    }
+
     Builder sortTagsByDate(boolean sortTagsByDate) {
       this.sortTagsByDate = sortTagsByDate
       return this
@@ -195,6 +201,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                                        clientTimeoutMillis,
                                                        paginateSize,
                                                        trackDigests,
+                                                       inspectDigests,
                                                        sortTagsByDate,
                                                        catalogFile,
                                                        repositoriesRegex,
@@ -220,6 +227,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         long clientTimeoutMillis,
                                         int paginateSize,
                                         boolean trackDigests,
+                                        boolean inspectDigests,
                                         boolean sortTagsByDate,
                                         String catalogFile,
                                         String repositoriesRegex,
@@ -242,6 +250,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
          clientTimeoutMillis,
          paginateSize,
          trackDigests,
+         inspectDigests,
          sortTagsByDate,
          catalogFile,
          repositoriesRegex,
@@ -267,6 +276,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         long clientTimeoutMillis,
                                         int paginateSize,
                                         boolean trackDigests,
+                                        boolean inspectDigests,
                                         boolean sortTagsByDate,
                                         String catalogFile,
                                         String repositoriesRegex,
@@ -323,6 +333,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     this.email = email
     this.repositoriesRegex = repositoriesRegex
     this.trackDigests = trackDigests
+    this.inspectDigests = inspectDigests
     this.sortTagsByDate = sortTagsByDate
     this.insecureRegistry = insecureRegistry;
     this.skip = skip ?: []
@@ -338,6 +349,10 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
   @Override
   String getName() {
     return accountName
+  }
+
+  String getRegistry() {
+    return registry
   }
 
   @JsonIgnore
@@ -369,6 +384,14 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     return "$address/v2"
   }
 
+  boolean getTrackDigests(){
+    return trackDigests
+  }
+
+  boolean getInspectDigests(){
+    return inspectDigests
+  }
+
   @Override
   String getCloudProvider() {
     return CLOUD_PROVIDER
@@ -391,7 +414,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         .okClientProvider(dockerOkClientProvider)
         .build()
 
-      return new DockerRegistryCredentials(client, repositories, trackDigests, skip, sortTagsByDate)
+      return new DockerRegistryCredentials(client, repositories, trackDigests,  inspectDigests, skip, sortTagsByDate)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
@@ -415,6 +438,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
   final File passwordFile
   final String email
   final boolean trackDigests
+  final boolean inspectDigests
   final boolean sortTagsByDate
   final int cacheThreads
   final long cacheIntervalSeconds

@@ -141,6 +141,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
         def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
         def imageIdKey = Keys.getImageIdKey(DockerRegistryProviderUtils.imageId(registry, repository, tag))
         def digest = null
+        def digestContent = null
         def creationDate = null
 
         if (credentials.trackDigests) {
@@ -160,6 +161,15 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
           }
         }
 
+        if (credentials.inspectDigests) {
+          try {
+            digest = credentials.client.getConfigDigest(repository, tag)
+            digestContent = credentials.client.getDigestContent(repository, digest)
+          } catch (Exception e) {
+            log.warn("Error retrieving config digest for $tagKey; digest and tag will not be cached: $e.message")
+          }
+        }
+
         if (credentials.sortTagsByDate) {
           try {
             creationDate = credentials.client.getCreationDate(repository, tag)
@@ -174,6 +184,9 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
         tagData.attributes.put("account", accountName)
         tagData.attributes.put("digest", digest)
         tagData.attributes.put("date", creationDate)
+        if (digestContent?.config != null) {
+          tagData.attributes.put("labels", digestContent.config.Labels)
+        }
         cachedTags.put(tagKey, tagData)
 
         def idData = new DefaultCacheDataBuilder()

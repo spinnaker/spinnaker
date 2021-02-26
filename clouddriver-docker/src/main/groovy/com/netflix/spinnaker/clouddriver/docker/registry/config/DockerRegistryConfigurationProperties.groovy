@@ -49,6 +49,8 @@ class DockerRegistryConfigurationProperties {
     int paginateSize
     // Track digest changes. This is _not_ recommended as it consumes a high QPM, and most registries are flaky.
     boolean trackDigests
+    // inspect digests
+    boolean inspectDigests
     // Sort tags by creation date.
     boolean sortTagsByDate
     boolean insecureRegistry

@@ -238,6 +238,13 @@ class DockerRegistryClient {
     ])
     Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("Authorization") String token, @Header("User-Agent") String agent)
 
+    @GET("/v2/{name}/manifests/{reference}")
+    @Headers([
+      "Docker-Distribution-API-Version: registry/2.0",
+      "Accept: application/vnd.docker.distribution.manifest.v2+json"
+    ])
+    Response getSchemaV2Manifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("Authorization") String token, @Header("User-Agent") String agent)
+
     @GET("/v2/_catalog")
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
@@ -256,6 +263,12 @@ class DockerRegistryClient {
       "Docker-Distribution-API-Version: registry/2.0"
     ])
     Response checkVersion(@Header("Authorization") String token, @Header("User-Agent") String agent)
+
+    @GET("/v2/{repository}/blobs/{digest}")
+    @Headers([
+      "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response getDigestContent(@Path(value="repository", encode=false) String repository, @Path(value="digest", encode=false) String digest, @Header("Authorization") String token, @Header("User-Agent") String agent)
   }
 
   public String getDigest(String name, String tag) {
@@ -265,6 +278,21 @@ class DockerRegistryClient {
       it.name == "Docker-Content-Digest"
     }
     return digest?.value
+  }
+
+  public String getConfigDigest(String name, String tag) {
+    def response = getSchemaV2Manifest(name, tag)
+    def manifestMap = converter.fromBody(response.body, Map) as Map
+    return manifestMap?.config?.digest
+  }
+
+  public Map getDigestContent(String name, String digest) {
+    def response =   request({
+      registryService.getDigestContent(name, digest, tokenService.basicAuthHeader, userAgent)
+    }, { token ->
+      registryService.getDigestContent(name, digest, token, userAgent)
+    }, name)
+    return converter.fromBody(response.body, Map)
   }
 
   private Map tagDateCache = [:]
@@ -285,6 +313,14 @@ class DockerRegistryClient {
       registryService.getManifest(name, tag, tokenService.basicAuthHeader, userAgent)
     }, { token ->
       registryService.getManifest(name, tag, token, userAgent)
+    }, name)
+  }
+
+  private getSchemaV2Manifest(String name, String tag) {
+    request({
+      registryService.getSchemaV2Manifest(name, tag, tokenService.basicAuthHeader, userAgent)
+    }, { token ->
+      registryService.getSchemaV2Manifest(name, tag, token, userAgent)
     }, name)
   }
 

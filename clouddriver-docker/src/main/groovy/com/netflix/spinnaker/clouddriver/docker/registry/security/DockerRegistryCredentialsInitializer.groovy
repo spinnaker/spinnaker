@@ -76,6 +76,7 @@ class DockerRegistryCredentialsInitializer {
           .clientTimeoutMillis(managedAccount.clientTimeoutMillis)
           .paginateSize(managedAccount.paginateSize)
           .trackDigests(managedAccount.trackDigests)
+          .inspectDigests(managedAccount.inspectDigests)
           .sortTagsByDate(managedAccount.sortTagsByDate)
           .insecureRegistry(managedAccount.insecureRegistry)
           .repositories(managedAccount.repositories)

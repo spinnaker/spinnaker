@@ -154,6 +154,26 @@ class DockerRegistryImageCachingAgentTest extends Specification {
     }
   }
 
+  def "cached tags should include label if inspectDigest is true"() {
+    given:
+    credentials.inspectDigests >> true
+    credentials.repositories >> ["repo-1"]
+    client.getTags("repo-1") >> new DockerRegistryTags().tap { name="repo-1"; tags=["tag-1"] }
+    client.getConfigDigest("repo-1", "tag-1") >> "digest-1"
+    client.getDigestContent("repo-1", "digest-1") >> ["config": ["Labels": ["commitId": "id1", "buildNumber": "1"] ]]
+
+    when:
+    def cacheResult = agent.loadData(null)
+
+    then:
+    sortCacheResult(cacheResult)
+    def cacheResultTaggedImages = cacheResult.cacheResults.get(CACHE_GROUP_TAGGED_IMAGE)
+    for (int i = 0; i < cacheResultTaggedImages.size(); i++) {
+      assert cacheResultTaggedImages[i].attributes.get("digest") == "digest-1"
+      assert cacheResultTaggedImages[i].attributes.get("labels") == ["commitId": "id1", "buildNumber": "1"]
+    }
+  }
+
   def "error loading tags returns empty result"() {
     given:
     credentials.repositories >> ["repo-1"]

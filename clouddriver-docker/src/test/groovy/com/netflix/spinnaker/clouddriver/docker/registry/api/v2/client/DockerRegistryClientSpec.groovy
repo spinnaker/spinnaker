@@ -52,6 +52,58 @@ class DockerRegistryClientSpec extends Specification {
     TypedInput catalogTypedInput = new TypedByteArray("application/json", json.getBytes())
     Response catalogResponse = new Response("/v2/_catalog/",200, "nothing", Collections.EMPTY_LIST, catalogTypedInput)
     getCatalog(_,_,_) >> catalogResponse
+
+    String schemaJson = '''{
+         "schemaVersion": 2,
+         "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+         "config": {
+            "mediaType": "application/vnd.docker.container.image.v1+json",
+            "size": 4405,
+            "digest": "sha256:fa8d22f4899110fdecf7ae344a8129fb6175ed5294ffe9ca3fb09dfca5252c93"
+         },
+         "layers": [
+            {
+               "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+               "size": 3310095,
+               "digest": "sha256:1ace22715a341b6ad81b784da18f2efbcea18ff7b4b4edf4f467f193b7de3750"
+            }
+         ]
+      }'''
+    TypedInput schemaV2Input = new TypedByteArray("application/json", schemaJson.getBytes())
+    Response schemaV2Response = new Response("/v2/{name}/manifests/{reference}",200, "nothing", Collections.EMPTY_LIST, schemaV2Input)
+    getSchemaV2Manifest(_,_,_,_) >> schemaV2Response
+
+    String configDigestContentJson = '''{
+        "architecture": "amd64",
+        "config": {
+          "Hostname": "",
+          "Env": [
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          ],
+          "Cmd": [
+            "/opt/app/server"
+          ],
+          "Image": "sha256:3862e8f6f860c732be3fe0c0545330f9573a09cf906a78b06a329e09f9dc7191",
+          "Volumes": null,
+          "WorkingDir": "",
+          "Entrypoint": null,
+          "OnBuild": null,
+          "Labels": {
+            "branch": "main",
+            "buildNumber": "1",
+            "commitId": "b48e2cf960de545597411c99ec969e47a7635ba3",
+            "jobName": "test"
+          }
+        },
+        "container": "fc1607ce29cfa58cc6cad846b911ec0c4de76d426de2b528a126e715615286bc",
+        "created": "2021-02-16T19:18:50.176616541Z",
+        "docker_version": "19.03.6-ce",
+        "os": "linux",
+        "rootfs": {}
+      }'''
+    TypedInput configDigestContentInput = new TypedByteArray("application/json", configDigestContentJson.getBytes())
+    Response contentDigestResponse = new Response("/v2/{repository}/blobs/{digest}",200, "nothing", Collections.EMPTY_LIST, configDigestContentInput)
+    getDigestContent(_,_,_,_) >> contentDigestResponse
   }
 
   def setupSpec() {
@@ -112,4 +164,22 @@ class DockerRegistryClientSpec extends Specification {
     filtered < original
   }
 
+  void "DockerRegistryClient should be able to fetch digest."() {
+    when:
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    def result = client.getConfigDigest(REPOSITORY1, "tag")
+
+    then:
+    result == "sha256:fa8d22f4899110fdecf7ae344a8129fb6175ed5294ffe9ca3fb09dfca5252c93"
+  }
+
+  void "DockerRegistryClient should be able to fetch the config layer."() {
+    when:
+    client = new DockerRegistryClient("https://index.docker.io",100,"","",stubbedRegistryService, dockerBearerTokenService)
+    def results = client.getDigestContent(REPOSITORY1, "digest")
+
+    then:
+    results?.config?.Labels != null
+    results?.config?.Labels?.commitId == "b48e2cf960de545597411c99ec969e47a7635ba3"
+  }
 }
