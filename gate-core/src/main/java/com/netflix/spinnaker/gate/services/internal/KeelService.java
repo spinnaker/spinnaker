@@ -187,4 +187,7 @@ public interface KeelService {
   @GET("/reports/onboarding")
   Response getOnboardingReport(
       @Header("Accept") String accept, @QueryMap Map<String, String> params);
+
+  @GET("/environments/{application}")
+  List<Map<String, Object>> getEnvironments(@Path("application") String application);
 }

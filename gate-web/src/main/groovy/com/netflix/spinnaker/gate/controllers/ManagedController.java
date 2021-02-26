@@ -403,4 +403,10 @@ public class ManagedController {
 
     return response;
   }
+
+  @ApiOperation(value = "Get current environment details")
+  @GetMapping(path = "/environments/{application}", produces = MediaType.APPLICATION_JSON_VALUE)
+  List<Map<String, Object>> getEnvironments(@PathVariable String application) {
+    return keelService.getEnvironments(application);
+  }
 }

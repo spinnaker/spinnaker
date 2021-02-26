@@ -18,10 +18,9 @@ package com.netflix.spinnaker.gate.model.manageddelivery;
 
 import javax.annotation.Nonnull;
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 public class RetryVerificationRequest {
-  @NonNull @Nonnull String artifactReference;
-  @NonNull @Nonnull String artifactVersion;
+  @Nonnull String artifactReference;
+  @Nonnull String artifactVersion;
 }
