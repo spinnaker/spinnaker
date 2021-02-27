@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "license": "Apache-2.0",
   "scripts": {
     "sync": "./sync-versions-from-deck.js --source ../../package.json --dest package.json --no-peer --no-dev",
