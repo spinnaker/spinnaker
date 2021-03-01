@@ -165,6 +165,12 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             }
           }
 
+          test("a recheck is triggered for the environemtn") {
+            verify {
+              repository.triggerResourceRecheck(environment.name, deliveryConfig.application)
+            }
+          }
+
           test("a telemetry event is fired") {
             verify {
               publisher.publishEvent(
@@ -199,6 +205,12 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
           test("an event is not sent") {
             verify(exactly = 0) {
               publisher.publishEvent(ofType<ArtifactVersionApproved>())
+            }
+          }
+
+          test("a recheck is not triggered for the environemtn") {
+            verify(exactly = 0) {
+              repository.triggerResourceRecheck(environment.name, deliveryConfig.application)
             }
           }
         }

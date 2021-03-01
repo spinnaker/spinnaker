@@ -258,7 +258,7 @@ class CombinedRepository(
   override fun getApplicationSummaries(): Collection<ApplicationSummary> =
     deliveryConfigRepository.getApplicationSummaries()
 
-  override fun triggerRecheck(application: String) =
+  override fun triggerDeliveryConfigRecheck(application: String) =
     deliveryConfigRepository.triggerRecheck(application)
   // END DeliveryConfigRepository methods
 
@@ -308,8 +308,8 @@ class CombinedRepository(
   override fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> =
     resourceRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
-  override fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> =
-    artifactRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
+  override fun triggerResourceRecheck(environmentName: String, application: String) =
+    resourceRepository.triggerResourceRecheck(environmentName, application)
 
   // END ResourceRepository methods
 
@@ -318,6 +318,9 @@ class CombinedRepository(
     artifactRepository.register(artifact)
     publisher.publishEvent(ArtifactRegisteredEvent(artifact))
   }
+
+  override fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> =
+    artifactRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
   override fun getArtifact(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact> =
     artifactRepository.get(name, type, deliveryConfigName)

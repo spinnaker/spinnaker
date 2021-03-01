@@ -150,6 +150,9 @@ class EnvironmentPromotionChecker(
           version
         )
       )
+
+      // recheck all resources in an environment, so action can be taken right away
+      repository.triggerResourceRecheck(targetEnvironment, deliveryConfig.application)
     }
   }
 

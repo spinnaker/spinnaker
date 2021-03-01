@@ -50,6 +50,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isSuccess
 import strikt.assertions.map
 import java.time.Clock
 import java.time.Duration
@@ -100,6 +101,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         expectThrows<NoSuchResourceId> {
           subject.delete("whatever")
         }
+      }
+
+      test("recheck does not throw an exception") {
+        expectCatching { subject.triggerResourceRecheck("oh", "my") }.isSuccess()
       }
     }
 

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -138,6 +139,13 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<ResourceSp
    * different values.
    */
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>>
+
+  /**
+   * Resets the last checked time for all resources in the environmet to the initial value
+   * (EPOCH + 1s) so that the resources will immediately be rechecked.
+   * This is done in response to something new happening, like a new artifact version approved.
+   */
+  fun triggerResourceRecheck(environmentName: String, application: String)
 
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10

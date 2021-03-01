@@ -120,7 +120,7 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun getApplicationSummaries(): Collection<ApplicationSummary>
 
-  fun triggerRecheck(application: String)
+  fun triggerDeliveryConfigRecheck(application: String)
   // END DeliveryConfigRepository methods
 
   // START ResourceRepository methods
@@ -144,10 +144,12 @@ interface KeelRepository : KeelReadOnlyRepository {
 
   fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>>
 
-  fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
+  fun triggerResourceRecheck(environmentName: String, application: String)
   // END ResourceRepository methods
 
   // START ArtifactRepository methods
+  fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
+
   fun register(artifact: DeliveryArtifact)
 
   fun getAllArtifacts(type: ArtifactType? = null, name: String? = null): List<DeliveryArtifact>

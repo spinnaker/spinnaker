@@ -135,7 +135,7 @@ class ApplicationService(
   fun pin(user: String, application: String, pin: EnvironmentArtifactPin) {
     val config = repository.getDeliveryConfigForApplication(application)
     repository.pinEnvironment(config, pin.copy(pinnedBy = user))
-    repository.triggerRecheck(application) // recheck environments to reflect pin immediately
+    repository.triggerDeliveryConfigRecheck(application) // recheck environments to reflect pin immediately
     publisher.publishEvent(PinnedNotification(config, pin.copy(pinnedBy = user)))
   }
 
@@ -143,7 +143,7 @@ class ApplicationService(
     val config = repository.getDeliveryConfigForApplication(application)
     val pinnedEnvironment = repository.pinnedEnvironments(config).find { it.targetEnvironment == targetEnvironment }
     repository.deletePin(config, targetEnvironment, reference)
-    repository.triggerRecheck(application) // recheck environments to reflect pin removal immediately
+    repository.triggerDeliveryConfigRecheck(application) // recheck environments to reflect pin removal immediately
 
     publisher.publishEvent(UnpinnedNotification(config,
       pinnedEnvironment,
@@ -161,7 +161,7 @@ class ApplicationService(
     if (!succeeded) {
       throw InvalidVetoException(application, veto.targetEnvironment, veto.reference, veto.version)
     }
-    repository.triggerRecheck(application) // recheck environments to reflect veto immediately
+    repository.triggerDeliveryConfigRecheck(application) // recheck environments to reflect veto immediately
     publisher.publishEvent(MarkAsBadNotification(
       config = config,
       user = user,
@@ -179,7 +179,7 @@ class ApplicationService(
       version = version,
       targetEnvironment = targetEnvironment
     )
-    repository.triggerRecheck(application) // recheck environments to reflect removed veto immediately
+    repository.triggerDeliveryConfigRecheck(application) // recheck environments to reflect removed veto immediately
   }
 
   fun getSummariesAllEntities(application: String): Map<String, Any> {

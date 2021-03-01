@@ -951,7 +951,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           repository.pinEnvironment(singleArtifactDeliveryConfig, pin)
         } just Runs
         every {
-          repository.triggerRecheck(application1)
+          repository.triggerDeliveryConfigRecheck(application1)
         } just Runs
 
         applicationService.pin("keel@keel.io", application1, pin)
@@ -976,7 +976,7 @@ class ApplicationServiceTests : JUnit5Minutests {
         } just Runs
 
         every {
-          repository.triggerRecheck(application1)
+          repository.triggerDeliveryConfigRecheck(application1)
         } just Runs
 
         every {
@@ -1004,7 +1004,7 @@ class ApplicationServiceTests : JUnit5Minutests {
         } just Runs
 
         every {
-          repository.triggerRecheck(application1)
+          repository.triggerDeliveryConfigRecheck(application1)
         } just Runs
 
         every {

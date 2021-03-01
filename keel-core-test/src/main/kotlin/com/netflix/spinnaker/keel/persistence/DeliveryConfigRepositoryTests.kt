@@ -275,6 +275,29 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         )
       }
 
+
+      test("resources in an environment can be rechecked") {
+        // note: this test needs to be here even though it's testing a resource repository function
+        // because we need a valid config and environment for the resources to exist in, and those can only
+        // be saved with both a delivery config repository and a resource repository.
+        storeResources()
+        store()
+
+        val firstCheck = resourceRepository.itemsDueForCheck(Duration.ofMinutes(2), 4)
+        val secondCheck = resourceRepository.itemsDueForCheck(Duration.ofMinutes(2), 4)
+        resourceRepository.triggerResourceRecheck("test", deliveryConfig.application)
+        val afterRecheck = resourceRepository.itemsDueForCheck(Duration.ofMinutes(2), 4)
+        val testResources = deliveryConfig.environments.find { it.name == "test" }?.resourceIds ?: emptySet()
+
+        expect {
+          that(firstCheck.size).isEqualTo(4)
+          that(secondCheck.size).isEqualTo(0)
+          that(afterRecheck.size).isEqualTo(2) //only one environment had a recheck triggered
+          that(afterRecheck.first().application).isEqualTo(deliveryConfig.application)
+          that(afterRecheck.map { it.id }.toList()).containsExactlyInAnyOrder(testResources)
+        }
+      }
+
       context("updating an existing delivery config") {
         deriveFixture {
           storeArtifacts()
