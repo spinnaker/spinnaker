@@ -19,7 +19,7 @@ export const NLBAdvancedSettings = React.forwardRef<HTMLDivElement, INLBAdvanced
       name="loadBalancingCrossZone"
       label="Cross-Zone Load Balancing"
       help={<HelpField id="loadBalancer.advancedSettings.loadBalancingCrossZone" />}
-      input={(inputProps) => <CheckboxInput {...inputProps} text="Enable deletion protection" />}
+      input={(inputProps) => <CheckboxInput {...inputProps} text="Distribute traffic across zones" />}
     />
 
     {props.showDualstack && (

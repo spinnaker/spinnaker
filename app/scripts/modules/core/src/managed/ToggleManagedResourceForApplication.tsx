@@ -95,7 +95,7 @@ export const ToggleManagedResourceForApplicationModal = memo(
       call
         .then(() => dataSource.refresh(true).catch(() => null))
         .then(() => {
-          closeModal();
+          closeModal?.();
         })
         .catch((error: Error) => {
           setActionError(error.data);

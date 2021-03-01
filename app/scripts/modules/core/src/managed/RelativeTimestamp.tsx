@@ -20,7 +20,7 @@ export const DurationRender: React.FC<{ startedAt: string; completedAt?: string 
         setRefresh((state) => !state);
       }
     },
-    !completedAt ? 1000 : undefined,
+    !completedAt ? 1000 : 0,
   );
   const startAtDateTime = DateTime.fromISO(startedAt);
   const endTime = !completedAt ? DateTime.utc() : DateTime.fromISO(completedAt);
@@ -29,7 +29,11 @@ export const DurationRender: React.FC<{ startedAt: string; completedAt?: string 
 
 const formatTimestamp = (timestamp: DateTime, distance: Duration) => {
   if (distance.years || distance.months) {
-    if (timestamp.year === DateTime.local().setZone(TIMEZONE).year) {
+    let currentTime = DateTime.local();
+    if (TIMEZONE) {
+      currentTime = currentTime.setZone(TIMEZONE);
+    }
+    if (timestamp.year === currentTime.year) {
       return timestamp.toFormat('MMM d');
     } else {
       return timestamp.toFormat('MMM d, y');
@@ -52,7 +56,7 @@ const getDistanceFromNow = (timestamp: DateTime) =>
 
 export const RelativeTimestamp = memo(
   ({ timestamp: timestampInOriginalZone, clickToCopy }: IRelativeTimestampProps) => {
-    const timestamp = timestampInOriginalZone.setZone(TIMEZONE);
+    const timestamp = TIMEZONE ? timestampInOriginalZone.setZone(TIMEZONE) : timestampInOriginalZone;
     const [formattedTimestamp, setFormattedTimestamp] = useState(
       formatTimestamp(timestamp, getDistanceFromNow(timestamp)),
     );

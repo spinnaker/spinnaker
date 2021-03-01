@@ -8,7 +8,7 @@ import { IManagedArtifactVersion } from '../../domain';
 import './ArtifactDetailHeader.less';
 
 export interface IArtifactDetailHeaderProps {
-  reference: string;
+  reference?: string;
   version: IManagedArtifactVersion;
   onRequestClose: () => any;
 }

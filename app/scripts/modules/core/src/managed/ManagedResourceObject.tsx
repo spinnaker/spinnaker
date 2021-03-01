@@ -79,9 +79,9 @@ export const ManagedResourceObject = memo(
 
     const linkProps = routeProps.href ? routeProps : displayLinkProps;
 
-    const current =
-      artifactVersionsByState?.current &&
-      artifactDetails?.versions.find(({ version }) => version === artifactVersionsByState?.current);
+    const current = artifactVersionsByState?.current
+      ? artifactDetails?.versions.find(({ version }) => version === artifactVersionsByState?.current)
+      : undefined;
     const deploying =
       artifactVersionsByState?.deploying &&
       artifactDetails?.versions.find(({ version }) => version === artifactVersionsByState?.deploying);
@@ -89,9 +89,9 @@ export const ManagedResourceObject = memo(
     const isCurrentVersionPinned = !!current?.environments.find(({ name }) => name === environment)?.pinned;
     const currentPill = current && (
       <Pill
-        text={`${getArtifactVersionDisplayName(current)}${showReferenceName ? ' ' + artifactDetails.reference : ''}`}
-        bgColor={isCurrentVersionPinned ? 'var(--color-status-warning)' : null}
-        textColor={isCurrentVersionPinned ? 'var(--color-icon-dark)' : null}
+        text={`${getArtifactVersionDisplayName(current)}${showReferenceName ? ' ' + artifactDetails?.reference : ''}`}
+        bgColor={isCurrentVersionPinned ? 'var(--color-status-warning)' : undefined}
+        textColor={isCurrentVersionPinned ? 'var(--color-icon-dark)' : undefined}
       />
     );
     const deployingPill = deploying && (
@@ -99,7 +99,7 @@ export const ManagedResourceObject = memo(
         <Icon appearance="neutral" name="caretRight" size="medium" />
         <AnimatingPill
           text={`${getArtifactVersionDisplayName(deploying)}${
-            showReferenceName ? ' ' + artifactDetails.reference : ''
+            showReferenceName ? ' ' + artifactDetails?.reference : ''
           }`}
           textColor="var(--color-icon-neutral)"
         />
@@ -107,11 +107,12 @@ export const ManagedResourceObject = memo(
     );
 
     const viewConfig = viewConfigurationByStatus[resource.status];
-    const resourceStatus = resource.status !== 'HAPPY' && viewConfig && (
-      <ManagedResourceStatusPopover application={application} placement="left" resourceSummary={resource}>
-        <StatusBubble appearance={viewConfig.appearance} iconName={viewConfig.iconName} size="small" />
-      </ManagedResourceStatusPopover>
-    );
+    const resourceStatus =
+      resource.status !== 'HAPPY' && viewConfig ? (
+        <ManagedResourceStatusPopover application={application} placement="left" resourceSummary={resource}>
+          <StatusBubble appearance={viewConfig.appearance} iconName={viewConfig.iconName} size="small" />
+        </ManagedResourceStatusPopover>
+      ) : undefined;
 
     return (
       <ObjectRow

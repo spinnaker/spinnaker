@@ -37,7 +37,7 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ verification
       title={
         <>
           {wasHalted ? 'Verification was halted' : statusToText[status]}
-          {FINISHED_STATES.includes(status) && (
+          {FINISHED_STATES.includes(status) && startedAt && (
             <>
               {' '}
               —{' '}

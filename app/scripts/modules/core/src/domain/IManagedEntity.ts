@@ -97,37 +97,41 @@ export interface IPinned {
   comment?: string;
 }
 
+export interface IManagedArtifactVersionEnvironment {
+  name: string;
+  state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
+  pinned?: IPinned;
+  vetoed?: {
+    at: string;
+    by: string;
+    comment?: string;
+  };
+  deployedAt?: string;
+  replacedAt?: string;
+  replacedBy?: string;
+  statefulConstraints?: IStatefulConstraint[];
+  statelessConstraints?: IStatelessConstraint[];
+  compareLink?: string;
+  verifications?: IVerification[];
+}
+
+export interface IManagedArtifactVersionLifecycleStep {
+  // likely more scopes + types later, but hard-coding to avoid premature abstraction for now
+  scope: 'PRE_DEPLOYMENT';
+  type: 'BUILD' | 'BAKE';
+  id: string;
+  status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'ABORTED' | 'UNKNOWN';
+  startedAt?: string;
+  completedAt?: string;
+  link?: string;
+}
+
 export interface IManagedArtifactVersion {
   version: string;
   displayName: string;
   createdAt?: string;
-  environments: Array<{
-    name: string;
-    state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
-    pinned?: IPinned;
-    vetoed?: {
-      at: string;
-      by: string;
-      comment?: string;
-    };
-    deployedAt?: string;
-    replacedAt?: string;
-    replacedBy?: string;
-    statefulConstraints?: IStatefulConstraint[];
-    statelessConstraints?: IStatelessConstraint[];
-    compareLink?: string;
-    verifications?: IVerification[];
-  }>;
-  lifecycleSteps?: Array<{
-    // likely more scopes + types later, but hard-coding to avoid premature abstraction for now
-    scope: 'PRE_DEPLOYMENT';
-    type: 'BUILD' | 'BAKE';
-    id: string;
-    status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'ABORTED' | 'UNKNOWN';
-    startedAt?: string;
-    completedAt?: string;
-    link?: string;
-  }>;
+  environments: IManagedArtifactVersionEnvironment[];
+  lifecycleSteps?: IManagedArtifactVersionLifecycleStep[];
   build?: {
     id: number; // deprecated, use number
     number: string;
@@ -160,9 +164,6 @@ export interface IManagedArtifactVersion {
     };
   };
 }
-
-export type IManagedArtifactVersionEnvironment = IManagedArtifactSummary['versions'][0]['environments'][0];
-export type IManagedArtifactVersionLifecycleStep = IManagedArtifactSummary['versions'][0]['lifecycleSteps'][0];
 
 export interface IManagedArtifactSummary {
   name: string;

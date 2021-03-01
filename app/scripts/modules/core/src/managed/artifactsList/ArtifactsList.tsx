@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { Icon, IconNames } from '@spinnaker/presentation';
 
@@ -21,7 +21,7 @@ import './ArtifactRow.less';
 interface IArtifactsListProps {
   artifacts: IManagedArtifactSummary[];
   versionSelected: (version: ISelectedArtifactVersion) => void;
-  selectedVersion: ISelectedArtifactVersion;
+  selectedVersion?: ISelectedArtifactVersion;
 }
 
 export function ArtifactsList({ artifacts, selectedVersion, versionSelected }: IArtifactsListProps) {
@@ -31,13 +31,13 @@ export function ArtifactsList({ artifacts, selectedVersion, versionSelected }: I
         versions.map((version) => (
           <ArtifactRow
             key={`${name}-${version.version}`}
-            isSelected={
-              selectedVersion && selectedVersion.reference === reference && selectedVersion.version === version.version
-            }
+            isSelected={Boolean(
+              selectedVersion && selectedVersion.reference === reference && selectedVersion.version === version.version,
+            )}
             clickHandler={versionSelected}
             version={version}
             reference={reference}
-            name={artifacts.length > 1 ? reference : null}
+            name={artifacts.length > 1 ? reference : undefined}
           />
         )),
       )}
@@ -76,7 +76,7 @@ interface IArtifactRowProps {
 export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, reference, name }: IArtifactRowProps) => {
   const { version, displayName, createdAt, environments, build, git } = versionInfo;
   const [isHovered, setIsHovered] = useState(false);
-  const rowRef = useRef<HTMLDivElement>();
+  const rowRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Why does the call to scrollIntoView() have to be deferred for 100ms? A couple reasons:
@@ -87,7 +87,7 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
     //    work at all. The same is true for a setTimeout with no delay. DOM read/write ops are weird
     //    and there is not a great practical justification for solving that mystery here and now.
     const timeout = setTimeout(() => {
-      if (isSelected && rowRef.current) {
+      if (isSelected && rowRef.current && rowRef.current.parentElement) {
         // *** VERY BRITTLE ASSUMPTION WARNING ***
         // This code assumes that the direct parent element of a row is the scrollable container.
         // If a wrapper element of any kind is added, this code will need to be modified
@@ -171,7 +171,7 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
       scope === 'PRE_DEPLOYMENT' && ['BUILD', 'BAKE'].includes(type) && ['RUNNING', 'FAILED'].includes(status),
   );
 
-  if (preDeploymentSteps?.length > 0) {
+  if (preDeploymentSteps && preDeploymentSteps.length > 0) {
     // These steps come in with chronological ordering, but we need reverse-chronological orddering for display
     preDeploymentSteps.reverse().forEach(({ type, status }) => {
       statuses.push({

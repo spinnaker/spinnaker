@@ -61,7 +61,7 @@ export const getConstraintTimestamp = (
   environment: IManagedArtifactVersionEnvironment,
 ) => {
   if (!isConstraintStateful(constraint)) {
-    return null;
+    return undefined;
   }
 
   const { status, startedAt, judgedAt } = constraint as IStatefulConstraint;
@@ -69,21 +69,21 @@ export const getConstraintTimestamp = (
   // PENDING and NOT_EVALUATED constraints stop running once an environment is skipped, however, their status do not change.
   // We need to ignore them
   if (environment.state === 'skipped' && [PENDING, NOT_EVALUATED].includes(status)) {
-    return null;
+    return undefined;
   }
 
   switch (status) {
     case PENDING:
-      return startedAt ? DateTime.fromISO(startedAt) : null;
+      return startedAt ? DateTime.fromISO(startedAt) : undefined;
 
     case PASS:
     case FAIL:
     case OVERRIDE_PASS:
     case OVERRIDE_FAIL:
-      return judgedAt ? DateTime.fromISO(judgedAt) : null;
+      return judgedAt ? DateTime.fromISO(judgedAt) : undefined;
 
     default:
-      return null;
+      return undefined;
   }
 };
 

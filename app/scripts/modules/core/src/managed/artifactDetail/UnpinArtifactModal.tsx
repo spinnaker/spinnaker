@@ -57,7 +57,7 @@ export const UnpinArtifactModal = memo(
   }: IUnpinArtifactModalProps) => {
     const isEnvironmentCritical = useEnvironmentTypeFromResources(resourcesByEnvironment[environment] ?? []);
     const [submitStatus, setSubmitStatus] = useState<IRequestStatus>('NONE');
-    const [error, setError] = useState<{ title: string; message: string }>(null);
+    const [error, setError] = useState<{ title: string; message: string } | undefined>(undefined);
 
     useEffect(() => logEvent('Modal seen', application.name), []);
 
@@ -71,7 +71,7 @@ export const UnpinArtifactModal = memo(
       })
         .then(() => {
           logEvent('Version unpinned', application.name, environment, reference);
-          closeModal();
+          closeModal?.();
         })
         .catch((error: { data: { error: string; message: string } }) => {
           setSubmitStatus('REJECTED');
@@ -125,7 +125,7 @@ export const UnpinArtifactModal = memo(
         <ModalFooter
           primaryActions={
             <div className="flex-container-h sp-group-margin-s-xaxis">
-              <Button onClick={() => dismissModal()}>Cancel</Button>
+              <Button onClick={() => dismissModal?.()}>Cancel</Button>
               <Button appearance="primary" disabled={submitStatus === 'PENDING'} onClick={() => submit()}>
                 Unpin
               </Button>

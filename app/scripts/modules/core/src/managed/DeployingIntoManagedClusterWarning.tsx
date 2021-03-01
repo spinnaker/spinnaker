@@ -17,6 +17,7 @@ export const DeployingIntoManagedClusterWarning = ({ app, formik }: IDeployingIn
   const command = formik.values;
   const pauseResource = React.useCallback(() => {
     const { resourceSummary, backingData } = formik.values;
+    if (!resourceSummary) return;
     toggleResourcePause(resourceSummary, app).then(
       () => {
         backingData.managedResources = app.getDataSource('managedResources')?.data?.resources;

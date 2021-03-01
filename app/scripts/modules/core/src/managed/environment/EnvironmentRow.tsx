@@ -33,12 +33,12 @@ export function EnvironmentRow({ name, resources = [], pinnedVersions, children 
             <EnvironmentBadge name={name} critical={isCritical} />
           </div>
           <div className="flex-container-h flex-grow flex-pull-right">
-            {pinnedVersions?.length > 0 ? (
+            {pinnedVersions && pinnedVersions?.length > 0 ? (
               <StatusBubble
                 iconName="pin"
                 appearance="warning"
                 size="small"
-                quantity={pinnedVersions.length > 1 ? pinnedVersions.length : null}
+                quantity={pinnedVersions.length > 1 ? pinnedVersions.length : undefined}
               />
             ) : null}
           </div>
