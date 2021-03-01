@@ -12,13 +12,33 @@ export interface IEditNotificationModalProps extends IModalComponentProps {
   level: string;
   notification: INotification;
   stageType: string;
+  editNotification?: (n: INotification) => Promise<INotification>;
 }
 
-export class EditNotificationModal extends React.Component<IEditNotificationModalProps> {
+export interface IEditNotificationModalState {
+  isSubmitting: boolean;
+}
+
+export class EditNotificationModal extends React.Component<IEditNotificationModalProps, IEditNotificationModalState> {
+  constructor(props: IEditNotificationModalProps) {
+    super(props);
+    this.state = {
+      isSubmitting: false,
+    };
+  }
+
   private formikRef = React.createRef<Formik<any>>();
 
   private submit = (values: INotification): void => {
-    this.props.closeModal(values);
+    if (this.props.editNotification) {
+      this.setState({ isSubmitting: true });
+      this.props.editNotification(values).then(() => {
+        this.setState({ isSubmitting: false });
+        this.props.closeModal();
+      });
+    } else {
+      this.props.closeModal(values);
+    }
   };
 
   public static show(props: any): Promise<INotification> {
@@ -60,7 +80,12 @@ export class EditNotificationModal extends React.Component<IEditNotificationModa
               <button className="btn btn-default" onClick={dismissModal} type="button">
                 Cancel
               </button>
-              <SubmitButton isDisabled={!formik.isValid} isFormSubmit={true} submitting={false} label={'Update'} />
+              <SubmitButton
+                isDisabled={!formik.isValid}
+                isFormSubmit={true}
+                submitting={this.state.isSubmitting}
+                label={'Update'}
+              />
             </Modal.Footer>
           </Form>
         )}
