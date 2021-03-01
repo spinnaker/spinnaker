@@ -195,20 +195,19 @@ export interface IManagedResource {
   isManaged?: boolean;
 }
 
-export enum ManagedResourceEventType {
-  ResourceCreated = 'ResourceCreated',
-  ResourceUpdated = 'ResourceUpdated',
-  ResourceDeleted = 'ResourceDeleted',
-  ResourceMissing = 'ResourceMissing',
-  ResourceValid = 'ResourceValid',
-  ResourceDeltaDetected = 'ResourceDeltaDetected',
-  ResourceDeltaResolved = 'ResourceDeltaResolved',
-  ResourceActuationLaunched = 'ResourceActuationLaunched',
-  ResourceCheckError = 'ResourceCheckError',
-  ResourceCheckUnresolvable = 'ResourceCheckUnresolvable',
-  ResourceActuationPaused = 'ResourceActuationPaused',
-  ResourceActuationResumed = 'ResourceActuationResumed',
-}
+export type ManagedResourceEventType =
+  | 'ResourceCreated'
+  | 'ResourceUpdated'
+  | 'ResourceDeleted'
+  | 'ResourceMissing'
+  | 'ResourceValid'
+  | 'ResourceDeltaDetected'
+  | 'ResourceDeltaResolved'
+  | 'ResourceActuationLaunched'
+  | 'ResourceCheckError'
+  | 'ResourceCheckUnresolvable'
+  | 'ResourceActuationPaused'
+  | 'ResourceActuationResumed';
 
 export interface IManagedResourceDiff {
   [fieldName: string]: {
