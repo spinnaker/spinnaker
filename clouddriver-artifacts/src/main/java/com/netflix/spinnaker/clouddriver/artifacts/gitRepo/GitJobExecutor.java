@@ -75,7 +75,45 @@ public class GitJobExecutor {
     askPassBinary = initAskPass();
   }
 
-  public void clone(String repoUrl, String branch, Path destination) throws IOException {
+  public void cloneOrPull(String repoUrl, String branch, Path localPath, String repoBasename)
+      throws IOException {
+    File localPathFile = localPath.toFile();
+    if (!localPathFile.exists()) {
+      clone(repoUrl, branch, localPath);
+      return;
+    }
+    // localPath exists
+
+    if (!localPathFile.isDirectory()) {
+      throw new IllegalArgumentException(
+          "Local path " + localPath.toString() + " is not a directory");
+    }
+    // localPath exists and is a directory
+
+    File[] localPathFiles = localPathFile.listFiles();
+    if (localPathFiles == null || localPathFiles.length == 0) {
+      clone(repoUrl, branch, localPath);
+      return;
+    }
+    // localPath exists, is a directory and has files in it
+
+    Path dotGitPath = Paths.get(localPath.toString(), repoBasename, ".git");
+    if (!dotGitPath.toFile().exists()) {
+      log.warn(
+          "Directory {} for git/repo {}, branch {} has files or directories but {} was not found. The directory will be recreated to start with a new clone.",
+          localPath.toString(),
+          repoUrl,
+          branch,
+          dotGitPath.toString());
+      clone(repoUrl, branch, localPath);
+      return;
+    }
+    // localPath has "<repo>/.git" directory
+
+    pull(repoUrl, dotGitPath.getParent());
+  }
+
+  private void clone(String repoUrl, String branch, Path destination) throws IOException {
     if (!isValidReference(repoUrl)) {
       throw new IllegalArgumentException(
           "Git reference \""
@@ -107,6 +145,34 @@ public class GitJobExecutor {
               + result.getError()
               + " Output: "
               + result.getOutput());
+    }
+  }
+
+  private void pull(String repoUrl, Path localPath) throws IOException {
+    log.info("Pulling git/repo {} into {}", repoUrl, localPath.toString());
+
+    String cloneCommand = gitExecutable + " pull";
+    List<String> command = cmdToList(cloneCommand);
+    log.debug("Executing command: \"{}\"", String.join(" ", command));
+
+    JobResult<String> result =
+        jobExecutor.runJob(
+            new JobRequest(command, addEnvVars(System.getenv()), localPath.toFile()));
+
+    if (result.getResult() != JobResult.Result.SUCCESS) {
+      throw new IOException(
+          "Failed on \"git pull\" of repository "
+              + repoUrl
+              + " into "
+              + localPath
+              + ". Error: "
+              + result.getError()
+              + " Output: "
+              + result.getOutput());
+    }
+
+    if (!localPath.getParent().toFile().setLastModified(System.currentTimeMillis())) {
+      log.warn("Unable to set last modified time on {}", localPath.getParent().toString());
     }
   }
 

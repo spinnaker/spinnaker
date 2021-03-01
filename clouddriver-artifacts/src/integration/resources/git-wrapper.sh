@@ -12,19 +12,18 @@ git_args=$@
 # Change local paths for paths inside the container, and copy any needed files
 function pre_process() {
   container_name=$(docker ps | grep "gitea/gitea" | awk '{print $1}')
+  docker exec "$container_name" mkdir -p "$(pwd)"
   if [[ $1 == "clone" ]]; then
-    docker exec "$container_name" rm -rf test
+    docker exec -w "$(pwd)" "$container_name" rm -rf test
   elif [[ $1 == "archive" ]]; then
     {
-      git_args="-C test "
       while [[ "$#" -gt 0 ]]; do
         case $1 in
         --output)
-          git_args+="--output test.tgz "
           dst_path=$2
+          docker exec "$container_name" mkdir -p "$(dirname $dst_path)"
           shift
           ;;
-        *) git_args+="$1 " ;;
         esac
         shift
       done
@@ -45,15 +44,17 @@ function pre_process() {
 }
 
 function execute() {
-  docker exec -i -e GIT_SSH_COMMAND -e SSH_ASKPASS -e SSH_KEY_PWD -e DISPLAY -e GIT_CURL_VERBOSE -e GIT_TRACE "$container_name" git $git_args
+  docker exec -w "$(pwd)" -i -e GIT_SSH_COMMAND -e SSH_ASKPASS -e SSH_KEY_PWD -e DISPLAY -e GIT_CURL_VERBOSE -e GIT_TRACE "$container_name" git $git_args
 }
 
 # Make any changes locally reflecting the changes done inside the container
 function post_process() {
   if [[ $git_args =~ .*clone.* ]]; then
-    mkdir -p test
+    docker cp "$container_name":"$(pwd)/test" .
+  elif [[ $git_args =~ .*pull.* ]]; then
+    docker cp "$container_name":"$(pwd)" ..
   elif [[ $git_args =~ .*archive.* ]]; then
-    docker cp "$container_name":/test/test.tgz "$dst_path"
+    docker cp "$container_name":"$dst_path" "$dst_path"
   fi
 }
 

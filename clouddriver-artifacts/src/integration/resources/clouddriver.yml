@@ -2,6 +2,8 @@ artifacts:
   git-repo:
     enabled: true
     git-executable: ${GIT_WRAPPER}
+    clone-retention-minutes: 60
+    clone-retention-max-bytes: 104857600
     accounts:
       - name: basic-auth
         username: test

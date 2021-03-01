@@ -39,7 +39,8 @@ class GitRepoArtifactConfiguration {
   public CredentialsTypeProperties<GitRepoArtifactCredentials, GitRepoArtifactAccount>
       gitCredentialsProperties(
           @Value("${artifacts.git-repo.git-executable:git}") String gitExecutable,
-          JobExecutor jobExecutor) {
+          JobExecutor jobExecutor,
+          GitRepoFileSystem gitRepoFileSystem) {
     return CredentialsTypeProperties.<GitRepoArtifactCredentials, GitRepoArtifactAccount>builder()
         .type(GitRepoArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(GitRepoArtifactCredentials.class)
@@ -49,12 +50,17 @@ class GitRepoArtifactConfiguration {
             a -> {
               try {
                 return new GitRepoArtifactCredentials(
-                    new GitJobExecutor(a, jobExecutor, gitExecutable));
+                    new GitJobExecutor(a, jobExecutor, gitExecutable), gitRepoFileSystem);
               } catch (IOException e) {
                 log.warn("Failure instantiating git artifact account {}: ", a, e);
                 return null;
               }
             })
         .build();
+  }
+
+  @Bean
+  public GitRepoFileSystem gitRepoFileSystem() {
+    return new GitRepoFileSystem(gitRepoArtifactProviderProperties);
   }
 }

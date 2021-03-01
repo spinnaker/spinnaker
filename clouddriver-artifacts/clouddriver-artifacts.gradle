@@ -56,6 +56,7 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 
   integrationImplementation project(":clouddriver-web")
+  integrationImplementation project(":clouddriver-artifacts")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
   integrationImplementation "org.testcontainers:testcontainers"
   integrationImplementation "org.testcontainers:mysql"

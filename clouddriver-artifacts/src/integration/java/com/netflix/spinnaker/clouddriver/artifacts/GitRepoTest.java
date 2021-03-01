@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.Main;
+import com.netflix.spinnaker.clouddriver.artifacts.gitRepo.GitRepoArtifactProviderProperties;
+import com.netflix.spinnaker.clouddriver.artifacts.gitRepo.GitRepoFileSystem;
 import com.netflix.spinnaker.clouddriver.artifacts.utils.GiteaContainer;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -70,6 +72,7 @@ public class GitRepoTest {
             "reference", giteaContainer.httpUrl(),
             "type", "git/repo",
             "version", "master");
+    deleteTmpClone(body);
 
     // when
     Response response =
@@ -98,6 +101,7 @@ public class GitRepoTest {
             "reference", giteaContainer.httpUrl(),
             "type", "git/repo",
             "version", "master");
+    deleteTmpClone(body);
 
     // when
     Response response =
@@ -126,6 +130,7 @@ public class GitRepoTest {
             "reference", giteaContainer.httpUrl().replaceAll(".git$", ""),
             "type", "git/repo",
             "version", "master");
+    deleteTmpClone(body);
 
     // when
     Response response =
@@ -154,6 +159,7 @@ public class GitRepoTest {
             "reference", giteaContainer.sshUrl(),
             "type", "git/repo",
             "version", "master");
+    deleteTmpClone(body);
 
     // when
     Response response =
@@ -183,6 +189,7 @@ public class GitRepoTest {
             "reference", giteaContainer.sshUrl(),
             "type", "git/repo",
             "version", "master");
+    deleteTmpClone(body);
 
     // when
     Response response =
@@ -195,6 +202,43 @@ public class GitRepoTest {
     // then
     byte[] bytes = response.getBody().asByteArray();
     assertBytesHaveFile(bytes, "README.md");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a previously downloaded gitrepo artifact\n"
+          + "  And a new file added to the repo\n"
+          + "When sending a second download artifact request\n"
+          + "Then the new file is included\n===")
+  @Test
+  public void shouldDownloadGitRepoUpdates() throws IOException, InterruptedException {
+    // given
+    Map<String, Object> body =
+        ImmutableMap.of(
+            "artifactAccount", "token-auth",
+            "reference", giteaContainer.httpUrl(),
+            "type", "git/repo",
+            "version", "master");
+    deleteTmpClone(body);
+    Response response =
+        given().body(body).contentType("application/json").put(baseUrl() + "/artifacts/fetch");
+    if (response.statusCode() != 200) {
+      response.prettyPrint();
+    }
+    assertEquals(200, response.statusCode());
+    giteaContainer.addFileToRepo("newfile");
+
+    // when
+    response =
+        given().body(body).contentType("application/json").put(baseUrl() + "/artifacts/fetch");
+    if (response.statusCode() != 200) {
+      response.prettyPrint();
+    }
+    assertEquals(200, response.statusCode());
+
+    // then
+    byte[] bytes = response.getBody().asByteArray();
+    assertBytesHaveFile(bytes, "README.md", "newfile");
   }
 
   @DisplayName(
@@ -212,6 +256,7 @@ public class GitRepoTest {
             "type", "git/repo",
             "version", "master",
             "location", "subdir");
+    deleteTmpClone(body);
     giteaContainer.addFileToRepo("subdir/subfile");
 
     // when
@@ -250,5 +295,16 @@ public class GitRepoTest {
           Paths.get(archive.toFile().getParent(), file).toFile().exists(),
           "File " + file + " not found in response");
     }
+  }
+
+  private static void deleteTmpClone(Map<String, Object> artifact) throws IOException {
+    Path localClone =
+        new GitRepoFileSystem(new GitRepoArtifactProviderProperties())
+            .getLocalClonePath(
+                (String) artifact.get("reference"), (String) artifact.get("version"));
+    if (localClone.toFile().exists()) {
+      FileUtils.forceDelete(localClone.toFile());
+    }
+    FileUtils.forceMkdir(localClone.toFile());
   }
 }

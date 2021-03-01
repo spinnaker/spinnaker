@@ -27,12 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 @NonnullByDefault
 @Slf4j
@@ -44,9 +44,11 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
   @Getter private final String name;
 
   private final GitJobExecutor executor;
+  private final GitRepoFileSystem gitRepoFileSystem;
 
-  public GitRepoArtifactCredentials(GitJobExecutor executor) {
+  public GitRepoArtifactCredentials(GitJobExecutor executor, GitRepoFileSystem gitRepoFileSystem) {
     this.executor = executor;
+    this.gitRepoFileSystem = gitRepoFileSystem;
     this.name = this.executor.getAccount().getName();
   }
 
@@ -57,24 +59,60 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public InputStream download(Artifact artifact) throws IOException {
-    String repoReference = artifact.getReference();
+    String repoUrl = artifact.getReference();
     String subPath = artifactSubPath(artifact);
-    String remoteRef = artifactVersion(artifact);
-    Path stagingPath =
-        Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
-    String repoBasename = getRepoBasename(repoReference);
+    String branch = artifactVersion(artifact);
+    Path stagingPath = gitRepoFileSystem.getLocalClonePath(repoUrl, branch);
+    String repoBasename = getRepoBasename(repoUrl);
     Path outputFile = Paths.get(stagingPath.toString(), repoBasename + ".tgz");
 
-    // delete temporary files before returning
-    try (Closeable ignored = () -> FileUtils.deleteDirectory(stagingPath.toFile())) {
-      executor.clone(repoReference, remoteRef, stagingPath);
+    if (!gitRepoFileSystem.canRetainClone()) {
+      // delete clone before returning
+      try (Closeable ignored = () -> FileUtils.deleteDirectory(stagingPath.toFile())) {
+        return getInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+      }
+    } else {
+      // clones are deleted by gitRepoFileSystem depending on retention period
+      return getInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+    }
+  }
 
-      log.info("Creating archive for git/repo {}", repoReference);
-
-      executor.archive(
-          Paths.get(stagingPath.toString(), repoBasename), remoteRef, subPath, outputFile);
-
-      return new FileInputStream(outputFile.toFile());
+  @NotNull
+  private FileInputStream getInputStream(
+      String repoUrl,
+      String subPath,
+      String branch,
+      Path stagingPath,
+      String repoBasename,
+      Path outputFile)
+      throws IOException {
+    try {
+      if (gitRepoFileSystem.tryTimedLock(repoUrl, branch)) {
+        try {
+          executor.cloneOrPull(repoUrl, branch, stagingPath, repoBasename);
+          log.info("Creating archive for git/repo {}", repoUrl);
+          executor.archive(
+              Paths.get(stagingPath.toString(), repoBasename), branch, subPath, outputFile);
+          return new FileInputStream(outputFile.toFile());
+        } finally {
+          gitRepoFileSystem.unlock(repoUrl, branch);
+        }
+      } else {
+        throw new IllegalStateException(
+            "Timeout waiting to acquire file system lock for "
+                + repoUrl
+                + " (branch "
+                + branch
+                + ").");
+      }
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(
+          "Interrupted while waiting to acquire file system lock for "
+              + repoUrl
+              + " (branch "
+              + branch
+              + ").",
+          e);
     }
   }
 
