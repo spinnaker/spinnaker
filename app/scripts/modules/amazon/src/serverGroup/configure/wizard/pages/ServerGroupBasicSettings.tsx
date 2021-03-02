@@ -1,5 +1,4 @@
 import { Field, FormikErrors, FormikProps } from 'formik';
-import { some } from 'lodash';
 import React from 'react';
 
 import {
@@ -92,7 +91,7 @@ export class ServerGroupBasicSettings
     values.imageChanged(values);
 
     if (image && SETTINGS.disabledImages?.length && AWSProviderSettings.serverGroups?.enableIPv6) {
-      const isImageDisabled = some(SETTINGS.disabledImages, (i) => image.imageName.includes(i));
+      const isImageDisabled = SETTINGS.disabledImages.some((i) => image.imageName.includes(i));
       if (isImageDisabled) {
         setFieldValue('associateIPv6Address', false);
       }
