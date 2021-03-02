@@ -79,6 +79,8 @@ export interface IAmazonServerGroupCommandBackingData extends IServerGroupComman
 
 export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandViewState {
   dirty: IAmazonServerGroupCommandDirty;
+  spelTargetGroups: string[];
+  spelLoadBalancers: string[];
 }
 
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
@@ -97,8 +99,6 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
   setLaunchTemplate?: boolean;
-  spelTargetGroups: string[];
-  spelLoadBalancers: string[];
   unlimitedCpuCredits?: boolean;
   viewState: IAmazonServerGroupCommandViewState;
 
@@ -517,7 +517,7 @@ export class AwsServerGroupConfigurationService {
       if (invalid.length) {
         result.dirty.loadBalancers = invalid;
       }
-      command.spelLoadBalancers = spel || [];
+      command.viewState.spelLoadBalancers = spel || [];
     }
 
     if (currentTargetGroups && command.targetGroups && !currentTargetGroups.includes('${')) {
@@ -526,7 +526,7 @@ export class AwsServerGroupConfigurationService {
       if (invalid.length) {
         result.dirty.targetGroups = invalid;
       }
-      command.spelTargetGroups = spel || [];
+      command.viewState.spelTargetGroups = spel || [];
     }
 
     command.backingData.filtered.loadBalancers = newLoadBalancers;

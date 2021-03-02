@@ -252,6 +252,7 @@ export class ServerGroupBasicSettings
           application={app}
           subnets={values.backingData.filtered.subnetPurposes}
           onChange={this.subnetUpdated}
+          showSubnetWarning={true}
         />
         <div className="form-group">
           <div className="col-md-3 sm-label-right">

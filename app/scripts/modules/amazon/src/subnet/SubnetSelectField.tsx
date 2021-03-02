@@ -1,3 +1,4 @@
+import { some } from 'lodash';
 import React from 'react';
 
 import { Application, HelpField, ISubnet, Markdown } from '@spinnaker/core';
@@ -16,6 +17,7 @@ export interface ISubnetSelectFieldProps {
   readOnly?: boolean;
   region: string;
   subnets: ISubnet[];
+  showSubnetWarning?: boolean;
 }
 
 export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> {
@@ -26,9 +28,12 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
   };
 
   public render() {
-    const { labelColumns, helpKey, component, region, field, ...otherProps } = this.props;
+    const { labelColumns, helpKey, component, region, field, showSubnetWarning, ...otherProps } = this.props;
     const value = component[field];
-    const isRecommended = (AWSProviderSettings.serverGroups?.recommendedSubnets || []).includes(value);
+    const isRecommended = some(
+      AWSProviderSettings.serverGroups?.recommendedSubnets || [],
+      (subnet) => value && value.includes(subnet),
+    );
     const { subnetWarning } = AWSProviderSettings.serverGroups;
     return (
       <div className="form-group">
@@ -48,7 +53,7 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
           ) : (
             '(Select an account)'
           )}
-          {!isRecommended && Boolean(subnetWarning) && (
+          {showSubnetWarning && !isRecommended && Boolean(subnetWarning) && (
             <div className="alert alert-warning sp-margin-s-top horizontal center">
               <i className="fa fa-exclamation-triangle sp-margin-s-top" />
               <div className="sp-margin-s-left">
