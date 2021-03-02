@@ -15,6 +15,7 @@ import {
   RegionSelectField,
   ServerGroupDetailsField,
   ServerGroupNamePreview,
+  SETTINGS,
   TaskReason,
 } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
@@ -88,6 +89,13 @@ export class ServerGroupBasicSettings
     setFieldValue('virtualizationType', virtualizationType);
     setFieldValue('amiName', imageName);
     values.imageChanged(values);
+
+    if (image && SETTINGS.disabledImages?.length && AWSProviderSettings.serverGroups?.enableIPv6) {
+      const isImageDisabled = SETTINGS.disabledImages.some((i) => image.imageName.includes(i));
+      if (isImageDisabled) {
+        setFieldValue('associateIPv6Address', false);
+      }
+    }
   };
 
   private accountUpdated = (account: string): void => {
@@ -201,7 +209,6 @@ export class ServerGroupBasicSettings
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
-
     return (
       <div className="container-fluid form-horizontal">
         {values.regionIsDeprecated(values) && (
