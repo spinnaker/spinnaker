@@ -167,18 +167,16 @@ public interface KeelService {
   @POST("/application/{application}/mark/good")
   Response markGood(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
 
-  @POST("/application/{application}/environment/{environment}/verifications/{verificationId}")
+  @POST("/application/{application}/environment/{environment}/verifications")
   Response overrideVerification(
       @Path("application") String application,
       @Path("environment") String environment,
-      @Path("verificationId") String verificationId,
       @Body OverrideVerificationRequest payload);
 
-  @POST("/application/{application}/environment/{environment}/verifications/{verificationId}/retry")
+  @POST("/application/{application}/environment/{environment}/verifications/retry")
   Response retryVerification(
       @Path("application") String application,
       @Path("environment") String environment,
-      @Path("verificationId") String verificationId,
       @Body RetryVerificationRequest payload);
 
   @GET("/installedPlugins")

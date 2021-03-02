@@ -353,24 +353,22 @@ public class ManagedController {
   }
 
   @ApiOperation(value = "Override the status of a verification")
-  @PostMapping(path = "/{application}/environment/{environment}/verifications/{verificationId}")
+  @PostMapping(path = "/{application}/environment/{environment}/verifications")
   void overrideVerification(
       @PathVariable("application") String application,
       @PathVariable("environment") String environment,
-      @PathVariable("verificationId") String verificationId,
       @RequestBody OverrideVerificationRequest payload) {
-    keelService.overrideVerification(application, environment, verificationId, payload);
+    keelService.overrideVerification(application, environment, payload);
   }
 
   @ApiOperation(value = "Retry a verification")
-  @PostMapping(
-      path = "/{application}/environment/{environment}/verifications/{verificationId}/retry")
+  @PostMapping(path = "/{application}/environment/{environment}/verifications/retry")
   void retryVerification(
       @PathVariable("application") String application,
       @PathVariable("environment") String environment,
       @PathVariable("verificationId") String verificationId,
       @RequestBody RetryVerificationRequest payload) {
-    keelService.retryVerification(application, environment, verificationId, payload);
+    keelService.retryVerification(application, environment, payload);
   }
 
   @PostMapping(

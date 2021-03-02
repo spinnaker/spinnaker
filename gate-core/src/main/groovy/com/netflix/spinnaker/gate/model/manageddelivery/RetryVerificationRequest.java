@@ -21,6 +21,7 @@ import lombok.Data;
 
 @Data
 public class RetryVerificationRequest {
+  @Nonnull String verificationId;
   @Nonnull String artifactReference;
   @Nonnull String artifactVersion;
 }

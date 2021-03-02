@@ -23,6 +23,7 @@ import lombok.NonNull;
 
 @Data
 public class OverrideVerificationRequest {
+  @NonNull @Nonnull String verificationId;
   @NonNull @Nonnull String artifactReference;
   @NonNull @Nonnull String artifactVersion;
   @NonNull @Nonnull String status;
