@@ -40,17 +40,18 @@ class ImageHandler(
 
   override suspend fun handle(artifact: DeliveryArtifact) {
     if (artifact is DebianArtifact) {
-      if (taskLauncher.correlatedTasksRunning(artifact.correlationId)) {
+      val latestArtifactVersion = try {
+        artifact.findLatestArtifactVersion()
+      } catch (e: NoKnownArtifactVersions) {
+        log.debug(e.message)
+        return
+      }
+
+      if (taskLauncher.correlatedTasksRunning(artifact.correlationId(latestArtifactVersion))) {
         publisher.publishEvent(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestArtifactVersion = try {
-          artifact.findLatestArtifactVersion()
-        } catch (e: NoKnownArtifactVersions) {
-          log.debug(e.message)
-          return
-        }
         val latestBaseAmiVersion = artifact.findLatestBaseAmiVersion()
 
         val desired = Image(latestBaseAmiVersion, latestArtifactVersion, artifact.vmOptions.regions)
@@ -158,7 +159,7 @@ class ImageHandler(
         notifications = emptySet(),
         subject = "bakery:image:$artifact.name",
         description = description,
-        correlationId = artifact.correlationId,
+        correlationId = artifact.correlationId(desiredVersion),
         stages = listOf(
           Job(
             "bake",
@@ -212,8 +213,11 @@ class ImageHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
-internal val DebianArtifact.correlationId: String
-  get() = "bake:$name"
+/**
+ * Use the version in the correlation id so that we can bake for multiple versions at once
+ */
+internal fun DebianArtifact.correlationId(version: String): String =
+  "bake:$name:$version"
 
 data class BakeCredentials(
   val serviceAccount: String,

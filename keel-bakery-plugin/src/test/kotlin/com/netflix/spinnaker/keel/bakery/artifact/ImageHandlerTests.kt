@@ -108,7 +108,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             any(),
             any(),
             any(),
-            artifact.correlationId,
+            artifact.correlationId(artifactVersion.version),
             capture(bakeTask),
             capture(bakeTaskArtifact),
             capture(bakeTaskParameters)
@@ -143,8 +143,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
     context("a bake is already running for the artifact") {
       before {
+        every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)
         every {
-          taskLauncher.correlatedTasksRunning(artifact.correlationId)
+          taskLauncher.correlatedTasksRunning(artifact.correlationId(artifactVersion.version))
         } returns true
 
         runHandler(artifact)
@@ -168,7 +169,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     context("no bake is currently running") {
       before {
         every {
-          taskLauncher.correlatedTasksRunning(artifact.correlationId)
+          taskLauncher.correlatedTasksRunning(artifact.correlationId(artifactVersion.version))
         } returns false
       }
 
