@@ -88,7 +88,7 @@ export class ServerGroupLoadBalancers
     let targetGroupSection = null;
     if (!hideTargetGroups) {
       const targetGroupOptions = (values.backingData.filtered.targetGroups || [])
-        .concat(values.spelTargetGroups || [])
+        .concat(values.viewState.spelTargetGroups || [])
         .map(stringToOption);
 
       targetGroupSection = (
@@ -142,7 +142,7 @@ export class ServerGroupLoadBalancers
     let loadBalancersSection = null;
     if (!hideLoadBalancers) {
       const loadBalancerOptions = (values.backingData.filtered.loadBalancers || [])
-        .concat(values.spelLoadBalancers || [])
+        .concat(values.viewState.spelLoadBalancers || [])
         .map(stringToOption);
 
       const vpcLoadBalancerOptions = (values.backingData.filtered.vpcLoadBalancers || []).map(stringToOption);

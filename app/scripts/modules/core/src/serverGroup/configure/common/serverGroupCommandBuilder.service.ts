@@ -121,7 +121,6 @@ export interface IServerGroupCommand {
   };
   stack?: string;
   moniker?: IMoniker;
-  spelLoadBalancers: string[];
   strategy: string;
   subnetType: string;
   suspendedProcesses: string[];

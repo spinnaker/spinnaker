@@ -123,6 +123,7 @@ describe('Service: awsServerGroupConfiguration', function () {
   describe('configureLoadBalancerOptions', function () {
     beforeEach(function () {
       this.command = {
+        viewState: {},
         backingData: {
           loadBalancers: this.allLoadBalancers,
           filtered: {
