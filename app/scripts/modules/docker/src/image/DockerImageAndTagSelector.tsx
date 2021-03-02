@@ -66,6 +66,7 @@ export class DockerImageAndTagSelector extends React.Component<
     allowManualDefinition: true,
   };
 
+  private unmounted = false;
   private images: IDockerImage[];
   private accounts: string[];
 
@@ -207,6 +208,10 @@ export class DockerImageAndTagSelector extends React.Component<
     }
   }
 
+  componentWillUnmount() {
+    this.unmounted = true;
+  }
+
   private synchronizeChanges(values: IDockerImageParts, registry: string) {
     const { organization, repository, tag, digest } = values;
     if (this.props.onChange) {
@@ -237,7 +242,7 @@ export class DockerImageAndTagSelector extends React.Component<
   }
 
   private updateThings(props: IDockerImageAndTagSelectorProps, allowAutoSwitchToManualEntry = false) {
-    if (!this.repositoryMap) {
+    if (!this.repositoryMap || this.unmounted) {
       return;
     }
 
@@ -317,9 +322,7 @@ export class DockerImageAndTagSelector extends React.Component<
       account: showRegistry ? account : registry,
     };
 
-    this.setState({
-      imagesLoading: true,
-    });
+    this.setState({ imagesLoading: true });
     DockerImageReader.findImages(imageConfig)
       .then((images: IDockerImage[]) => {
         this.images = images;
@@ -333,9 +336,9 @@ export class DockerImageAndTagSelector extends React.Component<
         this.updateThings(props, true);
       })
       .finally(() => {
-        this.setState({
-          imagesLoading: false,
-        });
+        if (!this.unmounted) {
+          this.setState({ imagesLoading: false });
+        }
       });
   }
 
