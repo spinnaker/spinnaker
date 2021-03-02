@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
@@ -35,6 +36,7 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -47,6 +49,7 @@ import strikt.assertions.isSuccess
 import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Duration
+import java.time.Instant
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository, P : PausedRepository> :
   JUnit5Minutests {
@@ -275,7 +278,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         )
       }
 
-
       test("resources in an environment can be rechecked") {
         // note: this test needs to be here even though it's testing a resource repository function
         // because we need a valid config and environment for the resources to exist in, and those can only
@@ -487,10 +489,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("can retrieve the manifest for the resources") {
           val resource = deliveryConfig.resources.random()
-
           getDeliveryConfig(resource)
             .isSuccess()
-            .isEqualTo(deliveryConfig)
+            .get { name }
+            .isEqualTo(deliveryConfig.name)
         }
       }
 
@@ -700,6 +702,53 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           expectThat(repository.environmentNotifications(deliveryConfig.name, "staging"))
             .isEmpty()
         }
+      }
+    }
+
+    context("delivery config with resources exists") {
+      deriveFixture {
+        val resources = setOf(
+          resource(kind = parseKind("ec2/cluster@v1")),
+          resource(kind = parseKind("ec2/security-group@v1"))
+        )
+        copy(
+          deliveryConfig = deliveryConfig.copy(
+            environments = setOf(
+              Environment(
+                name = "test",
+                resources = resources
+              ),
+              Environment(
+                name = "staging",
+                resources = resources
+              )
+            )
+          )
+        )
+      }
+
+      before {
+        store()
+        storeResources()
+      }
+
+      test("application summary can be retrieved successfully") {
+        val appSummary = with(repository.get(deliveryConfig.name)) {
+          ApplicationSummary(
+            deliveryConfigName = name,
+            application = application,
+            serviceAccount = serviceAccount,
+            apiVersion = apiVersion,
+            createdAt = metadata["createdAt"] as Instant,
+            resourceCount = 4, // 2 from test, 2 from staging
+            isPaused = false
+          )
+        }
+
+        expectThat(repository.getApplicationSummaries())
+          .hasSize(1)
+          .first()
+          .isEqualTo(appSummary)
       }
     }
   }

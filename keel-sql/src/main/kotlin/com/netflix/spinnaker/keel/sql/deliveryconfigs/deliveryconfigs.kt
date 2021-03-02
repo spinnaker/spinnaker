@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.core.api.timestampAsInstant
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -14,6 +15,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_MET
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.SqlStorageContext
 import com.netflix.spinnaker.keel.sql.mapToArtifact
+import de.huxhorn.sulky.ulid.ULID
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL.select
@@ -34,7 +36,7 @@ internal fun SqlStorageContext.deliveryConfigByName(name: String): DeliveryConfi
           name = name,
           application = application,
           serviceAccount = serviceAccount,
-          metadata = metadata as Map<String, Any?>? ?: emptyMap()
+          metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant())
         )
       }
       ?.let { (_, deliveryConfig) ->

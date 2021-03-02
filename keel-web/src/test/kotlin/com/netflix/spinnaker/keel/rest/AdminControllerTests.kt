@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.Instant
 
 @SpringBootTest(webEnvironment = MOCK)
 @AutoConfigureMockMvc
@@ -44,7 +45,8 @@ internal class AdminControllerTests
             application = application1,
             serviceAccount = "keel@spinnaker",
             apiVersion = "delivery.config.spinnaker.netflix.com/v1",
-            isPaused = false
+            isPaused = false,
+            createdAt = Instant.now()
           )
         )
       }
@@ -83,14 +85,16 @@ internal class AdminControllerTests
             application = application1,
             serviceAccount = "keel@spinnaker",
             apiVersion = "delivery.config.spinnaker.netflix.com/v1",
-            isPaused = false
+            isPaused = false,
+            createdAt = Instant.now()
           ),
           ApplicationSummary(
             deliveryConfigName = "$application2-manifest",
             application = application2,
             serviceAccount = "keel@spinnaker",
             apiVersion = "delivery.config.spinnaker.netflix.com/v1",
-            isPaused = false
+            isPaused = false,
+            createdAt = Instant.now()
           )
         )
       }

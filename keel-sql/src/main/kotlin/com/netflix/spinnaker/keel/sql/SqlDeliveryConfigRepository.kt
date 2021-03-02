@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.core.api.timestampAsInstant
 import com.netflix.spinnaker.keel.events.PersistentEvent.EventScope
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
@@ -43,10 +44,12 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.attachDependents
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.resourcesForEnvironment
+import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.select
@@ -96,7 +99,7 @@ class SqlDeliveryConfigRepository(
             name = name,
             application = application,
             serviceAccount = serviceAccount,
-            metadata = metadata ?: emptyMap()
+            metadata = (metadata ?: emptyMap()) + mapOf("createdAt" to ULID.parseULID(uid).timestampAsInstant())
           ).let {
             attachDependents(it)
           }
@@ -1145,22 +1148,31 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
+          DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
           DELIVERY_CONFIG.APPLICATION,
           DELIVERY_CONFIG.SERVICE_ACCOUNT,
           DELIVERY_CONFIG.API_VERSION,
+          count(RESOURCE.UID),
           PAUSED.NAME
         )
         .from(DELIVERY_CONFIG)
+        .leftOuterJoin(RESOURCE).on(
+          RESOURCE.APPLICATION.eq(DELIVERY_CONFIG.APPLICATION)
+        )
         .leftOuterJoin(PAUSED).on(
           PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION))
         )
-        .fetch { (name, application, serviceAccount, apiVersion, paused) ->
+        .groupBy(DELIVERY_CONFIG.APPLICATION)
+        .orderBy(DELIVERY_CONFIG.APPLICATION)
+        .fetch { (uid, name, application, serviceAccount, apiVersion, resourceCount, paused) ->
           ApplicationSummary(
             deliveryConfigName = name,
             application = application,
             serviceAccount = serviceAccount,
             apiVersion = apiVersion,
+            createdAt = ULID.parseULID(uid).timestampAsInstant(),
+            resourceCount = resourceCount,
             isPaused = paused != null
           )
         }
