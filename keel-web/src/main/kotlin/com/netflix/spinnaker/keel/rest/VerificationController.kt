@@ -26,7 +26,7 @@ class VerificationController(
   private val deliveryConfigRepository: DeliveryConfigRepository
 ) {
   @PostMapping(
-    path = ["/application/{application}/environment/{environment}/verifications/{verificationId}"],
+    path = ["/application/{application}/environment/{environment}/verifications"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
@@ -38,7 +38,6 @@ class VerificationController(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @PathVariable("application") application: String,
     @PathVariable("environment") environment: String,
-    @PathVariable("verificationId") verificationId: String,
     @RequestBody payload: UpdateVerificationStatusRequest
   ) {
     if (payload.status !in listOf(OVERRIDE_PASS, OVERRIDE_FAIL)) {
@@ -53,7 +52,7 @@ class VerificationController(
     ).apply {
       verificationRepository.updateState(
         context = this,
-        verification = verification(verificationId) ?: throw InvalidVerificationId(verificationId, this),
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = payload.status,
         mapOf("overriddenBy" to user, "comment" to payload.comment)
       )
@@ -61,6 +60,7 @@ class VerificationController(
   }
 
   data class UpdateVerificationStatusRequest(
+    val verificationId: String,
     val artifactReference: String,
     val artifactVersion: String,
     val status: ConstraintStatus,
@@ -72,7 +72,7 @@ class VerificationController(
     RuntimeException("Only override statuses may be set via this endpoint.")
 
   @PostMapping(
-    path = ["/application/{application}/environment/{environment}/verifications/{verificationId}/retry"],
+    path = ["/application/{application}/environment/{environment}/verifications/retry"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
@@ -84,7 +84,6 @@ class VerificationController(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @PathVariable("application") application: String,
     @PathVariable("environment") environment: String,
-    @PathVariable("verificationId") verificationId: String,
     @RequestBody payload: RetryVerificationRequest
   ) {
     VerificationContext(
@@ -95,14 +94,14 @@ class VerificationController(
     ).apply {
       verificationRepository.getState(
         context = this,
-        verification = verification(verificationId) ?: throw InvalidVerificationId(verificationId, this)
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this)
       )?.apply {
         if (!status.complete) throw VerificationIncomplete()
       }
 
       verificationRepository.updateState(
         context = this,
-        verification = verification(verificationId) ?: throw InvalidVerificationId(verificationId, this),
+        verification = verification(payload.verificationId) ?: throw InvalidVerificationId(payload.verificationId, this),
         status = NOT_EVALUATED,
         mapOf("retryRequestedBy" to user)
       )
@@ -110,6 +109,7 @@ class VerificationController(
   }
 
   data class RetryVerificationRequest(
+    val verificationId: String,
     val artifactReference: String,
     val artifactVersion: String
   )
