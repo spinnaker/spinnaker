@@ -13,7 +13,6 @@ import {
 import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { INetworkInterface } from '../../../domain/IAmazonLaunchTemplate';
 
 export interface ISecurityGroupsDetailsSectionState {
   securityGroups: ISecurityGroup[];
@@ -45,27 +44,9 @@ export class SecurityGroupsDetailsSection extends React.Component<
   private getSecurityGroups(props: IAmazonServerGroupDetailsSectionProps): ISecurityGroup[] {
     let securityGroups: ISecurityGroup[];
     const { app, serverGroup } = props;
-    let sgData: string[];
 
-    if (serverGroup?.launchConfig?.securityGroups) {
-      sgData = serverGroup.launchConfig.securityGroups;
-    }
-
-    if (serverGroup?.launchTemplate?.launchTemplateData) {
-      const { networkInterfaces, securityGroups } = serverGroup?.launchTemplate?.launchTemplateData;
-
-      if (securityGroups && securityGroups.length) {
-        sgData = securityGroups;
-      }
-
-      if (networkInterfaces && networkInterfaces.length) {
-        const networkInterface = networkInterfaces.find((ni: INetworkInterface) => ni.deviceIndex === 0);
-        sgData = networkInterface.groups;
-      }
-    }
-
-    if (sgData && sgData.length) {
-      securityGroups = chain(sgData)
+    if (serverGroup.securityGroups && serverGroup.securityGroups.length) {
+      securityGroups = chain(serverGroup.securityGroups)
         .map((id: string) => {
           return (
             find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id }) ||
