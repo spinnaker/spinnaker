@@ -207,6 +207,7 @@ export type ManagedResourceEventType =
   | 'ResourceCheckError'
   | 'ResourceCheckUnresolvable'
   | 'ResourceActuationPaused'
+  | 'ResourceActuationVetoed'
   | 'ResourceActuationResumed';
 
 export interface IManagedResourceDiff {
@@ -225,6 +226,8 @@ export interface IManagedResourceEvent {
   id: string;
   application: string;
   timestamp: string;
+  displayName: string;
+  level: 'SUCCESS' | 'INFO' | 'WARNING' | 'ERROR';
   plugin?: string;
   tasks?: Array<{ id: string; name: string }>;
   delta?: IManagedResourceDiff;

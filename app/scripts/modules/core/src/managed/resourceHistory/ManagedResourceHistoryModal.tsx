@@ -15,7 +15,6 @@ import {
   Table,
   usePollingData,
 } from '../../presentation';
-import { viewConfigurationByEventType } from './utils';
 
 import './ManagedResourceHistoryModal.less';
 
@@ -71,11 +70,9 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
                     delta || tasks || message || reason || exceptionMessage,
                 )}
               >
-                {(historyEvents || [])
-                  .filter(({ type }) => viewConfigurationByEventType[type])
-                  .map((event) => (
-                    <HistoryEventRow key={event.type + event.timestamp} {...{ event, resourceSummary, dismissModal }} />
-                  ))}
+                {(historyEvents || []).map((event) => (
+                  <HistoryEventRow key={event.type + event.timestamp} {...{ event, resourceSummary, dismissModal }} />
+                ))}
               </Table>
             </div>
           )}
