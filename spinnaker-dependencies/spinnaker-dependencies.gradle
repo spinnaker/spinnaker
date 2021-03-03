@@ -40,7 +40,7 @@ dependencies {
    * For example, `junit-bom` and `jackson-bom` will win out over the versions of JUnit and Jackson
    * specified by `spring-boot-dependencies`.
    */
-  api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.2"))
+  api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
