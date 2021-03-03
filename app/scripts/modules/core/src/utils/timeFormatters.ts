@@ -58,14 +58,13 @@ export function timestamp(input: any) {
   return thisMoment.isValid ? thisMoment.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ') : '-';
 }
 
-export function relativeTime(input: any) {
+export function relativeTime(input?: number) {
   if (!isInputValid(input)) {
     return '-';
   }
   const now = Date.now();
-  const inputNumber = parseInt(input, 10);
-  const inFuture = inputNumber > now;
-  const thisMoment = DateTime.fromMillis(inputNumber);
+  const inFuture = input > now;
+  const thisMoment = DateTime.fromMillis(input);
   const baseText = distanceInWordsToNow(thisMoment.toJSDate(), { includeSeconds: true });
   return thisMoment.isValid ? `${inFuture ? 'in ' : ''}${baseText}${inFuture ? '' : ' ago'}` : '-';
 }
