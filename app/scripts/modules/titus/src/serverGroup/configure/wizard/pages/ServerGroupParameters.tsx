@@ -1,23 +1,30 @@
-import { Field, FormikProps } from 'formik';
-import { intersection, set, union } from 'lodash';
+import { FormikProps } from 'formik';
+import { intersection, union } from 'lodash';
 import React from 'react';
-import Select, { Option } from 'react-select';
 
 import {
   AccountTag,
   Application,
   CheckboxInput,
   ChecklistInput,
+  FormikFormField,
   HelpField,
+  IFormInputProps,
   IWizardPageComponent,
-  MapEditor,
-  PlatformHealthOverride,
+  LayoutProvider,
+  MapEditorInput,
+  PlatformHealthOverrideInput,
   robotToHuman,
+  SelectInput,
+  TextInput,
+  useFormInputValueMapper,
 } from '@spinnaker/core';
-import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
+import { TitusMapLayout } from './TitusMapLayout';
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
-import { enabledProcesses, processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';
+import { processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';
+
+import './ServerGroupParameters.less';
 
 export interface IServerGroupParametersProps {
   app: Application;
@@ -29,11 +36,61 @@ const migrationPolicyOptions = [
   { label: 'Self Managed', value: 'selfManaged' },
 ];
 
+function ServiceJobProcessesInput(props: IFormInputProps) {
+  const allProcesses = union(processesList, Object.keys(props.value));
+  // Map to a list of strings (formik -> input)
+  const mapToInputValue = (value: Record<string, boolean>) =>
+    Object.entries(value)
+      .filter(([_key, val]) => val === true)
+      .map(([key, _val]) => key);
+
+  // Map to an Object, but include all known processes (input -> formik)
+  const mapFromInputValue = (value: string[]): Record<string, boolean> =>
+    allProcesses.reduce((acc, process) => {
+      acc[process] = value.includes(process);
+      return acc;
+    }, {} as Record<string, boolean>);
+
+  const mappedProps = useFormInputValueMapper(props, mapToInputValue, mapFromInputValue);
+
+  const options = allProcesses.map((process) => {
+    return { label: robotToHuman(process), value: process };
+  });
+
+  return <ChecklistInput {...mappedProps} options={options} />;
+}
+
+function IPv6CheckboxInput(props: IFormInputProps) {
+  const mappedProps = useFormInputValueMapper(
+    props,
+    (val: string) => val === 'true', // formik -> checkbox
+    (_val, e) => (e.target.checked ? 'true' : undefined), // checkbox -> formik
+  );
+  return <CheckboxInput {...mappedProps} />;
+}
+
+const IamInstanceProfileInput = (props: IFormInputProps & { awsAccount: string; setDefaultIamProfile: () => void }) => {
+  const { awsAccount, setDefaultIamProfile, ...inputProps } = props;
+  return (
+    <div className="flex-container-h baseline margin-between-md">
+      <TextInput {...inputProps} />
+      {props.value ? (
+        <>
+          <span>in</span>
+          <AccountTag account={awsAccount} />
+        </>
+      ) : (
+        <button className="link" style={{ whiteSpace: 'nowrap' }} onClick={setDefaultIamProfile}>
+          Apply default value
+        </button>
+      )}
+    </div>
+  );
+};
+
 export class ServerGroupParameters
   extends React.Component<IServerGroupParametersProps>
   implements IWizardPageComponent<ITitusServerGroupCommand> {
-  private duplicateKeys: { [name: string]: boolean } = {};
-
   constructor(props: IServerGroupParametersProps) {
     super(props);
   }
@@ -42,15 +99,6 @@ export class ServerGroupParameters
     const { soft: softConstraints, hard: hardConstraints } = _values.constraints;
     const errors = {} as any;
 
-    if (this.duplicateKeys.labels) {
-      errors.labels = 'Job Attributes have duplicate keys.';
-    }
-    if (this.duplicateKeys.containerAttributes) {
-      errors.containerAttributes = 'Container Attributes have duplicate keys.';
-    }
-    if (this.duplicateKeys.env) {
-      errors.env = 'Environment Variables have duplicate keys.';
-    }
     if (!_values.iamProfile) {
       errors.iamProfile = 'IAM Profile is required.';
     }
@@ -66,192 +114,98 @@ export class ServerGroupParameters
     return errors;
   }
 
-  private mapChanged = (key: string, values: { [key: string]: string }, duplicateKeys: boolean) => {
-    this.duplicateKeys[key] = duplicateKeys;
-    this.props.formik.setFieldValue(key, values);
-  };
-
-  private platformHealthOverrideChanged = (healthNames: string[]) => {
-    this.props.formik.setFieldValue('interestingHealthProviderNames', healthNames);
-  };
-
-  private ipv6Changed = (value: boolean) => {
-    const { values } = this.props.formik;
-    const newAttr = {
-      ...values.containerAttributes,
-      'titusParameter.agent.assignIPv6Address': `${value}`,
-    };
-    if (!value) {
-      // Remove this attribute if false
-      delete newAttr['titusParameter.agent.assignIPv6Address'];
-    }
-    this.mapChanged('containerAttributes', newAttr, false);
-  };
-
   public render() {
     const { app } = this.props;
-    const { setFieldValue, values, errors } = this.props.formik;
+    const { setFieldValue, values } = this.props.formik;
 
     const setDefaultIamProfile = () => setFieldValue('iamProfile', values.viewState.defaultIamProfile);
     return (
-      <>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>IAM Instance Profile </b>
-            <HelpField id="titus.deploy.iamProfile" />
-          </div>
-          <div className="col-md-5">
-            <Field type="text" className="form-control input-sm no-spel" name="iamProfile" />
-          </div>
-          <div className="col-md-1 small" style={{ whiteSpace: 'nowrap', paddingLeft: '0px', paddingTop: '7px' }}>
-            in <AccountTag account={values.backingData.credentialsKeyedByAccount[values.credentials]?.awsAccount} />
-          </div>
-          {errors.iamProfile && (
-            <div className="col-md-8 col-md-offset-4">
-              <div className="flex-container-h baseline">
-                <span className="error-message">{errors.iamProfile}</span>
-                <button className="link" onClick={setDefaultIamProfile}>
-                  Apply default value
-                </button>
-              </div>
-            </div>
+      <div className="ServerGroupParameters">
+        <FormikFormField
+          name="iamProfile"
+          label="IAM Instance Profile"
+          help={<HelpField id="titus.deploy.iamProfile" />}
+          input={(props) => (
+            <IamInstanceProfileInput
+              {...props}
+              awsAccount={values.backingData.credentialsKeyedByAccount[values.credentials]?.awsAccount}
+              setDefaultIamProfile={setDefaultIamProfile}
+            />
           )}
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Capacity Group </b>
-            <HelpField id="titus.deploy.capacityGroup" />
-          </div>
-          <div className="col-md-6">
-            <Field type="text" name="capacityGroup" className="form-control input-sm no-spel" />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Migration Policy </b>
-            <HelpField id="titus.deploy.migrationPolicy" />
-          </div>
-          <div className="col-md-4">
-            <Select
-              value={values.migrationPolicy.type}
-              options={migrationPolicyOptions}
-              onChange={(option: Option<string>) =>
-                setFieldValue('migrationPolicy', { ...values.migrationPolicy, ...{ type: option.value } })
-              }
-              clearable={false}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Service Job Processes </b>
-          </div>
-          <div className="col-md-4">
-            <ChecklistInput
-              value={enabledProcesses(values.serviceJobProcesses)}
-              options={union(processesList, Object.keys(values.serviceJobProcesses)).map((value: string) => ({
-                value,
-                label: robotToHuman(value),
-              }))}
-              onChange={(e: React.ChangeEvent<any>) =>
-                setFieldValue(
-                  'serviceJobProcesses',
-                  union(processesList, Object.keys(values.serviceJobProcesses)).reduce(
-                    (processes, process: string) => set(processes, process, !!e.target.value.includes(process)),
-                    {} as ITitusServiceJobProcesses,
-                  ),
-                )
-              }
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Associate IPv6 Address</b>
-          </div>
-          <div className="col-md-4">
-            <CheckboxInput
-              text="Assign an IPv6 address to the container"
-              value={values.containerAttributes['titusParameter.agent.assignIPv6Address'] === 'true'}
-              onChange={(e) => this.ipv6Changed(e.target.checked)}
-            />
-          </div>
-        </div>
+        />
+
+        <FormikFormField
+          name="capacityGroup"
+          label="Capacity Group"
+          help={<HelpField id="titus.deploy.capacityGroup" />}
+          input={(props) => <TextInput {...props} />}
+        />
+
+        <FormikFormField
+          name="migrationPolicy.type"
+          label="Migration Policy"
+          help={<HelpField id="titus.deploy.migrationPolicy" />}
+          input={(props) => <SelectInput options={migrationPolicyOptions} {...props} />}
+        />
+
+        <FormikFormField
+          name="serviceJobProcesses"
+          label="Service Job Processes"
+          input={(props) => <ServiceJobProcessesInput {...props} />}
+        />
+
+        <FormikFormField
+          name="containerAttributes['titusParameter.agent.assignIPv6Address']"
+          label="Associate IPv6 Address"
+          input={(props) => <IPv6CheckboxInput {...props} />}
+        />
+
         <hr />
-        <div className="form-group">
-          <h4 className="col-sm-12">
-            <b>Soft Constraints </b>
-            <HelpField id="titus.deploy.softConstraints" />
-          </h4>
-          <div className="col-sm-12">
-            <MapEditor
-              model={values.constraints.soft}
-              allowEmpty={true}
-              onChange={(v: any, d) => this.mapChanged('constraints.soft', v, d)}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <h4 className="col-sm-12">
-            <b>Hard Constraints </b>
-            <HelpField id="titus.deploy.hardConstraints" />
-          </h4>
-          <div className="col-sm-12">
-            <MapEditor
-              model={values.constraints.hard}
-              allowEmpty={true}
-              onChange={(v: any, d) => this.mapChanged('constraints.hard', v, d)}
-            />
-          </div>
-        </div>
-        <hr />
-        <div className="form-group">
-          <h4 className="col-sm-12">
-            <b>Job Attributes</b>
-          </h4>
-          <div className="col-sm-12">
-            <MapEditor
-              model={values.labels}
-              allowEmpty={true}
-              onChange={(v: any, d) => this.mapChanged('labels', v, d)}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <h4 className="col-sm-12">
-            <b>Container Attributes</b>
-          </h4>
-          <div className="col-sm-12">
-            <MapEditor
-              model={values.containerAttributes}
-              allowEmpty={true}
-              onChange={(v: any, d) => this.mapChanged('containerAttributes', v, d)}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <h4 className="col-sm-12">
-            <b>Environment Variables</b>
-          </h4>
-          <div className="col-sm-12">
-            <MapEditor model={values.env} allowEmpty={true} onChange={(v: any, d) => this.mapChanged('env', v, d)} />
-          </div>
-        </div>
+
+        <LayoutProvider value={TitusMapLayout}>
+          <FormikFormField
+            name="constraints.soft"
+            label="Soft Constraints "
+            help={<HelpField id="titus.deploy.softConstraints" />}
+            input={(props) => <MapEditorInput allowEmptyValues={true} {...props} />}
+          />
+
+          <FormikFormField
+            name="constraints.hard"
+            label="Hard Constraints"
+            help={<HelpField id="titus.deploy.hardConstraints" />}
+            input={(props) => <MapEditorInput allowEmptyValues={true} {...props} />}
+          />
+
+          <hr />
+
+          <FormikFormField
+            name="labels"
+            label="Job Attributes"
+            input={(props) => <MapEditorInput allowEmptyValues={true} {...props} />}
+          />
+
+          <FormikFormField
+            name="containerAttributes"
+            label="Container Attributes"
+            input={(props) => <MapEditorInput allowEmptyValues={true} {...props} />}
+          />
+
+          <FormikFormField
+            name="env"
+            label="Environment Variables"
+            input={(props) => <MapEditorInput allowEmptyValues={true} {...props} />}
+          />
+        </LayoutProvider>
+
         {app.attributes.platformHealthOnlyShowOverride && (
-          <div className="form-group">
-            <div className="col-md-5 sm-label-right">
-              <b>Task Completion</b>
-            </div>
-            <div className="col-md-6">
-              <PlatformHealthOverride
-                interestingHealthProviderNames={values.interestingHealthProviderNames}
-                platformHealthType="Titus"
-                onChange={this.platformHealthOverrideChanged}
-              />
-            </div>
-          </div>
+          <FormikFormField
+            name="interestingHealthProviderNames"
+            label="Task Completion"
+            input={(props) => <PlatformHealthOverrideInput {...props} platformHealthType="Titus" />}
+          />
         )}
-      </>
+      </div>
     );
   }
 }
