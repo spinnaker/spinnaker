@@ -38,4 +38,5 @@ class Bake {
   String imageName
   Artifact artifact
   // TODO(duftler): Add a cloudProviderType property here? Will be straightforward once rosco is backed by redis.
+  String baseAmi
 }

@@ -47,6 +47,11 @@ class CompletedBakeTask implements Task {
       imageId: bake.ami ?: bake.imageName,
       artifacts: bake.artifact ? [bake.artifact] : []
     ]
+
+    if (bake.baseAmi != null) {
+      results.put("baseAmiId", bake.baseAmi)
+    }
+
     if (stage.context.cloudProvider) {
       results.cloudProvider = stage.context.cloudProvider
     }
