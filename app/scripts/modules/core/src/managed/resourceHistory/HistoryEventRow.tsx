@@ -4,15 +4,28 @@ import isEqual from 'lodash/isEqual';
 import { DateTime } from 'luxon';
 import React from 'react';
 
-import { AccountTag } from 'core/account';
-import { IManagedResourceDiff, IManagedResourceEvent, IManagedResourceSummary } from 'core/domain';
-import { relativeTime, timestamp } from 'core/utils';
+import { IManagedResourceDiff, IManagedResourceEvent } from 'core/domain';
 
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
+import { RelativeTimestamp } from '../RelativeTimestamp';
 import { TableCell, TableRow } from '../../presentation';
 
+type LogLevel = IManagedResourceEvent['level'];
+
+const eventLevelToClass: { [key in LogLevel]?: string } = {
+  WARNING: 'event-warning',
+  ERROR: 'event-error',
+};
+
+const eventLevelToIcon: { [key in LogLevel]: string } = {
+  SUCCESS: 'icon-md-delta-resolved',
+  INFO: 'icon-md',
+  ERROR: 'icon-md-error',
+  WARNING: 'icon-warn-diamond',
+};
+
 const ExpandedRowContent: React.FC<{
-  level: IManagedResourceEvent['level'];
+  level: LogLevel;
   diff?: IManagedResourceDiff;
   tasks?: Array<{ id: string; name: string }>;
   message?: string;
@@ -20,16 +33,7 @@ const ExpandedRowContent: React.FC<{
 }> = ({ level, diff, tasks, dismissModal, message }) => {
   return (
     <div className="flex-container-v left">
-      {message && (
-        <div
-          className={classNames('sp-padding-xs-yaxis', {
-            'event-warning-message': level === 'WARNING',
-            'event-error-message': level === 'ERROR',
-          })}
-        >
-          {message}
-        </div>
-      )}
+      {message && <div className={classNames('sp-padding-xs-yaxis', eventLevelToClass[level])}>{message}</div>}
       {tasks && (
         <div className="flex-container-v">
           {tasks.map(({ id, name }) => (
@@ -48,46 +52,45 @@ const ExpandedRowContent: React.FC<{
 
 interface HistoryEventRowProps {
   event: IManagedResourceEvent;
-  resourceSummary: IManagedResourceSummary;
   dismissModal?: () => void;
 }
 
-export const HistoryEventRow: React.FC<HistoryEventRowProps> = React.memo(
-  ({ event, dismissModal, resourceSummary }) => {
-    const { timestamp: eventTimestamp, delta, tasks, message, reason, exceptionMessage } = event;
-    const eventTimestampMillis = DateTime.fromISO(eventTimestamp).toMillis();
-    const hasDetails = delta || tasks || message || reason || exceptionMessage;
-    return (
-      <TableRow
-        renderExpandedContent={
-          hasDetails
-            ? () => (
-                <ExpandedRowContent
-                  level={event.level}
-                  diff={delta}
-                  tasks={tasks}
-                  message={message || reason || exceptionMessage}
-                  dismissModal={dismissModal}
-                />
-              )
-            : undefined
-        }
-      >
-        <TableCell>
-          <AccountTag account={resourceSummary.locations.account} />{' '}
-          <span className="sp-margin-s-left">{resourceSummary.displayName}</span>
-        </TableCell>
-        <TableCell>
-          <span className="text-semibold event-type">{event.displayName}</span>
-        </TableCell>
-        <TableCell>
-          <div className="flex-container-h middle wrap">
-            <span className="sp-margin-s-right">{timestamp(eventTimestampMillis)}</span>{' '}
-            <span className="text-italic">{relativeTime(eventTimestampMillis)}</span>
-          </div>
-        </TableCell>
-      </TableRow>
-    );
-  },
-  isEqual,
-);
+export const HistoryEventRow: React.FC<HistoryEventRowProps> = React.memo(({ event, dismissModal }) => {
+  const { timestamp, delta, tasks, message, reason, exceptionMessage, level } = event;
+  const eventDate = React.useMemo(() => DateTime.fromISO(timestamp), [timestamp]);
+
+  const hasDetails = delta || tasks || message || reason || exceptionMessage;
+  return (
+    <TableRow
+      renderExpandedContent={
+        hasDetails
+          ? () => (
+              <ExpandedRowContent
+                level={event.level}
+                diff={delta}
+                tasks={tasks}
+                message={message || reason || exceptionMessage}
+                dismissModal={dismissModal}
+              />
+            )
+          : undefined
+      }
+    >
+      <TableCell>
+        <i
+          className={classNames(
+            'event-type-icon ico sp-margin-s-right',
+            eventLevelToClass[level],
+            eventLevelToIcon[level],
+          )}
+        />
+        <span className="event-type">{event.displayName}</span>
+      </TableCell>
+      <TableCell>
+        <div className="flex-container-h middle wrap">
+          <RelativeTimestamp timestamp={eventDate} clickToCopy />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}, isEqual);

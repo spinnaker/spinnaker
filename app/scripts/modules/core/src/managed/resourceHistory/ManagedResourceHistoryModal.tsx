@@ -27,7 +27,7 @@ const EVENT_POLLING_INTERVAL = 10 * 1000;
 export const showManagedResourceHistoryModal = (props: IManagedResourceHistoryModalProps) =>
   showModal(ManagedResourceHistoryModal, props);
 
-const tableLayout = standardGridTableLayout([4, 2, 2.6]);
+const tableLayout = standardGridTableLayout([8, 1.5]);
 
 export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
   const { id } = resourceSummary;
@@ -38,6 +38,9 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
     EVENT_POLLING_INTERVAL,
     [],
   );
+
+  // eslint-disable-next-line no-console
+  console.log(historyEvents);
 
   const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
   const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
@@ -64,14 +67,14 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
             <div className="sp-margin-xl-bottom">
               <Table
                 layout={tableLayout}
-                columns={['Where', 'What', 'When']}
+                columns={['Event', 'Time']}
                 expandable={historyEvents?.some(
                   ({ delta, tasks, message, reason, exceptionMessage }) =>
                     delta || tasks || message || reason || exceptionMessage,
                 )}
               >
                 {(historyEvents || []).map((event) => (
-                  <HistoryEventRow key={event.type + event.timestamp} {...{ event, resourceSummary, dismissModal }} />
+                  <HistoryEventRow key={event.type + event.timestamp} event={event} dismissModal={dismissModal} />
                 ))}
               </Table>
             </div>
