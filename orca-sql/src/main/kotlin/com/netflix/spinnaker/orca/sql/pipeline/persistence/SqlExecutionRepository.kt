@@ -565,7 +565,9 @@ class SqlExecutionRepository(
   }
 
   override fun retrieveBufferedExecutions(): MutableList<PipelineExecution> =
-    ExecutionCriteria().setStatuses(BUFFERED)
+    ExecutionCriteria()
+      .setPageSize(100)
+      .setStatuses(BUFFERED)
       .let { criteria ->
         rx.Observable.merge(
           retrieve(ORCHESTRATION, criteria, partitionName),
