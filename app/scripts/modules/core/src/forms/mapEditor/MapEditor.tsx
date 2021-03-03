@@ -4,6 +4,7 @@ import React from 'react';
 import { IPipeline } from 'core/domain';
 
 import { IMapPair, MapPair } from './MapPair';
+import './MapEditor.less';
 
 export interface IMapEditorProps {
   addButtonLabel?: string;
@@ -123,7 +124,7 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
     const isParameterized = isString(this.props.model);
 
     return (
-      <div>
+      <div className="MapEditor">
         {label && (
           <div className="sm-label-left">
             <b>{label}</b>

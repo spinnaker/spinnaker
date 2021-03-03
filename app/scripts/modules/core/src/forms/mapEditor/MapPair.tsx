@@ -5,8 +5,6 @@ import { ValidationMessage } from 'core/presentation';
 import { IPipeline } from '../../domain';
 import { SpelText } from '../../widgets';
 
-import './MapPair.css';
-
 export interface IMapPair {
   key: string;
   value: string;
@@ -27,7 +25,7 @@ export const MapPair = (props: {
 
   return (
     <>
-      <tr>
+      <tr className="MapPair">
         {labelsLeft && (
           <td className="table-label">
             <b>{keyLabel}</b>
@@ -65,7 +63,7 @@ export const MapPair = (props: {
         </td>
         <td>
           <div className="form-control-static">
-            <a className="clickable" onClick={onDelete}>
+            <a className="clickable button" onClick={onDelete}>
               <span className="glyphicon glyphicon-trash" />
               <span className="sr-only">Remove field</span>
             </a>
