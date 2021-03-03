@@ -119,46 +119,20 @@ open class SecurityGroupHandler(
         .map { it.await() }
     }
 
-  override suspend fun export(exportable: Exportable): SecurityGroupSpec {
-    val summaries = exportable.regions.associateWith { region ->
-      try {
-        cloudDriverCache.securityGroupByName(
-          account = exportable.account,
-          region = region,
-          name = exportable.moniker.toString()
-        )
-      } catch (e: ResourceNotFound) {
-        null
+  override suspend fun actuationInProgress(resource: Resource<SecurityGroupSpec>): Boolean =
+    resource
+      .spec
+      .locations
+      .regions
+      .map { it.name }
+      .any { region ->
+        orcaService
+          .getCorrelatedExecutions("${resource.id}:$region")
+          .isNotEmpty()
       }
-    }
-      .filterValues { it != null }
 
-    val securityGroups =
-      coroutineScope {
-        summaries.map { (region, summary) ->
-          async {
-            try {
-              cloudDriverService.getSecurityGroup(
-                exportable.user,
-                exportable.account,
-                CLOUD_PROVIDER,
-                summary!!.name,
-                region,
-                summary.vpcId
-              )
-                .toSecurityGroup()
-            } catch (e: HttpException) {
-              if (e.isNotFound) {
-                null
-              } else {
-                throw e
-              }
-            }
-          }
-        }
-          .mapNotNull { it.await() }
-          .associateBy { it.location.region }
-      }
+  override suspend fun export(exportable: Exportable): SecurityGroupSpec {
+    val securityGroups = getSecurityGroupsByRegion(exportable)
 
     if (securityGroups.isEmpty()) {
       throw ResourceNotFound(
@@ -167,7 +141,7 @@ open class SecurityGroupHandler(
       )
     }
 
-    val base = securityGroups.values.first()
+    val base = securityGroups.values.minByOrNull { it.inboundRules.size }!!
     val spec = SecurityGroupSpec(
       moniker = base.moniker,
       locations = SimpleLocations(
@@ -219,17 +193,49 @@ open class SecurityGroupHandler(
       }
     }
 
-  override suspend fun actuationInProgress(resource: Resource<SecurityGroupSpec>): Boolean =
-    resource
-      .spec
-      .locations
-      .regions
-      .map { it.name }
-      .any { region ->
-        orcaService
-          .getCorrelatedExecutions("${resource.id}:$region")
-          .isNotEmpty()
+  /**
+   * Returns a map of region names to the corresponding [SecurityGroup] objects to be used in [export].
+   */
+  protected open suspend fun getSecurityGroupsByRegion(exportable: Exportable): Map<String, SecurityGroup> {
+    val summaries = exportable.regions.associateWith { region ->
+      try {
+        cloudDriverCache.securityGroupByName(
+          account = exportable.account,
+          region = region,
+          name = exportable.moniker.toString()
+        )
+      } catch (e: ResourceNotFound) {
+        null
       }
+    }
+      .filterValues { it != null }
+
+    return coroutineScope {
+      summaries.map { (region, summary) ->
+        async {
+          try {
+            cloudDriverService.getSecurityGroup(
+              exportable.user,
+              exportable.account,
+              CLOUD_PROVIDER,
+              summary!!.name,
+              region,
+              summary.vpcId
+            )
+              .toSecurityGroup()
+          } catch (e: HttpException) {
+            if (e.isNotFound) {
+              null
+            } else {
+              throw e
+            }
+          }
+        }
+      }
+        .mapNotNull { it.await() }
+        .associateBy { it.location.region }
+    }
+  }
 
   private suspend fun CloudDriverService.getSecurityGroup(
     spec: SecurityGroupSpec,
