@@ -819,7 +819,7 @@ class ClusterHandler(
       mapOf(
         "refId" to refId.toString(),
         "requisiteStageRefIds" to when (refId) {
-          0, 1 -> listOf()
+          0, 1 -> listOf<String>()
           else -> listOf((refId - 1).toString())
         },
         "type" to "upsertScalingPolicy",
@@ -869,7 +869,7 @@ class ClusterHandler(
       mapOf(
         "refId" to refId.toString(),
         "requisiteStageRefIds" to when (refId) {
-          0, 1 -> listOf()
+          0, 1 -> listOf<String>()
           else -> listOf((refId - 1).toString())
         },
         "type" to "upsertScalingPolicy",

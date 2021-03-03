@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.tx
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -108,7 +110,7 @@ internal class DeliveryConfigTransactionTests
     context("a resource attached to the delivery config fails to persist") {
       before {
         every {
-          resourceRepository.store(
+          resourceRepository.store<ResourceSpec>(
             match {
               it.id == "test:whatever:prod"
             }
