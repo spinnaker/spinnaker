@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
@@ -405,9 +404,12 @@ public class ManagedController {
 
   @ApiOperation(value = "Get a report of Managed Delivery adoption")
   @GetMapping(path = "/reports/adoption", produces = "text/html")
-  @ResponseBody
-  String getAdoptionReport(@RequestParam Map<String, String> params) {
-    return keelService.getAdoptionReport(params);
+  ResponseEntity<byte[]> getAdoptionReport(@RequestParam Map<String, String> params)
+      throws IOException {
+    Response keelResponse = keelService.getAdoptionReport(params);
+    return ResponseEntity.status(keelResponse.getStatus())
+        .header("Content-Type", "text/html")
+        .body(keelResponse.getBody().in().readAllBytes());
   }
 
   @ApiOperation(value = "Get current environment details")
