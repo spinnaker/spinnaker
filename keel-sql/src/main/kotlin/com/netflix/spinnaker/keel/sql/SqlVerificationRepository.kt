@@ -20,20 +20,15 @@ import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
-import org.jooq.DSLContext
-import org.jooq.Field
-import org.jooq.Record1
-import org.jooq.Record4
-import org.jooq.Select
-import org.jooq.SelectOrderByStep
+import org.jooq.*
 import org.jooq.impl.DSL.function
-import org.jooq.Table
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.isnull
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
+import org.springframework.core.env.Environment
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
@@ -45,7 +40,8 @@ class SqlVerificationRepository(
   objectMapper: ObjectMapper,
   sqlRetry: SqlRetry,
   artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  specMigrators: List<SpecMigrator<*, *>> = emptyList()
+  specMigrators: List<SpecMigrator<*, *>> = emptyList(),
+  private val environment: Environment
 ) : SqlStorageContext(
   jooq,
   clock,
@@ -55,6 +51,9 @@ class SqlVerificationRepository(
   artifactSuppliers,
   specMigrators
 ), VerificationRepository {
+
+  private val useLockingRead : Boolean
+    get() = environment.getProperty("keel.verifications.db.lock.reads.enabled", Boolean::class.java, true)
 
   override fun nextEnvironmentsForVerification(
     minTimeSinceLastCheck: Duration,
@@ -102,6 +101,7 @@ class SqlVerificationRepository(
           // order by last time checked with things never checked coming first
           .orderBy(isnull(ENVIRONMENT_LAST_VERIFIED.AT, EPOCH))
           .limit(limit)
+          .lockInShareMode()
           .fetch()
           .onEach { (_, _, environmentUid, _, artifactUid, _, artifactVersion) ->
             insertInto(ENVIRONMENT_LAST_VERIFIED)
@@ -389,4 +389,16 @@ class SqlVerificationRepository(
           ?.asTable(alias, ind, environmentName, artifactReference, artifactVersion)
   }
 
+  /**
+   * Set a share mode lock on a select query to prevent phantom reads in a transaction.
+   *
+   * In MySQL 5.7, this is `LOCK IN SHARE MODE`
+   * See https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+   */
+  private fun <R : Record?> SelectForUpdateStep<R>.lockInShareMode(): SelectOptionStep<R> =
+    if(useLockingRead) {
+      this.forShare()
+    } else {
+      this
+    }
 }

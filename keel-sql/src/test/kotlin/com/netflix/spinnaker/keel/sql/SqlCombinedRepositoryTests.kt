@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import io.mockk.mockk
 import java.time.Clock
 
 internal object SqlCombinedRepositoryTests :
@@ -34,7 +35,7 @@ internal object SqlCombinedRepositoryTests :
     SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers())
 
   override fun createVerificationRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlVerificationRepository =
-    SqlVerificationRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry)
+    SqlVerificationRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry, environment = mockk())
 
   override fun flush() {
     SqlTestUtil.cleanupDb(jooq)

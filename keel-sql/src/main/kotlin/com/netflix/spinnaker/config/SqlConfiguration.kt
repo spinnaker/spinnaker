@@ -32,6 +32,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.core.env.Environment
 import java.time.Clock
 import javax.annotation.PostConstruct
 
@@ -158,7 +159,8 @@ class SqlConfiguration {
     resourceSpecIdentifier: ResourceSpecIdentifier,
     objectMapper: ObjectMapper,
     artifactSuppliers: List<ArtifactSupplier<*, *>>,
-    specMigrators: List<SpecMigrator<*, *>>
+    specMigrators: List<SpecMigrator<*, *>>,
+    environment: Environment
   ) = SqlVerificationRepository(
     jooq,
     clock,
@@ -166,7 +168,8 @@ class SqlConfiguration {
     objectMapper,
     SqlRetry(sqlRetryProperties),
     artifactSuppliers,
-    specMigrators
+    specMigrators,
+    environment
   )
 
   @Bean

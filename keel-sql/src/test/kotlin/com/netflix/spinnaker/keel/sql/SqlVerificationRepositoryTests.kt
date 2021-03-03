@@ -11,8 +11,11 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import org.junit.jupiter.api.AfterEach
+import org.springframework.core.env.Environment
 
 internal class SqlVerificationRepositoryTests :
   VerificationRepositoryTests<SqlVerificationRepository>() {
@@ -50,6 +53,22 @@ internal class SqlVerificationRepositoryTests :
     clock = clock
   )
 
+  /**
+   * Generate a mock Spring environment that returns the default value for all boolean properties
+   */
+  private fun mockEnvironment() : Environment {
+    val defaultValue = slot<Boolean>()
+    val environment: Environment = mockk()
+
+    every {
+      environment.getProperty(any(), Boolean::class.java, capture(defaultValue))
+    } answers {
+      defaultValue.captured
+    }
+
+    return environment
+  }
+
   override fun createSubject() =
     SqlVerificationRepository(
       jooq = jooq,
@@ -57,7 +76,8 @@ internal class SqlVerificationRepositoryTests :
       resourceSpecIdentifier = mockk(),
       objectMapper = mapper,
       sqlRetry = sqlRetry,
-      artifactSuppliers = artifactSuppliers
+      artifactSuppliers = artifactSuppliers,
+      environment = mockEnvironment()
     )
 
   override fun VerificationContext.setup() {
