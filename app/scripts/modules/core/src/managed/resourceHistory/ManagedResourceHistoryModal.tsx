@@ -39,9 +39,6 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
     [],
   );
 
-  // eslint-disable-next-line no-console
-  console.log(historyEvents);
-
   const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
   const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
 
