@@ -32,6 +32,8 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletResponse
@@ -83,6 +85,9 @@ class AuthorizeControllerSpec extends Specification {
   @Autowired
   List<Resource> resources;
 
+  @Autowired(required = false)
+  DSLContext jooq
+
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
 
@@ -95,6 +100,14 @@ class AuthorizeControllerSpec extends Specification {
         .build();
 
     jedisPool.resource.withCloseable { it.flushAll() }
+    if (jooq) {
+      def schema = jooq.select(DSL.currentSchema()).fetchOne(DSL.currentSchema())
+      jooq.meta().getTables().each {
+        if (it.getSchema().name == schema && !it.name.startsWith("DATABASE")) {
+          jooq.truncate(it).execute()
+        }
+      }
+    }
   }
 
   def "should get user from repo via endpoint"() {

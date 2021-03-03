@@ -11,6 +11,7 @@ import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(RedisPermissionRepositoryConfigProps.class)
 public class PermissionsRepositoryConfig {
+
+  @ConditionalOnProperty(value = "permissions-repository.redis.enabled", matchIfMissing = true)
   @Bean
   PermissionsRepository redisPermissionsRepository(
       Registry registry,

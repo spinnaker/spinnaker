@@ -37,6 +37,12 @@ dependencies {
 
   implementation project(':fiat-core')
   implementation project(':fiat-roles')
+  implementation project(':fiat-sql')
+
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly(project(":fiat-sql-mysql"))
+    runtimeOnly(project(":fiat-sql-postgres"))
+  }
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {
@@ -45,6 +51,8 @@ dependencies {
 
   testImplementation "com.netflix.spinnaker.kork:kork-jedis"
   testImplementation "org.testcontainers:testcontainers"
+
+  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
 }
 
 applicationName = 'fiat'

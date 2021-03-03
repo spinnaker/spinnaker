@@ -43,6 +43,9 @@ include 'fiat-api',
         'fiat-google-groups',
         'fiat-ldap',
         'fiat-roles',
+        'fiat-sql',
+        'fiat-sql-mysql',
+        'fiat-sql-postgres',
         'fiat-web'
 
 def setBuildFile(project) {

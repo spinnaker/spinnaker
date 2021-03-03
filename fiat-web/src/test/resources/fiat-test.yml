@@ -4,5 +4,30 @@ services:
   front50:
     baseUrl: 'http://localhost:8080'
   igor:
+    baseUrl: 'http://localhost:8086'
+
+fiat:
+  cache:
+    expiresAfterWriteSeconds: 0
+  writeMode:
+    syncDelayMs: -1
+
+spring:
+  application:
+    name: fiat
+
+sql:
+  enabled: false
+  connectionPools:
+    default:
+      jdbcUrl: "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb"
+      user:
+  migration:
+    jdbcUrl: "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb"
+    user:
+
+permissionsRepository:
+  redis:
+    enabled: true
+  sql:
     enabled: false
-    baseUrl: null

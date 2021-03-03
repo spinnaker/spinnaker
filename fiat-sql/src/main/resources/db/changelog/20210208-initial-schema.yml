@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-user-table
+      author: deverton
+      changes:
+        - createTable:
+            tableName: fiat_user
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: admin
+                  type: bool
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: fiat_user
+  - changeSet:
+      id: create-permission-table
+      author: deverton
+      changes:
+        - createTable:
+            tableName: fiat_permission
+            columns:
+              - column:
+                  name: fiat_user_id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resource_type
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resource_name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: fiat_permission

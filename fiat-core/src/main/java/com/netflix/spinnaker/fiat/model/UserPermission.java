@@ -53,7 +53,19 @@ public class UserPermission {
   }
 
   public void addResource(Resource resource) {
-    addResources(Collections.singleton(resource));
+    if (resource instanceof Account) {
+      accounts.add((Account) resource);
+    } else if (resource instanceof Application) {
+      applications.add((Application) resource);
+    } else if (resource instanceof ServiceAccount) {
+      serviceAccounts.add((ServiceAccount) resource);
+    } else if (resource instanceof Role) {
+      roles.add((Role) resource);
+    } else if (resource instanceof BuildService) {
+      buildServices.add((BuildService) resource);
+    } else {
+      extensionResources.add(resource);
+    }
   }
 
   public UserPermission addResources(Collection<Resource> resources) {
@@ -61,22 +73,7 @@ public class UserPermission {
       return this;
     }
 
-    resources.forEach(
-        resource -> {
-          if (resource instanceof Account) {
-            accounts.add((Account) resource);
-          } else if (resource instanceof Application) {
-            applications.add((Application) resource);
-          } else if (resource instanceof ServiceAccount) {
-            serviceAccounts.add((ServiceAccount) resource);
-          } else if (resource instanceof Role) {
-            roles.add((Role) resource);
-          } else if (resource instanceof BuildService) {
-            buildServices.add((BuildService) resource);
-          } else {
-            extensionResources.add(resource);
-          }
-        });
+    resources.forEach(this::addResource);
 
     return this;
   }
