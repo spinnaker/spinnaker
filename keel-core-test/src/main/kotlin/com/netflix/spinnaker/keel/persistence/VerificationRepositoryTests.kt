@@ -69,6 +69,11 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         name = "fnord",
         deliveryConfigName = "fnord-manifest",
         reference = "fnord-docker-unstable"
+      ),
+      DockerArtifact(
+        name = "fnord",
+        deliveryConfigName = "fnord-manifest",
+        reference = "test" // an artifact that has a reference name the same as an environment name
       )
     ),
     environments = setOf(
@@ -472,6 +477,15 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
             .get(VerificationState::status) isEqualTo PENDING
         }
     }
+  }
+
+  @Test
+  fun `environment name and artifact reference name are the same`() {
+    val contexts = listOf(context, context.copy(artifactReference="test"))
+      .onEach { it.setup() }
+
+    // verify it doesn't explode with a SQLSyntaxErrorException
+    expectCatching { subject.getStatesBatch(contexts) }.isSuccess()
   }
 
   @Test

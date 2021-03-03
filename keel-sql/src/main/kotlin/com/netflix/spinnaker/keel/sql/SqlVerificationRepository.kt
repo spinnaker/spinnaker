@@ -378,7 +378,10 @@ class SqlVerificationRepository(
         contexts // List<VerificationContext>
           // Creates a SELECT statement from each element of [contexts], where every column is a constant. e.g.:
           // SELECT 0, "staging", "myapp", "myapp-h123-v23.4" FROM dual
-          .mapIndexed { idx, v -> jooq.select(inline(idx), inline(v.environmentName), inline(v.artifactReference), inline(v.version)) as SelectOrderByStep<Record4<Int, String, String, String>> } // List<SelectOrderByStep<Record4<Int, String, String, String>>>
+          .mapIndexed { idx, v -> jooq.select(inline(idx).`as`(ind),
+                                              inline(v.environmentName).`as`(environmentName),
+                                              inline(v.artifactReference).`as`(artifactReference),
+                                              inline(v.version).`as`(artifactVersion)) as SelectOrderByStep<Record4<Int, String, String, String>> }
 
           // Apply UNION ALL to the list of SELECT statements so they form a single query
           .reduceOrNull { s1, s2 -> s1.unionAll(s2) } // SelectOrderByStep<Record4<Int, String, String, String>>?
