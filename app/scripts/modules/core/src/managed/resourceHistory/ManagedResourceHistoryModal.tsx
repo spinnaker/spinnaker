@@ -44,7 +44,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
 
   return (
     <>
-      <ModalHeader>Resource history</ModalHeader>
+      <ModalHeader>Resource history - {resourceSummary.displayName}</ModalHeader>
       <ModalBody>
         <div
           className={classNames('ManagedResourceHistoryModal', {
