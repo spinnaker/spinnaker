@@ -27,10 +27,11 @@ import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import io.github.resilience4j.retry.RetryRegistry
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
@@ -56,8 +57,8 @@ class RedisPermissionsRepositorySpec extends Specification {
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
   @Shared
-  @AutoCleanup("destroy")
-  EmbeddedRedis embeddedRedis
+  @AutoCleanup("stop")
+  GenericContainer embeddedRedis
 
   @Shared
   ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -76,10 +77,12 @@ class RedisPermissionsRepositorySpec extends Specification {
   Clock clock = new TestClock()
 
   def setupSpec() {
-    embeddedRedis = EmbeddedRedis.embed()
-    jedis = embeddedRedis.jedis
+    embeddedRedis = new GenericContainer(DockerImageName.parse("redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis.start()
+    def jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
+    jedis = jedisPool.getResource()
     jedis.flushDB()
-    redisClientDelegate = new PausableRedisClientDelegate(new JedisClientDelegate(embeddedRedis.pool as JedisPool))
+    redisClientDelegate = new PausableRedisClientDelegate(new JedisClientDelegate(jedisPool))
   }
 
   private static class TestClock extends Clock {

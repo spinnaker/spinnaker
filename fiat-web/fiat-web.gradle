@@ -44,7 +44,7 @@ dependencies {
   }
 
   testImplementation "com.netflix.spinnaker.kork:kork-jedis"
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "org.testcontainers:testcontainers"
 }
 
 applicationName = 'fiat'

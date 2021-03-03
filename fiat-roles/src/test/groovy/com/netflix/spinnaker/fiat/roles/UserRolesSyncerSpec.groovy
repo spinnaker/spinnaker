@@ -33,11 +33,12 @@ import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigPro
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.lock.LockManager
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.actuate.health.Health
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
@@ -50,17 +51,20 @@ import java.util.concurrent.Callable
 
 class UserRolesSyncerSpec extends Specification {
 
-  private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
+  private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
   @Shared
   Registry registry = new NoopRegistry()
 
   @Shared
-  @AutoCleanup("destroy")
-  EmbeddedRedis embeddedRedis
+  @AutoCleanup("stop")
+  GenericContainer embeddedRedis
 
   @Shared
   ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+  @Shared
+  JedisPool jedisPool
 
   @Shared
   Jedis jedis
@@ -69,15 +73,17 @@ class UserRolesSyncerSpec extends Specification {
   RedisPermissionsRepository repo
 
   def setupSpec() {
-    embeddedRedis = EmbeddedRedis.embed()
-    jedis = embeddedRedis.jedis
+    embeddedRedis = new GenericContainer(DockerImageName.parse("redis:5-alpine")).withExposedPorts(6379)
+    embeddedRedis.start()
+    jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
+    jedis = jedisPool.getResource()
     jedis.flushDB()
   }
 
   def setup() {
     repo = new RedisPermissionsRepository(
         objectMapper,
-        new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+        new JedisClientDelegate(jedisPool),
         [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
         new RedisPermissionRepositoryConfigProps(prefix: "unittests"),
         RetryRegistry.ofDefaults()

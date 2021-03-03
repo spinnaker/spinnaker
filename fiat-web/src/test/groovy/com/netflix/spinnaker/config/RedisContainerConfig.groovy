@@ -17,29 +17,32 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 import redis.clients.jedis.util.Pool
 
 @Configuration
-class EmbeddedRedisConfig {
+class RedisContainerConfig {
 
-  @Bean(destroyMethod = "destroy")
-  EmbeddedRedis redisServer() {
-    def redis = EmbeddedRedis.embed()
-    redis.jedis.withCloseable { Jedis jedis ->
-      jedis.flushAll()
-    }
-    return redis
+  @Bean(destroyMethod = "stop")
+  GenericContainer redisContainer() {
+    def redisContainer = new GenericContainer(DockerImageName.parse("redis:5-alpine"))
+      .withExposedPorts(6379);
+
+    redisContainer.start()
+
+    return redisContainer
   }
 
   @Bean
-  Pool<Jedis> jedisPool(EmbeddedRedis embeddedRedis) {
-    embeddedRedis.pool
+  Pool<Jedis> jedisPool(GenericContainer redisContainer) {
+    return new JedisPool(redisContainer.host, redisContainer.getMappedPort(6379))
   }
 
   @Bean

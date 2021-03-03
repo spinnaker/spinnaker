@@ -36,6 +36,6 @@ dependencies {
   implementation "redis.clients:jedis"
   implementation "com.google.api-client:google-api-client"
 
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
   testImplementation "org.apache.commons:commons-collections4:4.1"
+  testImplementation "org.testcontainers:testcontainers"
 }
