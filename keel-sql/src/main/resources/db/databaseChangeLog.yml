@@ -236,3 +236,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210208-versioned-resources.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210226-generate-event-columns.yml
+      relativeToChangelogFile: true

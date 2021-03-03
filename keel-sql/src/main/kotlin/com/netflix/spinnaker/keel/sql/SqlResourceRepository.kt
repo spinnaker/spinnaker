@@ -30,9 +30,12 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
+import org.jooq.Record1
+import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.max
+import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -181,8 +184,8 @@ open class SqlResourceRepository(
         .select(EVENT.JSON)
         .from(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-        .and(EVENT.REF.eq(application))
-        .orderBy(EVENT.TIMESTAMP.desc())
+        .and(EVENT.REF_GEN.eq(application))
+        .orderBy(EVENT.TIMESTAMP_GEN.desc())
         .limit(limit)
         .fetch(EVENT.JSON)
         .filterIsInstance<ApplicationEvent>()
@@ -195,9 +198,9 @@ open class SqlResourceRepository(
         .select(EVENT.JSON)
         .from(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-        .and(EVENT.REF.eq(application))
-        .and(EVENT.TIMESTAMP.greaterOrEqual(after))
-        .orderBy(EVENT.TIMESTAMP.desc())
+        .and(EVENT.REF_GEN.eq(application))
+        .and(EVENT.TIMESTAMP_GEN.greaterOrEqual(after))
+        .orderBy(EVENT.TIMESTAMP_GEN.desc())
         .fetch(EVENT.JSON)
         .filterIsInstance<ApplicationEvent>()
     }
@@ -206,8 +209,6 @@ open class SqlResourceRepository(
   override fun eventHistory(id: String, limit: Int): List<ResourceHistoryEvent> {
     require(limit > 0) { "limit must be a positive integer" }
 
-    val resource = get(id)
-
     return sqlRetry.withRetry(READ) {
       jooq
         .select(EVENT.JSON)
@@ -215,14 +216,14 @@ open class SqlResourceRepository(
         // look for resource events that match the resource...
         .where(
           EVENT.SCOPE.eq(EventScope.RESOURCE)
-            .and(EVENT.REF.eq(resource.uid))
+            .and(EVENT.REF_GEN.eq(id))
         )
         // ...or application events that match the application as they apply to all resources
         .or(
           EVENT.SCOPE.eq(EventScope.APPLICATION)
-            .and(EVENT.APPLICATION.eq(resource.application))
+            .and(EVENT.APPLICATION.eq(applicationForId(id)))
         )
-        .orderBy(EVENT.TIMESTAMP.desc())
+        .orderBy(EVENT.TIMESTAMP_GEN.desc())
         .limit(limit)
         .fetch(EVENT.JSON)
         // filter out application events that don't affect resource history
@@ -252,14 +253,14 @@ open class SqlResourceRepository(
           // look for resource events that match the resource...
           .where(
             EVENT.SCOPE.eq(EventScope.RESOURCE)
-              .and(EVENT.REF.eq(ref))
+              .and(EVENT.REF_GEN.eq(event.ref))
           )
           // ...or application events that match the application as they apply to all resources
           .or(
             EVENT.SCOPE.eq(EventScope.APPLICATION)
               .and(EVENT.APPLICATION.eq(event.application))
           )
-          .orderBy(EVENT.TIMESTAMP.desc())
+          .orderBy(EVENT.TIMESTAMP_GEN.desc())
           .limit(1)
           .fetchOne(EVENT.JSON)
       }
@@ -281,41 +282,32 @@ open class SqlResourceRepository(
 
   override fun delete(id: String) {
     // TODO: these should be run inside a transaction
-    val uids = sqlRetry.withRetry(READ) {
-      jooq.select(RESOURCE.UID)
-        .from(RESOURCE)
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(RESOURCE)
         .where(RESOURCE.ID.eq(id))
-        .fetch(RESOURCE.UID)
-        .map(ULID::parseULID)
+        .execute()
+        .also { count ->
+          if (count == 0) {
+            throw NoSuchResourceId(id)
+          }
+        }
     }
-
-    if (uids.isEmpty()) {
-      throw NoSuchResourceId(id)
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(EVENT)
+        .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
+        .and(EVENT.REF_GEN.eq(id))
+        .execute()
     }
-
-    uids.forEach { uid ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(RESOURCE)
-          .where(RESOURCE.UID.eq(uid.toString()))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(EVENT)
-          .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
-          .and(EVENT.REF.eq(uid.toString()))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DIFF_FINGERPRINT)
-          .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(PAUSED)
-          .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
-          .and(PAUSED.NAME.eq(id))
-          .execute()
-      }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(PAUSED)
+        .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE))
+        .and(PAUSED.NAME.eq(id))
+        .execute()
     }
   }
 
@@ -396,6 +388,12 @@ open class SqlResourceRepository(
         .fetchOne(RESOURCE.UID)
         ?: throw IllegalStateException("Resource with id $id not found. Retrying.")
     }
+
+  private fun applicationForId(id: String): Select<Record1<String>> =
+    select(RESOURCE.APPLICATION)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(id))
+      .limit(1)
 
   private val Resource<*>.uid: String
     get() = getResourceUid(id, version)
