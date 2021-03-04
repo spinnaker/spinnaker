@@ -26,31 +26,6 @@ class VerificationRunner(
    * particular environment and artifact version.
    */
   fun runVerificationsFor(context: VerificationContext) {
-    if (context.environment.verifyWith.isEmpty()) {
-      return
-    }
-
-    verificationRepository
-      .pendingInEnvironment(context.deliveryConfig, context.environmentName)
-      // only consider other versions, we'll handle verifications for the version in context later
-      .filterNot { it.context.version == context.version }
-      // get the latest status by re-evaluating each one (which will update in the database)
-      .associateWith { it.context.latestStatus(it.verification) }
-      // filter out things that have now completed (since we last checked)
-      .filterNot { (_,  status) ->
-        status?.complete ?: false
-      }
-      .let { pendingVerifications ->
-        // if we still have any pending verifications then something is still running for a previous
-        // version of the artifact -- we should wait
-        if (pendingVerifications.isNotEmpty()) {
-          pendingVerifications.forEach { (pendingVerification, status)->
-            log.debug("Previous verification {} for {} is still {}", pendingVerification.verification.id, pendingVerification.context.version, status)
-          }
-          return
-        }
-      }
-
     with(context) {
       val statuses = environment
         .verifyWith
@@ -92,9 +67,6 @@ class VerificationRunner(
     }
   }
 
-  /**
-   * `true` if any of the statuses is [PENDING], `false` if none are or the collection is empty.
-   */
   private val Collection<Pair<*, ConstraintStatus?>>.anyStillRunning: Boolean
     get() = any { (_, status) -> status == PENDING }
 
