@@ -178,6 +178,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
             def networkInterface = launchTemplateData.networkInterfaces.find({it.deviceIndex == 0 })
             if (networkInterface != null) {
               securityGroups = networkInterface.groups
+              newDescription.associateIPv6Address = networkInterface.getIpv6AddressCount() > 0 ? true : false
             }
           }
 
