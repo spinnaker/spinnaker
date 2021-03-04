@@ -16,7 +16,7 @@ export const ExecutionBreadcrumbs = ({ execution }: IExecutionBreadcrumbsProps) 
       .getAllParentExecutions(execution)
       .filter((x) => x !== execution)
       .reverse();
-  }, []);
+  }, [execution]);
 
   const label = parentExecutions.length === 1 ? 'Parent Execution' : 'Parent Executions';
 
