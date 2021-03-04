@@ -27,7 +27,6 @@ interface VerificationRepository {
     context: VerificationContext,
   ) : Map<String, VerificationState>
 
-
   /**
    * Query the repository for the states of multiple contexts.
    *
@@ -55,6 +54,14 @@ interface VerificationRepository {
     status: ConstraintStatus,
     metadata: Map<String, Any?> = emptyMap()
   )
+
+  /**
+   * Returns any pending verifications for the specified environment.
+   */
+  fun pendingInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String
+  ) : Collection<PendingVerification>
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<VerificationContext>
 }
@@ -88,3 +95,9 @@ data class VerificationContext(
 
   fun verification(id: String): Verification? = verifications.firstOrNull { it.id == id }
 }
+
+data class PendingVerification(
+  val context: VerificationContext,
+  val verification: Verification,
+  val state: VerificationState
+)
