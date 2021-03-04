@@ -110,7 +110,7 @@ class ResourceActuator(
         }
 
         if (deliveryConfig.isPromotionCheckStale()) {
-          log.debug("Environments check for {} is stale, skipping checks", deliveryConfig.name)
+          log.debug("Artifact promotion check for application {} is stale, skipping resource checks", deliveryConfig.application)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "PromotionCheckStale"))
           return@withTracingContext
         }

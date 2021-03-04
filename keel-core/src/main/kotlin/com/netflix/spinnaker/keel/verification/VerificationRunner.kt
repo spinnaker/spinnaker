@@ -59,13 +59,13 @@ class VerificationRunner(
         }
 
       if (statuses.anyStillRunning) {
-        log.debug("Verification already running for {}", environment.name)
+        log.debug("Verification already running for environment {} of application {}", environment.name, deliveryConfig.application)
         return
       }
 
       statuses.firstOutstanding?.let { verification ->
         start(verification, imageFinder.getImages(context.deliveryConfig, context.environmentName))
-      } ?: log.debug("Verification complete for {}", environment.name)
+      } ?: log.debug("Verification complete for environment {} of application {}", environment.name, deliveryConfig.application)
     }
   }
 
@@ -81,7 +81,8 @@ class VerificationRunner(
       evaluators.evaluate(this, verification, state.metadata)
         .also { newStatus ->
           if (newStatus.complete) {
-            log.debug("Verification {} completed with status {} for {}", verification, newStatus, environment.name)
+            log.debug("Verification {} completed with status {} for environment {} of application {}",
+              verification, newStatus, environment.name, deliveryConfig.application)
             markAs(verification, newStatus)
             eventPublisher.publishEvent(VerificationCompleted(this, verification, newStatus, state.metadata))
           }

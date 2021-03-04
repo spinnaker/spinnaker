@@ -15,6 +15,8 @@ class TracingSupport {
   companion object {
     const val X_SPINNAKER_RESOURCE_ID = "X-SPINNAKER-RESOURCE-ID"
 
+    val blankMDC: MDCContext = MDCContext(emptyMap())
+
     suspend fun <T : ResourceSpec, R> withTracingContext(
       resource: Resource<T>,
       block: suspend CoroutineScope.() -> R
