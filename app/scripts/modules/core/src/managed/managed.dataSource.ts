@@ -64,7 +64,7 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
       label: 'Environments',
       icon: 'fa fa-fw fa-xs fa-code-branch',
       iconName: 'spEnvironments',
-      description: '[beta] Artifacts and environments managed by Spinnaker',
+      description: 'Artifacts and environments managed by Spinnaker',
       loader: loadEnvironments,
       onLoad: addEnvironments,
       defaultData: {
