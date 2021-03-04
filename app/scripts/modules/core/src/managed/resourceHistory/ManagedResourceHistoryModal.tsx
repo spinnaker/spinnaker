@@ -27,7 +27,7 @@ const EVENT_POLLING_INTERVAL = 10 * 1000;
 export const showManagedResourceHistoryModal = (props: IManagedResourceHistoryModalProps) =>
   showModal(ManagedResourceHistoryModal, props);
 
-const tableLayout = standardGridTableLayout([8, 1.5]);
+const tableLayout = standardGridTableLayout([{ unit: 'px', size: 70 }, 8, 1.5]);
 
 export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
   const { id } = resourceSummary;
@@ -64,7 +64,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
             <div className="sp-margin-xl-bottom">
               <Table
                 layout={tableLayout}
-                columns={['Event', 'Time']}
+                columns={['Level', 'Event', 'Time']}
                 expandable={historyEvents?.some(
                   ({ delta, tasks, message, reason, exceptionMessage }) =>
                     delta || tasks || message || reason || exceptionMessage,

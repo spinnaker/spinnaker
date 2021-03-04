@@ -15,13 +15,7 @@ type LogLevel = IManagedResourceEvent['level'];
 const eventLevelToClass: { [key in LogLevel]?: string } = {
   WARNING: 'event-warning',
   ERROR: 'event-error',
-};
-
-const eventLevelToIcon: { [key in LogLevel]: string } = {
-  SUCCESS: 'icon-md-delta-resolved',
-  INFO: 'icon-md',
-  ERROR: 'icon-md-error',
-  WARNING: 'icon-warn-diamond',
+  SUCCESS: 'event-success',
 };
 
 const ExpandedRowContent: React.FC<{
@@ -77,13 +71,9 @@ export const HistoryEventRow: React.FC<HistoryEventRowProps> = React.memo(({ eve
       }
     >
       <TableCell>
-        <i
-          className={classNames(
-            'event-type-icon ico sp-margin-s-right',
-            eventLevelToClass[level],
-            eventLevelToIcon[level],
-          )}
-        />
+        <span className={classNames(eventLevelToClass[level] || 'event-info', 'event-level')}>{event.level}</span>
+      </TableCell>
+      <TableCell>
         <span className="event-type">{event.displayName}</span>
       </TableCell>
       <TableCell>
