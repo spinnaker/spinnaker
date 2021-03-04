@@ -143,7 +143,8 @@ class BakeStage implements StageDefinitionBuilder {
       "region",
       "package",
       "cloudProviderType",
-      "cloudProvider"
+      "cloudProvider",
+      "baseAmiId"
     ]
     DynamicConfigService dynamicConfigService
 
