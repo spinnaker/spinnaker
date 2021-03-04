@@ -52,14 +52,14 @@ from the root `spin/` directory.
 
 Spin CLI uses [Swagger](https://swagger.io/) to generate the API client library for [Gate](https://github.com/spinnaker/gate).
 
-Spin CLI's `master` should be using Gate's `master` swagger definition. Similarly, each [spin release version](https://github.com/spinnaker/spin/tags) `version-{major}.{minor}.x` should match [Gate's tag](https://github.com/spinnaker/gate/tags) `version-{major}.{minor}`.
+Spin CLI's `master` should be using Gate's `master` swagger definition. Similarly, each [spin release version](https://github.com/spinnaker/spin/tags) `v{major}.{minor}.{patch}` semver should match [Gate's tag](https://github.com/spinnaker/gate/tags) `version-{major}.{minor}`.
 
 Example:
 | Spin CLI version | Gate version   |
 | ---------------- | ------------   |
-| version-1.17.3   | version-1.17.0 |
-| version-1.17.2   | version-1.17.0 |
-| version-1.17.1   | version-1.17.0 |
+|      v1.17.3     | version-1.17.0 |
+|      v1.17.2     | version-1.17.0 |
+|      v1.17.1     | version-1.17.0 |
 
 
 To update the client library:
