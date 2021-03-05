@@ -157,14 +157,29 @@ class ImageService(
     return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImageName, "test")
       .lastOrNull()
       ?.let { namedImage ->
-        namedImage
-          .tagsByImageId
-          .values
-          .filterNotNull()
-          .find { it.containsKey("base_ami_version") }
-          ?.getValue("base_ami_version")
+        findBaseAmiVersion(namedImage)
       } ?: throw BaseAmiNotFound(baseImageName)
   }
+
+  suspend fun findBaseAmiVersion(baseImageId: String, region: String): String {
+    return cloudDriverService.getImage("test", region, baseImageId)
+      .lastOrNull()
+      ?.let { namedImage ->
+        findBaseAmiVersion(namedImage)
+      } ?: throw BaseAmiNotFound(baseImageId)
+  }
+
+  /**
+   * Extracts the base ami version from the tags of a named image
+   */
+  private fun findBaseAmiVersion(image: NamedImage): String? =
+    image
+      .tagsByImageId
+      .values
+      .filterNotNull()
+      .find { it.containsKey("base_ami_version") }
+      ?.getValue("base_ami_version")
+
 
   private fun tagsExistForAllAmis(tagsByImageId: Map<String, Map<String, String?>?>): Boolean {
     tagsByImageId.keys.forEach { key ->
@@ -214,7 +229,7 @@ suspend fun ImageService.getLatestNamedImages(
     }
 }
 
-private fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"
+fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"
 
 class BaseAmiNotFound(baseImage: String) :
   IntegrationException("Could not find a base AMI for base image $baseImage")

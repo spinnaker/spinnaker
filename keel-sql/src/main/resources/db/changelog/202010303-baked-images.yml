@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-baked-images
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: baked_images
+            columns:
+              - column:
+                  name: time_detected
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image
+                  type: json
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+  - changeSet:
+      id: add-baked-images-generated-columns
+      author: emjburns
+      changes:
+        - sql:
+            sql: |
+              alter table baked_images
+              add column package_version varchar(150) generated always as (image ->> '$.appVersion')
+              not null
+              first;
+        - sql:
+            sql: |
+              alter table baked_images
+              add column cloud_provider varchar(50) generated always as (image ->> '$.cloudProvider')
+              not null
+              after package_version;
+        - sql:
+            sql: |
+              alter table baked_images
+              add column base_label varchar(50) generated always as (image ->> '$.baseLabel')
+              not null
+              after cloud_provider;
+        - sql:
+            sql: |
+              alter table baked_images
+              add column base_os varchar(50) generated always as (image ->> '$.baseOs')
+              not null
+              after base_label;
+  - changeSet:
+      id: create-baked-image-indicies
+      author: emjburns
+      changes:
+        - createIndex:
+            tableName: baked_images
+            indexName: baked_images_primary_idx
+            unique: true
+            columns:
+              - column:
+                  name: package_version
+              - column:
+                  name: cloud_provider
+              - column:
+                  name: base_os
+              - column:
+                  name: base_label

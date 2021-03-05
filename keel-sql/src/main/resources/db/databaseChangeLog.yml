@@ -239,3 +239,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210226-generate-event-columns.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/202010303-baked-images.yml
+      relativeToChangelogFile: true

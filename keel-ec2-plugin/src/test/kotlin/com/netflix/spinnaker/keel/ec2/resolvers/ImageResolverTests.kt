@@ -8,17 +8,20 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.artifacts.BakedImage
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.NoArtifactVersionHasBeenApproved
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
-import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -34,6 +37,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.java.propertiesAreEqualTo
+import java.time.Instant
 import io.mockk.coEvery as every
 
 internal class ImageResolverTests : JUnit5Minutests {
@@ -63,10 +67,14 @@ internal class ImageResolverTests : JUnit5Minutests {
     val imageService = mockk<ImageService>() {
       every { log } returns LoggerFactory.getLogger(ImageService::class.java)
     }
+    val bakedImageRepository: BakedImageRepository = mockk(relaxUnitFun = true) {
+      every { getByArtifactVersion(any(), any()) } returns null
+    }
     private val subject = ImageResolver(
       dynamicConfigService,
       repository,
-      imageService
+      imageService,
+      bakedImageRepository
     )
     val images = listOf(
       NamedImage(
@@ -108,6 +116,20 @@ internal class ImageResolverTests : JUnit5Minutests {
           imageRegion to listOf("ami-3")
         )
       )
+    )
+
+    val bakedImage = BakedImage(
+      name = "fnord-$version2",
+      baseLabel = BaseLabel.RELEASE,
+      baseOs = "bionic-classic",
+      vmType = "hvm",
+      cloudProvider = "aws",
+      appVersion = "fnord-$version2",
+      baseAmiVersion = "nflx-base-5.464.0-h1473.31178a8",
+      amiIdsByRegion = mapOf(
+        imageRegion to "ami-2"
+      ),
+      timestamp = Instant.ofEpochMilli(1614893256845)
     )
 
     val resource = resource(
@@ -201,11 +223,11 @@ internal class ImageResolverTests : JUnit5Minutests {
           test("throws an exception") {
             expectCatching { resolve() }
               .isFailure()
-              .isA<NoImageSatisfiesConstraints>()
+              .isA<NoArtifactVersionHasBeenApproved>()
           }
         }
 
-        context("no image is found for the artifact version") {
+        context("no image is found for the artifact version in clouddriver") {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
@@ -217,6 +239,24 @@ internal class ImageResolverTests : JUnit5Minutests {
             expectCatching { resolve() }
               .isFailure()
               .isA<NoImageFoundForRegions>()
+          }
+
+          context("an image is found in our list of images") {
+            before {
+              every {
+                bakedImageRepository.getByArtifactVersion("${artifact.name}-$version2", artifact)
+              } returns bakedImage
+            }
+
+            test("returns the ami of the image") {
+              val resolved = resolve()
+              expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
+                .isNotNull()
+                .and {
+                  get { appVersion }.isEqualTo("fnord-$version2")
+                  get { id }.isEqualTo("ami-2")
+                }
+            }
           }
         }
 
@@ -248,6 +288,24 @@ internal class ImageResolverTests : JUnit5Minutests {
             expectCatching { resolve() }
               .isFailure()
               .isA<NoImageFoundForRegions>()
+          }
+
+          context("all regions are found in our list of images") {
+            before {
+              every {
+                bakedImageRepository.getByArtifactVersion("${artifact.name}-$version2", artifact)
+              } returns bakedImage.copy(amiIdsByRegion = bakedImage.amiIdsByRegion + mapOf("cn-north-1" to "ami-2"))
+            }
+
+            test("returns the ami of the image") {
+              val resolved = resolve()
+              expectThat(resolved.spec.overrides["cn-north-1"]?.launchConfiguration?.image)
+                .isNotNull()
+                .and {
+                  get { appVersion }.isEqualTo("fnord-$version2")
+                  get { id }.isEqualTo("ami-2")
+                }
+            }
           }
         }
       }

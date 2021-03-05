@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.LifecycleConfig
+import com.netflix.spinnaker.keel.bakery.BaseImageCache
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
@@ -12,6 +15,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
 import com.netflix.spinnaker.keel.lifecycle.LifecycleMonitorRepository
 import com.netflix.spinnaker.keel.lifecycle.MonitoredTask
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
+import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.BUFFERED
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.PAUSED
@@ -19,9 +23,13 @@ import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -38,7 +46,13 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
   internal class Fixture {
     val monitorRepository: LifecycleMonitorRepository = mockk(relaxUnitFun = true)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val bakedImageRepository: BakedImageRepository = mockk(relaxUnitFun = true)
+    val imageService: ImageService = mockk(relaxUnitFun = true) {
+      coEvery { findBaseAmiVersion(any(), any()) } returns "base-1-2-3"
+    }
     val lifecycleConfig = LifecycleConfig()
+    val clock = MutableClock()
+    val objectMapper: ObjectMapper = configuredTestObjectMapper()
     val orcaService: OrcaService = mockk()
     val spinnakerBaseUrl = "www.spin.com"
     val id = "12344445565D"
@@ -61,7 +75,17 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
       triggeringEventUid = "uid-i-am"
     )
 
-    val subject = BakeryLifecycleMonitor(monitorRepository, publisher, lifecycleConfig, orcaService, spinnakerBaseUrl)
+    val subject = BakeryLifecycleMonitor(
+      monitorRepository = monitorRepository,
+      publisher = publisher,
+      lifecycleConfig = lifecycleConfig,
+      orcaService = orcaService,
+      spinnakerBaseUrl = spinnakerBaseUrl,
+      bakedImageRepository = bakedImageRepository,
+      imageService = imageService,
+      clock = clock,
+      objectMapper = objectMapper
+    )
   }
 
 
@@ -112,7 +136,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
       context("succeeded") {
         before {
           coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
-            getExecution(SUCCEEDED)
+            getSucceededBakeExecution()
           runBlocking { subject.monitor(task) }
         }
 
@@ -124,6 +148,10 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           expectThat(slot.captured.status).isEqualTo(LifecycleEventStatus.SUCCEEDED)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
           expectThat(slot.captured.timestamp).isEqualTo(null)
+        }
+
+        test("saves baked image") {
+          verify(exactly = 1) { bakedImageRepository.store(any()) }
         }
       }
 
@@ -142,6 +170,10 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
           expectThat(slot.captured.status).isEqualTo(FAILED)
           expectThat(slot.captured.startMonitoring).isEqualTo(false)
           expectThat(slot.captured.timestamp).isEqualTo(null)
+        }
+
+        test("does not save baked image because it isn't in the task output") {
+          verify(exactly = 0) { bakedImageRepository.store(any()) }
         }
       }
       context("unknown") {
@@ -213,5 +245,39 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
       startTime = null,
       endTime = null,
       status = status
+    )
+
+  private fun getSucceededBakeExecution() =
+    ExecutionDetailResponse(
+      id = "12344445565D",
+      name = "bake it up",
+      application = "keel",
+      buildTime = Instant.now(),
+      startTime = null,
+      endTime = null,
+      status = SUCCEEDED,
+      execution = OrcaExecutionStages(
+        listOf(mapOf(
+          "type" to "bake",
+          "outputs" to mapOf(
+            "deploymentDetails" to listOf(
+              mapOf(
+                "ami" to "ami-222",
+                "imageId" to "ami-222",
+                "imageName" to "waffle-time-server-0.1.0_rc.6-h14.a03a954-x86_64-20210304183413-bionic-classic-hvm-sriov-ebs",
+                "amiSuffix" to "20210304183413",
+                "baseLabel" to "release",
+                "baseOs" to "bionic-classic",
+                "storeType" to "ebs",
+                "vmType" to "hvm",
+                "region" to "us-east-1",
+                "package" to "waffle-time-server_0.1.0~rc.6-h14.a03a954_all.deb",
+                "cloudProviderType" to "aws",
+                "baseAmiId" to "ami-111"
+              )
+            )
+          )
+        ))
+      )
     )
 }

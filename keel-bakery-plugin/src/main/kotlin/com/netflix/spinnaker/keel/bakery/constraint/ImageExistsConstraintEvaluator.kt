@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
 import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.keel.parseAppVersion
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -28,7 +29,8 @@ import org.springframework.stereotype.Component
 class ImageExistsConstraintEvaluator(
   private val imageService: ImageService,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: EventPublisher
+  override val eventPublisher: EventPublisher,
+  private val bakedImageRepository: BakedImageRepository
 ) : ConstraintEvaluator<ImageExistsConstraint> {
 
   override fun isImplicit(): Boolean = true
@@ -41,25 +43,38 @@ class ImageExistsConstraintEvaluator(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment
   ): Boolean =
-    artifact !is DebianArtifact || imagesExistInAllRegions(version, artifact.vmOptions)
+    artifact !is DebianArtifact || imagesExistInAllRegions(version, artifact.vmOptions, artifact)
 
-  private fun imagesExistInAllRegions(version: String, vmOptions: VirtualMachineOptions): Boolean =
-    runBlocking {
+  /**
+   * Check both clouddriver cached images and the images we've baked that haven't been
+   * cached yet.
+   */
+  private fun imagesExistInAllRegions(version: String, vmOptions: VirtualMachineOptions, artifact: DebianArtifact): Boolean {
+    val clouddriverImages = runBlocking {
       imageService.getLatestNamedImages(
         appVersion = version.parseAppVersion(),
         account = defaultImageAccount,
         regions = vmOptions.regions
       )
     }
-      .also {
-        if (it.keys.containsAll(vmOptions.regions)) {
-          log.info("Found AMIs for all desired regions for {}", version)
-        } else {
-          log.warn("Missing regions {} for {}", (vmOptions.regions - it.keys).sorted().joinToString(), version)
-          eventPublisher.publishEvent(MissingRegionsDetected(version))
-        }
+
+    val bakedImage = bakedImageRepository.getByArtifactVersion(version, artifact)
+
+    if (clouddriverImages.keys.containsAll(vmOptions.regions)) {
+      log.info("Found AMIs for all desired regions in clouddriver cache for {}", version)
+    } else {
+      log.warn("Missing regions {} clouddriver cache for {}", (vmOptions.regions - clouddriverImages.keys).sorted().joinToString(), version)
+      eventPublisher.publishEvent(MissingRegionsDetected(version))
+
+      if (bakedImage != null) {
+        log.debug("Found AMIs for regions {} in baked image list for {}", bakedImage.amiIdsByRegion.keys, version)
+        // if we can see them from the bake, we know they exist, so we can approve the version.
+        return bakedImage.presentInAllRegions(vmOptions.regions)
       }
-      .keys.containsAll(vmOptions.regions)
+    }
+
+    return clouddriverImages.keys.containsAll(vmOptions.regions)
+  }
 
   private val defaultImageAccount: String
     get() = dynamicConfigService.getConfig("images.default-account", "test")

@@ -1,6 +1,11 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.config.LifecycleConfig
+import com.netflix.spinnaker.keel.artifacts.BakedImage
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus
@@ -16,11 +21,13 @@ import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.BUFFERED
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 /**
  * A monitor for bake tasks.
@@ -39,7 +46,11 @@ class BakeryLifecycleMonitor(
   override val publisher: ApplicationEventPublisher,
   override val lifecycleConfig: LifecycleConfig,
   private val orcaService: OrcaService,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
+  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val bakedImageRepository: BakedImageRepository,
+  private val imageService: ImageService,
+  private val objectMapper: ObjectMapper,
+  private val clock: Clock
 ): LifecycleMonitor(monitorRepository, publisher, lifecycleConfig) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -54,7 +65,10 @@ class BakeryLifecycleMonitor(
         when {
           execution.status == BUFFERED -> publishCorrectLink(task)
           execution.status == RUNNING -> publishRunningEvent(task)
-          execution.status.isSuccess() -> publishSucceededEvent(task)
+          execution.status.isSuccess() -> {
+            publishSucceededEvent(task)
+            storeBakedImage(execution)
+          }
           execution.status.isFailure() -> publishFailedEvent(task)
           else -> publishUnknownEvent(task, execution)
         }
@@ -69,6 +83,51 @@ class BakeryLifecycleMonitor(
         log.error("Error fetching status for $task: ", exception)
         handleFailureFetchingStatus(task)
       }
+  }
+
+  /**
+   * Stores the ami details from a successful bake task so we don't have to wait for those
+   * details to appear in the clouddriver cache (~5 minute delay every time).
+   *
+   * If there's a problem parsing we log an error and move on, because we will see
+   * the image in clouddriver eventually.
+   */
+  suspend fun storeBakedImage(execution: ExecutionDetailResponse) {
+    // we know we launch a bake task with a stage called "bake".
+    val bakeStageRaw = execution.execution.stages?.find { it["type"] == "bake" }
+    if (bakeStageRaw == null) {
+      log.error("Trying to find baked ami information, but can't find a bake stage for app ${execution.application} in execution ${execution.id}")
+      return
+    }
+    try {
+      val bakeStage = objectMapper.convertValue<BakeStage>(bakeStageRaw)
+      val details = bakeStage.outputs.deploymentDetails
+      if (details.isEmpty()) {
+        log.error("No bake details in the bake stage for app ${execution.application} in execution ${execution.id}")
+        return
+      }
+
+      // use the first region present because the only difference should be in ami id and region name
+      // even the base ami app version will be the same across regions
+      val detail = details.first()
+      val bakedImage = BakedImage(
+        name = detail.imageName,
+        baseLabel = detail.baseLabel,
+        baseOs = detail.baseOs,
+        vmType = detail.vmType,
+        cloudProvider = detail.cloudProviderType,
+        appVersion = detail.`package`.substringBefore("_all.deb").replaceFirst("_", "-"),
+        baseAmiVersion = imageService.findBaseAmiVersion(detail.baseAmiId, detail.region),
+        timestamp = execution.endTime ?: clock.instant(),
+        amiIdsByRegion = details.associate { regionDetail -> regionDetail.region to regionDetail.imageId }
+      )
+      bakedImageRepository.store(bakedImage)
+    } catch (e: JsonMappingException) {
+      log.error("Error converting bake stage to kotlin object for app ${execution.application} in execution ${execution.id}", e)
+    } catch (e: Exception) {
+      // if there's an error that's fine, we will move on.
+      log.error("Error finding baked image information for app ${execution.application} in execution ${execution.id}", e)
+    }
   }
 
   private fun orcaTaskIdToLink(task: MonitoredTask): String =

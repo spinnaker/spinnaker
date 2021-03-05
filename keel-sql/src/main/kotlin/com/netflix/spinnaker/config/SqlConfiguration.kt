@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.sql.SqlAgentLockRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
+import com.netflix.spinnaker.keel.sql.SqlBakedImageRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleEventRepository
@@ -190,4 +191,12 @@ class SqlConfiguration {
     properties: SqlProperties,
     objectMapper: ObjectMapper
   ) = SqlLifecycleMonitorRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun bakedImageRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    properties: SqlProperties,
+    objectMapper: ObjectMapper
+  ) = SqlBakedImageRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
 }

@@ -6,14 +6,17 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.artifacts.BakedImage
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService.NoopDynamicConfig
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
 
@@ -61,10 +65,14 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     val imageService = mockk<ImageService>(relaxUnitFun = true) {
       every { log } returns LoggerFactory.getLogger(ImageService::class.java)
     }
+    val bakedImageRepository: BakedImageRepository = mockk(relaxUnitFun = true) {
+      every { getByArtifactVersion(any(), any()) } returns null
+    }
     val evaluator = ImageExistsConstraintEvaluator(
       imageService,
       NoopDynamicConfig(),
-      eventPublisher
+      eventPublisher,
+      bakedImageRepository
     )
     val appVersion = "fnord-1.0.0-123456"
     var promotionResult: Boolean? = null
@@ -109,14 +117,69 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
         every {
           imageService.getLatestNamedImage(any(), any(), any())
         } returns null
-
-        canPromote()
       }
 
       test("the constraint does not pass (yet)") {
+        canPromote()
+
         expectThat(promotionResult)
           .describedAs("promotion decision")
           .isFalse()
+      }
+
+      context("we know of an image for this artifact version, we know of all regions") {
+        before {
+          every { bakedImageRepository.getByArtifactVersion(appVersion, artifact as DebianArtifact) } returns
+            BakedImage(
+              name = appVersion,
+              baseLabel = RELEASE,
+              baseOs = "bionic-classic",
+              vmType = "hvm",
+              cloudProvider = "aws",
+              appVersion = appVersion,
+              baseAmiVersion = "base-ami-1",
+              amiIdsByRegion = mapOf(
+                "us-east-1" to "ami-11110",
+                "us-west-2" to "ami-22228"
+              ),
+              timestamp = Instant.ofEpochMilli(1614893256845)
+            )
+        }
+
+        test("the constraint passes") {
+          canPromote()
+
+          expectThat(promotionResult)
+            .describedAs("promotion decision")
+            .isTrue()
+        }
+      }
+
+      context("we know of an image for this artifact version, we know of only one region") {
+        before {
+          every { bakedImageRepository.getByArtifactVersion(appVersion, artifact as DebianArtifact) } returns
+            BakedImage(
+              name = appVersion,
+              baseLabel = RELEASE,
+              baseOs = "bionic-classic",
+              vmType = "hvm",
+              cloudProvider = "aws",
+              appVersion = appVersion,
+              baseAmiVersion = "base-ami-1",
+              amiIdsByRegion = mapOf(
+                "us-east-1" to "ami-11110"
+              ),
+              timestamp = Instant.ofEpochMilli(1614893256845)
+            )
+        }
+
+        test("the constraint does not pass (yet)") {
+          canPromote()
+
+          expectThat(promotionResult)
+            .describedAs("promotion decision")
+            .isFalse()
+        }
       }
     }
 

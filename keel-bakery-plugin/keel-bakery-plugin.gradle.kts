@@ -15,6 +15,7 @@ dependencies {
   implementation("com.netflix.frigga:frigga")
 
   testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-mockk")
   testImplementation(project(":keel-spring-test-support"))

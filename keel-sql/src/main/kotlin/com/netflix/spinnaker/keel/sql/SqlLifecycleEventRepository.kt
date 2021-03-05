@@ -161,7 +161,7 @@ class SqlLifecycleEventRepository(
    * an id and if the event is older than 5 minutes
    * because we dropped a fair amount of monitoring of events.
    *
-   * todo eb: remove once we backfill the events.
+   * Update 3/2020: This is extremely useful for local testing, so it stays.
    */
   private fun retriggerMonitoring(events: List<LifecycleEvent>) {
     if (events.size != 1) {

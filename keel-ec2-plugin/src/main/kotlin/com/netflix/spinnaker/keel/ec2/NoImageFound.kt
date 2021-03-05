@@ -27,3 +27,6 @@ class NoImageFoundForRegions(artifactName: String, regions: Collection<String>) 
 
 class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
   ResourceCurrentlyUnresolvable("No image found for artifact $artifactName that satisfies constraints in environment $environment")
+
+class NoArtifactVersionHasBeenApproved(artifactName: String, environment: String) :
+  ResourceCurrentlyUnresolvable("No versions have been approved for deployment for $artifactName in environment $environment")

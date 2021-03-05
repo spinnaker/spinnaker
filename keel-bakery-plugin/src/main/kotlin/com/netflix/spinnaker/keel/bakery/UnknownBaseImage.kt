@@ -5,3 +5,6 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 
 class UnknownBaseImage(os: String, label: BaseLabel) :
   SystemException("Could not identify base image for os $os and label $label")
+
+class UnknownBaseImageId(id: String):
+  SystemException("Could not identify base image for id $id")
