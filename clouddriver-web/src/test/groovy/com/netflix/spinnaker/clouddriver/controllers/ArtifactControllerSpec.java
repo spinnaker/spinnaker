@@ -19,18 +19,25 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.Main;
+import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactCredentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -48,7 +55,8 @@ import org.springframework.web.context.WebApplicationContext;
     properties = {
       "redis.enabled = false",
       "sql.enabled = false",
-      "spring.application.name = clouddriver"
+      "spring.application.name = clouddriver",
+      "artifacts.helm.enabled = true"
     })
 public class ArtifactControllerSpec {
 
@@ -57,6 +65,8 @@ public class ArtifactControllerSpec {
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private ObjectMapper objectMapper;
+
+  @Autowired private CredentialsRepository<HelmArtifactCredentials> helmCredentials;
 
   @BeforeEach
   public void setup() throws Exception {
@@ -77,5 +87,58 @@ public class ArtifactControllerSpec {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(content().string(is(emptyString())));
+  }
+
+  @Test
+  public void testArtifactNames() throws Exception {
+    List<String> names = ImmutableList.of("artifact1", "artifact2");
+    HelmArtifactCredentials credentials = Mockito.mock(HelmArtifactCredentials.class);
+    Mockito.when(credentials.getName()).thenReturn("my-account");
+    Mockito.when(credentials.getType()).thenReturn(HelmArtifactCredentials.CREDENTIALS_TYPE);
+    Mockito.when(credentials.handlesType("helm/chart")).thenReturn(true);
+    Mockito.when(credentials.getArtifactNames()).thenReturn(names);
+    helmCredentials.save(credentials);
+
+    mvc.perform(
+            get("/artifacts/account/{accountName}/names", credentials.getName())
+                .param("type", "helm/chart"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", Matchers.hasSize(2)))
+        .andExpect(jsonPath("$[0]", Matchers.is(names.get(0))))
+        .andExpect(jsonPath("$[1]", Matchers.is(names.get(1))));
+
+    // We also don't expect to find an account that can support type artifacts-helm
+    mvc.perform(
+            get("/artifacts/account/{accountName}/names", credentials.getName())
+                .param("type", HelmArtifactCredentials.CREDENTIALS_TYPE))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void testArtifactVersions() throws Exception {
+    final String artifactName = "my-artifact";
+    List<String> versions = ImmutableList.of("version1", "version2");
+    HelmArtifactCredentials credentials = Mockito.mock(HelmArtifactCredentials.class);
+    Mockito.when(credentials.getName()).thenReturn("my-account");
+    Mockito.when(credentials.getType()).thenReturn(HelmArtifactCredentials.CREDENTIALS_TYPE);
+    Mockito.when(credentials.handlesType("helm/chart")).thenReturn(true);
+    Mockito.when(credentials.getArtifactVersions(artifactName)).thenReturn(versions);
+    helmCredentials.save(credentials);
+
+    mvc.perform(
+            get("/artifacts/account/{accountName}/versions", credentials.getName())
+                .param("type", "helm/chart")
+                .param("artifactName", artifactName))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", Matchers.hasSize(2)))
+        .andExpect(jsonPath("$[0]", Matchers.is(versions.get(0))))
+        .andExpect(jsonPath("$[1]", Matchers.is(versions.get(1))));
+
+    // We also don't expect to find an account that can support type artifacts-helm
+    mvc.perform(
+            get("/artifacts/account/{accountName}/versions", credentials.getName())
+                .param("type", HelmArtifactCredentials.CREDENTIALS_TYPE)
+                .param("artifactName", artifactName))
+        .andExpect(status().isNotFound());
   }
 }

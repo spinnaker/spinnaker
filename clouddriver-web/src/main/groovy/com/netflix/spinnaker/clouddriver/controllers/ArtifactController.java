@@ -21,12 +21,14 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -67,19 +69,24 @@ public class ArtifactController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")
   List<String> getNames(
-      @PathVariable("accountName") String accountName, @RequestParam(value = "type") String type) {
+      @PathVariable("accountName") String accountName,
+      @RequestParam(value = "type") String artifactType) {
     ArtifactCredentials credentials =
-        artifactCredentialsRepository.getCredentials(accountName, type);
+        artifactCredentialsRepository.getCredentialsForType(accountName, artifactType);
     return credentials.getArtifactNames();
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/versions")
   List<String> getVersions(
       @PathVariable("accountName") String accountName,
-      @RequestParam(value = "type") String type,
+      @RequestParam(value = "type") String artifactType,
       @RequestParam(value = "artifactName") String artifactName) {
     ArtifactCredentials credentials =
-        artifactCredentialsRepository.getCredentials(accountName, type);
+        artifactCredentialsRepository.getCredentialsForType(accountName, artifactType);
     return credentials.getArtifactVersions(artifactName);
   }
+
+  @ExceptionHandler(MissingCredentialsException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public void handleMissingCredentials() {}
 }
