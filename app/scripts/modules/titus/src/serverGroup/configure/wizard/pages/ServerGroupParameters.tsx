@@ -1,5 +1,5 @@
 import { FormikProps } from 'formik';
-import { intersection, union } from 'lodash';
+import { intersection, union, set } from 'lodash';
 import React from 'react';
 
 import {
@@ -8,6 +8,7 @@ import {
   CheckboxInput,
   ChecklistInput,
   FormikFormField,
+  FormValidator,
   HelpField,
   IFormInputProps,
   IWizardPageComponent,
@@ -96,20 +97,26 @@ export class ServerGroupParameters
   }
 
   public validate(_values: ITitusServerGroupCommand) {
-    const { soft: softConstraints, hard: hardConstraints } = _values.constraints;
-    const errors = {} as any;
+    const validator = new FormValidator(_values);
+    validator.field('iamProfile', 'IAM Instance Profile').required();
 
-    if (!_values.iamProfile) {
-      errors.iamProfile = 'IAM Profile is required.';
-    }
+    const errors = validator.validateForm();
 
-    const duplicateConstraints = intersection(Object.keys(softConstraints), Object.keys(hardConstraints));
-    if (duplicateConstraints.length > 0) {
-      errors.constraints = errors.constraints || {};
-      errors.constraints.soft = errors.constraints.hard = `${duplicateConstraints.join(
-        ',',
-      )} constraints must be either soft or hard, not both.`;
-    }
+    const duplicates = intersection(Object.keys(_values.constraints.soft), Object.keys(_values.constraints.hard));
+    duplicates.forEach((key) => {
+      set(errors, `constraints.soft.${key}`, `Constraint '${key}' must be either soft or hard, not both.`);
+      set(errors, `constraints.hard.${key}`, `Constraint '${key}' must be either soft or hard, not both.`);
+    });
+
+    Object.keys(_values.env || {})
+      .filter((key) => !key.startsWith('__MapEditorDuplicateKey'))
+      .forEach((key) => {
+        if (!key.match(/^[A-Za-z].*/)) {
+          set(errors, `env.${key}`, 'Environment variable names must start with a letter');
+        } else if (!key.match(/[A-Za-z][a-zA-Z0-9_]*$/)) {
+          set(errors, `env.${key}`, 'Environment variable names must contain only letter, numbers, or underscores');
+        }
+      });
 
     return errors;
   }
