@@ -154,6 +154,10 @@
           cloud-provider="'titus'"
         ></config-bin-link>
       </div>
+      <titus-custom-scaling-policy
+        application="ctrl.application"
+        server-group="serverGroup"
+      ></titus-custom-scaling-policy>
     </collapsible-section>
     <collapsible-section heading="Job Disruption Budget">
       <titus-disruption-budget-section
