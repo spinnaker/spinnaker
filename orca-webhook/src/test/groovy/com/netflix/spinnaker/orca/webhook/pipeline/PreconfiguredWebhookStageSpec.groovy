@@ -35,7 +35,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
   MonitorWebhookTask monitorWebhookTask = Mock(MonitorWebhookTask)
 
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, false, null, monitorWebhookTask)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:

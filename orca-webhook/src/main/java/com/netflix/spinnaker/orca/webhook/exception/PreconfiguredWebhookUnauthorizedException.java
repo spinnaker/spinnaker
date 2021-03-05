@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.webhook.exception
+package com.netflix.spinnaker.orca.webhook.exception;
 
-class PreconfiguredWebhookUnauthorizedException extends RuntimeException {
-  PreconfiguredWebhookUnauthorizedException(String user, String webhookKey) {
-    super("User '$user' is not allowed to execute stage named '$webhookKey'")
+public class PreconfiguredWebhookUnauthorizedException extends RuntimeException {
+  public PreconfiguredWebhookUnauthorizedException(String user, String webhookKey) {
+    super(String.format("User '%s' is not allowed to execute stage named '%s'", user, webhookKey));
   }
 }

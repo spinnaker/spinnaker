@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.webhook.exception
+package com.netflix.spinnaker.orca.webhook.exception;
 
-class PreconfiguredWebhookNotFoundException extends RuntimeException {
-  PreconfiguredWebhookNotFoundException(String webhookKey) {
-    super("Could not find a stage named '$webhookKey'")
+public class PreconfiguredWebhookNotFoundException extends RuntimeException {
+  public PreconfiguredWebhookNotFoundException(String webhookKey) {
+    super(String.format("Could not find a stage named '%s'", webhookKey));
   }
 }

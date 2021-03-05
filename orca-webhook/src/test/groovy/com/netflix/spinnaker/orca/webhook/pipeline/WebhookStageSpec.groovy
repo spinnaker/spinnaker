@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
-import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
+import groovy.json.JsonOutput
+import org.springframework.http.HttpMethod
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -32,11 +34,10 @@ class WebhookStageSpec extends Specification {
 
   def builder = Mock(TaskNode.Builder)
 
-  WebhookService webhookService = Mock()
   MonitorWebhookTask monitorWebhookTask = Mock()
 
   @Subject
-  webhookStage = new WebhookStage(webhookService, monitorWebhookTask)
+  webhookStage = new WebhookStage(monitorWebhookTask)
 
   @Unroll
   def "Should create correct tasks"() {
@@ -89,5 +90,24 @@ class WebhookStageSpec extends Specification {
 
     then:
     thrown(UserException)
+  }
+
+  def 'json format is respected'() {
+    given:
+    def json = JsonOutput.toJson([cancelMethod: methodString, method: methodString])
+    def mapper = new ObjectMapper()
+
+    when:
+    def data = mapper.readValue(json, WebhookStage.StageData)
+
+    then:
+    data.method == method
+    data.cancelMethod == method
+
+    where:
+    methodString | method
+    'get'        | HttpMethod.GET
+    'GET'        | HttpMethod.GET
+    'Get'        | HttpMethod.GET
   }
 }
