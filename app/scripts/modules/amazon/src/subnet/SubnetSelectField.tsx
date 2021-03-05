@@ -34,7 +34,7 @@ export class SubnetSelectField extends React.Component<ISubnetSelectFieldProps> 
       AWSProviderSettings.serverGroups?.recommendedSubnets || [],
       (subnet) => value && value.includes(subnet),
     );
-    const { subnetWarning } = AWSProviderSettings.serverGroups;
+    const subnetWarning = AWSProviderSettings.serverGroups?.subnetWarning;
     return (
       <div className="form-group">
         <div className={`col-md-${labelColumns} sm-label-right`}>
