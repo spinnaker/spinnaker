@@ -4,7 +4,10 @@
   "version": "0.0.9",
   "license": "Apache-2.0",
   "scripts": {
-    "sync": "./sync-versions-from-deck.js --source ../../package.json --dest package.json --no-peer --no-dev",
+    "temp": "./convert-peerdeps.js --from-peerdeps --input package.json --output package.temp.json",
+    "restoretemp": "./convert-peerdeps.js --to-peerdeps --output package.json --input package.temp.json && rm package.temp.json",
+    "copyDeck": "./sync-versions-from-deck.js --source ../../package.json --dest package.temp.json --no-peer --no-dev",
+    "sync": "npm run temp && npm run copyDeck && npm run restoretemp",
     "interactive": "./upgrade-interactive.sh"
   },
   "files": [],

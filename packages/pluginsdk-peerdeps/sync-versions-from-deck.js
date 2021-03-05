@@ -37,8 +37,10 @@ const getDesiredVersion = (pkgName) => {
   switch (pkgName) {
     case '@spinnaker/core':
       return parse(getPath('../../app/scripts/modules/core/package.json')).version;
-    case '@spinnaker/eslint':
+    case '@spinnaker/eslint-plugin':
       return parse(getPath('../eslint-plugin/package.json')).version;
+    case '@spinnaker/presentation':
+      return parse(getPath('../presentation/package.json')).version;
     default:
       return versionsFromDeck[pkgName];
   }
@@ -48,7 +50,7 @@ const packageJson = parse(targetPackageJson);
 const shouldSkip = (key) =>
   (key === 'devDependencies' && argv['no-dev']) || (key === 'peerDependencies' && argv['no-peer']);
 
-const keys = ['dependencies', 'peerDependencies', 'devDependencies'].filter((key) => !shouldSkip);
+const keys = ['dependencies', 'peerDependencies', 'devDependencies'].filter((key) => !shouldSkip(key));
 
 keys.forEach((key) => {
   Object.keys(packageJson[key] || {}).forEach((pkgName) => {
