@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
+import com.netflix.spinnaker.keel.api.verification.PendingVerification
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
@@ -106,6 +107,7 @@ internal class VerificationRunnerTests {
     )
     val metadata = mapOf("taskId" to ULID().nextULID(), "images" to images)
 
+    every { repository.pendingInEnvironment(any(), any())} returns emptyList()
     every { repository.getState(any(), any()) } returns null
     every { evaluator.start(any(), any()) } returns metadata
 
@@ -138,6 +140,7 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
+    every { repository.pendingInEnvironment(any(), any())} returns emptyList()
     every { repository.getState(any(), any()) } returns VerificationState(NOT_EVALUATED, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
     every { evaluator.start(any(), any()) } answers { mapOf("tasks" to listOf(ULID().nextULID())) }
 
@@ -170,6 +173,7 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
+    every { repository.pendingInEnvironment(any(), any())} returns emptyList()
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
@@ -179,6 +183,46 @@ internal class VerificationRunnerTests {
 
     verify { evaluator.evaluate(context, DummyVerification("1"), any()) }
     verify(exactly = 0) { evaluator.start(any(), any()) }
+    verify(exactly = 0) { publisher.publishEvent(any()) }
+  }
+
+  @Test
+  fun `no-ops if a verification for a previous artifact version was already running and has yet to complete`() {
+    val verification = DummyVerification("1")
+    val context1 = VerificationContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(verification)
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+    val context2 = context1.copy(
+      version = "fnord-0.191.0-h379.d4d9ec0"
+    )
+
+    every { repository.pendingInEnvironment(any(), any())} returns listOf(
+      PendingVerification(context1, verification, VerificationState(PENDING, now(), null))
+    )
+    every { repository.getState(context1, verification) } returns PENDING.toState()
+    every { repository.getState(context2, verification) } returns null
+
+    every { evaluator.evaluate(context1, verification, emptyMap()) } returns PENDING
+
+    subject.runVerificationsFor(context2)
+
+    verify(exactly = 0) { evaluator.start(context2, any()) }
     verify(exactly = 0) { publisher.publishEvent(any()) }
   }
 
@@ -210,6 +254,7 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
+    every { repository.pendingInEnvironment(any(), any())} returns emptyList()
     every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
     every { repository.getState(any(), DummyVerification("2")) } returns null
 
@@ -224,6 +269,64 @@ internal class VerificationRunnerTests {
 
     verify { evaluator.start(context, DummyVerification("2")) }
     verify { repository.updateState(any(), DummyVerification("2"), PENDING, mapOf("images" to images)) }
+    verify { publisher.publishEvent(ofType<VerificationStarted>()) }
+  }
+
+  @ParameterizedTest(
+    name = "continues to the next if any verification for a previous artifact version was already running and has now completed with {0}"
+  )
+  @EnumSource(
+    value = ConstraintStatus::class,
+    names = ["PASS", "FAIL"]
+  )
+  fun `continues to the next if any verification for a previous artifact version was already running and has now completed`(status: ConstraintStatus) {
+    val verification = DummyVerification("1")
+    val context1 = VerificationContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(verification)
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+    val context2 = context1.copy(
+      version = "fnord-0.191.0-h379.d4d9ec0"
+    )
+
+    // a verification for a prior version was running…
+    every { repository.pendingInEnvironment(any(), any())} returns listOf(
+      PendingVerification(context1, verification, VerificationState(PENDING, now(), null))
+    )
+    every { repository.getState(context1, verification) } returns PENDING.toState()
+
+    // … but has now completed
+    every { evaluator.evaluate(context1, verification, any()) } returns status
+
+    // nothing was running for the new version yet
+    every { repository.getState(context2, any()) } returns null
+
+    every { evaluator.start(any(), any()) } returns emptyMap()
+
+    subject.runVerificationsFor(context2)
+
+    // marks the verification for the prior version complete
+    verify { repository.updateState(context1, verification, status) }
+    verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
+
+    // launches the verification for the new version
+    verify { evaluator.start(context2, verification) }
+    verify { repository.updateState(context2, verification, PENDING, mapOf("images" to images)) }
     verify { publisher.publishEvent(ofType<VerificationStarted>()) }
   }
 
@@ -255,12 +358,9 @@ internal class VerificationRunnerTests {
       version = "fnord-0.190.0-h378.eacb135"
     )
 
-    every {
-      repository.getState(any(), DummyVerification("1"))
-    } returns PASS.toState()
-    every {
-      repository.getState(any(), DummyVerification("2"))
-    } returns status.toState()
+    every { repository.pendingInEnvironment(any(), any())} returns emptyList()
+    every { repository.getState(any(), DummyVerification("1")) } returns PASS.toState()
+    every { repository.getState(any(), DummyVerification("2")) } returns status.toState()
 
     subject.runVerificationsFor(context)
 

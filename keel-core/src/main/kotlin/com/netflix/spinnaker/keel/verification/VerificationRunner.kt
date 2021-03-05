@@ -26,6 +26,14 @@ class VerificationRunner(
    * particular environment and artifact version.
    */
   fun runVerificationsFor(context: VerificationContext) {
+    if (context.environment.verifyWith.isEmpty()) {
+      return
+    }
+
+    if (anyPendingVerificationsForPreviousVersions(context)) {
+      return
+    }
+
     with(context) {
       val statuses = environment
         .verifyWith
@@ -44,6 +52,33 @@ class VerificationRunner(
     }
   }
 
+  private fun anyPendingVerificationsForPreviousVersions(context: VerificationContext) =
+    verificationRepository
+      .pendingInEnvironment(context.deliveryConfig, context.environmentName)
+      // only consider other versions, we'll handle verifications for the version in context later
+      .filterNot { it.context.version == context.version }
+      // get the latest status by re-evaluating each one (which will update in the database)
+      .associateWith { it.context.latestStatus(it.verification) }
+      // we're only concerned with anything that is still running after we have re-evaluated it
+      .filter { (_, status) -> status == PENDING }
+      .let { pendingVerifications ->
+        // if we still have any pending verifications then something is still running for a previous
+        // version of the artifact -- we should wait
+        if (pendingVerifications.isNotEmpty()) {
+          pendingVerifications.forEach { (pendingVerification, status) ->
+            log.debug(
+              "Previous verification {} for {} is still {}",
+              pendingVerification.verification.id,
+              pendingVerification.context.version,
+              status
+            )
+          }
+          true
+        } else {
+          false
+        }
+      }
+
   private fun VerificationContext.start(verification: Verification, images: List<CurrentImages>) {
     val metadata = evaluators.start(this, verification) + mapOf("images" to images)
     markAsRunning(verification, metadata)
@@ -56,10 +91,22 @@ class VerificationRunner(
       evaluators.evaluate(this, verification, state.metadata)
         .also { newStatus ->
           if (newStatus.complete) {
-            log.debug("Verification {} completed with status {} for environment {} of application {}",
-              verification, newStatus, environment.name, deliveryConfig.application)
+            log.debug(
+              "Verification {} completed with status {} for {}'s {} environment",
+              verification,
+              newStatus,
+              deliveryConfig.application,
+              environment.name
+            )
             markAs(verification, newStatus)
-            eventPublisher.publishEvent(VerificationCompleted(this, verification, newStatus, state.metadata))
+            eventPublisher.publishEvent(
+              VerificationCompleted(
+                this,
+                verification,
+                newStatus,
+                state.metadata
+              )
+            )
           }
         }
     } else {
@@ -67,6 +114,9 @@ class VerificationRunner(
     }
   }
 
+  /**
+   * `true` if any of the statuses is [PENDING], `false` if none are or the collection is empty.
+   */
   private val Collection<Pair<*, ConstraintStatus?>>.anyStillRunning: Boolean
     get() = any { (_, status) -> status == PENDING }
 
