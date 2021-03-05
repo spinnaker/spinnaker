@@ -50,7 +50,7 @@ export function Overridable(key: string) {
  *
  * export const MyOverridableCmp = overridableComponent(MyCmp);
  */
-export function overridableComponent<P extends IOverridableProps, T extends React.ComponentClass<P>>(
+export function overridableComponent<P extends IOverridableProps, T extends React.ComponentType<P>>(
   OriginalComponent: T,
   key: string,
 ): T {

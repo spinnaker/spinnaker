@@ -18,7 +18,7 @@ export class RegistrationQueue {
     this.flush();
   }
 
-  public register(component: React.ComponentClass, key: string, cloudProvider?: string) {
+  public register(component: React.ComponentType, key: string, cloudProvider?: string) {
     this.queue.push(() => {
       if (!cloudProvider) {
         this.overrideRegistry.overrideComponent(key, component);
@@ -61,3 +61,16 @@ export function Overrides(key: string, cloudProvider?: string) {
     overrideRegistrationQueue.register(targetComponent, key, cloudProvider);
   };
 }
+
+/**
+ * Registers a component as a replacement for some other component.
+ *
+ * This should be applied to a React Function Component, since they cannot utilize decorators.
+ * The component class will be used instead of the OverridableComponent with the same key.
+ *
+ * If an (optional) cloudProvider is specified, the component override takes effect only for that cloud provider.
+ * If not, this is the same as using the override registry to override the component.
+ */
+export const overridesComponent = (targetComponent: React.ComponentType, key: string, cloudProvider?: string) => {
+  overrideRegistrationQueue.register(targetComponent, key, cloudProvider);
+};
