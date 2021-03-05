@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from '.';
+import { Application } from './application.model';
 
 export const ApplicationContext = React.createContext<Application | undefined>(undefined);
 
