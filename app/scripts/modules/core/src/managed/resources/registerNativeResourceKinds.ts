@@ -35,4 +35,9 @@ export const registerNativeResourceKinds = () => {
     kind: 'ec2/application-load-balancer@v1.1',
     iconName: 'loadBalancer',
   });
+
+  registerResourceKind({
+    kind: 'ec2/application-load-balancer@v1.2',
+    iconName: 'loadBalancer',
+  });
 };
