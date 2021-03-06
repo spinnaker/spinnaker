@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.RegisterInstancesWithTar
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,8 @@ import org.springframework.stereotype.Component;
 class RegisterInstancesWithLoadBalancerAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
   private Boolean isClassic(Map input) {
-    return !input.containsKey("targetGroupNames");
+    return !input.containsKey("targetGroupNames")
+        || getObjectMapper().convertValue(input.get("targetGroupNames"), List.class).isEmpty();
   }
 
   @Override
