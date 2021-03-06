@@ -29,7 +29,12 @@ internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
 
     val configName = "my-config"
     val version = "1.1.1"
-    val artifact = DockerArtifact("fnord", reference = "dockerfnord", deliveryConfigName = configName)
+    val artifact = DockerArtifact(
+      name = "fnord",
+      reference = "dockerfnord",
+      deliveryConfigName = configName,
+      branch = "main"
+    )
 
     val resource: Resource<DummyResourceSpec> = resource()
     val constraint = ManualJudgementConstraint(timeout = Duration.ofHours(1))

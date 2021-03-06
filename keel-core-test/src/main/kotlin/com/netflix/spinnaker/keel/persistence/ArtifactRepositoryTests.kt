@@ -3,11 +3,11 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
-import com.netflix.spinnaker.keel.api.artifacts.BranchFilterSpec
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.Commit
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
@@ -45,7 +45,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -94,8 +93,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = "my-manifest",
       reference = "feature-branch",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
-        branch = BranchFilterSpec(
+      from = ArtifactOriginFilter(
+        branch = BranchFilter(
           name = "my-feature-branch"
         )
       )
@@ -106,8 +105,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = "my-manifest",
       reference = "feature-branch",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
-        branch = BranchFilterSpec(
+      from = ArtifactOriginFilter(
+        branch = BranchFilter(
           startsWith = "feature-"
         )
       )
@@ -118,8 +117,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = "my-manifest",
       reference = "feature-branch",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
-        branch = BranchFilterSpec(
+      from = ArtifactOriginFilter(
+        branch = BranchFilter(
           regex = ".*feature.*"
         )
       )
@@ -130,7 +129,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = "my-manifest",
       reference = "pr",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
+      from = ArtifactOriginFilter(
         pullRequestOnly = true
       )
     )
@@ -140,8 +139,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = "my-manifest",
       reference = "pr",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
-        branch = BranchFilterSpec(
+      from = ArtifactOriginFilter(
+        branch = BranchFilter(
           name = "my-feature-branch"
         ),
         pullRequestOnly = true

@@ -242,3 +242,6 @@ databaseChangeLog:
   - include:
       file: changelog/202010303-baked-images.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210305-fix-artifacts.yml
+      relativeToChangelogFile: true

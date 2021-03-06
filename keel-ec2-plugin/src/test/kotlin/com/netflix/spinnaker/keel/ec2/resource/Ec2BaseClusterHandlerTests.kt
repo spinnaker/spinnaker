@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import io.mockk.mockk
@@ -33,6 +34,7 @@ class Ec2BaseClusterHandlerTests : BaseClusterHandlerTests<ClusterSpec, ServerGr
   private val taskLauncher: TaskLauncher = mockk()
   private val clusterExportHelper: ClusterExportHelper = mockk()
   private val blockDeviceConfig : BlockDeviceConfig = mockk()
+  val artifactService = mockk<ArtifactService>()
 
   val metadata = mapOf("id" to "1234", "application" to "waffles", "serviceAccount" to "me@you.com" )
 
@@ -66,7 +68,8 @@ class Ec2BaseClusterHandlerTests : BaseClusterHandlerTests<ClusterSpec, ServerGr
       eventPublisher = eventPublisher,
       resolvers = resolvers,
       clusterExportHelper = clusterExportHelper,
-      blockDeviceConfig = blockDeviceConfig
+      blockDeviceConfig = blockDeviceConfig,
+      artifactService = artifactService
     ))
 
   override fun getRegions(resource: Resource<ClusterSpec>): List<String> =

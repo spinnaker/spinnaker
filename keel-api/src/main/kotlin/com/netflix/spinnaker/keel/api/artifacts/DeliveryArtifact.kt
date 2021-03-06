@@ -26,7 +26,7 @@ enum class ArtifactStatus {
  * @param startsWith Match branches starting with this string.
  * @param regex A regular expression to match against (e.g. "feature-.*").
  */
-data class BranchFilterSpec(
+data class BranchFilter(
   val name: String? = null,
   val startsWith: String? = null,
   val regex: String? = null
@@ -45,11 +45,11 @@ data class BranchFilterSpec(
 /**
  * Filters for the origin of an artifact in source control.
  *
- * @param branch A [BranchFilterSpec] with branch filters.
+ * @param branch A [BranchFilter] with branch filters.
  * @param pullRequestOnly Whether to include only artifacts built from pull requests.
  */
-data class ArtifactOriginFilterSpec(
-  val branch: BranchFilterSpec? = null,
+data class ArtifactOriginFilter(
+  val branch: BranchFilter? = null,
   val pullRequestOnly: Boolean? = false
 )
 
@@ -72,7 +72,7 @@ abstract class DeliveryArtifact {
   /** A set of release statuses to filter by. Mutually exclusive with [from] filters. */
   open val statuses: Set<ArtifactStatus> = emptySet()
   /** Filters for the artifact origin in source control. */
-  open val from: ArtifactOriginFilterSpec? = null
+  open val from: ArtifactOriginFilter? = null
 
   val filteredByBranch: Boolean
     get() = from?.branch != null

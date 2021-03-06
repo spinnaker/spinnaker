@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
@@ -46,6 +47,7 @@ import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.api.withDefaultsOmitted
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -57,7 +59,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
-import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.parseMoniker
@@ -68,6 +69,7 @@ import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
 import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.ExportError
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.dependsOn
@@ -91,6 +93,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup as ClouddriverServerGroup
 
+/**
+ * [ResourceHandler] implementation for EC2 clusters, represented by [ClusterSpec].
+ */
 class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
@@ -100,7 +105,8 @@ class ClusterHandler(
   override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper,
-  private val blockDeviceConfig: BlockDeviceConfig
+  private val blockDeviceConfig: BlockDeviceConfig,
+  private val artifactService: ArtifactService,
 ) : BaseClusterHandler<ClusterSpec, ServerGroup>(resolvers) {
 
   private val debianArtifactParser = DebianArtifactParser()
@@ -483,25 +489,48 @@ class ClusterHandler(
     }
 
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
-    val artifactName = checkNotNull(base.launchConfiguration.appVersion).parseAppVersion().packageName
-
-    val status = debianArtifactParser.parseStatus(base.launchConfiguration.appVersion?.substringAfter("$artifactName-"))
-    if (status == UNKNOWN) {
-      throw ExportError("Unable to determine release status from appVersion ${base.launchConfiguration.appVersion}, you'll have to configure this artifact manually.")
+    val appVersion = checkNotNull(base.launchConfiguration.appVersion).parseAppVersion()
+    val artifactName = appVersion.packageName
+    val artifactVersion = base.launchConfiguration.appVersion!!.removePrefix("${artifactName}-")
+    val artifact = try {
+      artifactService.getArtifact(artifactName, artifactVersion, DEBIAN)
+    } catch (e: HttpException) {
+      if (e.isNotFound) null else throw e
     }
 
-    return DebianArtifact(
-      name = artifactName,
-      vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)),
-      statuses = setOf(status)
-    )
+    // prefer branch-based artifact spec, fallback to release statuses
+    if (artifact?.branch != null) {
+      log.debug("Found branch name '{}' for artifact {}:{} from metadata. Returning source-driven artifact.",
+        artifact.branch, artifactName, artifactVersion)
+
+      return DebianArtifact(
+        name = artifactName,
+        vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)),
+        branch = artifact.branch
+      )
+    } else {
+      // fall back to exporting the artifact in the old format if we can't retrieve metadata
+      log.debug("Unable to retrieve branch name for artifact {}:{} from metadata. Returning legacy artifact.",
+        appVersion.packageName, appVersion.version)
+
+      val status = debianArtifactParser.parseStatus(base.launchConfiguration.appVersion?.substringAfter("$artifactName-"))
+      if (status == UNKNOWN) {
+        throw ExportError("Unable to determine release status from appVersion ${base.launchConfiguration.appVersion}, you'll have to configure this artifact manually.")
+      }
+
+      return DebianArtifact(
+        name = artifactName,
+        vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)),
+        statuses = setOf(status)
+      )
+    }
   }
 
   /**
    * This function attempts to use image description to guess what OS the image is.
    * If not found, it will throw an error.
    */
-  fun guessBaseOsFrom(image: ActiveServerGroupImage?): String =
+  private fun guessBaseOsFrom(image: ActiveServerGroupImage?): String =
     parseBaseOsFrom(image?.description)
       ?: throw ExportError("Unable to determine the base image from image description: $image")
 

@@ -40,7 +40,7 @@ abstract class LifecycleEventRepositoryTests<T: LifecycleEventRepository> : JUni
   data class Fixture<T : LifecycleEventRepository>(
     val subject: T
   )
-  val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config")
+  val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config", branch = "main")
   val version = "123.4"
   val link = "http://www.bake.com/$version"
   val event = LifecycleEvent(

@@ -57,7 +57,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val secondConfigName = "my-config-2"
   val application = "fnord"
   val secondApplication = "fnord-2"
-  val artifact = DockerArtifact(name = "org/image", deliveryConfigName = configName)
+  val artifact = DockerArtifact(name = "org/image", deliveryConfigName = configName, branch = "main")
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
   val secondResource = resource()
@@ -162,7 +162,8 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               ArtifactRegisteredEvent(
                 DockerArtifact(
                   name = "org/image",
-                  deliveryConfigName = configName
+                  deliveryConfigName = configName,
+                  branch = "main"
                 )
               )
             )
@@ -233,7 +234,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         context("artifact properties modified") {
           before {
             val updatedConfig = deliveryConfig.copy(
-              artifacts = setOf(artifact.copy(tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB))
+              artifacts = setOf(artifact.copy(from = null, tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB))
             )
             subject.upsertDeliveryConfig(updatedConfig)
           }

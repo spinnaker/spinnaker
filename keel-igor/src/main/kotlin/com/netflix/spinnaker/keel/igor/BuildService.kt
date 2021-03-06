@@ -7,7 +7,7 @@ import retrofit2.http.Query
 interface BuildService {
 
   /**
-   * Retrieves build information by commit id and build number from a ci service.
+   * Retrieves build information by commit id and build number from a CI service.
    *
    * @param projectKey The "project" within the SCM system where the repository exists, which can be a user's personal
    *        area (e.g. "SPKR", "~<username>")

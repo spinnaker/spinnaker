@@ -16,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import org.junit.jupiter.api.AfterEach
 import org.springframework.core.env.Environment
+import java.time.Instant
 
 internal class SqlVerificationRepositoryTests :
   VerificationRepositoryTests<SqlVerificationRepository>() {
@@ -87,7 +88,8 @@ internal class SqlVerificationRepositoryTests :
       PublishedArtifact(
         artifact.name,
         artifact.type,
-        version
+        version,
+        createdAt = Instant.now()
       )
     )
   }

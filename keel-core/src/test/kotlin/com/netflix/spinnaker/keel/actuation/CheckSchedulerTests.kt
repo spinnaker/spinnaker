@@ -78,7 +78,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
       )
     ),
     DockerArtifact(
-      name = "fnord-but-like-in-a-container"
+      name = "fnord-but-like-in-a-container",
+      branch = "main"
     )
   )
 

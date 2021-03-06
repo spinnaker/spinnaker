@@ -54,7 +54,6 @@ import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
-import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -86,6 +85,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup as ClouddriverTitusServerGroup
 
+/**
+ * [ResourceHandler] implementation for Titus clusters, represented by [TitusClusterSpec].
+ */
 class TitusClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
@@ -142,7 +144,7 @@ class TitusClusterHandler(
     return unhealthyRegions
   }
 
-  fun isHealthy(serverGroup: TitusServerGroup, resource: Resource<TitusClusterSpec>): Boolean =
+  private fun isHealthy(serverGroup: TitusServerGroup, resource: Resource<TitusClusterSpec>): Boolean =
     serverGroup.instanceCounts?.isHealthy(
       resource.spec.deployWith.health,
       resource.spec.resolveCapacity(serverGroup.location.region)
@@ -283,49 +285,32 @@ class TitusClusterHandler(
       )
     }
 
-    val container = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }?.container
+    val container = serverGroups.values.maxByOrNull { it.capacity.desired ?: it.capacity.max }?.container
       ?: throw ExportError("Unable to locate container from the largest server group: $serverGroups")
 
     val registry = getRegistryForTitusAccount(exportable.account)
 
     val images = cloudDriverService.findDockerImages(
-      account = getRegistryForTitusAccount(exportable.account),
+      account = registry,
       repository = container.repository(),
       user = DEFAULT_SERVICE_ACCOUNT
     )
 
-    val matchingImages = images.filter { it.digest == container.digest }
-    if (matchingImages.isEmpty()) {
-      throw ExportError("Unable to find matching image (searching by digest) in registry ($registry) for $container")
-    }
-    val versionStrategy = guessVersioningStrategy(matchingImages)
-      ?: throw DockerArtifactExportError(matchingImages.map { it.tag }, container.toString())
+    val matchingImage = images.firstOrNull { it.digest == container.digest }
+      ?: throw ExportError("Unable to find matching image (searching by digest) in registry ($registry) for $container")
 
-    return DockerArtifact(
-      name = container.repository(),
-      tagVersionStrategy = versionStrategy
-    )
-  }
-
-  /**
-   * Tries to find a matching versioning strategy from a list of docker tags that correspond to the same digest.
-   */
-  fun guessVersioningStrategy(images: List<DockerImage>): TagVersionStrategy? {
-    val versioningStrategies = mutableSetOf<TagVersionStrategy>()
-
-    images.forEach { image ->
-      val versionStrategy = deriveVersioningStrategy(image.tag)
-      if (versionStrategy != null) {
-        versioningStrategies.add(versionStrategy)
-      }
-    }
-    return when (versioningStrategies.size) {
-      1 -> versioningStrategies.first()
-      0 -> null
-      else -> {
-        log.warn("Multiple versioning strategies apply for image, returning first")
-        versioningStrategies.first()
-      }
+    // prefer branch-based artifact spec, fallback to tag version strategy
+    return if (matchingImage.branch != null) {
+      DockerArtifact(
+        name = container.repository(),
+        branch = matchingImage.branch
+      )
+    } else {
+      DockerArtifact(
+        name = container.repository(),
+        tagVersionStrategy = deriveVersioningStrategy(matchingImage.tag)
+          ?: throw DockerArtifactExportError(matchingImage.tag, container.toString())
+      )
     }
   }
 

@@ -67,7 +67,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(name = "test")
@@ -92,7 +92,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -126,7 +126,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -159,7 +159,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -195,7 +195,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -240,7 +240,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -287,7 +287,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(
@@ -344,7 +344,7 @@ internal class VerificationRunnerTests {
         name = "fnord-manifest",
         serviceAccount = "jamm@illuminati.org",
         artifacts = setOf(
-          DockerArtifact(name = "fnord", reference = "fnord-docker")
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
         ),
         environments = setOf(
           Environment(

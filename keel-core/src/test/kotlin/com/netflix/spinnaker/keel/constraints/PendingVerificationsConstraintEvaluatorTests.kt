@@ -23,7 +23,8 @@ internal class PendingVerificationsConstraintEvaluatorTests {
 
   private val artifact = DockerArtifact(
     name = "fnord",
-    reference = "fnord"
+    reference = "fnord",
+    branch = "main"
   )
 
   private val environmentWithNoVerifications = Environment(

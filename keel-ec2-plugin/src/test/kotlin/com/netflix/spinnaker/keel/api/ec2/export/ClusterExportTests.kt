@@ -7,7 +7,11 @@ import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -36,17 +40,18 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.toCloudDriverResponse
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
-import io.mockk.every
+import io.mockk.coEvery as every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expect
@@ -82,6 +87,7 @@ internal class ClusterExportTests : JUnit5Minutests {
   )
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
   val blockDeviceConfig = mockk<BlockDeviceConfig>()
+  val artifactService = mockk<ArtifactService>()
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -193,7 +199,8 @@ internal class ClusterExportTests : JUnit5Minutests {
         publisher,
         normalizers,
         clusterExportHelper,
-        blockDeviceConfig
+        blockDeviceConfig,
+        artifactService
       )
     }
 
@@ -226,13 +233,13 @@ internal class ClusterExportTests : JUnit5Minutests {
           setOf(subnet1East.availabilityZone)
       }
 
-      coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      every { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
       every { repository.environmentFor(any()) } returns Environment("test")
-      coEvery {
+      every {
         clusterExportHelper.discoverDeploymentStrategy("aws", "test", "keel", any())
       } returns RedBlack()
 
-      coEvery {
+      every {
         springEnv.getProperty("keel.notifications.slack", Boolean::class.java, true)
       } returns false
     }
@@ -242,27 +249,78 @@ internal class ClusterExportTests : JUnit5Minutests {
     }
 
     context("exporting an artifact from a cluster") {
-      before {
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-      }
-
-      test("deb is exported correctly") {
-        val artifact = runBlocking {
-          exportArtifact(exportable.copy(regions = setOf("us-east-1")))
+      context("with branch metadata available") {
+        before {
+          every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+          every {
+            artifactService.getArtifact("keel", any(), DEBIAN)
+          } returns PublishedArtifact(
+            name = "keel",
+            reference = "keel",
+            type = DEBIAN,
+            version = "0.0.1",
+            metadata = mapOf("branch" to "main")
+          )
         }
 
-        expectThat(artifact) {
-          get { name }.isEqualTo("keel")
-          isA<DebianArtifact>()
-            .and { get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic-classic")) }
-            .and { get { statuses }.isEqualTo(setOf(RELEASE)) }
+        test("deb is exported correctly and includes `from` spec with branch") {
+          val artifact = runBlocking {
+            exportArtifact(exportable.copy(regions = setOf("us-east-1")))
+          }
+
+          expectThat(artifact) {
+            get { name }.isEqualTo("keel")
+            isA<DebianArtifact>()
+              .and {
+                get { vmOptions }.isEqualTo(
+                  VirtualMachineOptions(
+                    regions = setOf("us-east-1"),
+                    baseOs = "bionic-classic"
+                  )
+                )
+              }
+              .and {
+                get { from }.isEqualTo(ArtifactOriginFilter(branch = BranchFilter(name = "main")))
+                get { statuses }.isEmpty()
+              }
+          }
+        }
+      }
+
+      context("with branch metadata unavailable") {
+        before {
+          every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+          every {
+            artifactService.getArtifact("keel", any(), DEBIAN)
+          } throws RETROFIT_NOT_FOUND
+        }
+
+        test("deb is exported correctly") {
+          val artifact = runBlocking {
+            exportArtifact(exportable.copy(regions = setOf("us-east-1")))
+          }
+
+          expectThat(artifact) {
+            get { name }.isEqualTo("keel")
+            isA<DebianArtifact>()
+              .and {
+                get { vmOptions }.isEqualTo(
+                  VirtualMachineOptions(
+                    regions = setOf("us-east-1"),
+                    baseOs = "bionic-classic"
+                  )
+                )
+                get { statuses }.isEqualTo(setOf(RELEASE))
+                get { from }.isNull()
+              }
+          }
         }
       }
     }
 
     context("basic export behavior") {
       before {
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
       }
 
       test("deployment strategy defaults are omitted") {
@@ -285,8 +343,8 @@ internal class ClusterExportTests : JUnit5Minutests {
 
     context("exporting same clusters different regions") {
       before {
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+        every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        every { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
       }
 
       test("no overrides") {
@@ -306,8 +364,8 @@ internal class ClusterExportTests : JUnit5Minutests {
 
     context("exporting clusters with capacity difference between regions") {
       before {
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+        every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        every { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
           .withDifferentSize()
       }
 
@@ -327,8 +385,8 @@ internal class ClusterExportTests : JUnit5Minutests {
 
     context("exporting clusters that are significantly different between regions") {
       before {
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+        every { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        every { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
           .withNonDefaultHealthProps()
           .withNonDefaultLaunchConfigProps()
       }

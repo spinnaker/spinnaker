@@ -93,7 +93,11 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     context("A non-Debian artifact") {
       deriveFixture {
         Fixture(
-          artifact = DockerArtifact("fnord", "bake-constraint-evaluator-tests")
+          artifact = DockerArtifact(
+            name = "fnord",
+            deliveryConfigName = "bake-constraint-evaluator-tests",
+            branch = "main"
+          )
         )
       }
 

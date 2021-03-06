@@ -11,6 +11,7 @@ dependencies {
   implementation(project(":keel-orca"))
   implementation(project(":keel-retrofit"))
   implementation(project(":keel-artifact"))
+  implementation(project(":keel-igor"))
   implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("org.springframework:spring-context")

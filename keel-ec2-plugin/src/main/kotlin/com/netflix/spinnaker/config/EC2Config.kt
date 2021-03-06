@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -54,7 +55,8 @@ class EC2Config {
     normalizers: List<Resolver<*>>,
     eventPublisher: EventPublisher,
     clusterExportHelper: ClusterExportHelper,
-    blockDeviceConfig : BlockDeviceConfig
+    blockDeviceConfig : BlockDeviceConfig,
+    artifactService: ArtifactService
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,
@@ -65,7 +67,8 @@ class EC2Config {
       eventPublisher,
       normalizers,
       clusterExportHelper,
-      blockDeviceConfig
+      blockDeviceConfig,
+      artifactService
     )
 
   @Bean

@@ -195,9 +195,14 @@ private fun filterDockerVersions(artifact: DockerArtifact, versions: List<Publis
  * Returns true if a docker tag is not a match to the regex produces exactly one capture group on the tag, false otherwise.
  */
 internal fun shouldInclude(tag: String, artifact: DockerArtifact) =
-  try {
-    TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
-  } catch (e: InvalidRegexException) {
-    log.warn("Version $tag produced more than one capture group based on artifact $artifact, excluding")
+  if (artifact.tagVersionStrategy == null) {
+    log.warn("Attempt to check Docker tag against unspecified tag version strategy for $artifact. Excluding.")
     false
+  } else {
+    try {
+      TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy!!, artifact.captureGroupRegex) != null
+    } catch (e: InvalidRegexException) {
+      log.warn("Version $tag produced more than one capture group based on artifact $artifact. Excluding.")
+      false
+    }
   }

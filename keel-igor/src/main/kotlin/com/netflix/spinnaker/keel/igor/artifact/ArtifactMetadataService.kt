@@ -26,6 +26,9 @@ import java.time.Duration
 class ArtifactMetadataService(
   private val buildService: BuildService
 ) {
+  companion object {
+    private const val DEFAULT_MAX_ATTEMPTS = 20
+  }
 
   /**
    * Returns additional metadata about the specified build and commit, if available. This call is configured
@@ -33,7 +36,8 @@ class ArtifactMetadataService(
    */
   suspend fun getArtifactMetadata(
     buildNumber: String,
-    commitId: String
+    commitId: String,
+    maxAttempts: Int = DEFAULT_MAX_ATTEMPTS
   ): ArtifactMetadata? {
 
     val buildList = getArtifactMetadataWithRetries(commitId, buildNumber)
@@ -89,14 +93,17 @@ class ArtifactMetadataService(
       )
     )
 
-
   //This will not be used for now, until we will figure out what is wrong!
-  private suspend fun getArtifactMetadataWithRetries(commitId: String, buildNumber: String): List<Build>? {
+  private suspend fun getArtifactMetadataWithRetries(
+    commitId: String,
+    buildNumber: String,
+    maxAttempts: Int = DEFAULT_MAX_ATTEMPTS
+  ): List<Build>? {
     val retry = Retry.of(
       "get artifact metadata",
       RetryConfig.custom<List<Build>?>()
         // retry 20 times over a total of 90 seconds
-        .maxAttempts(20)
+        .maxAttempts(maxAttempts)
         .waitDuration(Duration.ofMillis(4500))
         .retryOnResult{ result ->
           if (result.isNullOrEmpty()) {

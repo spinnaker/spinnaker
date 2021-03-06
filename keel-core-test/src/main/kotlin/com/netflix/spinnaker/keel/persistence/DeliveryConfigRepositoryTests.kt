@@ -8,8 +8,8 @@ import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.Verification
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
-import com.netflix.spinnaker.keel.api.artifacts.BranchFilterSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -101,7 +101,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     val artifactFromBranch: DebianArtifact = artifact.copy(
       name = "frombranch",
       reference = "frombranch",
-      from = ArtifactOriginFilterSpec(branch = BranchFilterSpec(name = "main"))
+      from = ArtifactOriginFilter(branch = BranchFilter(name = "main"))
     )
 
     fun getByName() = expectCatching {

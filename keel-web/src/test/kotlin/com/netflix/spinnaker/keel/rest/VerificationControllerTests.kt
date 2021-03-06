@@ -56,7 +56,8 @@ internal class VerificationControllerTests
   private val artifact = DockerArtifact(
     name = "fnord",
     deliveryConfigName = "fnord-manifest",
-    reference = "fnord-docker"
+    reference = "fnord-docker",
+    branch = "main"
   )
   private val deliveryConfig = DeliveryConfig(
     application = "fnord",

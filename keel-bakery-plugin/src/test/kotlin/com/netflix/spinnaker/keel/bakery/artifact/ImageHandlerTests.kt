@@ -15,7 +15,6 @@ import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
-import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -129,7 +128,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
     context("the artifact is not a Debian") {
       before {
-        runHandler(DockerArtifact(artifact.name))
+        runHandler(DockerArtifact(artifact.name, branch = "main"))
       }
 
       test("nothing happens") {

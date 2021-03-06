@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -100,6 +101,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
   val blockDeviceConfig = BlockDeviceConfig(VolumeDefaultConfiguration())
+  val artifactService = mockk<ArtifactService>()
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -205,7 +207,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         publisher,
         normalizers,
         clusterExportHelper,
-        blockDeviceConfig
+        blockDeviceConfig,
+        artifactService
       )
     }
 

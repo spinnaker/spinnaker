@@ -76,7 +76,7 @@ data class PublishedArtifact(
 
   val createdAt: Instant?
     get() = (metadata["createdAt"]
-    //docker artifact createdAt time is under date field
+    // docker artifact createdAt time is under date field
       ?: metadata["date"])
       ?.let {
         when (it) {
@@ -90,6 +90,15 @@ data class PublishedArtifact(
           else -> null
         }
       }
+
+  val branch: String?
+    get() = gitMetadata?.branch ?: metadata["branch"] as? String
+
+  val commitHash: String?
+    get() = gitMetadata?.commit ?: metadata["commitId"] as? String
+
+  val buildNumber: String?
+    get() = buildMetadata?.number ?: metadata["buildNumber"] as? String
 
   fun normalized() = copy(
     type = type.toLowerCase(),

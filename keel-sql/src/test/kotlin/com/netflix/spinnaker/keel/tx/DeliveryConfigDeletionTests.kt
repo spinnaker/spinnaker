@@ -41,7 +41,8 @@ internal class DeliveryConfigDeletionTests
       DockerArtifact(
         name = "fnord",
         deliveryConfigName = "fnord-manifest",
-        reference = "fnord-docker-img"
+        reference = "fnord-docker-img",
+        branch = "main"
       )
     ),
     environments = setOf("test", "production").map {

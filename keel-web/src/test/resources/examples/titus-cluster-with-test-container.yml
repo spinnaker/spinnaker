@@ -4,6 +4,9 @@ artifacts:
   - name: rocketskates
     type: docker
     reference: rocketskates
+    from:
+      branch:
+        name: main
 environments:
   - name: test
     locations:

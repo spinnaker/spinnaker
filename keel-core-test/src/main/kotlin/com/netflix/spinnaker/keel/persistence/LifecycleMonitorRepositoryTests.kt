@@ -35,7 +35,7 @@ abstract class LifecycleMonitorRepositoryTests<T : LifecycleMonitorRepository, E
     val subject: T,
     val eventRepository: EVENT
   )
-  val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config")
+  val artifact = DockerArtifact(name = "my-artifact", deliveryConfigName = "my-config", branch = "main")
   val version = "123.4"
   val event = LifecycleEvent(
     scope = LifecycleEventScope.PRE_DEPLOYMENT,

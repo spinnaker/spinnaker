@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilterSpec
-import com.netflix.spinnaker.keel.api.artifacts.BranchFilterSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -21,8 +21,8 @@ class CreatedAtSortingStrategyTests : JUnit5Minutests {
       deliveryConfigName = "my-manifest",
       reference = "feature-branch",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
-        branch = BranchFilterSpec(
+      from = ArtifactOriginFilter(
+        branch = BranchFilter(
           name = "my-feature-branch"
         )
       )
@@ -33,7 +33,7 @@ class CreatedAtSortingStrategyTests : JUnit5Minutests {
       deliveryConfigName = "my-manifest",
       reference = "pr",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
-      from = ArtifactOriginFilterSpec(
+      from = ArtifactOriginFilter(
         pullRequestOnly = true
       )
     )

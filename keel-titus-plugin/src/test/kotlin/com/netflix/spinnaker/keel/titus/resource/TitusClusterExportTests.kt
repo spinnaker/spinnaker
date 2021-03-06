@@ -6,6 +6,8 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactOriginFilter
+import com.netflix.spinnaker.keel.api.artifacts.BranchFilter
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -137,7 +139,6 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   )
 
   val branchJobShaImages = listOf(
-    image.copy(tag = "latest"),
     image.copy(tag = "master-h10.62bbbd6"),
     image.copy(tag = "master-h11.4e26fbd", digest = "sha:2222")
   )
@@ -145,6 +146,13 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   val weirdImages = listOf(
     image.copy(tag = "blahblah")
   )
+
+  val imageWithLatestTag = listOf(
+    image.copy(tag = "latest")
+  )
+
+  val imagesWithBranchName = branchJobShaImages
+    .map { it.copy(branch = "main") }
 
   fun tests() = rootContext<TitusClusterHandler> {
     fixture {
@@ -239,6 +247,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
               .get { tagVersionStrategy }.isEqualTo(TagVersionStrategy.INCREASING_TAG)
           }
         }
+
         context("tags are branch-job.sha") {
           before {
             coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns branchJobShaImages
@@ -254,6 +263,18 @@ internal class TitusClusterExportTests : JUnit5Minutests {
           }
         }
 
+        context("the only tag available is 'latest'") {
+          before {
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns imageWithLatestTag
+          }
+
+          test("exception is throw") {
+            expectThrows<DockerArtifactExportError> {
+              exportArtifact(exportable)
+            }
+          }
+        }
+
         context("tags are just string garbage") {
           before {
             coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns weirdImages
@@ -263,6 +284,23 @@ internal class TitusClusterExportTests : JUnit5Minutests {
             expectThrows<DockerArtifactExportError> {
               exportArtifact(exportable)
             }
+          }
+        }
+
+        context("images have branch information") {
+          before {
+            coEvery {
+              cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository())
+            } returns imagesWithBranchName
+          }
+
+          test("artifact includes `from` spec with corresponding branch") {
+            val artifact = runBlocking {
+              exportArtifact(exportable)
+            }
+            expectThat(artifact)
+              .isA<DockerArtifact>()
+              .get { from }.isEqualTo(ArtifactOriginFilter(branch = BranchFilter(name = "main")))
           }
         }
       }
