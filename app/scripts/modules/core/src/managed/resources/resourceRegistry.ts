@@ -3,8 +3,6 @@ import { IconNames } from '../../presentation';
 
 const UNKNOWN_RESOURCE_ICON = 'placeholder';
 
-const resourceConfigsByKind: { [kind: string]: IResourceKindConfig } = {};
-
 export interface IResourceKindConfig {
   kind: string;
   iconName: IconNames;
@@ -15,13 +13,66 @@ export interface IResourceKindConfig {
   experimentalDisplayLink?: (resource: IManagedResourceSummary) => string;
 }
 
-export const isResourceKindSupported = (kind: string) => resourceConfigsByKind.hasOwnProperty(kind);
+class ResourcesManager {
+  private resourceConfigs: { [kind: string]: IResourceKindConfig } = {};
 
-export const registerResourceKind = (config: IResourceKindConfig) => {
-  resourceConfigsByKind[config.kind] = config;
-};
+  constructor(resources: IResourceKindConfig[]) {
+    for (const resource of resources) {
+      this.registerResource(resource);
+    }
+  }
 
-export const getResourceIcon = (kind: string) => resourceConfigsByKind[kind]?.iconName ?? UNKNOWN_RESOURCE_ICON;
+  private normalizeKind(kind: string): string {
+    // Removes the version of the resource
+    return kind.split('@')[0];
+  }
 
-export const getExperimentalDisplayLink = (resource: IManagedResourceSummary) =>
-  resourceConfigsByKind[resource.kind]?.experimentalDisplayLink?.(resource) ?? null;
+  public getResource(kind: string): IResourceKindConfig | undefined {
+    // We first try to return an exact match, otherwise, we return the resource without the version
+    return this.resourceConfigs[kind] || this.resourceConfigs[this.normalizeKind(kind)];
+  }
+
+  public isResourceSupported(kind: string) {
+    return Boolean(this.getResource(kind));
+  }
+
+  public registerResource(config: IResourceKindConfig) {
+    // We register both the resource with the version and without the version
+    this.resourceConfigs[config.kind] = config;
+    this.resourceConfigs[this.normalizeKind(config.kind)] = config;
+  }
+
+  public getResourceIcon(kind: string) {
+    return this.getResource(kind)?.iconName ?? UNKNOWN_RESOURCE_ICON;
+  }
+
+  public getExperimentalDisplayLink(resource: IManagedResourceSummary): string | undefined {
+    return this.getResource(resource.kind)?.experimentalDisplayLink?.(resource);
+  }
+}
+
+const DEFAULT_RESOURCES: IResourceKindConfig[] = [
+  {
+    kind: 'titus/cluster',
+    iconName: 'cluster',
+  },
+  {
+    kind: 'ec2/cluster',
+    iconName: 'cluster',
+  },
+  {
+    kind: 'ec2/security-group',
+    iconName: 'securityGroup',
+  },
+  {
+    kind: 'ec2/classic-load-balancer',
+    iconName: 'loadBalancer',
+  },
+  {
+    kind: 'ec2/application-load-balancer',
+    iconName: 'loadBalancer',
+  },
+];
+
+// TODO: this should not be global - convert it to React Context
+export const resourceManager = new ResourcesManager(DEFAULT_RESOURCES);

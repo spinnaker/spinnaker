@@ -12,7 +12,7 @@ import { StatusBubble } from './StatusBubble';
 import { getArtifactVersionDisplayName } from './displayNames';
 import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain/IManagedEntity';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
-import { getExperimentalDisplayLink, getResourceIcon } from './resources/resourceRegistry';
+import { resourceManager } from './resources/resourceRegistry';
 
 export interface IManagedResourceObjectProps {
   application: Application;
@@ -74,7 +74,7 @@ export const ManagedResourceObject = memo(
     const routingInfo = getNativeResourceRoutingInfo(resource) ?? { state: '', params: {} };
     const routeProps = useSref(routingInfo.state, routingInfo.params);
 
-    const displayLink = getExperimentalDisplayLink(resource);
+    const displayLink = resourceManager.getExperimentalDisplayLink(resource);
     const displayLinkProps = displayLink && { href: displayLink, target: '_blank', rel: 'noopener noreferrer' };
 
     const linkProps = routeProps.href ? routeProps : displayLinkProps;
@@ -116,7 +116,7 @@ export const ManagedResourceObject = memo(
 
     return (
       <ObjectRow
-        icon={getResourceIcon(kind)}
+        icon={resourceManager.getResourceIcon(kind)}
         title={linkProps ? <a {...linkProps}>{displayName}</a> : displayName}
         depth={depth}
         content={resourceStatus}

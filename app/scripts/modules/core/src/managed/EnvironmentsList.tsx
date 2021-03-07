@@ -6,11 +6,7 @@ import { Application } from 'core/application';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { IManagedArtifactSummary, IManagedEnvironmentSummary, IManagedResourceSummary } from '../domain';
 import { EnvironmentRow } from './environment/EnvironmentRow';
-import { isResourceKindSupported } from './resources/resourceRegistry';
-
-function shouldDisplayResource(resource: IManagedResourceSummary) {
-  return isResourceKindSupported(resource.kind);
-}
+import { resourceManager } from './resources/resourceRegistry';
 
 interface IEnvironmentsListProps {
   application: Application;
@@ -39,7 +35,7 @@ export function EnvironmentsList({
           >
             {resources
               .map((resourceId) => resourcesById[resourceId])
-              .filter(shouldDisplayResource)
+              .filter((resource) => resourceManager.isResourceSupported(resource.kind))
               .sort((a, b) => `${a.kind}${a.displayName}`.localeCompare(`${b.kind}${b.displayName}`))
               .map((resource) => {
                 const artifactVersionsByState =

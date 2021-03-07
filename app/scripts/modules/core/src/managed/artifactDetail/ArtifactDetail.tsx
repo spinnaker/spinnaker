@@ -21,7 +21,7 @@ import { PreDeploymentStepCard } from './PreDeploymentStepCard';
 import { Application } from '../../application';
 import { EnvironmentRow } from '../environment/EnvironmentRow';
 import { CollapsibleElement, Markdown, useEventListener } from '../../presentation';
-import { isResourceKindSupported } from '../resources/resourceRegistry';
+import { resourceManager } from '../resources/resourceRegistry';
 import { logCategories, useLogEvent } from '../utils/logging';
 
 import './ArtifactDetail.less';
@@ -29,7 +29,7 @@ import './ArtifactDetail.less';
 const SUPPORTED_PRE_DEPLOYMENT_TYPES = ['BUILD', 'BAKE'];
 
 function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
-  return isResourceKindSupported(resource.kind) && reference === resource.artifact?.reference;
+  return resourceManager.isResourceSupported(resource.kind) && reference === resource.artifact?.reference;
 }
 
 const VersionMetadataItem = ({ label, value }: { label: string; value: JSX.Element | string }) => (
