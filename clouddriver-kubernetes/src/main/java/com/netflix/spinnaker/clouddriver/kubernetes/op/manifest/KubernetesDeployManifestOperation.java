@@ -183,7 +183,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       setTrafficAnnotation(description.getServices(), manifest);
       if (description.isEnableTraffic()) {
         KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
-        applyTraffic(traffic, manifest);
+        applyTraffic(traffic, manifest, deployManifests);
       }
 
       credentials.getNamer().applyMoniker(manifest, moniker);
@@ -226,11 +226,18 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     KubernetesManifestAnnotater.setTraffic(manifest, traffic);
   }
 
-  private void applyTraffic(KubernetesManifestTraffic traffic, KubernetesManifest target) {
-    traffic.getLoadBalancers().forEach(l -> attachLoadBalancer(l, target));
+  private void applyTraffic(
+      KubernetesManifestTraffic traffic,
+      KubernetesManifest target,
+      Collection<KubernetesManifest> manifestsFromRequest) {
+    traffic.getLoadBalancers().forEach(l -> attachLoadBalancer(l, target, manifestsFromRequest));
   }
 
-  private void attachLoadBalancer(String loadBalancerName, KubernetesManifest target) {
+  private void attachLoadBalancer(
+      String loadBalancerName,
+      KubernetesManifest target,
+      Collection<KubernetesManifest> manifestsFromRequest) {
+
     KubernetesCoordinates coords;
     try {
       coords =
@@ -246,17 +253,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
           e);
     }
 
+    KubernetesManifest loadBalancer = getLoadBalancer(coords, manifestsFromRequest);
+
     CanLoadBalance handler =
         CanLoadBalance.lookupProperties(credentials.getResourcePropertyRegistry(), coords);
-
-    // TODO(lwander): look into using a combination of the cache & other resources passed in with
-    // this request instead of making a live call here.
-    KubernetesManifest loadBalancer =
-        Optional.ofNullable(credentials.get(coords))
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Load balancer " + loadBalancerName + " does not exist"));
 
     getTask()
         .updateStatus(
@@ -267,6 +267,26 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                 + target.getFullResourceName());
 
     handler.attach(loadBalancer, target);
+  }
+
+  private KubernetesManifest getLoadBalancer(
+      KubernetesCoordinates coords, Collection<KubernetesManifest> manifestsFromRequest) {
+    Optional<KubernetesManifest> loadBalancer =
+        manifestsFromRequest.stream()
+            .filter(m -> KubernetesCoordinates.fromManifest(m).equals(coords))
+            .findFirst();
+
+    return loadBalancer.orElseGet(
+        () ->
+            Optional.ofNullable(credentials.get(coords))
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Load balancer "
+                                + coords.getKind().toString()
+                                + " "
+                                + coords.getName()
+                                + " does not exist")));
   }
 
   private boolean isVersioned(

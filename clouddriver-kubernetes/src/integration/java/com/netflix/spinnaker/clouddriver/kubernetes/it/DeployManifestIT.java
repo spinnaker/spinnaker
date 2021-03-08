@@ -20,6 +20,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.it.utils.KubeTestUtils;
 import io.restassured.response.Response;
@@ -28,6 +29,7 @@ import java.util.*;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 
 public class DeployManifestIT extends BaseTest {
 
@@ -36,7 +38,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a deployment manifest with no namespace set\n"
           + "  And a namespace override\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then a pod is up and running in the overridden namespace\n===")
   @Test
@@ -108,7 +109,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a deployment manifest with no namespace set\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then a pod is up and running in the default namespace\n===")
   @Test
@@ -138,7 +138,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a document with multiple manifest definitions\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then a service and pod exist in the target cluster\n===")
   @Test
@@ -177,7 +176,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a deployment deployed with spinnaker\n"
           + "  And it gets updated with a new tag version\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then old version is deleted and new version is available\n===")
   @Test
@@ -242,7 +240,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a deployment manifest without image tag\n"
           + "  And optional docker artifact present\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then the docker artifact is deployed\n===")
   @Test
@@ -295,7 +292,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a deployment manifest without image tag\n"
           + "  And required docker artifact present\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then the docker artifact is deployed\n===")
   @Test
@@ -349,7 +345,6 @@ public class DeployManifestIT extends BaseTest {
           + "  And required docker artifact present\n"
           + "  And optional docker artifact present\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then required docker artifact is deployed\n===")
   @Test
@@ -412,7 +407,6 @@ public class DeployManifestIT extends BaseTest {
           + "  And versioned configmap deployed\n"
           + "  And versioned configmap artifact\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then the manifest is deployed mounting versioned configmap\n===")
   @Test
@@ -477,7 +471,6 @@ public class DeployManifestIT extends BaseTest {
           + "  And versioned secret deployed\n"
           + "  And versioned secret artifact\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then the manifest is deployed mounting versioned secret\n===")
   @Test
@@ -540,7 +533,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a configmap manifest\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then configmap is deployed with a version suffix name\n===")
   @Test
@@ -574,7 +566,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a secret manifest\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then secret is deployed with a version suffix name\n===")
   @Test
@@ -609,7 +600,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a configmap deployed with spinnaker\n"
           + "  And configmap manifest changed\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then a new version of configmap is deployed\n"
           + "  And the previous version of configmap is not deleted or changed\n===")
@@ -661,7 +651,6 @@ public class DeployManifestIT extends BaseTest {
           + "Given a secret deployed with spinnaker\n"
           + "  And secret manifest changed\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then a new version of secret is deployed\n"
           + "  And the previous version of secret is not deleted or changed\n===")
@@ -712,7 +701,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a configmap manifest with special annotation to avoid being versioned\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then configmap is deployed without version\n===")
   @Test
@@ -748,7 +736,6 @@ public class DeployManifestIT extends BaseTest {
       ".\n===\n"
           + "Given a secret manifest with special annotation to avoid being versioned\n"
           + "When sending deploy manifest request\n"
-          + "  And sending force cache refresh request\n"
           + "  And waiting on manifest stable\n"
           + "Then secret is deployed without version\n===")
   @Test
@@ -780,7 +767,165 @@ public class DeployManifestIT extends BaseTest {
     assertFalse(cm.contains("v000"), "Expected secret with name " + secretName);
   }
 
-  // ------------------------------------------------------------------------------------------------------
-  // ------------------------------------------------------------------------------------------------------
+  @DisplayName(
+      ".\n===\n"
+          + "Given a multidoc yaml with a service and replicaset\n"
+          + "  And red/black deployment traffic strategy\n"
+          + "When sending deploy manifest request two times\n"
+          + "  And sending disable manifest one time\n"
+          + "Then there are two replicasets with only the last one receiving traffic\n===")
+  @Test
+  public void shouldDeployRedBlackMultidoc() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
+    String name = "myapp";
+    String selectorValue = "traffichere";
 
+    Map<String, Object> replicaset =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", ns)
+            .withValue("metadata.name", name)
+            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
+            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
+            .asMap();
+    Map<String, Object> service =
+        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
+            .withValue("metadata.namespace", ns)
+            .withValue("metadata.name", name)
+            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
+            .withValue("spec.type", "NodePort")
+            .asMap();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", APP1_NAME)
+            .withValue("deployManifest.manifests", List.of(replicaset, service))
+            .withValue("deployManifest.services", Collections.singleton("service " + name))
+            .withValue("deployManifest.strategy", "RED_BLACK")
+            .withValue("deployManifest.trafficManagement.enabled", true)
+            .withValue("deployManifest.trafficManagement.options.strategy", "redblack")
+            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
+            .withValue("deployManifest.trafficManagement.options.namespace", ns)
+            .withValue(
+                "deployManifest.trafficManagement.options.services",
+                Collections.singleton("service " + name))
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, ns, "service " + name, "replicaSet " + name + "-v000");
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, ns, "service " + name, "replicaSet " + name + "-v001");
+    body =
+        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
+            .withValue("disableManifest.app", APP1_NAME)
+            .withValue("disableManifest.manifestName", "replicaSet " + name + "-v000")
+            .withValue("disableManifest.location", ns)
+            .withValue("disableManifest.account", ACCOUNT1_NAME)
+            .asList();
+    KubeTestUtils.disableManifest(baseUrl(), body, ns);
+
+    // ------------------------- then --------------------------
+    String port =
+        kubeCluster.execKubectl(
+            "-n " + ns + " get service " + name + " -o=jsonpath='{.spec.ports[0].nodePort}'");
+    Container.ExecResult result =
+        kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", "-");
+    assertEquals(
+        0,
+        result.getExitCode(),
+        "stdout: " + result.getStdout() + " stderr: " + result.getStderr());
+    List<String> podNames =
+        Splitter.on(" ")
+            .splitToList(
+                kubeCluster.execKubectl(
+                    "-n "
+                        + ns
+                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
+                        + selectorValue));
+    assertEquals(
+        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a replicaset yaml with red/black deployment traffic strategy\n"
+          + "  And an existing service\n"
+          + "When sending deploy manifest request two times\n"
+          + "  And sending disable manifest one time\n"
+          + "Then there are two replicasets with only the last one receiving traffic\n===")
+  @Test
+  public void shouldDeployRedBlackReplicaSet() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String ns = kubeCluster.getAvailableNamespace();
+    System.out.println("> Using namespace " + ns);
+    String name = "myapp";
+    String selectorValue = "traffichere";
+
+    Map<String, Object> service =
+        KubeTestUtils.loadYaml("classpath:manifests/service.yml")
+            .withValue("metadata.namespace", ns)
+            .withValue("metadata.name", name)
+            .withValue("spec.selector", ImmutableMap.of("pointer", selectorValue))
+            .withValue("spec.type", "NodePort")
+            .asMap();
+    kubeCluster.execKubectl("-n " + ns + " apply -f -", service);
+
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/replicaset.yml")
+            .withValue("metadata.namespace", ns)
+            .withValue("metadata.name", name)
+            .withValue("spec.selector.matchLabels", ImmutableMap.of("label1", "value1"))
+            .withValue("spec.template.metadata.labels", ImmutableMap.of("label1", "value1"))
+            .asList();
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", APP1_NAME)
+            .withValue("deployManifest.manifests", manifest)
+            .withValue("deployManifest.services", Collections.singleton("service " + name))
+            .withValue("deployManifest.strategy", "RED_BLACK")
+            .withValue("deployManifest.trafficManagement.enabled", true)
+            .withValue("deployManifest.trafficManagement.options.strategy", "redblack")
+            .withValue("deployManifest.trafficManagement.options.enableTraffic", true)
+            .withValue("deployManifest.trafficManagement.options.namespace", ns)
+            .withValue(
+                "deployManifest.trafficManagement.options.services",
+                Collections.singleton("service " + name))
+            .asList();
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "replicaSet " + name + "-v000");
+    KubeTestUtils.deployAndWaitStable(baseUrl(), body, ns, "replicaSet " + name + "-v001");
+    body =
+        KubeTestUtils.loadJson("classpath:requests/disable_manifest.json")
+            .withValue("disableManifest.app", APP1_NAME)
+            .withValue("disableManifest.manifestName", "replicaSet " + name + "-v000")
+            .withValue("disableManifest.location", ns)
+            .withValue("disableManifest.account", ACCOUNT1_NAME)
+            .asList();
+    KubeTestUtils.disableManifest(baseUrl(), body, ns);
+
+    // ------------------------- then --------------------------
+    String port =
+        kubeCluster.execKubectl(
+            "-n " + ns + " get service " + name + " -o=jsonpath='{.spec.ports[0].nodePort}'");
+    Container.ExecResult result =
+        kubeCluster.execInContainer("wget", "http://localhost:" + port, "-O", " -");
+    assertEquals(
+        0,
+        result.getExitCode(),
+        "stdout: " + result.getStdout() + " stderr: " + result.getStderr());
+    List<String> podNames =
+        Splitter.on(" ")
+            .splitToList(
+                kubeCluster.execKubectl(
+                    "-n "
+                        + ns
+                        + " get pod -o=jsonpath='{.items[*].metadata.name}' -l=pointer="
+                        + selectorValue));
+    assertEquals(
+        1, podNames.size(), "Only one pod expected to have the label for traffic selection");
+  }
 }

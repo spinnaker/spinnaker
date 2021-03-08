@@ -9,6 +9,10 @@ kubectl_args=""
       --kubeconfig=*)
       container=$(echo "${1/--kubeconfig=/}" | sed 's|.*/||' | sed 's|kubecfg-||' | sed 's|\.yml||')
       kubectl_args+="--kubeconfig=/etc/rancher/k3s/k3s.yaml " ;;
+      -l=*)
+      # Remove spaces in label selector
+      kubectl_args+="${1// }"
+      ;;
       *)
       kubectl_args+="$1 "
       ;;

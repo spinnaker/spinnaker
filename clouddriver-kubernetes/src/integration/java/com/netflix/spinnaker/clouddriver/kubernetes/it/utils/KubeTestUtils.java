@@ -69,10 +69,10 @@ public abstract class KubeTestUtils {
   private static List<Map<String, Object>> coerceManifestToList(Object manifest) {
     ObjectMapper objectMapper = new ObjectMapper();
     if (manifest instanceof List) {
-      return objectMapper.convertValue(manifest, new TypeReference<List<Map<String, Object>>>() {});
+      return objectMapper.convertValue(manifest, new TypeReference<>() {});
     }
     Map<String, Object> singleManifest =
-        objectMapper.convertValue(manifest, new TypeReference<Map<String, Object>>() {});
+        objectMapper.convertValue(manifest, new TypeReference<>() {});
     return Collections.singletonList(singleManifest);
   }
 
@@ -84,12 +84,11 @@ public abstract class KubeTestUtils {
       JsonNode jsonNode = objectMapper.readTree(is);
       List<Map<String, Object>> content;
       if (jsonNode.isArray()) {
-        content =
-            objectMapper.convertValue(jsonNode, new TypeReference<List<Map<String, Object>>>() {});
+        content = objectMapper.convertValue(jsonNode, new TypeReference<>() {});
       } else {
         content =
             Collections.singletonList(
-                objectMapper.convertValue(jsonNode, new TypeReference<Map<String, Object>>() {}));
+                objectMapper.convertValue(jsonNode, new TypeReference<>() {}));
       }
       return new TestResourceFile(content);
     } catch (IOException e) {
@@ -167,42 +166,7 @@ public abstract class KubeTestUtils {
       throws InterruptedException {
 
     System.out.println("> Sending deploy manifest request");
-    Response resp =
-        given()
-            .log()
-            .uri()
-            .contentType("application/json")
-            .body(reqBody)
-            .post(baseUrl + "/kubernetes/ops");
-    resp.then().statusCode(200);
-    System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
-    String taskId = resp.jsonPath().get("id");
-
-    System.out.println("> Waiting for deploy task to complete");
-    long start = System.currentTimeMillis();
-    List<String> deployedObjectNames = new ArrayList<>();
-    KubeTestUtils.repeatUntilTrue(
-        () -> {
-          Response respTask = given().log().uri().get(baseUrl + "/task/" + taskId);
-          if (respTask.statusCode() == 404) {
-            return false;
-          }
-          respTask.then().statusCode(200);
-          respTask.then().body("status.failed", is(false));
-          deployedObjectNames.clear();
-          deployedObjectNames.addAll(
-              respTask
-                  .jsonPath()
-                  .getList(
-                      "resultObjects.manifestNamesByNamespace." + targetNs + ".flatten()",
-                      String.class));
-          return respTask.jsonPath().getBoolean("status.completed");
-        },
-        30,
-        TimeUnit.SECONDS,
-        "Waited 30 seconds on GET /task/{id} to return \"status.completed: true\"");
-    System.out.println(
-        "< Deploy task completed in " + ((System.currentTimeMillis() - start) / 1000) + " seconds");
+    List<String> deployedObjectNames = sendOperation(baseUrl, reqBody, targetNs);
 
     Arrays.sort(objectNames);
     Collections.sort(deployedObjectNames);
@@ -217,7 +181,7 @@ public abstract class KubeTestUtils {
     for (String objectName : objectNames) {
       System.out.println(
           "> Sending get manifest request for object \"" + objectName + "\" to check stability");
-      start = System.currentTimeMillis();
+      long start = System.currentTimeMillis();
       KubeTestUtils.repeatUntilTrue(
           () -> {
             Response respWait =
@@ -248,6 +212,56 @@ public abstract class KubeTestUtils {
               + ((System.currentTimeMillis() - start) / 1000)
               + " seconds");
     }
+  }
+
+  public static void disableManifest(
+      String baseUrl, List<Map<String, Object>> reqBody, String targetNs)
+      throws InterruptedException {
+    System.out.println("> Sending disable manifest request");
+    sendOperation(baseUrl, reqBody, targetNs);
+  }
+
+  private static List<String> sendOperation(
+      String baseUrl, List<Map<String, Object>> reqBody, String targetNs)
+      throws InterruptedException {
+
+    Response resp =
+        given()
+            .log()
+            .uri()
+            .contentType("application/json")
+            .body(reqBody)
+            .post(baseUrl + "/kubernetes/ops");
+    resp.then().statusCode(200);
+    System.out.println("< Completed in " + resp.getTimeIn(TimeUnit.SECONDS) + " seconds");
+    String taskId = resp.jsonPath().get("id");
+
+    System.out.println("> Waiting for task to complete");
+    long start = System.currentTimeMillis();
+    List<String> deployedObjectNames = new ArrayList<>();
+    KubeTestUtils.repeatUntilTrue(
+        () -> {
+          Response respTask = given().log().uri().get(baseUrl + "/task/" + taskId);
+          if (respTask.statusCode() == 404) {
+            return false;
+          }
+          respTask.then().statusCode(200);
+          respTask.then().body("status.failed", is(false));
+          deployedObjectNames.clear();
+          deployedObjectNames.addAll(
+              respTask
+                  .jsonPath()
+                  .getList(
+                      "resultObjects.manifestNamesByNamespace." + targetNs + ".flatten()",
+                      String.class));
+          return respTask.jsonPath().getBoolean("status.completed");
+        },
+        30,
+        TimeUnit.SECONDS,
+        "Waited 30 seconds on GET /task/{id} to return \"status.completed: true\"");
+    System.out.println(
+        "< Task completed in " + ((System.currentTimeMillis() - start) / 1000) + " seconds");
+    return deployedObjectNames;
   }
 
   @SuppressWarnings("unchecked")
