@@ -1,0 +1,9 @@
+databaseChangeLog:
+- changeSet:
+    id: embiggen-reason-column
+    author: fletch
+    changes:
+    - modifyDataType:
+        tableName: environment_artifact_veto
+        columnName: comment
+        newDataType: text

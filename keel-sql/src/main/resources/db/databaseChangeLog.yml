@@ -245,3 +245,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210305-fix-artifacts.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210305-embiggen-reason-column.yml
+      relativeToChangelogFile: true
