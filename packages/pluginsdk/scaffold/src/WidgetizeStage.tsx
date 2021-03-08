@@ -51,11 +51,6 @@ function WidgetizeStageForm(props: IFormikStageConfigInjectedProps) {
   );
 }
 
-// Soon-to-be-deprecated API to supply the stage label
-export namespace WidgetizeStageConfig {
-  export const title = 'Widgetize';
-}
-
 /** Example validation */
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
@@ -75,6 +70,8 @@ export function validate(stageConfig: IStage) {
 
 export const widgetizeStage: IStageTypeConfig = {
   key: 'widgetize',
+  label: 'Widgetize',
+  description: 'Widgetize the froobulator.',
   component: WidgetizeStageConfig,
   executionDetailsSections: [ExecutionDetailsTasks],
   validateFn: validate,
