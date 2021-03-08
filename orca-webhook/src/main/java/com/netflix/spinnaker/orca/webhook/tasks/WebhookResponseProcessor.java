@@ -174,7 +174,7 @@ public class WebhookResponseProcessor {
     if (status.is2xxSuccessful() || status.is3xxRedirection()) {
 
       // Retrieve status check url
-      if (stageData.waitForCompletion != null && stageData.waitForCompletion) {
+      if (stageData.waitForCompletion) {
         String statusUrl;
         try {
           statusUrl = new WebhookStatusCheckUrlRetriever().getStatusCheckUrl(response, stageData);

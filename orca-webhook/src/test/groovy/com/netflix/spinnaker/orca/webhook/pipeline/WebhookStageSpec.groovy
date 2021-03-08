@@ -104,6 +104,9 @@ class WebhookStageSpec extends Specification {
     data.method == method
     data.cancelMethod == method
 
+    and: 'having no waitForCompletion in the json object should default to waitForCompletion set to false'
+    data.waitForCompletion == false
+
     where:
     methodString | method
     'get'        | HttpMethod.GET

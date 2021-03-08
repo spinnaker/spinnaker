@@ -85,7 +85,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public Object payload;
     public Map<String, Object> customHeaders;
     public List<Integer> failFastStatusCodes;
-    public Boolean waitForCompletion;
+    public boolean waitForCompletion;
     public WebhookProperties.StatusUrlResolution statusUrlResolution;
     public String statusUrlJsonPath;
     public boolean monitorOnly;
