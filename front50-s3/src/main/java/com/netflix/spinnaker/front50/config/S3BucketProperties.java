@@ -24,6 +24,7 @@ public class S3BucketProperties {
   // regionOverride allows the aws client to override the region in s3 request signatures
   // some s3 compatible solutions allow non-aws region identifiers to be used
   private String regionOverride;
+  private String signerOverride;
   private String endpoint;
   private String proxyHost;
   private String proxyPort;
@@ -54,6 +55,14 @@ public class S3BucketProperties {
 
   public void setRegionOverride(String regionOverride) {
     this.regionOverride = regionOverride;
+  }
+
+  public String getSignerOverride() {
+    return signerOverride;
+  }
+
+  public void setSignerOverride(String signerOverride) {
+    this.signerOverride = signerOverride;
   }
 
   public String getEndpoint() {

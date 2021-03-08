@@ -48,6 +48,9 @@ public class S3ClientFactory {
           .map(Integer::parseInt)
           .ifPresent(clientConfiguration::setProxyPort);
     }
+    if (!StringUtils.isEmpty(s3Properties.getSignerOverride())) {
+      clientConfiguration.setSignerOverride(s3Properties.getSignerOverride());
+    }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
 
