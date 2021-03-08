@@ -22,9 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.listeners.StageListener
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
@@ -32,6 +30,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
+
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 
@@ -43,34 +42,31 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHE
 class EchoNotifyingStageListener implements StageListener {
   public static final String INCLUDE_FULL_EXECUTION_PROPERTY = "echo.events.includeFullExecution"
   private final EchoService echoService
-  private final ExecutionRepository repository
   private final ContextParameterProcessor contextParameterProcessor
   private final DynamicConfigService dynamicConfigService
 
   @Autowired
-  EchoNotifyingStageListener(EchoService echoService, ExecutionRepository repository,
+  EchoNotifyingStageListener(EchoService echoService,
                              ContextParameterProcessor contextParameterProcessor,
                              DynamicConfigService dynamicConfigService) {
     this.echoService = echoService
-    this.repository = repository
     this.contextParameterProcessor = contextParameterProcessor
     this.dynamicConfigService = dynamicConfigService
   }
 
   @Override
-  void beforeTask(Persister persister, StageExecution stage, TaskExecution task) {
+  void beforeTask(StageExecution stage, TaskExecution task) {
     recordEvent('task', 'starting', stage, task)
   }
 
   @Override
   @CompileDynamic
-  void beforeStage(Persister persister, StageExecution stage) {
+  void beforeStage(StageExecution stage) {
     recordEvent("stage", "starting", stage)
   }
 
   @Override
-  void afterTask(Persister persister,
-                 StageExecution stage,
+  void afterTask(StageExecution stage,
                  TaskExecution task,
                  ExecutionStatus executionStatus,
                  boolean wasSuccessful) {
@@ -83,7 +79,7 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   @CompileDynamic
-  void afterStage(Persister persister, StageExecution stage) {
+  void afterStage(StageExecution stage) {
     // STOPPED stages are "successful" because they allow the pipeline to
     // proceed but they are still failures in terms of the stage and should
     // send failure notifications

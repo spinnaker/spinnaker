@@ -16,14 +16,9 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.listeners.DefaultPersister;
-import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
@@ -32,20 +27,15 @@ import org.springframework.context.ApplicationListener;
  * style listeners. Once we're running full-time on the queue we should simplify things.
  */
 public final class StageListenerAdapter implements ApplicationListener<ExecutionEvent> {
-
   private final StageListener delegate;
-  private final ExecutionRepository repository;
-  private final Persister persister;
 
   @Autowired
-  public StageListenerAdapter(StageListener delegate, ExecutionRepository repository) {
+  public StageListenerAdapter(StageListener delegate) {
     this.delegate = delegate;
-    this.repository = repository;
-    this.persister = new DefaultPersister(this.repository);
   }
 
   @Override
-  public void onApplicationEvent(ExecutionEvent event) {
+  public void onApplicationEvent(@NotNull ExecutionEvent event) {
     if (event instanceof StageStarted) {
       onStageStarted((StageStarted) event);
     } else if (event instanceof StageComplete) {
@@ -58,62 +48,19 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
   }
 
   private void onStageStarted(StageStarted event) {
-    PipelineExecution execution = retrieve(event);
-    List<StageExecution> stages = execution.getStages();
-    stages.stream()
-        .filter(it -> it.getId().equals(event.getStageId()))
-        .findFirst()
-        .ifPresent(stage -> delegate.beforeStage(persister, stage));
+    delegate.beforeStage(event.getStage());
   }
 
   private void onStageComplete(StageComplete event) {
-    PipelineExecution execution = retrieve(event);
-    List<StageExecution> stages = execution.getStages();
-    stages.stream()
-        .filter(it -> it.getId().equals(event.getStageId()))
-        .findFirst()
-        .ifPresent(stage -> delegate.afterStage(persister, stage));
+    delegate.afterStage(event.getStage());
   }
 
   private void onTaskStarted(TaskStarted event) {
-    PipelineExecution execution = retrieve(event);
-    List<StageExecution> stages = execution.getStages();
-    stages.stream()
-        .filter(it -> it.getId().equals(event.getStageId()))
-        .findFirst()
-        .ifPresent(
-            stage ->
-                delegate.beforeTask(
-                    persister,
-                    stage,
-                    stage.getTasks().stream()
-                        .filter(it -> it.getId().equals(event.getTaskId()))
-                        .findFirst()
-                        .get()));
+    delegate.beforeTask(event.getStage(), event.getTask());
   }
 
   private void onTaskComplete(TaskComplete event) {
-    PipelineExecution execution = retrieve(event);
-    List<StageExecution> stages = execution.getStages();
-    ExecutionStatus status = event.getStatus();
-    stages.stream()
-        .filter(it -> it.getId().equals(event.getStageId()))
-        .findFirst()
-        .ifPresent(
-            stage ->
-                delegate.afterTask(
-                    persister,
-                    stage,
-                    stage.getTasks().stream()
-                        .filter(it -> it.getId().equals(event.getTaskId()))
-                        .findFirst()
-                        .get(),
-                    status,
-                    // TODO: not sure if status.isSuccessful covers all the weird cases here
-                    status.isSuccessful()));
-  }
-
-  private PipelineExecution retrieve(ExecutionEvent event) {
-    return repository.retrieve(event.getExecutionType(), event.getExecutionId());
+    StageExecution stage = event.getStage();
+    delegate.afterTask(stage, event.getTask(), stage.getStatus(), stage.getStatus().isSuccessful());
   }
 }

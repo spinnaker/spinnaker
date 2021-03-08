@@ -52,7 +52,8 @@ class CancelExecutionHandler(
       // then, make sure those runTask messages get run right away
       queue.push(RescheduleExecution(execution))
 
-      publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, CANCELED))
+      execution.status = CANCELED
+      publisher.publishEvent(ExecutionComplete(this, execution))
     }
   }
 }

@@ -138,9 +138,9 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
             check<TaskComplete> {
               assertThat(it.executionType).isEqualTo(pipeline.type)
               assertThat(it.executionId).isEqualTo(pipeline.id)
-              assertThat(it.stageId).isEqualTo(message.stageId)
-              assertThat(it.taskId).isEqualTo(message.taskId)
-              assertThat(it.status).isEqualTo(successfulStatus)
+              assertThat(it.stage.id).isEqualTo(message.stageId)
+              assertThat(it.task.id).isEqualTo(message.taskId)
+              assertThat(it.task.status).isEqualTo(successfulStatus)
             }
           )
         }
@@ -316,9 +316,9 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           check<TaskComplete> {
             assertThat(it.executionType).isEqualTo(pipeline.type)
             assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
-            assertThat(it.taskId).isEqualTo(message.taskId)
-            assertThat(it.status).isEqualTo(status)
+            assertThat(it.stage.id).isEqualTo(message.stageId)
+            assertThat(it.task.id).isEqualTo(message.taskId)
+            assertThat(it.task.status).isEqualTo(status)
           }
         )
       }

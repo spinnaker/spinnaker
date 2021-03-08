@@ -128,8 +128,8 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
         firstValue.apply {
           assertThat(executionType).isEqualTo(pipeline.type)
           assertThat(executionId).isEqualTo(pipeline.id)
-          assertThat(stageId).isEqualTo(message.stageId)
-          assertThat(taskId).isEqualTo(message.taskId)
+          assertThat(stage.id).isEqualTo(message.stageId)
+//          assertThat(task.id).isEqualTo(message.taskId)
         }
       }
     }
@@ -181,8 +181,8 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
         firstValue.apply {
           assertThat(executionType).isEqualTo(pipeline.type)
           assertThat(executionId).isEqualTo(pipeline.id)
-          assertThat(stageId).isEqualTo(message.stageId)
-          assertThat(taskId).isEqualTo(message.taskId)
+          assertThat(stage.id).isEqualTo(message.stageId)
+//          assertThat(task.id).isEqualTo(message.taskId)
         }
       }
     }

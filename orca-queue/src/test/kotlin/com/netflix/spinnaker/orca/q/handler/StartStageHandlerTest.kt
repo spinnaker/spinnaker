@@ -190,7 +190,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           check<StageStarted> {
             assertThat(it.executionType).isEqualTo(pipeline.type)
             assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
+            assertThat(it.stage.id).isEqualTo(message.stageId)
           }
         )
       }
@@ -236,7 +236,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             check<StageStarted> {
               assertThat(it.executionType).isEqualTo(pipeline.type)
               assertThat(it.executionId).isEqualTo(pipeline.id)
-              assertThat(it.stageId).isEqualTo(message.stageId)
+              assertThat(it.stage.id).isEqualTo(message.stageId)
             }
           )
         }
@@ -281,7 +281,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             check<StageStarted> {
               assertThat(it.executionType).isEqualTo(pipeline.type)
               assertThat(it.executionId).isEqualTo(pipeline.id)
-              assertThat(it.stageId).isEqualTo(message.stageId)
+              assertThat(it.stage.id).isEqualTo(message.stageId)
             }
           )
         }

@@ -390,6 +390,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         beforeGroup {
           pipeline.isLimitConcurrent = true
           runningPipeline.isLimitConcurrent = true
+          pipeline.status = NOT_STARTED
 
           whenever(
             repository.retrievePipelinesForPipelineConfigId(eq(configId), any())

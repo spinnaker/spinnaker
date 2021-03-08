@@ -136,7 +136,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       it("emits an event") {
         verify(publisher).publishEvent(
           check<StageComplete> {
-            assertThat(it.status).isEqualTo(TERMINAL)
+            assertThat(it.stage.status).isEqualTo(TERMINAL)
           }
         )
       }
@@ -190,7 +190,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       it("emits an event") {
         verify(publisher).publishEvent(
           check<StageComplete> {
-            assertThat(it.status).isEqualTo(TERMINAL)
+            assertThat(it.stage.status).isEqualTo(TERMINAL)
           }
         )
       }

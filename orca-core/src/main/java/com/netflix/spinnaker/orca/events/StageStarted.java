@@ -16,47 +16,16 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import javax.annotation.Nonnull;
+import lombok.Getter;
 
 public final class StageStarted extends ExecutionEvent {
-  private final String stageId;
-  private final String stageType;
-  private final String stageName;
-
-  public StageStarted(
-      @Nonnull Object source,
-      @Nonnull ExecutionType executionType,
-      @Nonnull String executionId,
-      @Nonnull String stageId,
-      @Nonnull String stageType,
-      @Nonnull String stageName) {
-    super(source, executionType, executionId);
-    this.stageId = stageId;
-    this.stageType = stageType;
-    this.stageName = stageName;
-  }
+  @Getter private final StageExecution stage;
 
   public StageStarted(@Nonnull Object source, @Nonnull StageExecution stage) {
-    this(
-        source,
-        stage.getExecution().getType(),
-        stage.getExecution().getId(),
-        stage.getId(),
-        stage.getType(),
-        stage.getName());
-  }
+    super(source, stage.getExecution().getType(), stage.getExecution().getId());
 
-  public @Nonnull String getStageId() {
-    return stageId;
-  }
-
-  public @Nonnull String getStageType() {
-    return stageType;
-  }
-
-  public @Nonnull String getStageName() {
-    return stageName;
+    this.stage = stage;
   }
 }

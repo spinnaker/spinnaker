@@ -18,13 +18,11 @@ import static com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener.
 class EchoNotifyingStageListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
-  def persister = Stub(Persister)
-  def repository = Mock(ExecutionRepository)
   def dynamicConfigService = Mock(DynamicConfigService)
   def contextParameterProcessor =  new ContextParameterProcessor()
 
   @Subject
-  def echoListener = new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor, dynamicConfigService)
+  def echoListener = new EchoNotifyingStageListener(echoService, contextParameterProcessor, dynamicConfigService)
 
   @Shared
   def pipelineStage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", "test", [:])
@@ -37,7 +35,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new TaskExecutionImpl(status: NOT_STARTED)
 
     when:
-    echoListener.beforeTask(persister, pipelineStage, task)
+    echoListener.beforeTask(pipelineStage, task)
 
     then:
     1 * echoService.recordEvent({ event -> event.details.type == "orca:task:starting" })
@@ -48,7 +46,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new TaskExecutionImpl(stageStart: true)
 
     when:
-    echoListener.beforeStage(persister, pipelineStage)
+    echoListener.beforeStage(pipelineStage)
 
     then:
     1 * echoService.recordEvent({ event -> event.details.type == "orca:stage:starting" })
@@ -63,7 +61,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoService.recordEvent(_) >> { events << it[0]; null }
 
     when:
-    echoListener.beforeTask(persister, pipelineStage, task)
+    echoListener.beforeTask(pipelineStage, task)
 
     then:
     events.size() == 1
@@ -76,7 +74,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new TaskExecutionImpl(name: taskName, stageEnd: isEnd)
 
     when:
-    echoListener.afterTask(persister, stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(stage, task, executionStatus, wasSuccessful)
 
     then:
     invocations * echoService.recordEvent(_)
@@ -97,7 +95,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   @Unroll
   def "triggers an end stage event"() {
     when:
-    echoListener.afterStage(persister, stage)
+    echoListener.afterStage(stage)
 
     then:
     1 * echoService.recordEvent(_)
@@ -121,7 +119,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     }
 
     when:
-    echoListener.afterTask(persister, stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(stage, task, executionStatus, wasSuccessful)
 
     then:
     1 * dynamicConfigService.getConfig(Boolean, INCLUDE_FULL_EXECUTION_PROPERTY, _) >> fullExecutionToggle

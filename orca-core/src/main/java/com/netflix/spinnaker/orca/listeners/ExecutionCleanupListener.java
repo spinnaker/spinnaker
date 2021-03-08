@@ -22,11 +22,6 @@ import java.util.List;
 
 public class ExecutionCleanupListener implements ExecutionListener {
   @Override
-  public void beforeExecution(Persister persister, PipelineExecution execution) {
-    // do nothing
-  }
-
-  @Override
   public void afterExecution(
       Persister persister,
       PipelineExecution execution,

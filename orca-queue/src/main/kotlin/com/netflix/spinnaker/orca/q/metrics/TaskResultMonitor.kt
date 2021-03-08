@@ -29,8 +29,8 @@ class TaskResultMonitor(private val registry: Registry) :
 
   override fun onApplicationEvent(event: TaskComplete) {
     id
-      .withTag("status", event.status.name)
-      .withTag("task", event.taskType)
+      .withTag("status", event.task.status.name)
+      .withTag("task", event.task.implementingClass)
       .let { id ->
         registry
           .counter(id)

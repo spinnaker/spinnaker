@@ -79,12 +79,12 @@ class EchoConfiguration {
   EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService, ExecutionRepository repository,
                                                                  ContextParameterProcessor contextParameterProcessor,
                                                                  DynamicConfigService dynamicConfigService) {
-    new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor, dynamicConfigService)
+    new EchoNotifyingStageListener(echoService, contextParameterProcessor, dynamicConfigService)
   }
 
   @Bean
-  ApplicationListener<ExecutionEvent> echoNotifyingStageExecutionListenerAdapter(EchoNotifyingStageListener echoNotifyingStageListener, ExecutionRepository repository) {
-    return new StageListenerAdapter(echoNotifyingStageListener, repository)
+  ApplicationListener<ExecutionEvent> echoNotifyingStageExecutionListenerAdapter(EchoNotifyingStageListener echoNotifyingStageListener) {
+    return new StageListenerAdapter(echoNotifyingStageListener)
   }
 
   @Bean

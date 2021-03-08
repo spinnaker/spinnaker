@@ -63,9 +63,9 @@ class CompleteExecutionHandler(
       } else {
         message.determineFinalStatus(execution) { status ->
           repository.updateStatus(execution.type, message.executionId, status)
-          publisher.publishEvent(
-            ExecutionComplete(this, message.executionType, message.executionId, status)
-          )
+          execution.status = status
+          publisher.publishEvent(ExecutionComplete(this, execution))
+
           registry.counter(
             completedId.withTags(
               "status", status.name,
@@ -75,7 +75,10 @@ class CompleteExecutionHandler(
             )
           ).increment()
           if (status != SUCCEEDED) {
-            execution.topLevelStages.filter { it.status == RUNNING }.forEach {
+            execution
+              .topLevelStages
+              .filter { it.status == RUNNING }
+              .forEach {
               queue.push(CancelStage(it))
             }
           }

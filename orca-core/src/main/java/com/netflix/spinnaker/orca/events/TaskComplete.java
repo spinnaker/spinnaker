@@ -16,82 +16,21 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 import javax.annotation.Nonnull;
+import lombok.Getter;
 
 public class TaskComplete extends ExecutionEvent {
-  private final String stageId;
-  private final String stageType;
-  private final String stageName;
-  private final String taskId;
-  private final String taskType;
-  private final String taskName;
-  private final ExecutionStatus status;
+  @Getter private final StageExecution stage;
 
-  public TaskComplete(
-      @Nonnull Object source,
-      @Nonnull ExecutionType executionType,
-      @Nonnull String executionId,
-      @Nonnull String stageId,
-      @Nonnull String stageType,
-      @Nonnull String stageName,
-      @Nonnull String taskId,
-      @Nonnull String taskType,
-      @Nonnull String taskName,
-      @Nonnull ExecutionStatus status) {
-    super(source, executionType, executionId);
-    this.stageId = stageId;
-    this.stageType = stageType;
-    this.stageName = stageName;
-    this.taskId = taskId;
-    this.taskType = taskType;
-    this.taskName = taskName;
-    this.status = status;
-  }
+  @Getter private final TaskExecution task;
 
   public TaskComplete(
       @Nonnull Object source, @Nonnull StageExecution stage, @Nonnull TaskExecution task) {
-    this(
-        source,
-        stage.getExecution().getType(),
-        stage.getExecution().getId(),
-        stage.getId(),
-        stage.getType(),
-        stage.getName(),
-        task.getId(),
-        task.getImplementingClass(),
-        task.getName(),
-        task.getStatus());
-  }
+    super(source, stage.getExecution().getType(), stage.getExecution().getId());
 
-  public @Nonnull String getStageId() {
-    return stageId;
-  }
-
-  public @Nonnull String getStageType() {
-    return stageType;
-  }
-
-  public @Nonnull String getStageName() {
-    return stageName;
-  }
-
-  public @Nonnull String getTaskId() {
-    return taskId;
-  }
-
-  public @Nonnull String getTaskType() {
-    return taskType;
-  }
-
-  public @Nonnull String getTaskName() {
-    return taskName;
-  }
-
-  public @Nonnull ExecutionStatus getStatus() {
-    return status;
+    this.stage = stage;
+    this.task = task;
   }
 }

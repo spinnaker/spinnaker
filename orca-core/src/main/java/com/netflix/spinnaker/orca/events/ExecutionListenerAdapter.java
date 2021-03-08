@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.events;
 
 import com.netflix.spinnaker.kork.common.Header;
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
@@ -28,14 +26,11 @@ import org.springframework.context.ApplicationListener;
 
 /** Adapts events emitted by the nu-orca queue to an old-style listener. */
 public final class ExecutionListenerAdapter implements ApplicationListener<ExecutionEvent> {
-
   private final ExecutionListener delegate;
-  private final ExecutionRepository repository;
   private final Persister persister;
 
   public ExecutionListenerAdapter(ExecutionListener delegate, ExecutionRepository repository) {
     this.delegate = delegate;
-    this.repository = repository;
     persister = new DefaultPersister(repository);
   }
 
@@ -54,15 +49,11 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
   }
 
   private void onExecutionStarted(ExecutionStarted event) {
-    delegate.beforeExecution(persister, executionFor(event));
+    delegate.beforeExecution(persister, event.getExecution());
   }
 
   private void onExecutionComplete(ExecutionComplete event) {
-    ExecutionStatus status = event.getStatus();
-    delegate.afterExecution(persister, executionFor(event), status, status.isSuccessful());
-  }
-
-  private PipelineExecution executionFor(ExecutionEvent event) {
-    return repository.retrieve(event.getExecutionType(), event.getExecutionId());
+    delegate.afterExecution(
+        persister, event.getExecution(), event.getStatus(), event.getStatus().isSuccessful());
   }
 }

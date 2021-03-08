@@ -257,10 +257,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           it("publishes an event") {
             verify(publisher).publishEvent(
               check<StageComplete> {
-                assertThat(it.executionType).isEqualTo(pipeline.type)
-                assertThat(it.executionId).isEqualTo(pipeline.id)
-                assertThat(it.stageId).isEqualTo(message.stageId)
-                assertThat(it.status).isEqualTo(taskStatus)
+                assertThat(it.stage.execution.type).isEqualTo(pipeline.type)
+                assertThat(it.stage.execution.id).isEqualTo(pipeline.id)
+                assertThat(it.stage.id).isEqualTo(message.stageId)
+                assertThat(it.stage.status).isEqualTo(taskStatus)
               }
             )
           }
@@ -614,10 +614,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         it("publishes an event") {
           verify(publisher).publishEvent(
             check<StageComplete> {
-              assertThat(it.executionType).isEqualTo(pipeline.type)
-              assertThat(it.executionId).isEqualTo(pipeline.id)
-              assertThat(it.stageId).isEqualTo(message.stageId)
-              assertThat(it.status).isEqualTo(taskStatus)
+              assertThat(it.stage.execution.type).isEqualTo(pipeline.type)
+              assertThat(it.stage.execution.id).isEqualTo(pipeline.id)
+              assertThat(it.stage.id).isEqualTo(message.stageId)
+              assertThat(it.stage.status).isEqualTo(taskStatus)
             }
           )
         }

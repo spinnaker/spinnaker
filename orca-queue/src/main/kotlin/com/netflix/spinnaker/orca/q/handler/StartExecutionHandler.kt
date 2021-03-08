@@ -91,19 +91,21 @@ class StartExecutionHandler(
       val initialStages = execution.initialStages()
       if (initialStages.isEmpty()) {
         log.warn("No initial stages found (executionId: ${execution.id})")
+        execution.status = TERMINAL
         repository.updateStatus(execution.type, execution.id, TERMINAL)
-        publisher.publishEvent(ExecutionComplete(this, execution.type, execution.id, TERMINAL))
+        publisher.publishEvent(ExecutionComplete(this, execution))
       } else {
+        execution.status = RUNNING
         repository.updateStatus(execution.type, execution.id, RUNNING)
         initialStages.forEach { queue.push(StartStage(it)) }
-        publisher.publishEvent(ExecutionStarted(this, execution.type, execution.id))
+        publisher.publishEvent(ExecutionStarted(this, execution))
       }
     }
   }
 
   private fun terminate(execution: PipelineExecution) {
     if (execution.status == CANCELED || execution.isCanceled) {
-      publisher.publishEvent(ExecutionComplete(this, execution.type, execution.id, execution.status))
+      publisher.publishEvent(ExecutionComplete(this, execution))
       execution.pipelineConfigId?.let {
         queue.push(StartWaitingExecutions(it, purgeQueue = !execution.isKeepWaitingPipelines))
       }
