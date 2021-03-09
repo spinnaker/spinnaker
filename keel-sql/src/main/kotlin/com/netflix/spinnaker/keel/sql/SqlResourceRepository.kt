@@ -184,8 +184,8 @@ open class SqlResourceRepository(
         .select(EVENT.JSON)
         .from(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-        .and(EVENT.REF_GEN.eq(application))
-        .orderBy(EVENT.TIMESTAMP_GEN.desc())
+        .and(EVENT.REF.eq(application))
+        .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
         .fetch(EVENT.JSON)
         .filterIsInstance<ApplicationEvent>()
@@ -198,9 +198,9 @@ open class SqlResourceRepository(
         .select(EVENT.JSON)
         .from(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-        .and(EVENT.REF_GEN.eq(application))
-        .and(EVENT.TIMESTAMP_GEN.greaterOrEqual(after))
-        .orderBy(EVENT.TIMESTAMP_GEN.desc())
+        .and(EVENT.REF.eq(application))
+        .and(EVENT.TIMESTAMP.greaterOrEqual(after))
+        .orderBy(EVENT.TIMESTAMP.desc())
         .fetch(EVENT.JSON)
         .filterIsInstance<ApplicationEvent>()
     }
@@ -216,14 +216,14 @@ open class SqlResourceRepository(
         // look for resource events that match the resource...
         .where(
           EVENT.SCOPE.eq(EventScope.RESOURCE)
-            .and(EVENT.REF_GEN.eq(id))
+            .and(EVENT.REF.eq(id))
         )
         // ...or application events that match the application as they apply to all resources
         .or(
           EVENT.SCOPE.eq(EventScope.APPLICATION)
             .and(EVENT.APPLICATION.eq(applicationForId(id)))
         )
-        .orderBy(EVENT.TIMESTAMP_GEN.desc())
+        .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
         .fetch(EVENT.JSON)
         // filter out application events that don't affect resource history
@@ -253,14 +253,14 @@ open class SqlResourceRepository(
           // look for resource events that match the resource...
           .where(
             EVENT.SCOPE.eq(EventScope.RESOURCE)
-              .and(EVENT.REF_GEN.eq(event.ref))
+              .and(EVENT.REF.eq(event.ref))
           )
           // ...or application events that match the application as they apply to all resources
           .or(
             EVENT.SCOPE.eq(EventScope.APPLICATION)
               .and(EVENT.APPLICATION.eq(event.application))
           )
-          .orderBy(EVENT.TIMESTAMP_GEN.desc())
+          .orderBy(EVENT.TIMESTAMP.desc())
           .limit(1)
           .fetchOne(EVENT.JSON)
       }
@@ -273,8 +273,6 @@ open class SqlResourceRepository(
         .insertInto(EVENT)
         .set(EVENT.UID, ULID().nextULID(event.timestamp.toEpochMilli()))
         .set(EVENT.SCOPE, event.scope)
-        .set(EVENT.REF, ref)
-        .set(EVENT.TIMESTAMP, event.timestamp)
         .set(EVENT.JSON, event)
         .execute()
     }
@@ -295,7 +293,7 @@ open class SqlResourceRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(EVENT)
         .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
-        .and(EVENT.REF_GEN.eq(id))
+        .and(EVENT.REF.eq(id))
         .execute()
     }
     sqlRetry.withRetry(WRITE) {

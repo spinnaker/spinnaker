@@ -165,11 +165,11 @@ class SqlDeliveryConfigRepository(
         // delete events
         txn.deleteFrom(EVENT)
           .where(EVENT.SCOPE.eq(EventScope.RESOURCE))
-          .and(EVENT.REF_GEN.`in`(resourceIds))
+          .and(EVENT.REF.`in`(resourceIds))
           .execute()
         txn.deleteFrom(EVENT)
           .where(EVENT.SCOPE.eq(EventScope.APPLICATION))
-          .and(EVENT.REF_GEN.eq(application))
+          .and(EVENT.REF.eq(application))
           .execute()
         // delete pause records
         txn.deleteFrom(PAUSED)

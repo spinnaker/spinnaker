@@ -248,3 +248,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210305-embiggen-reason-column.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210302-drop-old-event-columns.yml
+      relativeToChangelogFile: true
