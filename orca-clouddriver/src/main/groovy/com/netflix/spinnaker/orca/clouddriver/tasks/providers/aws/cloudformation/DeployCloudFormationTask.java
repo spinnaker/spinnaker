@@ -94,16 +94,25 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
               Optional.ofNullable(task.get("stackArtifactAccount"))
                   .map(Object::toString)
                   .orElse(null));
-      Response response = oortService.fetchArtifact(artifact);
-      try {
-        String template = CharStreams.toString(new InputStreamReader(response.getBody().in()));
-        log.debug("Fetched template from artifact {}: {}", artifact.getReference(), template);
-        task.put("templateBody", template);
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            "Failed to read template from artifact definition " + artifact, e);
-      } catch (ParserException e) {
-        throw new IllegalArgumentException("Template body must be valid JSON or YAML.", e);
+
+      if (StringUtils.startsWith(artifact.getReference(), "s3://")) {
+        log.debug("Using templateURL for stack template at: {}", artifact.getReference());
+        task.put(
+            "templateURL",
+            StringUtils.replace(artifact.getReference(), "s3://", "https://s3.amazonaws.com/"));
+
+      } else {
+        Response response = oortService.fetchArtifact(artifact);
+        try {
+          String template = CharStreams.toString(new InputStreamReader(response.getBody().in()));
+          log.debug("Fetched template from artifact {}: {}", artifact.getReference(), template);
+          task.put("templateBody", template);
+        } catch (IOException e) {
+          throw new IllegalArgumentException(
+              "Failed to read template from artifact definition " + artifact, e);
+        } catch (ParserException e) {
+          throw new IllegalArgumentException("Template body must be valid JSON or YAML.", e);
+        }
       }
     }
 
@@ -119,7 +128,8 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
       task.put("templateBody", templateBody);
     }
 
-    if (!(templateBody instanceof String) || Strings.isNullOrEmpty((String) templateBody)) {
+    if (!task.containsKey("templateURL")
+        && (!(templateBody instanceof String) || Strings.isNullOrEmpty((String) templateBody))) {
       throw new IllegalArgumentException(
           "Invalid stage format, missing artifact or templateBody field: "
               + templateBody
