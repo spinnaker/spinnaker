@@ -26,7 +26,7 @@ class VerificationCompletedNotificationHandler(
       log.debug("Sending verification completed notification with $status for application $application")
 
       val imageUrl = if (status == FAIL) {
-        "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_fail.png"
+        "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_fail_r2.png"
       } else {
         "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_pass.png"
       }

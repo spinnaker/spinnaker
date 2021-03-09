@@ -27,7 +27,7 @@ class PinnedNotificationHandler(
       val env = Strings.toRootUpperCase(pin.targetEnvironment)
       val username = pin.pinnedBy?.let { slackService.getUsernameByEmail(it) }
       val headerText = "$env is pinned"
-      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/pinned.png"
+      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/pinned_r2.png"
 
       val blocks = withBlocks {
         header {

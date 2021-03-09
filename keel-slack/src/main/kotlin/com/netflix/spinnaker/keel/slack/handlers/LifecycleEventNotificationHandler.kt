@@ -27,8 +27,8 @@ class LifecycleEventNotificationHandler(
       log.debug("Sending lifecycle event $eventType notification for application ${notification.application}")
 
       val imageUrl = when (eventType) {
-        LifecycleEventType.BAKE -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/bake_fail.png"
-        LifecycleEventType.BUILD -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/build_fail.png"
+        LifecycleEventType.BAKE -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/bake_fail_r2.png"
+        LifecycleEventType.BUILD -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/build_fail_r2.png"
         else -> Strings.EMPTY
       }
 

@@ -29,7 +29,7 @@ class ArtifactDeploymentNotificationHandler(
       log.debug("Sending artifact deployment notification with status $status for application ${notification.application}")
 
       val imageUrl = when (status) {
-        DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail.png"
+        DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail_r2.png"
         DeploymentStatus.SUCCEEDED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_success.png"
       }
 
