@@ -5,11 +5,9 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
-import com.netflix.spinnaker.keel.api.verification.PendingVerification
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
@@ -25,7 +23,6 @@ import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
-import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.first
 import strikt.assertions.get
@@ -37,7 +34,6 @@ import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
-import strikt.assertions.map
 import strikt.assertions.one
 import strikt.assertions.withFirst
 import java.time.Duration
@@ -123,24 +119,6 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
       .isNotNull()
       .with(VerificationState::status) { isEqualTo(status) }
       .with(VerificationState::metadata) { isEqualTo(metadata) }
-  }
-
-  @Test
-  fun `pending verifications for an environment can be fetched`() {
-    context.setup()
-    val context2 = context.copy(version = "fnord-0.191.0-h379.0b74d6f").also { it.setup() }
-    val context3 = context.copy(version = "fnord-0.192.0-h380.9361c66").also { it.setup() }
-
-    subject.updateState(context, verification, PASS)
-    subject.updateState(context2, verification, PENDING)
-    subject.updateState(context3, verification, NOT_EVALUATED)
-
-    expectCatching {
-      subject.pendingInEnvironment(deliveryConfig, context.environmentName)
-    }
-      .isSuccess()
-      .map(PendingVerification::context)
-      .containsExactlyInAnyOrder(context2)
   }
 
   @Test

@@ -1,12 +1,9 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
-import com.netflix.spinnaker.keel.api.verification.PendingVerification
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
@@ -286,51 +283,6 @@ class SqlVerificationRepository(
         .execute()
     }
   }
-
-  override fun pendingInEnvironment(
-    deliveryConfig: DeliveryConfig,
-    environmentName: String
-  ): Collection<PendingVerification> {
-    return jooq
-      .select(
-        DELIVERY_ARTIFACT.REFERENCE,
-        VERIFICATION_STATE.ARTIFACT_VERSION,
-        VERIFICATION_STATE.VERIFICATION_ID,
-        VERIFICATION_STATE.STATUS,
-        VERIFICATION_STATE.STARTED_AT,
-        VERIFICATION_STATE.ENDED_AT,
-        VERIFICATION_STATE.METADATA,
-      )
-      .from(VERIFICATION_STATE)
-      .join(ENVIRONMENT)
-      .on(ENVIRONMENT.UID.eq(VERIFICATION_STATE.ENVIRONMENT_UID))
-      .and(ENVIRONMENT.NAME.eq(environmentName))
-      .join(DELIVERY_CONFIG)
-      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
-      .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .join(DELIVERY_ARTIFACT)
-      .on(DELIVERY_ARTIFACT.UID.eq(VERIFICATION_STATE.ARTIFACT_UID))
-      .whereVerificationIsRunning()
-      .fetch { (artifactReference, artifactVersion, verificationId, status, startedAt, endedAt, metadata) ->
-        VerificationContext(
-          deliveryConfig,
-          environmentName,
-          artifactReference,
-          artifactVersion
-        ).let { context ->
-          PendingVerification(
-            context = context,
-            verification = checkNotNull(context.verification(verificationId)) {
-              "No verification with id $verificationId found"
-            },
-            state = VerificationState(status, startedAt, endedAt, metadata)
-          )
-        }
-      }
-  }
-
-  private fun <R : Record> SelectWhereStep<R>.whereVerificationIsRunning(): SelectConditionStep<R> =
-    where(VERIFICATION_STATE.STATUS.eq(PENDING))
 
   /**
    * JOOQ-ified access to MySQL's `json_merge` function.

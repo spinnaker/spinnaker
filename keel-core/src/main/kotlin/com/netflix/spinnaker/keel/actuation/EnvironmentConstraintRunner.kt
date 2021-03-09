@@ -212,7 +212,7 @@ class EnvironmentConstraintRunner(
     environment: Environment
   ): Boolean =
     evaluators.all { evaluator ->
-      evaluator.testConstraint(artifact, version, deliveryConfig, environment)
+      evaluator.canPromote(artifact, version, deliveryConfig, environment)
     }
 
   /**
@@ -229,28 +229,8 @@ class EnvironmentConstraintRunner(
   ): Boolean =
     evaluators.all { evaluator ->
       !environment.hasSupportedConstraint(evaluator) ||
-        evaluator.testConstraint(artifact, version, deliveryConfig, environment)
+        evaluator.canPromote(artifact, version, deliveryConfig, environment)
     }
-
-  private fun ConstraintEvaluator<*>.testConstraint(
-    artifact: DeliveryArtifact,
-    version: String,
-    deliveryConfig: DeliveryConfig,
-    environment: Environment
-  ) =
-    canPromote(artifact, version, deliveryConfig, environment)
-      .also { result ->
-        if (!result) {
-          log.debug(
-            "{} constraint prevents promotion of {} {} to {}'s {} environment",
-            supportedType.name,
-            artifact.name,
-            version,
-            deliveryConfig.application,
-            environment.name
-          )
-        }
-  }
 
   private fun Environment.hasSupportedConstraint(constraintEvaluator: ConstraintEvaluator<*>) =
     constraints.any { it.javaClass.isAssignableFrom(constraintEvaluator.supportedType.type) }
