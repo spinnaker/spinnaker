@@ -20,6 +20,7 @@ export interface IApplicationSummary {
   email?: string;
   name: string;
   pdApiKey?: string;
+  slackChannel?: { name: string };
   updateTs?: string;
 }
 
