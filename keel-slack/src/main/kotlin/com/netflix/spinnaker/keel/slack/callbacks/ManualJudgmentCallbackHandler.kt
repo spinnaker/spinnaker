@@ -74,8 +74,9 @@ class ManualJudgmentCallbackHandler(
         section {
           //This is to mark the old text with strikethrough
           markdownText("~${originalCommitText.replace("\n\n", "\n").replace("\n", "~\n~")}~")
+          // todo eb: fix this to be was approved or was rejected based on context
           accessory {
-            image("https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_was_needed_r2.png", altText = "mj_done")
+            image("https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_was_needed.png", altText = "mj_done")
           }
         }
         section {

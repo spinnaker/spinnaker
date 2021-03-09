@@ -29,8 +29,8 @@ class ArtifactDeploymentNotificationHandler(
       log.debug("Sending artifact deployment notification with status $status for application ${notification.application}")
 
       val imageUrl = when (status) {
-        DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_fail_r2.png"
-        DeploymentStatus.SUCCEEDED -> "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/deploy_success.png"
+        DeploymentStatus.FAILED -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/deploy_fail.png"
+        DeploymentStatus.SUCCEEDED -> "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/deploy_success.png"
       }
 
       val env = Strings.toRootUpperCase(targetEnvironment)

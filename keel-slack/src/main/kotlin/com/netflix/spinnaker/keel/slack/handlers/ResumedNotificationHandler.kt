@@ -36,7 +36,7 @@ class ResumedNotificationHandler(
         section {
           markdownText("$username resumed at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
           accessory {
-            image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/md_resumed.png", altText = "resumed")
+            image(imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/md_resumed.png", altText = "resumed")
           }
         }
 

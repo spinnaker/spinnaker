@@ -30,7 +30,7 @@ class ManualJudgmentNotificationHandler(
       val compareLink = generateCompareLink(scmInfo, artifactCandidate, currentArtifact, deliveryArtifact)
       val env = Strings.toRootUpperCase(targetEnvironment)
       val headerText = "Awaiting manual judgement"
-      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_needed.png"
+      val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_needed.png"
       val blocks = withBlocks {
         header {
           text(headerText, emoji = true)

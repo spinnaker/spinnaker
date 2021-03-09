@@ -26,9 +26,9 @@ class VerificationCompletedNotificationHandler(
       log.debug("Sending verification completed notification with $status for application $application")
 
       val imageUrl = if (status == FAIL) {
-        "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_fail_r2.png"
+        "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/test_fail.png"
       } else {
-        "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/test_pass.png"
+        "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/test_pass.png"
       }
 
       val headerText = when (status) {

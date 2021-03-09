@@ -28,7 +28,7 @@ class MarkAsBadNotificationHandler(
       val env = Strings.toRootUpperCase(targetEnvironment)
       val buildNumber = vetoedArtifact.buildMetadata?.number ?: vetoedArtifact.buildMetadata?.id
       val headerText = "#$buildNumber Marked as bad in $env"
-      val imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/marked_as_bad_r2.png"
+      val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/marked_as_bad.png"
 
       val blocks = withBlocks {
         header {

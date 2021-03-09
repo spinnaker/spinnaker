@@ -37,7 +37,7 @@ class PausedNotificationHandler(
         section {
           markdownText("$username paused at <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
           accessory {
-            image(imageUrl = "https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/md_paused_r2.png", altText = "paused")
+            image(imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/md_paused.png", altText = "paused")
           }
         }
 
