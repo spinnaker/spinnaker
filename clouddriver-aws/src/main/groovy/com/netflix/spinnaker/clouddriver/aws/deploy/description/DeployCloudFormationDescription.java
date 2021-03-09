@@ -29,6 +29,7 @@ public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDe
 
   private String stackName;
   private String templateBody;
+  private String templateURL;
   private String roleARN;
   private Map<String, String> parameters = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
