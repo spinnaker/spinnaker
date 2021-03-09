@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactGA from 'react-ga';
-import { Observable, Subject } from 'rxjs';
 
 import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
+import { useData } from 'core/presentation/hooks';
 import { ReactInjector } from 'core/reactShims';
 
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
@@ -19,92 +19,58 @@ export interface IRecentlyViewedItemsProps {
   limit?: number;
 }
 
-export interface IRecentlyViewedItemsState {
-  recentItems: ISearchResultPodData[];
-}
-
-export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsProps, IRecentlyViewedItemsState> {
-  public state: IRecentlyViewedItemsState = { recentItems: [] };
-  private categories = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
-  private search = ReactInjector.infrastructureSearchService.getSearcher();
-
-  private refresh$ = new Subject<string[]>();
-  private destroy$ = new Subject();
-
-  public componentWillUnmount() {
-    this.destroy$.next();
-  }
-
-  private updateRecentItems() {
-    this.refresh$.next(this.categories);
-  }
-
-  public componentDidMount() {
-    this.refresh$
-      .switchMap((categories: string[]) => {
-        return Observable.forkJoin(
-          categories.map((category) => {
-            const config = this.search.getCategoryConfig(category);
-            const items = RecentHistoryService.getItems(category);
-            const promises = items.map((item) => this.getFullHistoryEntry(category, item));
-            return Promise.all(promises).then((results) => ({
-              category,
-              config,
-              results: this.props.limit ? results.slice(0, this.props.limit) : results,
-            }));
-          }),
-        );
-      })
-      .map((recentItems) => {
-        return recentItems.filter((item) => item.results.length);
-      })
-      .takeUntil(this.destroy$)
-      .subscribe((recentItems) => {
-        this.setState({ recentItems });
-      });
-
-    this.updateRecentItems();
-  }
+export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
+  const { Component } = props;
+  const categoryNames = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
+  // useMemo to get a single searcher per mount. The Searcher immediately performs work when instantiated.
+  const search = React.useMemo(() => ReactInjector.infrastructureSearchService.getSearcher(), []);
 
   /** fetches the displayName and adds it to the history entry */
-  private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
+  function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
     const routeParams = { ...item.params, ...item.extraData };
-    return this.search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
+    return search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
   }
 
-  private handleRemoveProject = (projectId: string) => {
-    RecentHistoryService.removeItem('projects', projectId);
-    this.updateRecentItems();
-  };
+  const { result, refresh } = useData(
+    async () => {
+      const getCategoryResults = async (category: string) => {
+        const config = search.getCategoryConfig(category);
+        const items = RecentHistoryService.getItems(category);
+        const results = await Promise.all(items.map((item) => getFullHistoryEntry(category, item)));
+        return { category, config, results };
+      };
 
-  private handleRemoveItem = (categoryName: string, itemId: string) => {
+      const categories = await Promise.all(categoryNames.map((category) => getCategoryResults(category)));
+      return categories.filter((category) => category.results.length);
+    },
+    [],
+    [],
+  );
+
+  const handleRemoveItem = (categoryName: string, itemId: string) => {
     RecentHistoryService.removeItem(categoryName, itemId);
-    this.updateRecentItems();
+    refresh();
   };
 
-  private handleResultClick = (categoryName: string): void => {
+  const handleResultClick = (categoryName: string): void => {
     ReactGA.event({ category: 'Primary Search', action: `Recent item selected from ${categoryName}` });
   };
 
-  public render() {
-    const { Component } = this.props;
-
-    return Component ? (
-      <Component
-        results={this.state.recentItems}
-        onRemoveItem={this.handleRemoveItem}
-        onRemoveProject={this.handleRemoveProject}
-        onResultClick={this.handleResultClick}
-      />
-    ) : (
-      // Once RecentlyViewedItems is no longer rendered as part of any angular
-      // templates, we can stop defaulting to SearchResultPods and require a component.
-      <SearchResultPods
-        results={this.state.recentItems}
-        onRemoveItem={this.handleRemoveItem}
-        onRemoveProject={this.handleRemoveProject}
-        onResultClick={this.handleResultClick}
-      />
-    );
-  }
+  return Component ? (
+    <Component
+      results={result}
+      onRemoveItem={handleRemoveItem}
+      onRemoveProject={(projectId) => handleRemoveItem('projects', projectId)}
+      onResultClick={handleResultClick}
+    />
+  ) : (
+    // Once RecentlyViewedItems is no longer rendered as part of any angular
+    // templates, we can stop defaulting to SearchResultPods and require a component.
+    <SearchResultPods
+      results={result}
+      onRemoveItem={handleRemoveItem}
+      onRemoveProject={(projectId) => handleRemoveItem('projects', projectId)}
+      onResultClick={handleResultClick}
+    />
+  );
 }
