@@ -96,28 +96,30 @@ class NotificationEventListener(
   @EventListener(UnpinnedNotification::class)
   fun onUnpinnedNotification(notification: UnpinnedNotification) {
     with(notification) {
-      if (pinnedEnvironment == null) {
+      val pinnedEnv = pinnedEnvironment
+      if (pinnedEnv == null) {
         log.debug("can't send unpinned notification, as no pinned artifact exists for application ${config.application} and environment $targetEnvironment")
         return
       }
 
-      val latestApprovedArtifactVersion = repository.latestVersionApprovedIn(config, pinnedEnvironment!!.artifact, targetEnvironment)
+      val latestApprovedArtifactVersion = repository.latestVersionApprovedIn(config, pinnedEnv.artifact, targetEnvironment)
       if (latestApprovedArtifactVersion == null) {
         log.debug("last approved artifact version is null for application ${config.application}, env $targetEnvironment. Can't send unpinned notification")
         return
       }
 
-      val latestArtifact = repository.getArtifactVersion(pinnedEnvironment!!.artifact, latestApprovedArtifactVersion, null)
-      val pinnedArtifact = repository.getArtifactVersion(pinnedEnvironment!!.artifact, pinnedEnvironment!!.version, null)
+      val latestArtifact = repository.getArtifactVersion(pinnedEnv.artifact, latestApprovedArtifactVersion, null)
+      val pinnedArtifact = repository.getArtifactVersion(pinnedEnv.artifact, pinnedEnv.version, null)
 
       sendSlackMessage(config,
         SlackUnpinnedNotification(
-          latestArtifact = latestArtifact?.copy(reference = pinnedEnvironment!!.artifact.reference),
+          latestArtifact = latestArtifact?.copy(reference = pinnedEnv.artifact.reference),
           pinnedArtifact = pinnedArtifact,
           application = config.application,
           time = clock.instant(),
           user = user,
-          targetEnvironment = targetEnvironment
+          targetEnvironment = targetEnvironment,
+          originalPin = pinnedEnv
         ),
         ARTIFACT_UNPINNED,
         targetEnvironment)

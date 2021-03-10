@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
 import com.netflix.spinnaker.keel.api.ScmInfo
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.getScmBaseLink
@@ -74,12 +75,13 @@ class GitDataGenerator(
 
   /**
    * generateCommitInfo will create a slack section blocks, which looks like:
-   * "Version: #36 by @emburns
-      Where:  TESTING
+   * "App: keel
+   *  Version: #36 by @emburns
+      Environment:  TESTING
               Update README.md"
    * Or (if [olderVersion] exists):
    *      "Version: #93 → #94 by @msrc
-          Where: TEST"
+          Environment: TEST"
    */
   fun generateCommitInfo(sectionBlockBuilder: SectionBlockBuilder,
                          application: String,
@@ -94,15 +96,50 @@ class GitDataGenerator(
     }
     var envDetails = ""
     if (env != null) {
-      envDetails +=  "*Where:* $env\n\n "
+      envDetails +=  "*Environment:* $env\n\n "
     }
 
     val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
     with(sectionBlockBuilder) {
       with(artifact) {
         if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-          markdownText("*Version:* $details <$artifactUrl|#${buildMetadata!!.number}> " +
+          markdownText("*App:* $application\n" +
+            "*Version:* $details <$artifactUrl|#${buildMetadata!!.number}> " +
             "by @${gitMetadata!!.author}\n " + envDetails +
+            "${gitMetadata!!.commitInfo?.message}")
+
+          accessory {
+            image(imageUrl = imageUrl, altText = altText)
+          }
+        }
+      }
+      return this
+    }
+  }
+
+  /**
+   * generateUnpinCommitInfo will create a slack section blocks, which looks like:
+   * "App: keel
+   *  Environment:  TESTING
+   *  V PREVIOUSLY PINNED V        (V is a down arrow emoji)
+   *  Version: #36 by @emburns
+   *    Update README.md"
+   */
+  fun generateUnpinCommitInfo(sectionBlockBuilder: SectionBlockBuilder,
+                         application: String,
+                         imageUrl: String,
+                         artifact: PublishedArtifact,
+                         altText: String,
+                         env: String): SectionBlockBuilder {
+    val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
+    with(sectionBlockBuilder) {
+      with(artifact) {
+        if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
+          markdownText("*App:* $application\n" +
+            "*Environment:* $env\n\n " +
+            ":arrow_down: *PREVIOUSLY PINNED* :arrow_down:\n" +
+            "*Version:* <$artifactUrl|#${buildMetadata!!.number}> " +
+            "by @${gitMetadata!!.author}\n\n" +
             "${gitMetadata!!.commitInfo?.message}")
 
           accessory {
@@ -117,4 +154,6 @@ class GitDataGenerator(
   fun generateArtifactUrl(application: String, reference: String, version: String) =
     "$spinnakerBaseUrl/#/applications/${application}/environments/${reference}/${version}"
 
+  fun generateBuildNumberLink(application: String, reference: String, version: String, buildMetadata: BuildMetadata) =
+    "<${generateArtifactUrl(application, reference, version)}|#${buildMetadata!!.number}>"
 }

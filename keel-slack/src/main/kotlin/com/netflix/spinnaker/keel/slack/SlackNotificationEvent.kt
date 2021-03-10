@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import java.time.Instant
@@ -27,7 +28,8 @@ data class SlackUnpinnedNotification(
   override val time: Instant,
   override val application: String,
   val user: String,
-  val targetEnvironment: String
+  val targetEnvironment: String,
+  val originalPin: PinnedEnvironment
 ) : SlackNotificationEvent(time, application)
 
 data class SlackMarkAsBadNotification(

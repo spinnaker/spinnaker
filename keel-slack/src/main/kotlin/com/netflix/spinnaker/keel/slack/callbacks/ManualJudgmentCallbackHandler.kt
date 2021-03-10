@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.slack.callbacks
 
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.parseUID
+import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -11,6 +12,7 @@ import com.slack.api.model.block.SectionBlock
 import com.slack.api.model.block.composition.MarkdownTextObject
 import com.slack.api.model.block.element.ButtonElement
 import com.slack.api.model.kotlin_extension.block.withBlocks
+import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -66,21 +68,26 @@ class ManualJudgmentCallbackHandler(
       val originalCommitText = response.message.blocks[1].getText
       val originalGitInfoText = response.message.blocks[2].getText
       val originalUrl = response.message.blocks[2].getUrl
+      val action = actionsMap[response.actions.first().value]
 
       return withBlocks {
         header {
-          text("Was awaiting manual judgement", emoji = true)
-        }
-        section {
-          //This is to mark the old text with strikethrough
-          markdownText("~${originalCommitText.replace("\n\n", "\n").replace("\n", "~\n~")}~")
-          // todo eb: fix this to be was approved or was rejected based on context
-          accessory {
-            image("https://raw.githubusercontent.com/gcomstock/managed.delivery/master/src/icons/mj_was_needed.png", altText = "mj_done")
+          when (action) {
+            "approved" -> text("Manual judgement approved", emoji = true)
+            else -> text("Manual judgement rejected", emoji = true)
           }
         }
         section {
-          markdownText("~$originalGitInfoText~")
+          markdownText(originalCommitText)
+          accessory {
+            when (action) {
+              "approved" -> image("https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_approved.png", altText = "mj_approved")
+              else -> image("https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_rejected.png", altText = "mj_rejected")
+            }
+          }
+        }
+        section {
+          markdownText(originalGitInfoText)
           accessory {
             button {
               text("More...")

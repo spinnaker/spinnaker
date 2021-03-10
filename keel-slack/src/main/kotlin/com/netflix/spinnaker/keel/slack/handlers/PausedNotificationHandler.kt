@@ -42,7 +42,7 @@ class PausedNotificationHandler(
         }
 
         section {
-          markdownText("_This app's deployments must be via <$appUrl/executions|pipelines> until management is resumed_")
+          markdownText("_This app's deployments must be via <$appUrl/executions|pipelines> or tasks until management is resumed_")
           accessory {
             button {
               text("More...")

@@ -28,7 +28,15 @@ class UnpinnedNotificationHandler(
 
       val env = Strings.toRootUpperCase(targetEnvironment)
       val username = slackService.getUsernameByEmail(user)
-      val headerText = "$env was unpinned"
+      val usernameThatPinned: String = if (originalPin.pinnedBy != null ) {
+        slackService.getUsernameByEmail(originalPin.pinnedBy!!)
+      } else originalPin.pinnedBy!!
+
+      val buildNumberText = when (pinnedArtifact?.buildNumber) {
+        null -> ""
+        else -> " from #${pinnedArtifact.buildNumber}"
+      }
+      val headerText = "$env was unpinned${buildNumberText}"
       val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/unpinned.png"
 
       val blocks = withBlocks {
@@ -36,15 +44,27 @@ class UnpinnedNotificationHandler(
           text(headerText, emoji = true)
         }
 
+        context {
+          elements {
+            markdownText("$username unpinned on <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
+          }
+        }
+
+        context {
+          elements {
+            markdownText("$usernameThatPinned originally pinned on " +
+              "<!date^${originalPin.pinnedAt!!.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>" +
+              ": \"${originalPin.comment}\"")
+          }
+        }
+
         section {
-          val olderVersion = "#${pinnedArtifact?.buildMetadata?.number}"
           if (latestArtifact != null) {
-            gitDataGenerator.generateCommitInfo(this,
+            gitDataGenerator.generateUnpinCommitInfo(this,
               application,
               imageUrl,
               latestArtifact,
-              "vetoed",
-              olderVersion,
+              "unpinned",
               env)
           }
         }
@@ -54,12 +74,6 @@ class UnpinnedNotificationHandler(
             gitDataGenerator.generateScmInfo(this, application, latestArtifact)
           }
         }
-        context {
-          elements {
-            markdownText("$username unpinned on <!date^${time.epochSecond}^{date_num} {time_secs}|fallback-text-include-PST>")
-          }
-        }
-
       }
       slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
