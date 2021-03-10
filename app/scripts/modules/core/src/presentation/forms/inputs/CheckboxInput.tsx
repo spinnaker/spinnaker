@@ -8,6 +8,8 @@ interface ICheckBoxInputProps extends IFormInputProps, OmitControlledInputPropsF
   text?: React.ReactNode;
 }
 
+const Nbsp = () => <>&nbsp;</>;
+
 export class CheckboxInput extends React.Component<ICheckBoxInputProps> {
   public render() {
     const { value, validation, inputClassName, text, ...otherProps } = this.props;
@@ -17,7 +19,7 @@ export class CheckboxInput extends React.Component<ICheckBoxInputProps> {
       <div className="checkbox">
         <label>
           <input className={className} type="checkbox" checked={!!value} {...otherProps} />
-          {text}
+          {text ? text : <Nbsp />}
         </label>
       </div>
     );
