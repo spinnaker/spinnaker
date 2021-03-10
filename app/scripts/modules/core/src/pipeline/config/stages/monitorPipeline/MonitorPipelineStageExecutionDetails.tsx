@@ -7,8 +7,6 @@ import { StageFailureMessage } from '../../../details';
 
 export function MonitorPipelineStageExecutionDetails(props: IExecutionDetailsSectionProps) {
   const {
-    application,
-    execution,
     stage: { context = {}, outputs = {} },
     stage,
     name,
@@ -54,7 +52,6 @@ export function MonitorPipelineStageExecutionDetails(props: IExecutionDetailsSec
                   params={{
                     application: status.application,
                     executionId: status.executionId,
-                    executionParams: { application: application.name, executionId: execution.id },
                   }}
                   options={{ inherit: false, reload: 'home.applications.application.pipelines.executionDetails' }}
                 >
