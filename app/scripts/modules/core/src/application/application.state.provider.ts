@@ -122,6 +122,7 @@ export class ApplicationStateProvider implements IServiceProvider {
         },
         history: {
           type: 'applications',
+          state: 'home.applications.application',
           keyParams: ['application'],
         },
       },

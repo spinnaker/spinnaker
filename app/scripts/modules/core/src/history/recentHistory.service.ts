@@ -136,9 +136,11 @@ module(RECENT_HISTORY_SERVICE, []).run([
   '$rootScope',
   ($rootScope: ng.IRootScopeService) => {
     $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
-      if (toState.data && toState.data.history) {
+      const history = toState.data?.history;
+      if (history) {
         const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
-        RecentHistoryService.addItem(toState.data.history.type, toState.name, params, toState.data.history.keyParams);
+        const state = history.state || toState.name;
+        RecentHistoryService.addItem(history.type, state, params, history.keyParams);
       }
     });
   },
