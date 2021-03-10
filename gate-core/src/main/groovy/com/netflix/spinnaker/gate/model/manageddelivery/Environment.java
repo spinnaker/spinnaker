@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
@@ -27,5 +28,5 @@ public class Environment {
   Collection<Map<String, Object>> constraints;
   Collection<Notification> notifications;
   Map<String, Object> locations;
-  Map<String, Object> verifyWith;
+  List<Map<String, Object>> verifyWith;
 }
