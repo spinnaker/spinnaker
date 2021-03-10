@@ -79,26 +79,26 @@ public class WebhookResponseProcessor {
     throw new SystemException("No response or exception is provided to process.");
   }
 
-  TaskResult processReceivedHttpStatusException(HttpStatusCodeException e) {
-    Map<String, Object> stageOutput = initializeStageOutput();
-    Map<String, Object> webHookOutput = (Map<String, Object>) stageOutput.get("webhook");
-    webHookOutput.put("statusCode", e.getStatusCode());
-    webHookOutput.put("statusCodeValue", e.getStatusCode().value());
+  private TaskResult processReceivedHttpStatusException(HttpStatusCodeException e) {
+    var webhookOutput = new WebhookStage.WebhookResponseStageData();
+
+    webhookOutput.setStatusCode(e.getStatusCode());
+    webhookOutput.setStatusCodeValue(e.getStatusCode().value());
     if (e.getResponseHeaders() != null) {
-      webHookOutput.put("headers", e.getResponseHeaders().toSingleValueMap());
+      webhookOutput.setHeaders(e.getResponseHeaders().toSingleValueMap());
     }
     if (!StringUtils.isEmpty(e.getResponseBodyAsString())) {
-      webHookOutput.put("body", processResponseBodyAsJson(e.getResponseBodyAsString()));
+      webhookOutput.setBody(processResponseBodyAsJson(e.getResponseBodyAsString()));
     }
-    TaskResult result = processReceivedFailureStatusCode(e.getStatusCode(), stageOutput);
-    log.warn(webHookOutput.get("error").toString(), e);
+    TaskResult result = processReceivedFailureStatusCode(e.getStatusCode(), webhookOutput);
+    log.warn(webhookOutput.getError(), e);
     return result;
   }
 
-  TaskResult processReceivedFailureStatusCode(HttpStatus status, Map<String, Object> stageOutput) {
+  private TaskResult processReceivedFailureStatusCode(
+      HttpStatus status, WebhookStage.WebhookResponseStageData webHookOutput) {
     String errorMessage;
     ExecutionStatus executionStatus;
-    Map<String, Object> webHookOutput = (Map<String, Object>) stageOutput.get("webhook");
     // Fail fast status check, retry status check or fail permanently
     if (stageData.failFastStatusCodes != null
         && stageData.failFastStatusCodes.contains(status.value())) {
@@ -122,11 +122,11 @@ public class WebhookResponseProcessor {
       executionStatus = ExecutionStatus.TERMINAL;
     }
 
-    webHookOutput.put("error", errorMessage);
-    return TaskResult.builder(executionStatus).context(stageOutput).build();
+    webHookOutput.setError(errorMessage);
+    return TaskResult.builder(executionStatus).context(Map.of("webhook", webHookOutput)).build();
   }
 
-  TaskResult processClientException(Exception e) {
+  private TaskResult processClientException(Exception e) {
     String errorMessage;
     ExecutionStatus executionStatus;
     if (e instanceof UnknownHostException || e.getCause() instanceof UnknownHostException) {
@@ -150,50 +150,51 @@ public class WebhookResponseProcessor {
               executionId, stageData.url, e.toString());
       executionStatus = ExecutionStatus.TERMINAL;
     }
-    Map<String, Object> stageOutput = initializeStageOutput();
-    Map<String, Object> webHookOutput = (Map<String, Object>) stageOutput.get("webhook");
-    webHookOutput.put("error", errorMessage);
+    var webhookOutput = new WebhookStage.WebhookResponseStageData();
+    webhookOutput.setError(errorMessage);
     log.warn(errorMessage, e);
-    return TaskResult.builder(executionStatus).context(stageOutput).build();
+    return TaskResult.builder(executionStatus).context(Map.of("webhook", webhookOutput)).build();
   }
 
-  TaskResult processResponse(ResponseEntity response) {
-    Map<String, Object> stageOutput = initializeStageOutput();
-    Map<String, Object> webHookOutput = (Map<String, Object>) stageOutput.get("webhook");
-    webHookOutput.put("statusCode", response.getStatusCode());
-    webHookOutput.put("statusCodeValue", response.getStatusCode().value());
+  private TaskResult processResponse(ResponseEntity response) {
+    Map<String, Object> stageOutput = new HashMap<>();
+    var webhookOutput = new WebhookStage.WebhookResponseStageData();
+    stageOutput.put("webhook", webhookOutput);
+    webhookOutput.setStatusCode(response.getStatusCode());
+    webhookOutput.setStatusCodeValue(response.getStatusCode().value());
 
     if (response.getBody() != null) {
-      webHookOutput.put("body", response.getBody());
+      webhookOutput.setBody(response.getBody());
     }
     if (!response.getHeaders().isEmpty()) {
-      webHookOutput.put("headers", response.getHeaders().toSingleValueMap());
+      webhookOutput.setHeaders(response.getHeaders().toSingleValueMap());
     }
     HttpStatus status = response.getStatusCode();
 
     if (status.is2xxSuccessful() || status.is3xxRedirection()) {
 
       // Retrieve status check url
-      if (stageData.waitForCompletion) {
+      if (stageData.isWaitForCompletion()) {
         String statusUrl;
         try {
           statusUrl = new WebhookStatusCheckUrlRetriever().getStatusCheckUrl(response, stageData);
         } catch (Exception e) {
-          webHookOutput.put(
-              "error", "Exception while resolving status check URL: " + e.getMessage());
+          webhookOutput.setError("Exception while resolving status check URL: " + e.getMessage());
           log.error("Exception received while determining status check url", e);
           return TaskResult.builder(ExecutionStatus.TERMINAL).context(stageOutput).build();
         }
 
         if (StringUtils.isEmpty(statusUrl)) {
-          webHookOutput.put(
-              "error",
+          webhookOutput.setError(
               "The status URL couldn't be resolved, but 'Wait for completion' is configured");
           return TaskResult.builder(ExecutionStatus.TERMINAL).context(stageOutput).build();
         }
-        stageData.statusEndpoint = statusUrl;
-        stageExecution.getContext().put("statusEndpoint", statusUrl);
-        webHookOutput.put("statusEndpoint", statusUrl);
+        stageData.setStatusEndpoint(statusUrl);
+        stageExecution
+            .getContext()
+            .put("statusEndpoint", statusUrl); // TODO: can this be eliminated?
+
+        webhookOutput.setStatusEndpoint(statusUrl);
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutput).build();
       }
 
@@ -203,15 +204,14 @@ public class WebhookResponseProcessor {
         try {
           stageOutput.put("artifacts", JsonPath.parse(response.getBody()).read("artifacts"));
         } catch (Exception e) {
-          webHookOutput.put(
-              "error",
+          webhookOutput.setError(
               "Expected artifacts in webhook response couldn't be parsed: " + e.toString());
           return TaskResult.builder(ExecutionStatus.TERMINAL).context(stageOutput).build();
         }
       }
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutput).build();
     } else {
-      webHookOutput.put("error", "The webhook request failed");
+      webhookOutput.setError("The webhook request failed");
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(stageOutput).build();
     }
   }
@@ -229,12 +229,5 @@ public class WebhookResponseProcessor {
       log.warn("Failed to parse webhook payload as JSON", ex);
     }
     return body != null ? body : responseBody;
-  }
-
-  private Map<String, Object> initializeStageOutput() {
-    Map<String, Object> outputs = new HashMap<>();
-    Map<String, Object> webhookOutputs = new HashMap<>();
-    outputs.put("webhook", webhookOutputs);
-    return outputs;
   }
 }

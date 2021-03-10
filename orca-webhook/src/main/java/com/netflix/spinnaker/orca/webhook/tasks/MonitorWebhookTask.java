@@ -30,10 +30,7 @@ import com.netflix.spinnaker.orca.webhook.service.WebhookService;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -98,15 +96,24 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
           "Missing required parameter. Either webhook url or statusEndpoint are required");
     }
 
+    Map<String, Object> context = new HashMap<>();
     // Preserve the responses we got from createWebhookTask, but reset the monitor subkey as we will
-    // overwrite it new data
-    Map<String, Object> webhook =
-        (Map<String, Object>) stage.getContext().getOrDefault("webhook", new HashMap<>());
-    Map<String, Object> monitor = new HashMap<>();
-    webhook.put("monitor", monitor);
+    // overwrite it with new data
+    var webhook =
+        Optional.ofNullable(stageData.getWebhook())
+            .orElseGet(WebhookStage.WebhookResponseStageData::new);
+    context.put("webhook", webhook);
 
-    Map<String, Object> originalResponse = new HashMap<>();
-    originalResponse.put("webhook", webhook);
+    var oldMonitor = webhook.getMonitor();
+    var monitor = new WebhookStage.WebhookMonitorResponseStageData();
+    webhook.setMonitor(monitor);
+
+    List<Integer> pastStatusCodes = new ArrayList<>();
+    if (oldMonitor != null && oldMonitor.getPastStatusCodes() != null) {
+      // continue copying forward in case of a non-http status code based retry
+      pastStatusCodes.addAll(oldMonitor.getPastStatusCodes());
+      monitor.setPastStatusCodes(pastStatusCodes);
+    }
 
     ResponseEntity<Object> response;
     try {
@@ -119,33 +126,29 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
           stage.getId());
     } catch (HttpStatusCodeException e) {
       var statusCode = e.getStatusCode();
-      var statusValue = statusCode.value();
 
-      boolean shouldRetry =
-          statusCode.is5xxServerError()
-              || webhookProperties.getDefaultRetryStatusCodes().contains(statusValue)
-              || ((stageData.retryStatusCodes != null)
-                  && (stageData.retryStatusCodes.contains(statusValue)));
-
-      if (shouldRetry) {
+      if (shouldRetry(statusCode, stageData)) {
         log.warn(
             "Failed to get webhook status from {} with statusCode={}, will retry",
             stageData.statusEndpoint,
-            statusValue,
+            statusCode.value(),
             e);
-        return TaskResult.ofStatus(ExecutionStatus.RUNNING);
+        pastStatusCodes.add(statusCode.value());
+        monitor.setPastStatusCodes(pastStatusCodes); // in case it wasn't already copied over
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(context).build();
       }
-
       String errorMessage =
-          "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}";
+          String.format(
+              "an exception occurred in webhook monitor to %s: %s", stageData.statusEndpoint, e);
       log.error(errorMessage, e);
-      monitor.put("error", errorMessage);
+
+      monitor.setError(errorMessage);
       Optional.ofNullable(e.getResponseHeaders())
           .filter(it -> !it.isEmpty())
           .map(HttpHeaders::toSingleValueMap)
-          .ifPresent(it -> monitor.put("headers", it));
+          .ifPresent(monitor::setHeaders);
 
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(originalResponse).build();
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
     } catch (Exception e) {
       if (e instanceof UnknownHostException || e.getCause() instanceof UnknownHostException) {
         log.warn(
@@ -153,99 +156,114 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
             stage.getExecution().getId(),
             stageData.statusEndpoint,
             e);
-        return TaskResult.ofStatus(ExecutionStatus.RUNNING);
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(context).build();
       }
       if (e instanceof SocketTimeoutException || e.getCause() instanceof SocketTimeoutException) {
         log.warn("Socket timeout when polling {}, will retry.", stageData.statusEndpoint, e);
-        return TaskResult.ofStatus(ExecutionStatus.RUNNING);
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(context).build();
       }
 
       String errorMessage =
           String.format(
               "an exception occurred in webhook monitor to %s: %s", stageData.statusEndpoint, e);
       log.error(errorMessage, e);
-      monitor.put("error", errorMessage);
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(originalResponse).build();
+      monitor.setError(errorMessage);
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
     }
 
-    var responsePayload = originalResponse;
-    monitor.putAll(
-        Map.of(
-            "body", response.getBody(),
-            "statusCode", response.getStatusCode(),
-            "statusCodeValue", response.getStatusCode().value()));
+    monitor.setBody(response.getBody());
+    monitor.setStatusCode(response.getStatusCode());
+    monitor.setStatusCodeValue(response.getStatusCode().value());
 
     if (!response.getHeaders().isEmpty()) {
-      monitor.put("headers", response.getHeaders().toSingleValueMap());
+      monitor.setHeaders(response.getHeaders().toSingleValueMap());
     }
 
     if (Strings.isNullOrEmpty(stageData.statusJsonPath)) {
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(originalResponse).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).build();
     }
 
     Object result;
     try {
       result = JsonPath.read(response.getBody(), stageData.statusJsonPath);
     } catch (PathNotFoundException e) {
-      monitor.put(
-          "error", String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "status", stageData.statusJsonPath));
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(originalResponse).build();
+      monitor.setError(
+          String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "status", stageData.statusJsonPath));
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
     }
+
     if (!(result instanceof String || result instanceof Number || result instanceof Boolean)) {
-      monitor.putAll(
-          Map.of(
-              "error",
+      monitor.setError(
+          String.format(
+              "The json path '%s' did not resolve to a single value", stageData.statusJsonPath));
+      monitor.setResolvedValue(result);
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
+    } else {
+      if (StringUtils.isNotEmpty(stageData.progressJsonPath)) {
+        Object progress;
+        try {
+          progress = JsonPath.read(response.getBody(), stageData.progressJsonPath);
+        } catch (PathNotFoundException e) {
+          monitor.setError(
+              String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "progress", stageData.statusJsonPath));
+          return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
+        }
+        if (!(progress instanceof String)) {
+          monitor.setError(
               String.format(
-                  "The json path '%s' did not resolve to a single value", stageData.statusJsonPath),
-              "resolvedValue",
-              result));
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(originalResponse).build();
-    }
+                  "The json path '%s' did not resolve to a String value",
+                  stageData.progressJsonPath));
+          monitor.setResolvedValue(progress);
+          return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
+        } else {
+          monitor.setProgressMessage((String) progress);
+        }
+      }
 
-    if (StringUtils.isNotEmpty(stageData.progressJsonPath)) {
-      Object progress;
-      try {
-        progress = JsonPath.read(response.getBody(), stageData.progressJsonPath);
-      } catch (PathNotFoundException e) {
-        monitor.put(
-            "error",
-            String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "progress", stageData.statusJsonPath));
-        return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build();
-      }
-      if (!(progress instanceof String)) {
-        monitor.put(
-            "error",
-            String.format(
-                "The json path '%s' did not resolve to a String value",
-                stageData.progressJsonPath));
-        monitor.put("resolvedValue", progress);
-        return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build();
-      }
-      if (progress != null) {
-        monitor.put("progressMessage", progress);
+      if (result instanceof Number) {
+        var status = result.equals(100) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING;
+        monitor.setPercentComplete((Number) result);
+        return TaskResult.builder(status).context(context).build();
+      } else {
+        var statusMap =
+            createStatusMap(
+                stageData.successStatuses, stageData.canceledStatuses, stageData.terminalStatuses);
+        ExecutionStatus status =
+            statusMap.getOrDefault(result.toString().toUpperCase(), ExecutionStatus.RUNNING);
+        return TaskResult.builder(status).context(context).build();
       }
     }
-
-    var statusMap =
-        createStatusMap(
-            stageData.successStatuses, stageData.canceledStatuses, stageData.terminalStatuses);
-
-    if (result instanceof Number) {
-      var status = result.equals(100) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING;
-      monitor.put("percentComplete", result);
-      return TaskResult.builder(status).context(responsePayload).build();
-    } else if (statusMap.containsKey(result.toString().toUpperCase())) {
-      return TaskResult.builder(statusMap.get(result.toString().toUpperCase()))
-          .context(responsePayload)
-          .build();
-    }
-
-    return TaskResult.builder(ExecutionStatus.RUNNING).context(responsePayload).build();
   }
 
   @Override
   public void onCancel(@Nonnull StageExecution stage) {
     webhookService.cancelWebhook(stage);
+  }
+
+  private boolean shouldRetry(HttpStatus statusCode, WebhookStage.StageData stageData) {
+    int status = statusCode.value();
+    var retries = stageData.getRetries();
+
+    if (retries != null && retries.containsKey(status)) {
+      // specific retry limit configured
+      var retryConfig = retries.get(status);
+      long attemptsWithStatus = countAttemptsWithStatus(status, stageData);
+
+      return attemptsWithStatus < retryConfig.getMaxAttempts();
+    }
+
+    return (statusCode.is5xxServerError())
+        || webhookProperties.getDefaultRetryStatusCodes().contains(status)
+        || ((stageData.getRetryStatusCodes() != null)
+            && (stageData.getRetryStatusCodes().contains(status)));
+  }
+
+  private long countAttemptsWithStatus(int status, WebhookStage.StageData stageData) {
+    return Optional.ofNullable(stageData.getWebhook())
+        .map(WebhookStage.WebhookResponseStageData::getMonitor)
+        .map(WebhookStage.WebhookMonitorResponseStageData::getPastStatusCodes)
+        .map(past -> past.stream().filter(it -> status == it).count())
+        .orElse(0L);
   }
 
   private static Map<String, ExecutionStatus> createStatusMap(

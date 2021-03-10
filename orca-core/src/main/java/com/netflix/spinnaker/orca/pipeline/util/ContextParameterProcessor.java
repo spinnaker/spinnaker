@@ -162,7 +162,7 @@ public class ContextParameterProcessor {
       // evaluation context here so that those vars can be processed and expanded when the stage
       // runs
       SpelEvaluatorVersion spelEvaluatorVersion =
-          getEffectiveSpelVersionToUse((String) execution.getSpelEvaluator());
+          getEffectiveSpelVersionToUse(execution.getSpelEvaluator());
 
       if (SpelEvaluatorVersion.V4.equals(spelEvaluatorVersion)) {
         Map templatedVariables = execution.getTemplateVariables();

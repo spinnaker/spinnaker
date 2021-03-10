@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
+import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -61,11 +62,11 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.OK,
         statusCodeValue: HttpStatus.OK.value(),
         body: [:]
-      ]
+      )
     ]
   }
 
@@ -102,12 +103,12 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.TERMINAL
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.BAD_REQUEST,
         statusCodeValue: HttpStatus.BAD_REQUEST.value(),
         body: [error: bodyString],
         error: "The webhook request failed"
-      ]
+      )
     ]
   }
 
@@ -132,11 +133,11 @@ class CreateWebhookTaskSpec extends Specification {
 
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: status,
         statusCodeValue: status.value(),
         error: errorMessage
-      ]
+      )
     ]
 
     where:
@@ -158,9 +159,9 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         error: "Remote host resolution failure in webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
-      ]
+      )
     ]
   }
 
@@ -183,9 +184,9 @@ class CreateWebhookTaskSpec extends Specification {
     def errorMessage = "Socket timeout in webhook on GET request for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         error: errorMessage
-      ]
+      )
     ]
   }
 
@@ -203,9 +204,9 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.TERMINAL
     (result.context as Map) == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         error: "An exception occurred for pipeline ${stage.execution.id} performing a request to wrong://my-service.io/api/. java.lang.IllegalArgumentException: Invalid URL"
-      ]
+      )
     ]
   }
 
@@ -230,12 +231,12 @@ class CreateWebhookTaskSpec extends Specification {
 
     result.status == ExecutionStatus.TERMINAL
     (result.context as Map) == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: statusCode,
         statusCodeValue: statusCode.value(),
         body: body,
         error: errorMessage
-      ]
+      )
     ]
 
     where:
@@ -266,12 +267,12 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.TERMINAL
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         error: "Received status code 503, which is configured to fail fast, terminating stage for pipeline ${stage.getExecution().id} to ${stage.context.url}",
         statusCode: HttpStatus.SERVICE_UNAVAILABLE,
         statusCodeValue: HttpStatus.SERVICE_UNAVAILABLE.value(),
         body: bodyString
-      ]
+      )
     ]
   }
 
@@ -311,12 +312,12 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.CREATED,
         statusCodeValue: HttpStatus.CREATED.value(),
         body: [success: true],
         statusEndpoint: "https://my-service.io/api/"
-      ]
+      )
     ]
     stage.context.statusEndpoint == "https://my-service.io/api/"
   }
@@ -339,13 +340,13 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         headers:[Location: "https://my-service.io/api/status/123"],
         statusCode: HttpStatus.CREATED,
         statusCodeValue: HttpStatus.CREATED.value(),
         body: [success: true],
         statusEndpoint: "https://my-service.io/api/status/123"
-      ]
+      )
     ]
     stage.context.statusEndpoint == "https://my-service.io/api/status/123"
   }
@@ -369,12 +370,12 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.CREATED,
         statusCodeValue: HttpStatus.CREATED.value(),
         body: body,
         statusEndpoint: "https://my-service.io/api/status/123"
-      ]
+      )
     ]
     stage.context.statusEndpoint == "https://my-service.io/api/status/123"
   }
@@ -453,11 +454,11 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.OK,
         statusCodeValue: HttpStatus.OK.value(),
         body: "<html></html>"
-      ]
+      )
     ]
   }
 
@@ -480,11 +481,11 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.context as Map == [
-      webhook: [
+      webhook: new WebhookStage.WebhookResponseStageData(
         statusCode: HttpStatus.OK,
         statusCodeValue: HttpStatus.OK.value(),
         body: [ artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]]
-      ],
+      ),
       artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
     ]
   }

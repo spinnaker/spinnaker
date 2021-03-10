@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -84,7 +85,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public String url;
     public Object payload;
     public Map<String, Object> customHeaders;
-    public List<Integer> failFastStatusCodes;
+    public List<Integer> failFastStatusCodes = List.of(HttpStatus.GATEWAY_TIMEOUT.value());
     public boolean waitForCompletion;
     public WebhookProperties.StatusUrlResolution statusUrlResolution;
     public String statusUrlJsonPath;
@@ -109,38 +110,47 @@ public class WebhookStage implements StageDefinitionBuilder {
     public List<Integer> retryStatusCodes;
 
     public int waitBeforeMonitor;
+    /**
+     * Retry configuration for specific status codes. Retries are cumulative and do not reset if a
+     * different status code is returned in between.
+     */
+    private Map<Integer, RetryData> retries;
 
     // Outputs
-    WebhookResponseStageData webhook;
+    private WebhookResponseStageData webhook = new WebhookResponseStageData();
+  }
+
+  @Data
+  public static class RetryData {
+    /** < 1 maxAttempts will result in no retries. */
+    int maxAttempts;
   }
 
   @Data
   public static class WebhookResponseStageData {
-    public String statusCode;
-    public WebhookMonitorResponseStageData monitor;
-    public String error;
-
-    // NOTE: The fields below exist in the context because they are inserted by the
-    // CreateWebhookTask but they aren't
-    //       consumed by Spinnaker so they are commented out below - they are here for informational
-    // purposes only
-    // String statusEndpoint
-    // Integer statusCodeValue
-    // Map body
+    private String error;
+    private Map<String, String> headers;
+    private Object body;
+    private HttpStatus statusCode;
+    private Integer statusCodeValue;
+    private WebhookMonitorResponseStageData monitor;
+    private String statusEndpoint;
   }
 
   @Data
   public static class WebhookMonitorResponseStageData {
-    public String error;
-
-    // NOTE: The fields below exist in the context because they are inserted by the
-    // MonitorWebhookTask but they aren't
-    //       consumed by Spinnaker so they are commented out below - they are here for informational
-    // purposes only
-    // Integer statusCodeValue
-    // String statusCode
-    // Map body
-    // String progressMessage
-    // Number percentComplete
+    private String error;
+    private Map<String, String> headers;
+    private Object body;
+    private HttpStatus statusCode;
+    private Integer statusCodeValue;
+    private String progressMessage;
+    private Number percentComplete;
+    private Object resolvedValue;
+    /**
+     * A list of status codes that previously resulted in a retry being triggered. Ordered from
+     * oldest to newest.
+     */
+    private List<Integer> pastStatusCodes;
   }
 }
