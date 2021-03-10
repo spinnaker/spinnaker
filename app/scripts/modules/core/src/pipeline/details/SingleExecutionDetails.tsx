@@ -1,14 +1,12 @@
 import { UISref } from '@uirouter/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactGA from 'react-ga';
-import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IPipeline } from 'core/domain';
-import { ISortFilter } from 'core/filterModel';
-import { Tooltip } from 'core/presentation';
+import { Tooltip, useLatestPromise } from 'core/presentation';
 import { IStateChange, ReactInjector } from 'core/reactShims';
-import { IScheduler, SchedulerFactory } from 'core/scheduler';
+import { SchedulerFactory } from 'core/scheduler';
 import { ExecutionState } from 'core/state';
 
 import { Execution } from '../executions/execution/Execution';
@@ -21,13 +19,6 @@ export interface ISingleExecutionDetailsProps {
   app: Application;
 }
 
-export interface ISingleExecutionDetailsState {
-  execution: IExecution;
-  pipelineConfig?: IPipeline;
-  sortFilter: ISortFilter;
-  stateNotFound: boolean;
-}
-
 export interface ISingleExecutionStateParams {
   application: string;
   executionId: string;
@@ -38,108 +29,86 @@ export interface ISingleExecutionRouterStateChange extends IStateChange {
   toParams: ISingleExecutionStateParams;
 }
 
-export class SingleExecutionDetails extends React.Component<
-  ISingleExecutionDetailsProps,
-  ISingleExecutionDetailsState
-> {
-  private executionScheduler: IScheduler;
-  private executionLoader: Subscription;
-  private stateChangeSuccessSubscription: Subscription;
+export function getAndTransformExecution(id: string, app: Application) {
+  return ReactInjector.executionService.getExecution(id).then((execution) => {
+    ExecutionsTransformer.transformExecution(app, execution);
+    return execution;
+  });
+}
 
-  constructor(props: ISingleExecutionDetailsProps) {
-    super(props);
+export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
+  const scheduler = SchedulerFactory.createScheduler(5000);
+  const { $state, stateEvents } = ReactInjector;
+  const { sortFilter } = ExecutionState.filterModel.asFilterModel;
+  const { app } = props;
 
-    this.state = {
-      execution: null,
-      sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
-      stateNotFound: false,
+  const [showDurations, setShowDurations] = useState(sortFilter.showDurations);
+  const [executionId, setExecutionId] = useState($state.params.executionId);
+
+  // responsible for getting execution whenever executionId (route param) changes
+  const { result: execution, status: getExecutionStatus, refresh: refreshExecution } = useLatestPromise(
+    () => getAndTransformExecution(executionId, app),
+    [executionId],
+  );
+
+  // Manages the scheduled refresh until the execution no is active har har
+  const someActive = [execution].filter((x) => x).some((x) => x.isActive);
+  useEffect(() => {
+    const subscription = someActive && scheduler.subscribe(() => refreshExecution());
+
+    return () => {
+      subscription && subscription.unsubscribe();
     };
-  }
+  }, [someActive]);
 
-  private getExecution() {
-    const { executionService, $state } = ReactInjector;
-    const { app } = this.props;
+  // Responsible for listening to state changes and updating executionId
+  useEffect(() => {
+    const subscription = stateEvents.stateChangeSuccess.subscribe((stateChange: ISingleExecutionRouterStateChange) => {
+      if (
+        !stateChange.to.name.includes('pipelineConfig') &&
+        !stateChange.to.name.includes('executions') &&
+        (stateChange.toParams.application !== stateChange.fromParams.application ||
+          stateChange.toParams.executionId !== stateChange.fromParams.executionId)
+      ) {
+        setExecutionId(stateChange.toParams.executionId);
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [execution]);
 
-    if (!app || app.notFound || app.hasError) {
-      return;
-    }
+  const { result: pipelineConfigs } = useLatestPromise<IPipeline[]>(() => {
+    app.pipelineConfigs.activate();
+    return app.pipelineConfigs.ready();
+  }, []);
 
-    executionService.getExecution($state.params.executionId).then(
-      (execution) => {
-        ExecutionsTransformer.transformExecution(app, execution);
-        if (execution.isActive && !this.executionScheduler) {
-          this.executionScheduler = SchedulerFactory.createScheduler(5000);
-          this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
-        }
-        if (!execution.isActive && this.executionScheduler) {
-          this.executionScheduler.unsubscribe();
-          this.executionLoader.unsubscribe();
-        }
-        this.setState({ execution });
+  const pipelineConfig =
+    pipelineConfigs && execution && pipelineConfigs.find((p: IPipeline) => p.id === execution.pipelineConfigId);
 
-        app.pipelineConfigs.activate();
-        app.pipelineConfigs.ready().then(() => {
-          const pipelineConfig = app.pipelineConfigs.data.find((p: IPipeline) => p.id === execution.pipelineConfigId);
-          this.setState({ pipelineConfig });
-        });
-      },
-      () => {
-        this.setState({ execution: null, stateNotFound: true });
-      },
-    );
-  }
+  // Responsible for propagating showDurations changes to the filterModel
+  useEffect(() => {
+    ExecutionState.filterModel.asFilterModel.sortFilter.showDurations = showDurations;
+  }, [showDurations]);
 
-  public componentDidMount(): void {
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(
-      (stateChange: ISingleExecutionRouterStateChange) => {
-        if (
-          !stateChange.to.name.includes('pipelineConfig') &&
-          !stateChange.to.name.includes('executions') &&
-          (stateChange.toParams.application !== stateChange.fromParams.application ||
-            stateChange.toParams.executionId !== stateChange.fromParams.executionId)
-        ) {
-          this.getExecution();
-        }
-      },
-    );
-    this.getExecution();
-  }
-
-  public componentWillUnmount(): void {
-    if (this.executionScheduler) {
-      this.executionScheduler.unsubscribe();
-    }
-    if (this.executionLoader) {
-      this.executionLoader.unsubscribe();
-    }
-    this.stateChangeSuccessSubscription.unsubscribe();
-  }
-
-  private showDurationsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const showDurationsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const checked = event.target.checked;
-    // TODO: Since we treat sortFilter like a store, we can force the setState for now
-    //       but we should eventually convert all the sortFilters to be a valid redux
-    //       (or similar) store.
-    this.state.sortFilter.showDurations = checked;
-    this.setState({ sortFilter: this.state.sortFilter });
+    setShowDurations(checked);
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
   };
 
-  private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
+  const handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     ReactGA.event({ category: 'Execution', action: 'Configuration' });
     ReactInjector.$state.go('^.pipelineConfig', {
-      application: this.props.app.name,
-      pipelineId: this.state.execution.pipelineConfigId,
+      application: app.name,
+      pipelineId: execution.pipelineConfigId,
     });
     e.stopPropagation();
   };
 
-  private rerunExecution = (execution: IExecution) => {
-    const { app } = this.props;
-    const { pipelineConfig: pipeline } = this.state;
-
+  const rerunExecution = (execution: IExecution) => {
     ManualExecutionModal.show({
-      pipeline: pipeline,
+      pipeline: pipelineConfig,
       application: app,
       trigger: execution.trigger,
     }).then((command) => {
@@ -149,90 +118,82 @@ export class SingleExecutionDetails extends React.Component<
     });
   };
 
-  public render() {
-    const { app } = this.props;
-    const { execution, pipelineConfig, sortFilter, stateNotFound } = this.state;
+  const defaultExecutionParams = { application: app.name, executionId: execution?.id || '' };
+  const executionParams = ReactInjector.$state.params.executionParams || defaultExecutionParams;
 
-    const defaultExecutionParams = { application: app.name, executionId: execution ? execution.id : '' };
-    const executionParams = ReactInjector.$state.params.executionParams || defaultExecutionParams;
-
-    return (
-      <div style={{ width: '100%', paddingTop: 0 }}>
-        {execution && (
-          <div className="row">
-            <div className="col-md-10 col-md-offset-1">
-              <div className="single-execution-details">
-                <div className="flex-container-h baseline">
-                  <h3>
-                    <Tooltip value="Back to Executions">
-                      <UISref to="^.executions.execution" params={executionParams}>
-                        <a className="btn btn-configure">
-                          <span className="glyphicon glyphicon glyphicon-circle-arrow-left" />
-                        </a>
-                      </UISref>
-                    </Tooltip>
-                    {execution.name}
-                  </h3>
-
-                  <div className="form-group checkbox flex-pull-right">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={sortFilter.showDurations || false}
-                        onChange={this.showDurationsChanged}
-                      />
-                      <span> stage durations</span>
-                    </label>
-                  </div>
-                  <Tooltip value="Navigate to Pipeline Configuration">
-                    <UISref
-                      to="^.pipelineConfig"
-                      params={{ application: this.props.app.name, pipelineId: this.state.execution.pipelineConfigId }}
-                    >
-                      <button
-                        className="btn btn-sm btn-default single-execution-details__configure"
-                        onClick={this.handleConfigureClicked}
-                      >
-                        <span className="glyphicon glyphicon-cog" />
-                        <span className="visible-md-inline visible-lg-inline"> Configure</span>
-                      </button>
+  return (
+    <div style={{ width: '100%', paddingTop: 0 }}>
+      {execution && (
+        <div className="row">
+          <div className="col-md-10 col-md-offset-1">
+            <div className="single-execution-details">
+              <div className="flex-container-h baseline">
+                <h3>
+                  <Tooltip value="Back to Executions">
+                    <UISref to="^.executions.execution" params={executionParams}>
+                      <a className="btn btn-configure">
+                        <span className="glyphicon glyphicon glyphicon-circle-arrow-left" />
+                      </a>
                     </UISref>
                   </Tooltip>
+                  {execution.name}
+                </h3>
+
+                <div className="form-group checkbox flex-pull-right">
+                  <label>
+                    <input type="checkbox" checked={showDurations || false} onChange={showDurationsChanged} />
+                    <span> stage durations</span>
+                  </label>
                 </div>
+                <Tooltip value="Navigate to Pipeline Configuration">
+                  <UISref
+                    to="^.pipelineConfig"
+                    params={{ application: app.name, pipelineId: execution.pipelineConfigId }}
+                  >
+                    <button
+                      className="btn btn-sm btn-default single-execution-details__configure"
+                      onClick={handleConfigureClicked}
+                    >
+                      <span className="glyphicon glyphicon-cog" />
+                      <span className="visible-md-inline visible-lg-inline"> Configure</span>
+                    </button>
+                  </UISref>
+                </Tooltip>
               </div>
             </div>
           </div>
-        )}
-        {execution && (
-          <div className="row">
-            <div className="col-md-10 col-md-offset-1 executions">
-              <Execution
-                execution={execution}
-                application={app}
-                pipelineConfig={null}
-                standalone={true}
-                showDurations={sortFilter.showDurations}
-                onRerun={
-                  pipelineConfig &&
-                  (() => {
-                    this.rerunExecution(execution);
-                  })
-                }
-              />
-            </div>
+        </div>
+      )}
+      {execution && (
+        <div className="row">
+          <div className="col-md-10 col-md-offset-1 executions">
+            <Execution
+              execution={execution}
+              key={execution.id}
+              application={app}
+              pipelineConfig={null}
+              standalone={true}
+              showDurations={showDurations}
+              onRerun={
+                pipelineConfig &&
+                (() => {
+                  rerunExecution(execution);
+                })
+              }
+            />
           </div>
-        )}
-        {stateNotFound && (
-          <div className="row" style={{ minHeight: '300px' }}>
-            <h4 className="text-center">
-              <p>The execution cannot be found.</p>
-              <UISref to="^.executions" params={{ application: app.name }}>
-                <a>Back to Executions.</a>
-              </UISref>
-            </h4>
-          </div>
-        )}
-      </div>
-    );
-  }
+        </div>
+      )}
+      {getExecutionStatus === 'REJECTED' && (
+        <div className="row" style={{ minHeight: '300px' }}>
+          <h4 className="text-center">
+            <p>The execution cannot be found.</p>
+            <UISref to="^.executions" params={{ application: app.name }}>
+              <a>Back to Executions.</a>
+            </UISref>
+          </h4>
+        </div>
+      )}
+    </div>
+  );
 }
