@@ -261,9 +261,6 @@ class SqlExecutionRepository(
   }
 
   override fun updateStatus(type: ExecutionType, id: String, status: ExecutionStatus) {
-    // this is an internal operation, we don't expect to send interlink events to update the status of an execution
-    validateHandledPartitionOrThrow(type, id)
-
     withPool(poolName) {
       jooq.transactional {
         selectExecution(it, type, id)
@@ -1100,9 +1097,6 @@ class SqlExecutionRepository(
   override fun getPartition(): String? {
     return partitionName
   }
-
-  private fun validateHandledPartitionOrThrow(executionType: ExecutionType, id: String): Boolean =
-    isForeign(executionType, id, true)
 
   private fun validateHandledPartitionOrThrow(execution: PipelineExecution): Boolean =
     isForeign(execution, true)
