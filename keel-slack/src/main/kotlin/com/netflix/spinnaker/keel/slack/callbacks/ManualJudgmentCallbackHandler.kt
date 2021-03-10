@@ -73,7 +73,7 @@ class ManualJudgmentCallbackHandler(
       return withBlocks {
         header {
           when (action) {
-            "approved" -> text("Manual judgement approved", emoji = true)
+            "approve" -> text("Manual judgement approved", emoji = true)
             else -> text("Manual judgement rejected", emoji = true)
           }
         }
@@ -81,7 +81,7 @@ class ManualJudgmentCallbackHandler(
           markdownText(originalCommitText)
           accessory {
             when (action) {
-              "approved" -> image("https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_approved.png", altText = "mj_approved")
+              "approve" -> image("https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_approved.png", altText = "mj_approved")
               else -> image("https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/mj_was_rejected.png", altText = "mj_rejected")
             }
           }
