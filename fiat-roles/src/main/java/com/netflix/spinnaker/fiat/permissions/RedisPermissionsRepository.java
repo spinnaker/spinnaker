@@ -275,6 +275,17 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   @Override
+  public void putAllById(Map<String, UserPermission> permissions) {
+    if (permissions == null || permissions.values() == null) {
+      return;
+    }
+
+    for (UserPermission permission : permissions.values()) {
+      put(permission);
+    }
+  }
+
+  @Override
   public Optional<UserPermission> get(@NonNull String id) {
     if (UNRESTRICTED.equals(id)) {
       return Optional.of(getUnrestrictedUserPermission());

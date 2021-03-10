@@ -38,6 +38,14 @@ public interface PermissionsRepository {
   PermissionsRepository put(UserPermission permission);
 
   /**
+   * Adds all the specified permissions to the repository, overwriting anything currently there.
+   *
+   * @param permissions
+   * @return This PermissionRepository
+   */
+  void putAllById(Map<String, UserPermission> permissions);
+
+  /**
    * Gets the UserPermission from the repository, if available. Returns an empty Optional if not
    * found.
    *

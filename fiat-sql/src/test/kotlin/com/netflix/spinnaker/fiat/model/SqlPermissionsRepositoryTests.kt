@@ -179,7 +179,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                                 Permission.RESOURCE_TYPE.eq(ResourceType.ACCOUNT.toString())
                             )
                         )
-                        .fetchOne(field("body", String::class.java))
+                        .fetchOne(Permission.BODY)
                 ).isEqualTo("""{"name":"account","permissions":{}}""")
                 expectThat(
                     jooq.select(Permission.BODY)
@@ -189,7 +189,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                                 Permission.RESOURCE_TYPE.eq(ResourceType.APPLICATION.toString())
                             )
                         )
-                        .fetchOne(field("body", String::class.java))
+                        .fetchOne(Permission.BODY)
                 ).isEqualTo("""{"name":"app","permissions":{},"details":{}}""")
                 expectThat(
                     jooq.select(Permission.BODY)
@@ -199,7 +199,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                                 Permission.RESOURCE_TYPE.eq(ResourceType.SERVICE_ACCOUNT.toString())
                             )
                         )
-                        .fetchOne(field("body", String::class.java))
+                        .fetchOne(Permission.BODY)
                 ).isEqualTo("""{"name":"serviceAccount","memberOf":["role1"]}""")
                 expectThat(
                     jooq.select(Permission.BODY)
@@ -209,7 +209,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                                 Permission.RESOURCE_TYPE.eq(ResourceType.ROLE.toString())
                             )
                         )
-                        .fetchOne(field("body", String::class.java))
+                        .fetchOne(Permission.BODY)
                 ).isEqualTo("""{"name":"role1"}""")
             }
 
@@ -269,10 +269,9 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                                 Permission.RESOURCE_TYPE.eq(ResourceType.ACCOUNT.toString())
                             )
                         )
-                        .fetchOne(field("body", String::class.java))
+                        .fetchOne(Permission.BODY)
                 ).isEqualTo("""{"name":"account","permissions":{"READ":["abc"]}}""")
             }
-
 
             test("should get the permission out of the database") {
                 jooq.insertInto(Table.USER, User.ID, User.ADMIN, User.UPDATED_AT)
@@ -306,6 +305,63 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
                 expected.addResource(Account().setName("unrestrictedAccount"))
                 expectThat(result).isEqualTo(expected)
+            }
+
+            test("should put all users to the database") {
+                val account1 = Account().setName("account1")
+                val account2 = Account().setName("account2")
+
+                val testUser1 = UserPermission().setId("testUser1")
+                    .setAccounts(setOf(account1))
+                val testUser2 = UserPermission().setId("testUser2")
+                    .setAccounts(setOf(account2))
+                val testUser3 = UserPermission().setId("testUser3")
+                    .setAdmin(true)
+
+                sqlPermissionsRepository.putAllById(
+                    mutableMapOf(
+                        "testuser1" to testUser1,
+                        "testuser2" to testUser2,
+                        "testuser3" to testUser3,
+                    )
+                )
+
+                expectThat(
+                    jooq.selectCount().from(Table.USER).fetchOne(count())
+                ).isEqualTo(3)
+                expectThat(
+                    jooq.select(User.ADMIN).from(Table.USER).where(User.ID.eq("testuser3")).fetchOne(User.ADMIN)
+                ).isTrue()
+                expectThat(
+                    jooq.select(Permission.BODY)
+                        .from(Table.PERMISSION)
+                        .where(
+                            Permission.USER_ID.eq("testuser1").and(
+                                Permission.RESOURCE_TYPE.eq(ResourceType.ACCOUNT.toString())
+                            )
+                        )
+                        .fetchOne(Permission.BODY)
+                ).isEqualTo("""{"name":"account1","permissions":{}}""")
+                expectThat(
+                    jooq.select(Permission.BODY)
+                        .from(Table.PERMISSION)
+                        .where(
+                            Permission.USER_ID.eq("testuser2").and(
+                                Permission.RESOURCE_TYPE.eq(ResourceType.ACCOUNT.toString())
+                            )
+                        )
+                        .fetchOne(Permission.BODY)
+                ).isEqualTo("""{"name":"account2","permissions":{}}""")
+                expectThat(
+                    jooq.select(Permission.BODY)
+                        .from(Table.PERMISSION)
+                        .where(
+                            Permission.USER_ID.eq("testuser3").and(
+                                Permission.RESOURCE_TYPE.eq(ResourceType.ACCOUNT.toString())
+                            )
+                        )
+                        .fetch()
+                ).isEmpty()
             }
 
             test("should get all users from the database") {

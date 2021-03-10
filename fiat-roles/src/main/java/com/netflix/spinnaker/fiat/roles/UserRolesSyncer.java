@@ -34,7 +34,6 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -264,8 +263,8 @@ public class UserRolesSyncer {
         timeIt(
             "syncUsers",
             () -> {
-              Collection<UserPermission> values = permissionsResolver.resolve(extUsers).values();
-              values.forEach(permissionsRepository::put);
+              Map<String, UserPermission> values = permissionsResolver.resolve(extUsers);
+              permissionsRepository.putAllById(values);
               return values.size();
             });
     log.info("Synced {} non-anonymous user roles.", count);

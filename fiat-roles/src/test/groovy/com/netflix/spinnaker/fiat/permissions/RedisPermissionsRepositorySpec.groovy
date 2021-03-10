@@ -317,7 +317,37 @@ class RedisPermissionsRepositorySpec extends Specification {
     result == expected
   }
 
-  def "should get all users from redis"() {
+    def "should put all users to redis"() {
+      setup:
+      def account1 = new Account().setName("account1")
+      def account2 = new Account().setName("account2")
+
+      def testUser1 = new UserPermission().setId("testUser1")
+              .setAccounts([account1] as Set)
+      def testUser2 = new UserPermission().setId("testUser2")
+              .setAccounts([account2] as Set)
+      def testUser3 = new UserPermission().setId("testUser3")
+              .setAdmin(true)
+
+      when:
+      repo.putAllById([
+        "testuser1": testUser1,
+        "testuser2": testUser2,
+        "testuser3": testUser3,
+      ])
+
+      then:
+      jedis.smembers("unittests:users") == ["testuser1", "testuser2", "testuser3"] as Set
+      jedis.sismember("unittests:permissions:admin", "testuser3")
+      jedis.hgetAll("unittests:permissions:testuser1:accounts") ==
+              ['account1': /{"name":"account1","permissions":$EMPTY_PERM_JSON}/.toString()]
+      jedis.hgetAll("unittests:permissions:testuser2:accounts") ==
+              ['account2': /{"name":"account2","permissions":$EMPTY_PERM_JSON}/.toString()]
+      jedis.hgetAll("unittests:permissions:testuser3:applications") == [:]
+
+    }
+
+    def "should get all users from redis"() {
     setup:
     jedis.sadd("unittests:users", "testuser1", "testuser2", "testuser3")
 

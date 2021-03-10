@@ -110,6 +110,10 @@ class SqlPermissionsRepository(
         return this
     }
 
+    override fun putAllById(permissions: Map<String, UserPermission>?) {
+        permissions?.values?.forEach { permission -> put(permission) }
+    }
+
     override fun get(id: String): Optional<UserPermission> {
         if (UNRESTRICTED_USERNAME == id) {
             return Optional.of(getUnrestrictedUserPermission())
