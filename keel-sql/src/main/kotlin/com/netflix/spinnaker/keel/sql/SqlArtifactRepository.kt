@@ -45,6 +45,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import io.github.resilience4j.retry.Retry
+import io.github.resilience4j.retry.RetryConfig
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -202,7 +204,29 @@ class SqlArtifactRepository(
     }
 
   override fun versions(artifact: DeliveryArtifact, limit: Int): List<PublishedArtifact> {
-    if (!isRegistered(artifact.name, artifact.type)) {
+    val retry = Retry.of(
+      "artifact registered",
+      RetryConfig.custom<Boolean>()
+        // retry a couple times since this is invoked from ArtifactListener and there's a race
+        // condition with persisting the delivery config on upsert.
+        .maxAttempts(5)
+        .waitDuration(Duration.ofMillis(100))
+        .retryOnResult { registered ->
+          if (!registered) {
+            log.debug("Retrying registered check for $artifact")
+            true
+          } else {
+            false
+          }
+        }
+        .build()
+    )
+
+    val registered = retry.executeSupplier {
+      isRegistered(artifact.name, artifact.type)
+    }
+
+    if (!registered) {
       throw NoSuchArtifactException(artifact)
     }
 
