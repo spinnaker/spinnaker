@@ -44,6 +44,7 @@ class MarkAsBadNotificationHandler(
             "vetoed",
             env = env)
         }
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, vetoedArtifact)
 
         section {
           gitDataGenerator.generateScmInfo(this, application, vetoedArtifact)

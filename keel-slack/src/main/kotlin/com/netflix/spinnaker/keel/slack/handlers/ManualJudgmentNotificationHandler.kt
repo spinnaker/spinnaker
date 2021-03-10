@@ -45,6 +45,7 @@ class ManualJudgmentNotificationHandler(
             "mj_needed",
             env = env)
         }
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifactCandidate)
 
         section {
           gitDataGenerator.generateScmInfo(this, application, artifactCandidate)

@@ -49,6 +49,8 @@ class PinnedNotificationHandler(
             env)
         }
 
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, pinnedArtifact)
+
         section {
           gitDataGenerator.generateScmInfo(this,
             application,
@@ -64,5 +66,4 @@ class PinnedNotificationHandler(
       slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }
   }
-
 }

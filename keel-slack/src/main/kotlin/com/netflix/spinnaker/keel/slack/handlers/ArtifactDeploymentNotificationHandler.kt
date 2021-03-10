@@ -60,6 +60,7 @@ class ArtifactDeploymentNotificationHandler(
             details,
             env)
         }
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifact)
 
         section {
           gitDataGenerator.generateScmInfo(this, application, artifact)

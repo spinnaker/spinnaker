@@ -42,6 +42,7 @@ class LifecycleEventNotificationHandler(
         section {
           gitDataGenerator.generateCommitInfo(this, application, imageUrl, artifact, "lifecycle")
         }
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifact)
 
         section {
           gitDataGenerator.generateScmInfo(this, application, artifact)

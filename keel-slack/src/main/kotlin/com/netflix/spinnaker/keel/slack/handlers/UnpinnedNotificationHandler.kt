@@ -68,6 +68,9 @@ class UnpinnedNotificationHandler(
               env)
           }
         }
+        if (pinnedArtifact != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, pinnedArtifact)
+        }
 
         section {
           if (latestArtifact != null) {

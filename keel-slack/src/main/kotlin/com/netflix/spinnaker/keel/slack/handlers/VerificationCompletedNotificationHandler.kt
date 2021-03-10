@@ -46,6 +46,7 @@ class VerificationCompletedNotificationHandler(
         section {
           gitDataGenerator.generateCommitInfo(this, application, imageUrl, artifact, "verification")
         }
+        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifact)
 
         section {
           gitDataGenerator.generateScmInfo(this, application, artifact)
