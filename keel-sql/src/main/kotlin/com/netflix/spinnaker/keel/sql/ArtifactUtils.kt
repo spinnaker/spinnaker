@@ -175,7 +175,7 @@ internal fun ArtifactVersionSelectStep.fetchSortedArtifactVersions(
   artifact: DeliveryArtifact,
   limit: Int? = null
 ): List<PublishedArtifact> {
-  return if (artifact.filteredByBranch || artifact.filteredByPullRequest) {
+  return if (artifact.filteredBySource) {
     fetchArtifactVersionsSortedWithQuery(artifact, limit)
   } else {
     fetchArtifactVersionsSortedWithComparator(artifact, limit)
@@ -189,15 +189,16 @@ internal fun ArtifactVersionSelectStep.fetchSortedArtifactVersions(
  */
 private fun filterDockerVersions(artifact: DockerArtifact, versions: List<PublishedArtifact>): List<PublishedArtifact> =
   versions
-    .filter { shouldInclude(it.version, artifact) }
+    .filter { filterDockerTag(it.version, artifact) }
 
 /**
- * Returns true if a docker tag is not a match to the regex produces exactly one capture group on the tag, false otherwise.
+ * @return true if a docker tag is a match to the regex associated with the [TagVersionStrategy] and produces exactly
+ * one capture group on the tag, false otherwise. This only applies if the artifact is defined in terms of versions.
  */
-internal fun shouldInclude(tag: String, artifact: DockerArtifact) =
-  if (artifact.tagVersionStrategy == null) {
-    log.warn("Attempt to check Docker tag against unspecified tag version strategy for $artifact. Excluding.")
-    false
+internal fun filterDockerTag(tag: String, artifact: DockerArtifact) =
+  if (artifact.filteredBySource) {
+    log.debug("Ignoring Docker tag filter for $artifact, tag $tag since it's filtered by source.")
+    true
   } else {
     try {
       TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy!!, artifact.captureGroupRegex) != null

@@ -25,7 +25,7 @@ data class DebianArtifact(
   override val type = DEBIAN
 
   override val sortingStrategy: SortingStrategy
-    get() = if (filteredByBranch || filteredByPullRequest) {
+    get() = if (filteredBySource) {
       CreatedAtSortingStrategy
     } else {
       DebianVersionSortingStrategy

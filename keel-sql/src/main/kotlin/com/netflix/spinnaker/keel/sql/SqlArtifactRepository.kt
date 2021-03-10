@@ -1061,7 +1061,7 @@ class SqlArtifactRepository(
           .filter { (artifactVersion, _) ->
             if (artifact is DockerArtifact) {
               // filter out invalid docker tags
-              shouldInclude(artifactVersion.version, artifact)
+              filterDockerTag(artifactVersion.version, artifact)
             } else {
               true
             }

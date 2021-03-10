@@ -19,7 +19,7 @@ data class NpmArtifact(
   override val type = NPM
 
   override val sortingStrategy: SortingStrategy
-    get() = if (filteredByBranch || filteredByPullRequest) {
+    get() = if (filteredBySource) {
       CreatedAtSortingStrategy
     } else {
       NpmVersionSortingStrategy

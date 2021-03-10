@@ -80,6 +80,9 @@ abstract class DeliveryArtifact {
   val filteredByPullRequest: Boolean
     get() = from?.pullRequestOnly == true
 
+  val filteredBySource: Boolean
+    get() = filteredByBranch || filteredByPullRequest
+
   val filteredByReleaseStatus: Boolean
     get() = statuses.isNotEmpty()
 
