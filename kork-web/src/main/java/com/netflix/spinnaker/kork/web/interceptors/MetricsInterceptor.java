@@ -121,7 +121,8 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
               .withTag("controller", controller)
               .withTag("method", handlerMethod.getMethod().getName())
               .withTag("status", status.toString().charAt(0) + "xx")
-              .withTag("statusCode", status.toString());
+              .withTag("statusCode", status.toString())
+              .withTag("criticality", metricCriticality(handlerMethod));
 
       Map variables = (Map) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
       for (String pathVariable : pathVariablesToTag) {
@@ -155,6 +156,14 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
               registry, registry.createId(contentLengthMetricName).withTags(id.tags()))
           .record(request.getContentLengthLong());
     }
+  }
+
+  private String metricCriticality(HandlerMethod handlerMethod) {
+    if (handlerMethod.hasMethodAnnotation(Criticality.class)) {
+      Criticality criticality = handlerMethod.getMethodAnnotation(Criticality.class);
+      return criticality.value();
+    }
+    return Criticality.Value.UNKNOWN;
   }
 
   protected Long getNanoTime() {

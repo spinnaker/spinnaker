@@ -76,6 +76,7 @@ public class MetricsInterceptorMicrometerTest {
             Arrays.asList(
                 Tag.of("cause", "IllegalArgumentException"),
                 Tag.of("controller", "TestController"),
+                Tag.of("criticality", "unknown"),
                 Tag.of("method", "execute"),
                 Tag.of("param-1", "val-1"),
                 Tag.of("param-2", "None"),
@@ -88,6 +89,7 @@ public class MetricsInterceptorMicrometerTest {
             Arrays.asList(
                 Tag.of("cause", "RuntimeException"),
                 Tag.of("controller", "TestController"),
+                Tag.of("criticality", "unknown"),
                 Tag.of("method", "execute"),
                 Tag.of("param-1", "None"),
                 Tag.of("param-2", "None"),
@@ -100,6 +102,7 @@ public class MetricsInterceptorMicrometerTest {
             Arrays.asList(
                 Tag.of("cause", "None"),
                 Tag.of("controller", "TestController"),
+                Tag.of("criticality", "unknown"),
                 Tag.of("method", "execute"),
                 Tag.of("param-1", "val-1"),
                 Tag.of("param-2", "None"),
@@ -112,6 +115,7 @@ public class MetricsInterceptorMicrometerTest {
             Arrays.asList(
                 Tag.of("cause", "None"),
                 Tag.of("controller", "TestController"),
+                Tag.of("criticality", "unknown"),
                 Tag.of("method", "execute"),
                 Tag.of("param-1", "None"),
                 Tag.of("param-2", "None"),
