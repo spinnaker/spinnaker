@@ -2,6 +2,7 @@ import { isEqual } from 'lodash';
 import React from 'react';
 
 import { HelpField } from 'core/help/HelpField';
+import { createFakeReactSyntheticEvent, IFormInputProps } from 'core/presentation';
 
 export interface IPlatformHealthOverrideProps {
   interestingHealthProviderNames: string[];
@@ -31,4 +32,21 @@ export class PlatformHealthOverride extends React.Component<IPlatformHealthOverr
       </div>
     );
   }
+}
+
+export function PlatformHealthOverrideInput(
+  props: IFormInputProps & { platformHealthType: string; showHelpDetails?: boolean },
+) {
+  const { value, onChange, platformHealthType, showHelpDetails, ...rest } = props;
+  return (
+    <PlatformHealthOverride
+      {...rest}
+      interestingHealthProviderNames={value}
+      platformHealthType={platformHealthType}
+      showHelpDetails={showHelpDetails}
+      onChange={(newVal: string[]) => {
+        onChange(createFakeReactSyntheticEvent({ name: rest.name, value: newVal }));
+      }}
+    />
+  );
 }
