@@ -10,7 +10,7 @@ import { Button } from 'react-bootstrap';
 beforeEach(() => {
   mock.module(($provide: any) => {
     $provide.value('$uibModal', {} as IModalService);
-    $provide.value('overrideRegistry', {} as OverrideRegistry);
+    $provide.value('overrideRegistry', new OverrideRegistry());
     $provide.value('cacheInitializer', {} as CacheInitializerService);
   });
 });

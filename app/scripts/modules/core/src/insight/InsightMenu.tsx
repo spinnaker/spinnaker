@@ -6,7 +6,7 @@ import { Button } from 'react-bootstrap';
 
 import { Application } from 'core/application';
 import { CacheInitializerService } from 'core/cache';
-import { OverrideRegistry } from 'core/overrideRegistry';
+import { Overridable, OverrideRegistry } from 'core/overrideRegistry';
 import { ConfigureProjectModal } from 'core/projects';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
 
@@ -20,6 +20,7 @@ export interface IInsightMenuState {
   refreshingCache: boolean;
 }
 
+@Overridable('createInsightMenu')
 export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenuState> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
