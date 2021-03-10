@@ -81,9 +81,9 @@ class MetricsInterceptorSpec extends Specification {
 
     where:
     exception                  | handlerMethod      | variablesToTag | requestParamsToAdd | expectedTags
-    null                       | "get"              | []             | []                 | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: "None", criticality: "unknown"]
-    new NullPointerException() | "get"              | []             | []                 | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException", criticality: "unknown"]
-    null                       | "get"              | ["account"]    | ['user']           | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: 'None', "account": "test", user: 'Anastasiia', criticality: "unknown"]
+    null                       | "get"              | []             | []                 | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: "None", criticality: "low"]
+    new NullPointerException() | "get"              | []             | []                 | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException", criticality: "low"]
+    null                       | "get"              | ["account"]    | ['user']           | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: 'None', "account": "test", user: 'Anastasiia', criticality: "low"]
     new NullPointerException() | "highCriticality"  | []             | []                 | [success: "false", statusCode: "500", status: "5xx", "method": "highCriticality", controller: "Example", cause: "NullPointerException", criticality: "high"]
 
     templateVariables = ["account": "test", "empty": "empty"]
@@ -102,6 +102,7 @@ class MetricsInterceptorSpec extends Specification {
     interceptor.afterCompletion(null, null, handler, null)
   }
 
+  @Criticality(Criticality.Value.LOW)
   class Example {
     void get() {}
 

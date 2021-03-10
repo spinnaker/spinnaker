@@ -162,6 +162,13 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
     if (handlerMethod.hasMethodAnnotation(Criticality.class)) {
       Criticality criticality = handlerMethod.getMethodAnnotation(Criticality.class);
       return criticality.value();
+    } else if (handlerMethod
+        .getMethod()
+        .getDeclaringClass()
+        .isAnnotationPresent(Criticality.class)) {
+      Criticality criticality =
+          handlerMethod.getMethod().getDeclaringClass().getAnnotation(Criticality.class);
+      return criticality.value();
     }
     return Criticality.Value.UNKNOWN;
   }

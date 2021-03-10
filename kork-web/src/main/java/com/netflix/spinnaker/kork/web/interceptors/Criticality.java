@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  * <p>This could be used to inform alerting conditions.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Documented
 public @interface Criticality {
 
