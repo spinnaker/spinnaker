@@ -4,10 +4,12 @@ import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.retrofit.isNotFound
 import java.time.Duration
 import kotlinx.coroutines.async
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import retrofit2.HttpException
 
 /**
  * Provides common logic for multiple cloud plugins to export aspects of compute clusters.
@@ -71,10 +73,20 @@ class ClusterExportHelper(
       val executionType = spinnakerMetadata["executionType"].toString()
       val executionId = spinnakerMetadata["executionId"].toString()
       val execution = async {
-        when (executionType) {
-          "orchestration" -> orcaService.getOrchestrationExecution(executionId)
-          "pipeline" -> orcaService.getPipelineExecution(executionId)
-          else -> null
+        try {
+          when (executionType) {
+            "orchestration" -> orcaService.getOrchestrationExecution(executionId)
+            "pipeline" -> orcaService.getPipelineExecution(executionId)
+            else -> null
+          }
+        } catch (e: HttpException) {
+          if (e.isNotFound) {
+            log.warn("$executionType execution $executionId not found for server group $serverGroupName. " +
+              "Defaulting to red/black deployment strategy.")
+            null
+          } else {
+            throw e
+          }
         }
       }.await()
 

@@ -34,6 +34,7 @@ dependencies {
 
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
+  testImplementation(project(":keel-retrofit-test-support"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("io.strikt:strikt-mockk")
   testImplementation("dev.minutest:minutest")

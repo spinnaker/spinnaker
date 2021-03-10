@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
@@ -21,10 +22,12 @@ import io.mockk.mockk
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import strikt.assertions.isSuccess
 
 class ClusterExportHelperTests : JUnit5Minutests {
   class Fixture {
@@ -247,6 +250,28 @@ class ClusterExportHelperTests : JUnit5Minutests {
               }
           }
         }
+
+        context("when task execution is not found") {
+          before {
+            coEvery {
+              orcaService.getOrchestrationExecution("01E609548XWA7ZBP5M5FGMZ964", any())
+            } throws RETROFIT_NOT_FOUND
+          }
+
+          test("does not throw an exception, but returns null") {
+            expectCatching {
+              runBlocking {
+                subject.discoverDeploymentStrategy(
+                  cloudProvider = "aws",
+                  account = "test",
+                  application = "keel",
+                  serverGroupName = "keel-test-v001"
+                )
+              }
+            }.isSuccess()
+              .isNull()
+          }
+        }
       }
 
       context("when entity tags indicate deployment done by pipeline") {
@@ -254,28 +279,55 @@ class ClusterExportHelperTests : JUnit5Minutests {
           coEvery {
             cloudDriverService.getEntityTags("aws", "test", "keel", "servergroup", any())
           } returns listOf(pipelineEntityTags)
-          coEvery {
-            orcaService.getPipelineExecution("01E609548XWA7ZBP5M5FGMZ964", any())
-          } returns orcaPipelineExecution
         }
 
-        test("retrieves current deployment strategy from pipeline execution") {
-          val deploymentStrategy = runBlocking {
-            subject.discoverDeploymentStrategy(
-              cloudProvider = "aws",
-              account = "test",
-              application = "keel",
-              serverGroupName = "keel-test-v001"
-            )
+        context("when pipeline execution is found") {
+          before {
+            coEvery {
+              orcaService.getPipelineExecution("01E609548XWA7ZBP5M5FGMZ964", any())
+            } returns orcaPipelineExecution
           }
 
-          expectThat(deploymentStrategy)
-            .isA<RedBlack>()
-            .and {
-              get { maxServerGroups }.isEqualTo(1)
-              get { delayBeforeDisable }.isEqualTo(Duration.ofSeconds(5))
-              get { delayBeforeScaleDown }.isEqualTo(Duration.ofSeconds(5))
+          test("retrieves current deployment strategy from pipeline execution") {
+            val deploymentStrategy = runBlocking {
+              subject.discoverDeploymentStrategy(
+                cloudProvider = "aws",
+                account = "test",
+                application = "keel",
+                serverGroupName = "keel-test-v001"
+              )
             }
+
+            expectThat(deploymentStrategy)
+              .isA<RedBlack>()
+              .and {
+                get { maxServerGroups }.isEqualTo(1)
+                get { delayBeforeDisable }.isEqualTo(Duration.ofSeconds(5))
+                get { delayBeforeScaleDown }.isEqualTo(Duration.ofSeconds(5))
+              }
+          }
+        }
+
+        context("when pipeline execution is not found") {
+          before {
+            coEvery {
+              orcaService.getPipelineExecution("01E609548XWA7ZBP5M5FGMZ964", any())
+            } throws RETROFIT_NOT_FOUND
+          }
+
+          test("does not throw an exception, but returns null") {
+            expectCatching {
+              runBlocking {
+                subject.discoverDeploymentStrategy(
+                  cloudProvider = "aws",
+                  account = "test",
+                  application = "keel",
+                  serverGroupName = "keel-test-v001"
+                )
+              }
+            }.isSuccess()
+              .isNull()
+          }
         }
       }
     }
