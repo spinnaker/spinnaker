@@ -13,6 +13,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.model.manageddelivery.RetryVerificationRequest;
 import com.netflix.spinnaker.gate.services.NotificationService;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
+import com.netflix.spinnaker.kork.web.interceptors.Criticality;
 import groovy.util.logging.Slf4j;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -47,6 +48,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Header;
 import retrofit.client.Response;
 
+@Criticality(Criticality.Value.LOW)
 @RequestMapping("/managed")
 @RestController
 @Slf4j

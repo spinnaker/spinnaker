@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.api.extension.ProxyConfigProvider
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.kork.web.interceptors.Criticality
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
+@Criticality(Criticality.Value.LOW)
 @RestController
 @RequestMapping(value = ["/proxies"])
 class ProxyController(
