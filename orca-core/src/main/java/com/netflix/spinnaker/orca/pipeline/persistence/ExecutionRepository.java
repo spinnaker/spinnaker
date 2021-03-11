@@ -61,6 +61,10 @@ public interface ExecutionRepository {
 
   boolean isCanceled(ExecutionType type, @Nonnull String id);
 
+  default void updateStatus(@Nonnull PipelineExecution execution) {
+    updateStatus(execution.getType(), execution.getId(), execution.getStatus());
+  }
+
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
   @Nonnull

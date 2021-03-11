@@ -428,7 +428,6 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     when:
     repository().cancel(execution.type, execution.id)
 
-
     then:
     with(repository().retrieve(execution.type, execution.id)) {
       canceled

@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
+import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -235,6 +237,17 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
   public void setStatus(@Nonnull ExecutionStatus status) {
     this.status = status;
+  }
+
+  @Override
+  public void updateStatus(@Nonnull ExecutionStatus status) {
+    this.status = status;
+    if (status == RUNNING) {
+      canceled = false;
+      startTime = currentTimeMillis();
+    } else if (status.isComplete() && startTime != null) {
+      endTime = currentTimeMillis();
+    }
   }
 
   private AuthenticationDetails authentication;

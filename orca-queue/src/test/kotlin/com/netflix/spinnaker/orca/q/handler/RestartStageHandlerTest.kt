@@ -250,7 +250,8 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       }
 
       it("marks the execution as running") {
-        verify(repository).updateStatus(PIPELINE, pipeline.id, RUNNING)
+        assertThat(pipeline.status).isEqualTo(RUNNING)
+        verify(repository).updateStatus(pipeline)
       }
 
       it("runs the stage") {

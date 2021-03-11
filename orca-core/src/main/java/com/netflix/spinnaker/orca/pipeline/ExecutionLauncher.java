@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
@@ -26,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
@@ -161,7 +161,6 @@ public class ExecutionLauncher {
   private PipelineExecution handleStartupFailure(PipelineExecution execution, Throwable failure) {
     final String canceledBy = "system";
     String reason = "Failed on startup: " + failure.getMessage();
-    final ExecutionStatus status = ExecutionStatus.TERMINAL;
 
     if (failure instanceof ValidationException) {
       ValidationException validationException = (ValidationException) failure;
@@ -191,7 +190,8 @@ public class ExecutionLauncher {
     } else {
       log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
     }
-    executionRepository.updateStatus(execution.getType(), execution.getId(), status);
+    execution.updateStatus(TERMINAL);
+    executionRepository.updateStatus(execution);
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
     return executionRepository.retrieve(execution.getType(), execution.getId());
   }

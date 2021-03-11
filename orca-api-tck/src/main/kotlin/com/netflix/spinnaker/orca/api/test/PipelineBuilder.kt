@@ -34,6 +34,7 @@ import java.lang.System.currentTimeMillis
 fun pipeline(init: PipelineExecution.() -> Unit = {}): PipelineExecution {
   val pipeline = PipelineExecutionImpl(PIPELINE, "covfefe")
   pipeline.trigger = DefaultTrigger("manual")
+  pipeline.startTime = currentTimeMillis()
   pipeline.buildTime = currentTimeMillis()
   pipeline.init()
   return pipeline

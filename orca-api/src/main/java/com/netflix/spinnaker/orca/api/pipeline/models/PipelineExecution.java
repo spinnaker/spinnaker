@@ -141,6 +141,11 @@ public interface PipelineExecution {
 
   StageExecution stageByRef(String refId);
 
+  /**
+   * Based on the value of `status`, will also update synthetic fields like `canceled` and `endTime`
+   */
+  void updateStatus(ExecutionStatus status);
+
   class AuthenticationDetails {
 
     private String user;

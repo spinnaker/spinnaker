@@ -60,7 +60,8 @@ class RestartStageHandler(
           topStage.addRestartDetails(message.user)
           topStage.reset()
           restartParentPipelineIfNeeded(message, topStage)
-          repository.updateStatus(topStage.execution.type, topStage.execution.id, RUNNING)
+          topStage.execution.updateStatus(RUNNING)
+          repository.updateStatus(topStage.execution)
           queue.push(StartStage(startMessage))
         }
       }

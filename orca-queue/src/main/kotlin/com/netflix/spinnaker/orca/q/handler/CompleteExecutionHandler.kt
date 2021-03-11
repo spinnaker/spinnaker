@@ -62,8 +62,8 @@ class CompleteExecutionHandler(
         log.info("Execution ${execution.id} already completed with ${execution.status} status")
       } else {
         message.determineFinalStatus(execution) { status ->
-          repository.updateStatus(execution.type, message.executionId, status)
-          execution.status = status
+          execution.updateStatus(status)
+          repository.updateStatus(execution)
           publisher.publishEvent(ExecutionComplete(this, execution))
 
           registry.counter(
