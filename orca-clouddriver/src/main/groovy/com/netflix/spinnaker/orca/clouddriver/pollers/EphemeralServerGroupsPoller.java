@@ -115,10 +115,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     log.info("Checking for ephemeral server groups");
 
     List<EphemeralServerGroupTag> ephemeralServerGroupTags = fetchEphemeralServerGroupTags();
-    log.info(
-        "Found {} ephemeral server groups: {}",
-        ephemeralServerGroupTags.size(),
-        ephemeralServerGroupTags);
+    log.info("Found {} ephemeral server groups", ephemeralServerGroupTags.size());
 
     if (ephemeralServerGroupTags.isEmpty()) {
       return;
@@ -295,31 +292,5 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     public String serverGroup;
 
     public ZonedDateTime expiry;
-
-    @Override
-    public String toString() {
-      return "EphemeralServerGroupTag{"
-          + "id='"
-          + id
-          + '\''
-          + ", cloudProvider='"
-          + cloudProvider
-          + '\''
-          + ", application='"
-          + application
-          + '\''
-          + ", account='"
-          + account
-          + '\''
-          + ", location='"
-          + location
-          + '\''
-          + ", serverGroup='"
-          + serverGroup
-          + '\''
-          + ", expiry="
-          + expiry
-          + '}';
-    }
   }
 }
