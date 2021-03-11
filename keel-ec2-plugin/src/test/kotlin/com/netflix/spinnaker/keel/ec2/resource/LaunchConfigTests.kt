@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -120,7 +119,7 @@ internal class LaunchConfigTests {
       image = VirtualMachineImage(
         id = "ami-123543254134",
         appVersion = "keel-0.287.0-h208.fe2e8a1",
-        baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
+        baseImageName = "nflx-base-5.308.0-h1044.b4b3f78"
       ),
       instanceType = "r4.8xlarge",
       ebsOptimized = false,

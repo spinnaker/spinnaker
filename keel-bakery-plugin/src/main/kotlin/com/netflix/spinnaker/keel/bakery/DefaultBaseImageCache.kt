@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 class DefaultBaseImageCache(
   private val baseImages: Map<String, Map<String, String>>
 ) : BaseImageCache {
-  override fun getBaseAmiVersion(os: String, label: BaseLabel) =
+  override fun getBaseAmiName(os: String, label: BaseLabel) =
     baseImages[os]?.get(label.name.toLowerCase()) ?: throw UnknownBaseImage(os, label)
 
   override val allVersions: Map<String, Map<String, String>>

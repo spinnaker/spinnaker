@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.bakery.artifact
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.LifecycleConfig
-import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
@@ -28,8 +27,6 @@ import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -38,8 +35,8 @@ import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.lang.RuntimeException
 import java.time.Instant
+import io.mockk.coEvery as every
 
 class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
@@ -48,7 +45,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val bakedImageRepository: BakedImageRepository = mockk(relaxUnitFun = true)
     val imageService: ImageService = mockk(relaxUnitFun = true) {
-      coEvery { findBaseAmiVersion(any(), any()) } returns "base-1-2-3"
+      every { findBaseAmiName(any(), any()) } returns "base-1-2-3"
     }
     val lifecycleConfig = LifecycleConfig()
     val clock = MutableClock()
@@ -100,7 +97,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
     context("updating status") {
       context("buffered") {
         before {
-          coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
             getExecution(BUFFERED)
           runBlocking { subject.monitor(task) }
         }
@@ -117,7 +114,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
       context("running") {
         before {
-          coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
             getExecution(RUNNING)
           runBlocking { subject.monitor(task) }
         }
@@ -135,7 +132,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
       context("succeeded") {
         before {
-          coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
             getSucceededBakeExecution()
           runBlocking { subject.monitor(task) }
         }
@@ -157,7 +154,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
       context("failed") {
         before {
-          coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
             getExecution(TERMINAL)
           runBlocking { subject.monitor(task) }
         }
@@ -178,7 +175,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
       }
       context("unknown") {
         before {
-          coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+          every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
             getExecution(PAUSED)
           runBlocking { subject.monitor(task) }
         }
@@ -197,7 +194,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
     context("handling failure") {
       before {
-        coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } throws
+        every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } throws
           RuntimeException("this is embarrassing..")
       }
 
@@ -223,7 +220,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
 
     context("handling intermittent failure") {
       before {
-        coEvery { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
+        every { orcaService.getOrchestrationExecution(id, DEFAULT_SERVICE_ACCOUNT) } returns
           getExecution(PAUSED)
       }
       test("failure count is cleared after a success") {

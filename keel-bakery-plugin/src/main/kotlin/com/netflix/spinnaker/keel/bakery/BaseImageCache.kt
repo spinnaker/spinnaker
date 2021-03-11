@@ -10,7 +10,7 @@ interface BaseImageCache {
    * image, if it exists.
    * @throws UnknownBaseImage if there is no known base image for [os] and [label].
    */
-  fun getBaseAmiVersion(os: String, label: BaseLabel): String
+  fun getBaseAmiName(os: String, label: BaseLabel): String
 
   val allVersions: Map<String, Map<String, String>>
 }

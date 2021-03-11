@@ -94,7 +94,7 @@ class ActiveServerGroupFixtureMaker : FixtureMaker<ActiveServerGroup> {
       image = ActiveServerGroupImage(
         imageId = "image",
         appVersion = null,
-        baseImageVersion = null,
+        baseImageName = null,
         name = "name",
         imageLocation = "somewhere",
         description = null
@@ -154,7 +154,7 @@ class ServerGroupFixtureMaker: FixtureMaker<ServerGroup> {
       image = ActiveServerGroupImage(
         imageId = "image",
         appVersion = null,
-        baseImageVersion = null,
+        baseImageName = null,
         name = "name",
         imageLocation = "somewhere",
         description = null

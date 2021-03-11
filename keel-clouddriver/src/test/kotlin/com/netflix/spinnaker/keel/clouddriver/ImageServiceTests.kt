@@ -50,7 +50,7 @@ class ImageServiceTests : JUnit5Minutests {
     val cloudDriver = mockk<CloudDriverService>()
     val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY)
     val artifact = DebianArtifact("my-package", vmOptions = VirtualMachineOptions(baseOs = "ignored", regions = emptySet()))
-    
+
     val image1 = NamedImage(
       imageName = "my-package-0.0.1_rc.97-h98",
       attributes = mapOf(
@@ -63,6 +63,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-0.0.1~rc.97-h98.1c684a9/JENKINS-job/98",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
+          "base_ami_name" to "trustybase-x86_64-201707211843-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2018-10-25 13:08:59 UTC"
         )
       ),
@@ -85,6 +87,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-0.0.1~rc.98-h99.4cb755c/JENKINS-job/99",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
+          "base_ami_name" to "trustybase-x86_64-201707211843-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2018-10-28 13:09:14 UTC"
         )
       ),
@@ -108,6 +112,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-0.0.1~rc.99-h100.8192e02/JENKINS-job/100",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
+          "base_ami_name" to "trustybase-x86_64-201707211843-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2018-10-31 13:09:55 UTC"
         )
       ),
@@ -153,6 +159,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-0.0.1~rc.99-h100.8192e02/JENKINS-job/100",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
+          "base_ami_name" to "trustybase-x86_64-201707211843-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2018-10-31 13:24:55 UTC"
         )
       ),
@@ -175,6 +183,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-0.0.1~rc.97-h98.1c684a9/JENKINS-job/98",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.293.0-h989",
+          "base_ami_name" to "xenialbase-x86_64-202103092356-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2019-11-25 13:08:59 UTC"
         )
       ),

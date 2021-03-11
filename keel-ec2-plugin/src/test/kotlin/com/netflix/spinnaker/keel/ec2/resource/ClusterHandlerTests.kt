@@ -145,7 +145,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           image = VirtualMachineImage(
             id = "ami-123543254134",
             appVersion = "keel-0.287.0-h208.fe2e8a1",
-            baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
+            baseImageName = "nflx-base-5.308.0-h1044.b4b3f78"
           ),
           instanceType = instanceType,
           ebsOptimized = false,

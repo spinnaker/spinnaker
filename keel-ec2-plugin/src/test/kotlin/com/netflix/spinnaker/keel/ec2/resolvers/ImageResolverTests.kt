@@ -83,7 +83,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-28T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-1" to mapOf("appversion" to "fnord-$version1", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
+          "ami-1" to mapOf("appversion" to "fnord-$version1", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8", "base_ami_name" to "xenialbase-x86_64-202103092356-ebs")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -96,7 +96,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-29T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-2" to mapOf("appversion" to "fnord-$version2", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
+          "ami-2" to mapOf("appversion" to "fnord-$version2", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8", "base_ami_name" to "xenialbase-x86_64-202103092356-ebs")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -109,7 +109,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-30T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-3" to mapOf("appversion" to "fnord-$version3", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
+          "ami-3" to mapOf("appversion" to "fnord-$version3", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8", "base_ami_name" to "xenialbase-x86_64-202103092356-ebs")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -125,7 +125,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       vmType = "hvm",
       cloudProvider = "aws",
       appVersion = "fnord-$version2",
-      baseAmiVersion = "nflx-base-5.464.0-h1473.31178a8",
+      baseAmiName = "xenialbase-x86_64-201811142132-ebs",
       amiIdsByRegion = mapOf(
         imageRegion to "ami-2"
       ),

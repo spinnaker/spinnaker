@@ -51,7 +51,6 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
-import io.mockk.coEvery as every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expect
@@ -67,6 +66,7 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID
 import com.netflix.spinnaker.keel.clouddriver.model.Capacity as ClouddriverCapacity
+import io.mockk.coEvery as every
 import org.springframework.core.env.Environment as SpringEnv
 
 internal class ClusterExportTests : JUnit5Minutests {
@@ -128,7 +128,7 @@ internal class ClusterExportTests : JUnit5Minutests {
         image = VirtualMachineImage(
           id = "ami-123543254134",
           appVersion = "keel-0.287.0-h208.fe2e8a1",
-          baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
+          baseImageName = "bionicbase-x86_64-202101262358-ebs"
         ),
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
@@ -164,7 +164,7 @@ internal class ClusterExportTests : JUnit5Minutests {
     description = "name=keel, arch=x86_64, ancestor_name=bionic-classicbase-x86_64-202002251430-ebs, ancestor_id=ami-0000, ancestor_version=nflx-base-5.308.0-h1044.b4b3f78",
     imageLocation = "1111/keel-0.287.0-h208.fe2e8a1-x86_64-20200413213533-bionic-classic-hvm-sriov-ebs",
     appVersion = null,
-    baseImageVersion = null
+    baseImageName = null
   )
 
   val serverGroups = spec.resolve()

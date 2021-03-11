@@ -19,7 +19,7 @@ class BakeryTelemetryListener(private val spectator: Registry) {
       IMAGE_REGION_MISMATCH_DETECTED_ID,
       listOf(
         BasicTag("appVersion", event.image.appVersion),
-        BasicTag("baseAmiVersion", event.image.baseAmiVersion),
+        BasicTag("baseAmiVersion", event.image.baseAmiName),
         BasicTag("found", event.image.regions.joinToString()),
         BasicTag("desired", event.regions.joinToString())
       )

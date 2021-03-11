@@ -25,10 +25,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
-import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageName
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
-import com.netflix.spinnaker.keel.clouddriver.model.hasBaseImageVersion
+import com.netflix.spinnaker.keel.clouddriver.model.hasBaseImageName
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.filterNotNullValues
 import com.netflix.spinnaker.keel.parseAppVersion
@@ -48,14 +48,14 @@ class ImageService(
   /**
    * Finds the latest baked AMI(s) for [artifact] in [account] and consolidates them into a
    * single [Image] model. This may represent multiple actual AMIs in the case that multiple AMIs
-   * exist with the same [appVersion] and [baseImageVersion] in different regions.
+   * exist with the same [appVersion] and [baseImageName] in different regions.
    *
    * If no images at all exist for [artifact] this method returns `null`.
    */
   suspend fun getLatestImage(artifact: DeliveryArtifact, account: String): Image? {
     val candidateImages = cloudDriverService
       .namedImages(DEFAULT_SERVICE_ACCOUNT, artifact.name, account)
-      .filter { it.hasAppVersion && it.hasBaseImageVersion }
+      .filter { it.hasAppVersion && it.hasBaseImageName }
       .sortedWith(NamedImageComparator)
     val latest = candidateImages
       .firstOrNull {
@@ -69,13 +69,13 @@ class ImageService(
     } else {
       val regions = candidateImages
         .filter {
-          it.appVersion == latest.appVersion && it.baseImageVersion == latest.baseImageVersion
+          it.appVersion == latest.appVersion && it.baseImageName == latest.baseImageName
         }
         .flatMap { it.amis.keys }
         .toSet()
       Image(
         appVersion = latest.appVersion,
-        baseAmiVersion = latest.baseImageVersion,
+        baseAmiName = latest.baseImageName,
         regions = regions
       ).also {
         log.debug("Latest image for {} is {}", artifact, it)
@@ -153,32 +153,32 @@ class ImageService(
     }
   }
 
-  suspend fun findBaseAmiVersion(baseImageName: String): String {
+  suspend fun findBaseAmiName(baseImageName: String): String {
     return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImageName, "test")
       .lastOrNull()
       ?.let { namedImage ->
-        findBaseAmiVersion(namedImage)
+        findBaseAmiName(namedImage)
       } ?: throw BaseAmiNotFound(baseImageName)
   }
 
-  suspend fun findBaseAmiVersion(baseImageId: String, region: String): String {
+  suspend fun findBaseAmiName(baseImageId: String, region: String): String {
     return cloudDriverService.getImage("test", region, baseImageId)
       .lastOrNull()
       ?.let { namedImage ->
-        findBaseAmiVersion(namedImage)
+        findBaseAmiName(namedImage)
       } ?: throw BaseAmiNotFound(baseImageId)
   }
 
   /**
    * Extracts the base ami version from the tags of a named image
    */
-  private fun findBaseAmiVersion(image: NamedImage): String? =
+  private fun findBaseAmiName(image: NamedImage): String? =
     image
       .tagsByImageId
       .values
       .filterNotNull()
-      .find { it.containsKey("base_ami_version") }
-      ?.getValue("base_ami_version")
+      .find { it.containsKey("base_ami_name") }
+      ?.getValue("base_ami_name")
 
 
   private fun tagsExistForAllAmis(tagsByImageId: Map<String, Map<String, String?>?>): Boolean {

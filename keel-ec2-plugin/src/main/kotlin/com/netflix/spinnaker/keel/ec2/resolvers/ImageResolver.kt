@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
-import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageName
 import com.netflix.spinnaker.keel.ec2.NoArtifactVersionHasBeenApproved
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.filterNotNullValues
@@ -96,7 +96,7 @@ class ImageResolver(
       VirtualMachineImage(
         id = imageIdByRegion.getValue(region),
         appVersion = namedImage.appVersion,
-        baseImageVersion = namedImage.baseImageVersion
+        baseImageName = namedImage.baseImageName
       )
     }
 
@@ -108,7 +108,7 @@ class ImageResolver(
           VirtualMachineImage(
             id = amiId,
             appVersion = bakedImage.appVersion,
-            baseImageVersion = bakedImage.baseAmiVersion
+            baseImageName = bakedImage.baseAmiName
           )
         }.toMap()
       } ?: emptyMap()

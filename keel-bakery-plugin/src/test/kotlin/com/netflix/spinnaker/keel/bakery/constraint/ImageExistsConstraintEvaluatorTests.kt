@@ -141,7 +141,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
               vmType = "hvm",
               cloudProvider = "aws",
               appVersion = appVersion,
-              baseAmiVersion = "base-ami-1",
+              baseAmiName = "base-ami-1",
               amiIdsByRegion = mapOf(
                 "us-east-1" to "ami-11110",
                 "us-west-2" to "ami-22228"
@@ -169,7 +169,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
               vmType = "hvm",
               cloudProvider = "aws",
               appVersion = appVersion,
-              baseAmiVersion = "base-ami-1",
+              baseAmiName = "base-ami-1",
               amiIdsByRegion = mapOf(
                 "us-east-1" to "ami-11110"
               ),

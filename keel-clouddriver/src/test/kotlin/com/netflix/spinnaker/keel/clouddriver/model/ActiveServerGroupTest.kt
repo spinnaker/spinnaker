@@ -4,11 +4,11 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
-import java.util.UUID.randomUUID
-import kotlin.random.Random.Default.nextInt
 import org.apache.commons.lang3.RandomStringUtils.random
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
+import java.util.UUID.randomUUID
+import kotlin.random.Random.Default.nextInt
 
 object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ActiveServerGroup>(CloudDriverService::class.java) {
 
@@ -414,7 +414,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     image = ActiveServerGroupImage(
       imageId = ami,
       appVersion = "$app-3.16.0-h205.121d4ac",
-      baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78",
+      baseImageName = "xenialbase-x86_64-201811142132-ebs",
       description = "name=$app, arch=x86_64, ancestor_name=xenialbase-x86_64-201811142132-ebs, ancestor_id=ami-0fe383ecea7f75eac, ancestor_version=nflx-base-5.308.0-h1044.b4b3f78",
       imageLocation = "$owner/$app-3.16.0-h205.121d4ac-x86_64-20181115184054-xenial-hvm-sriov-ebs-ebs-ebs",
       name = "$app-3.16.0-h205.121d4ac-x86_64-20181115184054-xenial-hvm-sriov-ebs-ebs-ebs"

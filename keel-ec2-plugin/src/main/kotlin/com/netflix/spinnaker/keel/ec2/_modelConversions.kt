@@ -35,7 +35,7 @@ internal fun BuildInfo.toEc2Api(): ServerGroup.BuildInfo =
   ServerGroup.BuildInfo(packageName)
 
 internal fun ActiveServerGroupImage.toEc2Api(): ServerGroup.ActiveServerGroupImage =
-  ServerGroup.ActiveServerGroupImage(imageId, appVersion, baseImageVersion, name, imageLocation, description)
+  ServerGroup.ActiveServerGroupImage(imageId, appVersion, baseImageName, name, imageLocation, description)
 
 internal fun InstanceCounts.toEc2Api(): ServerGroup.InstanceCounts =
   ServerGroup.InstanceCounts(total, up, down, unknown, outOfService, starting)

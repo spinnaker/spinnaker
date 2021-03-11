@@ -16,14 +16,19 @@ internal class DefaultBaseImageCacheTests : JUnit5Minutests {
     val config =
       """
       |bionic:
-      |  candidate: nflx-base-5.375.0-h1224.8808866
-      |  unstable: nflx-base-5.375.1-h1225.8808866~unstable
-      |  release: nflx-base-5.365.0-h1191.6a005e3
+      |  candidate: bionicbase-x86_64-202103092356-ebs
+      |  unstable: bionicbase-unstable-x86_64-202103092010-ebs
+      |  release: bionicbase-x86_64-202103092356-ebs
+      |bionic-classic:
+      |  release: bionic-classicbase-x86_64-202102241716-ebs
+      |  candidate: bionic-classicbase-x86_64-202103092356-ebs
+      |  unstable: bionic-classicbase-unstable-x86_64-202103092010-ebs
+      |  previous: bionic-classicbase-x86_64-202101262358-ebs
       |xenial:
-      |  candidate: nflx-base-5.375.0-h1224.8808866
-      |  unstable: nflx-base-5.375.1-h1225.8808866~unstable
-      |  release: nflx-base-5.365.0-h1191.6a005e3
-      |  previous: nflx-base-5.344.0-h1137.cc92ef3
+      |  candidate: xenialbase-x86_64-202103092356-ebs
+      |  unstable: xenialbase-unstable-x86_64-202103092010-ebs
+      |  release: xenialbase-x86_64-202103092356-ebs
+      |  previous: xenialbase-x86_64-202101262358-ebs
       |""".trimMargin()
     val baseImageCache = DefaultBaseImageCache(YAMLMapper().readValue(config))
   }
@@ -31,20 +36,20 @@ internal class DefaultBaseImageCacheTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
 
-    test("returns the base AMI version for a valid os/label") {
-      expectThat(baseImageCache.getBaseAmiVersion("bionic", RELEASE))
-        .isEqualTo("nflx-base-5.365.0-h1191.6a005e3")
+    test("returns the base AMI name for a valid os/label") {
+      expectThat(baseImageCache.getBaseAmiName("bionic", RELEASE))
+        .isEqualTo("bionicbase-x86_64-202103092356-ebs")
     }
 
     test("throw an exception for an invalid label") {
       expectThrows<UnknownBaseImage> {
-        baseImageCache.getBaseAmiVersion("bionic", PREVIOUS)
+        baseImageCache.getBaseAmiName("bionic", PREVIOUS)
       }
     }
 
     test("throw an exception for an invalid os") {
       expectThrows<UnknownBaseImage> {
-        baseImageCache.getBaseAmiVersion("windows", RELEASE)
+        baseImageCache.getBaseAmiName("windows", RELEASE)
       }
     }
   }

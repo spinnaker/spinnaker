@@ -41,11 +41,11 @@ val NamedImage.hasAppVersion: Boolean
       vals.isNotEmpty() && vals.all { it != null && it.containsKey("appversion") }
     }
 
-val NamedImage.hasBaseImageVersion: Boolean
+val NamedImage.hasBaseImageName: Boolean
   get() = tagsByImageId
     .values
     .let { vals ->
-      vals.isNotEmpty() && vals.all { it != null && it.containsKey("base_ami_version") }
+      vals.isNotEmpty() && vals.all { it != null && it.containsKey("base_ami_name") }
     }
 
 val NamedImage.appVersion: String
@@ -56,9 +56,9 @@ val NamedImage.appVersion: String
     .toString()
     .substringBefore("/")
 
-val NamedImage.baseImageVersion: String
+val NamedImage.baseImageName: String
   get() = tagsByImageId
     .values
     .first()
-    ?.getValue("base_ami_version")
+    ?.getValue("base_ami_name")
     .toString()

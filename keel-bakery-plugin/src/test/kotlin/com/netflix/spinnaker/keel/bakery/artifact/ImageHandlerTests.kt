@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
-import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -15,6 +14,7 @@ import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -34,9 +34,7 @@ import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
@@ -76,10 +74,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
       )
     )
 
-    val baseAmiVersion = "nflx-base-5.378.0-h1230.8808866"
+    val baseAmiName = "bionicbase-x86_64-202103092356-ebs"
 
     val image = Image(
-      baseAmiVersion = baseAmiVersion,
+      baseAmiName = baseAmiName,
       appVersion = "${artifact.name}-0.161.0-h63.24d0843",
       regions = artifact.vmOptions.regions
     )
@@ -226,8 +224,11 @@ internal class ImageHandlerTests : JUnit5Minutests {
         context("the base image is up-to-date") {
           before {
             every {
-              baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
-            } returns baseAmiVersion
+              baseImageCache.getBaseAmiName(
+                artifact.vmOptions.baseOs,
+                artifact.vmOptions.baseLabel,
+              )
+            } returns baseAmiName
           }
 
           context("the desired version is known") {
@@ -271,7 +272,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
                 test("an event is triggered") {
                   verify {
-                    publisher.publishEvent(RecurrentBakeDetected(image.appVersion, image.baseAmiVersion))
+                    publisher.publishEvent(RecurrentBakeDetected(image.appVersion, image.baseAmiName))
                   }
                 }
               }
@@ -339,7 +340,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 every {
                   imageService.getLatestImage(artifact, "test")
                 } returns image.copy(
-                  baseAmiVersion = "nflx-base-5.377.0-h1229.3c8e02c"
+                  baseAmiName = "bionicbase-x86_64-202101262358-ebs"
                 )
 
                 every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false
@@ -413,7 +414,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
           before {
             val newerBaseAmiVersion = "nflx-base-5.380.0-h1234.8808866"
             every {
-              baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
+              baseImageCache.getBaseAmiName(
+                artifact.vmOptions.baseOs,
+                artifact.vmOptions.baseLabel,
+              )
             } returns newerBaseAmiVersion
 
             every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)

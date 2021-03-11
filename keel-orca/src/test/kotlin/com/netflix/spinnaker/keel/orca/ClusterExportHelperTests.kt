@@ -19,8 +19,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.mockk
-import java.time.Duration
-import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -28,6 +26,8 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isSuccess
+import java.time.Duration
+import java.time.Instant
 
 class ClusterExportHelperTests : JUnit5Minutests {
   class Fixture {
@@ -38,7 +38,7 @@ class ClusterExportHelperTests : JUnit5Minutests {
       name = "keel-test-v001",
       region = "us-east-1",
       zones = listOf("a", "b", "c").map { "us-east-1$it" }.toSet(),
-      image = ActiveServerGroupImage(imageId = "foo", appVersion = "bar", baseImageVersion = "baz", name = "name", imageLocation = "location", description = "description"),
+      image = ActiveServerGroupImage(imageId = "foo", appVersion = "bar", baseImageName = "baz", name = "name", imageLocation = "location", description = "description"),
       launchConfig = LaunchConfig(
         ramdiskId = "diskId",
         ebsOptimized = false,

@@ -52,7 +52,7 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
   ) { "No image resolved / specified for ${region.name}" }
   return LaunchConfiguration(
     appVersion = image.appVersion,
-    baseImageVersion = image.baseImageVersion,
+    baseImageName = image.baseImageName,
     imageId = image.id,
     instanceType = checkNotNull(
       overrides[region.name]?.launchConfiguration?.instanceType

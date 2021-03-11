@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
-import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.actuation.Task
@@ -14,6 +13,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
@@ -52,9 +52,13 @@ class ImageHandler(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestBaseAmiVersion = artifact.findLatestBaseAmiVersion()
+        val latestBaseAmiName = artifact.findLatestBaseAmiName()
 
-        val desired = Image(latestBaseAmiVersion, latestArtifactVersion, artifact.vmOptions.regions)
+        val desired = Image(
+          baseAmiName = latestBaseAmiName,
+          appVersion = latestArtifactVersion,
+          regions = artifact.vmOptions.regions
+        )
         val current = artifact.findLatestAmi()
         val diff = DefaultResourceDiff(desired, current)
 
@@ -73,8 +77,8 @@ class ImageHandler(
           }
 
           if (diffFingerprintRepository.seen("ami:${artifact.name}", diff)) {
-            log.warn("Artifact version {} and base AMI version {} were baked previously", latestArtifactVersion, latestBaseAmiVersion)
-            publisher.publishEvent(RecurrentBakeDetected(latestArtifactVersion, latestBaseAmiVersion))
+            log.warn("Artifact version {} and base AMI version {} were baked previously", latestArtifactVersion, latestBaseAmiName)
+            publisher.publishEvent(RecurrentBakeDetected(latestArtifactVersion, latestBaseAmiName))
           } else {
             launchBake(artifact, latestArtifactVersion, diff)
             diffFingerprintRepository.store("ami:${artifact.name}", diff)
@@ -89,8 +93,8 @@ class ImageHandler(
   private suspend fun DeliveryArtifact.findLatestAmi() =
     imageService.getLatestImage(this, "test")
 
-  private fun DebianArtifact.findLatestBaseAmiVersion() =
-    baseImageCache.getBaseAmiVersion(vmOptions.baseOs, vmOptions.baseLabel)
+  private fun DebianArtifact.findLatestBaseAmiName() =
+    baseImageCache.getBaseAmiName(vmOptions.baseOs, vmOptions.baseLabel)
 
   /**
    * First checks our repo, and if a version isn't found checks igor.

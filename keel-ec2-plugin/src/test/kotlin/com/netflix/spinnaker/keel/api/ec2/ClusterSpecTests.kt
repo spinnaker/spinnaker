@@ -125,7 +125,7 @@ internal class ClusterSpecTests : JUnit5Minutests {
 
 data class Fixture(
   val appVersion: String = "fnord-1.0.0",
-  val baseImageVersion: String = "nflx-base-5.308.0-h1044.b4b3f78",
+  val baseImageName: String = "bionicbase-x86_64-202103092356-ebs",
   val usEastImageId: String = "ami-6874986",
   val usWestImageId: String = "ami-6271051",
 
@@ -171,7 +171,7 @@ data class Fixture(
         launchConfiguration = LaunchConfigurationSpec(
           image = VirtualMachineImage(
             appVersion = appVersion,
-            baseImageVersion = baseImageVersion,
+            baseImageName = baseImageName,
             id = usEastImageId
           ),
           iamRole = "fnordEastInstanceProfile",
@@ -190,7 +190,7 @@ data class Fixture(
         launchConfiguration = LaunchConfigurationSpec(
           image = VirtualMachineImage(
             appVersion = appVersion,
-            baseImageVersion = baseImageVersion,
+            baseImageName = baseImageName,
             id = usWestImageId
           ),
           keyPair = "fnord-keypair-325719997469-us-west-2"

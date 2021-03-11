@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
@@ -23,7 +24,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicyAlarm
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
-import com.netflix.spinnaker.keel.api.support.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.TargetTrackingConfiguration
 import com.netflix.spinnaker.keel.core.parseMoniker
 import org.apache.commons.lang3.RandomStringUtils
@@ -83,7 +83,7 @@ fun ServerGroup.toCloudDriverResponse(
       image = ActiveServerGroupImage(
         imageId = launchConfiguration.imageId,
         appVersion = launchConfiguration.appVersion,
-        baseImageVersion = launchConfiguration.baseImageVersion,
+        baseImageName = launchConfiguration.baseImageName,
         name = "name",
         imageLocation = "location",
         description = image?.description
@@ -173,7 +173,7 @@ fun ServerGroup.toMultiServerGroupResponse(
       image = ActiveServerGroupImage(
         imageId = launchConfiguration.imageId,
         appVersion = launchConfiguration.appVersion,
-        baseImageVersion = launchConfiguration.baseImageVersion,
+        baseImageName = launchConfiguration.baseImageName,
         name = "name",
         imageLocation = "location",
         description = image?.description
@@ -256,7 +256,7 @@ fun ServerGroup.toMultiServerGroupResponse(
       image = ActiveServerGroupImage(
         imageId = launchConfiguration.imageId,
         appVersion = launchConfiguration.appVersion,
-        baseImageVersion = launchConfiguration.baseImageVersion,
+        baseImageName = launchConfiguration.baseImageName,
         name = "name",
         imageLocation = "location",
         description = image?.description

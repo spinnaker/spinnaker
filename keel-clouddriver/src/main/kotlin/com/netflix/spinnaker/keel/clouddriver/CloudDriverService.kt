@@ -168,13 +168,6 @@ interface CloudDriverService {
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<NamedImage>
 
-  @GET("/images/find")
-  suspend fun images(
-    @Query("provider") provider: String,
-    @Query("q") name: String,
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): List<NamedImage>
-
   @GET("/dockerRegistry/images/find")
   suspend fun findDockerImages(
     @Query("account") account: String? = null,

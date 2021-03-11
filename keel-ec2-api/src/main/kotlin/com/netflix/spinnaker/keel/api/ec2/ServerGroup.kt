@@ -72,7 +72,7 @@ data class ServerGroup(
     @get:ExcludedFromDiff
     val imageId: String,
     val appVersion: String?,
-    val baseImageVersion: String?,
+    val baseImageName: String?,
     val name: String,
     val imageLocation: String,
     val description: String?
@@ -112,7 +112,7 @@ data class ServerGroup(
   data class LaunchConfiguration(
     val imageId: String,
     val appVersion: String?,
-    val baseImageVersion: String?,
+    val baseImageName: String?,
     val instanceType: String,
     val ebsOptimized: Boolean = DEFAULT_EBS_OPTIMIZED,
     val iamRole: String,

@@ -36,7 +36,7 @@ abstract class BakedImageRepositoryTests<T : BakedImageRepository> : JUnit5Minut
     vmType = "hvm",
     cloudProvider = "aws",
     appVersion = version,
-    baseAmiVersion = "base-ami-123",
+    baseAmiName = "base-ami-123",
     timestamp = clock.instant(),
     amiIdsByRegion = amisByRegion
   )

@@ -10,7 +10,7 @@ data class BakedImage(
   val vmType: String,
   val cloudProvider: String,
   val appVersion: String,
-  val baseAmiVersion: String,
+  val baseAmiName: String,
   val amiIdsByRegion: Map<String, String>,
   val timestamp: Instant
 ) {
