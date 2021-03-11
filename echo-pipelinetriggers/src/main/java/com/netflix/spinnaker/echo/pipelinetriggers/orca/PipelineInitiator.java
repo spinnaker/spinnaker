@@ -30,7 +30,7 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -230,23 +231,23 @@ public class PipelineInitiator {
       if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
         response = triggerWithRetries(pipeline);
       } else {
-        // If we should not propagate authentication, create an empty User object for the request
-        User korkUser = new User();
+        // default to anonymous consistent with the existing pattern of
+        // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
+        String runAsUser = "anonymous";
+        Collection<String> allowedAccounts = Collections.emptySet();
 
         if (fiatStatus.isEnabled()) {
-          if (pipeline.getTrigger() != null && pipeline.getTrigger().getRunAsUser() != null) {
-            korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
-          } else {
-            // consistent with the existing pattern of
-            // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
-            // and defaulting to `anonymous` throughout all Spinnaker services
-            korkUser.setEmail("anonymous");
+          if (pipeline.getTrigger() != null
+              && StringUtils.isNotBlank(pipeline.getTrigger().getRunAsUser())) {
+            runAsUser = pipeline.getTrigger().getRunAsUser().trim();
           }
-          korkUser.setAllowedAccounts(getAllowedAccountsForUser(korkUser.getEmail()));
+          allowedAccounts = getAllowedAccountsForUser(runAsUser);
         }
 
         response =
-            AuthenticatedRequest.propagate(() -> triggerWithRetries(pipeline), korkUser).call();
+            AuthenticatedRequest.runAs(
+                    runAsUser, allowedAccounts, () -> triggerWithRetries(pipeline))
+                .call();
       }
 
       log.info("Successfully triggered {}: execution id: {}", pipeline, response.getRef());

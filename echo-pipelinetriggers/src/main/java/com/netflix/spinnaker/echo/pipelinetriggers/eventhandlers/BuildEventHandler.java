@@ -27,11 +27,16 @@ import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -90,15 +95,15 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
               .withLink(buildEvent.getContent().getProject().getLastBuild().getUrl());
       if (buildInfoService.isPresent()) {
         try {
-          return AuthenticatedRequest.propagate(
+          return AuthenticatedRequest.runAs(
+                  getRunAsUser(trigger),
                   () ->
                       trigger
                           .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
                           .withProperties(
                               buildInfoService
                                   .get()
-                                  .getProperties(buildEvent, inputTrigger.getPropertyFile())),
-                  getKorkUser(trigger))
+                                  .getProperties(buildEvent, inputTrigger.getPropertyFile())))
               .call();
         } catch (Exception e) {
           log.warn("Unable to add buildInfo and properties to trigger {}", trigger, e);
@@ -133,9 +138,9 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   protected List<Artifact> getArtifactsFromEvent(BuildEvent event, Trigger trigger) {
     if (buildInfoService.isPresent()) {
       try {
-        return AuthenticatedRequest.propagate(
-                () -> buildInfoService.get().getArtifactsFromBuildEvent(event, trigger),
-                getKorkUser(trigger))
+        return AuthenticatedRequest.runAs(
+                getRunAsUser(trigger),
+                () -> buildInfoService.get().getArtifactsFromBuildEvent(event, trigger))
             .call();
       } catch (Exception e) {
         log.warn("Unable to get artifacts from event {}, trigger {}", event, trigger, e);
@@ -144,12 +149,17 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
     return Collections.emptyList();
   }
 
-  private User getKorkUser(Trigger trigger) {
-    User user = new User();
-    if (trigger.getRunAsUser() != null) {
-      user.setEmail(trigger.getRunAsUser());
+  /**
+   * @param trigger the trigger from which to get the runAsUser
+   * @return the runAsUser from the trigger if specified, otherwise 'anonymous'
+   */
+  @Nonnull
+  private String getRunAsUser(Trigger trigger) {
+    if (StringUtils.isNotBlank(trigger.getRunAsUser())) {
+      return trigger.getRunAsUser().trim();
     }
-    return user;
+
+    return "anonymous";
   }
 
   private boolean checkPayloadConstraintsMet(BuildEvent event, Trigger trigger) {
@@ -174,9 +184,9 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   private Map getPropertiesFromEvent(BuildEvent event, Trigger trigger) {
     if (buildInfoService.isPresent()) {
       try {
-        return AuthenticatedRequest.propagate(
-                () -> buildInfoService.get().getProperties(event, trigger.getPropertyFile()),
-                getKorkUser(trigger))
+        return AuthenticatedRequest.runAs(
+                getRunAsUser(trigger),
+                () -> buildInfoService.get().getProperties(event, trigger.getPropertyFile()))
             .call();
       } catch (Exception e) {
         log.warn("Unable to get artifacts from event {}, trigger {}", event, trigger, e);
