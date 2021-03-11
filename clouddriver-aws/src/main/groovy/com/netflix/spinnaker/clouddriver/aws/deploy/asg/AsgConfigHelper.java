@@ -106,6 +106,10 @@ public class AsgConfigHelper {
       asgConfig.setClassicLinkVpcSecurityGroups(classicLinkIds);
     }
 
+    log.info(
+        "Configured resolved security groups {} for application {}.",
+        securityGroupIds,
+        asgConfig.getApplication());
     return asgConfig;
   }
 
@@ -122,6 +126,7 @@ public class AsgConfigHelper {
       applicationSecurityGroupId =
           securityGroupService.createSecurityGroup(application, subnetType);
     }
+
     return applicationSecurityGroupId;
   }
 

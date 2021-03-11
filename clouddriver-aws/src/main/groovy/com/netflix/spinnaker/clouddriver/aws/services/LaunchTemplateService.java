@@ -194,6 +194,7 @@ public class LaunchTemplateService {
         description.getIamRole(),
         description.getImageId(),
         base64UserData,
+        description.getLegacyUdf(),
         description.getUserDataOverride());
 
     // block device mappings
@@ -308,6 +309,7 @@ public class LaunchTemplateService {
         asgConfig.getIamRole(),
         asgConfig.getAmi(),
         asgConfig.getBase64UserData(),
+        asgConfig.getLegacyUdf(),
         asgConfig.getUserDataOverride());
 
     // block device mappings
@@ -371,6 +373,7 @@ public class LaunchTemplateService {
       String iamRole,
       String imageId,
       String base64UserData,
+      Boolean legacyUdf,
       UserDataOverride userDataOverride) {
     final UserDataInput userDataRequest =
         UserDataInput.builder()
@@ -385,6 +388,7 @@ public class LaunchTemplateService {
             .imageId(imageId)
             .userDataOverride(userDataOverride)
             .base64UserData(base64UserData)
+            .legacyUdf(legacyUdf)
             .build();
 
     request.setUserData(userDataProviderAggregator.aggregate(userDataRequest));

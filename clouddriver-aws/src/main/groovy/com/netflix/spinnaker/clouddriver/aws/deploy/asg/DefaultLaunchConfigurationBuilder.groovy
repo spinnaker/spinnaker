@@ -214,6 +214,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       settings = settings.toBuilder().classicLinkVpcSecurityGroups(classicLinkIds).build()
     }
 
+    log.info("Configured resolved security groups {} for application {}.", securityGroupIds, application)
     return settings
   }
 

@@ -316,7 +316,7 @@ public abstract class AsgBuilder {
                 existingAsg.getHealthCheckGracePeriod() == request.getHealthCheckGracePeriod())
             .put(
                 "health check type",
-                existingAsg.getHealthCheckType() == request.getHealthCheckType())
+                Objects.equals(existingAsg.getHealthCheckType(), request.getHealthCheckType()))
             .put(
                 "termination policies",
                 Objects.equals(
@@ -335,6 +335,8 @@ public abstract class AsgBuilder {
           String.format(
               "%s already exists and does not seem to match desired state on: %s",
               asgName, String.join(",", failedPredicates)));
+
+      log.debug("Failed predicates: " + predicates);
       return false;
     }
 
