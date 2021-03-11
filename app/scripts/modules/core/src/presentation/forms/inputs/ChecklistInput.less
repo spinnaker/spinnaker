@@ -1,0 +1,26 @@
+.ChecklistInput {
+  ul {
+    display: flex;
+    flex-flow: column wrap;
+    list-style: none;
+    padding: 0;
+  }
+
+  &.ChecklistInput_inline {
+    ul {
+      flex-flow: row wrap;
+    }
+
+    a.btn {
+      margin: 8px 0 0 10px;
+    }
+
+    li {
+      white-space: nowrap;
+      margin-right: 16px;
+      &.last-of-type {
+        margin-right: 0;
+      }
+    }
+  }
+}
