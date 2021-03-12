@@ -23,7 +23,11 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 
 /**
- * TODO: Docs.
+ * An abstract constraint evaluator that deals with the logic for stateful constraints.
+ *
+ * The [canPromote] function handles reading state from the repository and saving initial state.
+ * If the state is 'done' (failed or passed) the specific implementations don't get called.
+ * If the state is not 'done', underlying implementations [canPromote] functions get called.
  */
 abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttributes>(
   protected val repository: ConstraintRepository

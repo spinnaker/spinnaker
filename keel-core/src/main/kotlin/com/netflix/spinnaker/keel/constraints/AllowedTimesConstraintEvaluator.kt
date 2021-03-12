@@ -3,8 +3,13 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
-import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
@@ -49,7 +54,9 @@ class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
   private val dynamicConfigService: DynamicConfigService,
   override val eventPublisher: EventPublisher
-) : ConstraintEvaluator<TimeWindowConstraint> {
+) : StatelessConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes>() {
+  override val attributeType = SupportedConstraintAttributesType<AllowedTimesConstraintAttributes>("allowed-times")
+
   companion object {
     const val CONSTRAINT_NAME = "allowed-times"
 
@@ -252,6 +259,39 @@ class AllowedTimesConstraintEvaluator(
     }
 
     return false
+  }
+
+  override fun generateConstraintStateSnapshot(
+    artifact: DeliveryArtifact,
+    version: String,
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: Environment,
+    currentStatus: ConstraintStatus?
+  ): ConstraintState {
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
+
+    val status = currentStatus
+      ?: if (canPromote(artifact, version, deliveryConfig, targetEnvironment)) {
+        PASS
+      } else {
+        FAIL
+      }
+    val tz: String = constraint.tz ?: dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles")
+
+    return ConstraintState(
+      deliveryConfigName = deliveryConfig.name,
+      environmentName = targetEnvironment.name,
+      artifactVersion = version,
+      artifactReference = artifact.reference,
+      type = CONSTRAINT_NAME,
+      status = status,
+      attributes = AllowedTimesConstraintAttributes(
+        toNumericTimeWindows(constraint),
+        tz
+      ),
+      judgedAt = clock.instant(),
+      judgedBy = "Spinnaker"
+    )
   }
 
   private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<String> {

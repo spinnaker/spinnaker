@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.TimeWindow
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
@@ -23,6 +24,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
 internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
@@ -368,6 +370,32 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         }
           .isFailure()
           .isA<IllegalArgumentException>()
+      }
+    }
+
+    context("generating the pass state") {
+      fixture {
+        Fixture(
+          clock = businessHoursClock,
+          constraint = TimeWindowConstraint(
+            windows = listOf(
+              TimeWindow(
+                days = "Monday-Tuesday,Thursday-Friday",
+                hours = "09-16"
+              )
+            ),
+            tz = "America/Los_Angeles"
+          )
+        )
+      }
+      test("can generate status") {
+        val state = subject.generateConstraintStateSnapshot(artifact = artifact, deliveryConfig = manifest, targetEnvironment = environment, version = "me-123")
+        expectThat(state)
+          .and { get { type }.isEqualTo("allowed-times") }
+          .and { get { status }.isEqualTo(PASS) }
+          .and { get { judgedAt }.isNotNull() }
+          .and { get { judgedBy }.isNotNull() }
+          .and { get { attributes }.isNotNull() }
       }
     }
   }

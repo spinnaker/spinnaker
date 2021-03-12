@@ -3,11 +3,13 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -16,8 +18,10 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
 internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
@@ -42,10 +46,10 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     )
 
     val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
-
     val verificationRepository : VerificationRepository = mockk()
+    val clock = MutableClock()
 
-    val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk())
+    val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk(), clock)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -100,6 +104,18 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
       test("promotion is allowed") {
         expectThat(subject.canPromote(artifact, "1.1", manifest, constrainedEnvironment))
           .isTrue()
+      }
+    }
+
+    context("generating constraint state") {
+      test("can get state") {
+        val state = subject.generateConstraintStateSnapshot(artifact = artifact, version = "1.1", deliveryConfig = manifest, targetEnvironment = constrainedEnvironment)
+        expectThat(state)
+          .and { get { type }.isEqualTo("depends-on") }
+          .and { get { status }.isEqualTo(ConstraintStatus.PASS) }
+          .and { get { judgedAt }.isNotNull() }
+          .and { get { judgedBy }.isNotNull() }
+          .and { get { attributes }.isNotNull() }
       }
     }
   }

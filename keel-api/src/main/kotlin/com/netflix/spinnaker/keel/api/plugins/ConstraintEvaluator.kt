@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
@@ -60,13 +61,13 @@ interface ConstraintEvaluator<T : Constraint> : SpinnakerExtensionPoint {
   val eventPublisher: EventPublisher
 
   /**
-   * returns true if a constraint should be run for every environment in every delivery config, without being
+   * @return true if a constraint should be run for every environment in every delivery config, without being
    * exposed to delivery config author.
    */
   fun isImplicit(): Boolean = false
 
   /**
-   * TODO: Docs
+   * @return true if the constraint passes, false otherwise.
    */
   fun canPromote(
     artifact: DeliveryArtifact,

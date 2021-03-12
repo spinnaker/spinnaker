@@ -51,8 +51,9 @@ data class ArtifactSummaryInEnvironment(
   val replacedBy: String? = null,
   val pinned: ActionMetadata? = null,
   val vetoed: ActionMetadata? = null,
-  val statefulConstraints: List<StatefulConstraintSummary> = emptyList(),
-  val statelessConstraints: List<StatelessConstraintSummary> = emptyList(),
+  val statefulConstraints: List<StatefulConstraintSummary> = emptyList(), //todo eb: remove in favor of [constraints]
+  val statelessConstraints: List<StatelessConstraintSummary> = emptyList(), //todo eb: remove in favor of [constraints]
+  val constraints: List<StatefulConstraintSummary> = emptyList(),
   val compareLink: String? = null,
   val verifications : List<VerificationSummary> = emptyList()
 )

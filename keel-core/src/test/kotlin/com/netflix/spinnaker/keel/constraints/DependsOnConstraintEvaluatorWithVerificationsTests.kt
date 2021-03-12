@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -55,10 +56,10 @@ class DependsOnConstraintEvaluatorWithVerificationsTests : JUnit5Minutests {
   }
 
   val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
-
   val verificationRepository: VerificationRepository = mockk()
+  val clock = MutableClock()
 
-  val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk())
+  val subject = DependsOnConstraintEvaluator(artifactRepository, verificationRepository, mockk(), clock)
 
 
   fun tests() = rootContext<Fixture> {

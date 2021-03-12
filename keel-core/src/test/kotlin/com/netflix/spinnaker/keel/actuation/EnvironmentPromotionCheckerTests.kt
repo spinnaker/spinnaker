@@ -5,10 +5,16 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
+import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.TimeWindow
+import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
@@ -17,10 +23,13 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
 internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
@@ -29,7 +38,26 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
-    val environmentConstraintRunner: EnvironmentConstraintRunner = mockk(relaxed = true)
+    val constraint = TimeWindowConstraint(windows = listOf(TimeWindow(days = "Monday-Sunday", hours = "0-23")))
+
+    val environmentConstraintRunner: EnvironmentConstraintRunner = mockk(relaxed = true) {
+      every { getStatelessConstraintSnapshots(any(), any(), any(), any(), PASS) } returns
+        listOf(ConstraintState(
+          deliveryConfigName = "config",
+          environmentName = "env",
+          artifactVersion = "version",
+          artifactReference = "my-artifact",
+          type = AllowedTimesConstraintEvaluator.CONSTRAINT_NAME,
+          status = PASS,
+          attributes = AllowedTimesConstraintAttributes(
+            AllowedTimesConstraintEvaluator.toNumericTimeWindows(constraint),
+            null
+          ),
+          judgedAt = null,
+          judgedBy = "Spinnaker"
+        ))
+    }
+
     val subject = EnvironmentPromotionChecker(
       repository,
       environmentConstraintRunner,
@@ -58,7 +86,8 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             artifactReference = dockerArtifact.reference
           )
         )
-      )
+      ),
+      constraints = setOf(constraint)
     )
     val deliveryConfig = DeliveryConfig(
       name = "my-manifest",
@@ -165,7 +194,15 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             }
           }
 
-          test("a recheck is triggered for the environemtn") {
+          test("final status of stateless constraints is saved") {
+            val state = slot<ConstraintState>()
+            verify {
+              repository.storeConstraintState(capture(state))
+            }
+            expectThat(state.captured.type).isEqualTo("allowed-times")
+          }
+
+          test("a recheck is triggered for the environment") {
             verify {
               repository.triggerResourceRecheck(environment.name, deliveryConfig.application)
             }

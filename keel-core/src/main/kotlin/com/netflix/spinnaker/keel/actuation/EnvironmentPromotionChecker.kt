@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner.EnvironmentContext
-import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -62,7 +62,7 @@ class EnvironmentPromotionChecker(
                 if (pinnedEnvs.hasPinFor(environment.name, artifact)) {
                   val pinnedVersion = pinnedEnvs.versionFor(environment.name, artifact)
                   // approve version first to fast track deployment
-                  approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment.name)
+                  approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment)
                   // then evaluate constraints
                   constraintRunner.checkEnvironment(envContext)
                 } else {
@@ -89,7 +89,7 @@ class EnvironmentPromotionChecker(
                           "and being evaluated for stateless constraints in environment ${environment.name}"
                       )
                       if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, artifactVersion.version, environment)) {
-                        approveVersion(deliveryConfig, artifact, artifactVersion.version, environment.name)
+                        approveVersion(deliveryConfig, artifact, artifactVersion.version, environment)
                         repository.deleteArtifactVersionQueuedForApproval(
                           deliveryConfig.name, environment.name, artifact, artifactVersion.version)
                       } else {
@@ -124,11 +124,11 @@ class EnvironmentPromotionChecker(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
     version: String,
-    targetEnvironment: String
+    targetEnvironment: Environment
   ) {
-    log.debug("Approving version $version of ${artifact.type} artifact ${artifact.name} in environment $targetEnvironment")
+    log.debug("Approving version $version of ${artifact.type} artifact ${artifact.name} in environment ${targetEnvironment.name}")
     val isNewVersion = repository
-      .approveVersionFor(deliveryConfig, artifact, version, targetEnvironment)
+      .approveVersionFor(deliveryConfig, artifact, version, targetEnvironment.name)
     if (isNewVersion) {
       log.info(
         "Approved {} {} version {} for {} environment {} in {}",
@@ -136,7 +136,7 @@ class EnvironmentPromotionChecker(
         artifact.type,
         version,
         deliveryConfig.name,
-        targetEnvironment,
+        targetEnvironment.name,
         deliveryConfig.application
       )
 
@@ -144,16 +144,49 @@ class EnvironmentPromotionChecker(
         ArtifactVersionApproved(
           deliveryConfig.application,
           deliveryConfig.name,
-          targetEnvironment,
+          targetEnvironment.name,
           artifact.name,
           artifact.type,
           version
         )
       )
 
+      // persist the status of stateless constraints because their current value is all we care about
+      snapshotStatelessConstraintStatus(deliveryConfig, artifact, version, targetEnvironment)
+
       // recheck all resources in an environment, so action can be taken right away
-      repository.triggerResourceRecheck(targetEnvironment, deliveryConfig.application)
+      repository.triggerResourceRecheck(targetEnvironment.name, deliveryConfig.application)
     }
+  }
+
+  /**
+   * Save the passing status of all stateless constraints when a version is approved so that
+   * their status stays the same forever. We don't want them to be evaluated anymore.
+   */
+  private fun snapshotStatelessConstraintStatus(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    environment: Environment
+  ) {
+    constraintRunner.getStatelessConstraintSnapshots(
+      artifact = artifact,
+      deliveryConfig = deliveryConfig,
+      version = version,
+      environment = environment,
+      currentStatus = PASS // We just checked that all these pass since a version was approved
+    ).forEach { constraintState ->
+      log.debug("Storing final constraint state snapshot for {} constraint for {} version {} for {} environment {} in {}",
+        constraintState.type,
+        artifact,
+        version,
+        deliveryConfig.name,
+        environment.name,
+        deliveryConfig.application
+      )
+      repository.storeConstraintState(constraintState)
+    }
+
   }
 
   private fun Map<String, PinnedEnvironment>.hasPinFor(
