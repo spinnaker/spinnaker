@@ -49,7 +49,7 @@ class ImageServiceTests : JUnit5Minutests {
   class Fixture {
     val cloudDriver = mockk<CloudDriverService>()
     val subject = ImageService(cloudDriver, TEST_CACHE_FACTORY)
-    val artifact = DebianArtifact("my-package", vmOptions = VirtualMachineOptions(baseOs = "ignored", regions = emptySet()))
+    val artifact = DebianArtifact("my-package", vmOptions = VirtualMachineOptions(baseOs = "trusty", regions = emptySet()))
 
     val image1 = NamedImage(
       imageName = "my-package-0.0.1_rc.97-h98",
@@ -136,6 +136,8 @@ class ImageServiceTests : JUnit5Minutests {
           "appversion" to "my-package-foo-0.0.1~rc.99-h100.8192e02/JENKINS-job/100",
           "creator" to "emburns@netflix.com",
           "base_ami_version" to "nflx-base-5.292.0-h988",
+          "base_ami_name" to "trustybase-x86_64-201707211843-ebs",
+          "base_ami_id" to "ami-0a00296a",
           "creation_time" to "2018-10-31 13:09:55 UTC"
         )
       ),

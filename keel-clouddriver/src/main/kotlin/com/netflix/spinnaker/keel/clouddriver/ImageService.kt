@@ -19,7 +19,7 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.github.benmanes.caffeine.cache.AsyncCache
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.caffeine.CacheFactory
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -52,10 +52,10 @@ class ImageService(
    *
    * If no images at all exist for [artifact] this method returns `null`.
    */
-  suspend fun getLatestImage(artifact: DeliveryArtifact, account: String): Image? {
+  suspend fun getLatestImage(artifact: DebianArtifact, account: String): Image? {
     val candidateImages = cloudDriverService
       .namedImages(DEFAULT_SERVICE_ACCOUNT, artifact.name, account)
-      .filter { it.hasAppVersion && it.hasBaseImageName }
+      .filter { it.hasAppVersion && it.hasBaseImageName && it.baseImageName.startsWith("${artifact.vmOptions.baseOs}base") }
       .sortedWith(NamedImageComparator)
     val latest = candidateImages
       .firstOrNull {

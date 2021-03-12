@@ -90,7 +90,7 @@ class ImageHandler(
     }
   }
 
-  private suspend fun DeliveryArtifact.findLatestAmi() =
+  private suspend fun DebianArtifact.findLatestAmi() =
     imageService.getLatestImage(this, "test")
 
   private fun DebianArtifact.findLatestBaseAmiName() =
