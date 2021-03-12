@@ -44,6 +44,8 @@ import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,6 +60,7 @@ public class ExecutionMapper {
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
+  private final boolean includeAuthentication;
 
   private final Id pipelineRunId;
   private final Id failureId;
@@ -69,13 +72,17 @@ public class ExecutionMapper {
       String currentInstanceId,
       Optional<List<CanaryScopeFactory>> canaryScopeFactories,
       ExecutionLauncher executionLauncher,
-      ExecutionRepository executionRepository) {
+      ExecutionRepository executionRepository,
+      @Value("${kayenta.include-spring-security-authentication-in-pipeline-context:false}")
+          boolean includeAuthentication) {
+
     this.objectMapper = objectMapper;
     this.registry = registry;
     this.currentInstanceId = currentInstanceId;
     this.canaryScopeFactories = canaryScopeFactories.orElseGet(Collections::emptyList);
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
+    this.includeAuthentication = includeAuthentication;
 
     this.pipelineRunId = registry.createId("canary.pipelines.initiated");
     this.failureId = registry.createId("canary.pipelines.startupFailed");
@@ -402,6 +409,12 @@ public class ExecutionMapper {
       mapBuilder.put("parentPipelineExecutionId", parentPipelineExecutionId);
     }
 
+    if (includeAuthentication) {
+      ofNullable(SecurityContextHolder.getContext().getAuthentication())
+          .ifPresent(
+              authentication -> mapBuilder.put("springSecurityAuthentication", authentication));
+    }
+
     HashMap<String, Object> setupCanaryContext = Maps.newHashMap(mapBuilder.build());
     if (resolvedConfigurationAccountName != null) {
       setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
@@ -531,6 +544,12 @@ public class ExecutionMapper {
             .put("canaryConfig", canaryConfig);
     if (parentPipelineExecutionId != null) {
       mapBuilder.put("parentPipelineExecutionId", parentPipelineExecutionId);
+    }
+
+    if (includeAuthentication) {
+      ofNullable(SecurityContextHolder.getContext().getAuthentication())
+          .ifPresent(
+              authentication -> mapBuilder.put("springSecurityAuthentication", authentication));
     }
 
     HashMap<String, Object> setupCanaryContext = Maps.newHashMap(mapBuilder.build());

@@ -17,6 +17,7 @@
 package com.netflix.kayenta.standalonecanaryanalysis.service;
 
 import static com.netflix.kayenta.standalonecanaryanalysis.orca.task.GenerateCanaryAnalysisResultTask.CANARY_ANALYSIS_EXECUTION_RESULT;
+import static java.util.Optional.ofNullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -46,6 +47,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /** Service that handles starting and mapping Canary Analysis StageExecution pipelines. */
@@ -61,6 +64,7 @@ public class CanaryAnalysisService {
   private final StorageServiceRepository storageServiceRepository;
   private final ObjectMapper kayentaObjectMapper;
   private final AccountCredentialsRepository accountCredentialsRepository;
+  private final boolean includeAuthentication;
 
   @Autowired
   public CanaryAnalysisService(
@@ -68,13 +72,16 @@ public class CanaryAnalysisService {
       ExecutionRepository executionRepository,
       StorageServiceRepository storageServiceRepository,
       ObjectMapper kayentaObjectMapper,
-      AccountCredentialsRepository accountCredentialsRepository) {
+      AccountCredentialsRepository accountCredentialsRepository,
+      @Value("${kayenta.include-spring-security-authentication-in-pipeline-context:false}")
+          boolean includeAuthentication) {
 
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.accountCredentialsRepository = accountCredentialsRepository;
+    this.includeAuthentication = includeAuthentication;
   }
 
   /**
@@ -88,6 +95,16 @@ public class CanaryAnalysisService {
 
     String application = canaryAnalysisConfig.getApplication();
 
+    var mapBuilder =
+        new ImmutableMap.Builder<String, Object>()
+            .put(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, canaryAnalysisConfig);
+
+    if (includeAuthentication) {
+      ofNullable(SecurityContextHolder.getContext().getAuthentication())
+          .ifPresent(
+              authentication -> mapBuilder.put("springSecurityAuthentication", authentication));
+    }
+
     PipelineBuilder pipelineBuilder =
         new PipelineBuilder(application)
             .withName(CANARY_ANALYSIS_PIPELINE_NAME)
@@ -95,8 +112,7 @@ public class CanaryAnalysisService {
             .withStage(
                 SetupAndExecuteCanariesStage.STAGE_TYPE,
                 SetupAndExecuteCanariesStage.STAGE_DESCRIPTION,
-                Maps.newHashMap(
-                    ImmutableMap.of(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, canaryAnalysisConfig)));
+                Maps.newHashMap(mapBuilder.build()));
 
     PipelineExecution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
     executionRepository.store(pipeline);

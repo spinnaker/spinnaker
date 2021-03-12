@@ -94,7 +94,8 @@ public abstract class BaseControllerTest {
           "",
           Optional.empty(),
           executionLauncher,
-          executionRepository);
+          executionRepository,
+          false);
     }
 
     @Bean
