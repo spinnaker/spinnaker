@@ -45,7 +45,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val bakedImageRepository: BakedImageRepository = mockk(relaxUnitFun = true)
     val imageService: ImageService = mockk(relaxUnitFun = true) {
-      every { findBaseAmiName(any(), any()) } returns "base-1-2-3"
+      every { findBaseImageName(any(), any()) } returns "base-1-2-3"
     }
     val lifecycleConfig = LifecycleConfig()
     val clock = MutableClock()

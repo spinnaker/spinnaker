@@ -117,7 +117,7 @@ class BakeryLifecycleMonitor(
         vmType = detail.vmType,
         cloudProvider = detail.cloudProviderType,
         appVersion = detail.`package`.substringBefore("_all.deb").replaceFirst("_", "-"),
-        baseAmiName = imageService.findBaseAmiName(detail.baseAmiId, detail.region),
+        baseAmiName = imageService.findBaseImageName(detail.baseAmiId, detail.region),
         timestamp = execution.endTime ?: clock.instant(),
         amiIdsByRegion = details.associate { regionDetail -> regionDetail.region to regionDetail.imageId }
       )
