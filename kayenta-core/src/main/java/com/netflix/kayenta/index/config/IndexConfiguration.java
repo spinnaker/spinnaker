@@ -21,6 +21,7 @@ import com.netflix.kayenta.index.CanaryConfigIndex;
 import com.netflix.kayenta.index.CanaryConfigIndexingAgent;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import redis.clients.jedis.JedisPool;
 
 @Configuration
+@ConditionalOnProperty(name = "kayenta.index.enabled", havingValue = "true", matchIfMissing = true)
 public class IndexConfiguration {
 
   @Bean
