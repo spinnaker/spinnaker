@@ -32,3 +32,10 @@ dependencies {
   testImplementation("org.springframework:spring-test")
   testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
 }
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}

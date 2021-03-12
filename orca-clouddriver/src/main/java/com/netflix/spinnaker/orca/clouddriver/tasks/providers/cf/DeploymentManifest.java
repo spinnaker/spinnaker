@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ public class DeploymentManifest {
   }
 
   @Data
+  @EqualsAndHashCode(callSuper = false)
   public static class Direct extends DirectManifest {
     private final String name = "app"; // doesn't matter, has no effect on the CF app name.
 

@@ -61,3 +61,10 @@ dependencies {
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}

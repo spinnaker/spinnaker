@@ -25,3 +25,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
 }
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}

@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ public class ServiceManifest {
   }
 
   @Data
+  @EqualsAndHashCode(callSuper = false)
   public static class Direct extends DirectManifest {
     @Nullable private String service;
     private boolean updatable = true;

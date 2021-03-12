@@ -38,3 +38,10 @@ dependencies {
   testImplementation(project(":orca-pipelinetemplate"))
   testImplementation("com.github.ben-manes.caffeine:guava")
 }
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}
