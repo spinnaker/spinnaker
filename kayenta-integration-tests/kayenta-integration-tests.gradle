@@ -6,8 +6,9 @@ dependencies {
     testCompile 'io.micrometer:micrometer-registry-prometheus'
     testCompile 'io.micrometer:micrometer-registry-graphite'
     testCompile 'org.springframework.cloud:spring-cloud-starter:2.1.2.RELEASE'// needed for bootstrap phase when all embedded containers are setup
-    testCompile 'com.playtika.testcontainers:embedded-redis:1.85'
-    testCompile 'com.playtika.testcontainers:embedded-minio:1.85'
+    testCompile 'com.playtika.testcontainers:embedded-redis:1.89'
+    testCompile 'com.playtika.testcontainers:embedded-minio:1.89'
+    testCompile 'org.testcontainers:testcontainers:1.15.1'
 }
 
 test.testLogging {
