@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.slack.callbacks
 
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.parseUID
-import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -12,7 +11,6 @@ import com.slack.api.model.block.SectionBlock
 import com.slack.api.model.block.composition.MarkdownTextObject
 import com.slack.api.model.block.element.ButtonElement
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -66,11 +64,9 @@ class ManualJudgmentCallbackHandler(
   fun updateManualJudgementNotification(response: BlockActionPayload): List<LayoutBlock> {
     try {
       val originalCommitText = response.message.blocks[1].getText
-      val originalGitInfoText = response.message.blocks[2].getText
-      val originalUrl = response.message.blocks[2].getUrl
       val action = actionsMap[response.actions.first().value]
 
-      return withBlocks {
+      val newBlocks = withBlocks {
         header {
           when (action) {
             "approve" -> text("Manual judgement approved", emoji = true)
@@ -86,16 +82,6 @@ class ManualJudgmentCallbackHandler(
             }
           }
         }
-        section {
-          markdownText(originalGitInfoText)
-          accessory {
-            button {
-              text("More...")
-              actionId("button-action")
-              url(originalUrl)
-            }
-          }
-        }
 
         context {
           elements {
@@ -104,8 +90,13 @@ class ManualJudgmentCallbackHandler(
         }
       }
 
+      val originalBlocks = response.message.blocks
+      //remove the first two blocks because we're replacing them
+      originalBlocks.removeFirstOrNull()
+      originalBlocks.removeFirstOrNull()
+      return newBlocks + originalBlocks
     } catch (ex: Exception) {
-      log.debug("exception occurred while creating updated MJ notification. Will use a fallback text instead")
+      log.debug("exception occurred while creating updated MJ notification. Will use a fallback text instead: {}", ex)
       return emptyList()
     }
   }
