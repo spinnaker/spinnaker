@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
 import org.slf4j.LoggerFactory
@@ -19,7 +20,8 @@ class VerificationRunner(
   private val verificationRepository: VerificationRepository,
   private val evaluators: List<VerificationEvaluator<*>>,
   private val eventPublisher: ApplicationEventPublisher,
-  private val imageFinder: ImageFinder
+  private val imageFinder: ImageFinder,
+  private val enforcer: EnvironmentExclusionEnforcer
 ) {
   /**
    * Evaluates the state of any currently running verifications and launches the next, against a
@@ -39,7 +41,9 @@ class VerificationRunner(
       }
 
       statuses.firstOutstanding?.let { verification ->
-        start(verification, imageFinder.getImages(context.deliveryConfig, context.environmentName))
+        enforcer.withVerificationLease(this) {
+          start(verification, imageFinder.getImages(context.deliveryConfig, context.environmentName))
+        }
       } ?: log.debug("Verification complete for environment {} of application {}", environment.name, deliveryConfig.application)
     }
   }

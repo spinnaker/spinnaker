@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -76,7 +77,8 @@ class ResourceActuator(
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val springEnv: SpringEnvironment
+  private val springEnv: SpringEnvironment,
+  private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer
 ) {
   companion object {
     private val asyncExecutor: Executor = Executors.newCachedThreadPool()
@@ -163,13 +165,15 @@ class ResourceActuator(
               log.info("Resource {} delta: {}", id, diff.toDebug())
               publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
-              plugin.update(resource, diff)
-                .also { tasks ->
-                  if (tasks.isNotEmpty()) {
-                    publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-                    diffFingerprintRepository.markActionTaken(id)
+              environmentExclusionEnforcer.withActuationLease(environment) {
+                plugin.update(resource, diff)
+                  .also { tasks ->
+                    if (tasks.isNotEmpty()) {
+                      publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+                      diffFingerprintRepository.markActionTaken(id)
+                    }
                   }
-                }
+              }
             }
             else -> {
               log.info("Resource {} is valid", id)

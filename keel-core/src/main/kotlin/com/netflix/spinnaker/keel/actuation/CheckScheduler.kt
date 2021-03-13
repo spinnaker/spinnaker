@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
+import com.netflix.spinnaker.keel.enforcers.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -94,8 +95,12 @@ class CheckScheduler(
                    */
                   withTimeout(checkTimeout.toMillis()) {
                     launch {
-                      resourceActuator.checkResource(it)
-                      publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
+                      try {
+                        resourceActuator.checkResource(it)
+                        publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
+                      } catch (e: EnvironmentCurrentlyBeingActedOn) {
+                        log.warn("Couldn't actuate resource ${it.id} because environment is currently being acted on", e)
+                      }
                     }
                   }
                 } catch (e: TimeoutCancellationException) {
@@ -188,7 +193,11 @@ class CheckScheduler(
               try {
                 withTimeout(checkTimeout.toMillis()) {
                   launch {
-                    verificationRunner.runVerificationsFor(it)
+                    try {
+                      verificationRunner.runVerificationsFor(it)
+                    } catch (e: EnvironmentCurrentlyBeingActedOn) {
+                      log.warn("Couldn't verify ${it.version} in ${it.deliveryConfig.application}/${it.environmentName} because environment is currently being acted on", e)
+                    }
                   }
                 }
               } catch (e: TimeoutCancellationException) {

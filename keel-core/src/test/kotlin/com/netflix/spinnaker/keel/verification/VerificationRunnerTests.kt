@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.api.verification.VerificationState
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.telemetry.VerificationStarted
 import de.huxhorn.sulky.ulid.ULID
@@ -51,11 +52,14 @@ internal class VerificationRunnerTests {
     every { getImages(any(), any()) } returns images
   }
 
+  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer()
+
   private val subject = VerificationRunner(
     repository,
     listOf(evaluator),
     publisher,
-    imageFinder
+    imageFinder,
+    environmentExclusionEnforcer
   )
 
   @Test
