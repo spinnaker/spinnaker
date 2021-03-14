@@ -66,7 +66,7 @@ class ManualJudgmentCallbackHandler(
       val originalCommitText = response.message.blocks[1].getText
       val action = actionsMap[response.actions.first().value]
 
-      val newBlocks = withBlocks {
+      val updatedBlocks = withBlocks {
         header {
           when (action) {
             "approve" -> text("Manual judgement approved", emoji = true)
@@ -82,7 +82,9 @@ class ManualJudgmentCallbackHandler(
             }
           }
         }
+      }
 
+      val newFooterBlock = withBlocks {
         context {
           elements {
             markdownText(fallbackText(response))
@@ -94,7 +96,8 @@ class ManualJudgmentCallbackHandler(
       //remove the first two blocks because we're replacing them
       originalBlocks.removeFirstOrNull()
       originalBlocks.removeFirstOrNull()
-      return newBlocks + originalBlocks
+      originalBlocks.removeLast() // removes mj buttons
+      return updatedBlocks + originalBlocks + newFooterBlock
     } catch (ex: Exception) {
       log.debug("exception occurred while creating updated MJ notification. Will use a fallback text instead: {}", ex)
       return emptyList()
