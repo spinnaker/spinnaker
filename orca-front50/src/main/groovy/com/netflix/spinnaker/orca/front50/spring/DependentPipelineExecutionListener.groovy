@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -101,11 +100,10 @@ class DependentPipelineExecutionListener implements ExecutionListener {
             trigger.pipeline == execution.pipelineConfigId &&
             trigger.status.contains(status)
           ) {
-            User authenticatedUser = null
+            PipelineExecution.AuthenticationDetails authenticatedUser = null
 
             if (fiatStatus.enabled && trigger.runAsUser) {
-              authenticatedUser = new User()
-              authenticatedUser.setEmail(trigger.runAsUser)
+              authenticatedUser = new PipelineExecution.AuthenticationDetails(trigger.runAsUser)
             }
 
             dependentPipelineStarter.trigger(

@@ -35,8 +35,6 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
-import groovy.util.logging.Slf4j;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -47,7 +45,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 @ConditionalOnExpression(value = "${pollers.restore-pinned-server-groups.enabled:false}")
 public class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
@@ -151,19 +148,17 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       try {
         List<Map<String, Object>> jobs = new ArrayList<>();
         jobs.add(buildDeleteEntityTagsOperation(pinnedServerGroupTag));
-
-        User systemUser = new User();
-        systemUser.setUsername(username);
-        systemUser.setAllowedAccounts(Collections.singletonList(pinnedServerGroupTag.account));
+        var allowedAccount = Collections.singletonList(pinnedServerGroupTag.account);
 
         Optional<ServerGroup> serverGroup =
-            AuthenticatedRequest.propagate(
+            AuthenticatedRequest.runAs(
+                    username,
+                    allowedAccount,
                     () ->
                         pollerSupport.fetchServerGroup(
                             pinnedServerGroupTag.account,
                             pinnedServerGroupTag.location,
-                            pinnedServerGroupTag.serverGroup),
-                    systemUser)
+                            pinnedServerGroupTag.serverGroup))
                 .call();
 
         serverGroup.ifPresent(
@@ -183,12 +178,13 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
             buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
         log.info((String) cleanupOperation.get("name"));
 
-        AuthenticatedRequest.propagate(
+        AuthenticatedRequest.runAs(
+                username,
+                allowedAccount,
                 () ->
                     executionLauncher.start(
                         ExecutionType.ORCHESTRATION,
-                        objectMapper.writeValueAsString(cleanupOperation)),
-                systemUser)
+                        objectMapper.writeValueAsString(cleanupOperation)))
             .call();
 
         triggeredCounter.increment();

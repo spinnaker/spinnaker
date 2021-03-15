@@ -236,7 +236,7 @@ class ManualJudgmentStageSpec extends Specification {
 
     then:
     authenticatedUser.isPresent() == isPresent
-    !isPresent || (authenticatedUser.get().username == "modifiedUser" && authenticatedUser.get().allowedAccounts == ["group1"])
+    !isPresent || (authenticatedUser.get().user == "modifiedUser" && authenticatedUser.get().allowedAccounts.toList() == ["group1"])
 
     where:
     judgmentStatus | propagateAuthenticationContext || isPresent

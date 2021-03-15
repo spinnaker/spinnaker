@@ -225,7 +225,7 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
     1 * front50Service.getApplicationNotifications("myapp") >> {
       assert MDC.get(Header.USER.header) == "user@schibsted.com"
-      assert MDC.get(Header.ACCOUNTS.header) == "someAccount,anotherAccount"
+      assert MDC.get(Header.ACCOUNTS.header).split(",").toList().toSorted() == ["anotheraccount", "someaccount"]
       return notifications
     }
     1 * echoService.recordEvent(_)

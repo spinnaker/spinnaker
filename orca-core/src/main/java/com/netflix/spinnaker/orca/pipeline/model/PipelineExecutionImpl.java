@@ -33,7 +33,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -434,18 +433,6 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
       }
 
       return Optional.empty();
-    }
-
-    public static Optional<User> toKorkUser(AuthenticationDetails authentication) {
-      return Optional.ofNullable(authentication)
-          .map(AuthenticationDetails::getUser)
-          .map(
-              it -> {
-                User user = new User();
-                user.setEmail(it);
-                user.setAllowedAccounts(authentication.getAllowedAccounts());
-                return user;
-              });
     }
   }
 }

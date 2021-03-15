@@ -39,7 +39,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2.V2SchemaH
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
-import com.netflix.spinnaker.security.User
 import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.context.support.StaticApplicationContext
@@ -405,10 +404,8 @@ class DependentPipelineStarterSpec extends Specification {
     result.trigger.parameters.a == true
   }
 
-  private static User buildAuthenticatedUser(String email, List<String> allowedAccounts) {
-    def authenticatedUser = new User()
-    authenticatedUser.setEmail(email)
-    authenticatedUser.setAllowedAccounts(allowedAccounts)
+  private static PipelineExecution.AuthenticationDetails buildAuthenticatedUser(String email, List<String> allowedAccounts) {
+    def authenticatedUser = new PipelineExecution.AuthenticationDetails(email, allowedAccounts)
 
     return authenticatedUser
   }

@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.api.pipeline.models;
 
 import static java.util.Collections.emptySet;
 
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
 import java.util.*;
@@ -195,11 +194,11 @@ public interface StageExecution {
     @NonNull private Long lastModifiedTime;
 
     public @Nonnull Collection<String> getAllowedAccounts() {
-      return ImmutableSet.copyOf(allowedAccounts);
+      return Set.copyOf(allowedAccounts);
     }
 
     public void setAllowedAccounts(@Nonnull Collection<String> allowedAccounts) {
-      this.allowedAccounts = ImmutableSet.copyOf(allowedAccounts);
+      this.allowedAccounts = Set.copyOf(allowedAccounts);
     }
   }
 }

@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
-import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
@@ -121,12 +120,12 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
    * @param pipeline
    */
   private void addApplicationNotifications(PipelineExecution pipeline) {
-    def user = PipelineExecutionImpl.AuthenticationHelper.toKorkUser(pipeline.getAuthentication())
+    def user = pipeline.authentication?.user
     ApplicationNotifications notifications
-    if (user?.isPresent()) {
-      notifications = AuthenticatedRequest.propagate({
+    if (user) {
+      notifications = AuthenticatedRequest.runAs(user, pipeline.authentication.allowedAccounts ?: [] as Collection<String>, {
         front50Service.getApplicationNotifications(pipeline.application)
-      }, user.get()).call()
+      }).call()
     } else {
       notifications = AuthenticatedRequest.allowAnonymous({
         front50Service.getApplicationNotifications(pipeline.application)

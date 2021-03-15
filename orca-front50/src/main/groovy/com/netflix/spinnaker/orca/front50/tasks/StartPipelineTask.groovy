@@ -25,11 +25,9 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -82,7 +80,7 @@ class StartPipelineTask implements Task {
       pipelineConfig = V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipelineConfig)
     }
 
-    def parameters = stage.context.pipelineParameters ?: [:]
+    Map parameters = stage.context.pipelineParameters ?: [:]
 
     if (isStrategy) {
       def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
@@ -110,7 +108,7 @@ class StartPipelineTask implements Task {
 
     def pipeline = dependentPipelineStarter.trigger(
       pipelineConfig,
-      stage.context.user,
+      stage.context.user as String,
       stage.execution,
       parameters,
       stage.id,
@@ -126,15 +124,15 @@ class StartPipelineTask implements Task {
   //
   // In the case of the implicit pipeline invocation, the MDC is empty, which is why we fall back
   // to Execution.AuthenticationDetails of the parent pipeline.
-  User getUser(PipelineExecution parentPipeline) {
+  PipelineExecution.AuthenticationDetails getUser(PipelineExecution parentPipeline) {
     def korkUsername = AuthenticatedRequest.getSpinnakerUser()
     if (korkUsername.isPresent()) {
       def korkAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("")
-      return new User(email: korkUsername.get(), allowedAccounts: korkAccounts?.split(",")?.toList() ?: []).asImmutable()
+      return new PipelineExecution.AuthenticationDetails(korkUsername.get(), korkAccounts.split(","))
     }
 
     if (parentPipeline.authentication?.user) {
-      return PipelineExecutionImpl.AuthenticationHelper.toKorkUser(parentPipeline.authentication).get()
+      return parentPipeline.authentication
     }
 
     return null

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionContext
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
+import org.apache.commons.lang3.StringUtils
 
 interface AuthenticationAware {
 
@@ -33,16 +33,13 @@ interface AuthenticationAware {
       .firstOrNull { it.stageBuilder is AuthenticatedStage }
       ?.let { (it.stageBuilder as AuthenticatedStage).authenticatedUser(it.stage).orElse(null) }
 
-    val currentUser = authenticatedUser ?: User().apply {
-      email = execution.authentication?.user
-      allowedAccounts = execution.authentication?.allowedAccounts
-    }
+    val currentUser = authenticatedUser ?: execution.authentication
 
     try {
       ExecutionContext.set(
         ExecutionContext(
           execution.application,
-          currentUser.username,
+          currentUser?.user,
           execution.type.name.toLowerCase(),
           execution.id,
           this.id,
@@ -50,7 +47,11 @@ interface AuthenticationAware {
           this.startTime
         )
       )
-      AuthenticatedRequest.propagate(block, false, currentUser).call()
+      if (StringUtils.isNotBlank(currentUser?.user)) {
+        AuthenticatedRequest.runAs(currentUser.user, currentUser.allowedAccounts, false, block).call()
+      } else {
+        AuthenticatedRequest.propagate(block, false).call()
+      }
     } finally {
       ExecutionContext.clear()
     }

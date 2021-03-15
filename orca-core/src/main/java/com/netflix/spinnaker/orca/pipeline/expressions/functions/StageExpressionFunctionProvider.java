@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.ExecutionContext;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +54,8 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
                 PipelineExecution.class,
                 "execution",
                 "The execution containing the currently executing stage")),
+        new FunctionDefinition(
+            "currentUser", "Looks up the current authenticated user within the execution context."),
         new FunctionDefinition(
             "stageByRefId",
             "Locates and returns a stage with the given refId",
@@ -104,6 +107,14 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
         .orElseThrow(
             () ->
                 new SpelHelperFunctionException("No stage found with id '" + currentStageId + "'"));
+  }
+
+  /** @return the current authenticated user in the Execution or anonymous. */
+  @SuppressWarnings("unused")
+  public static String currentUser() {
+    return Optional.ofNullable(ExecutionContext.get())
+        .map(ExecutionContext::getAuthenticatedUser)
+        .orElse("anonymous");
   }
 
   /**
@@ -186,6 +197,7 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
   }
 
   /** Alias to judgment */
+  @SuppressWarnings("unused")
   public static String judgement(PipelineExecution execution, String id) {
     return judgment(execution, id);
   }

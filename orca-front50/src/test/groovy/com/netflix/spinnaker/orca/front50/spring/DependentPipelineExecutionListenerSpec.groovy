@@ -18,13 +18,13 @@ package com.netflix.spinnaker.orca.front50.spring
 
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
-import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -75,7 +75,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     then:
     1 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
-    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { User user -> user.email == "my_run_as_user" })
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { PipelineExecution.AuthenticationDetails user -> user.user == "my_run_as_user" })
 
     where:
     status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]
@@ -100,7 +100,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     then:
     2 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
-    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { User user -> user.email == "my_run_as_user" })
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { PipelineExecution.AuthenticationDetails user -> user.user == "my_run_as_user" })
 
     where:
     status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]

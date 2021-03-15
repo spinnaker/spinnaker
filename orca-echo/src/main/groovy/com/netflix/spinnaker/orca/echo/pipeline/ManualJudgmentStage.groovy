@@ -21,9 +21,11 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthorization
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 
 import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
@@ -32,7 +34,6 @@ import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
-import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -53,17 +54,16 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
   }
 
   @Override
-  Optional<User> authenticatedUser(StageExecution stage) {
+  Optional<PipelineExecution.AuthenticationDetails> authenticatedUser(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     if (stageData.state != StageData.State.CONTINUE || !stage.lastModified?.user || !stageData.propagateAuthenticationContext) {
       return Optional.empty()
     }
 
-    def user = new User()
-    user.setAllowedAccounts(stage.lastModified.allowedAccounts)
-    user.setUsername(stage.lastModified.user)
-    user.setEmail(stage.lastModified.user)
-    return Optional.of(user.asImmutable())
+    return Optional.of(
+        new PipelineExecution.AuthenticationDetails(
+            stage.lastModified.user,
+            stage.lastModified.allowedAccounts));
   }
 
   @Slf4j

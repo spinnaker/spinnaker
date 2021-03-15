@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -68,7 +67,7 @@ class StartPipelineTaskSpec extends Specification {
 
     def gotContext
     def parentPipelineStageId
-    User authenticatedUser
+    AuthenticationDetails authenticatedUser
 
     when:
     def result = task.execute(stage)
@@ -100,11 +99,11 @@ class StartPipelineTaskSpec extends Specification {
     ]
     parentPipelineStageId == stage.id
 
-    authenticatedUser?.email == expectedAuthenticatedEmail
+    authenticatedUser?.user == expectedAuthenticatedUsername
     authenticatedUser?.allowedAccounts?.toList() == expectedAuthenticatedAllowedAccounts
 
     where:
-    authentication || expectedAuthenticatedEmail || expectedAuthenticatedAllowedAccounts
+    authentication || expectedAuthenticatedUsername || expectedAuthenticatedAllowedAccounts
     null           || null                       || null
     new AuthenticationDetails(
       "authenticated_user",

@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +69,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
                             PipelineExecution parentPipeline,
                             Map suppliedParameters,
                             String parentPipelineStageId,
-                            User principal) {
+                            PipelineExecution.AuthenticationDetails authenticationDetails) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
 
     if (pipelineConfig.disabled) {
@@ -81,7 +80,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     pipelineConfig.trigger = [
       type                 : "pipeline",
-      user                 : principal?.username ?: user ?: "[anonymous]",
+      user                 : authenticationDetails?.user ?: user ?: "[anonymous]",
       parentExecution      : parentPipeline,
       parentPipelineStageId: parentPipelineStageId,
       parameters           : [:],
@@ -153,11 +152,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
     log.info('running pipeline {}:{}', pipelineConfig.id, json)
 
     log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
-      ", principal: " + principal?.toString())
+      ", principal: " + authenticationDetails?.toString())
 
     Callable<PipelineExecution> callable
     if (artifactError == null) {
-      callable = AuthenticatedRequest.propagate({
+      callable = {
         log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
         return executionLauncher().start(PIPELINE, json).with {
           Id id = registry.createId("pipelines.triggered")
@@ -166,15 +165,17 @@ class DependentPipelineStarter implements ApplicationContextAware {
           registry.counter(id).increment()
           return it
         }
-      } as Callable<PipelineExecution>, true, principal)
+      } as Callable<PipelineExecution>
     } else {
-      callable = AuthenticatedRequest.propagate({
+      callable = {
         log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
         return executionLauncher().fail(PIPELINE, json, artifactError)
-      } as Callable<PipelineExecution>, true, principal)
+      } as Callable<PipelineExecution>
     }
 
-    def pipeline = callable.call()
+    def pipeline = authenticationDetails?.user ?
+        AuthenticatedRequest.runAs(authenticationDetails.user, authenticationDetails.allowedAccounts, callable).call() :
+        AuthenticatedRequest.propagate(callable).call()
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline

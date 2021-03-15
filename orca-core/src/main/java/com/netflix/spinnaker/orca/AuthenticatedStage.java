@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.security.User;
 import java.util.Optional;
 
 /**
@@ -28,5 +28,5 @@ import java.util.Optional;
  * module for just the User class?
  */
 public interface AuthenticatedStage {
-  Optional<User> authenticatedUser(StageExecution stage);
+  Optional<PipelineExecution.AuthenticationDetails> authenticatedUser(StageExecution stage);
 }
