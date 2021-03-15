@@ -57,7 +57,8 @@ class IntermittentFailureTests : JUnit5Minutests {
       every { isPaused(any<Resource<*>>()) } returns false
     }
     val springEnv: SpringEnvironment = mockk(relaxed = true) {
-      io.mockk.coEvery { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, false) } returns true
+      every { getProperty("keel.events.diff-not-actionable.enabled", Boolean::class.java, any()) } returns true
+      every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
     }
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResourceSpec>>(relaxUnitFun = true) {
       every { name } returns "plugin1"
@@ -71,7 +72,7 @@ class IntermittentFailureTests : JUnit5Minutests {
     val clock = MutableClock()
     val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer()
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
 
     val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {

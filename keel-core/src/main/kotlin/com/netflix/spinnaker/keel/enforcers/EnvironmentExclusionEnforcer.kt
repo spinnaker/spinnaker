@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.enforcers
 
+import org.springframework.core.env.Environment as SpringEnvironment
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import org.springframework.stereotype.Component
@@ -32,7 +33,13 @@ class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
  *
  */
 @Component
-class EnvironmentExclusionEnforcer {
+class EnvironmentExclusionEnforcer(
+  private val springEnv: SpringEnvironment
+) {
+
+  private val enforcementEnabled: Boolean
+    get() = springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, true)
+
   /**
    * To get a verification lease against an environment, need:
    *
@@ -41,11 +48,12 @@ class EnvironmentExclusionEnforcer {
    * 3. No active verifications
    */
   fun <T> withVerificationLease(context: VerificationContext, action: () -> T) : T {
-    val environment = context.environment
+    if(enforcementEnabled) {
+      val environment = context.environment
 
-    ensureNoActiveDeployments(environment)
-    ensureNoActiveVerifications(environment)
-
+      ensureNoActiveDeployments(environment)
+      ensureNoActiveVerifications(environment)
+    }
     return action.invoke()
   }
 
@@ -58,7 +66,9 @@ class EnvironmentExclusionEnforcer {
    * It's ok if other actuations (e.g., deployments) are going on.
    */
   suspend fun <T> withActuationLease(environment: Environment, action: suspend () -> T) : T {
-    ensureNoActiveVerifications(environment)
+    if(enforcementEnabled) {
+      ensureNoActiveVerifications(environment)
+    }
     return action.invoke()
   }
 

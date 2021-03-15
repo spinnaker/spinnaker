@@ -26,7 +26,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Instant.now
+
 
 internal class VerificationRunnerTests {
 
@@ -40,6 +42,10 @@ internal class VerificationRunnerTests {
   }
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
+  val springEnv: SpringEnvironment = mockk() {
+    every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
+  }
+
   val images = listOf(
     CurrentImages(
       ResourceKind("dummy", "resource", "1.0"),
@@ -52,7 +58,7 @@ internal class VerificationRunnerTests {
     every { getImages(any(), any()) } returns images
   }
 
-  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer()
+  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
 
   private val subject = VerificationRunner(
     repository,

@@ -83,7 +83,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
-    val springEnv: SpringEnvironment = mockk(relaxed = true)
+    val springEnv: SpringEnvironment = mockk(relaxed = true) {
+      every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
+    }
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
@@ -91,7 +93,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val clock = Clock.systemUTC()
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer()
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,
