@@ -1,28 +1,25 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.getScmBaseLink
-import com.slack.api.model.block.Blocks
-import com.slack.api.model.block.Blocks.actions
-import com.slack.api.model.block.Blocks.section
-import com.slack.api.model.block.LayoutBlock
-import com.slack.api.model.block.SectionBlock
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
  * Constructing a git related data block, which will be a part of a slack notification
  */
 @Component
+@EnableConfigurationProperties(BaseUrlConfig::class)
 class GitDataGenerator(
   private val scmInfo: ScmInfo,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
+  val config: BaseUrlConfig
 ) {
 
   companion object {
@@ -36,13 +33,16 @@ class GitDataGenerator(
       return "$baseScmUrl/projects/${gitMetadata.project}/repos/${gitMetadata.repo?.name}"
   }
 
+  fun generateConfigUrl(application: String): String =
+    "${config.baseApiUrl}/managed/application/$application/config"
+
   /**
    * Adds a "Show full commit" button if the commit message is > [GIT_COMMIT_MESSAGE_LENGTH].
    * Doesn't do anything if there is no commit message or the commit message is not too long.
    */
-  fun conditionallyAddFullCommitMsgButton(layoutBlockDsl: LayoutBlockDsl, artifact: PublishedArtifact) {
-    val commitMessage = artifact.gitMetadata?.commitInfo?.message ?: ""
-    val hash = artifact.commitHash ?: ""
+  fun conditionallyAddFullCommitMsgButton(layoutBlockDsl: LayoutBlockDsl, gitMetadata: GitMetadata) {
+    val commitMessage = gitMetadata.commitInfo?.message ?: ""
+    val hash = gitMetadata.commitInfo?.sha ?: ""
     if (commitMessage != "" && commitMessage.length > GIT_COMMIT_MESSAGE_LENGTH) {
       layoutBlockDsl.actions {
         elements {
@@ -76,40 +76,36 @@ class GitDataGenerator(
    * Or: "spkr/keel › master › c25a358" (if it's a commit without a PR)
    * Each component will have the corresponding link attached to SCM
    */
-  fun generateScmInfo(sectionBlockBuilder: SectionBlockBuilder, application: String, artifact: PublishedArtifact): SectionBlockBuilder {
+  fun generateScmInfo(sectionBlockBuilder: SectionBlockBuilder, application: String, gitMetadata: GitMetadata, artifact: PublishedArtifact?): SectionBlockBuilder {
     with(sectionBlockBuilder) {
       var details = ""
-      val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
+      with(gitMetadata) {
+        val repoLink = generateStashRepoLink(this)
 
-        with(artifact.gitMetadata) {
-          if (this != null) {
-            val repoLink = generateStashRepoLink(this)
-
-            if (project != null && repo != null && branch != null) {
-              details += "<$repoLink|$project/" +
-                "${repo!!.name}> › " +
-                "<$repoLink/branches|$branch> › "
-            }
-            //if the commit is not a part of a PR, don't include PR's data
-            if (Strings.isNotEmpty(pullRequest?.number)) {
-              details += "<${pullRequest?.url}|PR#${pullRequest?.number}> › "
-            }
-
-            if (commitInfo != null && commitInfo!!.sha != null && commitInfo!!.sha?.length!! >= 7) {
-              markdownText(details +
-                "<${commitInfo?.link}|${commitInfo?.sha?.substring(0, 7)}>")
-            }
-          } else {
-            log.debug("git metadata is empty for application $application")
-          }
+        if (project != null && repo != null && branch != null) {
+          details += "<$repoLink|$project/" +
+            "${repo!!.name}> › " +
+            "<$repoLink/branches|$branch> › "
+        }
+        //if the commit is not a part of a PR, don't include PR's data
+        if (Strings.isNotEmpty(pullRequest?.number)) {
+          details += "<${pullRequest?.url}|PR#${pullRequest?.number}> › "
         }
 
-      accessory {
-        button {
-          text("More...")
-          // action id will be consisted by 3 sections with ":" between them to keep it consistent
-          actionId("button:url:more")
-          url(artifactUrl)
+        if (commitInfo != null && commitInfo!!.sha != null && commitInfo!!.sha?.length!! >= 7) {
+          markdownText(details +
+            "<${commitInfo?.link}|${commitInfo?.sha?.substring(0, 7)}>")
+        }
+      }
+      if (artifact != null) {
+        val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
+        accessory {
+          button {
+            text("More...")
+            // action id will be consisted by 3 sections with ":" between them to keep it consistent
+            actionId("button:url:more")
+            url(artifactUrl)
+          }
         }
       }
       return this
@@ -120,11 +116,11 @@ class GitDataGenerator(
    * generateCommitInfo will create a slack section blocks, which looks like:
    * "App: keel
    *  Version: #36 by @emburns
-      Environment:  TESTING
-              Update README.md"
+   *  Environment:  TESTING
+   *          Update README.md"
    * Or (if [olderVersion] exists):
    *      "Version: #93 → #94 by @msrc
-          Environment: TEST"
+   *      Environment: TEST"
    */
   fun generateCommitInfo(sectionBlockBuilder: SectionBlockBuilder,
                          application: String,
@@ -155,6 +151,34 @@ class GitDataGenerator(
             image(imageUrl = imageUrl, altText = altText)
           }
         }
+      }
+      return this
+    }
+  }
+
+  /**
+   * This is for generating delivery config commit updates.
+   *
+   * generateCommitInfo will create a slack section blocks, which looks like:
+   * "App: keel
+   *  Commit by @emburns
+   *   Update README.md"
+   *
+   */
+  fun generateCommitInfoNoArtifact(sectionBlockBuilder: SectionBlockBuilder,
+                                   application: String,
+                                   imageUrl: String,
+                                   altText: String,
+                                   gitMetadata: GitMetadata,
+                                   username: String?): SectionBlockBuilder {
+
+    with(sectionBlockBuilder) {
+      markdownText("*App:* $application\n" +
+        "Commit by $username\n " +
+        formatCommitMessage(gitMetadata))
+
+      accessory {
+        image(imageUrl = imageUrl, altText = altText)
       }
       return this
     }
@@ -195,5 +219,5 @@ class GitDataGenerator(
   }
 
   fun generateArtifactUrl(application: String, reference: String, version: String) =
-    "$spinnakerBaseUrl/#/applications/${application}/environments/${reference}/${version}"
+    "${config.baseUrl}/#/applications/${application}/environments/${reference}/${version}"
 }

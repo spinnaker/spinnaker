@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -53,7 +54,6 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     val keelNotificationConfig: com.netflix.spinnaker.config.KeelNotificationConfig = mockk(relaxed = true)
     val echoService: EchoService = mockk(relaxed = true)
     val repository: KeelRepository = mockk(relaxed = true)
-    val baseUrl = "https://spinnaker.acme.net"
     val artifact = DebianArtifact("mypkg", "test", "deb",
       vmOptions = VirtualMachineOptions(RELEASE, "bionic", emptySet())
     )
@@ -70,7 +70,14 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
     }
 
 
-    val subject = ManualJudgementNotifier(keelNotificationConfig, echoService, repository, scmInfo, springEnv, baseUrl)
+    val subject = ManualJudgementNotifier(
+      keelNotificationConfig,
+      echoService,
+      repository,
+      scmInfo,
+      springEnv,
+      BaseUrlConfig()
+    )
   }
 
   fun tests() = rootContext<Fixture> {
@@ -211,7 +218,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
         expectThat(notificationBody)
           .contains(":warning: Manual approval required to deploy artifact *mypkg*")
         expectThat(notificationBody)
-          .contains("*Version:* <$baseUrl/#/applications/test/environments/deb/v1.0.0|v1.0.0>")
+          .contains("*Version:* <${BaseUrlConfig().baseUrl}/#/applications/test/environments/deb/v1.0.0|v1.0.0>")
         expectThat(notificationBody)
           .contains("*Application:* test")
         expectThat(notificationBody)

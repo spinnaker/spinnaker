@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_FAILED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOYMENT_SUCCEEDED
 import com.netflix.spinnaker.keel.slack.DeploymentStatus
@@ -8,17 +9,18 @@ import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
  * Sends notification based on artifact deployment status --> deployed successfully, or failed to deploy
  */
 @Component
+@EnableConfigurationProperties(BaseUrlConfig::class)
 class ArtifactDeploymentNotificationHandler(
   private val slackService: SlackService,
   private val gitDataGenerator: GitDataGenerator,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val baseUrlConfig: BaseUrlConfig
 ) : SlackNotificationHandler<SlackArtifactDeploymentNotification> {
 
   override val supportedTypes = listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, ARTIFACT_DEPLOYMENT_FAILED)
@@ -48,7 +50,7 @@ class ArtifactDeploymentNotificationHandler(
         section {
           var details = ""
           if (priorVersion != null) {
-            val priorArtifactUrl = "$spinnakerBaseUrl/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
+            val priorArtifactUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}/environments/${artifact.reference}/${priorVersion.version}"
             details += "<$priorArtifactUrl|#${priorVersion.buildMetadata?.number}>"
           }
 
@@ -60,10 +62,13 @@ class ArtifactDeploymentNotificationHandler(
             details,
             env)
         }
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifact)
+        val gitMetadata = artifact.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
 
-        section {
-          gitDataGenerator.generateScmInfo(this, application, artifact)
+          section {
+            gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifact)
+          }
         }
 
       }

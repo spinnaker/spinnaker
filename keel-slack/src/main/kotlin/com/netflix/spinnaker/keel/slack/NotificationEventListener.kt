@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ArtifactDeployedNotification
+import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.events.MarkAsBadNotification
 import com.netflix.spinnaker.keel.events.PinnedNotification
 import com.netflix.spinnaker.keel.events.UnpinnedNotification
@@ -28,7 +29,7 @@ import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_DEPLOY
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_MARK_AS_BAD
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_PINNED
 import com.netflix.spinnaker.keel.notifications.NotificationType.ARTIFACT_UNPINNED
-import com.netflix.spinnaker.keel.notifications.NotificationType.DELIVER_CONFIG_UPDATED
+import com.netflix.spinnaker.keel.notifications.NotificationType.DELIVERY_CONFIG_CHANGED
 import com.netflix.spinnaker.keel.notifications.NotificationType.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_APPROVED
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
@@ -339,6 +340,20 @@ class NotificationEventListener(
     }
   }
 
+  @EventListener(DeliveryConfigChangedNotification::class)
+  fun onDeliveryConfigChangedNotification(notification: DeliveryConfigChangedNotification) {
+    log.debug("Received delivery config changed event: $notification")
+    with(notification) {
+      sendSlackMessage(config,
+        SlackConfigNotification(
+          time = clock.instant(),
+          application = config.application,
+          config = config,
+          gitMetadata = gitMetadata
+        ),
+        DELIVERY_CONFIG_CHANGED)
+    }
+  }
 
   private inline fun <reified T : SlackNotificationEvent> sendSlackMessage(config: DeliveryConfig,
                                                                            message: T,
@@ -380,7 +395,7 @@ class NotificationEventListener(
   private fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
     val quietNotifications = listOf(ARTIFACT_MARK_AS_BAD, ARTIFACT_PINNED, ARTIFACT_UNPINNED, LIFECYCLE_EVENT, APPLICATION_PAUSED,
       APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
-    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, DELIVER_CONFIG_UPDATED, TEST_PASSED)
+    val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, DELIVERY_CONFIG_CHANGED, TEST_PASSED)
     val verboseNotifications = normalNotifications + listOf(MANUAL_JUDGMENT_REJECTED, MANUAL_JUDGMENT_APPROVED)
 
     return when (frequency) {

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.bakery.artifact
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.artifacts.BakedImage
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -40,13 +41,13 @@ import java.time.Clock
  *   from the [LifecycleMonitorRepository].
  */
 @Component
-@EnableConfigurationProperties(LifecycleConfig::class)
+@EnableConfigurationProperties(LifecycleConfig::class, BaseUrlConfig::class)
 class BakeryLifecycleMonitor(
   override val monitorRepository: LifecycleMonitorRepository,
   override val publisher: ApplicationEventPublisher,
   override val lifecycleConfig: LifecycleConfig,
   private val orcaService: OrcaService,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val baseUrlConfig: BaseUrlConfig,
   private val bakedImageRepository: BakedImageRepository,
   private val imageService: ImageService,
   private val objectMapper: ObjectMapper,
@@ -131,7 +132,7 @@ class BakeryLifecycleMonitor(
   }
 
   private fun orcaTaskIdToLink(task: MonitoredTask): String =
-    "$spinnakerBaseUrl/#/tasks/${task.link}"
+    "${baseUrlConfig.baseUrl}/#/tasks/${task.link}"
 
   private fun publishCorrectLink(task: MonitoredTask) {
     task.publishEvent(

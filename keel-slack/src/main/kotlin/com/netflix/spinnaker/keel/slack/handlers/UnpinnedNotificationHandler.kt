@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.keel.slack.SlackUnpinnedNotification
@@ -7,6 +8,7 @@ import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
@@ -15,8 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class UnpinnedNotificationHandler(
   private val slackService: SlackService,
-  private val gitDataGenerator: GitDataGenerator,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String,
+  private val gitDataGenerator: GitDataGenerator
 ) : SlackNotificationHandler<SlackUnpinnedNotification> {
 
   override val supportedTypes = listOf(NotificationType.ARTIFACT_UNPINNED)
@@ -68,13 +69,13 @@ class UnpinnedNotificationHandler(
               env)
           }
         }
-        if (pinnedArtifact != null) {
-          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, pinnedArtifact)
-        }
-
-        section {
-          if (latestArtifact != null) {
-            gitDataGenerator.generateScmInfo(this, application, latestArtifact)
+        val gitMetadata = pinnedArtifact?.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+          section {
+            if (latestArtifact != null) {
+              gitDataGenerator.generateScmInfo(this, application, gitMetadata, latestArtifact)
+            }
           }
         }
       }

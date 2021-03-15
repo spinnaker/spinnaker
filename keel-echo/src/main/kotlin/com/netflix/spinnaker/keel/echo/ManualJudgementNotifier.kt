@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.echo
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.KeelNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -22,7 +23,7 @@ import org.springframework.core.env.Environment
 
 @Component
 @Configuration
-@EnableConfigurationProperties(KeelNotificationConfig::class)
+@EnableConfigurationProperties(KeelNotificationConfig::class, BaseUrlConfig::class)
 /**
  * Listens for [ConstraintStateChanged] events where the constraint is a [ManualJudgementConstraint] and sends
  * out notifications so that users can take action.
@@ -33,7 +34,7 @@ class ManualJudgementNotifier(
   private val repository: KeelRepository,
   private val scmInfo: ScmInfo,
   private val springEnv: Environment,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
+  private val baseUrlConfig: BaseUrlConfig
 ) {
   companion object {
     const val MANUAL_JUDGEMENT_DOC_URL =
@@ -75,7 +76,7 @@ class ManualJudgementNotifier(
     } ?: throw SystemException("Required artifact reference missing in constraint state object")
 
     val deliveryConfig = repository.getDeliveryConfig(currentState.deliveryConfigName)
-    val artifactUrl = "$spinnakerBaseUrl/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
+    val artifactUrl = "${baseUrlConfig.baseUrl}/#/applications/${deliveryConfig.application}/environments/${artifact.reference}/${currentState.artifactVersion}"
     val normalizedVersion = currentState.artifactVersion.removePrefix("${artifact.name}-")
     val currentDeployableArtifact = repository.getArtifactVersion(artifact, currentState.artifactVersion, null)
     val gitMetadata = currentDeployableArtifact

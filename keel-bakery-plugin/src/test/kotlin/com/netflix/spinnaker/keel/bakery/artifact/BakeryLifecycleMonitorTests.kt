@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -77,7 +78,7 @@ class BakeryLifecycleMonitorTests : JUnit5Minutests {
       publisher = publisher,
       lifecycleConfig = lifecycleConfig,
       orcaService = orcaService,
-      spinnakerBaseUrl = spinnakerBaseUrl,
+      baseUrlConfig = BaseUrlConfig(),
       bakedImageRepository = bakedImageRepository,
       imageService = imageService,
       clock = clock,

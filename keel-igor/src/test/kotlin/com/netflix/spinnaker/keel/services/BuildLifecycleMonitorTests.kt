@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -105,7 +106,7 @@ class BuildLifecycleMonitorTests : JUnit5Minutests {
       objectMapper,
       artifactMetadataService,
       front50Service,
-      spinnakerBaseUrl
+      BaseUrlConfig()
     )
   }
 

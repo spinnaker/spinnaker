@@ -232,7 +232,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
         } just Runs
 
         every {
-          gitDataGenerator.generateScmInfo(any(), any(), any())
+          gitDataGenerator.generateScmInfo(any(), any(), any(), any())
         } returns SectionBlockBuilder()
 
 

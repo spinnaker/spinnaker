@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.slack
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -90,6 +93,12 @@ data class SlackVerificationCompletedNotification(
   override val application: String
 ) : SlackNotificationEvent(time, application)
 
+data class SlackConfigNotification(
+  override val time: Instant,
+  override val application: String,
+  val config: DeliveryConfig,
+  val gitMetadata: GitMetadata?
+) : SlackNotificationEvent(time, application)
 
 enum class DeploymentStatus {
   SUCCEEDED, FAILED;

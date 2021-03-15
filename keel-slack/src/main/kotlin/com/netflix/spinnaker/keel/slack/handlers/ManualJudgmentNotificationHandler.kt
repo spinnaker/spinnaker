@@ -45,10 +45,12 @@ class ManualJudgmentNotificationHandler(
             "mj_needed",
             env = env)
         }
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifactCandidate)
-
-        section {
-          gitDataGenerator.generateScmInfo(this, application, artifactCandidate)
+        val gitMetadata = artifactCandidate.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+          section {
+            gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifactCandidate)
+          }
         }
 
         // Add a warning section in case there's a pinned artifact

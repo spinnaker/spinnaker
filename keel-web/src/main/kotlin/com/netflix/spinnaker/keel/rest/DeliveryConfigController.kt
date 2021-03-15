@@ -1,9 +1,13 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
+import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
@@ -20,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,7 +47,9 @@ class DeliveryConfigController(
   private val importer: DeliveryConfigImporter,
   private val authorizationSupport: AuthorizationSupport,
   @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList(),
-  private val generator: Generator
+  private val generator: Generator,
+  private val publisher: ApplicationEventPublisher,
+  private val mapper: ObjectMapper
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -60,16 +67,34 @@ class DeliveryConfigController(
   fun upsert(
     @RequestBody
     @SwaggerRequestBody(
-      description = "The delivery config. If its `name` matches an existing delivery config the operation is an update, otherwise a new delivery config is created."
+      description = "The delivery config. If its `name` matches an existing delivery config the operation is " +
+        "an update, otherwise a new delivery config is created."
     )
     deliveryConfig: SubmittedDeliveryConfig
-  ): DeliveryConfig =
-    deliveryConfigProcessors.applyAll(deliveryConfig)
+  ): DeliveryConfig {
+    val metadata: Map<String,Any?> = deliveryConfig.metadata ?: mapOf()
+    val gitMetadata: GitMetadata? = try {
+      val candidateMetadata = metadata.getOrDefault("gitMetadata", null)
+      if (candidateMetadata != null) {
+        mapper.convertValue<GitMetadata>(candidateMetadata)
+      } else {
+        null
+      }
+    } catch (e: IllegalArgumentException) {
+      log.debug("Error converting git metadata ${metadata.getOrDefault("gitMetadata", null)}: {}", e)
+      // not properly formed, so ignore the metadata and move on
+      null
+    }
+
+    deliveryConfigProcessors.applyAll(deliveryConfig.copy(metadata = metadata))
       .let { processedDeliveryConfig ->
         validator.validate(processedDeliveryConfig)
         log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
-        repository.upsertDeliveryConfig(processedDeliveryConfig)
+        val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
+        publisher.publishEvent(DeliveryConfigChangedNotification(config, gitMetadata))
+        return config
       }
+  }
 
   @GetMapping(
     path = ["/{name}"],

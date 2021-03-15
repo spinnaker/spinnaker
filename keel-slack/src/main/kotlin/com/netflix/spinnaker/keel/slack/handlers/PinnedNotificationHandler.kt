@@ -49,12 +49,15 @@ class PinnedNotificationHandler(
             env)
         }
 
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, pinnedArtifact)
-
-        section {
-          gitDataGenerator.generateScmInfo(this,
-            application,
-            pinnedArtifact)
+        val gitMetadata = pinnedArtifact.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+          section {
+            gitDataGenerator.generateScmInfo(this,
+              application,
+              gitMetadata,
+              pinnedArtifact)
+          }
         }
         context {
           elements {

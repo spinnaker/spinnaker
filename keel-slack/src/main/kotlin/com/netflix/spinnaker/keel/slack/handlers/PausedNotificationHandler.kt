@@ -1,20 +1,23 @@
 package com.netflix.spinnaker.keel.slack.handlers
 
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.netflix.spinnaker.keel.slack.SlackPausedNotification
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.withBlocks
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
  * Sends notification when pausing an application
  */
 @Component
+@EnableConfigurationProperties(BaseUrlConfig::class)
 class PausedNotificationHandler(
   private val slackService: SlackService,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
+  private val baseUrlConfig: BaseUrlConfig
 ) : SlackNotificationHandler<SlackPausedNotification> {
 
   override val supportedTypes = listOf(NotificationType.APPLICATION_PAUSED)
@@ -26,7 +29,7 @@ class PausedNotificationHandler(
 
     with(notification) {
       val username = user?.let { slackService.getUsernameByEmail(it) }
-      val appUrl = "$spinnakerBaseUrl/#/applications/${application}"
+      val appUrl = "${baseUrlConfig.baseUrl}/#/applications/${application}"
       val headerText = "Management is paused for $application"
 
       val blocks = withBlocks {

@@ -42,12 +42,13 @@ class LifecycleEventNotificationHandler(
         section {
           gitDataGenerator.generateCommitInfo(this, application, imageUrl, artifact, "lifecycle")
         }
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, artifact)
-
-        section {
-          gitDataGenerator.generateScmInfo(this, application, artifact)
+        val gitMetadata = artifact.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+          section {
+            gitDataGenerator.generateScmInfo(this, application, gitMetadata, artifact)
+          }
         }
-
       }
       slackService.sendSlackNotification(channel, blocks, application = application, type = supportedTypes, fallbackText = headerText)
     }

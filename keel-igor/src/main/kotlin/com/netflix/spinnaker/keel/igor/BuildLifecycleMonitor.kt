@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.igor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.config.BaseUrlConfig
 import com.netflix.spinnaker.config.LifecycleConfig
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.front50.Front50Service
@@ -32,7 +33,7 @@ import java.time.Instant
  * looks at the build data from that status, and emits events according to that status.
  */
 @Component
-@EnableConfigurationProperties(LifecycleConfig::class)
+@EnableConfigurationProperties(LifecycleConfig::class, BaseUrlConfig::class)
 class BuildLifecycleMonitor(
   override val monitorRepository: LifecycleMonitorRepository,
   override val publisher: ApplicationEventPublisher,
@@ -40,7 +41,7 @@ class BuildLifecycleMonitor(
   val objectMapper: ObjectMapper,
   val artifactMetadataService: ArtifactMetadataService,
   val front50Service: Front50Service?,
-  @Value("\${spinnaker.baseUrl}") private val spinnakerBaseUrl: String
+  val baseUrlConfig: BaseUrlConfig
 ) : LifecycleMonitor(monitorRepository, publisher, lifecycleConfig) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -193,7 +194,7 @@ class BuildLifecycleMonitor(
   }
 
   private fun buildUidToLink(task: MonitoredTask): String =
-    "$spinnakerBaseUrl/#/applications/${task.triggeringEvent.data["application"]}/builds/${task.link}/logs"
+    "${baseUrlConfig.baseUrl}/#/applications/${task.triggeringEvent.data["application"]}/builds/${task.link}/logs"
 
   private fun jenkinsLink(buildData: BuildData): String? =
     buildData.buildMetadata?.job?.link ?: buildData.fallbackLink

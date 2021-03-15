@@ -44,10 +44,12 @@ class MarkAsBadNotificationHandler(
             "vetoed",
             env = env)
         }
-        gitDataGenerator.conditionallyAddFullCommitMsgButton(this, vetoedArtifact)
-
-        section {
-          gitDataGenerator.generateScmInfo(this, application, vetoedArtifact)
+        val gitMetadata = vetoedArtifact.gitMetadata
+        if (gitMetadata != null) {
+          gitDataGenerator.conditionallyAddFullCommitMsgButton(this, gitMetadata)
+          section {
+            gitDataGenerator.generateScmInfo(this, application, gitMetadata, vetoedArtifact)
+          }
         }
         context {
           elements {
