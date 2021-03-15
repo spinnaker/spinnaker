@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.config.KeelConfiguration
 import com.netflix.spinnaker.orca.igor.ScmService
+import com.netflix.spinnaker.orca.keel.model.DeliveryConfig
 import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask
 import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask.Companion.UNAUTHORIZED_SCM_ACCESS_MESSAGE
 import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask.SpringHttpError
@@ -38,9 +39,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
 import retrofit.RetrofitError
@@ -52,7 +52,10 @@ import strikt.api.expectThrows
 import strikt.assertions.contains
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
   data class ManifestLocation(
@@ -276,6 +279,28 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
               trigger.hash
             )
           }
+        }
+      }
+    }
+
+    context("with detailed git info in payload field") {
+      val trigger = objectMapper.readValue(javaClass.getResource("/trigger.json"), Trigger::class.java)
+      fixture {
+        Fixture(
+          trigger
+        )
+      }
+
+      context("parsing git metadata") {
+        test("parses correctly") {
+          execute(mutableMapOf("sendGitInfo" to true))
+          val submittedConfig = slot<DeliveryConfig>()
+          verify(exactly = 1) {
+            keelService.publishDeliveryConfig(capture(submittedConfig))
+          }
+          val m: Any = submittedConfig.captured.getOrDefault("metadata", emptyMap<String, Any?>())!!
+          val metadata: Map<String, Any?> = objectMapper.convertValue(m)
+          expectThat(metadata["gitMetadata"]).isNotEqualTo(null)
         }
       }
     }
