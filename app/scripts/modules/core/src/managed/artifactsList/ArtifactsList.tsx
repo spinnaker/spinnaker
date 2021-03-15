@@ -8,13 +8,8 @@ import { ISelectedArtifactVersion } from '../Environments';
 import { Pill } from '../Pill';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
-import { getConstraintIcon, isConstraintSupported } from '../artifactDetail/constraints/constraintRegistry';
-import {
-  IManagedArtifactSummary,
-  IManagedArtifactVersion,
-  IStatefulConstraint,
-  StatefulConstraintStatus,
-} from '../../domain/IManagedEntity';
+import { getConstraintIcon } from '../artifactDetail/constraints/constraintRegistry';
+import { IConstraint, IManagedArtifactSummary, IManagedArtifactVersion } from '../../domain/IManagedEntity';
 
 import './ArtifactRow.less';
 
@@ -163,6 +158,8 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
 type ArtifactStatusList = IStatusBubbleStackProps['statuses'];
 function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactVersion): ArtifactStatusList {
   const statuses: ArtifactStatusList = [];
+  // TODO: ask Erik why we are doing this
+
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
 
@@ -189,17 +186,10 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
       return;
     }
 
-    environment.statefulConstraints?.forEach((constraint: IStatefulConstraint) => {
-      if (!isConstraintSupported(constraint.type)) {
-        return;
-      }
-
-      if (constraint.status === StatefulConstraintStatus.PENDING) {
+    environment.constraints?.forEach((constraint: IConstraint) => {
+      if (constraint.status === 'PENDING') {
         pendingConstraintIcons.add(getConstraintIcon(constraint));
-      } else if (
-        constraint.status === StatefulConstraintStatus.FAIL ||
-        constraint.status === StatefulConstraintStatus.OVERRIDE_FAIL
-      ) {
+      } else if (constraint.status === 'FAIL' || constraint.status === 'OVERRIDE_FAIL') {
         failedConstraintIcons.add(getConstraintIcon(constraint));
       }
     });

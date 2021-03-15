@@ -35,7 +35,7 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
     icon: 'artifactSkipped',
     appearance: 'future',
     title: ({ replacedByVersionName }: CardTitleMetadata) => (
-      <span className="sp-group-margin-xs-xaxis">
+      <span>
         <span>Skipped</span> <span className="text-regular">—</span>{' '}
         {replacedByVersionName && <Pill text={replacedByVersionName} />}{' '}
         <span className="text-regular">{!replacedByVersionName && 'a later version '}became available</span>
@@ -47,7 +47,7 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
     appearance: 'archived',
     timestamp: ({ replacedAt }: CardTitleMetadata) => (replacedAt ? DateTime.fromISO(replacedAt) : undefined),
     title: ({ replacedByVersionName }: CardTitleMetadata) => (
-      <span className="sp-group-margin-xs-xaxis">
+      <span>
         <span>Decommissioned</span>{' '}
         {replacedByVersionName && (
           <>
@@ -62,7 +62,7 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
     icon: 'artifactApproved',
     appearance: 'info',
     title: (_: CardTitleMetadata) => (
-      <span className="sp-group-margin-xs-xaxis">
+      <span>
         <span>Approved</span> <span className="text-regular">—</span>{' '}
         <span className="text-regular">deployment is about to begin</span>
       </span>

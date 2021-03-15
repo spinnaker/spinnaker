@@ -3,176 +3,158 @@ import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
 
+import { DeploymentWindow } from './DeploymentWindow';
 import {
+  ConstraintStatus,
+  IAllowedTimesConstraint,
+  IConstraint,
+  IDependsOnConstraint,
   IManagedArtifactVersionEnvironment,
-  IStatefulConstraint,
-  IStatelessConstraint,
-  StatefulConstraintStatus,
 } from '../../../domain';
 
 const NO_FAILURE_MESSAGE = 'no details available';
 const UNKNOWN_CONSTRAINT_ICON = 'mdConstraintGeneric';
 
-const throwUnhandledStatusError = (status: string) => {
-  throw new Error(`Unhandled constraint status "${status}", no constraint summary available`);
-};
-
-const { NOT_EVALUATED, PENDING, PASS, FAIL, OVERRIDE_PASS, OVERRIDE_FAIL } = StatefulConstraintStatus;
+const constraintHasNotStarted: ConstraintStatus[] = ['PENDING', 'NOT_EVALUATED'];
 
 export interface IConstraintOverrideAction {
   title: string;
   pass: boolean;
 }
 
-interface IStatefulConstraintConfig {
-  iconName: { [status in StatefulConstraintStatus | 'DEFAULT']?: IconNames };
-  shortSummary: (constraint: IStatefulConstraint, environment: IManagedArtifactVersionEnvironment) => React.ReactNode;
-  overrideActions: { [status in StatefulConstraintStatus]?: IConstraintOverrideAction[] };
+export const hasSkippedConstraint = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) =>
+  environment.state === 'skipped' && constraintHasNotStarted.includes(constraint.status);
+
+interface IConstraintRenderer {
+  iconName: { [status in ConstraintStatus | 'DEFAULT']?: IconNames };
+  renderFn: (constraint: IConstraint) => React.ReactNode;
+  overrideActions?: { [status in ConstraintStatus]?: IConstraintOverrideAction[] };
 }
 
-interface IStatelessConstraintConfig {
-  iconName: IconNames;
-  shortSummary: {
-    pass: (constraint: IStatelessConstraint) => React.ReactNode;
-    fail: (constraint: IStatelessConstraint) => React.ReactNode;
-    skipped: (constraint: IStatelessConstraint) => React.ReactNode;
-  };
-}
-
-export const isConstraintSupported = (type: string) =>
-  statefulConstraintOptionsByType.hasOwnProperty(type) || statelessConstraintOptionsByType.hasOwnProperty(type);
-
-export const isConstraintStateful = (constraint: IStatefulConstraint | IStatelessConstraint) =>
-  statefulConstraintOptionsByType.hasOwnProperty(constraint.type);
-
-export const getConstraintIcon = (constraint: IStatefulConstraint | IStatelessConstraint) => {
-  if (!isConstraintStateful(constraint)) {
-    return statelessConstraintOptionsByType[constraint.type]?.iconName ?? UNKNOWN_CONSTRAINT_ICON;
-  }
-
-  const { type, status } = constraint as IStatefulConstraint;
-  const iconNamesByStatus = statefulConstraintOptionsByType[type]?.iconName;
-
-  return iconNamesByStatus?.[status] || iconNamesByStatus?.['DEFAULT'] || UNKNOWN_CONSTRAINT_ICON;
+export const getConstraintIcon = (constraint: IConstraint) => {
+  const iconsByStatus = constraintsRenderer[constraint.type]?.iconName;
+  return iconsByStatus?.[constraint.status] || iconsByStatus?.['DEFAULT'] || UNKNOWN_CONSTRAINT_ICON;
 };
 
-export const getConstraintTimestamp = (
-  constraint: IStatefulConstraint | IStatelessConstraint,
-  environment: IManagedArtifactVersionEnvironment,
-) => {
-  if (!isConstraintStateful(constraint)) {
-    return undefined;
-  }
+export const renderConstraint = (constraint: IConstraint): React.ReactNode => {
+  const renderFn = constraintsRenderer[constraint.type]?.renderFn;
+  return renderFn?.(constraint) || `${constraint.type} constraint - ${constraint.status}`;
+};
 
-  const { status, startedAt, judgedAt } = constraint as IStatefulConstraint;
+export const getConstraintTimestamp = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) => {
+  const { startedAt, judgedAt } = constraint;
 
   // PENDING and NOT_EVALUATED constraints stop running once an environment is skipped, however, their status do not change.
   // We need to ignore them
-  if (environment.state === 'skipped' && [PENDING, NOT_EVALUATED].includes(status)) {
+  if (hasSkippedConstraint(constraint, environment)) {
     return undefined;
   }
-
-  switch (status) {
-    case PENDING:
-      return startedAt ? DateTime.fromISO(startedAt) : undefined;
-
-    case PASS:
-    case FAIL:
-    case OVERRIDE_PASS:
-    case OVERRIDE_FAIL:
-      return judgedAt ? DateTime.fromISO(judgedAt) : undefined;
-
-    default:
-      return undefined;
-  }
+  const finalTime = judgedAt ?? startedAt;
+  return finalTime ? DateTime.fromISO(finalTime) : undefined;
 };
 
-export const getConstraintActions = (
-  constraint: IStatefulConstraint | IStatelessConstraint,
-  environment: IManagedArtifactVersionEnvironment,
-) => {
-  if (!isConstraintStateful(constraint) || environment.state === 'skipped') {
-    return null;
-  }
-
-  const { type, status } = constraint as IStatefulConstraint;
-  return statefulConstraintOptionsByType[type]?.overrideActions?.[status] ?? null;
-};
-
-export const getConstraintSummary = (
-  constraint: IStatefulConstraint | IStatelessConstraint,
-  environment: IManagedArtifactVersionEnvironment,
-) => {
-  if (isConstraintStateful(constraint)) {
-    return getStatefulConstraintSummary(constraint as IStatefulConstraint, environment);
-  } else {
-    return getStatelessConstraintSummary(constraint as IStatelessConstraint, environment);
-  }
-};
-
-const getStatefulConstraintSummary = (
-  constraint: IStatefulConstraint,
-  environment: IManagedArtifactVersionEnvironment,
-) => statefulConstraintOptionsByType[constraint.type]?.shortSummary(constraint, environment) ?? null;
-
-const getStatelessConstraintSummary = (
-  constraint: IStatelessConstraint,
-  environment: IManagedArtifactVersionEnvironment,
-) => {
-  const { pass, fail, skipped } = statelessConstraintOptionsByType[constraint.type]?.shortSummary ?? {};
+export const getConstraintActions = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) => {
   if (environment.state === 'skipped') {
-    return skipped(constraint);
-  } else {
-    return (constraint.currentlyPassing ? pass?.(constraint) : fail?.(constraint)) ?? null;
+    return undefined;
   }
+  const actions = constraintsRenderer[constraint.type]?.overrideActions;
+  return actions?.[constraint.status];
+};
+
+export const isConstraintSupported = (type: string) => {
+  return constraintsRenderer.hasOwnProperty(type);
 };
 
 // Later, this will become a "proper" registry so we can separate configs
 // into their own files and extend them dynamically at runtime.
 // For now let's get more of the details settled and iterated on.
-const statefulConstraintOptionsByType: { [type: string]: IStatefulConstraintConfig } = {
+const constraintsRenderer: { [type in IConstraint['type']]?: IConstraintRenderer } = {
+  'allowed-times': {
+    iconName: { DEFAULT: 'mdConstraintAllowedTimes' },
+    renderFn: (constraint: IAllowedTimesConstraint) => {
+      const windows = constraint.attributes.allowedTimes;
+      switch (constraint.status) {
+        case 'FAIL':
+          return 'Failed to deploy within the allowed';
+        case 'OVERRIDE_PASS':
+          return 'Deployment window constraint was overridden';
+        case 'PASS':
+          return (
+            <div>
+              Deployed during one of the previous open windows:
+              <DeploymentWindow windows={windows} />
+            </div>
+          );
+        case 'PENDING':
+          return (
+            <div>
+              Deployment can only occur during the following window{windows.length > 1 ? 's' : ''}:
+              <DeploymentWindow windows={windows} />
+            </div>
+          );
+        default:
+          return (
+            <div>
+              Allowed times constraint - {constraint.status}:
+              <DeploymentWindow windows={windows} />
+            </div>
+          );
+      }
+    },
+  },
+  'depends-on': {
+    iconName: { DEFAULT: 'mdConstraintDependsOn' },
+    renderFn: (constraint: IDependsOnConstraint) => {
+      const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
+      switch (constraint.status) {
+        case 'PASS':
+        case 'OVERRIDE_PASS':
+          return `Deployed to prerequisite environment (${prerequisiteEnv}) successfully`;
+        case 'FAIL':
+          return `Prerequisite environment (${prerequisiteEnv}) deployment failed`;
+        case 'OVERRIDE_FAIL':
+          return `Overriding prerequisite environment (${prerequisiteEnv}) deployment failure`;
+        default:
+          return `Awaiting deployment to prerequisite environment (${prerequisiteEnv})`;
+      }
+    },
+  },
   'manual-judgement': {
     iconName: {
-      [PASS]: 'manualJudgementApproved',
-      [OVERRIDE_PASS]: 'manualJudgementApproved',
-      [FAIL]: 'manualJudgementRejected',
-      [OVERRIDE_FAIL]: 'manualJudgementRejected',
+      PASS: 'manualJudgementApproved',
+      OVERRIDE_PASS: 'manualJudgementApproved',
+      FAIL: 'manualJudgementRejected',
+      OVERRIDE_FAIL: 'manualJudgementRejected',
       DEFAULT: 'manualJudgement',
     },
-    shortSummary: (
-      { status, judgedBy, comment }: IStatefulConstraint,
-      environment: IManagedArtifactVersionEnvironment,
-    ) => {
-      if (environment.state === 'skipped' && [PENDING, NOT_EVALUATED].includes(status)) {
-        return 'Manual judgement skipped';
-      }
-
-      switch (status) {
-        case NOT_EVALUATED:
+    renderFn: (constraint: IConstraint) => {
+      switch (constraint.status) {
+        case 'NOT_EVALUATED':
           return 'Manual judgement will be required before promotion';
-        case PENDING:
+        case 'PENDING':
           return 'Awaiting manual judgement';
-        case OVERRIDE_PASS:
-        case OVERRIDE_FAIL:
+        case 'OVERRIDE_PASS':
+        case 'OVERRIDE_FAIL':
           return (
-            <span className="sp-group-margin-xs-xaxis">
-              <span>Manually {status === OVERRIDE_PASS ? 'approved' : 'rejected'}</span>{' '}
-              <span className="text-regular">—</span> <span className="text-regular">by {judgedBy}</span>
+            <span>
+              <span>Manually {status === 'OVERRIDE_PASS' ? 'approved' : 'rejected'}</span>{' '}
+              <span className="text-regular">—</span> <span className="text-regular">by {constraint.judgedBy}</span>
             </span>
           );
-        case FAIL:
+        case 'FAIL':
           return (
-            <span className="sp-group-margin-xs-xaxis">
+            <span>
               Something went wrong <span className="text-regular">—</span>{' '}
-              <span className="text-regular">{comment || NO_FAILURE_MESSAGE}</span>
+              <span className="text-regular">{constraint.comment || NO_FAILURE_MESSAGE}</span>
             </span>
           );
         default:
-          return throwUnhandledStatusError(status);
+          console.error(new Error(`Unrecognized constraint status - ${JSON.stringify(constraint)}`));
+          return `${constraint.type} constraint - ${constraint.status}`;
       }
     },
     overrideActions: {
-      [PENDING]: [
+      PENDING: [
         {
           title: 'Reject',
           pass: false,
@@ -182,22 +164,6 @@ const statefulConstraintOptionsByType: { [type: string]: IStatefulConstraintConf
           pass: true,
         },
       ],
-    },
-  },
-};
-
-const statelessConstraintOptionsByType: { [type: string]: IStatelessConstraintConfig } = {
-  'depends-on': {
-    iconName: 'mdConstraintDependsOn',
-    shortSummary: {
-      pass: ({ attributes: { environment } }) =>
-        `Already deployed to prerequisite environment ${environment?.toUpperCase()}`,
-      fail: ({ attributes: { environment } }) =>
-        `Deployment to ${environment?.toUpperCase()} will be required before promotion`,
-      skipped: ({ currentlyPassing, attributes: { environment } }) =>
-        currentlyPassing
-          ? `Already deployed to prerequisite environment ${environment?.toUpperCase()}`
-          : `Skipped check for prerequisite environment ${environment?.toUpperCase()}`,
     },
   },
 };

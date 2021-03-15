@@ -66,8 +66,6 @@ export const ArtifactDetail = ({
 
   const keydownCallback = ({ key }: KeyboardEvent) => {
     if (key === 'Esc') {
-      // eslint-disable-next-line no-console
-      console.log('here');
       onRequestClose();
     }
   };

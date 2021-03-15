@@ -1,5 +1,5 @@
 import { REST } from 'core/api';
-import { StatefulConstraintStatus } from 'core/domain';
+import { ConstraintStatus } from 'core/domain';
 
 export interface IArtifactVersionRequest {
   application: string;
@@ -21,7 +21,7 @@ export interface IUpdateConstraintStatusRequest {
   type: string;
   reference: string;
   version: string;
-  status: StatefulConstraintStatus;
+  status: ConstraintStatus;
 }
 
 export class ManagedWriter {

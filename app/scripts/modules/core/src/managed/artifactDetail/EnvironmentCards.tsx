@@ -9,7 +9,6 @@ import { PinnedCard } from './PinnedCard';
 import { StatusCard } from '../StatusCard';
 import { VersionStateCard } from './VersionStateCard';
 import { ConstraintCard } from './constraints/ConstraintCard';
-import { isConstraintSupported } from './constraints/constraintRegistry';
 import { logCategories, useLogEvent } from '../utils/logging';
 import { VerificationCard } from './verifications/VerificationCard';
 
@@ -39,8 +38,7 @@ export const EnvironmentCards: React.FC<IEnvironmentCardsProps> = ({
     replacedBy,
     pinned,
     vetoed,
-    statefulConstraints,
-    statelessConstraints,
+    constraints,
     compareLink,
   } = environment;
   const {
@@ -94,18 +92,16 @@ export const EnvironmentCards: React.FC<IEnvironmentCardsProps> = ({
           logClick={(action) => logEvent({ action, label: `${environmentName}:${reference}` })}
         />
       ))}
-      {[...(statelessConstraints || []), ...(statefulConstraints || [])]
-        .filter(({ type }) => isConstraintSupported(type))
-        .map((constraint) => (
-          <ConstraintCard
-            key={constraint.type}
-            application={application}
-            environment={environment}
-            reference={reference}
-            version={versionDetails.version}
-            constraint={constraint}
-          />
-        ))}
+      {constraints?.map((constraint) => (
+        <ConstraintCard
+          key={constraint.type}
+          application={application}
+          environment={environment}
+          reference={reference}
+          version={versionDetails.version}
+          constraint={constraint}
+        />
+      ))}
     </>
   );
 };
