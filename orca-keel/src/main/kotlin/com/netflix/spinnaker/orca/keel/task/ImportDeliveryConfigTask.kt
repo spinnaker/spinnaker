@@ -64,17 +64,16 @@ constructor(
         context.repoType, context.projectKey, context.repositorySlug, context.directory, context.manifest, context.ref
       )
 
-      if (context.sendGitInfo) {
-        //todo eb: make this normal and not behind this flag
-        val metadata: MutableMap<String, Any?> = objectMapper.convertValue(deliveryConfig.getOrDefault("metadata", emptyMap<String, Any?>()))
-        val gitMetadata = processTriggerGitInfo(trigger, stage)
-        log.debug("Publishing manifest ${context.manifest} to keel on behalf of $user with git metadata")
+      val metadata: MutableMap<String, Any?> = objectMapper.convertValue(deliveryConfig.getOrDefault("metadata", emptyMap<String, Any?>()))
+      val gitMetadata = processTriggerGitInfo(trigger, stage)
+      if (gitMetadata != null) {
         metadata["gitMetadata"] = gitMetadata
         deliveryConfig["metadata"] = metadata
       }
 
       log.debug("Publishing manifest ${context.manifest} to keel on behalf of $user")
       keelService.publishDeliveryConfig(deliveryConfig)
+
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(emptyMap<String, Any?>()).build()
     } catch (e: RetrofitError) {
       handleRetryableFailures(e, context)
@@ -262,8 +261,7 @@ constructor(
     var ref: String? = null,
     var attempt: Int = 1,
     val maxRetries: Int? = MAX_RETRIES,
-    var errorFromLastAttempt: String? = null,
-    var sendGitInfo: Boolean = false
+    var errorFromLastAttempt: String? = null
   )
 
   fun ImportDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }

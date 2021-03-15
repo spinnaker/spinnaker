@@ -293,7 +293,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
 
       context("parsing git metadata") {
         test("parses correctly") {
-          execute(mutableMapOf("sendGitInfo" to true))
+          execute(mutableMapOf())
           val submittedConfig = slot<DeliveryConfig>()
           verify(exactly = 1) {
             keelService.publishDeliveryConfig(capture(submittedConfig))
