@@ -53,7 +53,7 @@ class GitDataGenerator(
             confirm {
               deny("Close")
               title("Commit message for $hash")
-              markdownText(commitMessage)
+              markdownText(commitMessage.take(300))
             }
           }
         }
