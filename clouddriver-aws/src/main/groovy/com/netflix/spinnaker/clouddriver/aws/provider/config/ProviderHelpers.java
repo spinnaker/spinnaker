@@ -229,7 +229,8 @@ public class ProviderHelpers {
       AmazonClientProvider amazonClientProvider,
       AwsCleanupProvider awsCleanupProvider,
       AwsConfiguration.DeployDefaults deployDefaults,
-      AwsConfigurationProperties awsConfigurationProperties) {
+      AwsConfigurationProperties awsConfigurationProperties,
+      boolean hasPreviouslyScheduledCleanupAgents) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(awsCleanupProvider);
     List<Agent> newlyAddedAgents = new ArrayList<>();
     if (!scheduledAccounts.contains(credentials.getName())) {
@@ -241,7 +242,8 @@ public class ProviderHelpers {
         }
       }
     }
-    if (awsCleanupProvider.getAgentScheduler() == null) {
+
+    if (!hasPreviouslyScheduledCleanupAgents) {
       if (awsConfigurationProperties.getCleanup().getAlarms().getEnabled()) {
         newlyAddedAgents.add(
             new CleanupAlarmsAgent(

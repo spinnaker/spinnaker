@@ -82,6 +82,7 @@ public class AmazonCredentialsLifecycleHandler
   protected Set<String> publicRegions = new HashSet<>();
   protected Set<String> awsInfraRegions = new HashSet<>();
   protected boolean reservationReportCachingAgentScheduled = false;
+  protected boolean hasPreviouslyScheduledCleanupAgents = false;
 
   @Override
   public void credentialsAdded(@NotNull NetflixAmazonCredentials credentials) {
@@ -201,9 +202,17 @@ public class AmazonCredentialsLifecycleHandler
             amazonClientProvider,
             awsCleanupProvider,
             deployDefaults,
-            awsConfigurationProperties);
+            awsConfigurationProperties,
+            hasPreviouslyScheduledCleanupAgents);
 
     awsCleanupProvider.addAgents(newlyAddedAgents);
+
+    log.info(
+        "The following cleanup agents have been added: {} (awsCleanupProvider.getAgentScheduler: {})",
+        newlyAddedAgents,
+        awsCleanupProvider.getAgentScheduler());
+
+    hasPreviouslyScheduledCleanupAgents = true;
   }
 
   private void scheduleReservationReportCachingAgent() {
