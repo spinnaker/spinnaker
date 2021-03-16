@@ -349,7 +349,8 @@ class NotificationEventListener(
           time = clock.instant(),
           application = config.application,
           config = config,
-          gitMetadata = gitMetadata
+          gitMetadata = gitMetadata,
+          new = notification.new
         ),
         DELIVERY_CONFIG_CHANGED)
     }

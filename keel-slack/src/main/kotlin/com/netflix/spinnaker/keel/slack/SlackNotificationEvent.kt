@@ -97,7 +97,8 @@ data class SlackConfigNotification(
   override val time: Instant,
   override val application: String,
   val config: DeliveryConfig,
-  val gitMetadata: GitMetadata?
+  val gitMetadata: GitMetadata?,
+  val new: Boolean
 ) : SlackNotificationEvent(time, application)
 
 enum class DeploymentStatus {

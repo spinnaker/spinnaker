@@ -24,8 +24,14 @@ class DeliveryConfigNotificationHandler(
       log.debug("Sending config changed notification for application ${notification.application}")
       val imageUrl = "https://raw.githubusercontent.com/spinnaker/spinnaker.github.io/master/assets/images/md_icons/config_change.png"
 
-      val headerText = "Delivery config changed"
-      val altText = "config changed"
+      val action = if (notification.new) {
+        "created"
+      } else {
+        "updated"
+      }
+
+      val headerText = "Delivery config $action"
+      val altText = "config $action"
 
       val blocks = withBlocks {
         header {

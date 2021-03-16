@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.RootSchema
 import com.netflix.spinnaker.keel.schema.generateSchema
 import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.validators.applyAll
@@ -86,12 +87,21 @@ class DeliveryConfigController(
       null
     }
 
+    val existing: DeliveryConfig? = try {
+      repository.getDeliveryConfigForApplication(deliveryConfig.application)
+    } catch (e: NoDeliveryConfigForApplication) {
+      null
+    }
+
     deliveryConfigProcessors.applyAll(deliveryConfig.copy(metadata = metadata))
       .let { processedDeliveryConfig ->
         validator.validate(processedDeliveryConfig)
         log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
         val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
-        publisher.publishEvent(DeliveryConfigChangedNotification(config, gitMetadata))
+        val changed = config.copy(metadata = emptyMap()) != existing?.copy(metadata = emptyMap())
+        if (changed) {
+          publisher.publishEvent(DeliveryConfigChangedNotification(config = config, gitMetadata = gitMetadata, new = existing == null))
+        }
         return config
       }
   }

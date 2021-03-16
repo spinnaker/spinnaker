@@ -79,7 +79,8 @@ data class ArtifactDeployedNotification(
 
 data class DeliveryConfigChangedNotification(
   val config: DeliveryConfig,
-  val gitMetadata: GitMetadata? = null
+  val gitMetadata: GitMetadata? = null,
+  val new: Boolean = false
 ) : NotificationEvent() {
   override val type = DELIVERY_CONFIG_CHANGED
   override val scope = APPLICATION

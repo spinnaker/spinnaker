@@ -283,6 +283,8 @@ internal class DeliveryConfigControllerTests
               firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
             }
 
+            every { repository.getDeliveryConfigForApplication(deliveryConfig.application) } returns deliveryConfig.toDeliveryConfig()
+
             val request = post("/delivery-configs")
               .accept(contentType)
               .contentType(contentType)
