@@ -4,6 +4,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.contracts.ExperimentalContracts
@@ -17,7 +18,11 @@ class SqlProviderRegistry(
 
   init {
     providerList.forEach {
-      providerCaches[it.providerName] = SqlProviderCache(cacheFactory.getCache(it.providerName))
+      if (it is ProviderCacheConfiguration) {
+        providerCaches[it.providerName] = SqlProviderCache(cacheFactory.getCache(it.providerName, it))
+      } else {
+        providerCaches[it.providerName] = SqlProviderCache(cacheFactory.getCache(it.providerName))
+      }
     }
   }
 

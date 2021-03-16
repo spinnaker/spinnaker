@@ -18,8 +18,10 @@ package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.config.SqlConstraintsInitializer
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -32,7 +34,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 class MySqlCacheSpec extends SqlCacheSpec {
-
+  def providerCacheConfiguration = new StaticProviderCacheConfiguration(supportsFullEviction: false)
 
   @Override
   Cache getSubject() {
@@ -58,8 +60,39 @@ class MySqlCacheSpec extends SqlCacheSpec {
       "test",
       Mock(SqlCacheMetrics),
       dynamicConfigService,
-      new SqlConstraintsInitializer().getDefaultSqlConstraints(SQLDialect.MYSQL)
+      new SqlConstraintsInitializer().getDefaultSqlConstraints(SQLDialect.MYSQL),
+      providerCacheConfiguration
     )
   }
 
+  def cleanup() {
+    providerCacheConfiguration.supportsFullEviction = false
+  }
+
+  def "mergeAll with full eviction support"() {
+    when:
+    providerCacheConfiguration.supportsFullEviction = false
+    ((WriteableCache) cache).mergeAll("keys", [
+      createData("keys-1"),
+      createData("keys-2")
+    ])
+    ((WriteableCache) cache).mergeAll("keys", [])
+    def retrieved = ((SqlCache) cache).getAll("keys")
+
+    then:
+    retrieved.size() == 2
+
+    when:
+    providerCacheConfiguration.supportsFullEviction = true
+    ((WriteableCache) cache).mergeAll("keys", [
+      createData("keys-1"),
+      createData("keys-2")
+    ])
+    ((WriteableCache) cache).mergeAll("keys", [])
+
+    retrieved = ((SqlCache) cache).getAll("keys")
+
+    then:
+    retrieved.isEmpty()
+  }
 }

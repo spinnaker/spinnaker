@@ -6,6 +6,7 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import com.netflix.spinnaker.config.SqlConstraints
@@ -58,7 +59,8 @@ class SqlCache(
   tableNamespace: String?,
   private val cacheMetrics: SqlCacheMetrics,
   private val dynamicConfigService: DynamicConfigService,
-  private val sqlConstraints: SqlConstraints
+  private val sqlConstraints: SqlConstraints,
+  private val providerCacheConfiguration: ProviderCacheConfiguration
 ) : WriteableCache {
 
   companion object {
@@ -129,14 +131,20 @@ class SqlCache(
 
     createTables(type)
 
-    if (items.isNullOrEmpty() || items.none { it.id != "_ALL_" }) {
-      return
+    if (!providerCacheConfiguration.supportsFullEviction()) {
+      if (items.isNullOrEmpty() || items.none { it.id != "_ALL_" }) {
+        return
+      }
+    }
+
+    if (items.isNullOrEmpty()) {
+      log.warn("No cacheable items supplied, collection will be cleared (type: {}, agent: {})", type, agentHint)
     }
 
     var agent: String? = agentHint
 
     val first: String? = items
-      .firstOrNull { it.relationships.isNotEmpty() }
+      ?.firstOrNull { it.relationships.isNotEmpty() }
       ?.relationships
       ?.keys
       ?.firstOrNull()
@@ -150,9 +158,9 @@ class SqlCache(
     }
 
     val storeResult = if (authoritative) {
-      storeAuthoritative(type, agent, items, cleanup)
+      storeAuthoritative(type, agent, items ?: mutableListOf(), cleanup)
     } else {
-      storeInformative(type, items, cleanup)
+      storeInformative(type, items ?: mutableListOf(), cleanup)
     }
 
     cacheMetrics.merge(

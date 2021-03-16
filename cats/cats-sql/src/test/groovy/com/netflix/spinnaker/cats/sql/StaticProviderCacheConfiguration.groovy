@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2021 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.cache;
+package com.netflix.spinnaker.cats.sql
 
 import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration;
 
-/** Produces writeable caches by name. */
-public interface NamedCacheFactory {
-  WriteableCache getCache(String name);
+class StaticProviderCacheConfiguration implements ProviderCacheConfiguration {
+  boolean supportsFullEviction = false
 
-  default WriteableCache getCache(
-      String name, ProviderCacheConfiguration providerCacheConfiguration) {
-    // not all caches support per-provider configuration
-    return getCache(name);
+  @Override
+  boolean supportsFullEviction() {
+    return supportsFullEviction
   }
 }

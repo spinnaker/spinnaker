@@ -3,6 +3,7 @@ package com.netflix.spinnaker.cats.sql.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.provider.ProviderCacheConfiguration
 import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -25,6 +26,11 @@ class SqlNamedCacheFactory(
 
   @ExperimentalContracts
   override fun getCache(name: String): WriteableCache {
+    return getCache(name, DefaultProviderCacheConfiguration())
+  }
+
+  @ExperimentalContracts
+  override fun getCache(name: String, providerCacheConfiguration: ProviderCacheConfiguration): WriteableCache {
     return SqlCache(
       name,
       jooq,
@@ -35,7 +41,10 @@ class SqlNamedCacheFactory(
       prefix,
       cacheMetrics,
       dynamicConfigService,
-      sqlConstraints
+      sqlConstraints,
+      providerCacheConfiguration
     )
   }
+
+  class DefaultProviderCacheConfiguration : ProviderCacheConfiguration
 }
