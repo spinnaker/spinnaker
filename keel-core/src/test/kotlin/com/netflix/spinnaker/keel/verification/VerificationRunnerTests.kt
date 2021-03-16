@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.verification
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -58,7 +59,7 @@ internal class VerificationRunnerTests {
     every { getImages(any(), any()) } returns images
   }
 
-  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
+  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
 
   private val subject = VerificationRunner(
     repository,

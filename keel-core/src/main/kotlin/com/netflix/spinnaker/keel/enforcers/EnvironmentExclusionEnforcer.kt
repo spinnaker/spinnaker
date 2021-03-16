@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.enforcers
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
 import org.springframework.core.env.Environment as SpringEnvironment
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
@@ -34,11 +36,21 @@ class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
  */
 @Component
 class EnvironmentExclusionEnforcer(
-  private val springEnv: SpringEnvironment
+  private val springEnv: SpringEnvironment,
+  spectator: Registry
 ) {
 
   private val enforcementEnabled: Boolean
     get() = springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, true)
+
+
+  /**
+   * Percentile timer for measuring how long the checks take.
+   *
+   * We use the default percentile time range: 10ms to 1 minute
+   */
+  private val timerBuilder = PercentileTimer.builder(spectator).withName("keel.enforcement.environment.check.duration")
+
 
   /**
    * To get a verification lease against an environment, need:
@@ -48,12 +60,14 @@ class EnvironmentExclusionEnforcer(
    * 3. No active verifications
    */
   fun <T> withVerificationLease(context: VerificationContext, action: () -> T) : T {
-    if(enforcementEnabled) {
-      val environment = context.environment
+      recordDuration("verification") {
+        if (enforcementEnabled) {
+          val environment = context.environment
 
-      ensureNoActiveDeployments(environment)
-      ensureNoActiveVerifications(environment)
-    }
+          ensureNoActiveDeployments(environment)
+          ensureNoActiveVerifications(environment)
+        }
+      }
     return action.invoke()
   }
 
@@ -66,8 +80,10 @@ class EnvironmentExclusionEnforcer(
    * It's ok if other actuations (e.g., deployments) are going on.
    */
   suspend fun <T> withActuationLease(environment: Environment, action: suspend () -> T) : T {
-    if(enforcementEnabled) {
-      ensureNoActiveVerifications(environment)
+    recordDuration("actuation") {
+      if (enforcementEnabled) {
+        ensureNoActiveVerifications(environment)
+      }
     }
     return action.invoke()
   }
@@ -89,5 +105,17 @@ class EnvironmentExclusionEnforcer(
     /**
      * To be implemented in a future PR
      */
+  }
+
+  /**
+   * Emit a metric with the duration time for the given block of code
+   */
+  private fun recordDuration(actionType: String, block: () -> Unit) {
+    timerBuilder
+      .withTag("action", actionType)
+      .build()
+      .record {
+        block.invoke()
+      }
   }
 }

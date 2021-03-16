@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.actuation.SleepyJavaResourceHandler.SLEEPY_RESOURCE_KIND
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -93,7 +94,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val clock = Clock.systemUTC()
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,

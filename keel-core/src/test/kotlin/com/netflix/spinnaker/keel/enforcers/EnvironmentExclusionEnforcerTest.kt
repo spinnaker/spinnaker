@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.enforcers
 
+import com.netflix.spectator.api.NoopRegistry
 import io.mockk.coVerify
 import kotlinx.coroutines.test.runBlockingTest
 import io.mockk.every
@@ -14,7 +15,7 @@ import org.springframework.core.env.Environment as SpringEnvironment
 internal class EnvironmentExclusionEnforcerTest {
 
   private val springEnv : SpringEnvironment = mockk()
-  private val enforcer = EnvironmentExclusionEnforcer(springEnv)
+  private val enforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
 
   @ParameterizedTest(name="withVerificationLease executes action, enabled={0}")
   @ValueSource(booleans = [true, false])
@@ -30,6 +31,7 @@ internal class EnvironmentExclusionEnforcerTest {
     }
   }
 
+  @kotlinx.coroutines.ExperimentalCoroutinesApi
   @ParameterizedTest(name="withActuationLease executes action, enabled={0}")
   @ValueSource(booleans = [true, false])
   fun `withActuationLease invokes the action whether the feature flag is enabled or not`(enabled: Boolean) {

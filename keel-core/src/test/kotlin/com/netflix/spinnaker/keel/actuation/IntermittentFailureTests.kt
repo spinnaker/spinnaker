@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -72,7 +73,7 @@ class IntermittentFailureTests : JUnit5Minutests {
     val clock = MutableClock()
     val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv)
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
 
     val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {
