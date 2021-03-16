@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -50,9 +51,13 @@ class DeliveryConfigController(
   @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList(),
   private val generator: Generator,
   private val publisher: ApplicationEventPublisher,
-  private val mapper: ObjectMapper
+  private val mapper: ObjectMapper,
+  private val springEnv: Environment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val sendConfigChangedNotification: Boolean
+    get() = springEnv.getProperty("keel.notifications.send-config-changed", Boolean::class.java, false)
 
   @Operation(
     description = "Registers or updates a delivery config manifest."
@@ -98,8 +103,7 @@ class DeliveryConfigController(
         validator.validate(processedDeliveryConfig)
         log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
         val config = repository.upsertDeliveryConfig(processedDeliveryConfig)
-        val changed = config.copy(metadata = emptyMap()) != existing?.copy(metadata = emptyMap())
-        if (changed) {
+        if (sendConfigChangedNotification) {
           publisher.publishEvent(DeliveryConfigChangedNotification(config = config, gitMetadata = gitMetadata, new = existing == null))
         }
         return config
