@@ -15,7 +15,8 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.scalingpolicy
 
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -32,8 +33,8 @@ class UpsertScalingPolicyTaskSpec extends Specification {
   def "should retry task on exception"() {
 
     given:
-    KatoService katoService = Mock(KatoService)
-    def task = new UpsertScalingPolicyTask(kato: katoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
+    def task = new UpsertScalingPolicyTask(operationsRunner)
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "upsertScalingPolicy",
       [credentials                : "abc", cloudProvider: "aCloud",
        estimatedInstanceWarmup    : "300",
@@ -46,7 +47,7 @@ class UpsertScalingPolicyTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_, _) >> { throw new Exception() }
+    1 * operationsRunner.run(_) >> { throw new Exception() }
     result.status.toString() == "RUNNING"
 
   }
@@ -55,8 +56,8 @@ class UpsertScalingPolicyTaskSpec extends Specification {
   def "should set the task status to SUCCEEDED for successful execution"() {
 
     given:
-    KatoService katoService = Mock(KatoService)
-    def task = new UpsertScalingPolicyTask(kato: katoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
+    def task = new UpsertScalingPolicyTask(operationsRunner)
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "upsertScalingPolicy",
       [credentials                : "abc", cloudProvider: "aCloud",
        estimatedInstanceWarmup    : "300",
@@ -69,7 +70,7 @@ class UpsertScalingPolicyTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_, _) >> { taskId }
+    1 * operationsRunner.run(_) >> { KatoOperationsContext.from(taskId, null) }
     result.status.toString() == "SUCCEEDED"
   }
 }
