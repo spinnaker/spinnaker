@@ -4,6 +4,7 @@ export interface IInstance {
   account?: string;
   availabilityZone?: string;
   cloudProvider?: string;
+  cluster?: string;
   hasHealthStatus?: boolean;
   health: IHealth[];
   healthState?: string;
