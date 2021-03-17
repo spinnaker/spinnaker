@@ -141,7 +141,7 @@ class OperationsController {
       throw new NotFoundException("No saga was found for this task id: $id - can't resume")
     }
 
-    return start(atomicOperations, t.requestId)
+    return start(null, atomicOperations, t.requestId)
   }
 
   /**
