@@ -24,11 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/batch/tags")
@@ -44,7 +40,9 @@ public class BatchEntityTagsController {
   @ApiOperation(value = "Batch update a set of entity tags.", response = HashMap.class)
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map batchUpdate(@RequestBody List<Map> entityTags) {
+  public Map batchUpdate(
+      @RequestBody List<Map> entityTags,
+      @RequestParam(defaultValue = "adhoc", name = "application") String application) {
     Map<String, Object> job = new HashMap<>();
     job.put("type", "bulkUpsertEntityTags");
     job.put("entityTags", entityTags);
@@ -55,6 +53,6 @@ public class BatchEntityTagsController {
     Map<String, Object> operation = new HashMap<>();
     operation.put("description", "Bulk upsert Tags");
     operation.put("job", jobs);
-    return taskService.createAppTask("ad-hoc", operation);
+    return taskService.createAppTask(application, operation);
   }
 }
