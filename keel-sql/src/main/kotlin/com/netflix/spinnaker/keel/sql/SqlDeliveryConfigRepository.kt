@@ -426,7 +426,8 @@ class SqlDeliveryConfigRepository(
             .where(
               ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
               ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(state.type),
-              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(state.artifactVersion)
+              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(state.artifactVersion),
+              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(state.artifactReference)
             )
             .fetchOne(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
         } ?: randomUID().toString()
@@ -552,20 +553,9 @@ class SqlDeliveryConfigRepository(
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion),
-          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
         )
-        .let {
-          // For backwards-compatibility, only use the artifact reference in the query when passed in, but also match
-          // rows with a missing reference.
-          if (artifactReference != null) {
-            it.and(
-              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
-                .or(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.isNull)
-            )
-          } else {
-            it
-          }
-        }
         .fetchOne { (
                       deliveryConfigName,
                       environmentName,

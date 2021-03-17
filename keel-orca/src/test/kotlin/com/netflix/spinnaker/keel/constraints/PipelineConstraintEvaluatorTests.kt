@@ -261,7 +261,8 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
     artifactVersion = thirdArg(),
     type = arg(3),
     status = status,
-    attributes = attributes
+    attributes = attributes,
+    artifactReference = "myartifact"
   )
 
   private fun Fixture.getExecutionDetailResponse(id: String, status: OrcaExecutionStatus) =

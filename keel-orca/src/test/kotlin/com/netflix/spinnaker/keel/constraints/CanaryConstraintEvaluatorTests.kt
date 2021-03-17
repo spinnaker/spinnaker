@@ -471,7 +471,8 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     artifactVersion = thirdArg(),
     type = arg(3),
     status = status,
-    attributes = attributes
+    attributes = attributes,
+    artifactReference = "myartifact"
   )
 
   fun Fixture.executionDetailResponse(

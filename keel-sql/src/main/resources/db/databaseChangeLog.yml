@@ -251,3 +251,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210302-drop-old-event-columns.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210316-update-env-artifact-constr.yml
+      relativeToChangelogFile: true
