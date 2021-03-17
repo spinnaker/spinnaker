@@ -1,3 +1,4 @@
+export * from './console/ConsoleOutputLink';
 export * from './InstanceActions';
 export * from './InstanceDetails';
 export * from './InstanceDetailsHeader';
