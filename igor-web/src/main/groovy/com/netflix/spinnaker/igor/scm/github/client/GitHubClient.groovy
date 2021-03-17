@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.scm.github.client
 
+import com.netflix.spinnaker.igor.scm.github.client.model.Commit
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
 import retrofit.http.GET
@@ -47,6 +48,13 @@ interface GitHubClient {
     @Path('repositorySlug') String repositorySlug,
     @Path(value = 'path', encode = false) String path,
     @Query('ref') String ref
+  )
+
+  @GET('/repos/{projectKey}/{repositorySlug}/git/commits/{sha}')
+  Commit commitInfo(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path('sha') String sha
   )
 }
 

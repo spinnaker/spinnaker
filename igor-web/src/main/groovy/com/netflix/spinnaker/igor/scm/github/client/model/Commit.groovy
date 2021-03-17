@@ -25,5 +25,7 @@ class Commit {
     String sha
     @JsonProperty(value = "commit")
     CommitInfo commitInfo
+    String message
     String html_url
+    Author author
 }

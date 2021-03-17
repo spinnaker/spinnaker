@@ -63,7 +63,7 @@ class Build {
     List<TestResults> testResults
 
     GenericBuild genericBuild(String jobName) {
-        GenericBuild genericBuild = new GenericBuild(building: building, number: number.intValue(), duration: duration.intValue(), result: result as Result, name: jobName, url: url, timestamp: timestamp, fullDisplayName: fullDisplayName)
+        GenericBuild genericBuild = new GenericBuild(id: "${jobName}-${String.valueOf(number)}", building: building, number: number.intValue(), duration: duration.intValue(), result: result as Result, name: jobName, url: url, timestamp: timestamp, fullDisplayName: fullDisplayName)
         if (artifacts) {
             genericBuild.artifacts = artifacts.collect { buildArtifact ->
                 GenericArtifact artifact = buildArtifact.getGenericArtifact()

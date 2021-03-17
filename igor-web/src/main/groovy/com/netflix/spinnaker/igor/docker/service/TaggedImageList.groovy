@@ -29,4 +29,5 @@ class TaggedImage {
     String commitId
     String date
     String branch
+    Map<String, Object> artifact
 }

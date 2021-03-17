@@ -67,6 +67,8 @@ class JenkinsProperties implements BuildServerProperties<JenkinsProperties.Jenki
 
         Boolean skipHostnameVerification = false
 
+        Boolean ciEnabled = false
+
         Permissions.Builder permissions = new Permissions.Builder()
     }
 }

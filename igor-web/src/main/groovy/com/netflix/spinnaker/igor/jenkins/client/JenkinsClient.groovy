@@ -60,6 +60,12 @@ interface JenkinsClient {
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
     Build getLatestBuild(@EncodedPath('jobName') String jobName)
 
+    @GET('/job/{jobName}/lastCompletedBuild/consoleText')
+    Response getLatestBuildOutput(@EncodedPath('jobName') String jobName)
+
+    @GET('/job/{jobName}/{buildNumber}/consoleText')
+    Response getBuildOutput(@EncodedPath('jobName') String jobName, @Path('buildNumber') String buildNumber)
+
     @GET('/queue/item/{itemNumber}/api/xml')
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 

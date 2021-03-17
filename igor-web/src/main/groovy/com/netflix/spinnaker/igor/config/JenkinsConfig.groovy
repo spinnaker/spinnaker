@@ -96,8 +96,8 @@ class JenkinsConfig {
                 host.name,
                 jenkinsClient(
                     host,
-                    jenkinsOkHttpClientProvider.provide(host),
-                    jenkinsRetrofitRequestInterceptorProvider.provide(host),
+                    jenkinsOkHttpClientProvider,
+                    jenkinsRetrofitRequestInterceptorProvider,
                     registry,
                     retrofitLogLevel,
                     igorConfigurationProperties.client.timeout
@@ -128,13 +128,15 @@ class JenkinsConfig {
             .registerModule(new JaxbAnnotationModule())
     }
 
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
-                                       OkHttpClient client,
-                                       RequestInterceptor requestInterceptor,
-                                       Registry registry,
-                                       RestAdapter.LogLevel retrofitLogLevel,
-                                       int timeout = 30000) {
+  static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
+                                     JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider = null,
+                                     JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider = null,
+                                     Registry registry = null,
+                                     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC,
+                                     int timeout = 30000){
 
+        OkHttpClient client = (jenkinsOkHttpClientProvider != null) ? jenkinsOkHttpClientProvider.provide(host) : new OkHttpClient()
+        RequestInterceptor requestInterceptor = (jenkinsRetrofitRequestInterceptorProvider != null) ? jenkinsRetrofitRequestInterceptorProvider.provide(host): RequestInterceptor.NONE
         OkHttpClient.Builder clientBuilder = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS)
 
         if (host.skipHostnameVerification) {
@@ -195,6 +197,7 @@ class JenkinsConfig {
             .build()
             .create(JenkinsClient)
     }
+
     private static TrustManager[] createTrustStore(String trustStoreName,
                                                    String trustStorePassword,
                                                    String trustStoreType) {
@@ -206,11 +209,6 @@ class JenkinsConfig {
         trustManagerFactory.init(trustStore)
 
         return trustManagerFactory.trustManagers
-    }
-
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, Registry registry = null, RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC, int timeout = 30000) {
-        OkHttpClient client = new OkHttpClient()
-        jenkinsClient(host, client, RequestInterceptor.NONE, registry, retrofitLogLevel, timeout)
     }
 
     static class TrustAllTrustManager implements X509TrustManager {

@@ -32,4 +32,8 @@ public class AbstractScmMaster implements ScmMaster {
   public String getTextFileContents(String projectKey, String repositorySlug, String path) {
     return getTextFileContents(projectKey, repositorySlug, path, ScmMaster.DEFAULT_GIT_REF);
   }
+
+  public Object getCommitDetails(String projectKey, String repositorySlug, String commitSha) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
 }
