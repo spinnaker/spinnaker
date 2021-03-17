@@ -26,7 +26,10 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.DefaultStageResolver;
 import com.netflix.spinnaker.orca.DynamicStageResolver;
+import com.netflix.spinnaker.orca.DynamicTaskImplementationResolver;
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver;
 import com.netflix.spinnaker.orca.StageResolver;
+import com.netflix.spinnaker.orca.TaskImplementationResolver;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
@@ -84,7 +87,7 @@ import rx.schedulers.Schedulers;
   PreprocessorConfiguration.class,
   PluginsAutoConfiguration.class,
 })
-@EnableConfigurationProperties
+@EnableConfigurationProperties(TaskOverrideConfigurationProperties.class)
 public class OrcaConfiguration {
   @Bean
   public Clock clock() {
@@ -223,6 +226,21 @@ public class OrcaConfiguration {
   public DefaultStageResolver defaultStageResolver(
       ObjectProvider<Collection<StageDefinitionBuilder>> stageDefinitionBuilders) {
     return new DefaultStageResolver(stageDefinitionBuilders);
+  }
+
+  @Bean
+  @ConditionalOnProperty("task-overrides.enabled")
+  public DynamicTaskImplementationResolver dynamicTaskImplementationResolver(
+      DynamicConfigService dynamicConfigService,
+      TaskOverrideConfigurationProperties taskOverrideConfigurationProperties) {
+    return new DynamicTaskImplementationResolver(
+        dynamicConfigService, taskOverrideConfigurationProperties);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(TaskImplementationResolver.class)
+  public TaskImplementationResolver defaultTaskImplementationResolver() {
+    return new NoOpTaskImplementationResolver();
   }
 
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)

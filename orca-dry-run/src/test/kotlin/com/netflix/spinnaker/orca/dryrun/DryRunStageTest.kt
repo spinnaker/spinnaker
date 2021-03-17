@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -38,7 +39,7 @@ object DryRunStageTest : Spek({
 
   fun StageDefinitionBuilder.plan(stage: StageExecution) {
     stage.type = type
-    buildTasks(stage)
+    buildTasks(stage, NoOpTaskImplementationResolver())
     buildBeforeStages(stage)
   }
 

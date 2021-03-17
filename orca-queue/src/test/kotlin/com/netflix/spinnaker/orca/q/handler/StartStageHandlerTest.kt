@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
@@ -130,7 +131,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       objectMapper,
       clock,
       registry,
-      retryDelayMs = retryDelay.toMillis()
+      retryDelay.toMillis(),
+      NoOpTaskImplementationResolver()
     )
   }
 
@@ -928,7 +930,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           name = "parallel"
           type = stageWithParallelBranches.type
           stageWithParallelBranches.buildBeforeStages(this)
-          stageWithParallelBranches.buildTasks(this)
+          stageWithParallelBranches.buildTasks(this, NoOpTaskImplementationResolver())
         }
       }
       val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages[0].id)

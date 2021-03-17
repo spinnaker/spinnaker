@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -453,6 +454,6 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
 fun StageDefinitionBuilder.plan(stage: StageExecution) {
   stage.type = type
-  buildTasks(stage)
+  buildTasks(stage, NoOpTaskImplementationResolver())
   buildBeforeStages(stage)
 }

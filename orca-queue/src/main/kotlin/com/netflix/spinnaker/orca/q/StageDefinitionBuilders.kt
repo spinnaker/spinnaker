@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spinnaker.orca.TaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.DefinedTask
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskGraph
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
@@ -32,10 +34,12 @@ import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 /**
  * Build and append the tasks for [stage].
  */
-fun StageDefinitionBuilder.buildTasks(stage: StageExecution) {
+fun StageDefinitionBuilder.buildTasks(
+  stage: StageExecution,
+  taskImplementationResolver: TaskImplementationResolver) {
   buildTaskGraph(stage)
     .listIterator()
-    .forEachWithMetadata { processTaskNode(stage, it) }
+    .forEachWithMetadata { processTaskNode(stage, it, taskImplementationResolver) }
 }
 
 fun StageDefinitionBuilder.addContextFlags(stage: StageExecution) {
@@ -48,15 +52,13 @@ fun StageDefinitionBuilder.addContextFlags(stage: StageExecution) {
 private fun processTaskNode(
   stage: StageExecution,
   element: IteratorElement<TaskNode>,
+  resolver: TaskImplementationResolver,
   isSubGraph: Boolean = false
 ) {
   element.apply {
     when (value) {
       is DefinedTask -> {
-        val task = TaskExecutionImpl()
-        task.id = (stage.tasks.size + 1).toString()
-        task.name = value.name
-        task.implementingClass = value.implementingClassName
+        val task = buildTaskExecution(stage, resolver.resolve(stage, value))
         if (isSubGraph) {
           task.isLoopStart = isFirst
           task.isLoopEnd = isLast
@@ -70,11 +72,21 @@ private fun processTaskNode(
         value
           .listIterator()
           .forEachWithMetadata {
-            processTaskNode(stage, it, isSubGraph = true)
+            processTaskNode(stage, it, resolver, isSubGraph = true)
           }
       }
     }
   }
+}
+
+private fun buildTaskExecution(stage: StageExecution, taskNode: DefinedTask): TaskExecution {
+  val taskExecution: TaskExecution = TaskExecutionImpl()
+  taskExecution.let {
+    it.id = (stage.tasks.size + 1).toString()
+    it.name = taskNode.name
+    it.implementingClass = taskNode.implementingClassName
+  }
+  return taskExecution
 }
 
 /**

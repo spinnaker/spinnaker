@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
@@ -733,7 +734,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             refId = "1"
             type = stageWithSyntheticBefore.type
             stageWithSyntheticBefore.buildBeforeStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+            stageWithSyntheticBefore.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -998,7 +999,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             refId = "1"
             type = stageWithSyntheticBefore.type
             stageWithSyntheticBefore.buildBeforeStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+            stageWithSyntheticBefore.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -1067,7 +1068,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             refId = "1"
             type = stageWithSyntheticAfter.type
             stageWithSyntheticAfter.buildBeforeStages(this)
-            stageWithSyntheticAfter.buildTasks(this)
+            stageWithSyntheticAfter.buildTasks(this, NoOpTaskImplementationResolver())
             stageWithSyntheticAfter.buildAfterStages(this)
           }
         }
@@ -1288,12 +1289,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             name = "parallel"
             type = stageWithParallelBranches.type
             stageWithParallelBranches.buildBeforeStages(this)
-            stageWithParallelBranches.buildTasks(this)
+            stageWithParallelBranches.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
         val message = pipeline.stageByRef("1<1").let { completedSynthetic ->
-          singleTaskStage.buildTasks(completedSynthetic)
+          singleTaskStage.buildTasks(completedSynthetic, NoOpTaskImplementationResolver())
           completedSynthetic.tasks.forEach { it.status = SUCCEEDED }
           CompleteStage(completedSynthetic)
         }
@@ -1322,12 +1323,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             name = "parallel"
             type = stageWithParallelBranches.type
             stageWithParallelBranches.buildBeforeStages(this)
-            stageWithParallelBranches.buildTasks(this)
+            stageWithParallelBranches.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
         pipeline.stages.filter { it.parentStageId != null }.forEach {
-          singleTaskStage.buildTasks(it)
+          singleTaskStage.buildTasks(it, NoOpTaskImplementationResolver())
           it.tasks.forEach { it.status = SUCCEEDED }
         }
         val message = CompleteStage(pipeline.stageByRef("1<1"))

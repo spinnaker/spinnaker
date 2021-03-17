@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
@@ -72,7 +73,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
             refId = "1"
             type = stageWithSyntheticBefore.type
             stageWithSyntheticBefore.buildBeforeStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+            stageWithSyntheticBefore.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -101,7 +102,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
             refId = "1"
             type = stageWithSyntheticBefore.type
             stageWithSyntheticBefore.buildBeforeStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+            stageWithSyntheticBefore.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -130,7 +131,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
             refId = "1"
             type = stageWithSyntheticBefore.type
             stageWithSyntheticBefore.buildBeforeStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+            stageWithSyntheticBefore.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -180,7 +181,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
             refId = "1"
             type = stageWithSyntheticBeforeAndNoTasks.type
             stageWithSyntheticBeforeAndNoTasks.buildBeforeStages(this)
-            stageWithSyntheticBeforeAndNoTasks.buildTasks(this)
+            stageWithSyntheticBeforeAndNoTasks.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -211,7 +212,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithParallelAfter.type
-            stageWithParallelAfter.buildTasks(this)
+            stageWithParallelAfter.buildTasks(this, NoOpTaskImplementationResolver())
             stageWithParallelAfter.buildAfterStages(this)
           }
         }
@@ -240,7 +241,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithParallelAfter.type
-            stageWithParallelAfter.buildTasks(this)
+            stageWithParallelAfter.buildTasks(this, NoOpTaskImplementationResolver())
             stageWithParallelAfter.buildAfterStages(this)
           }
         }
@@ -269,7 +270,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithParallelAfter.type
-            stageWithParallelAfter.buildTasks(this)
+            stageWithParallelAfter.buildTasks(this, NoOpTaskImplementationResolver())
             stageWithParallelAfter.buildAfterStages(this)
           }
         }

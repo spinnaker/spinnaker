@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -86,7 +87,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         val pipeline = pipeline {
           stage {
             type = multiTaskStage.type
-            multiTaskStage.buildTasks(this)
+            multiTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
         val message = CompleteTask(
@@ -150,7 +151,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         val pipeline = pipeline {
           stage {
             type = singleTaskStage.type
-            singleTaskStage.buildTasks(this)
+            singleTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
         val message = CompleteTask(
@@ -202,7 +203,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           stage {
             refId = "1"
             type = rollingPushStage.type
-            rollingPushStage.buildTasks(this)
+            rollingPushStage.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
 
@@ -262,7 +263,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       val pipeline = pipeline {
         stage {
           type = multiTaskStage.type
-          multiTaskStage.buildTasks(this)
+          multiTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
         }
       }
       val message = CompleteTask(
@@ -350,7 +351,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         stage {
           refId = "1"
           type = singleTaskStage.type
-          singleTaskStage.buildTasks(this)
+          singleTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
           context["manualSkip"] = true
         }
       }
@@ -384,13 +385,13 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         stage {
           refId = "1"
           type = singleTaskStage.type
-          singleTaskStage.buildTasks(this)
+          singleTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
           context["manualSkip"] = true
 
           stage {
             refId = "1<1"
             type = singleTaskStage.type
-            singleTaskStage.buildTasks(this)
+            singleTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
           }
         }
       }

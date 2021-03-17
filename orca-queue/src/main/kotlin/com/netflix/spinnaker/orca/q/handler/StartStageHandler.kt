@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.TaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
@@ -68,7 +69,8 @@ class StartStageHandler(
   @Qualifier("mapper") private val objectMapper: ObjectMapper,
   private val clock: Clock,
   private val registry: Registry,
-  @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long
+  @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long,
+  private val taskImplementationResolver: TaskImplementationResolver
 ) : OrcaMessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   private val retryDelay = Duration.ofMillis(retryDelayMs)
@@ -168,7 +170,7 @@ class StartStageHandler(
       // if we have a top level stage, ensure that context expressions are processed
       val mergedStage = if (this.parentStageId == null) this.withMergedContext() else this
       builder.addContextFlags(mergedStage)
-      builder.buildTasks(mergedStage)
+      builder.buildTasks(mergedStage, taskImplementationResolver)
       builder.buildBeforeStages(mergedStage) {
         repository.addStage(it.withMergedContext())
       }

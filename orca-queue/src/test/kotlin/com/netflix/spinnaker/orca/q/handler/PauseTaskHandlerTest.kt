@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.NoOpTaskImplementationResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -54,7 +55,7 @@ object PauseTaskHandlerTest : SubjectSpek<PauseTaskHandler>({
       application = "foo"
       stage {
         type = multiTaskStage.type
-        multiTaskStage.buildTasks(this)
+        multiTaskStage.buildTasks(this, NoOpTaskImplementationResolver())
       }
     }
     val message = PauseTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
