@@ -259,11 +259,15 @@ running-tasks-tag {
   color: var(--color-mineshaft);
   font-weight: 400;
   font-size: 80%;
-  width: 350px;
   border-radius: 0;
 
   &.bottom .arrow {
     border-bottom-color: var(--color-dovegray);
+  }
+
+  .popover-content {
+    max-height: 350px;
+    overflow: scroll;
   }
 }
 
