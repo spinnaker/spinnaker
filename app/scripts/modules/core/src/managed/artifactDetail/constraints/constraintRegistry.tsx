@@ -137,7 +137,7 @@ const constraintsRenderer: { [type in IConstraint['type']]?: IConstraintRenderer
         case 'OVERRIDE_FAIL':
           return (
             <span>
-              <span>Manually {status === 'OVERRIDE_PASS' ? 'approved' : 'rejected'}</span>{' '}
+              <span>Manually {constraint.status === 'OVERRIDE_PASS' ? 'approved' : 'rejected'}</span>{' '}
               <span className="text-regular">—</span> <span className="text-regular">by {constraint.judgedBy}</span>
             </span>
           );
