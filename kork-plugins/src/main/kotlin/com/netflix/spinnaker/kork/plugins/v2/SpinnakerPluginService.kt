@@ -46,13 +46,15 @@ import java.util.function.Supplier
  * [SpinnakerUpdateManager] as the primary touch points for the plugin framework, decoupling
  * Spinnaker-specific plugin framework logic from PF4J wherever possible.
  */
+@Suppress("LongParameterList")
 class SpinnakerPluginService(
   private val pluginManager: SpinnakerPluginManager,
   private val updateManager: SpinnakerUpdateManager,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val invocationAspects: List<InvocationAspect<*>>,
-  private val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher,
+  private val shouldProxyExtensions: Boolean
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -131,33 +133,37 @@ class SpinnakerPluginService(
       )
 
       // Provide an implementation of the extension that can be injected immediately by service-level classes.
-      val proxy = LazyExtensionInvocationProxy.proxy(
-        lazy {
-          // Force the plugin's initializer to run if it hasn't already.
-          pluginContext.parent?.also { it.getBean(initializerBeanName) }
-            ?: throw IllegalStateException("Plugin context for \"${pluginId}\" was not configured with a parent context")
+      val extension = if (shouldProxyExtensions) {
+        LazyExtensionInvocationProxy.proxy(
+          lazy {
+            // Force the plugin's initializer to run if it hasn't already.
+            pluginContext.parent?.also { it.getBean(initializerBeanName) }
+              ?: throw IllegalStateException("Plugin context for \"${pluginId}\" was not configured with a parent context")
 
-          // Fetch the extension from the plugin context.
-          return@lazy pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint
-        },
-        extensionBeanClass,
-        invocationAspects as List<InvocationAspect<InvocationState>>,
-        container.wrapper.descriptor as SpinnakerPluginDescriptor
-      )
+            // Fetch the extension from the plugin context.
+            return@lazy pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint
+          },
+          extensionBeanClass,
+          invocationAspects as List<InvocationAspect<InvocationState>>,
+          container.wrapper.descriptor as SpinnakerPluginDescriptor
+        )
+      } else {
+        pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint
+      }
 
-      val proxyBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition().beanDefinition.apply {
-        instanceSupplier = Supplier { proxy }
+      val beanDefinition = BeanDefinitionBuilder.genericBeanDefinition().beanDefinition.apply {
+        instanceSupplier = Supplier { extension }
         beanClass = extensionBeanClass
       }
       registry.registerBeanDefinition(
         "${pluginId}_${extensionBeanClass.simpleName.decapitalize()}",
-        proxyBeanDefinition
+        beanDefinition
       )
 
       applicationEventPublisher.publishEvent(ExtensionCreated(
         this,
         pluginContextBeanName,
-        proxy,
+        extension,
         extensionBeanClass
       ))
     }
