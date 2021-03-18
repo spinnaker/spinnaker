@@ -22,7 +22,7 @@ export function StandardFieldLayout(props: ILayoutProps) {
 
       <div className="flex-grow">
         <div className="flex-container-v margin-between-md">
-          <div className="flex-container-h baseline margin-between-lg StandardFieldLayout_Contents">
+          <div className="flex-container-h baseline space-between margin-between-lg StandardFieldLayout_Contents">
             {input} {actions}
           </div>
 
