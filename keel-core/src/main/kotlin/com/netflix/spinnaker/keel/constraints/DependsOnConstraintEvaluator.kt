@@ -30,8 +30,11 @@ class DependsOnConstraintEvaluator(
   private val verificationRepository: VerificationRepository,
   override val eventPublisher: EventPublisher,
   private val clock: Clock
-) : StatelessConstraintEvaluator<DependsOnConstraint, DependsOnConstraintAttributes>() {
-  val CONSTRAINT_NAME = "depends-on"
+) : StatelessConstraintEvaluator<DependsOnConstraint, DependsOnConstraintAttributes> {
+  companion object {
+    const val CONSTRAINT_NAME = "depends-on"
+  }
+  
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val supportedType = SupportedConstraintType<DependsOnConstraint>("depends-on")

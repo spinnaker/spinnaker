@@ -7,19 +7,18 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 
 /**
- * An abstract constraint evaluator that deals with constraints that
- * don't need to check the database for their status.
+ * A [ConstraintEvaluator] that deals with constraints that don't need to check the database for their status.
  *
  * This class should be implemented if a constraint has a user-facing (or api-facing)
  * summary. This does not apply to implicit constraints.
  */
-abstract class StatelessConstraintEvaluator<T: Constraint, A : ConstraintStateAttributes>()
+interface StatelessConstraintEvaluator<T: Constraint, A : ConstraintStateAttributes>
   : ConstraintEvaluator<T>{
   /**
    * The type of the metadata saved about the constraint, surfaced here to automatically register it
    * for serialization
    */
-  abstract val attributeType: SupportedConstraintAttributesType<A>
+  val attributeType: SupportedConstraintAttributesType<A>
 
   /**
    * @return a constraint state object that captures the current state of the constraint.
@@ -32,7 +31,8 @@ abstract class StatelessConstraintEvaluator<T: Constraint, A : ConstraintStateAt
    * If a summary of the constraint will not be shown to the user (like with an implicit constraint)
    * this function does not need to be implemented.
    */
-  open fun generateConstraintStateSnapshot(
+  @JvmDefault
+  fun generateConstraintStateSnapshot(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,

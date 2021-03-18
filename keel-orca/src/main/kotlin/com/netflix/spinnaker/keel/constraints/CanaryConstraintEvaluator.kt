@@ -64,10 +64,10 @@ import java.time.Clock
 class CanaryConstraintEvaluator(
   private val handlers: List<CanaryConstraintDeployHandler>,
   private val orcaService: OrcaService,
-  repository: ConstraintRepository,
+  override val repository: ConstraintRepository,
   private val clock: Clock,
   override val eventPublisher: EventPublisher
-) : StatefulConstraintEvaluator<CanaryConstraint, CanaryConstraintAttributes>(repository) {
+) : StatefulConstraintEvaluator<CanaryConstraint, CanaryConstraintAttributes> {
   override val supportedType = SupportedConstraintType<CanaryConstraint>("canary")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val correlatedMessagePrefix = "Correlated canary tasks found"

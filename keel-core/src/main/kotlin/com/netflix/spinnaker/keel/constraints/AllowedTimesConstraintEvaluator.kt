@@ -54,7 +54,7 @@ class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
   private val dynamicConfigService: DynamicConfigService,
   override val eventPublisher: EventPublisher
-) : StatelessConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes>() {
+) : StatelessConstraintEvaluator<TimeWindowConstraint, AllowedTimesConstraintAttributes> {
   override val attributeType = SupportedConstraintAttributesType<AllowedTimesConstraintAttributes>("allowed-times")
 
   companion object {

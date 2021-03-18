@@ -23,22 +23,22 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 
 /**
- * An abstract constraint evaluator that deals with the logic for stateful constraints.
+ * A [ConstraintEvaluator] that deals with the logic for stateful constraints.
  *
  * The [canPromote] function handles reading state from the repository and saving initial state.
  * If the state is 'done' (failed or passed) the specific implementations don't get called.
  * If the state is not 'done', underlying implementations [canPromote] functions get called.
  */
-abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttributes>(
-  protected val repository: ConstraintRepository
-) : ConstraintEvaluator<T> {
-
+interface StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttributes> : ConstraintEvaluator<T> {
   /**
    * The type of the metadata saved about the constraint, surfaced here to automatically register it
    * for serialization
    */
-  abstract val attributeType: SupportedConstraintAttributesType<A>
+  val attributeType: SupportedConstraintAttributesType<A>
 
+  val repository: ConstraintRepository
+
+  @JvmDefault
   override fun canPromote(
     artifact: DeliveryArtifact,
     version: String,
@@ -83,7 +83,7 @@ abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAt
   /**
    * TODO: Docs.
    */
-  abstract fun canPromote(
+  fun canPromote(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
