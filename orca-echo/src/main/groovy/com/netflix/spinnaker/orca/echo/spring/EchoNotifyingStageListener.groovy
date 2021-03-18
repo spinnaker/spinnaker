@@ -67,14 +67,13 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   void afterTask(StageExecution stage,
-                 TaskExecution task,
-                 ExecutionStatus executionStatus,
-                 boolean wasSuccessful) {
-    if (executionStatus == RUNNING) {
+                 TaskExecution task) {
+    ExecutionStatus status = task.getStatus()
+    if (status == RUNNING) {
       return
     }
 
-    recordEvent('task', (wasSuccessful ? "complete" : "failed"), stage, task)
+    recordEvent('task', (status.isSuccessful() ? "complete" : "failed"), stage, task)
   }
 
   @Override

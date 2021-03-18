@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.listeners;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 
@@ -29,11 +28,7 @@ public interface StageListener {
     // do nothing
   }
 
-  default void afterTask(
-      StageExecution stage,
-      TaskExecution task,
-      ExecutionStatus executionStatus,
-      boolean wasSuccessful) {
+  default void afterTask(StageExecution stage, TaskExecution task) {
     // do nothing
   }
 

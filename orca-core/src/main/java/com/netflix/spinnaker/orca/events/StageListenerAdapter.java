@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.listeners.StageListener;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +59,6 @@ public final class StageListenerAdapter implements ApplicationListener<Execution
   }
 
   private void onTaskComplete(TaskComplete event) {
-    StageExecution stage = event.getStage();
-    delegate.afterTask(stage, event.getTask(), stage.getStatus(), stage.getStatus().isSuccessful());
+    delegate.afterTask(event.getStage(), event.getTask());
   }
 }

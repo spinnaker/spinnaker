@@ -42,9 +42,6 @@ class EchoNotifyingStageListenerSpec extends Specification {
   }
 
   def "triggers an event when a stage starts"() {
-    given:
-    def task = new TaskExecutionImpl(stageStart: true)
-
     when:
     echoListener.beforeStage(pipelineStage)
 
@@ -72,22 +69,23 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def "triggers an event when a task completes"() {
     given:
     def task = new TaskExecutionImpl(name: taskName, stageEnd: isEnd)
+    task.status = executionStatus
 
     when:
-    echoListener.afterTask(stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(stage, task)
 
     then:
     invocations * echoService.recordEvent(_)
 
     where:
-    invocations | stage              | executionStatus | wasSuccessful | isEnd
-    0           | orchestrationStage | RUNNING         | true          | false
-    1           | orchestrationStage | STOPPED         | true          | false
-    1           | orchestrationStage | SUCCEEDED       | true          | false
-    1           | pipelineStage      | SUCCEEDED       | true          | false
-    1           | pipelineStage      | SUCCEEDED       | true          | true
-    1           | pipelineStage      | TERMINAL        | false         | false
-    1           | orchestrationStage | SUCCEEDED       | true          | true
+    invocations | stage              | executionStatus | isEnd
+    0           | orchestrationStage | RUNNING         | false
+    1           | orchestrationStage | STOPPED         | false
+    1           | orchestrationStage | SUCCEEDED       | false
+    1           | pipelineStage      | SUCCEEDED       | false
+    1           | pipelineStage      | SUCCEEDED       | true
+    1           | pipelineStage      | TERMINAL        | false
+    1           | orchestrationStage | SUCCEEDED       | true
 
     taskName = "xxx"
   }
@@ -110,6 +108,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def "sends the correct data to echo when the task completes"() {
     given:
     def task = new TaskExecutionImpl(name: taskName)
+    task.status = executionStatus
 
     and:
     def message
@@ -119,7 +118,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     }
 
     when:
-    echoListener.afterTask(stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(stage, task)
 
     then:
     1 * dynamicConfigService.getConfig(Boolean, INCLUDE_FULL_EXECUTION_PROPERTY, _) >> fullExecutionToggle
@@ -134,13 +133,13 @@ class EchoNotifyingStageListenerSpec extends Specification {
     (message.content.execution != null) == includesFullExecution
 
     where:
-    stage              | executionStatus | wasSuccessful | echoMessage | standalone | fullExecutionToggle | includesFullExecution
-    orchestrationStage | STOPPED         | true          | "complete"  | true       | true                | true
-    pipelineStage      | SUCCEEDED       | true          | "complete"  | false      | true                | true
-    pipelineStage      | TERMINAL        | false         | "failed"    | false      | true                | true
-    orchestrationStage | STOPPED         | true          | "complete"  | true       | false               | false
-    pipelineStage      | SUCCEEDED       | true          | "complete"  | false      | false               | false
-    pipelineStage      | TERMINAL        | false         | "failed"    | false      | false               | false
+    stage              | executionStatus | echoMessage | standalone | fullExecutionToggle | includesFullExecution
+    orchestrationStage | STOPPED         | "complete"  | true       | true                | true
+    pipelineStage      | SUCCEEDED       | "complete"  | false      | true                | true
+    pipelineStage      | TERMINAL        | "failed"    | false      | true                | true
+    orchestrationStage | STOPPED         | "complete"  | true       | false               | false
+    pipelineStage      | SUCCEEDED       | "complete"  | false      | false               | false
+    pipelineStage      | TERMINAL        | "failed"    | false      | false               | false
     taskName = "xxx"
   }
 }
