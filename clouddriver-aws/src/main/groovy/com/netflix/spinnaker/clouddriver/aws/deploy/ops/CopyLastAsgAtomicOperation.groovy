@@ -170,6 +170,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           instanceMonitoring = launchTemplateData.monitoring?.enabled
           spotPrice = launchTemplateData.instanceMarketOptions?.spotOptions?.maxPrice
           newDescription.requireIMDSv2 = description.requireIMDSv2 != null ? description.requireIMDSv2 : launchTemplateData.metadataOptions?.httpTokens == "required"
+          newDescription.associateIPv6Address = description.associateIPv6Address 
           if (!launchTemplateData.networkInterfaces?.empty && launchTemplateData.networkInterfaces*.associatePublicIpAddress?.any()) {
             associatePublicIpAddress = true
           }
@@ -178,7 +179,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
             def networkInterface = launchTemplateData.networkInterfaces.find({it.deviceIndex == 0 })
             if (networkInterface != null) {
               securityGroups = networkInterface.groups
-              newDescription.associateIPv6Address = networkInterface.getIpv6AddressCount() > 0 ? true : false
+              if (description.associateIPv6Address == null) {
+                newDescription.associateIPv6Address = networkInterface.getIpv6AddressCount() > 0 ? true : false
+              }
             }
           }
 
