@@ -72,7 +72,7 @@ export class ApplicationReader {
     fields.forEach((field) => {
       if (attributes[field]) {
         if (!Array.isArray(attributes[field])) {
-          attributes[field] = attributes[field].split(',');
+          attributes[field] = attributes[field].split(',').map((s: string) => s.trim());
         }
       } else {
         attributes[field] = [];
