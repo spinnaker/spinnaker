@@ -21,10 +21,12 @@ plugins {
   id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
 }
 
-subprojects {
+allprojects {
   apply plugin: "io.spinnaker.project"
+}
 
-  group = "com.netflix.spinnaker.kork"
+subprojects {
+  group = "io.spinnaker.kork"
 
   repositories {
     jcenter()
