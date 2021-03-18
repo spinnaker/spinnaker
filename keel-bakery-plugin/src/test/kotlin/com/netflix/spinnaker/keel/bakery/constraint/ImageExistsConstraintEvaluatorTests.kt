@@ -119,7 +119,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
     context("CloudDriver cannot find an image for an artifact version") {
       before {
         every {
-          imageService.getLatestNamedImage(any(), any(), any())
+          imageService.getLatestNamedImage(any(), any(), any(), any())
         } returns null
       }
 
@@ -193,6 +193,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
           imageService.getLatestNamedImage(
             AppVersion.parseName(appVersion),
             "test",
+            any(),
             any()
           )
         } returns NamedImage(

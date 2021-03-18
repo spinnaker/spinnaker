@@ -199,7 +199,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion, artifact.vmOptions.baseOs)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -231,7 +231,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion, artifact.vmOptions.baseOs)
             } returns null
           }
 
@@ -274,7 +274,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
             every {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), any())
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), any(), any())
             } answers {
               if (thirdArg<String>() == imageRegion) {
                 images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }

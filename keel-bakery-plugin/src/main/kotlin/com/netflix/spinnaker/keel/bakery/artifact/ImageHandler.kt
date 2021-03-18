@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
-import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
@@ -10,9 +10,9 @@ import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.clouddriver.model.Image
+import com.netflix.spinnaker.keel.clouddriver.getLatestNamedImages
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageName
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
-import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEvent
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventScope.PRE_DEPLOYMENT
@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.lifecycle.LifecycleEventType.BAKE
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.parseAppVersion
-import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
@@ -30,9 +30,9 @@ import org.springframework.context.ApplicationEventPublisher
 class ImageHandler(
   private val repository: KeelRepository,
   private val baseImageCache: BaseImageCache,
+  private val bakedImageRepository: BakedImageRepository,
   private val igorService: ArtifactService,
   private val imageService: ImageService,
-  private val diffFingerprintRepository: DiffFingerprintRepository,
   private val publisher: ApplicationEventPublisher,
   private val taskLauncher: TaskLauncher,
   private val defaultCredentials: BakeCredentials
@@ -40,58 +40,77 @@ class ImageHandler(
 
   override suspend fun handle(artifact: DeliveryArtifact) {
     if (artifact is DebianArtifact) {
-      val latestArtifactVersion = try {
+      val desiredAppVersion = try {
         artifact.findLatestArtifactVersion()
       } catch (e: NoKnownArtifactVersions) {
         log.debug(e.message)
         return
       }
 
-      if (taskLauncher.correlatedTasksRunning(artifact.correlationId(latestArtifactVersion))) {
+      if (taskLauncher.correlatedTasksRunning(artifact.correlationId(desiredAppVersion))) {
         publisher.publishEvent(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestBaseAmiName = artifact.findLatestBaseAmiName()
+        val desiredBaseAmiName = artifact.findLatestBaseAmiName()
 
-        val desired = Image(
-          baseAmiName = latestBaseAmiName,
-          appVersion = latestArtifactVersion,
-          regions = artifact.vmOptions.regions
-        )
-        val current = artifact.findLatestAmi()
-        val diff = DefaultResourceDiff(desired, current)
+        val byArtifactVersion =
+          artifact.wasPreviouslyBakedWith(desiredAppVersion, desiredBaseAmiName)
+        if (byArtifactVersion) {
+          return
+        }
 
-        if (current != null && diff.isRegionsOnly()) {
-          if (current.regions.containsAll(desired.regions)) {
-            log.debug("Image for ${current.appVersion} contains more regions than we need, which is fine")
-          } else {
-            log.warn("Detected a diff in the regions for ${current.appVersion}: ${diff.toDebug()}")
-            publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
+        val images = artifact.findLatestAmi(desiredAppVersion)
+        val imagesWithOlderBaseImages = images.filterValues { it.baseImageName != desiredBaseAmiName }
+        val missingRegions = artifact.vmOptions.regions - images.keys
+        when {
+          images.isEmpty() -> {
+            log.info("No AMI found for {}", desiredAppVersion)
+            launchBake(artifact, desiredAppVersion)
           }
-        } else if (diff.hasChanges()) {
-          if (current == null) {
-            log.info("No AMI found for {}", artifact.name)
-          } else {
-            log.info("Image for {} delta: {}", artifact.name, diff.toDebug())
+          imagesWithOlderBaseImages.isNotEmpty() -> {
+            log.info("AMIs for {} are outdated, rebaking…", desiredAppVersion)
+            launchBake(
+              artifact,
+              desiredAppVersion,
+              description = "Bake $desiredAppVersion due to a new base image: $desiredBaseAmiName"
+            )
           }
-
-          if (diffFingerprintRepository.seen("ami:${artifact.name}", diff)) {
-            log.warn("Artifact version {} and base AMI version {} were baked previously", latestArtifactVersion, latestBaseAmiName)
-            publisher.publishEvent(RecurrentBakeDetected(latestArtifactVersion, latestBaseAmiName))
-          } else {
-            launchBake(artifact, latestArtifactVersion, diff)
-            diffFingerprintRepository.store("ami:${artifact.name}", diff)
+          missingRegions.isNotEmpty() -> {
+            log.warn("Detected missing regions for ${desiredAppVersion}: ${missingRegions.joinToString()}")
+            publisher.publishEvent(ImageRegionMismatchDetected(desiredAppVersion, desiredBaseAmiName, images.keys, artifact.vmOptions.regions))
+            launchBake(
+              artifact,
+              desiredAppVersion,
+              regions = missingRegions,
+              description = "Bake $desiredAppVersion due to missing regions: ${missingRegions.joinToString()}"
+            )
           }
-        } else {
-          log.debug("Existing image for {} is up-to-date", artifact.name)
+          else -> {
+            log.debug("Image for {} already exists with app version {} and base image {} in regions {}", artifact.name, desiredAppVersion, desiredBaseAmiName, artifact.vmOptions.regions.joinToString())
+          }
         }
       }
     }
   }
 
-  private suspend fun DebianArtifact.findLatestAmi() =
-    imageService.getLatestImage(this, "test")
+  private fun DebianArtifact.wasPreviouslyBakedWith(
+    desiredAppVersion: String,
+    desiredBaseAmiName: String
+  ) =
+    bakedImageRepository
+      .getByArtifactVersion(desiredAppVersion, this)
+      ?.let {
+        it.baseAmiName == desiredBaseAmiName && it.amiIdsByRegion.keys.containsAll(vmOptions.regions)
+      } ?: false
+
+  private suspend fun DebianArtifact.findLatestAmi(desiredArtifactVersion: String) =
+    imageService.getLatestNamedImages(
+      appVersion = AppVersion.parseName(desiredArtifactVersion),
+      account = "test",
+      regions = vmOptions.regions,
+      baseOs = vmOptions.baseOs
+    )
 
   private fun DebianArtifact.findLatestBaseAmiName() =
     baseImageCache.getBaseAmiName(vmOptions.baseOs, vmOptions.baseLabel)
@@ -133,7 +152,8 @@ class ImageHandler(
   private suspend fun launchBake(
     artifact: DebianArtifact,
     desiredVersion: String,
-    diff: DefaultResourceDiff<Image>
+    regions: Set<String> = artifact.vmOptions.regions,
+    description: String = "Bake $desiredVersion"
   ): List<Task> {
     // TODO: Frigga and Rocket version parsing are not aligned. We should consolidate.
     val appVersion = desiredVersion.parseAppVersion()
@@ -151,8 +171,7 @@ class ImageHandler(
       "provenance" to "n/a"
     )
 
-    log.info("baking new image for {}", artifact.name)
-    val description = "Bake $desiredVersion"
+    log.info("baking new image for {}", desiredVersion)
 
     val (serviceAccount, application) = artifact.taskAuthenticationDetails
 
@@ -173,14 +192,13 @@ class ImageHandler(
               "baseLabel" to artifact.vmOptions.baseLabel.name.toLowerCase(),
               "cloudProviderType" to "aws",
               "package" to artifactRef.substringAfterLast("/"),
-              "regions" to artifact.vmOptions.regions,
+              "regions" to regions,
               "storeType" to artifact.vmOptions.storeType.name.toLowerCase(),
               "vmType" to "hvm"
             )
           )
         ),
         artifacts = listOf(artifactPayload),
-        parameters = mapOf("delta" to diff.toDebug())
       )
       publisher.publishEvent(BakeLaunched(desiredVersion))
       publisher.publishEvent(LifecycleEvent(
@@ -208,12 +226,6 @@ class ImageHandler(
       }
     } ?: defaultCredentials
 
-  /**
-   * @return `true` if the only changes in the diff are to the regions of an image.
-   */
-  private fun ResourceDiff<Image>.isRegionsOnly(): Boolean =
-    current != null && affectedRootPropertyNames.all { it == "regions" }
-
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
@@ -228,6 +240,6 @@ data class BakeCredentials(
   val application: String
 )
 
-data class ImageRegionMismatchDetected(val image: Image, val regions: Set<String>)
+data class ImageRegionMismatchDetected(val appVersion: String, val baseAmiName: String, val foundRegions: Set<String>, val desiredRegions: Set<String>)
 data class RecurrentBakeDetected(val appVersion: String, val baseAmiVersion: String)
 data class BakeLaunched(val appVersion: String)

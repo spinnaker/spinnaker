@@ -4,7 +4,9 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -46,18 +48,24 @@ class Ec2CanaryConstraintDeployHandler(
 
   override suspend fun deployCanary(
     constraint: CanaryConstraint,
+    artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,
     regions: Set<String>
   ): Map<String, Task> {
+    require(artifact is DebianArtifact) {
+      "Only Debian artifacts are supported for canaries on EC2"
+    }
+
     val scope = CoroutineScope(GlobalScope.coroutineContext)
     val judge = "canary:${deliveryConfig.application}:${targetEnvironment.name}:${constraint.canaryConfigId}"
 
     val images = imageService.getLatestNamedImages(
       appVersion = version.replace("~", "_").parseAppVersion(),
       account = imageResolver.defaultImageAccount,
-      regions = regions
+      regions = regions,
+      baseOs = artifact.vmOptions.baseOs
     )
 
     val missingRegions = regions - images.keys

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.caffeine.TEST_CACHE_FACTORY
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageName
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import dev.minutest.junit.JUnit5Minutests
@@ -75,7 +76,7 @@ class ImageServiceTests : JUnit5Minutests {
       )
     )
 
-    val image2 = NamedImage(
+    val imageWithNewerAppVersion = NamedImage(
       imageName = "my-package-0.0.1_rc.98-h99",
       attributes = mapOf(
         "virtualizationType" to "hvm",
@@ -100,7 +101,7 @@ class ImageServiceTests : JUnit5Minutests {
     )
 
     // image that is only in one region
-    val image3 = NamedImage(
+    val imageWithEventNewerAppVersionButOnlyInOneRegion = NamedImage(
       imageName = "my-package-0.0.1_rc.99-h100",
       attributes = mapOf(
         "virtualizationType" to "hvm",
@@ -124,7 +125,7 @@ class ImageServiceTests : JUnit5Minutests {
     )
 
     // mismatched app name (desired app name is a substring of this one)
-    val image4 = NamedImage(
+    val imageWithPartialMatchName = NamedImage(
       imageName = "my-package-foo-0.0.1_rc.99-h100",
       attributes = mapOf(
         "virtualizationType" to "hvm",
@@ -149,7 +150,7 @@ class ImageServiceTests : JUnit5Minutests {
     )
 
     // image3 but in a different region
-    val image5 = NamedImage(
+    val imageWithEventNewerAppVersionInRemainingRegions = NamedImage(
       imageName = "my-package-0.0.1_rc.99-h100",
       attributes = mapOf(
         "virtualizationType" to "hvm",
@@ -173,7 +174,7 @@ class ImageServiceTests : JUnit5Minutests {
     )
 
     // image1 but with a newer creation_time and base_ami_version than image3
-    val image6 = NamedImage(
+    val imageWithNewerBaseImageName = NamedImage(
       imageName = "my-package-0.0.1_rc.97-h98",
       attributes = mapOf(
         "virtualizationType" to "hvm",
@@ -197,8 +198,33 @@ class ImageServiceTests : JUnit5Minutests {
       )
     )
 
+    // image1 but with a different base OS
+    val imageWithDifferentBaseOs = NamedImage(
+      imageName = "my-package-0.0.1_rc.97-h98",
+      attributes = mapOf(
+        "virtualizationType" to "hvm",
+        "creationDate" to "2021-03-15T16:32:59.000Z"
+      ),
+      tagsByImageId = mapOf(
+        "ami-007" to mapOf(
+          "build_host" to "https://jenkins/",
+          "appversion" to "my-package-0.0.1~rc.97-h98.1c684a9/JENKINS-job/98",
+          "creator" to "emburns@netflix.com",
+          "base_ami_version" to "nflx-base-5.293.0-h989",
+          "base_ami_name" to "bionic-classicbase-x86_64-202103092356-ebs",
+          "base_ami_id" to "ami-0ec2ca6820be6b79e",
+          "creation_time" to "2021-03-15 16:32:59 UTC"
+        )
+      ),
+      accounts = setOf("test"),
+      amis = mapOf(
+        "us-west-1" to listOf("ami-007"),
+        "ap-south-1" to listOf("ami-007")
+      )
+    )
+
     // Excludes image4 which is for a different package
-    val newestImage = listOf(image1, image2, image3, image5, image6)
+    val newestImage = listOf(image1, imageWithDifferentBaseOs, imageWithNewerAppVersion, imageWithEventNewerAppVersionButOnlyInOneRegion, imageWithEventNewerAppVersionInRemainingRegions, imageWithNewerBaseImageName)
       .sortedWith(NamedImageComparator)
       .first()
   }
@@ -212,14 +238,14 @@ class ImageServiceTests : JUnit5Minutests {
       }
 
       test("finds correct image") {
-        val sortedImages = listOf(image2, image3, image1, image5, image6).sortedWith(NamedImageComparator)
+        val sortedImages = listOf(imageWithNewerAppVersion, imageWithEventNewerAppVersionButOnlyInOneRegion, image1, imageWithEventNewerAppVersionInRemainingRegions, imageWithNewerBaseImageName).sortedWith(NamedImageComparator)
         expectThat(sortedImages.first()) {
           get { imageName }.isEqualTo("my-package-0.0.1_rc.99-h100")
         }
       }
 
       test("images are sorted by appversion, then creation date") {
-        val sortedImages = listOf(image2, image3, image1, image5, image6).sortedWith(NamedImageComparator)
+        val sortedImages = listOf(imageWithNewerAppVersion, imageWithEventNewerAppVersionButOnlyInOneRegion, image1, imageWithEventNewerAppVersionInRemainingRegions, imageWithNewerBaseImageName).sortedWith(NamedImageComparator)
         val first = sortedImages[0]
         val second = sortedImages[1]
         expectThat(first.imageName)
@@ -239,7 +265,7 @@ class ImageServiceTests : JUnit5Minutests {
             imageName = "my-package",
             account = "test"
           )
-        } returns listOf(image2, image4, image3, image1, image5, image6)
+        } returns listOf(imageWithNewerAppVersion, imageWithPartialMatchName, imageWithEventNewerAppVersionButOnlyInOneRegion, image1, imageWithEventNewerAppVersionInRemainingRegions, imageWithNewerBaseImageName)
       }
 
       test("latest image returns actual image") {
@@ -264,7 +290,7 @@ class ImageServiceTests : JUnit5Minutests {
             imageName = "my-package",
             account = "test"
           )
-        } returns listOf(image2, image4, image3, image1, image5)
+        } returns listOf(imageWithDifferentBaseOs, imageWithNewerAppVersion, imageWithPartialMatchName, imageWithEventNewerAppVersionButOnlyInOneRegion, image1, imageWithEventNewerAppVersionInRemainingRegions)
       }
 
       test("get latest named image returns actual latest image") {
@@ -314,7 +340,7 @@ class ImageServiceTests : JUnit5Minutests {
             account = "test",
             region = null
           )
-        } returns listOf(image3, image5)
+        } returns listOf(imageWithEventNewerAppVersionButOnlyInOneRegion, imageWithEventNewerAppVersionInRemainingRegions)
       }
 
       test("result includes both regions") {
@@ -328,8 +354,8 @@ class ImageServiceTests : JUnit5Minutests {
         expectThat(image)
           .isNotNull()
           .get {regions}
-          .contains(image3.amis.keys)
-          .contains(image5.amis.keys)
+          .contains(imageWithEventNewerAppVersionButOnlyInOneRegion.amis.keys)
+          .contains(imageWithEventNewerAppVersionInRemainingRegions.amis.keys)
       }
     }
 
@@ -339,7 +365,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         every {
           cloudDriver.namedImages(any(), any(), any())
-        } returns listOf(image1, image6)
+        } returns listOf(image1, imageWithNewerBaseImageName, imageWithDifferentBaseOs)
       }
 
       test("searching for a specific appversion finds latest complete image") {
@@ -347,7 +373,8 @@ class ImageServiceTests : JUnit5Minutests {
           subject.getLatestNamedImages(
             appVersion = appVersion,
             account = "test",
-            regions = regions
+            regions = regions,
+            baseOs = "xenial"
           )
         }
         expectThat(images)
@@ -362,7 +389,7 @@ class ImageServiceTests : JUnit5Minutests {
 
       test("the newest image is selected when searching in a single region") {
         val image = runBlocking {
-          subject.getLatestNamedImage(appVersion, "test", regions.first())
+          subject.getLatestNamedImage(appVersion, "test", regions.first(), "xenial")
         }
 
         expectThat(image)
@@ -373,10 +400,10 @@ class ImageServiceTests : JUnit5Minutests {
 
       test("any other regions supported by the same image are subsequently served from cache") {
         val r1Image = runBlocking {
-          subject.getLatestNamedImage(appVersion, "test", regions.first())
+          subject.getLatestNamedImage(appVersion, "test", regions.first(), "xenial")
         }
         val r2Image = runBlocking {
-          subject.getLatestNamedImage(appVersion, "test", regions.last())
+          subject.getLatestNamedImage(appVersion, "test", regions.last(), "xenial")
         }
 
         expectThat(r1Image).isEqualTo(r2Image)
@@ -393,7 +420,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         every {
           cloudDriver.namedImages(any(), any(), any())
-        } returns listOf(image3, image5)
+        } returns listOf(imageWithEventNewerAppVersionButOnlyInOneRegion, imageWithEventNewerAppVersionInRemainingRegions)
       }
 
       test("searching for a specific appversion finds all images for required regions") {
@@ -401,7 +428,8 @@ class ImageServiceTests : JUnit5Minutests {
           subject.getLatestNamedImages(
             appVersion = appVersion,
             account = "test",
-            regions = regions
+            regions = regions,
+            baseOs = "trusty"
           )
         }
 
@@ -409,10 +437,10 @@ class ImageServiceTests : JUnit5Minutests {
           .hasSize(2)
           .containsKeys(*regions.toTypedArray())
           .and {
-            getValue("us-west-1").get { imageName }.isEqualTo(image3.imageName)
+            getValue("us-west-1").get { imageName }.isEqualTo(imageWithEventNewerAppVersionButOnlyInOneRegion.imageName)
           }
           .and {
-            getValue("ap-south-1").get { imageName }.isEqualTo(image5.imageName)
+            getValue("ap-south-1").get { imageName }.isEqualTo(imageWithEventNewerAppVersionInRemainingRegions.imageName)
           }
       }
     }
@@ -423,7 +451,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         every {
           cloudDriver.namedImages(any(), any(), any())
-        } returns listOf(image3)
+        } returns listOf(imageWithEventNewerAppVersionButOnlyInOneRegion)
       }
 
       test("images that were found are returned") {
@@ -431,7 +459,8 @@ class ImageServiceTests : JUnit5Minutests {
           subject.getLatestNamedImages(
             appVersion = appVersion,
             account = "test",
-            regions = regions
+            regions = regions,
+            baseOs = "trusty"
           )
         }
 
@@ -439,7 +468,37 @@ class ImageServiceTests : JUnit5Minutests {
           .hasSize(1)
           .get(Map<*, NamedImage>::values)
           .map { it.imageName }
-          .containsExactly(image3.imageName)
+          .containsExactly(imageWithEventNewerAppVersionButOnlyInOneRegion.imageName)
+      }
+    }
+
+    context("image with multiple base os versions") {
+      val appVersion = AppVersion.parseName("my-package-0.0.1~rc.97-h98.1c684a9")
+      val regions = setOf("us-west-1", "ap-south-1")
+
+      before {
+        every {
+          cloudDriver.namedImages(any(), any(), any())
+        } returns listOf(image1, imageWithNewerBaseImageName, imageWithDifferentBaseOs)
+      }
+
+      test("newest image with desired base os is returned") {
+        val images = runBlocking {
+          subject.getLatestNamedImages(
+            appVersion = appVersion,
+            account = "test",
+            regions = regions,
+            baseOs = "xenial"
+          )
+        }
+
+        expectThat(images)
+          .hasSize(2)
+          .get(Map<*, NamedImage>::values)
+          .map { it.baseImageName }
+          .all {
+            isEqualTo(imageWithNewerBaseImageName.baseImageName)
+          }
       }
     }
   }

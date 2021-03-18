@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.bakery.artifact
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -9,13 +10,14 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.StoreType.EBS
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.artifacts.BakedImage
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.clouddriver.model.Image
+import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
-import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.BakedImageRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
@@ -36,8 +38,10 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
+import strikt.assertions.withFirst
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
+import java.time.Instant.now
 import java.util.UUID.randomUUID
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
@@ -48,16 +52,18 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val repository = mockk<KeelRepository>(relaxUnitFun = true)
     val igorService = mockk<ArtifactService>()
     val baseImageCache = mockk<BaseImageCache>()
-    val imageService = mockk<ImageService>()
-    val diffFingerprintRepository = mockk<DiffFingerprintRepository>()
+    val bakedImageRepository = mockk<BakedImageRepository>()
+    val imageService = mockk<ImageService>() {
+      every { log } returns org.slf4j.LoggerFactory.getLogger(ImageService::class.java)
+    }
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val taskLauncher = mockk<TaskLauncher>()
     val handler = ImageHandler(
       repository,
       baseImageCache,
+      bakedImageRepository,
       igorService,
       imageService,
-      diffFingerprintRepository,
       publisher,
       taskLauncher,
       BakeCredentials("keel@spinnaker.io", "keel")
@@ -74,15 +80,25 @@ internal class ImageHandlerTests : JUnit5Minutests {
       )
     )
 
+    val appVersion = "${artifact.name}-0.161.0-h63.24d0843"
     val baseAmiName = "bionicbase-x86_64-202103092356-ebs"
 
-    val image = Image(
-      baseAmiName = baseAmiName,
-      appVersion = "${artifact.name}-0.161.0-h63.24d0843",
-      regions = artifact.vmOptions.regions
+    val image = NamedImage(
+      imageName = "$appVersion-$baseAmiName",
+      attributes = emptyMap(),
+      tagsByImageId = artifact.vmOptions.regions.associate {
+        "ami-${it.hashCode()}" to mapOf(
+          "appversion" to appVersion,
+          "base_ami_name" to baseAmiName,
+          "base_ami_id" to "ami-${randomUUID()}"
+        )
+      },
+      accounts = setOf("test"),
+      amis = artifact.vmOptions.regions.associateWith { listOf("ami-${it.hashCode()}") }
     )
 
-    val artifactVersion = artifact.toArtifactVersion(image.appVersion.removePrefix("${artifact.name}-"))
+    val artifactVersion =
+      artifact.toArtifactVersion(appVersion.removePrefix("${artifact.name}-"))
 
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
@@ -172,9 +188,11 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("the artifact is not registered") {
         before {
-          every { repository.artifactVersions(artifact, any()) } throws NoSuchArtifactException(artifact)
+          every { repository.artifactVersions(artifact, any()) } throws NoSuchArtifactException(
+            artifact
+          )
           every { repository.isRegistered(artifact.name, artifact.type) } returns false
-          every { igorService.getVersions(any(), any(), DEBIAN) } returns listOf(image.appVersion)
+          every { igorService.getVersions(any(), any(), DEBIAN) } returns listOf(appVersion)
 
           runHandler(artifact)
         }
@@ -236,13 +254,27 @@ internal class ImageHandlerTests : JUnit5Minutests {
               every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)
             }
 
-            context("an AMI for the desired version and base image already exists") {
+            context("we know we've baked this before") {
               before {
                 every {
-                  imageService.getLatestImage(artifact, "test")
-                } returns image
+                  bakedImageRepository.getByArtifactVersion(appVersion, artifact)
+                } returns BakedImage(
+                  name = appVersion + "_" + baseAmiName,
+                  baseLabel = artifact.vmOptions.baseLabel,
+                  baseOs = artifact.vmOptions.baseOs,
+                  vmType = artifact.vmOptions.storeType.name,
+                  cloudProvider = "aws",
+                  appVersion = appVersion,
+                  baseAmiName = baseAmiName,
+                  amiIdsByRegion = artifact.vmOptions.regions.associateWith { "ami=${randomUUID()}" },
+                  timestamp = now()
+                )
 
                 runHandler(artifact)
+              }
+
+              test("we don't bother checking CloudDriver") {
+                verify(exactly = 0) { imageService.getLatestNamedImage(any(), any(), any(), any()) }
               }
 
               test("no bake is launched") {
@@ -250,18 +282,23 @@ internal class ImageHandlerTests : JUnit5Minutests {
               }
             }
 
-            context("an AMI for the desired version does not exist") {
+            context("we don't think we have baked this before") {
               before {
                 every {
-                  imageService.getLatestImage(artifact, "test")
-                } returns image.copy(
-                  appVersion = "${artifact.name}-0.160.0-h62.24d0843"
-                )
+                  bakedImageRepository.getByArtifactVersion(appVersion, artifact)
+                } returns null
               }
 
-              context("but wait, we've baked this before") {
+              context("an AMI for the desired version and base image already exists") {
                 before {
-                  every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns true
+                  every {
+                    imageService.getLatestNamedImage(
+                      AppVersion.parseName(appVersion),
+                      "test",
+                      any(),
+                      artifact.vmOptions.baseOs
+                    )
+                  } returns image
 
                   runHandler(artifact)
                 }
@@ -269,17 +306,18 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 test("no bake is launched") {
                   expectThat(bakeTask).isNotCaptured()
                 }
-
-                test("an event is triggered") {
-                  verify {
-                    publisher.publishEvent(RecurrentBakeDetected(image.appVersion, image.baseAmiName))
-                  }
-                }
               }
 
-              context("we have never baked this before") {
+              context("an AMI for the desired version does not exist") {
                 before {
-                  every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false
+                  every {
+                    imageService.getLatestNamedImage(
+                      AppVersion.parseName(appVersion),
+                      "test",
+                      any(),
+                      artifact.vmOptions.baseOs
+                    )
+                  } returns null
 
                   runHandler(artifact)
                 }
@@ -292,10 +330,14 @@ internal class ImageHandlerTests : JUnit5Minutests {
                     .first()
                     .and {
                       get("type").isEqualTo("bake")
-                      get("package").isEqualTo("${image.appVersion.replaceFirst('-', '_')}_all.deb")
+                      get("package").isEqualTo("${appVersion.replaceFirst('-', '_')}_all.deb")
                       get("baseOs").isEqualTo(artifact.vmOptions.baseOs)
-                      get("baseLabel").isEqualTo(artifact.vmOptions.baseLabel.toString().toLowerCase())
-                      get("storeType").isEqualTo(artifact.vmOptions.storeType.toString().toLowerCase())
+                      get("baseLabel").isEqualTo(
+                        artifact.vmOptions.baseLabel.toString().toLowerCase()
+                      )
+                      get("storeType").isEqualTo(
+                        artifact.vmOptions.storeType.toString().toLowerCase()
+                      )
                       get("regions").isEqualTo(artifact.vmOptions.regions)
                     }
                 }
@@ -312,136 +354,88 @@ internal class ImageHandlerTests : JUnit5Minutests {
                     .isCaptured()
                     .captured
                     .hasSize(1)
-                    .first()
-                    .and {
-                      get("name").isEqualTo(artifact.name)
-                      get("version").isEqualTo(image.appVersion.removePrefix("${artifact.name}-"))
-                      get("reference").isEqualTo("/${image.appVersion.replaceFirst('-', '_')}_all.deb")
+                    .withFirst {
+                      get("name") isEqualTo artifact.name
+                      get("version") isEqualTo appVersion.removePrefix("${artifact.name}-")
+                      get("reference") isEqualTo "/${appVersion.replaceFirst('-', '_')}_all.deb"
+                    }
+                }
+              }
+
+              context("an AMI exists, but it does not have all the regions we need") {
+                before {
+                  every {
+                    imageService.getLatestNamedImage(
+                      AppVersion.parseName(appVersion),
+                      "test",
+                      artifact.vmOptions.regions.first(),
+                      artifact.vmOptions.baseOs
+                    )
+                  } returns image
+                  every {
+                    imageService.getLatestNamedImage(
+                      AppVersion.parseName(appVersion),
+                      "test",
+                      not(artifact.vmOptions.regions.first()),
+                      artifact.vmOptions.baseOs
+                    )
+                  } returns null
+
+                  runHandler(artifact)
+                }
+
+                test("a bake is launched for the missing regions") {
+                  expectThat(bakeTask)
+                    .isCaptured()
+                    .captured
+                    .hasSize(1)
+                    .withFirst {
+                      get("regions") isEqualTo setOf("us-east-1")
                     }
                 }
 
-                test("the bake task has a description of the diff") {
-                  expectThat(bakeTaskParameters)
-                    .isCaptured()
-                    .captured["delta"]
-                    .isEqualTo("/appVersion : changed from [ keel-0.160.0-h62.24d0843 ] to [ ${image.appVersion} ]\n")
-                }
-
-                test("the diff fingerprint of the image is recorded") {
+                test("an event is triggered because we want to track region mismatches") {
                   verify {
-                    diffFingerprintRepository.store("ami:${artifact.name}", any())
+                    publisher.publishEvent(ofType<ImageRegionMismatchDetected>())
                   }
                 }
               }
-            }
 
-            context("an AMI exists, but it has an older base AMI") {
-              before {
-                every {
-                  imageService.getLatestImage(artifact, "test")
-                } returns image.copy(
-                  baseAmiName = "bionicbase-x86_64-202101262358-ebs"
-                )
+              context("an AMI exists, but it has an older base image") {
+                before {
+                  val newerBaseAmiVersion = "nflx-base-5.380.0-h1234.8808866"
+                  every {
+                    baseImageCache.getBaseAmiName(
+                      artifact.vmOptions.baseOs,
+                      artifact.vmOptions.baseLabel,
+                    )
+                  } returns newerBaseAmiVersion
 
-                every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false
+                  every { repository.artifactVersions(artifact, any()) } returns listOf(
+                    artifactVersion
+                  )
 
-                runHandler(artifact)
-              }
+                  every {
+                    imageService.getLatestNamedImage(any(), any(), any(), any())
+                  } returns image
 
-              test("a bake is launched") {
-                expectThat(bakeTask)
-                  .isCaptured()
-                  .captured
-                  .hasSize(1)
-                  .first()
-                  .and {
-                    get("type").isEqualTo("bake")
-                    get("baseOs").isEqualTo(artifact.vmOptions.baseOs)
-                    get("baseLabel").isEqualTo(artifact.vmOptions.baseLabel.toString().toLowerCase())
-                  }
-              }
-            }
+                  runHandler(artifact)
+                }
 
-            context("an AMI exists, but it does not have all the regions we need") {
-              before {
-                every {
-                  imageService.getLatestImage(artifact, "test")
-                } returns image.copy(
-                  regions = artifact.vmOptions.regions.take(1).toSet()
-                )
-
-                every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false
-
-                runHandler(artifact)
-              }
-
-              test("no bake is launched") {
-                expectThat(bakeTask).isNotCaptured()
-              }
-
-              test("an event is triggered because we want to track region mismatches") {
-                verify {
-                  publisher.publishEvent(ofType<ImageRegionMismatchDetected>())
+                test("a bake is launched") {
+                  expectThat(bakeTask)
+                    .isCaptured()
+                    .captured
+                    .hasSize(1)
+                    .withFirst {
+                      get("type") isEqualTo "bake"
+                      get("baseOs") isEqualTo artifact.vmOptions.baseOs
+                      get("baseLabel") isEqualTo artifact.vmOptions.baseLabel.toString()
+                        .toLowerCase()
+                    }
                 }
               }
             }
-
-            context("an AMI exists, and it has more than just the regions we need") {
-              before {
-                every {
-                  imageService.getLatestImage(artifact, "test")
-                } returns image.copy(
-                  regions = artifact.vmOptions.regions + "ap-south-1"
-                )
-
-                runHandler(artifact)
-              }
-
-              test("no bake is launched") {
-                expectThat(bakeTask).isNotCaptured()
-              }
-
-              test("no region mismatch event is triggered") {
-                verify(exactly = 0) {
-                  publisher.publishEvent(ofType<ImageRegionMismatchDetected>())
-                }
-              }
-            }
-          }
-        }
-
-        context("a newer base image exists") {
-          before {
-            val newerBaseAmiVersion = "nflx-base-5.380.0-h1234.8808866"
-            every {
-              baseImageCache.getBaseAmiName(
-                artifact.vmOptions.baseOs,
-                artifact.vmOptions.baseLabel,
-              )
-            } returns newerBaseAmiVersion
-
-            every { repository.artifactVersions(artifact, any()) } returns listOf(artifactVersion)
-
-            every {
-              imageService.getLatestImage(artifact, "test")
-            } returns image
-
-            every { diffFingerprintRepository.seen("ami:${artifact.name}", any()) } returns false
-
-            runHandler(artifact)
-          }
-
-          test("a bake is launched") {
-            expectThat(bakeTask)
-              .isCaptured()
-              .captured
-              .hasSize(1)
-              .first()
-              .and {
-                get("type").isEqualTo("bake")
-                get("baseOs").isEqualTo(artifact.vmOptions.baseOs)
-                get("baseLabel").isEqualTo(artifact.vmOptions.baseLabel.toString().toLowerCase())
-              }
           }
         }
       }

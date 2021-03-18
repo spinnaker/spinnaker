@@ -5,7 +5,9 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -84,7 +86,18 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
       deliveryConfig = DeliveryConfig(
         name = "fnord-manifest",
         application = "fnord",
-        serviceAccount = "keel@spinnaker"
+        serviceAccount = "keel@spinnaker",
+        artifacts = setOf(
+          DebianArtifact(
+            name = "fnord",
+            deliveryConfigName = "fnord-manifest",
+            reference = "fnord-deb",
+            vmOptions = VirtualMachineOptions(
+              baseOs = "bionic",
+              regions = setOf("us-west-1", "us-west-2")
+            )
+          )
+        )
       ),
       targetEnvironment = Environment("prod"),
       regions = setOf("us-west-1", "us-west-2")
@@ -106,7 +119,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     context("need to launch canaries in two regions") {
       before {
         every {
-          imageService.getLatestNamedImage(any(), any(), any())
+          imageService.getLatestNamedImage(any(), any(), any(), any())
         } returns NamedImage(
             imageName = "fnord-42.0.0-h42",
             attributes = emptyMap(),
@@ -162,12 +175,12 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
         } answers { Task(ULID().nextULID(), "whatever") }
 
         val tasks = runBlocking {
-          subject.deployCanary(constraint, version, deliveryConfig, targetEnvironment, regions)
+          subject.deployCanary(constraint, deliveryConfig.artifacts.first(), version, deliveryConfig, targetEnvironment, regions)
         }
 
         verify(exactly = 1) {
-          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-1")
-          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-2")
+          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-1", "bionic")
+          imageService.getLatestNamedImage(AppVersion.parseName(version), "test", "us-west-2", "bionic")
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-1", any())
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-2", any())
         }

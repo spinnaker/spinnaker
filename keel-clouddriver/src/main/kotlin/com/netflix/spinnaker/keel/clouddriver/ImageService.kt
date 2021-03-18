@@ -86,11 +86,12 @@ class ImageService(
   private data class NamedImageCacheKey(
     val appVersion: AppVersion,
     val account: String,
-    val region: String
+    val region: String,
+    val baseOs: String
   )
 
   private val namedImageCache = cacheFactory
-    .asyncLoadingCache<NamedImageCacheKey, NamedImage>("namedImages") { (appVersion, account, region) ->
+    .asyncLoadingCache<NamedImageCacheKey, NamedImage>("namedImages") { (appVersion, account, region, baseOs) ->
       log.debug("Searching for baked image for {} in {}", appVersion.toImageName(), region)
       cloudDriverService.namedImages(
         user = DEFAULT_SERVICE_ACCOUNT,
@@ -101,6 +102,12 @@ class ImageService(
         .asSequence()
         .filter { image ->
           tagsExistForAllAmis(image.tagsByImageId) && image.hasAppVersion
+        }
+        // filter to images with the correct base os
+        .filter { image ->
+          // using the xxxxbase pattern means we won't get matches for base OS values that are
+          // substrings of others -- e.g. bionic and bionic-classic
+          image.baseImageName.startsWith("${baseOs}base")
         }
         // filter to images with matching app version
         .filter { image ->
@@ -123,13 +130,16 @@ class ImageService(
    *
    * As a side effect this method will prime the cache for any additional regions where the image is
    * available.
+   *
+   * @param baseOs if supplied only images with that base OS are considered.
    */
   suspend fun getLatestNamedImage(
     appVersion: AppVersion,
     account: String,
-    region: String
+    region: String,
+    baseOs: String
   ): NamedImage? {
-    val key = NamedImageCacheKey(appVersion, account, region)
+    val key = NamedImageCacheKey(appVersion, account, region, baseOs)
     return namedImageCache.get(key).await()
       // prime the cache if the image is also in other regions
       ?.also { image ->
@@ -183,18 +193,22 @@ class ImageService(
  *
  * The resulting map will contain no entry for regions where an image is not found. The calling
  * code must check this if it requires all regions to be present.
+ *
+ * @param baseOs if supplied only images with that base OS are considered.
  */
 suspend fun ImageService.getLatestNamedImages(
   appVersion: AppVersion,
   account: String,
-  regions: Collection<String>
+  regions: Collection<String>,
+  baseOs: String
 ): Map<String, NamedImage> = coroutineScope {
   regions.associateWith { region ->
     async {
       getLatestNamedImage(
         appVersion = appVersion,
         account = account,
-        region = region
+        region = region,
+        baseOs = baseOs
       )
     }
   }

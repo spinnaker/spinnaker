@@ -16,12 +16,12 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
-import java.time.Clock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 /**
  * An environment promotion constraint that deploys control (baseline) and experiment (canary)
@@ -173,6 +173,7 @@ class CanaryConstraintEvaluator(
     val tasks = runBlocking {
       deployHandler.deployCanary(
         constraint = constraint,
+        artifact = artifact,
         version = version,
         deliveryConfig = deliveryConfig,
         targetEnvironment = targetEnvironment,

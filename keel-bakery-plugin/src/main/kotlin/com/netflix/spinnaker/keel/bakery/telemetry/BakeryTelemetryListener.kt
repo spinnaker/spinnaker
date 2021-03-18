@@ -18,10 +18,10 @@ class BakeryTelemetryListener(private val spectator: Registry) {
     spectator.counter(
       IMAGE_REGION_MISMATCH_DETECTED_ID,
       listOf(
-        BasicTag("appVersion", event.image.appVersion),
-        BasicTag("baseAmiVersion", event.image.baseAmiName),
-        BasicTag("found", event.image.regions.joinToString()),
-        BasicTag("desired", event.regions.joinToString())
+        BasicTag("appVersion", event.appVersion),
+        BasicTag("baseAmiName", event.baseAmiName),
+        BasicTag("found", event.foundRegions.joinToString()),
+        BasicTag("desired", event.desiredRegions.joinToString())
       )
     )
       .runCatching { increment() }

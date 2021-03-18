@@ -85,7 +85,8 @@ class ImageResolver(
     val images = imageService.getLatestNamedImages(
       appVersion = artifactVersion.parseAppVersion(),
       account = account,
-      regions = regions
+      regions = regions,
+      baseOs = artifact.vmOptions.baseOs
     )
 
     val imageIdByRegion: Map<String, String> = images

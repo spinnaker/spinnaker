@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 
 /**
@@ -27,6 +28,7 @@ interface CanaryConstraintDeployHandler {
    */
   suspend fun deployCanary(
     constraint: CanaryConstraint,
+    artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,

@@ -54,7 +54,8 @@ class ImageExistsConstraintEvaluator(
       imageService.getLatestNamedImages(
         appVersion = version.parseAppVersion(),
         account = defaultImageAccount,
-        regions = vmOptions.regions
+        regions = vmOptions.regions,
+        baseOs = vmOptions.baseOs
       )
     }
 
@@ -83,4 +84,3 @@ class ImageExistsConstraintEvaluator(
 }
 
 data class MissingRegionsDetected(val version: String)
-

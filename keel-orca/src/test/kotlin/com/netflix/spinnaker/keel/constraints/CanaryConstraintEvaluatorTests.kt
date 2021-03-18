@@ -31,13 +31,8 @@ import dev.minutest.rootContext
 import io.mockk.CapturingSlot
 import io.mockk.MockKAnswerScope
 import io.mockk.Runs
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.just
 import io.mockk.mockk
-import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicInteger
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -50,6 +45,11 @@ import strikt.assertions.isTrue
 import strikt.assertions.last
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
+import java.time.Clock
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
@@ -498,6 +498,7 @@ class DummyCanaryConstraintDeployHandler : CanaryConstraintDeployHandler {
 
   override suspend fun deployCanary(
     constraint: CanaryConstraint,
+    artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,
@@ -514,6 +515,7 @@ class FailCanaryConstraintDeployHandler : CanaryConstraintDeployHandler {
 
   override suspend fun deployCanary(
     constraint: CanaryConstraint,
+    artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment,
