@@ -57,6 +57,11 @@ interface VerificationRepository {
   )
 
   fun nextEnvironmentsForVerification(minTimeSinceLastCheck: Duration, limit: Int) : Collection<VerificationContext>
+
+  /**
+   * Return the number of verifications in the [environment] of [deliveryConfig] with [status]
+   */
+  fun countVerifications(deliveryConfig: DeliveryConfig, environment: Environment, status: ConstraintStatus): Int
 }
 
 data class VerificationState(

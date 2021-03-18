@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
+import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -94,7 +95,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val clock = Clock.systemUTC()
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
+    val verificationRepository = mockk<VerificationRepository>() {
+      every { countVerifications(any(), any(), any()) } returns 0
+    }
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), clock)
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,

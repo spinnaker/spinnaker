@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
@@ -21,6 +23,7 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.*
+import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.function
 import org.jooq.impl.DSL.inline
@@ -28,7 +31,7 @@ import org.jooq.impl.DSL.isnull
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.value
-import org.springframework.core.env.Environment
+import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
@@ -41,7 +44,7 @@ class SqlVerificationRepository(
   sqlRetry: SqlRetry,
   artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   specMigrators: List<SpecMigrator<*, *>> = emptyList(),
-  private val environment: Environment
+  private val environment: SpringEnvironment
 ) : SqlStorageContext(
   jooq,
   clock,
@@ -167,6 +170,18 @@ class SqlVerificationRepository(
           }
       }
     }
+
+  override fun countVerifications(deliveryConfig: DeliveryConfig, environment: Environment, status: ConstraintStatus): Int =
+    jooq.selectCount()
+      .from(VERIFICATION_STATE)
+      .join(ENVIRONMENT)
+      .on(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+      .join(DELIVERY_CONFIG)
+      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+      .and(ENVIRONMENT.NAME.eq(environment.name))
+      .and(VERIFICATION_STATE.STATUS.eq(status))
+      .fetchOneInto(Int::class.java)
 
   /**
    * Query the repository for the states of multiple contexts.

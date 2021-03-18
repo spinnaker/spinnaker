@@ -165,7 +165,7 @@ class ResourceActuator(
               log.info("Resource {} delta: {}", id, diff.toDebug())
               publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
-              environmentExclusionEnforcer.withActuationLease(environment) {
+              environmentExclusionEnforcer.withActuationLease(deliveryConfig, environment) {
                 plugin.update(resource, diff)
                   .also { tasks ->
                     if (tasks.isNotEmpty()) {

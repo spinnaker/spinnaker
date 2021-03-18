@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Clock
 import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Instant.now
 
@@ -59,7 +60,12 @@ internal class VerificationRunnerTests {
     every { getImages(any(), any()) } returns images
   }
 
-  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, NoopRegistry())
+  private val verificationRepository = mockk<VerificationRepository>() {
+    every { countVerifications(any(), any(), any()) }  returns 0
+  }
+
+
+  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), Clock.systemUTC())
 
   private val subject = VerificationRunner(
     repository,

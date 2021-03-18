@@ -2,16 +2,28 @@ package com.netflix.spinnaker.keel.enforcers
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import org.springframework.core.env.Environment as SpringEnvironment
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
+import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 
 /**
  * Exception thrown when it's not safe to take action against the environment because
  * something is already acting on it.
  */
-class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
+open class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
+
+class ActiveVerifications(num: Int, deliveryConfig: DeliveryConfig, environment: Environment) :
+  EnvironmentCurrentlyBeingActedOn("$num verifications active in ${deliveryConfig.name} ${environment.name}")
 
 /**
  * This class enforces two safety properties of the verification behavior:
@@ -37,20 +49,21 @@ class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
 @Component
 class EnvironmentExclusionEnforcer(
   private val springEnv: SpringEnvironment,
-  spectator: Registry
-) {
+  private val repository: VerificationRepository,
+  spectator: Registry,
+  private val clock: Clock
+  ) {
 
   private val enforcementEnabled: Boolean
     get() = springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, true)
 
 
   /**
-   * Percentile timer for measuring how long the checks take.
+   * Percentile timer builder for measuring how long the checks take.
    *
    * We use the default percentile time range: 10ms to 1 minute
    */
   private val timerBuilder = PercentileTimer.builder(spectator).withName("keel.enforcement.environment.check.duration")
-
 
   /**
    * To get a verification lease against an environment, need:
@@ -60,14 +73,17 @@ class EnvironmentExclusionEnforcer(
    * 3. No active verifications
    */
   fun <T> withVerificationLease(context: VerificationContext, action: () -> T) : T {
-      recordDuration("verification") {
-        if (enforcementEnabled) {
-          val environment = context.environment
+    val startTime = clock.instant()
 
-          ensureNoActiveDeployments(environment)
-          ensureNoActiveVerifications(environment)
-        }
-      }
+    if (enforcementEnabled) {
+      val environment = context.environment
+      val deliveryConfig = context.deliveryConfig
+
+      ensureNoActiveDeployments(deliveryConfig, environment)
+      ensureNoActiveVerifications(deliveryConfig, environment)
+    }
+
+    recordDuration("verification", startTime)
     return action.invoke()
   }
 
@@ -79,43 +95,51 @@ class EnvironmentExclusionEnforcer(
    *
    * It's ok if other actuations (e.g., deployments) are going on.
    */
-  suspend fun <T> withActuationLease(environment: Environment, action: suspend () -> T) : T {
-    recordDuration("actuation") {
-      if (enforcementEnabled) {
-        ensureNoActiveVerifications(environment)
+  suspend fun <T> withActuationLease(deliveryConfig: DeliveryConfig, environment: Environment, action: suspend () -> T) : T {
+    val startTime = clock.instant()
+
+    if (enforcementEnabled) {
+      // use IO context since the checks call the database, which wil block the coroutine's thread
+      withContext(IO) {
+        ensureNoActiveVerifications(deliveryConfig, environment)
       }
     }
+
+    recordDuration("actuation", startTime)
     return action.invoke()
   }
-
 
   /**
    * @throws EnvironmentCurrentlyBeingActedOn if there's an active deployment
    */
-  private fun ensureNoActiveDeployments(environment: Environment) {
+  private fun ensureNoActiveDeployments(deliveryConfig: DeliveryConfig, environment: Environment) {
     /**
      * To be implemented in a future PR.
      */
   }
 
   /**
-   * @throws EnvironmentCurrentlyBeingActedOn if there's an active verification
+   *
+   * Checks if any verifications in the [environment] of [deliveryConfig] are in the [PENDING] state
+   *
+   * @throws ActiveVerifications if there's an active verification
    */
-  private fun ensureNoActiveVerifications(environment: Environment) {
-    /**
-     * To be implemented in a future PR
-     */
+  private fun ensureNoActiveVerifications(deliveryConfig: DeliveryConfig, environment: Environment)  {
+    val numActive = repository.countVerifications(deliveryConfig, environment, PENDING)
+    if(numActive > 0) {
+      throw ActiveVerifications(numActive, deliveryConfig, environment)
+    }
   }
 
   /**
-   * Emit a metric with the duration time for the given block of code
+   * Emit a metric with the duration of the check time from [startTime] to now.
+   *
+   * Tag with key: "action", value: [actionType]
    */
-  private fun recordDuration(actionType: String, block: () -> Unit) {
+  private fun recordDuration(actionType: String, startTime: Instant) {
     timerBuilder
       .withTag("action", actionType)
       .build()
-      .record {
-        block.invoke()
-      }
+      .record(Duration.between(startTime, clock.instant()))
   }
 }

@@ -55,6 +55,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   }
 
   private val verification = DummyVerification("1")
+  private val environment = Environment(name="test", verifyWith=listOf(verification))
   private val deliveryConfig = DeliveryConfig(
     application = "fnord",
     name = "fnord-manifest",
@@ -79,12 +80,7 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
         branch = "main"
       )
     ),
-    environments = setOf(
-      Environment(
-        name = "test",
-        verifyWith = listOf(verification)
-      )
-    )
+    environments = setOf( environment )
   )
   private val context = VerificationContext(
     deliveryConfig = deliveryConfig,
@@ -503,4 +499,64 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
 
     expectThat(stateMaps).isEmpty()
   }
+
+  @Test
+  fun `countVerifications with no pending verifications`() {
+    context.setup()
+
+    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
+    expectThat(count).isEqualTo(0)
+  }
+
+  @Test
+  fun `countVerifications with one pending verification`() {
+    context.setup()
+    subject.updateState(context, verification, PENDING)
+
+    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
+    expectThat(count).isEqualTo(1)
+  }
+
+  @Test
+  fun `countVerifications with two pending verifications`() {
+    context.setup()
+
+    subject.updateState(context, verification, PENDING)
+    val otherVerification = DummyVerification("other")
+    subject.updateState(context, otherVerification, PENDING)
+
+    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
+    expectThat(count).isEqualTo(2)
+  }
+
+
+  @Test
+  fun `different delivery config does not interfere with the verification count of each other`() {
+    context.setup()
+
+    val otherEnvironment = Environment(name="test", verifyWith=listOf(verification))
+
+    val otherConfig = DeliveryConfig(
+      application = "acme",
+      name = "acme",
+      serviceAccount = "acme@example.com",
+      artifacts = setOf(DockerArtifact(name="acme", deliveryConfigName="acme", reference="acme", branch="main")),
+      environments = setOf(otherEnvironment)
+    )
+
+    val otherContext = VerificationContext(
+      deliveryConfig = otherConfig,
+      environmentName = "test",
+      artifactReference = "acme",
+      version = "acme-123"
+    )
+
+    otherContext.setup()
+    subject.updateState(otherContext, verification, PENDING)
+
+    expectThat(subject.countVerifications(deliveryConfig, environment, PENDING)).isEqualTo(0)
+    expectThat(subject.countVerifications(otherConfig, otherEnvironment, PENDING)).isEqualTo(1)
+  }
+
+
 }
