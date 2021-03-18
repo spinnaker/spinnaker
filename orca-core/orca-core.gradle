@@ -16,12 +16,8 @@
 
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
 
-test {
-  useJUnitPlatform {
-    includeEngines "junit-vintage", "junit-jupiter"
-  }
-}
 
 dependencies {
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")

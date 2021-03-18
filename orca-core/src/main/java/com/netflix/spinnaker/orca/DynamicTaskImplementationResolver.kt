@@ -31,7 +31,7 @@ class DynamicTaskImplementationResolver(
 
     if (isOverrideEnabled(getConfigAttributeName(stage, taskOverrideDefinition))) {
       val clazz: Class<*> = Class.forName(taskOverrideDefinition.newTaskImplementingClassName)
-      if (clazz.interfaces.contains(Task::class.java)) {
+      if (Task::class.java.isAssignableFrom(clazz)) {
         val newTask: DefinedTask = TaskDefinition(
           taskNode.name, // task name remains the same.
           clazz as Class<Task>
