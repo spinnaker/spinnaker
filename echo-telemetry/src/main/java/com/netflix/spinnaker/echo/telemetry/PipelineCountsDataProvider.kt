@@ -20,6 +20,7 @@ package com.netflix.spinnaker.echo.telemetry
 import com.google.common.base.Suppliers
 import com.netflix.spinnaker.echo.api.events.Event as EchoEvent
 import com.netflix.spinnaker.echo.services.Front50Service
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
 import java.util.concurrent.TimeUnit
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -45,7 +46,7 @@ class PipelineCountsDataProvider(private val front50: Front50Service) : Telemetr
   }
 
   private fun retrievePipelines(): Map<String, Int> {
-    return front50.pipelines
+    return AuthenticatedRequest.allowAnonymous { front50.pipelines }
       .filter { it.containsKey("application") }
       .groupBy { it["application"] as String }
       .mapValues { it.value.size }
