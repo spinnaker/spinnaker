@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearAllMocks
+import io.mockk.clearMocks
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.Duration
@@ -21,7 +23,7 @@ import strikt.api.expectThat
 import strikt.assertions.isFalse
 
 internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
-  object Fixture {
+  class Fixture {
     val clock = MutableClock()
     val repository = mockk<ConstraintRepository>(relaxUnitFun = true)
     val publisher: EventPublisher = mockk()
@@ -63,7 +65,7 @@ internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
   }
 
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
+    fixture { Fixture() }
 
     context("evaluating state") {
       test("before timeout we don't pass") {
@@ -78,6 +80,12 @@ internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
         val result = subject.canPromote(artifact, version, config, env, constraint, state)
         expectThat(result).isFalse()
         verify(exactly = 1) { repository.storeConstraintState(any()) }
+      }
+
+      test("with no timeout we don't pass") {
+        val result = subject.canPromote(artifact, version, config, env, constraint.copy(timeout = null), state)
+        expectThat(result).isFalse()
+        verify(exactly = 0) { repository.storeConstraintState(any()) }
       }
     }
   }

@@ -40,6 +40,10 @@ data class ConstraintState(
 
   fun failed() = status.failed()
 
-  fun timedOut(timeout: Duration, now: Instant) =
-    createdAt.plus(timeout).isBefore(now)
+  fun timedOut(timeout: Duration?, now: Instant) =
+    if (timeout == null) {
+      false
+    } else {
+      createdAt.plus(timeout).isBefore(now)
+    }
 }
