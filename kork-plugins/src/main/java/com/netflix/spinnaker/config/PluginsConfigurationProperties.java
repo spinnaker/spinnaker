@@ -77,22 +77,6 @@ public class PluginsConfigurationProperties {
     this.enableDefaultRepositories = enableDefaultRepositories;
   }
 
-  /**
-   * Whether or not plugin extensions are proxied via {@link
-   * com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy}.
-   *
-   * <p>Enabled by default, this can be useful to disable when debugging an issue.
-   */
-  private boolean proxyExtensions = true;
-
-  public boolean shouldProxyExtensions() {
-    return proxyExtensions;
-  }
-
-  public void setProxyExtensions(boolean proxyExtensions) {
-    this.proxyExtensions = proxyExtensions;
-  }
-
   /** Definition of a single {@link org.pf4j.update.UpdateRepository}. */
   public static class PluginRepositoryProperties {
     /** Flag to determine if repository is enabled. */

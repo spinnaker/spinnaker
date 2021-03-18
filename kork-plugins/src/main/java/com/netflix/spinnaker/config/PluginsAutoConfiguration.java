@@ -366,7 +366,6 @@ public class PluginsAutoConfiguration {
       havingValue = FRAMEWORK_V2,
       matchIfMissing = true)
   public SpinnakerPluginService spinnakerPluginService(
-      PluginsConfigurationProperties properties,
       SpinnakerPluginManager pluginManager,
       SpinnakerUpdateManager updateManager,
       PluginInfoReleaseProvider pluginInfoReleaseProvider,
@@ -379,8 +378,7 @@ public class PluginsAutoConfiguration {
         pluginInfoReleaseProvider,
         springPluginStatusProvider,
         invocationAspects,
-        applicationEventPublisher,
-        properties.shouldProxyExtensions());
+        applicationEventPublisher);
   }
 
   @Bean
