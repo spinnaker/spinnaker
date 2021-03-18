@@ -49,7 +49,7 @@ const MetricResultActions = ({ metricSetPair, metricConfig }: IMetricResultStats
       <CopyToClipboard displayText={false} text={atlasQuery} toolTip={null} />
       <button className="primary copy-button" key="copy-link">
         <i className="glyphicon glyphicon-copy  copy-icon" />
-        Copy this Metric URL
+        Copy metric query
       </button>
     </div>
   );
@@ -58,7 +58,7 @@ const MetricResultActions = ({ metricSetPair, metricConfig }: IMetricResultStats
     <a href={atlasURL} target="_blank">
       <button className="primary">
         <i className="fas fa-chart-line" />
-        Explore More Data in Atlas
+        Explore more data in Atlas
       </button>
     </a>
   );
