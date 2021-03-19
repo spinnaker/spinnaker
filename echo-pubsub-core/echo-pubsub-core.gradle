@@ -24,8 +24,8 @@ dependencies {
   implementation "redis.clients:jedis"
   implementation "io.reactivex:rxjava"
   implementation "com.hubspot.jinjava:jinjava"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-jedis"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }

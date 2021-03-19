@@ -26,8 +26,8 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp-apache"
 
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-sql"
 
   if (!rootProject.hasProperty("excludeSqlDrivers")) {
     runtimeOnly "mysql:mysql-connector-java"

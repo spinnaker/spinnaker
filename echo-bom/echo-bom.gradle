@@ -22,7 +22,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("com.netflix.spinnaker.kork:kork-bom:${korkVersion}"))
+  api(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
 
   constraints {
     api("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")

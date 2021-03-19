@@ -8,10 +8,10 @@
 apply from: "${project.rootDir}/gradle/kotlin.gradle"
 
 dependencies {
-  implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-  annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+  implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
+  annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
 
-  api "com.netflix.spinnaker.kork:kork-plugins-api"
+  api "io.spinnaker.kork:kork-plugins-api"
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

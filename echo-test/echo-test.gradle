@@ -18,7 +18,7 @@ dependencies {
   implementation project(':echo-core')
   implementation project(':echo-model')
   implementation project(':echo-pipelinetriggers')
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.okhttp:okhttp"

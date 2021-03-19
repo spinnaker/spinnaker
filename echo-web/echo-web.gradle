@@ -40,10 +40,10 @@ dependencies {
     implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "com.netflix.spinnaker.kork:kork-artifacts"
-    implementation "com.netflix.spinnaker.kork:kork-core"
-    implementation "com.netflix.spinnaker.kork:kork-config"
-    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "io.spinnaker.kork:kork-artifacts"
+    implementation "io.spinnaker.kork:kork-core"
+    implementation "io.spinnaker.kork:kork-config"
+    implementation "io.spinnaker.kork:kork-web"
     implementation "com.squareup.retrofit:retrofit"
     implementation "com.squareup.retrofit:converter-jackson"
     implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
@@ -56,7 +56,7 @@ dependencies {
       exclude group: 'com.zaxxer', module: 'HikariCP-java7'
     }
 
-    runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+    runtimeOnly "io.spinnaker.kork:kork-runtime"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.spockframework:spock-spring"

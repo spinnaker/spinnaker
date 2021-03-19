@@ -24,7 +24,7 @@ dependencies {
 
   implementation "commons-codec:commons-codec"
 
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-web"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"

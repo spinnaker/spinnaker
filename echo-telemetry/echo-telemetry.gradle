@@ -20,18 +20,18 @@ dependencies {
   api project(':echo-api')
   implementation project(':echo-model')
   implementation project(':echo-core')
-  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.kork:kork-jedis"
   implementation 'com.google.protobuf:protobuf-java-util'
-  implementation "com.netflix.spinnaker.kork:kork-proto"
-  implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation 'com.netflix.spinnaker.kork:kork-web'
+  implementation "io.spinnaker.kork:kork-proto"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation 'io.spinnaker.kork:kork-web'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
   implementation "org.apache.commons:commons-lang3"
   testImplementation 'io.mockk:mockk'
   testImplementation 'io.strikt:strikt-core'
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }
 
 test {

@@ -18,7 +18,7 @@ dependencies {
   implementation project(':echo-core')
   implementation project(':echo-model')
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-artifacts"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.assertj:assertj-core"
