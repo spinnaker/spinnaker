@@ -20,9 +20,12 @@ plugins {
   id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
 }
 
-subprojects {
-  group = "com.netflix.spinnaker.fiat"
+allprojects {
   apply plugin: 'io.spinnaker.project'
+}
+
+subprojects {
+  group = "io.spinnaker.fiat"
 
   if ([korkVersion].find { it.endsWith("-SNAPSHOT") }) {
     repositories {
