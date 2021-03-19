@@ -32,7 +32,7 @@ export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> 
 
   const managedDeliveryPlugin: IManagedDeliveryPlugin = {
     ...plugin.managedDelivery,
-    resources: plugin.resourceKinds || plugin.managedDelivery.resources,
+    resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
   };
   registerPlugin(managedDeliveryPlugin);
   // Run arbitrary plugin initialization code
