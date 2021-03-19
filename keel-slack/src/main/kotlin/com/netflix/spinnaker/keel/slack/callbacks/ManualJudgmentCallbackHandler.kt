@@ -6,6 +6,9 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.slack.SlackService
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload
+import com.slack.api.app_backend.interactive_components.response.ActionResponse
+import com.slack.api.bolt.context.builtin.ActionContext
+import com.slack.api.bolt.request.builtin.BlockActionRequest
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.block.SectionBlock
 import com.slack.api.model.block.composition.MarkdownTextObject
@@ -29,6 +32,18 @@ class ManualJudgmentCallbackHandler(
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  fun respondToButton(req: BlockActionRequest, ctx: ActionContext) {
+    if (req.payload.responseUrl != null) {
+      updateConstraintState(req.payload)
+      val response = ActionResponse.builder()
+        .blocks(updateManualJudgementNotification(req.payload))
+        .text(fallbackText(req.payload))
+        .replaceOriginal(true)
+        .build()
+      ctx.respond(response)
+    }
+  }
 
   /**
    * Updating the constraint status based on the user response (either approve/reject)

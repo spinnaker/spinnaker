@@ -1,12 +1,19 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.config.SlackConfiguration
+import com.netflix.spinnaker.keel.slack.callbacks.CommitModalCallbackHandler
 import com.netflix.spinnaker.keel.slack.callbacks.ManualJudgmentCallbackHandler
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload
 import com.slack.api.app_backend.interactive_components.response.ActionResponse
 import com.slack.api.bolt.App
+import com.slack.api.bolt.context.builtin.ActionContext
+import com.slack.api.bolt.request.builtin.BlockActionRequest
 import com.slack.api.bolt.servlet.SlackAppServlet
+import com.slack.api.model.view.View
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import javax.servlet.annotation.WebServlet
+
 
 @Component
 @WebServlet("/slack/notifications/callbacks")
@@ -16,26 +23,20 @@ import javax.servlet.annotation.WebServlet
  */
 class SlackAppController(
   slackApp: App,
-  private val mjHandler: ManualJudgmentCallbackHandler
+  private val mjHandler: ManualJudgmentCallbackHandler,
+  private val commitModalCallbackHandler: CommitModalCallbackHandler,
 ) : SlackAppServlet(slackApp) {
   init {
     // The pattern here should match the action id field in the actual button.
     // for example, for manual judgment notifications: constraintId:OVERRIDE_PASS:MANUAL_JUDGMENT
     val actionIdPattern = "^(\\w+):(\\w+):(\\w+)".toPattern()
-    slackApp.blockAction(actionIdPattern) { req, ctx ->
+    slackApp.blockAction(actionIdPattern) { req: BlockActionRequest, ctx: ActionContext ->
       if (req.payload.notificationType == "MANUAL_JUDGMENT") {
-        // If we want to add more handlers, we can parse here the action id type (i.e MANUAL_JUDGMENT) and use the right handler
-        if (req.payload.responseUrl != null) {
-          mjHandler.updateConstraintState(req.payload)
-          val response = ActionResponse.builder()
-            .blocks(mjHandler.updateManualJudgementNotification(req.payload))
-            .text(mjHandler.fallbackText(req.payload))
-            .replaceOriginal(true)
-            .build()
-          ctx.respond(response)
-        }
+        mjHandler.respondToButton(req, ctx)
+      } else if (req.payload.notificationType == "FULL_COMMIT_MODAL") {
+        commitModalCallbackHandler.openModal(req, ctx)
       }
-      //acknowledge the button anyway, so we won't exceptions from slack when clicking on it
+      // we always need to acknowledge the button within 3 seconds
       ctx.ack()
     }
   }

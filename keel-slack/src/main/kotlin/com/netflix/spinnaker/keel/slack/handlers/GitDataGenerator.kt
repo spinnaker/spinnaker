@@ -7,6 +7,11 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.getScmBaseLink
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
+import com.slack.api.model.kotlin_extension.view.blocks
+import com.slack.api.model.view.View
+import com.slack.api.model.view.Views.view
+import com.slack.api.model.view.Views.viewClose
+import com.slack.api.model.view.Views.viewTitle
 import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -37,6 +42,25 @@ class GitDataGenerator(
     "${config.baseApiUrl}/managed/application/$application/config"
 
   /**
+   * Builds a modal with the full commit message
+   */
+  fun buildFullCommitModal(message: String, hash: String): View {
+    return view { thisView -> thisView
+      .callbackId("view:$hash:modal")
+      .type("modal")
+      .notifyOnClose(false)
+      .title(viewTitle { it.type("plain_text").text("Full commit").emoji(true) })
+      .close(viewClose { it.type("plain_text").text("Close").emoji(true) })
+      .blocks {
+        section {
+          blockId("commit-message")
+          markdownText(message)
+        }
+      }
+    }
+  }
+
+  /**
    * Adds a "Show full commit" button if the commit message is > [GIT_COMMIT_MESSAGE_LENGTH].
    * Doesn't do anything if there is no commit message or the commit message is not too long.
    */
@@ -49,12 +73,9 @@ class GitDataGenerator(
           button {
             text("Show full commit")
             // action id will be consisted by 3 sections with ":" between them to keep it consistent
-            actionId("button:modal:commit")
-            confirm {
-              deny("Close")
-              title("Commit message for $hash")
-              markdownText(commitMessage.take(300))
-            }
+            actionId("button:$hash:FULL_COMMIT_MODAL")
+            // using the value to sneakily pass what we want to display in the modal, limit 2000 chars
+            value(commitMessage.take(2000))
           }
         }
       }
