@@ -10,8 +10,8 @@ dependencies {
   implementation(project(":keel-igor"))
   implementation(project(":keel-orca"))
   implementation(project(":keel-artifact"))
-  implementation("com.netflix.spinnaker.kork:kork-exceptions")
-  implementation("com.netflix.spinnaker.kork:kork-security")
+  implementation("io.spinnaker.kork:kork-exceptions")
+  implementation("io.spinnaker.kork:kork-security")
   implementation("com.netflix.frigga:frigga")
 
   testImplementation(project(":keel-test"))

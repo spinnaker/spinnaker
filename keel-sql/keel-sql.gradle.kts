@@ -31,17 +31,17 @@ tasks.getByName<Delete>("clean") {
 dependencies {
   implementation(project(":keel-core"))
   implementation(project(":keel-artifact"))
-  implementation("com.netflix.spinnaker.kork:kork-sql")
+  implementation("io.spinnaker.kork:kork-sql")
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
   implementation("org.jooq:jooq")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
-  implementation("com.netflix.spinnaker.kork:kork-sql")
+  implementation("io.spinnaker.kork:kork-sql")
 
   runtimeOnly("mysql:mysql-connector-java")
 
-  testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
+  testImplementation("io.spinnaker.kork:kork-sql-test")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-test"))
@@ -52,12 +52,12 @@ dependencies {
   }
   testImplementation("org.testcontainers:mysql:${property("testContainersVersion")}")
 
-  jooqGenerator(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
+  jooqGenerator(platform("io.spinnaker.kork:kork-bom:${property("korkVersion")}"))
   jooqGenerator("mysql:mysql-connector-java")
   jooqGenerator("org.jooq:jooq-meta-extensions")
   jooqGenerator("ch.qos.logback:logback-classic")
 
-  liquibaseRuntime(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
+  liquibaseRuntime(platform("io.spinnaker.kork:kork-bom:${property("korkVersion")}"))
   liquibaseRuntime("org.liquibase:liquibase-core")
   liquibaseRuntime("ch.qos.logback:logback-classic")
   liquibaseRuntime("org.yaml:snakeyaml")

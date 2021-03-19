@@ -8,7 +8,7 @@ dependencies {
   implementation(project(":keel-igor"))
   implementation(project(":keel-clouddriver"))
   implementation("org.springframework:spring-context")
-  implementation("com.netflix.spinnaker.kork:kork-artifacts")
+  implementation("io.spinnaker.kork:kork-artifacts")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-test"))
