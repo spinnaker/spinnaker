@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
-import { IArtifactAccountPair, IServerGroup } from '@spinnaker/core';
+import { IServerGroup, IArtifactAccountPair, IArtifact } from '@spinnaker/core';
+
 import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from 'appengine/domain/index';
 
 import { IAppengineServerGroupCommand } from './configure/serverGroupCommandBuilder.service';
@@ -31,6 +32,7 @@ export class AppengineDeployDescription {
   public gitCredentialType: GitCredentialType;
   public interestingHealthProviderNames: string[];
   public expectedArtifactId: string;
+  public expectedArtifact: IArtifact;
   public fromArtifact: boolean;
   public sourceType: string;
   public storageAccountName?: string;
@@ -61,6 +63,7 @@ export class AppengineDeployDescription {
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
     this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
     this.expectedArtifactId = command.expectedArtifactId;
+    this.expectedArtifact = command.expectedArtifact;
     this.fromArtifact = command.fromArtifact;
     this.sourceType = command.sourceType;
     this.storageAccountName = command.storageAccountName;
@@ -69,9 +72,9 @@ export class AppengineDeployDescription {
   }
 }
 
-class AppengineServerGroupTransformer {
+export class AppengineServerGroupTransformer {
   public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
+  private $q: ng.IQService;
 
   public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
     return this.$q.resolve(serverGroup);
