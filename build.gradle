@@ -2,9 +2,12 @@ plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
 }
 
-subprojects {
+allprojects {
   apply plugin: 'io.spinnaker.project'
-  group = "com.netflix.spinnaker.rosco"
+}
+
+subprojects {
+  group = "io.spinnaker.rosco"
 
   if (name != "rosco-bom") {
     apply plugin: 'java-library'
