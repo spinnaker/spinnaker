@@ -26,6 +26,7 @@ interface IConstraintOverrideAction {
 export const hasSkippedConstraint = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) =>
   environment.state === 'skipped' && constraintHasNotStarted.includes(constraint.status);
 export interface IConstraintHandler<K = string> {
+  /** The type of the constraint - versioning is supported by adding @{version}, e.g. myConstraint@1.2 */
   kind: K;
   /** The icon can be a string (from IconNames) or a partial map from statuses to IconNames */
   iconName: IconNames | { [status in ConstraintStatus | 'DEFAULT']?: IconNames };
