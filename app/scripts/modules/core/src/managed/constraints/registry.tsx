@@ -18,13 +18,6 @@ const NO_FAILURE_MESSAGE = 'no details available';
 const UNKNOWN_CONSTRAINT_ICON = 'mdConstraintGeneric';
 
 const constraintHasNotStarted: ConstraintStatus[] = ['PENDING', 'NOT_EVALUATED'];
-
-type OverrideConstraintStatus = Extract<ConstraintStatus, 'OVERRIDE_PASS' | 'OVERRIDE_FAIL'>;
-const overrideStatus: ConstraintStatus[] = ['OVERRIDE_FAIL', 'OVERRIDE_PASS'];
-
-const isOverrideStatus = (status: ConstraintStatus): status is OverrideConstraintStatus => {
-  return overrideStatus.includes(status);
-};
 interface IConstraintOverrideAction {
   title: string;
   pass: boolean;
@@ -39,7 +32,7 @@ export interface IConstraintHandler<K = string> {
   /** The render function of the constraint */
   renderFn: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
   /** Display actions to override the constraint - (fail or pass) */
-  overrideActions?: { [status in OverrideConstraintStatus]?: IConstraintOverrideAction[] };
+  overrideActions?: { [status in ConstraintStatus]?: IConstraintOverrideAction[] };
 }
 
 class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
@@ -72,11 +65,8 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
     if (environment.state === 'skipped') {
       return undefined;
     }
-    if (isOverrideStatus(constraint.status)) {
-      const actions = this.getHandler(constraint.type)?.overrideActions;
-      return actions?.[constraint.status];
-    }
-    return undefined;
+    const actions = this.getHandler(constraint.type)?.overrideActions;
+    return actions?.[constraint.status];
   }
 }
 
