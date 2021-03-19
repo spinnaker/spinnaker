@@ -20,9 +20,12 @@ plugins {
   id 'com.adarshr.test-logger' version '2.1.0'
 }
 
-subprojects {
-  group = "com.netflix.spinnaker.echo"
+allprojects {
   apply plugin: "io.spinnaker.project"
+}
+
+subprojects {
+  group = "io.spinnaker.echo"
 
   if ([korkVersion, fiatVersion].find { it.endsWith("-SNAPSHOT") }) {
     repositories {
