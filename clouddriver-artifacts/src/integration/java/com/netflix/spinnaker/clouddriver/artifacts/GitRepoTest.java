@@ -272,6 +272,108 @@ public class GitRepoTest {
     assertBytesHaveFile(bytes, "subdir/subfile");
   }
 
+  @DisplayName(
+      ".\n===\n"
+          + "Given a gitrepo token account\n"
+          + "When sending download artifact request including a specific SHA version\n"
+          + "Then the specified version is downloaded\n===")
+  @Test
+  public void shouldDownloadGitRepoShaWithToken() throws IOException, InterruptedException {
+    // given
+    giteaContainer.addFileToRepo("newfile");
+    Map<String, Object> body =
+        ImmutableMap.of(
+            "artifactAccount",
+            "token-auth",
+            "reference",
+            giteaContainer.httpUrl(),
+            "type",
+            "git/repo",
+            "version",
+            giteaContainer.getFirstCommitSha());
+    deleteTmpClone(body);
+
+    // when
+    Response response =
+        given().body(body).contentType("application/json").put(baseUrl() + "/artifacts/fetch");
+    if (response.statusCode() != 200) {
+      response.prettyPrint();
+    }
+    assertEquals(200, response.statusCode());
+
+    // then
+    byte[] bytes = response.getBody().asByteArray();
+    assertBytesHaveFile(bytes, "README.md");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a gitrepo ssh account\n"
+          + "When sending download artifact request including a specific SHA version\n"
+          + "Then the specified version is downloaded\n===")
+  @Test
+  public void shouldDownloadGitRepoShaWithSsh() throws IOException, InterruptedException {
+    // given
+    giteaContainer.addFileToRepo("newfile");
+    Map<String, Object> body =
+        ImmutableMap.of(
+            "artifactAccount",
+            "ssh-auth",
+            "reference",
+            giteaContainer.sshUrl(),
+            "type",
+            "git/repo",
+            "version",
+            giteaContainer.getFirstCommitSha());
+    deleteTmpClone(body);
+
+    // when
+    Response response =
+        given().body(body).contentType("application/json").put(baseUrl() + "/artifacts/fetch");
+    if (response.statusCode() != 200) {
+      response.prettyPrint();
+    }
+    assertEquals(200, response.statusCode());
+
+    // then
+    byte[] bytes = response.getBody().asByteArray();
+    assertBytesHaveFile(bytes, "README.md");
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given a gitrepo account\n"
+          + "When sending download artifact request including a short SHA version\n"
+          + "Then the specified version is downloaded\n===")
+  @Test
+  public void shouldDownloadGitRepoShortSha() throws IOException, InterruptedException {
+    // given
+    giteaContainer.addFileToRepo("newfile");
+    Map<String, Object> body =
+        ImmutableMap.of(
+            "artifactAccount",
+            "token-auth",
+            "reference",
+            giteaContainer.httpUrl(),
+            "type",
+            "git/repo",
+            "version",
+            giteaContainer.getFirstCommitSha().substring(0, 7));
+    deleteTmpClone(body);
+
+    // when
+    Response response =
+        given().body(body).contentType("application/json").put(baseUrl() + "/artifacts/fetch");
+    if (response.statusCode() != 200) {
+      response.prettyPrint();
+    }
+    assertEquals(200, response.statusCode());
+
+    // then
+    byte[] bytes = response.getBody().asByteArray();
+    assertBytesHaveFile(bytes, "README.md");
+  }
+
   private void assertBytesHaveFile(byte[] bytes, String... files)
       throws IOException, InterruptedException {
     Path archive = Paths.get(System.getenv("BUILD_DIR"), "downloads", "repo.tgz");

@@ -8,7 +8,7 @@ ENV AWS_CLI_S3_CMD=2.0.2
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.4.0
 ENV GOOGLE_CLOUD_SDK_VERSION=313.0.1
 ENV ECR_TOKEN_VERSION=v1.0.2
-ENV GIT_VERSION=2.26.2-r0
+ENV GIT_VERSION=2.26.3-r0
 
 ENV PATH "$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
 

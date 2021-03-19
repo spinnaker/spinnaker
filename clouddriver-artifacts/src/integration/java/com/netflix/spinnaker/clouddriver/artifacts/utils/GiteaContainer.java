@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.utils;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.google.common.collect.ImmutableMap;
 import io.restassured.response.Response;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -199,6 +199,19 @@ public class GiteaContainer extends GenericContainer<GiteaContainer> {
             .contentType("application/json")
             .body(body)
             .post(getExternalBaseUrl() + "/api/v1/repos/test/test/contents/" + fileName);
-    resp.then().statusCode(201);
+    int sc = resp.statusCode();
+    assertTrue(sc == 201 || sc == 422); // 422 is returned when the file was already added
+  }
+
+  public String getFirstCommitSha() {
+    Response resp =
+        given()
+            .auth()
+            .preemptive()
+            .basic(USER, PASS)
+            .get(getExternalBaseUrl() + "/api/v1/repos/test/test/commits");
+    resp.then().statusCode(200);
+    List<String> shas = resp.jsonPath().getList("sha");
+    return shas.get(shas.size() - 1);
   }
 }

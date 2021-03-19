@@ -13,7 +13,7 @@ git_args=$@
 function pre_process() {
   container_name=$(docker ps | grep "gitea/gitea" | awk '{print $1}')
   docker exec "$container_name" mkdir -p "$(pwd)"
-  if [[ $1 == "clone" ]]; then
+  if [[ $1 == "clone" || $1 == "init" ]]; then
     docker exec -w "$(pwd)" "$container_name" rm -rf test
   elif [[ $1 == "archive" ]]; then
     {
@@ -51,7 +51,7 @@ function execute() {
 function post_process() {
   if [[ $git_args =~ .*clone.* ]]; then
     docker cp "$container_name":"$(pwd)/test" .
-  elif [[ $git_args =~ .*pull.* ]]; then
+  elif [[ $git_args =~ .*pull.*  || $git_args =~ .*reset.* ]]; then
     docker cp "$container_name":"$(pwd)" ..
   elif [[ $git_args =~ .*archive.* ]]; then
     docker cp "$container_name":"$dst_path" "$dst_path"
