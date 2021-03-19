@@ -361,6 +361,7 @@ class AzureServerGroupResourceTemplate {
       name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
       location = "[parameters('${locationParameterName}')]"
+
       def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.createdTime = currentTime.toString()
@@ -433,6 +434,25 @@ class AzureServerGroupResourceTemplate {
       name = description.sku.name
       tier = description.sku.tier
       capacity = description.sku.capacity
+    }
+  }
+
+  // Scheduled Event Profiles
+  static class ScheduledEventsProfile {
+    TerminateNotificationProfile terminateNotificationProfile
+
+    ScheduledEventsProfile(AzureServerGroupDescription description) {
+      terminateNotificationProfile = new TerminateNotificationProfile(description)
+    }
+  }
+
+  static class TerminateNotificationProfile {
+    String notBeforeTimeout
+    Boolean enable
+
+    TerminateNotificationProfile(AzureServerGroupDescription description) {
+      enable = true
+      notBeforeTimeout = "PT" + description.terminationNotBeforeTimeoutInMinutes + "M"
     }
   }
 
@@ -664,6 +684,7 @@ class AzureServerGroupResourceTemplate {
     StorageProfile storageProfile
     ScaleSetOsProfile osProfile
     ScaleSetNetworkProfileProperty networkProfile
+    ScheduledEventsProfile scheduledEventsProfile
 
     ScaleSetVMProfileProperty(AzureServerGroupDescription description) {
       storageProfile = description.image.isCustom ?
@@ -678,6 +699,10 @@ class AzureServerGroupResourceTemplate {
       }
       else {
         osProfile = new ScaleSetOsProfileProperty(description)
+      }
+
+      if (description.terminationNotBeforeTimeoutInMinutes != null) {
+        scheduledEventsProfile = new ScheduledEventsProfile(description)
       }
 
       networkProfile = new ScaleSetNetworkProfileProperty(description)
