@@ -332,6 +332,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   public render() {
     const {
       application,
+      descendantExecutionId,
       execution,
       showAccountLabels,
       showConfigureButton,
@@ -502,7 +503,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
 
           <ParametersAndArtifacts
             execution={execution}
-            expandParamsOnInit={standalone}
+            expandParamsOnInit={standalone && !descendantExecutionId}
             pipelineConfig={pipelineConfig}
           />
 
