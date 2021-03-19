@@ -8,7 +8,7 @@ import { Button } from '../Button';
 import { PinnedCard } from './PinnedCard';
 import { StatusCard } from '../StatusCard';
 import { VersionStateCard } from './VersionStateCard';
-import { ConstraintCard } from './constraints/ConstraintCard';
+import { ConstraintCard } from '../constraints/ConstraintCard';
 import { logCategories, useLogEvent } from '../utils/logging';
 import { VerificationCard } from './verifications/VerificationCard';
 

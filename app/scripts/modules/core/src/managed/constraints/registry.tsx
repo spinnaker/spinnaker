@@ -3,18 +3,12 @@ import React from 'react';
 
 import { IconNames } from '@spinnaker/presentation';
 
-import { DeploymentWindow } from '../artifactDetail/constraints/DeploymentWindow';
-import {
-  ConstraintStatus,
-  IAllowedTimesConstraint,
-  IBaseConstraint,
-  IConstraint,
-  IDependsOnConstraint,
-  IManagedArtifactVersionEnvironment,
-} from '../../domain';
+import { AllowedTimesDescription, AllowedTimesTitle } from './AllowedTimes';
+import { DependsOnTitle } from './DependsOn';
+import { ManualJudgementTitle } from './ManualJudgement';
+import { ConstraintStatus, IBaseConstraint, IConstraint, IManagedArtifactVersionEnvironment } from '../../domain';
 import { BasePluginManager } from '../plugins/BasePluginManager';
 
-const NO_FAILURE_MESSAGE = 'no details available';
 const UNKNOWN_CONSTRAINT_ICON = 'mdConstraintGeneric';
 
 const constraintHasNotStarted: ConstraintStatus[] = ['PENDING', 'NOT_EVALUATED'];
@@ -25,6 +19,8 @@ interface IConstraintOverrideAction {
 
 export const hasSkippedConstraint = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) =>
   environment.state === 'skipped' && constraintHasNotStarted.includes(constraint.status);
+
+type RelaxedConstraint = IBaseConstraint | IConstraint;
 export interface IConstraintHandler<K = string> {
   /** The type of the constraint - versioning is supported by adding @{version}, e.g. myConstraint@ */
   kind: K;
@@ -32,10 +28,10 @@ export interface IConstraintHandler<K = string> {
   iconName: IconNames | { [status in ConstraintStatus | 'DEFAULT']?: IconNames };
 
   /** Render function of the constraint title */
-  titleRender: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
+  titleRender: React.ComponentType<{ constraint: RelaxedConstraint }>;
 
   /** Optional render function of the constraint description */
-  descriptionRender?: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
+  descriptionRender?: React.ComponentType<{ constraint: RelaxedConstraint }>;
 
   /** Display actions to override the constraint - (fail or pass) */
   overrideActions?: { [status in ConstraintStatus]?: IConstraintOverrideAction[] };
@@ -51,12 +47,19 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
   }
 
   renderTitle(constraint: IConstraint): React.ReactNode {
-    const renderFn = this.getHandler(constraint.type)?.titleRender;
-    return renderFn?.(constraint) || `${constraint.type} constraint - ${constraint.status}`;
+    const Component = this.getHandler(constraint.type)?.titleRender;
+    if (Component) {
+      return <Component constraint={constraint} />;
+    }
+    return `${constraint.type} constraint - ${constraint.status}`;
   }
 
   renderDescription(constraint: IConstraint): React.ReactNode {
-    return this.getHandler(constraint.type)?.descriptionRender?.(constraint);
+    const Component = this.getHandler(constraint.type)?.descriptionRender;
+    if (Component) {
+      return <Component constraint={constraint} />;
+    }
+    return null;
   }
 
   getTimestamp(constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) {
@@ -84,43 +87,13 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
   {
     kind: 'allowed-times',
     iconName: { DEFAULT: 'mdConstraintAllowedTimes' },
-    titleRender: (constraint: IAllowedTimesConstraint) => {
-      switch (constraint.status) {
-        case 'FAIL':
-          return 'Failed to deploy within the allowed windows';
-        case 'OVERRIDE_PASS':
-          return 'Deployment window constraint was overridden';
-        case 'PASS':
-          return 'Deployed during one of the previous open windows';
-        case 'PENDING':
-          return `Deployment can only occur during the following window${
-            constraint.attributes.allowedTimes.length > 1 ? 's' : ''
-          }:`;
-        default:
-          return `Allowed times constraint - ${constraint.status}:`;
-      }
-    },
-    descriptionRender: (constraint: IAllowedTimesConstraint) => {
-      return <DeploymentWindow windows={constraint.attributes.allowedTimes} />;
-    },
+    titleRender: AllowedTimesTitle,
+    descriptionRender: AllowedTimesDescription,
   },
   {
     kind: 'depends-on',
     iconName: { DEFAULT: 'mdConstraintDependsOn' },
-    titleRender: (constraint: IDependsOnConstraint) => {
-      const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
-      switch (constraint.status) {
-        case 'PASS':
-        case 'OVERRIDE_PASS':
-          return `Deployed to prerequisite environment (${prerequisiteEnv}) successfully`;
-        case 'FAIL':
-          return `Prerequisite environment (${prerequisiteEnv}) deployment failed`;
-        case 'OVERRIDE_FAIL':
-          return `Overriding prerequisite environment (${prerequisiteEnv}) deployment failure`;
-        default:
-          return `Awaiting deployment to prerequisite environment (${prerequisiteEnv})`;
-      }
-    },
+    titleRender: DependsOnTitle,
   },
   {
     kind: 'manual-judgement',
@@ -131,32 +104,7 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
       OVERRIDE_FAIL: 'manualJudgementRejected',
       DEFAULT: 'manualJudgement',
     },
-    titleRender: (constraint: IConstraint) => {
-      switch (constraint.status) {
-        case 'NOT_EVALUATED':
-          return 'Manual judgement will be required before promotion';
-        case 'PENDING':
-          return 'Awaiting manual judgement';
-        case 'OVERRIDE_PASS':
-        case 'OVERRIDE_FAIL':
-          return (
-            <span>
-              <span>Manually {constraint.status === 'OVERRIDE_PASS' ? 'approved' : 'rejected'}</span>{' '}
-              <span className="text-regular">—</span> <span className="text-regular">by {constraint.judgedBy}</span>
-            </span>
-          );
-        case 'FAIL':
-          return (
-            <span>
-              Something went wrong <span className="text-regular">—</span>{' '}
-              <span className="text-regular">{constraint.comment || NO_FAILURE_MESSAGE}</span>
-            </span>
-          );
-        default:
-          console.error(new Error(`Unrecognized constraint status - ${JSON.stringify(constraint)}`));
-          return `${constraint.type} constraint - ${constraint.status}`;
-      }
-    },
+    titleRender: ManualJudgementTitle,
     overrideActions: {
       PENDING: [
         {

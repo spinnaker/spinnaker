@@ -2,18 +2,18 @@ import classNames from 'classnames';
 import React, { memo, useState } from 'react';
 import ReactGA from 'react-ga';
 
-import { Button } from '../../Button';
-import { IUpdateConstraintStatusRequest, ManagedWriter } from '../../ManagedWriter';
-import { IStatusCardProps, StatusCard } from '../../StatusCard';
-import { Application, ApplicationDataSource } from '../../../application';
-import { constraintsManager, hasSkippedConstraint } from '../../constraints/registry';
+import { Button } from '../Button';
+import { IUpdateConstraintStatusRequest, ManagedWriter } from '../ManagedWriter';
+import { IStatusCardProps, StatusCard } from '../StatusCard';
+import { Application, ApplicationDataSource } from '../../application';
 import {
   ConstraintStatus,
   IConstraint,
   IManagedApplicationEnvironmentSummary,
   IManagedArtifactVersionEnvironment,
-} from '../../../domain';
-import { IRequestStatus } from '../../../presentation';
+} from '../../domain';
+import { IRequestStatus } from '../../presentation';
+import { constraintsManager, hasSkippedConstraint } from './registry';
 
 import './ConstraintCard.less';
 

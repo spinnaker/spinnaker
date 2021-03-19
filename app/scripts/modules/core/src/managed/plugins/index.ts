@@ -6,7 +6,7 @@ export interface IManagedDeliveryPlugin {
   constraints?: IConstraintHandler[];
 }
 
-export const registerPlugin = (plugin: IManagedDeliveryPlugin) => {
+export const registerManagedDeliveryPlugin = (plugin: IManagedDeliveryPlugin) => {
   plugin.resources?.forEach((resource) => resourceManager.registerHandler(resource));
   plugin.constraints?.forEach((constraint) => constraintsManager.registerHandler(constraint));
 };

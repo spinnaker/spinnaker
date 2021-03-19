@@ -2,7 +2,7 @@ import { toPairs } from 'lodash';
 
 import { IStageTypeConfig } from 'core/domain';
 import { HelpContentsRegistry } from 'core/help';
-import { IManagedDeliveryPlugin, IResourceKindConfig, registerPlugin } from 'core/managed';
+import { IManagedDeliveryPlugin, IResourceKindConfig, registerManagedDeliveryPlugin } from 'core/managed';
 import { Registry } from 'core/registry';
 import { SearchResultType, searchResultTypeRegistry } from 'core/search';
 
@@ -34,7 +34,7 @@ export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> 
     ...plugin.managedDelivery,
     resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
   };
-  registerPlugin(managedDeliveryPlugin);
+  registerManagedDeliveryPlugin(managedDeliveryPlugin);
   // Run arbitrary plugin initialization code
   return Promise.resolve(plugin.initialize?.(plugin));
 }
