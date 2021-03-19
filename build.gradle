@@ -49,10 +49,10 @@ subprojects { project ->
     }
 
     dependencies {
-      implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
-      annotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      implementation(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
+      annotationProcessor(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      testAnnotationProcessor(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
 
       implementation("net.logstash.logback:logstash-logback-encoder")
 

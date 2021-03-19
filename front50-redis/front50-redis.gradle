@@ -20,7 +20,7 @@ configurations.all {
 
 dependencies {
   implementation project(":front50-core")
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-exceptions"
 
   implementation("org.codehaus.groovy:groovy-all")
 
@@ -32,7 +32,7 @@ dependencies {
   implementation "com.github.ben-manes.caffeine:guava"
 
   testImplementation project(":front50-test")
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }
 
 tasks.compileGroovy.enabled = true

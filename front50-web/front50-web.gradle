@@ -36,18 +36,18 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "io.swagger:swagger-annotations"
   implementation "commons-codec:commons-codec"
 
-  runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
 
   testImplementation project(":front50-test")
   testImplementation project(":front50-sql")
-  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "io.reactivex:rxjava"
 
   // Add each included cloud provider project as a runtime dependency
