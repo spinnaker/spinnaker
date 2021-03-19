@@ -13,8 +13,8 @@ jobs:
         ref: ${{ github.event.client_payload.ref }}
         key: korkVersion
         repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,keel,orca,rosco,swabbie
-        mavenRepositoryUrl: https://dl.bintray.com/spinnaker/spinnaker
-        groupId: com.netflix.spinnaker.kork
+        mavenRepositoryUrl: https://repo.maven.apache.org/maven2
+        groupId: io.spinnaker.kork
         artifactId: kork-bom
       env:
         GITHUB_OAUTH: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
