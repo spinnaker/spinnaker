@@ -18,9 +18,12 @@ plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
 }
 
-subprojects {
-  group = "com.netflix.spinnaker.igor"
+allprojects {
   apply plugin: 'io.spinnaker.project'
+}
+
+subprojects {
+  group = "io.spinnaker.igor"
 
   if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
     repositories {
