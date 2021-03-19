@@ -116,7 +116,7 @@ export const ManagedResourceObject = memo(
 
     return (
       <ObjectRow
-        icon={resourceManager.getResourceIcon(kind)}
+        icon={resourceManager.getIcon(kind)}
         title={linkProps ? <a {...linkProps}>{displayName}</a> : displayName}
         depth={depth}
         content={resourceStatus}

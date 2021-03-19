@@ -15,7 +15,7 @@ export interface IResourceKindConfig {
 }
 
 class ResourcesManager extends BasePluginManager<IResourceKindConfig> {
-  public getResourceIcon(kind: string) {
+  public getIcon(kind: string) {
     return this.getHandler(kind)?.iconName ?? UNKNOWN_RESOURCE_ICON;
   }
 
