@@ -36,7 +36,8 @@ import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
  */
 fun StageDefinitionBuilder.buildTasks(
   stage: StageExecution,
-  taskImplementationResolver: TaskImplementationResolver) {
+  taskImplementationResolver: TaskImplementationResolver
+) {
   buildTaskGraph(stage)
     .listIterator()
     .forEachWithMetadata { processTaskNode(stage, it, taskImplementationResolver) }

@@ -11,18 +11,18 @@ import com.netflix.spinnaker.orca.config.TaskOverrideConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.nhaarman.mockito_kotlin.doReturn
-import org.jetbrains.spek.subject.SubjectSpek
-import org.assertj.core.api.Assertions.assertThat
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode
+import org.jetbrains.spek.subject.SubjectSpek
 
-object DynamicTaskImplementationResolverTest: SubjectSpek<DynamicTaskImplementationResolver>({
+object DynamicTaskImplementationResolverTest : SubjectSpek<DynamicTaskImplementationResolver>({
 
   val dynamicConfigService: DynamicConfigService = mock()
   val stage: StageExecution = StageExecutionImpl(
@@ -36,18 +36,21 @@ object DynamicTaskImplementationResolverTest: SubjectSpek<DynamicTaskImplementat
     DynamicTaskImplementationResolver(
       dynamicConfigService,
       taskOverrideConfigurationProperties =
-      TaskOverrideConfigurationProperties(overrideDefinitions = listOf(
-        TaskOverrideConfigurationProperties.TaskOverrideDefinition(
-          stageName = "s1",
-          overrideCriteriaAttributes = listOf("application", "cloudprovider"),
-          originalTaskImplementingClassName = "com.netflix.spinnaker.orca.Task1",
-          newTaskImplementingClassName = "com.netflix.spinnaker.orca.Task2"),
-        TaskOverrideConfigurationProperties.TaskOverrideDefinition(
-          stageName = "s1",
-          overrideCriteriaAttributes = listOf("application", "cloudprovider"),
-          originalTaskImplementingClassName = "com.netflix.spinnaker.orca.Task3",
-          newTaskImplementingClassName = "com.netflix.spinnaker.orca.NotATask")
-      )
+      TaskOverrideConfigurationProperties(
+        overrideDefinitions = listOf(
+          TaskOverrideConfigurationProperties.TaskOverrideDefinition(
+            stageName = "s1",
+            overrideCriteriaAttributes = listOf("application", "cloudprovider"),
+            originalTaskImplementingClassName = "com.netflix.spinnaker.orca.Task1",
+            newTaskImplementingClassName = "com.netflix.spinnaker.orca.Task2"
+          ),
+          TaskOverrideConfigurationProperties.TaskOverrideDefinition(
+            stageName = "s1",
+            overrideCriteriaAttributes = listOf("application", "cloudprovider"),
+            originalTaskImplementingClassName = "com.netflix.spinnaker.orca.Task3",
+            newTaskImplementingClassName = "com.netflix.spinnaker.orca.NotATask"
+          )
+        )
       )
     )
   }
@@ -74,7 +77,6 @@ object DynamicTaskImplementationResolverTest: SubjectSpek<DynamicTaskImplementat
         assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task2")
         assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t1")
       }
-
     }
 
     context("when the task is not replaceable") {
@@ -95,7 +97,6 @@ object DynamicTaskImplementationResolverTest: SubjectSpek<DynamicTaskImplementat
         assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task2")
         assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t2")
       }
-
     }
 
     context("task is not replaceable when task impl is not of type Task") {
@@ -116,27 +117,25 @@ object DynamicTaskImplementationResolverTest: SubjectSpek<DynamicTaskImplementat
         assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task3")
         assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t3")
       }
-
     }
   }
-
 })
 
-class Task1: Task {
+class Task1 : Task {
   override fun execute(stage: StageExecution): TaskResult {
-    return  TaskResult.SUCCEEDED
+    return TaskResult.SUCCEEDED
   }
 }
 
-class Task3: Task {
+class Task3 : Task {
   override fun execute(stage: StageExecution): TaskResult {
-    return  TaskResult.SUCCEEDED
+    return TaskResult.SUCCEEDED
   }
 }
 
-class Task2: RetryableTask {
+class Task2 : RetryableTask {
   override fun execute(stage: StageExecution): TaskResult {
-    return  TaskResult.SUCCEEDED
+    return TaskResult.SUCCEEDED
   }
 
   override fun getBackoffPeriod(): Long {
@@ -148,5 +147,4 @@ class Task2: RetryableTask {
   }
 }
 
-class NotATask {}
-
+class NotATask

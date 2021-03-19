@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.orca.config;
+package com.netflix.spinnaker.orca.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
