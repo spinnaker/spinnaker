@@ -30,11 +30,13 @@ export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> 
   toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
   plugin.search?.forEach((search) => searchResultTypeRegistry.register(search));
 
-  const managedDeliveryPlugin: IManagedDeliveryPlugin = {
-    ...plugin.managedDelivery,
-    resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
-  };
-  registerManagedDeliveryPlugin(managedDeliveryPlugin);
+  if (plugin.managedDelivery || plugin.resourceKinds) {
+    const managedDeliveryPlugin: IManagedDeliveryPlugin = {
+      ...plugin.managedDelivery,
+      resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
+    };
+    registerManagedDeliveryPlugin(managedDeliveryPlugin);
+  }
   // Run arbitrary plugin initialization code
   return Promise.resolve(plugin.initialize?.(plugin));
 }
