@@ -21,11 +21,11 @@ dependencies {
     implementation project(":igor-monitor-plugins")
     implementation project(":igor-monitor-travis")
 
-    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"
-    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
     annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
 
     runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
@@ -73,14 +73,14 @@ dependencies {
     implementation "com.google.apis:google-api-services-cloudbuild"
     implementation "com.google.apis:google-api-services-storage"
     implementation 'com.google.auth:google-auth-library-oauth2-http'
-    implementation "com.netflix.spinnaker.kork:kork-config"
-    implementation "com.netflix.spinnaker.kork:kork-cloud-config-server"
-    implementation "com.netflix.spinnaker.kork:kork-artifacts"
-    implementation "com.netflix.spinnaker.kork:kork-exceptions"
-    implementation "com.netflix.spinnaker.kork:kork-web"
-    implementation "com.netflix.spinnaker.kork:kork-jedis"
-    implementation "com.netflix.spinnaker.kork:kork-telemetry"
-    implementation "com.netflix.spinnaker.kork:kork-plugins"
+    implementation "io.spinnaker.kork:kork-config"
+    implementation "io.spinnaker.kork:kork-cloud-config-server"
+    implementation "io.spinnaker.kork:kork-artifacts"
+    implementation "io.spinnaker.kork:kork-exceptions"
+    implementation "io.spinnaker.kork:kork-web"
+    implementation "io.spinnaker.kork:kork-jedis"
+    implementation "io.spinnaker.kork:kork-telemetry"
+    implementation "io.spinnaker.kork:kork-plugins"
 
     implementation "io.github.resilience4j:resilience4j-retry"
 
@@ -89,10 +89,10 @@ dependencies {
     implementation "com.google.guava:guava"
     implementation "javax.inject:javax.inject:1"
 
-    runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+    runtimeOnly "io.spinnaker.kork:kork-runtime"
 
     testImplementation "com.squareup.okhttp:mockwebserver"
-    testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+    testImplementation "io.spinnaker.kork:kork-jedis-test"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 

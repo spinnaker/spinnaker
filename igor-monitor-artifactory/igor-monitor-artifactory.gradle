@@ -17,16 +17,16 @@
 dependencies {
   implementation project(":igor-core")
 
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   implementation "org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1"
 
   // TODO(rz): Get rid of this dependency!
-  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.kork:kork-jedis"
 
   // TODO(rz): Get rid of this dependency!
   implementation "net.logstash.logback:logstash-logback-encoder"
