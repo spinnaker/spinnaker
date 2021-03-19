@@ -16,7 +16,7 @@ dependencies {
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"

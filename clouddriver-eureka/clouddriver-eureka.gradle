@@ -3,8 +3,8 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
 
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-web"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.retrofit:retrofit"

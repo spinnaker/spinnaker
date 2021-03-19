@@ -8,7 +8,7 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-core"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.slf4j:jcl-over-slf4j"
   implementation "org.springframework.boot:spring-boot-starter-web"

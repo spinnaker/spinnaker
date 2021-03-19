@@ -4,8 +4,8 @@ dependencies {
   implementation project(":clouddriver-security")
 
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "com.squareup.retrofit:retrofit"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-starter-web"

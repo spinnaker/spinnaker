@@ -32,11 +32,11 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "com.squareup.okhttp3:okhttp:3.1.2"
   implementation "io.grpc:grpc-netty-shaded:$grpcVersion"
   implementation "io.grpc:grpc-protobuf:$grpcVersion"
@@ -55,7 +55,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
-  testImplementation "com.netflix.spinnaker.kork:kork-test"
+  testImplementation "io.spinnaker.kork:kork-test"
 }
 
 sourceSets {

@@ -13,7 +13,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "com.oracle.oci.sdk:oci-java-sdk-core"
   implementation "com.oracle.oci.sdk:oci-java-sdk-identity"
   implementation "com.oracle.oci.sdk:oci-java-sdk-loadbalancer"

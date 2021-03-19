@@ -17,8 +17,8 @@
 
 dependencies {
   api project(":clouddriver-saga")
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   implementation "cglib:cglib-nodep"

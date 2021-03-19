@@ -8,12 +8,12 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.glassfish.jersey.inject:jersey-hk2:2.28"
   implementation 'com.huawei:openstack4j:1.0.17'
   implementation "org.glassfish.jersey.core:jersey-client:2.22.1"

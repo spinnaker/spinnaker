@@ -20,8 +20,8 @@ apply from: "$rootDir/gradle/kotlin-test.gradle"
 dependencies {
   annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
 
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.google.guava:guava"
   implementation "com.google.code.findbugs:jsr305"
   implementation "org.springframework.boot:spring-boot-actuator"

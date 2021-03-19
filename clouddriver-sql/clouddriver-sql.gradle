@@ -23,16 +23,16 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-event")
 
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-sql"
-  implementation "com.netflix.spinnaker.kork:kork-telemetry"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-sql"
+  implementation "io.spinnaker.kork:kork-telemetry"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.jooq:jooq"
   implementation "org.hibernate.validator:hibernate-validator"
 
   testImplementation project(":clouddriver-core-tck")
 
-  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "org.testcontainers:mysql"
   testImplementation "mysql:mysql-connector-java"
 

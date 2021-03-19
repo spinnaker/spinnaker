@@ -8,14 +8,14 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.frigga:frigga"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "javax.servlet:javax.servlet-api"
 
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'

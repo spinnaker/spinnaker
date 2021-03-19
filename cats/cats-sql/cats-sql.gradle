@@ -31,8 +31,8 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-sql"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "io.github.resilience4j:resilience4j-retry"
   implementation "io.strikt:strikt-core"
@@ -48,7 +48,7 @@ dependencies {
   testImplementation project(":cats:cats-test")
 
   testImplementation "cglib:cglib-nodep"
-  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "com.nhaarman:mockito-kotlin"
   testImplementation "junit:junit"
   testImplementation "org.hamcrest:hamcrest-core"

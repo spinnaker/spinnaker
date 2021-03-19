@@ -38,11 +38,11 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-config"
-  implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation("com.netflix.spinnaker.kork:kork-plugins")
-  implementation "com.netflix.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation("io.spinnaker.kork:kork-plugins")
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "commons-io:commons-io"
   implementation "io.reactivex:rxjava"
   implementation "io.swagger:swagger-annotations"
@@ -53,7 +53,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"
 
-  runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
   if (!gradle.hasProperty("excludeSpringConfigServer")) {
     runtimeOnly project(":clouddriver-configserver")
   }
