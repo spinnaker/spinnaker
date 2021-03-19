@@ -8,7 +8,7 @@ plugins {
 allprojects {
   apply plugin: 'io.spinnaker.project'
 
-  group = "com.netflix.spinnaker.gate"
+  group = "io.spinnaker.gate"
 
   if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
     repositories {
