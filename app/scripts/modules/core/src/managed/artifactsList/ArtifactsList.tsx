@@ -8,7 +8,7 @@ import { ISelectedArtifactVersion } from '../Environments';
 import { Pill } from '../Pill';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
-import { getConstraintIcon } from '../artifactDetail/constraints/constraintRegistry';
+import { getConstraintIcon } from '../constraints/constraintRegistry';
 import { IConstraint, IManagedArtifactSummary, IManagedArtifactVersion } from '../../domain/IManagedEntity';
 
 import './ArtifactRow.less';

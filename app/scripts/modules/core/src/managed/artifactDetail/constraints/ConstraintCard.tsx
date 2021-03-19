@@ -13,7 +13,7 @@ import {
   hasSkippedConstraint,
   isConstraintSupported,
   renderConstraint,
-} from './constraintRegistry';
+} from '../../constraints/constraintRegistry';
 import {
   ConstraintStatus,
   IConstraint,
