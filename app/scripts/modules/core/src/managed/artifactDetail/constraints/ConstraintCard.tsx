@@ -6,14 +6,7 @@ import { Button } from '../../Button';
 import { IUpdateConstraintStatusRequest, ManagedWriter } from '../../ManagedWriter';
 import { IStatusCardProps, StatusCard } from '../../StatusCard';
 import { Application, ApplicationDataSource } from '../../../application';
-import {
-  getConstraintActions,
-  getConstraintIcon,
-  getConstraintTimestamp,
-  hasSkippedConstraint,
-  isConstraintSupported,
-  renderConstraint,
-} from '../../constraints/constraintRegistry';
+import { constraintsManager, hasSkippedConstraint } from '../../constraints/registry';
 import {
   ConstraintStatus,
   IConstraint,
@@ -91,9 +84,9 @@ export const ConstraintCard = memo(
 
     const [actionStatus, setActionStatus] = useState<IRequestStatus>('NONE');
 
-    const actions = getConstraintActions(constraint, environment);
+    const actions = constraintsManager.getOverrideActions(constraint, environment);
 
-    if (!isConstraintSupported(type)) {
+    if (!constraintsManager.isSupported(type)) {
       console.warn(
         new Error(`Unsupported constraint type ${type} — did you check for constraint support before rendering?`),
       );
@@ -103,12 +96,12 @@ export const ConstraintCard = memo(
       <StatusCard
         appearance={getCardAppearance(constraint, environment)}
         active={environment.state !== 'skipped'}
-        iconName={getConstraintIcon(constraint)}
-        timestamp={getConstraintTimestamp(constraint, environment)}
+        iconName={constraintsManager.getIcon(constraint)}
+        timestamp={constraintsManager.getTimestamp(constraint, environment)}
         title={
           hasSkippedConstraint(constraint, environment)
             ? 'Environment was skipped before evaluating constraint'
-            : renderConstraint(constraint)
+            : constraintsManager.render(constraint)
         }
         actions={
           actions && (

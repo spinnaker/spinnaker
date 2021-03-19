@@ -2,7 +2,7 @@ import { toPairs } from 'lodash';
 
 import { IStageTypeConfig } from 'core/domain';
 import { HelpContentsRegistry } from 'core/help';
-import { IResourceKindConfig, resourceManager } from 'core/managed';
+import { IManagedDeliveryPlugin, IResourceKindConfig, registerPlugin } from 'core/managed';
 import { Registry } from 'core/registry';
 import { SearchResultType, searchResultTypeRegistry } from 'core/search';
 
@@ -11,8 +11,10 @@ export interface IDeckPlugin {
   stages?: IStageTypeConfig[];
   /** Custom Preconfigured Job Stage UI (configuration and execution details) */
   preconfiguredJobStages?: IStageTypeConfig[];
-  /** Custom managed resource kinds */
+  /** DEPRECATED - Custom managed resource kinds */
   resourceKinds?: IResourceKindConfig[];
+  /** Managed Delivery hooks */
+  managedDelivery?: IManagedDeliveryPlugin;
   /** Help Text for use in <HelpField /> */
   help?: { [helpKey: string]: string };
   /** Custom global search types */
@@ -25,10 +27,14 @@ export interface IDeckPlugin {
 export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> {
   plugin.stages?.forEach((stage) => Registry.pipeline.registerStage(stage));
   plugin.preconfiguredJobStages?.forEach((stage) => Registry.pipeline.registerPreconfiguredJobStage(stage));
-  plugin.resourceKinds?.forEach((kind) => resourceManager.registerResource(kind));
   toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
   plugin.search?.forEach((search) => searchResultTypeRegistry.register(search));
 
+  const managedDeliveryPlugin: IManagedDeliveryPlugin = {
+    ...plugin.managedDelivery,
+    resources: plugin.resourceKinds || plugin.managedDelivery.resources,
+  };
+  registerPlugin(managedDeliveryPlugin);
   // Run arbitrary plugin initialization code
   return Promise.resolve(plugin.initialize?.(plugin));
 }

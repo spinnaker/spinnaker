@@ -8,7 +8,7 @@ import { ISelectedArtifactVersion } from '../Environments';
 import { Pill } from '../Pill';
 import { RelativeTimestamp } from '../RelativeTimestamp';
 import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
-import { getConstraintIcon } from '../constraints/constraintRegistry';
+import { constraintsManager } from '../constraints/registry';
 import { IConstraint, IManagedArtifactSummary, IManagedArtifactVersion } from '../../domain/IManagedEntity';
 
 import './ArtifactRow.less';
@@ -187,10 +187,11 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
     }
 
     environment.constraints?.forEach((constraint: IConstraint) => {
+      const icon = constraintsManager.getIcon(constraint);
       if (constraint.status === 'PENDING') {
-        pendingConstraintIcons.add(getConstraintIcon(constraint));
+        pendingConstraintIcons.add(icon);
       } else if (constraint.status === 'FAIL' || constraint.status === 'OVERRIDE_FAIL') {
-        failedConstraintIcons.add(getConstraintIcon(constraint));
+        failedConstraintIcons.add(icon);
       }
     });
   });

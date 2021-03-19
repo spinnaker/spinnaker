@@ -1,4 +1,5 @@
 import { IManagedResourceSummary } from '../../domain';
+import { BasePluginManager } from '../plugins/BasePluginManager';
 import { IconNames } from '../../presentation';
 
 const UNKNOWN_RESOURCE_ICON = 'placeholder';
@@ -13,41 +14,13 @@ export interface IResourceKindConfig {
   experimentalDisplayLink?: (resource: IManagedResourceSummary) => string;
 }
 
-class ResourcesManager {
-  private resourceConfigs: { [kind: string]: IResourceKindConfig } = {};
-
-  constructor(resources: IResourceKindConfig[]) {
-    for (const resource of resources) {
-      this.registerResource(resource);
-    }
-  }
-
-  private normalizeKind(kind: string): string {
-    // Removes the version of the resource
-    return kind.split('@')[0];
-  }
-
-  public getResource(kind: string): IResourceKindConfig | undefined {
-    // We first try to return an exact match, otherwise, we return the resource without the version
-    return this.resourceConfigs[kind] || this.resourceConfigs[this.normalizeKind(kind)];
-  }
-
-  public isResourceSupported(kind: string) {
-    return Boolean(this.getResource(kind));
-  }
-
-  public registerResource(config: IResourceKindConfig) {
-    // We register both the resource with the version and without the version
-    this.resourceConfigs[config.kind] = config;
-    this.resourceConfigs[this.normalizeKind(config.kind)] = config;
-  }
-
+class ResourcesManager extends BasePluginManager<IResourceKindConfig> {
   public getResourceIcon(kind: string) {
-    return this.getResource(kind)?.iconName ?? UNKNOWN_RESOURCE_ICON;
+    return this.getHandler(kind)?.iconName ?? UNKNOWN_RESOURCE_ICON;
   }
 
   public getExperimentalDisplayLink(resource: IManagedResourceSummary): string | undefined {
-    return this.getResource(resource.kind)?.experimentalDisplayLink?.(resource);
+    return this.getHandler(resource.kind)?.experimentalDisplayLink?.(resource);
   }
 }
 

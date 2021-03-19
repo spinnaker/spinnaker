@@ -29,7 +29,7 @@ import './ArtifactDetail.less';
 const SUPPORTED_PRE_DEPLOYMENT_TYPES = ['BUILD', 'BAKE'];
 
 function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
-  return resourceManager.isResourceSupported(resource.kind) && reference === resource.artifact?.reference;
+  return resourceManager.isSupported(resource.kind) && reference === resource.artifact?.reference;
 }
 
 const VersionMetadataItem = ({ label, value }: { label: string; value: JSX.Element | string }) => (
