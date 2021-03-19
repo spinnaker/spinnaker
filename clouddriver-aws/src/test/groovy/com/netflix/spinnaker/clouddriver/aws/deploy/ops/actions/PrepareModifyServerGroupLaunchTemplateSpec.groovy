@@ -71,8 +71,55 @@ class PrepareModifyServerGroupLaunchTemplateSpec extends Specification {
     1 * asgService.getAutoScalingGroup("test-v001") >> autoScalingGroup
     1 * ltService.getLaunchTemplateVersion(autoScalingGroup.launchTemplate) >> Optional.of(ltVersion)
     1 * ec2.describeImages(_) >> { DescribeImagesRequest req ->
-      new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it)})
+      new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it) })
     }
+  }
+
+  def "should include security groups from previous launch template: #desc"() {
+    def description = new ModifyServerGroupLaunchTemplateDescription(
+      region: "us-east-1",
+      asgName: autoScalingGroup.autoScalingGroupName,
+      amiName: "ami-1",
+      securityGroups: securityGroups,
+      securityGroupsAppendOnly: sgAppendOnly
+    )
+    def prepareCommand = new PrepareModifyServerGroupLaunchTemplate.PrepareModifyServerGroupLaunchTemplateCommand(description, null)
+
+    def launchTemplateData = new ResponseLaunchTemplateData(
+      imageId: "ami-1",
+      networkInterfaces: [
+        new LaunchTemplateInstanceNetworkInterfaceSpecification(
+          deviceIndex: 0,
+          groups: ["sg-1"]
+        )
+      ],
+    )
+
+    def ltVersion = new LaunchTemplateVersion(
+      launchTemplateName: "lt-1",
+      versionNumber: 1,
+      launchTemplateData: launchTemplateData
+    )
+
+    when:
+    prepareAction.apply(prepareCommand, new Saga("test", "test"))
+
+    then:
+    1 * asgService.getAutoScalingGroup(autoScalingGroup.autoScalingGroupName) >> autoScalingGroup
+    1 * ltService.getLaunchTemplateVersion(autoScalingGroup.launchTemplate) >> Optional.of(ltVersion)
+    1 * ec2.describeImages(_) >> { DescribeImagesRequest req ->
+      new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it) })
+    }
+    description.getSecurityGroups().sort() == expectedGroups
+
+    where:
+    securityGroups | sgAppendOnly || expectedGroups   || desc
+    null           | null          | ["sg-1"]         || "No specified groups and no specified appendOnly includes existing groups"
+    null           | false         | []               || "With appendOnly explicitly false, clear groups if non supplied"
+    null           | true          | ["sg-1"]         || "With appendOnly true, always add existing groups"
+    ["sg-2"]       | null          | ["sg-2"]         || "With no specified appendOnly but provided groups, only use provided groups"
+    ["sg-2"]       | false         | ["sg-2"]         || "With appendOnly false, use the specified groups only"
+    ["sg-2"]       | true          | ["sg-1", "sg-2"] || "With appendOnly true, merge provided and existing groups"
   }
 
   def "should reset custom block devices when changing instance type"() {

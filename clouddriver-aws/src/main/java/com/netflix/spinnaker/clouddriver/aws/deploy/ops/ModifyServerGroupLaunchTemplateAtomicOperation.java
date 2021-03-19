@@ -58,6 +58,11 @@ public class ModifyServerGroupLaunchTemplateAtomicOperation
   }
 
   public static class LaunchTemplateException extends IntegrationException {
+    public LaunchTemplateException(String message) {
+      super(message);
+      setRetryable(true);
+    }
+
     public LaunchTemplateException(String message, Throwable cause) {
       super(message, cause);
       setRetryable(true);

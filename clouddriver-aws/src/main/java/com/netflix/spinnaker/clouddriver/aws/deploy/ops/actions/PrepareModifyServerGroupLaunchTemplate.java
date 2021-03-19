@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping;
 import com.amazonaws.services.ec2.model.LaunchTemplateIamInstanceProfileSpecification;
 import com.amazonaws.services.ec2.model.LaunchTemplateInstanceMarketOptions;
+import com.amazonaws.services.ec2.model.LaunchTemplateInstanceNetworkInterfaceSpecification;
 import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.amazonaws.services.ec2.model.ResponseLaunchTemplateData;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -53,6 +54,7 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -115,20 +117,33 @@ public class PrepareModifyServerGroupLaunchTemplate
               description.getAmiName(),
               description.getRegion(),
               credentials.getAccountId(),
-              Collections.emptyList(),
               regionScopedProvider.getAmazonEC2());
-      description.setImageId(imageId.get());
+      description.setImageId(
+          imageId.orElseThrow(
+              () ->
+                  new LaunchTemplateException(
+                          String.format(
+                              "Failed to resolve image id for %s", description.getAmiName()))
+                      .setRetryable(StringUtils.isNotBlank(description.getAmiName()))));
     }
 
-    Set<String> securityGroups =
-        new HashSet<>(
-            Optional.ofNullable(description.getSecurityGroups()).orElse(new ArrayList<String>()));
-
-    if (description.getSecurityGroupsAppendOnly() != null
-        && description.getSecurityGroupsAppendOnly()) {
-      // append security groups
-      securityGroups.addAll(launchTemplateData.getSecurityGroupIds());
+    Set<String> securityGroups = new HashSet<>();
+    if (description.getSecurityGroups() != null) {
+      securityGroups.addAll(description.getSecurityGroups());
     }
+
+    Boolean includePreviousGroups =
+        Optional.ofNullable(description.getSecurityGroupsAppendOnly())
+            .orElseGet(securityGroups::isEmpty);
+    if (includePreviousGroups) {
+      securityGroups.addAll(
+          launchTemplateData.getNetworkInterfaces().stream()
+              .filter(i -> i.getDeviceIndex() == 0)
+              .findFirst()
+              .map(LaunchTemplateInstanceNetworkInterfaceSpecification::getGroups)
+              .orElse(Collections.emptyList()));
+    }
+    description.setSecurityGroups(new ArrayList<>(securityGroups));
 
     // if we are changing instance types and don't have explicitly supplied block device mappings
     String instanceType =
@@ -177,12 +192,11 @@ public class PrepareModifyServerGroupLaunchTemplate
   }
 
   private Optional<String> getImageId(
-      String amiName, String region, String accountId, List priorOutputs, AmazonEC2 ec2) {
+      String amiName, String region, String accountId, AmazonEC2 ec2) {
     if (amiName != null) {
       try {
         ResolvedAmiResult ami =
-            getAmiResult(priorOutputs, region, amiName)
-                .orElse(AmiIdResolver.resolveAmiIdFromAllSources(ec2, region, amiName, accountId));
+            AmiIdResolver.resolveAmiIdFromAllSources(ec2, region, amiName, accountId);
         return Optional.ofNullable(ami.getAmiId());
       } catch (Exception e) {
         throw new LaunchTemplateException(
@@ -252,21 +266,6 @@ public class PrepareModifyServerGroupLaunchTemplate
             .withSize(mapping.getEbs().getVolumeSize());
 
     return device1.equals(device2);
-  }
-
-  private Optional<ResolvedAmiResult> getAmiResult(
-      List priorOutputs, String region, String amiName) {
-    for (Object o : priorOutputs) {
-      if (o instanceof ResolvedAmiResult) {
-        ResolvedAmiResult result = ((ResolvedAmiResult) o);
-        if (result.getRegion().equals(region)
-            && (amiName.equals(result.getAmiId()) || amiName.equals(result.getAmiName()))) {
-          return Optional.of(result);
-        }
-      }
-    }
-
-    return Optional.empty();
   }
 
   private static class BlockDevice {
