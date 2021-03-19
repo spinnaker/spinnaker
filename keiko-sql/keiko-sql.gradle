@@ -8,16 +8,16 @@ dependencies {
   api "org.funktionale:funktionale-partials"
   api "com.github.ben-manes.caffeine:guava"
 
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-sql"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "io.github.resilience4j:resilience4j-retry"
   implementation "javax.validation:validation-api"
   implementation "org.jooq:jooq"
 
   testImplementation project(":keiko-tck")
-  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "org.testcontainers:mysql"
   testImplementation "mysql:mysql-connector-java"
 }

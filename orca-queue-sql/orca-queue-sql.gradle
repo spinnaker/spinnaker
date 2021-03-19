@@ -6,8 +6,8 @@ apply from: "$rootDir/gradle/spek.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-queue"))
-  api("com.netflix.spinnaker.kork:kork-sql")
-  api("com.netflix.spinnaker.kork:kork-jedis")
+  api("io.spinnaker.kork:kork-sql")
+  api("io.spinnaker.kork:kork-jedis")
   api(project(":keiko-sql"))
   implementation(project(":orca-sql"))
   implementation(project(":keiko-redis-spring"))
@@ -15,7 +15,7 @@ dependencies {
 
   implementation("org.jooq:jooq")
 
-  testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
+  testImplementation("io.spinnaker.kork:kork-sql-test")
   testImplementation(project(":orca-redis"))
   testImplementation(project(":orca-test-redis"))
   testImplementation(project(":orca-queue-tck"))

@@ -20,8 +20,8 @@ apply from: "$rootDir/gradle/spock.gradle"
 apply plugin: "java"
 
 dependencies {
-  api("com.netflix.spinnaker.kork:kork-pubsub")
-  api("com.netflix.spinnaker.kork:kork-pubsub-aws")
+  api("io.spinnaker.kork:kork-pubsub")
+  api("io.spinnaker.kork:kork-pubsub-aws")
 
   implementation(project(":orca-core"))
   implementation("com.amazonaws:aws-java-sdk-sqs")

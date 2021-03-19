@@ -33,7 +33,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.ben-manes.caffeine:guava")
 
-  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
+  testImplementation("io.spinnaker.kork:kork-jedis-test")
   testImplementation(project(":orca-api-tck"))
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))

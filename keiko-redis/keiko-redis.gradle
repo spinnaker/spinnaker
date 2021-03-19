@@ -10,5 +10,5 @@ dependencies {
   api "com.github.ben-manes.caffeine:guava"
 
   testImplementation project(":keiko-tck")
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }

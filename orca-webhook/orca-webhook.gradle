@@ -20,8 +20,8 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-api"))
-  implementation("com.netflix.spinnaker.kork:kork-core")
-  implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("io.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-web")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

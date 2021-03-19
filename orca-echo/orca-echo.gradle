@@ -23,7 +23,7 @@ dependencies {
   implementation(project(":orca-igor"))
   implementation(project(":orca-front50"))
   implementation(project(":orca-dry-run"))
-  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("javax.validation:validation-api")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")

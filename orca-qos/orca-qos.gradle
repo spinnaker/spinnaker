@@ -21,7 +21,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-front50"))
   implementation(project(":orca-queue"))
-  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-core")
   implementation("com.netflix.spectator:spectator-api")
   implementation("net.logstash.logback:logstash-logback-encoder")
 

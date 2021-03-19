@@ -1,6 +1,6 @@
 dependencies {
   implementation("redis.clients:jedis")
-  implementation("com.netflix.spinnaker.kork:kork-jedis")
+  implementation("io.spinnaker.kork:kork-jedis")
   implementation(project(":orca-test"))
-  implementation("com.netflix.spinnaker.kork:kork-jedis-test")
+  implementation("io.spinnaker.kork:kork-jedis-test")
 }

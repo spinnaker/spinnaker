@@ -21,7 +21,7 @@ dependencies {
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-clouddriver"))
   implementation(project(":orca-front50"))
-  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.yaml:snakeyaml")
 

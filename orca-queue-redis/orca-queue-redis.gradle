@@ -34,7 +34,7 @@ dependencies {
   testImplementation(project(":orca-test-redis"))
   testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-test")
-  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
+  testImplementation("io.spinnaker.kork:kork-jedis-test")
 
-  testImplementation("com.netflix.spinnaker.kork:kork-core")
+  testImplementation("io.spinnaker.kork:kork-core")
 }

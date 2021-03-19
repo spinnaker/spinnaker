@@ -20,7 +20,7 @@ dependencies {
   api("com.squareup.retrofit:retrofit")
   api("com.squareup.retrofit:converter-jackson")
   api("org.codehaus.groovy:groovy")
-  api("com.netflix.spinnaker.kork:kork-web")
+  api("io.spinnaker.kork:kork-web")
   api("com.jakewharton.retrofit:retrofit1-okhttp3-client")
 
   implementation(project(":orca-core"))

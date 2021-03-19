@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/spek.gradle"
 dependencies {
   api project(":keiko-core")
   api "org.springframework.boot:spring-boot-autoconfigure"
-  api("com.netflix.spinnaker.kork:kork-core") {
+  api("io.spinnaker.kork:kork-core") {
     exclude(module: "logback-classic")
   }
 

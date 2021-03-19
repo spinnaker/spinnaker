@@ -24,7 +24,7 @@ dependencies {
   testImplementation(project(":orca-clouddriver"))
 
   testImplementation(project(":keiko-mem"))
-  testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
+  testImplementation("io.spinnaker.kork:kork-plugins-tck")
 
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")

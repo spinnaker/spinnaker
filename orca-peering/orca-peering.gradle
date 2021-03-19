@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/spock.gradle"
 dependencies {
   implementation(project(":orca-core"))
 
-  implementation("com.netflix.spinnaker.kork:kork-sql")
+  implementation("io.spinnaker.kork:kork-sql")
   implementation("org.jooq:jooq")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 

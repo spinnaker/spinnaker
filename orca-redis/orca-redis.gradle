@@ -2,7 +2,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  api("com.netflix.spinnaker.kork:kork-jedis")
+  api("io.spinnaker.kork:kork-jedis")
 
   implementation(project(":orca-core"))
   implementation(project(":orca-front50"))
@@ -12,5 +12,5 @@ dependencies {
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-redis"))
   testImplementation(project(":orca-test-groovy"))
-  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
+  testImplementation("io.spinnaker.kork:kork-jedis-test")
 }
