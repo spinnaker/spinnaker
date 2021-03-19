@@ -26,12 +26,17 @@ interface IConstraintOverrideAction {
 export const hasSkippedConstraint = (constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) =>
   environment.state === 'skipped' && constraintHasNotStarted.includes(constraint.status);
 export interface IConstraintHandler<K = string> {
-  /** The type of the constraint - versioning is supported by adding @{version}, e.g. myConstraint@1.2 */
+  /** The type of the constraint - versioning is supported by adding @{version}, e.g. myConstraint@ */
   kind: K;
   /** The icon can be a string (from IconNames) or a partial map from statuses to IconNames */
   iconName: IconNames | { [status in ConstraintStatus | 'DEFAULT']?: IconNames };
-  /** The render function of the constraint */
-  renderFn: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
+
+  /** Render function of the constraint title */
+  titleRender: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
+
+  /** Optional render function of the constraint description */
+  descriptionRender?: (constraint: IBaseConstraint | IConstraint) => React.ReactNode;
+
   /** Display actions to override the constraint - (fail or pass) */
   overrideActions?: { [status in ConstraintStatus]?: IConstraintOverrideAction[] };
 }
@@ -45,9 +50,13 @@ class ConstraintsManager extends BasePluginManager<IConstraintHandler> {
     return iconName?.[constraint.status] || iconName?.['DEFAULT'] || UNKNOWN_CONSTRAINT_ICON;
   }
 
-  render(constraint: IConstraint): React.ReactNode {
-    const renderFn = this.getHandler(constraint.type)?.renderFn;
+  renderTitle(constraint: IConstraint): React.ReactNode {
+    const renderFn = this.getHandler(constraint.type)?.titleRender;
     return renderFn?.(constraint) || `${constraint.type} constraint - ${constraint.status}`;
+  }
+
+  renderDescription(constraint: IConstraint): React.ReactNode {
+    return this.getHandler(constraint.type)?.descriptionRender?.(constraint);
   }
 
   getTimestamp(constraint: IConstraint, environment: IManagedArtifactVersionEnvironment) {
@@ -75,41 +84,30 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
   {
     kind: 'allowed-times',
     iconName: { DEFAULT: 'mdConstraintAllowedTimes' },
-    renderFn: (constraint: IAllowedTimesConstraint) => {
-      const windows = constraint.attributes.allowedTimes;
+    titleRender: (constraint: IAllowedTimesConstraint) => {
       switch (constraint.status) {
         case 'FAIL':
-          return 'Failed to deploy within the allowed';
+          return 'Failed to deploy within the allowed windows';
         case 'OVERRIDE_PASS':
           return 'Deployment window constraint was overridden';
         case 'PASS':
-          return (
-            <div>
-              Deployed during one of the previous open windows:
-              <DeploymentWindow windows={windows} />
-            </div>
-          );
+          return 'Deployed during one of the previous open windows';
         case 'PENDING':
-          return (
-            <div>
-              Deployment can only occur during the following window{windows.length > 1 ? 's' : ''}:
-              <DeploymentWindow windows={windows} />
-            </div>
-          );
+          return `Deployment can only occur during the following window${
+            constraint.attributes.allowedTimes.length > 1 ? 's' : ''
+          }:`;
         default:
-          return (
-            <div>
-              Allowed times constraint - {constraint.status}:
-              <DeploymentWindow windows={windows} />
-            </div>
-          );
+          return `Allowed times constraint - ${constraint.status}:`;
       }
+    },
+    descriptionRender: (constraint: IAllowedTimesConstraint) => {
+      return <DeploymentWindow windows={constraint.attributes.allowedTimes} />;
     },
   },
   {
     kind: 'depends-on',
     iconName: { DEFAULT: 'mdConstraintDependsOn' },
-    renderFn: (constraint: IDependsOnConstraint) => {
+    titleRender: (constraint: IDependsOnConstraint) => {
       const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
       switch (constraint.status) {
         case 'PASS':
@@ -133,7 +131,7 @@ const baseHandlers: Array<IConstraintHandler<IConstraint['type']>> = [
       OVERRIDE_FAIL: 'manualJudgementRejected',
       DEFAULT: 'manualJudgement',
     },
-    renderFn: (constraint: IConstraint) => {
+    titleRender: (constraint: IConstraint) => {
       switch (constraint.status) {
         case 'NOT_EVALUATED':
           return 'Manual judgement will be required before promotion';

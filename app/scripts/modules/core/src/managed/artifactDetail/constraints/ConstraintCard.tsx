@@ -92,6 +92,8 @@ export const ConstraintCard = memo(
       );
     }
 
+    const hasSkipped = hasSkippedConstraint(constraint, environment);
+
     return (
       <StatusCard
         appearance={getCardAppearance(constraint, environment)}
@@ -99,10 +101,11 @@ export const ConstraintCard = memo(
         iconName={constraintsManager.getIcon(constraint)}
         timestamp={constraintsManager.getTimestamp(constraint, environment)}
         title={
-          hasSkippedConstraint(constraint, environment)
+          hasSkipped
             ? 'Environment was skipped before evaluating constraint'
-            : constraintsManager.render(constraint)
+            : constraintsManager.renderTitle(constraint)
         }
+        description={!hasSkipped ? constraintsManager.renderDescription(constraint) : undefined}
         actions={
           actions && (
             <div
