@@ -36,6 +36,7 @@ export interface IExecutionProps {
   application: Application;
   execution: IExecution;
   descendantExecutionId?: string;
+  showConfigureButton?: boolean;
   pipelineConfig: IPipeline;
   showDurations?: boolean;
   standalone?: boolean;
@@ -303,6 +304,16 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     showingDetails ? this.toggleDetails() : this.toggleDetails(0, 0);
   };
 
+  private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
+    const { application, execution } = this.props;
+    ReactGA.event({ category: 'Execution', action: 'Configuration' });
+    ReactInjector.$state.go('^.pipelineConfig', {
+      application: application.name,
+      pipelineId: execution.pipelineConfigId,
+    });
+    e.stopPropagation();
+  };
+
   private scrollIntoView = (forceScroll = false) => {
     const element = this.wrapperRef.current;
     const { scrollIntoView, execution } = this.props;
@@ -323,6 +334,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       application,
       execution,
       showAccountLabels,
+      showConfigureButton,
       showDurations,
       standalone,
       title,
@@ -363,13 +375,33 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     return (
       <div className={className} id={`execution-${execution.id}`} ref={this.wrapperRef}>
         <div className={`execution-overview group-by-${sortFilter.groupBy}`}>
-          {(title || showExecutionName) && (
-            <h4 className="execution-name">
-              {(showAccountLabels || showExecutionName) && accountLabels}
-              {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
-              {title || execution.name}
-            </h4>
-          )}
+          <div className="flex-container-h">
+            {(title || showExecutionName) && (
+              <h4 className="execution-name">
+                {(showAccountLabels || showExecutionName) && accountLabels}
+                {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
+                {title || execution.name}
+              </h4>
+            )}
+            {showConfigureButton && (
+              <div className="flex-pull-right">
+                <Tooltip value="Navigate to Pipeline Configuration">
+                  <UISref
+                    to="^.pipelineConfig"
+                    params={{ application: application.name, pipelineId: execution.pipelineConfigId }}
+                  >
+                    <button
+                      className="btn btn-xs btn-default single-execution-details__configure"
+                      onClick={this.handleConfigureClicked}
+                    >
+                      <span className="glyphicon glyphicon-cog" />
+                      <span className="visible-md-inline visible-lg-inline"> Configure</span>
+                    </button>
+                  </UISref>
+                </Tooltip>
+              </div>
+            )}
+          </div>
           {hasParentExecution && (
             <div className="execution-breadcrumbs">
               <ExecutionBreadcrumbs execution={execution} />

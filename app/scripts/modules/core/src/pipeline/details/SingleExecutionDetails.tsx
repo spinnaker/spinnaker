@@ -128,15 +128,6 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
   };
 
-  const handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
-    ReactGA.event({ category: 'Execution', action: 'Configuration' });
-    ReactInjector.$state.go('^.pipelineConfig', {
-      application: app.name,
-      pipelineId: execution.pipelineConfigId,
-    });
-    e.stopPropagation();
-  };
-
   const rerunExecution = (execution: IExecution, application: Application, pipeline: IPipeline) => {
     ManualExecutionModal.show({
       pipeline,
@@ -194,20 +185,6 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
                     <span> stage durations</span>
                   </label>
                 </div>
-                <Tooltip value="Navigate to Pipeline Configuration">
-                  <UISref
-                    to="^.pipelineConfig"
-                    params={{ application: app.name, pipelineId: execution.pipelineConfigId }}
-                  >
-                    <button
-                      className="btn btn-sm btn-default single-execution-details__configure"
-                      onClick={handleConfigureClicked}
-                    >
-                      <span className="glyphicon glyphicon-cog" />
-                      <span className="visible-md-inline visible-lg-inline"> Configure</span>
-                    </button>
-                  </UISref>
-                </Tooltip>
               </div>
             </div>
           </div>
@@ -223,6 +200,7 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
                   key={ancestor.id}
                   execution={ancestor}
                   descendantExecutionId={i < ancestry.length - 1 ? ancestry[i + 1].id : execution.id}
+                  showConfigureButton={true}
                   application={app}
                   pipelineConfig={null}
                   standalone={true}
@@ -236,6 +214,7 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
           <div className="col-md-10 col-md-offset-1 executions">
             <Execution
               execution={execution}
+              showConfigureButton={true}
               key={execution.id}
               application={app}
               pipelineConfig={null}
