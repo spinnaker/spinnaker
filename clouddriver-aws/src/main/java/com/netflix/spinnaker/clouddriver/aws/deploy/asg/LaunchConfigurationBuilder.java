@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
 
@@ -79,6 +80,7 @@ public interface LaunchConfigurationBuilder {
     boolean instanceMonitoring;
     List<AmazonBlockDevice> blockDevices;
     List<String> securityGroups;
+    Map<String, String> blockDeviceTags;
 
     @Builder(toBuilder = true)
     private LaunchConfigurationSettings(
@@ -102,7 +104,8 @@ public interface LaunchConfigurationBuilder {
         String spotPrice,
         boolean instanceMonitoring,
         List<AmazonBlockDevice> blockDevices,
-        List<String> securityGroups) {
+        List<String> securityGroups,
+        Map<String, String> blockDeviceTags) {
       this.account = account;
       this.environment = environment;
       this.accountType = accountType;
@@ -124,6 +127,8 @@ public interface LaunchConfigurationBuilder {
       this.instanceMonitoring = instanceMonitoring;
       this.blockDevices = blockDevices;
       this.securityGroups = securityGroups;
+      this.blockDeviceTags = blockDeviceTags;
+      ;
     }
   }
 }

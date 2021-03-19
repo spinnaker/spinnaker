@@ -19,7 +19,8 @@ import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.LaunchTemplateTagSpecificationRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmazonResourceTagger
-import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultAmazonResourceTagger;
+import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultAmazonResourceTagger
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -55,6 +56,7 @@ class LaunchTemplateServiceSpec extends Specification {
     expect:
     launchTemplateService.tagSpecification(
       amazonResourceTaggers,
+      new AutoScalingWorker.AsgConfiguration(blockDeviceTags: ["blockKey": "blockValue"]),
       "application-stack-details-v001"
     ) == result
 
@@ -72,7 +74,11 @@ class LaunchTemplateServiceSpec extends Specification {
       Optional.of(
         new LaunchTemplateTagSpecificationRequest()
         .withResourceType("volume")
-        .withTags([new Tag("spinnaker:application", "application"), new Tag("spinnaker:cluster", "application-stack-details")])
+          .withTags([
+            new Tag("spinnaker:application", "application"),
+            new Tag("spinnaker:cluster", "application-stack-details"),
+            new Tag("blockKey", "blockValue")
+          ])
       )
     ]
 

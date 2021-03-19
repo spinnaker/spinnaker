@@ -246,6 +246,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.tags = description.tags != null ? description.tags : ancestorAsg.tags.collectEntries {
           [(it.getKey()): it.getValue()]
         }
+        newDescription.blockDevices
 
         /*
           Copy over the ancestor user data only if the UserDataProviders behavior is disabled and no user data is provided

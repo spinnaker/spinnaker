@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy;
 
+import com.netflix.spinnaker.clouddriver.aws.deploy.asg.AutoScalingWorker;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.Data;
@@ -27,7 +28,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface AmazonResourceTagger {
   @NotNull
-  default Collection<Tag> volumeTags(@NotNull String serverGroupName) {
+  default Collection<Tag> volumeTags(
+      @NotNull AutoScalingWorker.AsgConfiguration asgConfiguration,
+      @NotNull String serverGroupName) {
     return Collections.emptyList();
   }
 
