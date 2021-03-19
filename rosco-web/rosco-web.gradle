@@ -17,15 +17,15 @@ configurations.all {
 dependencies {
   compile project(":rosco-core")
   compile project(":rosco-manifests")
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-web"
   implementation "io.swagger:swagger-annotations"
 
   implementation "org.codehaus.groovy:groovy-all"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "net.logstash.logback:logstash-logback-encoder"
 
-  runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
 
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.objenesis:objenesis"

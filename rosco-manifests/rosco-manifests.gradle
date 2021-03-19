@@ -5,9 +5,9 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
 
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:1.14"
   implementation "org.yaml:snakeyaml:1.25"
