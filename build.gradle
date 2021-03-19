@@ -25,7 +25,7 @@ plugins {
 allprojects {
   apply plugin: 'io.spinnaker.project'
 
-  group = "com.netflix.spinnaker.orca"
+  group = "io.spinnaker.orca"
 
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
