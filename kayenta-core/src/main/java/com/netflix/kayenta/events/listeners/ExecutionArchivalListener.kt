@@ -21,15 +21,19 @@ import com.netflix.kayenta.security.AccountCredentials
 import com.netflix.kayenta.security.AccountCredentialsRepository
 import com.netflix.kayenta.storage.ObjectType
 import com.netflix.kayenta.storage.StorageServiceRepository
+import java.util.function.Consumer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
 class ExecutionArchivalListener(
   private val accountCredentialsRepository: AccountCredentialsRepository,
-  private val storageServiceRepository: StorageServiceRepository
+  private val storageServiceRepository: StorageServiceRepository,
+  @Qualifier("pre-canary-execution-archive-hook")
+  private val preCanaryArchiveHook: Consumer<CanaryExecutionCompletedEvent>
 ) {
 
   init {
@@ -38,6 +42,7 @@ class ExecutionArchivalListener(
 
   @EventListener
   fun onApplicationEvent(event: CanaryExecutionCompletedEvent) {
+    preCanaryArchiveHook.accept(event)
     val response = event.canaryExecutionStatusResponse
     val storageAccountName = response.storageAccountName
     if (storageAccountName != null) {
