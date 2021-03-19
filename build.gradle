@@ -21,9 +21,12 @@ plugins {
   id 'idea'
 }
 
-subprojects { project ->
-  group = "com.netflix.kayenta"
+allprojects {
   apply plugin: "io.spinnaker.project"
+}
+
+subprojects { project ->
+  group = "io.spinnaker.kayenta"
 
   if (name != "kayenta-bom") {
     apply plugin: "java-library"
