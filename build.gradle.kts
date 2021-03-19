@@ -29,6 +29,7 @@ jacoco {
 }
 
 allprojects {
+  apply(plugin = "io.spinnaker.project")
   repositories {
     jcenter() {
       metadataSources {
@@ -44,10 +45,9 @@ allprojects {
 }
 
 subprojects {
-  apply(plugin = "io.spinnaker.project")
   apply(plugin = "com.github.ben-manes.versions")
 
-  group = "com.netflix.spinnaker.keel"
+  group = "io.spinnaker.keel"
 
   if (name != "keel-bom") {
     apply(plugin = "kotlin")
