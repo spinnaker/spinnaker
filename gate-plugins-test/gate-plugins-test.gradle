@@ -7,8 +7,8 @@ dependencies {
   testImplementation(project(":gate-web"))
   testImplementation(project(":gate-core"))
 
-  testImplementation("com.netflix.spinnaker.kork:kork-plugins")
-  testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
+  testImplementation("io.spinnaker.kork:kork-plugins")
+  testImplementation("io.spinnaker.kork:kork-plugins-tck")
 
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")

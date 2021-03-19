@@ -1,5 +1,5 @@
 dependencies {
   implementation project(":gate-core")
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "org.springframework.session:spring-session-core"
 }

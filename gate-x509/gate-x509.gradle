@@ -1,8 +1,8 @@
 dependencies {
   implementation project(':gate-core')
   implementation "org.bouncycastle:bcprov-jdk15on"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:caffeine"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"

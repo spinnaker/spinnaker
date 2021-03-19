@@ -2,8 +2,8 @@ dependencies{
   implementation project(':gate-core')
   // RetrySupport is in kork-exceptions and not kork-core!
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"
   implementation 'org.springframework:spring-context'
   implementation 'org.springframework.session:spring-session-core'
