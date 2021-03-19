@@ -62,8 +62,8 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
   void appendArtifactData(StageExecution stage, Map operation) {
     PipelineExecution execution = stage.getExecution()
     if (execution.type == PIPELINE) {
-      String expectedId = operation.expectedArtifactId?.trim()
-      Artifact expectedArtifact = operation.expectedArtifact
+      def expectedId = operation.expectedArtifactId as String
+      Artifact expectedArtifact = operation.expectedArtifact ? objectMapper.convertValue(operation.expectedArtifact, Artifact.class) : null
       if (expectedId || expectedArtifact) {
         Artifact boundArtifact = artifactUtils.getBoundArtifactForStage(stage, expectedId, expectedArtifact)
         if (boundArtifact) {

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.stubbing.Answer;
 
 final class AppEngineServerGroupCreatorTest {
@@ -62,6 +64,37 @@ final class AppEngineServerGroupCreatorTest {
 
     Artifact singleArtifact = Iterables.getOnlyElement(configArtifacts);
     assertThat(singleArtifact.getArtifactAccount()).isEqualTo("my-account");
+  }
+
+  @Test
+  void appendArtifactDataExpectedArtifact() {
+    AppEngineServerGroupCreator appEngineServerGroupCreator = new AppEngineServerGroupCreator();
+    appEngineServerGroupCreator.setObjectMapper(OBJECT_MAPPER);
+
+    ArtifactUtils artifactUtils = mock(ArtifactUtils.class);
+
+    when(artifactUtils.getBoundArtifactForStage(
+            any(StageExecution.class), nullable(String.class), any(Artifact.class)))
+        .then(AdditionalAnswers.returnsArgAt(2));
+
+    appEngineServerGroupCreator.setArtifactUtils(artifactUtils);
+
+    StageExecution stage = createExecution();
+    Map<String, Object> expectedArtifact = new HashMap<>();
+    expectedArtifact.put("customKind", true);
+    expectedArtifact.put("reference", "gcr.io/hale-entry-305216/jorge:test");
+    expectedArtifact.put("name", "gcr.io/hale-entry-305216/jorge");
+    expectedArtifact.put("artifactAccount", "docker-registry");
+    expectedArtifact.put("id", "3b4a76b5-44d8-4e20-8a91-4e9b7164259c");
+    expectedArtifact.put("type", "docker/image");
+    expectedArtifact.put("version", "test");
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("expectedArtifact", expectedArtifact);
+
+    appEngineServerGroupCreator.appendArtifactData(stage, operation);
+
+    Artifact expectedArtifactBuilded = (Artifact) operation.get("artifact");
+    assertThat(expectedArtifactBuilded).isNotNull();
   }
 
   @Test
