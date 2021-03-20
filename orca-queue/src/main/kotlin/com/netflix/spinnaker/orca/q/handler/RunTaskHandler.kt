@@ -107,6 +107,7 @@ class RunTaskHandler(
           val execution = stage.execution
           var taskResult: TaskResult? = null
 
+          var taskException: Exception? = null
           try {
             taskExecutionInterceptors.forEach { t -> stage = t.beforeTaskExecution(task, stage) }
 
@@ -173,6 +174,7 @@ class RunTaskHandler(
               }
             }
           } catch (e: Exception) {
+            taskException = e;
             val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel.name)
             if (exceptionDetails?.shouldRetry == true) {
               log.warn("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]")
@@ -189,13 +191,14 @@ class RunTaskHandler(
                   log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
                 }
               }
-
               val status = stage.failureStatus(default = TERMINAL)
               stage.context["exception"] = exceptionDetails
               repository.storeStage(stage)
               queue.push(CompleteTask(message, status, TERMINAL))
               trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
             }
+          } finally {
+            taskExecutionInterceptors.forEach { t -> t.finallyAfterTaskExecution(task, stage, taskResult, taskException) }
           }
         }
       }
