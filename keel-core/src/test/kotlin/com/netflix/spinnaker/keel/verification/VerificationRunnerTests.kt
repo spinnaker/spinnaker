@@ -61,7 +61,7 @@ internal class VerificationRunnerTests {
   }
 
   private val verificationRepository = mockk<VerificationRepository>() {
-    every { countVerifications(any(), any(), any()) }  returns 0
+    every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
   }
 
 

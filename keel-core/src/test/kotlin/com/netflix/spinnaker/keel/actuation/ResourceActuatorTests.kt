@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.actuation.SleepyJavaResourceHandler.SLEEPY_RESOURCE_KIND
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -12,13 +11,13 @@ import com.netflix.spinnaker.keel.api.plugins.ActionDecision
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.enforcers.ActiveVerifications
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
@@ -30,10 +29,12 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceDiffNotActionable
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -54,6 +55,7 @@ import com.netflix.spinnaker.kork.exceptions.UserException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Runs
+import io.mockk.coInvoke
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
@@ -72,7 +74,6 @@ import java.time.Duration
 import java.time.Instant
 import io.mockk.coEvery as every
 import io.mockk.coVerify as verify
-import org.springframework.core.env.Environment as SpringEnvironment
 
 internal class ResourceActuatorTests : JUnit5Minutests {
 
@@ -85,9 +86,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
-    val springEnv: SpringEnvironment = mockk(relaxed = true) {
-      every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
-    }
+
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
@@ -95,10 +94,16 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
     val clock = Clock.systemUTC()
-    val verificationRepository = mockk<VerificationRepository>() {
-      every { countVerifications(any(), any(), any()) } returns 0
+    val environmentExclusionEnforcer = mockk<EnvironmentExclusionEnforcer>() {
+      val action = slot<suspend () -> Unit>()
+      every {
+        withActuationLease(
+          any(),
+          any(),
+          capture(action)
+        )
+      } answers { action.coInvoke() }
     }
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), clock)
     val subject = ResourceActuator(
       resourceRepository,
       artifactRepository,
@@ -109,7 +114,6 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       vetoEnforcer,
       publisher,
       clock,
-      springEnv,
       environmentExclusionEnforcer
     )
   }
@@ -351,7 +355,12 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               before {
                 every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
                 every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
-                every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+                every { plugin1.update(resource, any()) } returns listOf(
+                  Task(
+                    id = randomUID().toString(),
+                    name = "a task"
+                  )
+                )
 
                 runBlocking {
                   subject.checkResource(resource)
@@ -367,6 +376,47 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                   publisher.publishEvent(ofType<ResourceDeltaDetected>())
                   publisher.publishEvent(ofType<ResourceActuationLaunched>())
                 }
+              }
+            }
+
+            context("verification is in progress") {
+              val event = slot<ResourceEvent>()
+
+              before {
+                val deliveryConfig = mockk<DeliveryConfig>() {
+                  every { name } returns "fnord-manifest"
+                }
+
+                val environment = mockk<Environment>() {
+                  every { name } returns "staging"
+                }
+
+                every {
+                  environmentExclusionEnforcer.withActuationLease(any(), any(), any() as suspend () -> Unit)
+                } throws
+                  ActiveVerifications(
+                    listOf(mockk(relaxed=true)),
+                    deliveryConfig,
+                    environment)
+
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+                every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+
+                every { publisher.publishEvent(capture(event)) } just Runs
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the resource is not updated") {
+                verify(exactly=0) { plugin1.update(any(), any()) }
+              }
+
+              test("an event is published that indicates verification blocked actuation") {
+                expectThat(event.captured)
+                  .isA<VerificationBlockedActuation>()
               }
             }
 

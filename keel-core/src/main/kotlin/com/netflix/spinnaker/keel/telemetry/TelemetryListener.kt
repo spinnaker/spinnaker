@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentVerificationStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
+import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -220,6 +221,17 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
+  @EventListener(VerificationBlockedActuation::class)
+  fun onBlockedActuation(event: VerificationBlockedActuation) {
+    spectator.counter(BLOCKED_ACTUATION_ID,
+      listOf(
+        BasicTag("resourceId", event.id),
+        BasicTag("resourceKind", event.kind.toString()),
+        BasicTag("resourceApplication", event.application)
+      )
+    )
+  }
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> =
     PolledMeter
       .using(spectator)
@@ -262,6 +274,7 @@ class TelemetryListener(
     private const val VERIFICATION_CHECK_DRIFT_GAUGE = "keel.verification.check.drift"
     private const val VERIFICATION_CHECK_DURATION_ID = "keel.verification.check.duration"
     private const val INVALID_VERIFICATION_ID_SEEN_COUNTER_ID = "keel.verification.invalid.id.seen"
+    private const val BLOCKED_ACTUATION_ID = "keel.actuation.blocked"
     private const val AGENT_DURATION_ID = "keel.agent.duration"
   }
 }

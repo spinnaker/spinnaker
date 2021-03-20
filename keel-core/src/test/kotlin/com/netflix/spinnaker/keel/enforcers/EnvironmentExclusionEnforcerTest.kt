@@ -22,19 +22,19 @@ import org.springframework.core.env.Environment as SpringEnvironment
 
 internal class EnvironmentExclusionEnforcerTest {
 
-  private val springEnv : SpringEnvironment = mockk() {
+  private val springEnv : SpringEnvironment = mockk {
     every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any())} returns true
   }
 
   private val verificationRepository = mockk<VerificationRepository>() {
-    every { countVerifications(any(), any(), any()) }  returns 0
+    every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
   }
 
   private val enforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), Clock.systemUTC())
 
   @Test
   fun `invoke the action when there are no pending verifications`() {
-    every { verificationRepository.countVerifications(any(), any(), ConstraintStatus.PENDING) } returns 0
+    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns emptyList()
     val action : () -> Unit = mockk(relaxed=true)
 
     enforcer.withVerificationLease(mockk(relaxed=true), action)
@@ -46,7 +46,7 @@ internal class EnvironmentExclusionEnforcerTest {
 
   @Test
   fun `throw an exception when there are pending verifications`() {
-    every { verificationRepository.countVerifications(any(), any(), ConstraintStatus.PENDING) } returns 1
+    every { verificationRepository.getContextsWithStatus(any(), any(), ConstraintStatus.PENDING) } returns listOf(mockk(relaxed=true))
 
     val action : () -> Unit = mockk(relaxed=true)
 

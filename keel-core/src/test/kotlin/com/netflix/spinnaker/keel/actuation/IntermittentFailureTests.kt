@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
 import com.netflix.spinnaker.keel.core.api.randomUID
-import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
@@ -75,7 +74,7 @@ class IntermittentFailureTests : JUnit5Minutests {
     val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
     val verificationRepository = mockk<VerificationRepository>() {
-      every { countVerifications(any(), any(), any()) }  returns 0
+      every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
     }
 
     val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), clock)
@@ -109,12 +108,10 @@ class IntermittentFailureTests : JUnit5Minutests {
       vetoEnforcer,
       publisher,
       Clock.systemUTC(),
-      springEnv,
       environmentExclusionEnforcer
     )
     val desired = DummyResourceSpec(data = "fnord")
     val current = DummyResourceSpec()
-    val diff = DefaultResourceDiff(desired, current)
   }
 
   fun tests() = rootContext<Fixture> {

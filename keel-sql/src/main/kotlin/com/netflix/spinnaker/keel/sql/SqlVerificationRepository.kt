@@ -23,7 +23,6 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import com.netflix.spinnaker.keel.sql.deliveryconfigs.deliveryConfigByName
 import org.jooq.*
-import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.function
 import org.jooq.impl.DSL.inline
@@ -171,17 +170,30 @@ class SqlVerificationRepository(
       }
     }
 
-  override fun countVerifications(deliveryConfig: DeliveryConfig, environment: Environment, status: ConstraintStatus): Int =
-    jooq.selectCount()
+  override fun getContextsWithStatus(deliveryConfig: DeliveryConfig, environment: Environment, status: ConstraintStatus): Collection<VerificationContext> =
+    jooq.select(
+      DELIVERY_ARTIFACT.REFERENCE,
+      VERIFICATION_STATE.ARTIFACT_VERSION
+    )
       .from(VERIFICATION_STATE)
+      .join(DELIVERY_ARTIFACT)
+      .on(DELIVERY_ARTIFACT.UID.eq(VERIFICATION_STATE.ARTIFACT_UID))
       .join(ENVIRONMENT)
-      .on(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+      .on(ENVIRONMENT.UID.eq(VERIFICATION_STATE.ENVIRONMENT_UID))
       .join(DELIVERY_CONFIG)
       .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
       .and(ENVIRONMENT.NAME.eq(environment.name))
       .and(VERIFICATION_STATE.STATUS.eq(status))
-      .fetchOneInto(Int::class.java)
+      .fetch()
+      .map { (artifactReference, version) ->
+          VerificationContext(
+            deliveryConfig = deliveryConfig,
+            environmentName = environment.name,
+            artifactReference = artifactReference,
+            version = version)
+      }
+      .toList()
 
   /**
    * Query the repository for the states of multiple contexts.

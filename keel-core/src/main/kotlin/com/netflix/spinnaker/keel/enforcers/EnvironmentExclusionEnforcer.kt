@@ -5,7 +5,6 @@ import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import org.springframework.core.env.Environment as SpringEnvironment
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
@@ -22,8 +21,8 @@ import java.time.Instant
  */
 open class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
 
-class ActiveVerifications(num: Int, deliveryConfig: DeliveryConfig, environment: Environment) :
-  EnvironmentCurrentlyBeingActedOn("$num verifications active in ${deliveryConfig.name} ${environment.name}")
+class ActiveVerifications(val active: Collection<VerificationContext>, deliveryConfig: DeliveryConfig, environment: Environment) :
+  EnvironmentCurrentlyBeingActedOn("active verifications in ${deliveryConfig.name} ${environment.name} against versions ${active.map {it.version}}")
 
 /**
  * This class enforces two safety properties of the verification behavior:
@@ -125,9 +124,9 @@ class EnvironmentExclusionEnforcer(
    * @throws ActiveVerifications if there's an active verification
    */
   private fun ensureNoActiveVerifications(deliveryConfig: DeliveryConfig, environment: Environment)  {
-    val numActive = repository.countVerifications(deliveryConfig, environment, PENDING)
-    if(numActive > 0) {
-      throw ActiveVerifications(numActive, deliveryConfig, environment)
+    val activeVerifications = repository.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    if(activeVerifications.isNotEmpty()) {
+      throw ActiveVerifications(activeVerifications, deliveryConfig, environment)
     }
   }
 

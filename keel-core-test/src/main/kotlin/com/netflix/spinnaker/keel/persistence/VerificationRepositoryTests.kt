@@ -22,6 +22,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.containsKey
 import strikt.assertions.first
@@ -501,20 +502,21 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
   }
 
   @Test
-  fun `countVerifications with no pending verifications`() {
+  fun `getContextsWithStatus with no pending verifications`() {
     context.setup()
 
-    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
-    expectThat(count).isEqualTo(0)
+    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    expectThat(contexts).isEmpty()
   }
 
   @Test
-  fun `countVerifications with one pending verification`() {
+  fun `getContextsWithStatus with one pending verification`() {
     context.setup()
     subject.updateState(context, verification, PENDING)
 
-    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
-    expectThat(count).isEqualTo(1)
+    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+
+    expectThat(contexts).containsExactly(context)
   }
 
   @Test
@@ -525,8 +527,10 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     val otherVerification = DummyVerification("other")
     subject.updateState(context, otherVerification, PENDING)
 
-    val count = subject.countVerifications(deliveryConfig, environment, PENDING)
-    expectThat(count).isEqualTo(2)
+
+    val contexts = subject.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    expectThat(contexts).hasSize(2)
+    expectThat(contexts).contains(context)
   }
 
 
@@ -554,8 +558,8 @@ abstract class VerificationRepositoryTests<IMPLEMENTATION : VerificationReposito
     otherContext.setup()
     subject.updateState(otherContext, verification, PENDING)
 
-    expectThat(subject.countVerifications(deliveryConfig, environment, PENDING)).isEqualTo(0)
-    expectThat(subject.countVerifications(otherConfig, otherEnvironment, PENDING)).isEqualTo(1)
+    expectThat(subject.getContextsWithStatus(deliveryConfig, environment, PENDING)).isEmpty()
+    expectThat(subject.getContextsWithStatus(otherConfig, otherEnvironment, PENDING)).containsExactly(otherContext)
   }
 
 

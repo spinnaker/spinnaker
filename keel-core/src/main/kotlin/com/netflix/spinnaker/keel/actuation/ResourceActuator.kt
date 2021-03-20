@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.enforcers.ActiveVerifications
 import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -77,7 +79,6 @@ class ResourceActuator(
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val springEnv: SpringEnvironment,
   private val environmentExclusionEnforcer: EnvironmentExclusionEnforcer
 ) {
   companion object {
@@ -199,6 +200,9 @@ class ResourceActuator(
       } catch (e: ResourceCurrentlyUnresolvable) {
         log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
         publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
+      } catch (e: ActiveVerifications) {
+        log.warn("Resource {} can't be actuated because a verification is running", id, e)
+        publisher.publishEvent(VerificationBlockedActuation(resource, e, clock))
       } catch (e: Exception) {
         log.error("Resource check for $id failed", e)
         publisher.publishEvent(ResourceCheckError(resource, e.toSpinnakerException(), clock))

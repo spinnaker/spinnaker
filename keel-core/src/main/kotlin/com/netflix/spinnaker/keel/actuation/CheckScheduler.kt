@@ -95,12 +95,8 @@ class CheckScheduler(
                    */
                   withTimeout(checkTimeout.toMillis()) {
                     launch {
-                      try {
-                        resourceActuator.checkResource(it)
-                        publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
-                      } catch (e: EnvironmentCurrentlyBeingActedOn) {
-                        log.warn("Couldn't actuate resource ${it.id} because environment is currently being acted on", e)
-                      }
+                      resourceActuator.checkResource(it)
+                      publisher.publishEvent(ResourceCheckCompleted(Duration.between(startTime, clock.instant())))
                     }
                   }
                 } catch (e: TimeoutCancellationException) {
