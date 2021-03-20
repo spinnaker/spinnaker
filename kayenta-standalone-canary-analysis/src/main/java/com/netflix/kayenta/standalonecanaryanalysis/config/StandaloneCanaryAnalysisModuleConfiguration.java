@@ -16,12 +16,8 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.config;
 
-import com.netflix.kayenta.standalonecanaryanalysis.event.StandaloneCanaryAnalysisExecutionCompletedEvent;
-import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,10 +25,4 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty("kayenta.standalone-canary-analysis.enabled")
 @ComponentScan({"com.netflix.kayenta.standalonecanaryanalysis"})
 @Slf4j
-public class StandaloneCanaryAnalysisModuleConfiguration {
-  @Bean
-  @Qualifier("pre-scape-archive-hook")
-  Consumer<StandaloneCanaryAnalysisExecutionCompletedEvent> preScapeArchiveHook() {
-    return (event) -> log.debug("no-op pre-SCAPE archive hook");
-  }
-}
+public class StandaloneCanaryAnalysisModuleConfiguration {}

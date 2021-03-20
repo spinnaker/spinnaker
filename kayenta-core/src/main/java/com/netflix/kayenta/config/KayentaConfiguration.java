@@ -25,7 +25,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import com.netflix.kayenta.events.CanaryExecutionCompletedEvent;
 import com.netflix.kayenta.metrics.MapBackedMetricsServiceRepository;
 import com.netflix.kayenta.metrics.MetricSetMixerService;
 import com.netflix.kayenta.metrics.MetricsRetryConfigurationProperties;
@@ -40,10 +39,8 @@ import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -71,12 +68,6 @@ public class KayentaConfiguration {
   @ConditionalOnMissingBean(AccountCredentialsRepository.class)
   AccountCredentialsRepository accountCredentialsRepository() {
     return new MapBackedAccountCredentialsRepository();
-  }
-
-  @Bean
-  @Qualifier("pre-canary-execution-archive-hook")
-  Consumer<CanaryExecutionCompletedEvent> preCanaryArchiveHook() {
-    return (event) -> log.debug("no-op pre-canary execution archive hook");
   }
 
   @Bean
