@@ -38,8 +38,8 @@ dependencies {
   api project(':kayenta-wavefront')
 
   api "org.springframework.boot:spring-boot-starter-actuator"
-  api "com.netflix.spinnaker.kork:kork-web"
-  implementation "com.netflix.spinnaker.kork:kork-plugins"
-  runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-aws"
-  runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-gcp"
+  api "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-plugins"
+  runtimeOnly "io.spinnaker.kork:kork-secrets-aws"
+  runtimeOnly "io.spinnaker.kork:kork-secrets-gcp"
 }

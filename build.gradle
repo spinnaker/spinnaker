@@ -84,20 +84,20 @@ subprojects { project ->
         api 'com.typesafe.scala-logging:scala-logging_2.12:3.9.2'
         testImplementation 'org.scalatest:scalatest_2.12:3.0.9'
       }
-      implementation platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      implementation platform("io.spinnaker.orca:orca-bom:$orcaVersion")
       compileOnly "org.projectlombok:lombok"
-      annotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      annotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testAnnotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      testAnnotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
       testCompileOnly "org.projectlombok:lombok"
 
 
       api "org.slf4j:slf4j-api"
       api "org.springframework.boot:spring-boot-starter-web"
-      api "com.netflix.spinnaker.kork:kork-swagger"
-      api "com.netflix.spinnaker.orca:orca-core"
+      api "io.spinnaker.kork:kork-swagger"
+      api "io.spinnaker.orca:orca-core"
 
       api "com.squareup.retrofit:retrofit"
       api "com.squareup.retrofit:converter-jackson"

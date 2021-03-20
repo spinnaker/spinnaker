@@ -21,7 +21,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion"))
+  api(platform("io.spinnaker.orca:orca-bom:$orcaVersion"))
 
   constraints {
     rootProject
