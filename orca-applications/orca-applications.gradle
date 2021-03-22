@@ -22,7 +22,7 @@ dependencies {
   implementation(project(":orca-front50"))
   implementation(project(":orca-keel"))
   implementation(project(":orca-retrofit"))
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

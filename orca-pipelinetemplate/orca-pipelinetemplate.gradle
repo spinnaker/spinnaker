@@ -29,5 +29,5 @@ dependencies {
   testImplementation("org.slf4j:slf4j-simple")
   testImplementation("org.spockframework:spock-unitils")
   testImplementation("org.codehaus.groovy:groovy-json")
-  testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
 }

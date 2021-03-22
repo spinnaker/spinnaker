@@ -31,8 +31,8 @@ dependencies {
 //  testImplementation project(':orca-test')
   testImplementation("org.springframework:spring-test")
 
-  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("org.apache.httpcomponents:httpclient")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")

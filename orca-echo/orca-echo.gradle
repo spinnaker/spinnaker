@@ -26,8 +26,8 @@ dependencies {
   implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("javax.validation:validation-api")
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
-  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
 
   testImplementation("com.squareup.retrofit:retrofit-mock")
 }

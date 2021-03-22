@@ -24,7 +24,7 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-core")
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
 
   api("io.spinnaker.kork:kork-web")
 

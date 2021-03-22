@@ -68,8 +68,8 @@ dependencies {
   implementation("io.spinnaker.kork:kork-web")
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
 

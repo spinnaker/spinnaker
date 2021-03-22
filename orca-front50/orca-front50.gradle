@@ -22,8 +22,8 @@ dependencies {
 
   api("org.codehaus.groovy:groovy")
 
-  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
-  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("com.netflix.spectator:spectator-api")
   implementation("org.jetbrains:annotations")
   implementation("org.springframework.boot:spring-boot-autoconfigure")

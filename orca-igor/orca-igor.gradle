@@ -30,7 +30,7 @@ dependencies {
 
   testImplementation(project(":orca-test-groovy"))
   testImplementation("org.springframework:spring-test")
-  testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
 }
 
 sourceSets {
