@@ -18,19 +18,20 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateTask;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface TaskService {
 
   @POST("/v3/apps/{guid}/tasks")
-  Task createTask(@Path("guid") String guid, @Body CreateTask body);
+  Call<Task> createTask(@Path("guid") String guid, @Body CreateTask body);
 
   @GET("/v3/tasks/{guid}")
-  Task getTask(@Path("guid") String guid);
+  Call<Task> getTask(@Path("guid") String guid);
 
   @POST("/v3/tasks/{guid}/actions/cancel")
-  Task cancelTask(@Path("guid") String guid, @Body Object emptyBody);
+  Call<Task> cancelTask(@Path("guid") String guid, @Body Object emptyBody);
 }

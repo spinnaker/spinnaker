@@ -29,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class CloudFoundryClientUtilsTest {
 
@@ -41,7 +43,8 @@ class CloudFoundryClientUtilsTest {
     pageOne.setPagination(new Pagination.Details().setTotalPages(1));
     pageOne.setResources(pageOneResources);
 
-    when(applicationService.all(null, null, null, null)).thenReturn(pageOne);
+    when(applicationService.all(null, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageOne)));
 
     List results =
         CloudFoundryClientUtils.collectPages(
@@ -64,8 +67,10 @@ class CloudFoundryClientUtilsTest {
     pageTwo.setPagination(new Pagination.Details().setTotalPages(2));
     pageTwo.setResources(pageTwoResources);
 
-    when(applicationService.all(null, null, null, null)).thenReturn(pageOne);
-    when(applicationService.all(2, null, null, null)).thenReturn(pageTwo);
+    when(applicationService.all(null, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageOne)));
+    when(applicationService.all(2, null, null, null))
+        .thenReturn(Calls.response(Response.success(pageTwo)));
 
     List results =
         CloudFoundryClientUtils.collectPages(
@@ -80,7 +85,7 @@ class CloudFoundryClientUtilsTest {
     Domain domainOne = new Domain().setName("domain-name-one");
     Page pageOne = Page.singleton(domainOne, "domain-one-guid").setTotalPages(1).setTotalResults(1);
 
-    when(domainService.allShared(null)).thenReturn(pageOne);
+    when(domainService.allShared(null)).thenReturn(Calls.response(Response.success(pageOne)));
 
     List results =
         CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);
@@ -96,8 +101,8 @@ class CloudFoundryClientUtilsTest {
     Domain domainTwo = new Domain().setName("domain-name-two");
     Page pageTwo = Page.singleton(domainTwo, "domain-two-guid").setTotalPages(2).setTotalResults(2);
 
-    when(domainService.allShared(null)).thenReturn(pageOne);
-    when(domainService.allShared(2)).thenReturn(pageTwo);
+    when(domainService.allShared(null)).thenReturn(Calls.response(Response.success(pageOne)));
+    when(domainService.allShared(2)).thenReturn(Calls.response(Response.success(pageTwo)));
 
     List results =
         CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);

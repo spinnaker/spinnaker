@@ -13,7 +13,10 @@ protobuf {
 
 
 configurations {
-  all*.exclude group: 'junit', module: 'junit'
+  all {
+    exclude group: 'junit'
+    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+  }
 }
 
 junitPlatform {
@@ -49,11 +52,14 @@ dependencies {
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-apache"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.netflix.spectator:spectator-reg-micrometer"
+  implementation "com.squareup.retrofit2:retrofit-mock"
+  implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
+  implementation "io.micrometer:micrometer-core:1.6.4"
   implementation "commons-io:commons-io"
   implementation "io.github.resilience4j:resilience4j-retry"
   implementation "org.springframework.boot:spring-boot-actuator"
@@ -69,4 +75,6 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.mockito:mockito-core"
+  testImplementation "com.github.tomakehurst:wiremock:latest.release"
+  testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
 }

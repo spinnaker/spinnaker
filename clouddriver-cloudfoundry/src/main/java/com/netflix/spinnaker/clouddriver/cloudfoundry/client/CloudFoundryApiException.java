@@ -25,26 +25,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
-import retrofit.RetrofitError;
 
 @Getter
 public class CloudFoundryApiException extends RuntimeException {
 
   @Nullable private ErrorDescription.Code errorCode;
 
-  public CloudFoundryApiException(ErrorDescription errorCause, RetrofitError retrofitError) {
+  public CloudFoundryApiException(ErrorDescription errorCause) {
     super(
         Optional.ofNullable(errorCause)
             .map(e -> getMessage(e.getErrors().toArray(new String[0])))
-            .orElse(getRetrofitErrorMessage(retrofitError)),
-        retrofitError);
+            .orElse(null));
     if (errorCause != null) {
       this.errorCode = errorCause.getCode();
     }
-  }
-
-  public CloudFoundryApiException(RetrofitError retrofitError) {
-    super(getRetrofitErrorMessage(retrofitError), retrofitError);
   }
 
   public CloudFoundryApiException(Throwable t, String... errors) {
@@ -64,19 +58,5 @@ public class CloudFoundryApiException extends RuntimeException {
     String[] allErrors = Arrays.copyOf(errors, errors.length + 1);
     allErrors[errors.length] = t.getMessage();
     return getMessage(allErrors);
-  }
-
-  private static String getRetrofitErrorMessage(RetrofitError retrofitError) {
-    return Optional.ofNullable(retrofitError.getResponse())
-        .map(
-            response -> {
-              return "status: "
-                  + response.getStatus()
-                  + ". url: "
-                  + response.getUrl()
-                  + ". raw response body: "
-                  + response.getBody();
-            })
-        .orElse("error, url :" + retrofitError.getUrl() + " cause: " + retrofitError.getCause());
   }
 }

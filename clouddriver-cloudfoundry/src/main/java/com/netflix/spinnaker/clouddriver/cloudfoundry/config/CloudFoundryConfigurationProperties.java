@@ -22,6 +22,7 @@ import java.util.*;
 import lombok.*;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,6 +43,8 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
   private List<ManagedAccount> accounts = new ArrayList<>();
 
   private int apiRequestParallelism = 100;
+
+  @NestedConfigurationProperty private ClientConfig client = new ClientConfig();
 
   @Override
   public void destroy() {
@@ -69,5 +72,13 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
 
     private Permissions.Builder permissions = new Permissions.Builder();
     private Map<String, Set<String>> spaceFilter = Collections.emptyMap();
+  }
+
+  @Data
+  public class ClientConfig {
+    private int connectionTimeout = 10000;
+    private int writeTimeout = 10000;
+    private int readTimeout = 10000;
+    private int maxRetries = 3;
   }
 }

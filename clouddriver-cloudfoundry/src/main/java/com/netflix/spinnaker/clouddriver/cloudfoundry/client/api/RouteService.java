@@ -21,27 +21,28 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
 import java.util.List;
-import retrofit.client.Response;
-import retrofit.http.*;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.*;
 
 public interface RouteService {
   // Mapping to CF API style query params -
   // https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
   @GET("/v2/routes?results-per-page=100")
-  Page<Route> all(
+  Call<Page<Route>> all(
       @Query("page") Integer page,
       @Query("per_page") Integer perPage,
       @Query("q") List<String> queryParams);
 
   @GET("/v2/routes/{guid}")
-  Resource<Route> findById(@Path("guid") String guid);
+  Call<Resource<Route>> findById(@Path("guid") String guid);
 
   @GET("/v2/routes/{guid}/route_mappings")
-  Page<RouteMapping> routeMappings(@Path("guid") String guid, @Query("page") Integer page);
+  Call<Page<RouteMapping>> routeMappings(@Path("guid") String guid, @Query("page") Integer page);
 
   @POST("/v2/routes")
-  Resource<Route> createRoute(@Body Route route);
+  Call<Resource<Route>> createRoute(@Body Route route);
 
   @DELETE("/v2/routes/{guid}?recursive=true")
-  Response deleteRoute(@Path("guid") String guid);
+  Call<ResponseBody> deleteRoute(@Path("guid") String guid);
 }

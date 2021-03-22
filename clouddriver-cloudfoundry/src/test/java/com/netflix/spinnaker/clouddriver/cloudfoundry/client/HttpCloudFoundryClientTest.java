@@ -16,186 +16,147 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.squareup.okhttp.Protocol.HTTP_1_1;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient.ProtobufDopplerEnvelopeConverter;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.util.List;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
-import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
+import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.mime.TypedInput;
+import org.junit.jupiter.api.extension.ExtendWith;
+import ru.lanwen.wiremock.ext.WiremockResolver;
 
+@ExtendWith({WiremockResolver.class})
 class HttpCloudFoundryClientTest {
   @Test
-  void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut() {
-    Request request = new Request.Builder().url("http://duke.of.url").build();
-    Response response502 =
-        new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
-    Response response503 =
-        new Response.Builder().code(503).request(request).protocol(HTTP_1_1).build();
-    Response response504 =
-        new Response.Builder().code(504).request(request).protocol(HTTP_1_1).build();
-    Response response200 =
-        new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
-    Interceptor.Chain chain = mock(Interceptor.Chain.class);
+  void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut(
+      @WiremockResolver.Wiremock WireMockServer server) throws Exception {
+    stubServer(
+        server,
+        200,
+        STARTED,
+        "Will respond 502",
+        "{\"access_token\":\"token\",\"expires_in\":1000000}");
+    stubServer(
+        server,
+        502,
+        "Will respond 502",
+        "Will respond 503",
+        "{\"errors\":[{\"detail\":\"502 error\"}]}");
+    stubServer(
+        server,
+        503,
+        "Will respond 503",
+        "Will respond 504",
+        "{\"errors\":[{\"detail\":\"503 error\"}]}");
+    stubServer(
+        server,
+        504,
+        "Will respond 504",
+        "Will respond 200",
+        "{\"errors\":[{\"detail\":\"504 error\"}]}");
+    stubServer(server, 200, "Will respond 200", "END", "{}");
 
-    when(chain.request()).thenReturn(request);
-    try {
-      when(chain.proceed(any())).thenReturn(response502, response503, response504, response200);
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
+    HttpCloudFoundryClient cloudFoundryClient = createDefaultCloudFoundryClient(server);
 
-    HttpCloudFoundryClient cloudFoundryClient =
-        new HttpCloudFoundryClient(
-            "account",
-            "appsManUri",
-            "metricsUri",
-            "host",
-            "user",
-            "password",
-            false,
-            500,
-            ForkJoinPool.commonPool());
-    Response response = cloudFoundryClient.createRetryInterceptor(chain);
+    CloudFoundryApiException thrown =
+        assertThrows(
+            CloudFoundryApiException.class,
+            () -> cloudFoundryClient.getOrganizations().findByName("randomName"),
+            "Expected thrown 'Cloud Foundry API returned with error(s): 504 error', but it didn't");
 
-    try {
-      verify(chain, times(3)).proceed(eq(request));
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
-    assertThat(response).isEqualTo(response504);
+    // 504 means it was retried after 502 and 503
+    assertTrue(thrown.getMessage().contains("Cloud Foundry API returned with error(s): 504 error"));
   }
 
   @Test
-  void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials() {
-    Request request = new Request.Builder().url("http://duke.of.url").build();
-    ResponseBody body =
-        ResponseBody.create(MediaType.parse("application/octet-stream"), "Bad credentials");
-    Response response401 =
-        new Response.Builder().code(401).request(request).body(body).protocol(HTTP_1_1).build();
-    Interceptor.Chain chain = mock(Interceptor.Chain.class);
+  void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials(
+      @WiremockResolver.Wiremock WireMockServer server) throws Exception {
+    stubServer(server, 401, STARTED, "Bad credentials");
 
-    when(chain.request()).thenReturn(request);
-    try {
-      when(chain.proceed(any())).thenReturn(response401);
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
+    HttpCloudFoundryClient cloudFoundryClient = createDefaultCloudFoundryClient(server);
 
-    HttpCloudFoundryClient cloudFoundryClient =
-        new HttpCloudFoundryClient(
-            "account",
-            "appsManUri",
-            "metricsUri",
-            "host",
-            "user",
-            "password",
-            false,
-            500,
-            ForkJoinPool.commonPool());
-    Response response = cloudFoundryClient.createRetryInterceptor(chain);
+    CloudFoundryApiException thrown =
+        assertThrows(
+            CloudFoundryApiException.class,
+            () -> cloudFoundryClient.getOrganizations().findByName("randomName"),
+            "Expected thrown 'Cloud Foundry API returned with error(s): Unauthorized', but it didn't");
 
-    try {
-      verify(chain, times(1)).proceed(eq(request));
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
-    assertThat(response).isEqualTo(response401);
+    assertTrue(thrown.getMessage().contains("Unauthorized"));
   }
 
   @Test
-  void createRetryInterceptorShouldReturnOnEverythingElse() {
-    Request request = new Request.Builder().url("http://duke.of.url").build();
-    Response response502 =
-        new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
-    Response response200 =
-        new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
-    Interceptor.Chain chain = mock(Interceptor.Chain.class);
+  void createRetryInterceptorShouldReturnOnSecondAttempt(
+      @WiremockResolver.Wiremock WireMockServer server) throws Exception {
+    stubServer(
+        server,
+        200,
+        STARTED,
+        "Will respond 502",
+        "{\"access_token\":\"token\",\"expires_in\":1000000}");
+    stubServer(
+        server,
+        502,
+        "Will respond 502",
+        "Will respond 200",
+        "{\"errors\":[{\"detail\":\"502 error\"}]}");
+    stubServer(
+        server,
+        200,
+        "Will respond 200",
+        "END",
+        "{\"pagination\":{\"total_pages\":1},\"resources\":[{\"guid\": \"orgId\", \"name\":\"orgName\"}]}");
 
-    when(chain.request()).thenReturn(request);
-    try {
-      when(chain.proceed(any())).thenReturn(response502, response200);
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
+    HttpCloudFoundryClient cloudFoundryClient = createDefaultCloudFoundryClient(server);
 
-    HttpCloudFoundryClient cloudFoundryClient =
-        new HttpCloudFoundryClient(
-            "account",
-            "appsManUri",
-            "metricsUri",
-            "host",
-            "user",
-            "password",
-            false,
-            500,
-            ForkJoinPool.commonPool());
-    Response response = cloudFoundryClient.createRetryInterceptor(chain);
+    Optional<CloudFoundryOrganization> cloudFoundryOrganization =
+        cloudFoundryClient.getOrganizations().findByName("randomName");
 
-    try {
-      verify(chain, times(2)).proceed(eq(request));
-    } catch (IOException e) {
-      fail("Should not happen!");
-    }
-    assertThat(response).isEqualTo(response200);
+    assertThat(cloudFoundryOrganization.get())
+        .extracting(CloudFoundryOrganization::getId, CloudFoundryOrganization::getName)
+        .containsExactly("orgId", "orgName");
   }
 
-  @Test
-  void protobufDopplerEnvelopeConverter_convertsMultipartResponse() throws ConversionException {
-    Converter converter = new ProtobufDopplerEnvelopeConverter();
-
-    List<Envelope> envelopes = (List<Envelope>) converter.fromBody(new TestingTypedInput(), null);
-
-    assertThat(envelopes.size()).isEqualTo(14);
+  private void stubServer(
+      WireMockServer server, int status, String currentState, String nextState) {
+    stubServer(server, status, currentState, nextState, "");
   }
 
-  class TestingTypedInput implements TypedInput {
-    private final File multipartProtobufLogs;
+  private void stubServer(
+      WireMockServer server, int status, String currentState, String nextState, String body) {
+    server.stubFor(
+        any(UrlPattern.ANY)
+            .inScenario("Retry Scenario")
+            .whenScenarioStateIs(currentState)
+            .willReturn(
+                aResponse()
+                    .withStatus(status) // request unsuccessful with status code 500
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(body))
+            .willSetStateTo(nextState));
+  }
 
-    TestingTypedInput() {
-      ClassLoader classLoader = getClass().getClassLoader();
-      try {
-        multipartProtobufLogs = new File(classLoader.getResource("doppler.recent.logs").toURI());
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public String mimeType() {
-      return "multipart/x-protobuf; boundary=a7d612f5da24eb116b1c0889c112d0a1beecd7e640d921ad9210100e2f77";
-    }
-
-    @Override
-    public long length() {
-      return multipartProtobufLogs.length();
-    }
-
-    @Override
-    public InputStream in() throws FileNotFoundException {
-      return new FileInputStream(multipartProtobufLogs);
-    }
+  @NotNull
+  private HttpCloudFoundryClient createDefaultCloudFoundryClient(WireMockServer server) {
+    return new HttpCloudFoundryClient(
+        "account",
+        "appsManUri",
+        "metricsUri",
+        "localhost:" + server.port() + "/",
+        "user",
+        "password",
+        false,
+        true,
+        500,
+        ForkJoinPool.commonPool(),
+        new OkHttpClient.Builder());
   }
 }

@@ -18,10 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import java.util.List;
 import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
-import retrofit.http.GET;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 public interface DopplerService {
   @GET("/apps/{guid}/recentlogs")
-  List<Envelope> recentLogs(@Path("guid") String appGuid);
+  Call<List<Envelope>> recentLogs(@Path("guid") String appGuid);
 }

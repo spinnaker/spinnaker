@@ -25,96 +25,100 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import java.util.List;
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.*;
-import retrofit.mime.TypedFile;
+import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.*;
 
 public interface ApplicationService {
   @GET("/v3/apps")
-  Pagination<Application> all(
+  Call<Pagination<Application>> all(
       @Query("page") Integer page,
       @Query("per_page") Integer perPage,
       @Query("names") List<String> names,
       @Query("space_guids") String spaceGuids);
 
   @GET("/v3/apps/{guid}")
-  Application findById(@Path("guid") String guid);
+  Call<Application> findById(@Path("guid") String guid);
 
   @GET("/v2/apps/{guid}/env")
-  ApplicationEnv findApplicationEnvById(@Path("guid") String guid);
+  Call<ApplicationEnv> findApplicationEnvById(@Path("guid") String guid);
 
   @GET("/v3/apps/{guid}/droplets/current")
-  Droplet findDropletByApplicationGuid(@Path("guid") String guid);
+  Call<Droplet> findDropletByApplicationGuid(@Path("guid") String guid);
 
   @GET("/v2/apps/{guid}/instances")
-  Map<String, InstanceStatus> instances(@Path("guid") String guid);
+  Call<Map<String, InstanceStatus>> instances(@Path("guid") String guid);
 
   @GET("/v2/apps")
-  Page<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> listAppsFiltered(
-      @Query("page") Integer page,
-      @Query("q") List<String> q,
-      @Query("results-per-page") Integer resultsPerPage);
+  Call<Page<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
+      listAppsFiltered(
+          @Query("page") Integer page,
+          @Query("q") List<String> q,
+          @Query("results-per-page") Integer resultsPerPage);
 
   /** Requires an empty body. */
   @PUT("/v2/apps/{aguid}/routes/{rguid}")
-  Response mapRoute(
+  Call<ResponseBody> mapRoute(
       @Path("aguid") String applicationGuid, @Path("rguid") String routeGuid, @Body MapRoute body);
 
   @DELETE("/v2/apps/{aguid}/routes/{rguid}")
-  Response unmapRoute(@Path("aguid") String applicationGuid, @Path("rguid") String routeGuid);
+  Call<ResponseBody> unmapRoute(
+      @Path("aguid") String applicationGuid, @Path("rguid") String routeGuid);
 
   @POST("/v3/apps/{guid}/actions/start")
-  Response startApplication(@Path("guid") String guid, @Body StartApplication body);
+  Call<ResponseBody> startApplication(@Path("guid") String guid, @Body StartApplication body);
 
   @POST("/v3/apps/{guid}/actions/stop")
-  Response stopApplication(@Path("guid") String guid, @Body StopApplication body);
+  Call<ResponseBody> stopApplication(@Path("guid") String guid, @Body StopApplication body);
 
   @DELETE("/v3/apps/{guid}")
-  Response deleteApplication(@Path("guid") String guid);
+  Call<ResponseBody> deleteApplication(@Path("guid") String guid);
 
   @DELETE("/v2/apps/{guid}/instances/{index}")
-  Response deleteAppInstance(@Path("guid") String guid, @Path("index") String index);
+  Call<ResponseBody> deleteAppInstance(@Path("guid") String guid, @Path("index") String index);
 
   @POST("/v3/processes/{guid}/actions/scale")
-  Response scaleApplication(@Path("guid") String guid, @Body ScaleApplication scaleApplication);
+  Call<ResponseBody> scaleApplication(
+      @Path("guid") String guid, @Body ScaleApplication scaleApplication);
 
   @PATCH("/v3/processes/{guid}")
-  Process updateProcess(@Path("guid") String guid, @Body UpdateProcess updateProcess);
+  Call<Process> updateProcess(@Path("guid") String guid, @Body UpdateProcess updateProcess);
 
   @GET("/v3/processes/{guid}")
-  Process findProcessById(@Path("guid") String guid);
+  Call<Process> findProcessById(@Path("guid") String guid);
 
   @GET("/v3/processes/{guid}/stats")
-  ProcessResources findProcessStatsById(@Path("guid") String guid);
+  Call<ProcessResources> findProcessStatsById(@Path("guid") String guid);
 
   @POST("/v3/apps")
-  Application createApplication(@Body CreateApplication application);
+  Call<Application> createApplication(@Body CreateApplication application);
 
   @GET("/v3/apps/{guid}/packages")
-  Pagination<Package> findPackagesByAppId(@Path("guid") String appGuid);
+  Call<Pagination<Package>> findPackagesByAppId(@Path("guid") String appGuid);
 
   @POST("/v3/packages")
-  Package createPackage(@Body CreatePackage pkg);
+  Call<Package> createPackage(@Body CreatePackage pkg);
 
   @GET("/v3/packages/{guid}")
-  Package getPackage(@Path("guid") String packageGuid);
+  Call<Package> getPackage(@Path("guid") String packageGuid);
 
   @GET("/v3/packages/{guid}/download")
-  Response downloadPackage(@Path("guid") String packageGuid);
+  Call<ResponseBody> downloadPackage(@Path("guid") String packageGuid);
 
   @Multipart
   @POST("/v3/packages/{guid}/upload")
-  Package uploadPackageBits(@Path("guid") String packageGuid, @Part("bits") TypedFile file);
+  Call<Package> uploadPackageBits(@Path("guid") String packageGuid, @Part MultipartBody.Part file);
 
   @POST("/v3/builds")
-  Build createBuild(@Body CreateBuild build);
+  Call<Build> createBuild(@Body CreateBuild build);
 
   @GET("/v3/builds/{guid}")
-  Build getBuild(@Path("guid") String buildGuid);
+  Call<Build> getBuild(@Path("guid") String buildGuid);
 
   @PATCH("/v3/apps/{guid}/relationships/current_droplet")
-  Response setCurrentDroplet(@Path("guid") String appGuid, @Body ToOneRelationship body);
+  Call<ResponseBody> setCurrentDroplet(@Path("guid") String appGuid, @Body ToOneRelationship body);
 
   @POST("/v2/apps/{guid}/restage")
-  Response restageApplication(@Path("guid") String appGuid, @Body Object dummy);
+  Call<ResponseBody> restageApplication(@Path("guid") String appGuid, @Body Object dummy);
 }

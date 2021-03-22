@@ -21,59 +21,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DopplerService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.TaskService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Response;
-import io.github.resilience4j.retry.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.net.SocketTimeoutException;
-import java.nio.charset.Charset;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.retry.RetryInterceptor;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenAuthenticator;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenInterceptor;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenProvider;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
-import okio.Buffer;
-import okio.BufferedSource;
-import org.apache.commons.fileupload.MultipartStream;
-import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.converter.protobuf.ProtoConverterFactory;
 
 /**
  * Waiting for this issue to be resolved before replacing this class by the CF Java Client:
@@ -84,16 +51,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private final String apiHost;
   private final String user;
   private final String password;
-  private final OkHttpClient okHttpClient;
   private Logger logger = LoggerFactory.getLogger(HttpCloudFoundryClient.class);
-
   private AuthenticationService uaaService;
-  private long tokenExpiration = System.currentTimeMillis();
-  private Token token;
-  private final Object tokenLock = new Object();
-
-  private JacksonConverter jacksonConverter;
-
   private Spaces spaces;
   private Organizations organizations;
   private Domains domains;
@@ -104,75 +63,6 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private Tasks tasks;
   private Logs logs;
 
-  private final RequestInterceptor oauthInterceptor =
-      request -> request.addHeader("Authorization", "bearer " + getToken(false).getAccessToken());
-
-  private static class RetryableApiException extends RuntimeException {
-    RetryableApiException(String message) {
-      super(message);
-    }
-  }
-
-  Response createRetryInterceptor(Interceptor.Chain chain) {
-    final String callName = "cf.api.call";
-    Retry retry =
-        Retry.of(
-            callName,
-            RetryConfig.custom()
-                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(10), 3))
-                .retryExceptions(RetryableApiException.class)
-                .build());
-    logger.trace("cf request: " + chain.request().urlString());
-    AtomicReference<Response> lastResponse = new AtomicReference<>();
-    try {
-      return retry.executeCallable(
-          () -> {
-            Response response = chain.proceed(chain.request());
-            lastResponse.set(response);
-
-            switch (response.code()) {
-              case 401:
-                BufferedSource source = response.body().source();
-                source.request(Long.MAX_VALUE); // request the entire body
-                Buffer buffer = source.buffer();
-                String body = buffer.clone().readString(Charset.forName("UTF-8"));
-                if (!body.contains("Bad credentials")) {
-                  response =
-                      chain.proceed(
-                          chain
-                              .request()
-                              .newBuilder()
-                              .header("Authorization", "bearer " + getToken(true).getAccessToken())
-                              .build());
-                  lastResponse.set(response);
-                }
-                break;
-              case 502:
-              case 503:
-              case 504:
-                // after retries fail, the response body for these status codes will get wrapped up
-                // into a CloudFoundryApiException
-                throw new RetryableApiException(
-                    "Response Code "
-                        + response.code()
-                        + ": "
-                        + chain.request().httpUrl()
-                        + " attempting retry");
-            }
-
-            return response;
-          });
-    } catch (SocketTimeoutException e) {
-      throw new RuntimeException(e);
-    } catch (Exception e) {
-      final Response response = lastResponse.get();
-      if (response == null) {
-        throw new IllegalStateException(e);
-      }
-      return response;
-    }
-  }
-
   public HttpCloudFoundryClient(
       String account,
       String appsManagerUri,
@@ -180,17 +70,15 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       String apiHost,
       String user,
       String password,
+      boolean useHttps,
       boolean skipSslValidation,
       Integer resultsPerPage,
-      ForkJoinPool forkJoinPool) {
+      ForkJoinPool forkJoinPool,
+      OkHttpClient.Builder okHttpClientBuilder) {
+
     this.apiHost = apiHost;
     this.user = user;
     this.password = password;
-
-    this.okHttpClient = createHttpClient(skipSslValidation);
-    this.okHttpClient.setReadTimeout(20, TimeUnit.SECONDS);
-
-    okHttpClient.interceptors().add(this::createRetryInterceptor);
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
@@ -198,63 +86,84 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.registerModule(new JavaTimeModule());
 
-    this.jacksonConverter = new JacksonConverter(mapper);
-
+    // The UAA service is built first because the Authenticator interceptor needs it to get tokens
+    // from CF.
+    OkHttpClient okHttpClient = applySslValidator(okHttpClientBuilder, skipSslValidation);
     this.uaaService =
-        new RestAdapter.Builder()
-            .setEndpoint("https://" + apiHost.replaceAll("^api\\.", "login."))
-            .setClient(new OkClient(okHttpClient))
-            .setConverter(jacksonConverter)
+        new Retrofit.Builder()
+            .baseUrl(
+                (useHttps ? "https://" : "http://") + this.apiHost.replaceAll("^api\\.", "login."))
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create(mapper))
             .build()
             .create(AuthenticationService.class);
 
-    this.organizations = new Organizations(createService(OrganizationService.class));
-    this.spaces = new Spaces(createService(SpaceService.class), organizations);
+    // The remaining services need the AccessTokenAuthenticator in order to retry for 401 responses.
+    AccessTokenProvider accessTokenProvider =
+        new AccessTokenProvider(user, password, this.uaaService);
+    okHttpClient =
+        okHttpClient
+            .newBuilder()
+            .authenticator(new AccessTokenAuthenticator(accessTokenProvider))
+            .addInterceptor(new AccessTokenInterceptor(accessTokenProvider))
+            .addInterceptor(new RetryInterceptor())
+            .build();
+
+    // Shared retrofit targeting cf api with preconfigured okhttpclient and jackson converter
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl((useHttps ? "https://" : "http://") + this.apiHost)
+            .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .build();
+
+    this.organizations = new Organizations(retrofit.create(OrganizationService.class));
+    this.spaces = new Spaces(retrofit.create(SpaceService.class), organizations);
     this.applications =
         new Applications(
             account,
             appsManagerUri,
             metricsUri,
-            createService(ApplicationService.class),
+            retrofit.create(ApplicationService.class),
             spaces,
             resultsPerPage,
             forkJoinPool);
-    this.domains = new Domains(createService(DomainService.class), organizations);
+    this.domains = new Domains(retrofit.create(DomainService.class), organizations);
     this.serviceInstances =
         new ServiceInstances(
-            createService(ServiceInstanceService.class),
-            createService(ConfigService.class),
+            retrofit.create(ServiceInstanceService.class),
+            retrofit.create(ConfigService.class),
             spaces);
     this.routes =
         new Routes(
             account,
-            createService(RouteService.class),
+            retrofit.create(RouteService.class),
             applications,
             domains,
             spaces,
             resultsPerPage,
             forkJoinPool);
-    this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
-    this.tasks = new Tasks(createService(TaskService.class));
+    this.serviceKeys = new ServiceKeys(retrofit.create(ServiceKeyService.class), spaces);
+    this.tasks = new Tasks(retrofit.create(TaskService.class));
 
+    // Logs requires retrofit with different baseUrl and converterFactory
     this.logs =
         new Logs(
-            new RestAdapter.Builder()
-                .setEndpoint("https://" + apiHost.replaceAll("^api\\.", "doppler."))
-                .setClient(new OkClient(okHttpClient))
-                .setConverter(new ProtobufDopplerEnvelopeConverter())
-                .setRequestInterceptor(oauthInterceptor)
+            new Retrofit.Builder()
+                .client(okHttpClient)
+                .baseUrl(
+                    (useHttps ? "https://" : "http://") + apiHost.replaceAll("^api\\.", "doppler."))
+                .addConverterFactory(ProtoConverterFactory.create())
                 .build()
                 .create(DopplerService.class));
   }
 
-  private static OkHttpClient createHttpClient(boolean skipSslValidation) {
-    OkHttpClient client = new OkHttpClient();
-
+  private static OkHttpClient applySslValidator(
+      OkHttpClient.Builder builder, boolean skipSslValidation) {
     if (skipSslValidation) {
-      client.setHostnameVerifier((s, sslSession) -> true);
+      builder.hostnameVerifier((s, sslSession) -> true);
 
-      TrustManager[] trustAllCerts =
+      TrustManager[] trustManagers =
           new TrustManager[] {
             new X509TrustManager() {
               @Override
@@ -273,40 +182,15 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       SSLContext sslContext;
       try {
         sslContext = SSLContext.getInstance("SSL");
-        sslContext.init(null, trustAllCerts, new SecureRandom());
+        sslContext.init(null, trustManagers, new SecureRandom());
       } catch (KeyManagementException | NoSuchAlgorithmException e) {
         throw new RuntimeException(e);
       }
 
-      client.setSslSocketFactory(sslContext.getSocketFactory());
+      X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+      builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
     }
-
-    return client;
-  }
-
-  private Token getToken(boolean forceRefresh) {
-    synchronized (tokenLock) {
-      if (forceRefresh || (token == null || System.currentTimeMillis() >= tokenExpiration)) {
-        try {
-          token = uaaService.passwordToken("password", user, password, "cf", "");
-        } catch (Exception e) {
-          log.warn("Failed to obtain a token", e);
-          throw e;
-        }
-        tokenExpiration = System.currentTimeMillis() + ((token.getExpiresIn() - 120) * 1000);
-      }
-      return token;
-    }
-  }
-
-  private <S> S createService(Class<S> serviceClass) {
-    return new RestAdapter.Builder()
-        .setEndpoint("https://" + apiHost)
-        .setClient(new OkClient(okHttpClient))
-        .setConverter(jacksonConverter)
-        .setRequestInterceptor(oauthInterceptor)
-        .build()
-        .create(serviceClass);
+    return builder.build();
   }
 
   @Override
@@ -352,53 +236,5 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   @Override
   public Logs getLogs() {
     return logs;
-  }
-
-  static class ProtobufDopplerEnvelopeConverter implements Converter {
-    @Override
-    public Object fromBody(TypedInput body, Type type) throws ConversionException {
-      try {
-        byte[] boundaryBytes = extractMultipartBoundary(body.mimeType()).getBytes();
-        MultipartStream multipartStream = new MultipartStream(body.in(), boundaryBytes, 4096, null);
-
-        List<Envelope> envelopes = new ArrayList<>();
-        ByteArrayOutputStream os = new ByteArrayOutputStream(4096);
-
-        boolean nextPart = multipartStream.skipPreamble();
-        while (nextPart) {
-          // Skipping the empty part headers
-          multipartStream.readByte(); // 0x0D
-          multipartStream.readByte(); // 0x0A
-
-          os.reset();
-          multipartStream.readBodyData(os);
-          envelopes.add(Envelope.parseFrom(os.toByteArray()));
-
-          nextPart = multipartStream.readBoundary();
-        }
-
-        return envelopes;
-      } catch (IOException e) {
-        throw new ConversionException(e);
-      }
-    }
-
-    @Override
-    public TypedOutput toBody(Object object) {
-      throw new UnsupportedOperationException("Deserializer only");
-    }
-
-    private static Pattern BOUNDARY_PATTERN = Pattern.compile("multipart/.+; boundary=(.*)");
-
-    private static String extractMultipartBoundary(String contentType) {
-      Matcher matcher = BOUNDARY_PATTERN.matcher(contentType);
-      if (matcher.matches()) {
-        return matcher.group(1);
-      } else {
-        throw new IllegalStateException(
-            String.format(
-                "Content-Type %s does not contain a valid multipart boundary", contentType));
-      }
-    }
   }
 }

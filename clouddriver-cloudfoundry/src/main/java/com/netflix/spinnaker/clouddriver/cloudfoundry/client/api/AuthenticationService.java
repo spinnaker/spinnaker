@@ -18,13 +18,15 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import java.util.Map;
-import retrofit.Callback;
-import retrofit.http.*;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.http.*;
 
 public interface AuthenticationService {
   @FormUrlEncoded
   @POST("/oauth/token")
-  Token passwordToken(
+  Call<Token> passwordToken(
       @Field("grant_type") String grantType,
       @Field("username") String username,
       @Field("password") String password,
@@ -32,11 +34,11 @@ public interface AuthenticationService {
       @Field("client_secret") String clientSecret);
 
   @DELETE("/oauth/token/revoke/client/{clientId}")
-  void revokeToken(@Path("clientId") String tokenId, Callback<Void> callback);
+  Call<ResponseBody> revokeToken(@Path("clientId") String tokenId, Callback<Void> callback);
 
   @FormUrlEncoded
   @POST("/oath/authorize")
-  void authorize(
+  Call<ResponseBody> authorize(
       @Field("response_type") String responseType,
       @Field("client_id") String clientId,
       @Field("scope") String scope,

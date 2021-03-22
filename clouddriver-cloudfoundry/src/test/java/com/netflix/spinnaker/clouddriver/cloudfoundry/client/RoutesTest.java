@@ -17,16 +17,18 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class RoutesTest {
   @Test
@@ -55,8 +59,11 @@ class RoutesTest {
     route.setPath("/path");
 
     RouteService routeService = mock(RouteService.class);
-    when(routeService.all(any(), any(), any())).thenReturn(Page.singleton(route, "abc123"));
-    when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
+    when(routeService.all(any(), any(), any()))
+        .thenAnswer(
+            invocation -> Calls.response(Response.success(Page.singleton(route, "abc123"))));
+    when(routeService.routeMappings(any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
@@ -126,8 +133,10 @@ class RoutesTest {
     routeMappingPage.setTotalPages(1);
 
     when(spaces.findById("space-guid")).thenReturn(space);
-    when(routeService.all(any(), any(), any())).thenReturn(routePage);
-    when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
+    when(routeService.all(any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(routePage)));
+    when(routeService.routeMappings(any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(routeMappingPage)));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());

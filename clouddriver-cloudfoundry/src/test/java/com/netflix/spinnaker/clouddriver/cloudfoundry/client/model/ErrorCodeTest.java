@@ -19,66 +19,40 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
-import retrofit.converter.ConversionException;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedInput;
 
 class ErrorCodeTest {
 
-  private final JacksonConverter jacksonConverter = new JacksonConverter();
-
   @Test
   void deserialize() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = CloudFoundryClientUtils.getMapper();
     assertThat(mapper.readValue("\"CF-RouteHostTaken\"", ErrorDescription.Code.class))
         .isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
   }
 
   @Test
-  void deserializeV2() throws ConversionException {
-    TestingTypedInput testingTypedInput =
-        new TestingTypedInput(
-            "{\"description\":\"The host is taken: tester\",\"error_code\":\"CF-RouteHostTaken\",\"code\":210003}");
+  void deserializeV2() throws IOException {
+    ObjectMapper mapper = CloudFoundryClientUtils.getMapper();
     ErrorDescription err =
-        (ErrorDescription) jacksonConverter.fromBody(testingTypedInput, ErrorDescription.class);
-    assertThat(err.getCode().equals(ErrorDescription.Code.ROUTE_HOST_TAKEN));
-    assertThat(err.getErrors().contains("The host is taken: tester"));
+        mapper.readValue(
+            "{\"description\":\"The host is taken: tester\",\"error_code\":\"CF-RouteHostTaken\",\"code\":210003}",
+            ErrorDescription.class);
+
+    assertThat(err.getCode()).isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
+    assertThat(err.getErrors()).contains("The host is taken: tester");
   }
 
   @Test
-  void deserializeV3() throws IOException, ConversionException {
-    TestingTypedInput testingTypedInput =
-        new TestingTypedInput(
-            "{\"errors\":[{\"code\":210003,\"title\":\"CF-RouteHostTaken\",\"detail\":\"The host is taken: tester\"}]}");
+  void deserializeV3() throws IOException {
+    ObjectMapper mapper = CloudFoundryClientUtils.getMapper();
     ErrorDescription err =
-        (ErrorDescription) jacksonConverter.fromBody(testingTypedInput, ErrorDescription.class);
-    assertThat(err.getCode().equals(ErrorDescription.Code.ROUTE_HOST_TAKEN));
-    assertThat(err.getErrors().contains("The host is taken: tester"));
-  }
+        mapper.readValue(
+            "{\"errors\":[{\"code\":210003,\"title\":\"CF-RouteHostTaken\",\"detail\":\"The host is taken: tester\"}]}",
+            ErrorDescription.class);
 
-  class TestingTypedInput implements TypedInput {
-
-    byte[] bytes;
-
-    TestingTypedInput(String json) {
-      this.bytes = json.getBytes();
-    }
-
-    @Override
-    public String mimeType() {
-      return "application/json";
-    }
-
-    @Override
-    public long length() {
-      return bytes.length;
-    }
-
-    @Override
-    public InputStream in() {
-      return new ByteArrayInputStream(bytes);
-    }
+    assertThat(err.getCode()).isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
+    assertThat(err.getErrors()).contains("The host is taken: tester");
   }
 }

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import javax.annotation.Nullable;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -77,18 +78,19 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
           "test",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
+          "managerUri",
+          "metricsUri",
+          "api.Host",
+          "userName",
+          "password",
+          "environment",
           false,
           500,
           cacheRepository,
           null,
           ForkJoinPool.commonPool(),
-          emptyMap()) {
+          emptyMap(),
+          new OkHttpClient()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

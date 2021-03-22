@@ -18,16 +18,18 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import java.util.List;
-import retrofit.client.Response;
-import retrofit.http.*;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.*;
 
 public interface ServiceKeyService {
   @POST("/v2/service_keys")
-  Resource<ServiceCredentials> createServiceKey(@Body CreateServiceKey body);
+  Call<Resource<ServiceCredentials>> createServiceKey(@Body CreateServiceKey body);
 
   @GET("/v2/service_keys")
-  Page<ServiceKey> getServiceKey(@Query("page") Integer page, @Query("q") List<String> queryParams);
+  Call<Page<ServiceKey>> getServiceKey(
+      @Query("page") Integer page, @Query("q") List<String> queryParams);
 
   @DELETE("/v2/service_keys/{guid}")
-  Response deleteServiceKey(@Path("guid") String guid);
+  Call<ResponseBody> deleteServiceKey(@Path("guid") String guid);
 }

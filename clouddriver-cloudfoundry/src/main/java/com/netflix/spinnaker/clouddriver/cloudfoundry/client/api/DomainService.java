@@ -19,20 +19,21 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Domain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface DomainService {
   @GET("/v2/shared_domains/{guid}")
-  Resource<Domain> findSharedDomainById(@Path("guid") String guid);
+  Call<Resource<Domain>> findSharedDomainById(@Path("guid") String guid);
 
   @GET("/v2/private_domains/{guid}")
-  Resource<Domain> findPrivateDomainById(@Path("guid") String guid);
+  Call<Resource<Domain>> findPrivateDomainById(@Path("guid") String guid);
 
   @GET("/v2/private_domains")
-  Page<Domain> allPrivate(@Query("page") Integer page);
+  Call<Page<Domain>> allPrivate(@Query("page") Integer page);
 
   @GET("/v2/shared_domains")
-  Page<Domain> allShared(@Query("page") Integer page);
+  Call<Page<Domain>> allShared(@Query("page") Integer page);
 }

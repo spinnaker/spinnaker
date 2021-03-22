@@ -38,9 +38,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -48,12 +46,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import org.apache.commons.lang3.StringUtils;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedFile;
-import retrofit.mime.TypedInput;
 
 @Slf4j
 public class Applications {
@@ -99,19 +95,14 @@ public class Applications {
 
   @Nullable
   public CloudFoundryServerGroup findById(String guid) {
-    return safelyCall(
-            () -> {
-              try {
-                return serverGroupCache.get(guid);
-              } catch (ExecutionException e) {
-                if (e.getCause() instanceof ResourceNotFoundException) {
-                  return null;
-                }
-                throw new CloudFoundryApiException(
-                    e.getCause(), "Unable to find server group by id");
-              }
-            })
-        .orElse(null);
+    try {
+      return serverGroupCache.get(guid);
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof ResourceNotFoundException) {
+        return null;
+      }
+      throw new CloudFoundryApiException(e.getCause(), "Unable to find server group by id");
+    }
   }
 
   public List<CloudFoundryApplication> all(List<String> spaceGuids) {
@@ -270,9 +261,7 @@ public class Applications {
     CloudFoundryServerGroup.State state =
         CloudFoundryServerGroup.State.valueOf(application.getState());
 
-    CloudFoundrySpace space =
-        safelyCall(() -> spaces.findById(application.getLinks().get("space").getGuid()))
-            .orElse(null);
+    CloudFoundrySpace space = spaces.findById(application.getLinks().get("space").getGuid());
     String appId = application.getGuid();
     ApplicationEnv applicationEnv =
         safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
@@ -462,17 +451,6 @@ public class Applications {
                   + " instances for application '"
                   + application.getName()
                   + "'");
-        } catch (RetrofitError e) {
-          try {
-            log.debug(
-                "Unable to retrieve instances for application '"
-                    + application.getName()
-                    + "': "
-                    + IOUtils.toString(e.getResponse().getBody().in(), Charset.defaultCharset()));
-          } catch (IOException e1) {
-            log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
-          }
-          instances = emptySet();
         } catch (Exception ex) {
           log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
           instances = emptySet();
@@ -606,22 +584,21 @@ public class Applications {
 
   @Nonnull
   public InputStream downloadPackageBits(String packageGuid) throws CloudFoundryApiException {
-    try {
-      Optional<TypedInput> optionalPackageInput =
-          safelyCall(() -> api.downloadPackage(packageGuid)).map(Response::getBody);
-      TypedInput packageInput =
-          optionalPackageInput.orElseThrow(
-              () ->
-                  new CloudFoundryApiException("Failed to retrieve input stream of package bits."));
-      return packageInput.in();
-    } catch (IOException e) {
-      throw new CloudFoundryApiException(e, "Failed to retrieve input stream of package bits.");
-    }
+    Optional<InputStream> optionalPackageInput =
+        safelyCall(() -> api.downloadPackage(packageGuid)).map(r -> r.byteStream());
+    InputStream packageInput =
+        optionalPackageInput.orElseThrow(
+            () -> new CloudFoundryApiException("Failed to retrieve input stream of package bits."));
+    return packageInput;
   }
 
   public void uploadPackageBits(String packageGuid, File file) throws CloudFoundryApiException {
-    TypedFile uploadFile = new TypedFile("multipart/form-data", file);
-    safelyCall(() -> api.uploadPackageBits(packageGuid, uploadFile))
+    MultipartBody.Part filePart =
+        MultipartBody.Part.createFormData(
+            "bits",
+            file.getName(),
+            RequestBody.create(MediaType.parse("multipart/form-data"), file));
+    safelyCall(() -> api.uploadPackageBits(packageGuid, filePart))
         .map(Package::getGuid)
         .orElseThrow(
             () ->
@@ -689,7 +666,7 @@ public class Applications {
                     .map(ProcessStats::getState)
                     .orElseGet(
                         () ->
-                            Optional.ofNullable(api.findById(appGuid))
+                            safelyCall(() -> api.findById(appGuid))
                                 .filter(
                                     application ->
                                         CloudFoundryServerGroup.State.STARTED.equals(

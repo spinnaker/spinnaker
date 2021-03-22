@@ -36,6 +36,7 @@ import io.vavr.collection.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 
 class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
@@ -62,18 +63,19 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
           "my-account",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
+          "managerUri",
+          "metricsUri",
+          "apiHost",
+          "username",
+          "password",
+          "environment",
           false,
           500,
           cacheRepository,
           null,
           ForkJoinPool.commonPool(),
-          emptyMap()) {
+          emptyMap(),
+          new OkHttpClient()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

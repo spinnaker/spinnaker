@@ -31,6 +31,8 @@ import org.cloudfoundry.dropsonde.events.EventFactory.Envelope.EventType;
 import org.cloudfoundry.dropsonde.events.LogFactory.LogMessage;
 import org.cloudfoundry.dropsonde.events.LogFactory.LogMessage.MessageType;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class LogsTest {
   private Envelope logMessage(
@@ -56,7 +58,8 @@ class LogsTest {
 
   private DopplerService fakeDopplerService(String forAppGuid, Envelope... envelopes) {
     DopplerService dopplerService = mock(DopplerService.class);
-    when(dopplerService.recentLogs(eq(forAppGuid))).thenReturn(Arrays.asList(envelopes));
+    when(dopplerService.recentLogs(eq(forAppGuid)))
+        .thenReturn(Calls.response(Response.success(Arrays.asList(envelopes))));
     return dopplerService;
   }
 
@@ -99,9 +102,13 @@ class LogsTest {
   void recentApplicationLogs_filterInAppLogMessagesOnlyForSpecifiedAppGuid() {
     DopplerService dopplerService = mock(DopplerService.class);
     when(dopplerService.recentLogs(eq("12345")))
-        .thenReturn(singletonList(logMessage(0, "msg1", "APP/PROC/WEB", 0)));
+        .thenReturn(
+            Calls.response(
+                Response.success(singletonList(logMessage(0, "msg1", "APP/PROC/WEB", 0)))));
     when(dopplerService.recentLogs(eq("99999")))
-        .thenReturn(singletonList(logMessage(0, "msg2", "APP/PROC/WEB", 0)));
+        .thenReturn(
+            Calls.response(
+                Response.success(singletonList(logMessage(0, "msg2", "APP/PROC/WEB", 0)))));
 
     Logs logs = new Logs(dopplerService);
 

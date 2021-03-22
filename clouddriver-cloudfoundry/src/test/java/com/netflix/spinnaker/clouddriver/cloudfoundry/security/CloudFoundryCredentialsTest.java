@@ -20,7 +20,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 
 public class CloudFoundryCredentialsTest {
@@ -46,18 +48,19 @@ public class CloudFoundryCredentialsTest {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "managerUri",
+            "metricsUri",
+            "api.host",
+            "username",
+            "password",
+            "environment",
             false,
             500,
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap());
+            emptyMap(),
+            new OkHttpClient());
 
     assertThat(credentials.getFilteredSpaces()).isEqualTo(emptyList());
   }
@@ -67,18 +70,19 @@ public class CloudFoundryCredentialsTest {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "managerUri",
+            "metricsUri",
+            "api.host",
+            "username",
+            "password",
+            "environment",
             false,
             500,
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }
@@ -116,18 +120,19 @@ public class CloudFoundryCredentialsTest {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "managerUri",
+            "metricsUri",
+            "api.host",
+            "username",
+            "password",
+            "environment",
             false,
             500,
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }
@@ -165,18 +170,19 @@ public class CloudFoundryCredentialsTest {
     CloudFoundryCredentials credentials =
         new CloudFoundryCredentials(
             "test",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "managerUri",
+            "metricsUri",
+            "api.host",
+            "username",
+            "password",
+            "environment",
             false,
             500,
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }
