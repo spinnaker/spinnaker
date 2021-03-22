@@ -27,14 +27,17 @@ export function useFormInputValueMapper<INT, EXT>(
   fromInputValue: (inputValue: INT, e: React.ChangeEvent<any>) => EXT,
 ) {
   const value = toInputValue(props.value);
-  const onChange = React.useCallback((e: React.ChangeEvent<any>) => {
-    props.onChange(
-      createFakeReactSyntheticEvent({
-        name: e.target.name,
-        value: fromInputValue(e.target.value, e),
-      }),
-    );
-  }, []);
+  const onChange = React.useCallback(
+    (e: React.ChangeEvent<any>) => {
+      props.onChange(
+        createFakeReactSyntheticEvent({
+          name: e.target.name,
+          value: fromInputValue(e.target.value, e),
+        }),
+      );
+    },
+    [props.onChange, fromInputValue],
+  );
 
   return { ...props, value, onChange };
 }
