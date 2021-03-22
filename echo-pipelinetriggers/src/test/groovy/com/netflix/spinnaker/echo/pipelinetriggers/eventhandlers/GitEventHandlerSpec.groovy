@@ -42,7 +42,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   }
 
   @Unroll
-  def "triggers pipelines for successful builds for #triggerType"() {
+  def "triggers pipelines for successful builds for #trigger.source"() {
     given:
     def pipeline = createPipelineWith(trigger)
     def pipelines = handlerSupport.pipelineCache(pipeline)
