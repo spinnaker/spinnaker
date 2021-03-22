@@ -23,8 +23,8 @@ test {
 dependencies {
   implementation project(':echo-model')
   implementation "io.spinnaker.kork:kork-artifacts"
-  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"

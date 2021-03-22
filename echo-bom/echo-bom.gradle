@@ -25,8 +25,8 @@ dependencies {
   api(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
 
   constraints {
-    api("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
-    api("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+    api("io.spinnaker.fiat:fiat-api:$fiatVersion")
+    api("io.spinnaker.fiat:fiat-core:$fiatVersion")
 
     rootProject
       .subprojects
