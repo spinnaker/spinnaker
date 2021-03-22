@@ -14,8 +14,8 @@ dependencies {
   implementation "com.google.apis:google-api-services-storage"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-credentials"
