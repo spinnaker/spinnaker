@@ -33,6 +33,7 @@ public class S3ArtifactAccount implements ArtifactAccount {
   private final String region;
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
+  private final String signerOverride;
 
   @Builder
   @ConstructorBinding
@@ -43,12 +44,14 @@ public class S3ArtifactAccount implements ArtifactAccount {
       String apiRegion,
       String region,
       String awsAccessKeyId,
-      String awsSecretAccessKey) {
+      String awsSecretAccessKey,
+      String signerOverride) {
     this.name = Strings.nullToEmpty(name);
     this.apiEndpoint = Strings.nullToEmpty(apiEndpoint);
     this.apiRegion = Strings.nullToEmpty(apiRegion);
     this.region = Strings.nullToEmpty(region);
     this.awsAccessKeyId = Strings.nullToEmpty(awsAccessKeyId);
     this.awsSecretAccessKey = Strings.nullToEmpty(awsSecretAccessKey);
+    this.signerOverride = Strings.nullToEmpty(signerOverride);
   }
 }

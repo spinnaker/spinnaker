@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.PredefinedClientConfigurations;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -42,6 +44,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String region;
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
+  private final String signerOverride;
 
   S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
     name = account.getName();
@@ -50,11 +53,16 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     region = account.getRegion();
     awsAccessKeyId = account.getAwsAccessKeyId();
     awsSecretAccessKey = account.getAwsSecretAccessKey();
+    signerOverride = account.getSignerOverride();
   }
 
   private AmazonS3 getS3Client() {
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-
+    if (!signerOverride.isEmpty()) {
+      ClientConfiguration configuration = PredefinedClientConfigurations.defaultConfig();
+      configuration.setSignerOverride(signerOverride);
+      builder.setClientConfiguration(configuration);
+    }
     if (!apiEndpoint.isEmpty()) {
       AwsClientBuilder.EndpointConfiguration endpoint =
           new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
