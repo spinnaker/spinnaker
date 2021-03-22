@@ -17,7 +17,7 @@
 dependencies {
   implementation project(":igor-core")
 
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-jedis"

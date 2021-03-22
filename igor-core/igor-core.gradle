@@ -2,7 +2,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-jedis"
-  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
 
   // TODO(rz): Get rid of this dependency!
   implementation "com.squareup.retrofit:retrofit"
