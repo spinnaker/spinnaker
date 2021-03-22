@@ -15,7 +15,7 @@
  */
 
 dependencies {
-  api "com.netflix.spinnaker.kork:kork-api"
+  api "io.spinnaker.kork:kork-api"
 
   implementation project(":fiat-core")
 
@@ -24,10 +24,10 @@ dependencies {
   implementation "org.springframework.security:spring-security-core"
   implementation "org.springframework.security:spring-security-web"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.kork:kork-telemetry"
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-telemetry"
+  implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"

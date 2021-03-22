@@ -25,10 +25,10 @@ dependencies {
 
     implementation "com.github.ben-manes.caffeine:caffeine"
 
-    implementation "com.netflix.spinnaker.kork:kork-telemetry"
-    implementation "com.netflix.spinnaker.kork:kork-sql"
-    implementation "com.netflix.spinnaker.kork:kork-exceptions"
-    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "io.spinnaker.kork:kork-telemetry"
+    implementation "io.spinnaker.kork:kork-sql"
+    implementation "io.spinnaker.kork:kork-exceptions"
+    implementation "io.spinnaker.kork:kork-web"
 
     implementation "io.strikt:strikt-core"
     implementation "io.github.resilience4j:resilience4j-retry"
