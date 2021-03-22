@@ -29,7 +29,7 @@ class DeleteDanglingServiceAccountsMigrationSpec extends Specification {
   ServiceAccountDAO serviceAccountDAO = Mock()
 
   @Subject
-  def migration = new DeleteDanglingServiceAccountsMigration(pipelineDAO, serviceAccountDAO)
+  def migration = new DeleteDanglingServiceAccountsMigration(pipelineDAO, serviceAccountDAO, true, false)
 
   def "should delete service account not found in any triggers"() {
     given:
@@ -92,6 +92,9 @@ class DeleteDanglingServiceAccountsMigrationSpec extends Specification {
     def serviceAccount5 = new ServiceAccount(
       name: "another-existing-service-user@org.com"
     )
+    def serviceAccount6 = new ServiceAccount(
+      name: "shared-account@shared-managed-service-account"
+    )
 
     when:
     migration.run()
@@ -100,6 +103,30 @@ class DeleteDanglingServiceAccountsMigrationSpec extends Specification {
     1 * serviceAccountDAO.all() >> [serviceAccount1, serviceAccount2, serviceAccount3, serviceAccount4, serviceAccount5]
     1 * pipelineDAO.all() >> [pipeline1, pipeline2]
     1 * serviceAccountDAO.delete("3@managed-service-account")
+    0 * serviceAccountDAO.delete(_)
+  }
+
+  def "when deleteDanglingSharedManagedServiceAccounts enabled should delete dangling shared managed service account"() {
+    given:
+    def migration = new DeleteDanglingServiceAccountsMigration(pipelineDAO, serviceAccountDAO, false, true)
+
+    def serviceAccountName = "test-managed-service-account@managed-service-account"
+    def serviceAccount = new ServiceAccount(
+      name: serviceAccountName
+    )
+
+    def sharedServiceAccountName = "test-shared-managed-service-account@shared-managed-service-account"
+    def sharedServiceAccount = new ServiceAccount(
+      name: sharedServiceAccountName
+    )
+
+    when:
+    migration.run()
+
+    then:
+    1 * serviceAccountDAO.all() >> [serviceAccount, sharedServiceAccount]
+    1 * pipelineDAO.all() >> []
+    1 * serviceAccountDAO.delete(sharedServiceAccountName)
     0 * serviceAccountDAO.delete(_)
   }
 }

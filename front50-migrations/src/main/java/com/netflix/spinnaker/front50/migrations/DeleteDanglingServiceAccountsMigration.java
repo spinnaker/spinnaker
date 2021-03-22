@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -35,25 +36,38 @@ import org.springframework.stereotype.Component;
 @ConditionalOnAnyProviderExceptRedisIsEnabled
 public class DeleteDanglingServiceAccountsMigration implements Migration {
 
-  // Only valid until December 31, 2020
+  // Only valid until December 31, 2020, unless migrations.deleteDanglingManagedServiceAccounts or
+  // migrations.deleteDanglingSharedManagedServiceAccounts is enabled
   private static final LocalDate VALID_UNTIL = LocalDate.of(2020, Month.DECEMBER, 31);
 
   private static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
+  private static final String SHARED_MANAGED_SERVICE_ACCOUNT_SUFFIX =
+      "@shared-managed-service-account";
   private static final String RUN_AS_USER = "runAsUser";
 
   private final PipelineDAO pipelineDAO;
   private final ServiceAccountDAO serviceAccountDAO;
+  private final boolean deleteDanglingSharedManagedServiceAccounts;
+  private final boolean deleteDanglingManagedServiceAccounts;
 
   @Autowired
   public DeleteDanglingServiceAccountsMigration(
-      PipelineDAO pipelineDAO, ServiceAccountDAO serviceAccountDAO) {
+      PipelineDAO pipelineDAO,
+      ServiceAccountDAO serviceAccountDAO,
+      @Value("${migrations.delete-dangling-managed-service-accounts:false}")
+          boolean deleteDanglingManagedServiceAccounts,
+      @Value("${migrations.delete-dangling-shared-managed-service-accounts:false}")
+          boolean deleteDanglingSharedManagedServiceAccounts) {
     this.pipelineDAO = pipelineDAO;
     this.serviceAccountDAO = serviceAccountDAO;
+    this.deleteDanglingManagedServiceAccounts =
+        LocalDate.now().isBefore(VALID_UNTIL) || deleteDanglingManagedServiceAccounts;
+    this.deleteDanglingSharedManagedServiceAccounts = deleteDanglingSharedManagedServiceAccounts;
   }
 
   @Override
   public boolean isValid() {
-    return LocalDate.now().isBefore(VALID_UNTIL);
+    return deleteDanglingManagedServiceAccounts || deleteDanglingSharedManagedServiceAccounts;
   }
 
   @Override
@@ -86,6 +100,10 @@ public class DeleteDanglingServiceAccountsMigration implements Migration {
   }
 
   private Predicate<String> isManagedServiceAccount() {
-    return name -> name != null && name.endsWith(SERVICE_ACCOUNT_SUFFIX);
+    return name ->
+        name != null
+            && ((deleteDanglingManagedServiceAccounts && name.endsWith(SERVICE_ACCOUNT_SUFFIX))
+                || (deleteDanglingSharedManagedServiceAccounts
+                    && name.endsWith(SHARED_MANAGED_SERVICE_ACCOUNT_SUFFIX)));
   }
 }
