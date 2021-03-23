@@ -6,6 +6,7 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 import { Subject } from 'rxjs';
 
 import { IProject } from 'core/domain';
+import { Overridable } from 'core/overrideRegistry';
 import { SpanDropdownTrigger } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 
@@ -24,6 +25,7 @@ export interface IProjectHeaderState {
   isOpen: boolean;
 }
 
+@Overridable('createProjectHeader')
 export class ProjectHeader extends React.Component<IProjectHeaderProps, IProjectHeaderState> {
   public state: IProjectHeaderState = { state: null, application: null, isOpen: false };
   private destroy$ = new Subject();
