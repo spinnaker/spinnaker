@@ -43,5 +43,5 @@ public interface AtomicOperationConverter extends VersionedCloudProviderOperatio
    * @param input
    * @return instance of an operation description object
    */
-  Object convertDescription(Map<String, Object> input);
+  OperationDescription convertDescription(Map<String, Object> input);
 }

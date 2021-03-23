@@ -19,8 +19,9 @@ package com.netflix.spinnaker.clouddriver.azure.resources.common
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
 
-class AzureResourceOpsDescription {
+class AzureResourceOpsDescription  implements OperationDescription {
   static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   String name

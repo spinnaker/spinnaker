@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import org.springframework.validation.Errors;
 
 public class DefaultDescriptionAuthorizer implements DescriptionAuthorizer {
@@ -27,7 +28,7 @@ public class DefaultDescriptionAuthorizer implements DescriptionAuthorizer {
   }
 
   @Override
-  public void authorize(Object description, Errors errors) {
+  public void authorize(OperationDescription description, Errors errors) {
     descriptionAuthorizerService.authorize(description, errors);
   }
 }

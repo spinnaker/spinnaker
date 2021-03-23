@@ -97,13 +97,14 @@ public class OperationsService {
   }
 
   @Nonnull
-  public List<AtomicOperation> collectAtomicOperations(@Nonnull List<Map<String, Map>> inputs) {
+  public List<AtomicOperation> collectAtomicOperations(
+      @Nonnull List<Map<String, Map<String, Object>>> inputs) {
     return collectAtomicOperations(null, inputs);
   }
 
   @Nonnull
   public List<AtomicOperation> collectAtomicOperations(
-      @Nullable String cloudProvider, @Nonnull List<Map<String, Map>> inputs) {
+      @Nullable String cloudProvider, @Nonnull List<Map<String, Map<String, Object>>> inputs) {
     List<AtomicOperationBindingResult> results = convert(cloudProvider, inputs);
 
     List<AtomicOperation> atomicOperations = new ArrayList<>();
@@ -119,13 +120,13 @@ public class OperationsService {
   }
 
   private List<AtomicOperationBindingResult> convert(
-      @Nullable String cloudProvider, @Nonnull List<Map<String, Map>> inputs) {
+      @Nullable String cloudProvider, @Nonnull List<Map<String, Map<String, Object>>> inputs) {
 
     String username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
     List<String> allowedAccounts =
         COMMA_SPLITTER.splitToList(AuthenticatedRequest.getSpinnakerAccounts().orElse(""));
 
-    List<Object> descriptions = new ArrayList<>();
+    List<OperationDescription> descriptions = new ArrayList<>();
     return inputs.stream()
         .flatMap(
             input ->
@@ -133,7 +134,7 @@ public class OperationsService {
                     .map(
                         e -> {
                           final String descriptionName = e.getKey();
-                          final Map descriptionInput = e.getValue();
+                          final Map<String, Object> descriptionInput = e.getValue();
                           final OperationInput operationInput =
                               objectMapper.convertValue(descriptionInput, OperationInput.class);
                           final String provider =
@@ -146,13 +147,14 @@ public class OperationsService {
 
                           // TODO(rz): What if a preprocessor fails due to a downstream error? How
                           // does this affect retrying?
-                          Map processedInput =
+                          Map<String, Object> processedInput =
                               processDescriptionInput(
                                   atomicOperationDescriptionPreProcessors,
                                   converter,
                                   descriptionInput);
 
-                          Object description = converter.convertDescription(processedInput);
+                          OperationDescription description =
+                              converter.convertDescription(processedInput);
 
                           descriptions.add(description);
 
@@ -314,10 +316,10 @@ public class OperationsService {
    * <p>Which preprocessors are used is determined by doing some reflection on the
    * AtomicOperationConverter's return type.
    */
-  private static Map processDescriptionInput(
+  private static Map<String, Object> processDescriptionInput(
       Collection<AtomicOperationDescriptionPreProcessor> descriptionPreProcessors,
       AtomicOperationConverter converter,
-      Map descriptionInput) {
+      Map<String, Object> descriptionInput) {
 
     Method convertDescriptionMethod;
     try {

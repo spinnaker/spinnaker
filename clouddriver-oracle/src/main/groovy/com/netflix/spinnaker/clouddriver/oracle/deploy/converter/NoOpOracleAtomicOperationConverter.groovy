@@ -11,6 +11,7 @@ package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
@@ -28,7 +29,7 @@ class NoOpOracleAtomicOperationConverter extends AbstractAtomicOperationsCredent
   }
 
   @Override
-  Object convertDescription(Map input) {
+  OperationDescription convertDescription(Map input) {
     return null
   }
 }

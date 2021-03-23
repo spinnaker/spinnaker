@@ -143,7 +143,7 @@ class OperationsServiceSpec extends Specification {
       new Op1()
     }
 
-    Object convertDescription(Map input) {
+    OperationDescription convertDescription(Map input) {
       return null
     }
   }
@@ -153,7 +153,7 @@ class OperationsServiceSpec extends Specification {
       new Op2()
     }
 
-    Object convertDescription(Map input) {
+    OperationDescription convertDescription(Map input) {
       return null
     }
   }

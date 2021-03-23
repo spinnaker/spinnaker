@@ -29,9 +29,9 @@ import java.util.Map;
 public interface AtomicOperationDescriptionPreProcessor {
   boolean supports(Class descriptionClass);
 
-  Map process(Map description);
+  Map<String, Object> process(Map<String, Object> description);
 
-  default <T> T mapTo(ObjectMapper objectMapper, Map description, Class<T> clazz)
+  default <T> T mapTo(ObjectMapper objectMapper, Map<String, Object> description, Class<T> clazz)
       throws IOException {
     ObjectNode objectNode = objectMapper.valueToTree(description);
     return objectMapper.readValue(new TreeTraversingParser(objectNode, objectMapper), clazz);

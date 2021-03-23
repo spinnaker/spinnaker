@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,7 +26,7 @@ import java.util.Collections;
  *
  * @see DeployHandler
  */
-public interface DeployDescription {
+public interface DeployDescription extends OperationDescription {
   default Collection<OperationEvent> getEvents() {
     return Collections.emptyList();
   }

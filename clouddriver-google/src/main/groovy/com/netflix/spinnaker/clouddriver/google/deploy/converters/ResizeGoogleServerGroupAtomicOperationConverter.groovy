@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -53,7 +54,7 @@ class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOper
     }
   }
 
-  def convertDescription(Map input, GoogleAutoscalingPolicy autoscalingPolicy) {
+  OperationDescription convertDescription(Map input, GoogleAutoscalingPolicy autoscalingPolicy) {
     if (autoscalingPolicy) {
       UpsertGoogleAutoscalingPolicyDescription upsertGoogleAutoscalingPolicyDescription =
         GoogleAtomicOperationConverterHelper.convertDescription(input, this, UpsertGoogleAutoscalingPolicyDescription)
@@ -79,7 +80,7 @@ class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOper
   }
 
   @Override
-  def convertDescription(Map input) {
+  OperationDescription convertDescription(Map input) {
     return convertDescription(input, resolveServerGroup(input)?.autoscalingPolicy)
   }
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.yandex.deploy;
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -29,7 +30,7 @@ public class TestCredentialSupport extends AbstractAtomicOperationsCredentialsSu
   }
 
   @Override
-  public Object convertDescription(Map<String, Object> input) {
+  public OperationDescription convertDescription(Map<String, Object> input) {
     throw new UnsupportedOperationException();
   }
 }

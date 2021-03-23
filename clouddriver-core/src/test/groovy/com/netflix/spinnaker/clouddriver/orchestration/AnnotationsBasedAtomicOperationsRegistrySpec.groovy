@@ -164,7 +164,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
       return null
     }
     @Override
-    Object convertDescription(Map input) {
+    OperationDescription convertDescription(Map input) {
       return null
     }
   }
@@ -183,7 +183,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
       return null
     }
     @Override
-    Object convertDescription(Map input) {
+    OperationDescription convertDescription(Map input) {
       return null
     }
     @Override
@@ -199,7 +199,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
       return null
     }
     @Override
-    Object convertDescription(Map input) {
+    OperationDescription convertDescription(Map input) {
       return null
     }
     @Override

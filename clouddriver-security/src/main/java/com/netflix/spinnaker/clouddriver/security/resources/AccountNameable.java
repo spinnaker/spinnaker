@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 
 /** Denotes an operation description operates on a specific account. */
-public interface AccountNameable {
+public interface AccountNameable extends OperationDescription {
   String getAccount();
 
   /**

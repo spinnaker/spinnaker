@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -35,7 +36,7 @@ class NoopAtomicOperationConverter implements AtomicOperationConverter {
   }
 
   @Override
-  Object convertDescription(Map input) {
+  OperationDescription convertDescription(Map input) {
     return null
   }
 }
