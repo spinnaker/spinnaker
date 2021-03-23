@@ -15,12 +15,33 @@
  */
 package com.netflix.spinnaker.orca.igor.pipeline;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TravisStage extends CIStage {
   public TravisStage(StopJenkinsJobTask stopJenkinsJobTask) {
     super(stopJenkinsJobTask);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
+    Map<String, String> parameters = (Map<String, String>) stage.getContext().get("parameters");
+    parameters.putIfAbsent("travis.buildMessage", createBuildMessage(stage));
+    stage.getContext().put("parameters", parameters);
+    super.taskGraph(stage, builder);
+  }
+
+  private String createBuildMessage(StageExecution stage) {
+    PipelineExecution execution = stage.getExecution();
+    return String.format(
+        "Application: '%s', pipeline: '%s', execution: '%s'",
+        execution.getApplication(), execution.getName(), execution.getId());
   }
 }
