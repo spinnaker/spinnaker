@@ -8,12 +8,12 @@ import { Subscription } from 'rxjs';
 
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
-// react components
 import { CancelModal } from 'core/cancelModal/CancelModal';
 import { SETTINGS } from 'core/config/settings';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { IExecution, IExecutionStageSummary, IPipeline, IRestartDetails } from 'core/domain';
 import { ISortFilter } from 'core/filterModel';
+import { Overridable } from 'core/overrideRegistry';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
@@ -66,6 +66,7 @@ const findChildIndex = (child: string, execution: IExecution) => {
   return result;
 };
 
+@Overridable('PipelineExecution')
 export class Execution extends React.PureComponent<IExecutionProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions',
