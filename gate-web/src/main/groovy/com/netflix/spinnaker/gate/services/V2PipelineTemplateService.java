@@ -52,12 +52,12 @@ public class V2PipelineTemplateService {
   // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   public List<Map> findByScope(List<String> scopes) {
     return front50Service.getV2PipelineTemplates(
-        scopes == null ? null : (String[]) scopes.toArray());
+        scopes == null ? null : scopes.toArray(String[]::new));
   }
 
   public Map<String, List<Map>> findVersionsByScope(List<String> scopes) {
     return front50Service.getV2PipelineTemplatesVersions(
-        scopes == null ? null : (String[]) scopes.toArray());
+        scopes == null ? null : scopes.toArray(String[]::new));
   }
 
   public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId) {
