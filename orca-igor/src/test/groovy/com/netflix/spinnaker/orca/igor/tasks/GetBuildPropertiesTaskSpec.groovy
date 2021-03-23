@@ -37,7 +37,7 @@ import spock.lang.Subject
 class GetBuildPropertiesTaskSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def artifactUtils = new ArtifactUtils(new ObjectMapper(), executionRepository, new ContextParameterProcessor())
-  def buildService = Stub(BuildService)
+  def buildService = Mock(BuildService)
 
   def BUILD_NUMBER = 4
   def MASTER = "builds"
@@ -55,7 +55,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     def stage = new StageExecutionImpl(execution, "jenkins", [master: MASTER, job: JOB, buildNumber: 4, propertyFile: PROPERTY_FILE])
 
     and:
-    buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >> [val1: "one", val2: "two"]
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >> [val1: "one", val2: "two"]
 
     when:
     TaskResult result = task.execute(stage)
@@ -70,7 +70,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     def stage = new StageExecutionImpl(execution, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: PROPERTY_FILE])
 
     and:
-    buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
       [val1: "one", val2: [complex: true]]
 
     when:
@@ -91,7 +91,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     def bindTask = new BindProducedArtifactsTask()
 
     and:
-    buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
         [val1: "one", artifacts: [
           [type: "docker/image",
            reference: "gcr.io/project/my-image@sha256:28f82eba",
@@ -121,7 +121,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     }
 
     and:
-    buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
       { throw igorError }
 
     when:
@@ -136,7 +136,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     def stage = createStage(PROPERTY_FILE)
 
     and:
-    buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >> [:]
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >> [:]
 
     when:
     task.execute(stage)
@@ -144,6 +144,20 @@ class GetBuildPropertiesTaskSpec extends Specification {
     then:
     ConfigurationException e = thrown ConfigurationException
     e.message == "Expected properties file $PROPERTY_FILE but it was either missing, empty or contained invalid syntax"
+  }
+
+  def "does not fail stage even if properties are not returned from travis and build passed"() {
+    given:
+    def stage = createStage(PROPERTY_FILE, "travis-$MASTER")
+
+    and:
+    1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, "travis-$MASTER", JOB) >> [:]
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
   }
 
   def "does not fetch properties if the property file is empty"() {
@@ -168,9 +182,9 @@ class GetBuildPropertiesTaskSpec extends Specification {
     0 * buildService.getPropertyFile(*_)
   }
 
-  def createStage(String propertyFile) {
+  def createStage(String propertyFile, String ciMaster = MASTER) {
     return new StageExecutionImpl(Stub(PipelineExecutionImpl), "jenkins", [
-      master: MASTER,
+      master: ciMaster,
       job: JOB,
       buildNumber: BUILD_NUMBER,
       propertyFile: propertyFile
