@@ -18,6 +18,7 @@ export enum ManagedResourceStatus {
 
 export type ConstraintStatus = 'NOT_EVALUATED' | 'PENDING' | 'PASS' | 'FAIL' | 'OVERRIDE_PASS' | 'OVERRIDE_FAIL';
 
+// Warning! Chaning this interface might affect existing plugins. Please make sure you don't break the API
 export interface IBaseConstraint {
   type: string;
   status: ConstraintStatus;
