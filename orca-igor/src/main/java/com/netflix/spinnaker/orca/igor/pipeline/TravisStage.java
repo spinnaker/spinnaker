@@ -35,6 +35,7 @@ public class TravisStage extends CIStage {
     Map<String, String> parameters = (Map<String, String>) stage.getContext().get("parameters");
     parameters.putIfAbsent("travis.buildMessage", createBuildMessage(stage));
     stage.getContext().put("parameters", parameters);
+    stage.getContext().putIfAbsent("propertyFile", "travis");
     super.taskGraph(stage, builder);
   }
 
