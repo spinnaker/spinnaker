@@ -16,6 +16,7 @@ import {
   IPipelineTemplateConfigV2,
 } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
+import { Overridable } from 'core/overrideRegistry';
 import { Placement } from 'core/presentation/Placement';
 import { Popover } from 'core/presentation/Popover';
 import { ReactInjector } from 'core/reactShims';
@@ -55,6 +56,7 @@ export interface IExecutionGroupState {
   placement: Placement;
 }
 
+@Overridable('PipelineExecutionGroup')
 export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IExecutionGroupState> {
   public state: IExecutionGroupState;
   private expandUpdatedSubscription: Subscription;
