@@ -6,6 +6,7 @@ export interface IClassicLaunchAllowlist {
 }
 
 export interface IAWSProviderSettings extends IProviderSettings {
+  bakeWarning?: string;
   classicLaunchLockout?: number;
   classicLaunchAllowlist?: IClassicLaunchAllowlist[];
   createLoadBalancerWarnings?: {

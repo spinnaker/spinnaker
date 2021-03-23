@@ -3,6 +3,15 @@
     <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div ng-if="!viewState.loading">
+    <div
+      ng-if="pipeline.migrationStatus === 'Started' && viewState.bakeWarning"
+      class="alert alert-warning sp-margin-s-top horizontal middle"
+    >
+      <i class="fa fa-exclamation-triangle"></i>
+      <div class="sp-margin-s-left">
+        <markdown message="viewState.bakeWarning"></markdown>
+      </div>
+    </div>
     <stage-config-field label="Regions">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </stage-config-field>
@@ -27,13 +36,13 @@
         on-change="bakeStageCtrl.handleBaseOsChange()"
       ></bake-stage-choose-os>
     </stage-config-field>
-    <stage-config-field label="VM Type" ng-if="viewState.showVmTypeSelector">
+    <stage-config-field label="VM Type" ng-if="viewState.showVmTypeSelector && viewState.showMigrationFields">
       <label class="radio-inline" ng-repeat="vmType in vmTypes">
         <input type="radio" ng-model="stage.vmType" ng-value="vmType" />
         {{vmType | uppercase}}
       </label>
     </stage-config-field>
-    <stage-config-field label="Store Type" ng-if="!viewState.roscoMode">
+    <stage-config-field label="Store Type" ng-if="!viewState.roscoMode && viewState.showMigrationFields">
       <label class="radio-inline" ng-repeat="storeType in storeTypes">
         <input type="radio" ng-model="stage.storeType" ng-value="storeType" />
         {{storeType | uppercase}}
@@ -68,7 +77,7 @@
       <stage-config-field
         label="Template File Name"
         help-key="pipeline.config.bake.templateFileName"
-        ng-if="bakeStageCtrl.showTemplateFileName()"
+        ng-if="bakeStageCtrl.showTemplateFileName() && viewState.showMigrationFields"
       >
         <input type="text" class="form-control input-sm" ng-model="stage.templateFileName" />
       </stage-config-field>
@@ -117,11 +126,11 @@
       <stage-config-field
         label="Var File Name"
         help-key="pipeline.config.bake.varFileName"
-        ng-if="bakeStageCtrl.showVarFileName()"
+        ng-if="bakeStageCtrl.showVarFileName() && viewState.showMigrationFields"
       >
         <input type="text" class="form-control input-sm" ng-model="stage.varFileName" />
       </stage-config-field>
-      <stage-config-field label="Root Volume Size" ng-if="viewState.minRootVolumeSize">
+      <stage-config-field label="Root Volume Size" ng-if="viewState.minRootVolumeSize && viewState.showMigrationFields">
         <input
           type="number"
           class="form-control input-sm"
@@ -131,21 +140,27 @@
         />
         GB <span class="small">(minimum: {{viewState.minRootVolumeSize}})</span>
       </stage-config-field>
-      <stage-config-field label="Base Name" ng-if="stage.storeType !== 'docker'">
+      <stage-config-field label="Base Name" ng-if="stage.storeType !== 'docker' && viewState.showMigrationFields">
         <input type="text" class="form-control input-sm" ng-model="stage.baseName" />
       </stage-config-field>
-      <stage-config-field label="Base AMI" help-key="pipeline.config.bake.baseAmi" ng-if="stage.storeType !== 'docker'">
+      <stage-config-field
+        label="Base AMI"
+        help-key="pipeline.config.bake.baseAmi"
+        ng-if="stage.storeType !== 'docker' && viewState.showMigrationFields"
+      >
         <input type="text" class="form-control input-sm" ng-model="stage.baseAmi" />
       </stage-config-field>
       <stage-config-field
         label="{{stage.storeType === 'docker' ? 'Docker Image Name' : 'AMI Name'}}"
         help-key="pipeline.config.bake.amiName"
+        ng-if="viewState.showMigrationFields"
       >
         <input type="text" class="form-control input-sm" ng-model="stage.amiName" />
       </stage-config-field>
       <stage-config-field
         label="{{stage.storeType === 'docker' ? 'Docker Image Prefix' : 'AMI Suffix'}}"
         help-key="pipeline.config.bake.amiSuffix"
+        ng-if="viewState.showMigrationFields"
       >
         <input type="text" class="form-control input-sm" ng-model="stage.amiSuffix" />
       </stage-config-field>

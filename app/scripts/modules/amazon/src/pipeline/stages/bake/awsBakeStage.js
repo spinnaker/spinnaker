@@ -61,6 +61,8 @@ module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [AMAZON_PIPELINE_STAGES_BAKE_BA
           (typeof SETTINGS.feature.roscoSelector === 'function' && SETTINGS.feature.roscoSelector($scope.stage)),
         minRootVolumeSize: AWSProviderSettings.minRootVolumeSize,
         showVmTypeSelector: true,
+        bakeWarning: AWSProviderSettings.bakeWarning,
+        showMigrationFields: $scope.pipeline.migrationStatus !== 'Started',
       };
 
       function initialize() {
