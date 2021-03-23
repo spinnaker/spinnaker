@@ -67,7 +67,7 @@ export class PipelineConfigService {
     }
 
     const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
-    return REST(endpoint).post(pipeline);
+    return REST(endpoint).query({ staleCheck: true }).post(pipeline);
   }
 
   public static reorderPipelines(
