@@ -74,6 +74,7 @@ module(PROJECTS_STATES_CONFIG, [
         },
         history: {
           type: 'projects',
+          state: 'home.project',
           keyParams: ['project'],
         },
       },
