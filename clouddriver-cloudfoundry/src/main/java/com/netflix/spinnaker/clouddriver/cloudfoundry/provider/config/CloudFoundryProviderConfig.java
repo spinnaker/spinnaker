@@ -28,6 +28,8 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -53,13 +55,15 @@ public class CloudFoundryProviderConfig {
 
   @Bean
   public OkHttpClient cloudFoundryOkHttpClient(
-      CloudFoundryConfigurationProperties configurationProperties) {
+      CloudFoundryConfigurationProperties configurationProperties, MeterRegistry meterRegistry) {
     return new OkHttpClient.Builder()
         .connectTimeout(
             configurationProperties.getClient().getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .readTimeout(
             configurationProperties.getClient().getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .writeTimeout(configurationProperties.getClient().getReadTimeout(), TimeUnit.MILLISECONDS)
+        .eventListener(
+            OkHttpMetricsEventListener.builder(meterRegistry, "cf.okhttp.requests").build())
         .build();
   }
 

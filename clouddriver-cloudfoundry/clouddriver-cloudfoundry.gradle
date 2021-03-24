@@ -56,10 +56,8 @@ dependencies {
   implementation "com.squareup.okhttp3:okhttp-urlconnection"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "com.netflix.spectator:spectator-reg-micrometer"
   implementation "com.squareup.retrofit2:retrofit-mock"
   implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
-  implementation "io.micrometer:micrometer-core:1.6.4"
   implementation "commons-io:commons-io"
   implementation "io.github.resilience4j:resilience4j-retry"
   implementation "org.springframework.boot:spring-boot-actuator"
@@ -69,6 +67,7 @@ dependencies {
   implementation "com.google.protobuf:protobuf-java:$protobufVersion"
   implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
   implementation "commons-fileupload:commons-fileupload:1.4"
+  implementation "io.micrometer:micrometer-core:1.6.4"
 
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
