@@ -14,11 +14,16 @@ interface InsightAction {
 
 export interface ITitusInstance extends IInstance {
   containerIp: string;
+  instancePort?: string;
   instanceType?: string;
   insightActions?: InsightAction[];
   ipv6Address?: string;
   jobId?: string;
   jobName?: string;
+  permanentIps?: string[];
   placement: ITitusInstancePlacement;
+  privateDnsName?: string;
   privateIpAddress?: string;
+  publicDnsName?: string;
+  publicIpAddress?: string;
 }
