@@ -194,8 +194,6 @@
     "lint-staged": "^10.5.4",
     "loader-utils": "1.2.3",
     "md5": "^2.2.1",
-    "minimist": "^1.2.3",
-    "mountebank": "^1.15.0",
     "ngtemplate-loader": "2.0.1",
     "node-libs-browser": "^2.0.0",
     "physical-cpu-count": "^2.0.0",
