@@ -113,7 +113,6 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     this.cacheRepository = cacheRepository;
     this.permissions = permissions == null ? Permissions.EMPTY : permissions;
     this.forkJoinPool = forkJoinPool;
-    this.filteredSpaces = createFilteredSpaces(spaceFilter);
     this.cloudFoundryClient =
         new HttpCloudFoundryClient(
             name,
@@ -127,6 +126,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
             resultsPerPage,
             forkJoinPool,
             okHttpClient.newBuilder());
+    this.filteredSpaces = createFilteredSpaces(spaceFilter);
   }
 
   public CloudFoundryClient getCredentials() {
