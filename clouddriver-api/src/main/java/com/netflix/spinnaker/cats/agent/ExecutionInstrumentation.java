@@ -24,5 +24,9 @@ public interface ExecutionInstrumentation {
 
   void executionCompleted(Agent agent, long elapsedMs);
 
-  void executionFailed(Agent agent, Throwable cause);
+  void executionFailed(Agent agent, Throwable cause, long elapsedMs);
+
+  static long elapsedTimeMs(long startTimeMs) {
+    return System.currentTimeMillis() - startTimeMs;
+  }
 }

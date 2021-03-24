@@ -34,13 +34,11 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   private final Registry registry
 
   private final Id timingId
-  private final Id counterId
 
   @Autowired
   public MetricInstrumentation(Registry registry) {
     this.registry = registry
     timingId = registry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
-    counterId = registry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
   private static String stripPackageName(String className) {
@@ -59,13 +57,12 @@ class MetricInstrumentation implements ExecutionInstrumentation {
 
   @Override
   void executionCompleted(Agent agent, long elapsedMs) {
-    registry.timer(timingId.withTag('agent', agentName(agent))).record(elapsedMs, TimeUnit.MILLISECONDS)
-    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
+    registry.timer(timingId.withTag('agent', agentName(agent)).withTag("success", "true")).record(elapsedMs, TimeUnit.MILLISECONDS)
   }
 
   @Override
-  void executionFailed(Agent agent, Throwable cause) {
-    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
+  void executionFailed(Agent agent, Throwable cause, long elapsedMs) {
+    registry.timer(timingId.withTag('agent', agentName(agent)).withTag("success", "false")).record(elapsedMs, TimeUnit.MILLISECONDS)
   }
 }
 

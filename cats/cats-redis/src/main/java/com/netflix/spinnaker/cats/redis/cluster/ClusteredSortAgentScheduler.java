@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
+import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
@@ -454,15 +456,14 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
       assert acquireScore != null;
       CacheResult result = null;
       Status status = Status.FAILURE;
+      long startTimeMs = System.currentTimeMillis();
       try {
         executionInstrumentation.executionStarted(agent);
-        long startTime = System.nanoTime();
         result = agentExecution.executeAgentWithoutStore(agent);
-        executionInstrumentation.executionCompleted(
-            agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        executionInstrumentation.executionCompleted(agent, elapsedTimeMs(startTimeMs));
         status = Status.SUCCESS;
       } catch (Throwable cause) {
-        executionInstrumentation.executionFailed(agent, cause);
+        executionInstrumentation.executionFailed(agent, cause, elapsedTimeMs(startTimeMs));
       } finally {
         // Regardless of success or failure, we need to try and release this agent. If the release
         // is successful (we

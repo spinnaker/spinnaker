@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import java.util.Map;
@@ -126,14 +128,13 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     }
 
     public void run() {
+      long startTimeMs = System.currentTimeMillis();
       try {
         executionInstrumentation.executionStarted(agent);
-        long startTime = System.nanoTime();
         execution.executeAgent(agent);
-        executionInstrumentation.executionCompleted(
-            agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        executionInstrumentation.executionCompleted(agent, elapsedTimeMs(startTimeMs));
       } catch (Throwable t) {
-        executionInstrumentation.executionFailed(agent, t);
+        executionInstrumentation.executionFailed(agent, t, elapsedTimeMs(startTimeMs));
       }
     }
   }

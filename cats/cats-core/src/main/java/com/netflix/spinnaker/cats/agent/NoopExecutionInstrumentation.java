@@ -28,7 +28,7 @@ public class NoopExecutionInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  public void executionFailed(Agent agent, Throwable cause) {
+  public void executionFailed(Agent agent, Throwable cause, long elapsedMs) {
     // noop
   }
 }

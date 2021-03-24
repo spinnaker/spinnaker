@@ -40,9 +40,9 @@ public class CompositeExecutionInstrumentation implements ExecutionInstrumentati
   }
 
   @Override
-  public void executionFailed(Agent agent, Throwable cause) {
+  public void executionFailed(Agent agent, Throwable cause, long elapsedMs) {
     for (ExecutionInstrumentation exec : instrumentations) {
-      exec.executionFailed(agent, cause);
+      exec.executionFailed(agent, cause, elapsedMs);
     }
   }
 }

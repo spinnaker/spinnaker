@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
+import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
@@ -332,15 +334,14 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     }
 
     Status execute() {
+      long startTimeMs = System.currentTimeMillis();
       try {
         executionInstrumentation.executionStarted(agent);
-        long startTime = System.nanoTime();
         agentExecution.executeAgent(agent);
-        executionInstrumentation.executionCompleted(
-            agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        executionInstrumentation.executionCompleted(agent, elapsedTimeMs(startTimeMs));
         return Status.SUCCESS;
       } catch (Throwable cause) {
-        executionInstrumentation.executionFailed(agent, cause);
+        executionInstrumentation.executionFailed(agent, cause, elapsedTimeMs(startTimeMs));
         return Status.FAILURE;
       }
     }

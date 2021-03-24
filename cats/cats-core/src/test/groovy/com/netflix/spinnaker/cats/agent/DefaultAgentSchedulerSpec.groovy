@@ -63,7 +63,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         then:
         1 * instr.executionStarted(agent)
         1 * exec.executeAgent(agent) >> { throw cause }
-        1 * instr.executionFailed(agent, cause)
+        1 * instr.executionFailed(agent, cause, _)
         0 * _
     }
 

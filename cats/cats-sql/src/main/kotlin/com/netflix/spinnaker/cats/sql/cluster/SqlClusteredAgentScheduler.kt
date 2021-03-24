@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
@@ -304,14 +305,14 @@ private class AgentExecutionAction(
 ) {
 
   fun execute(): Status {
+    val startTimeMs = System.currentTimeMillis()
     return try {
       executionInstrumentation.executionStarted(agent)
-      val startTime = System.currentTimeMillis()
       agentExecution.executeAgent(agent)
-      executionInstrumentation.executionCompleted(agent, System.currentTimeMillis() - startTime)
+      executionInstrumentation.executionCompleted(agent, elapsedTimeMs(startTimeMs))
       Status.SUCCESS
     } catch (t: Throwable) {
-      executionInstrumentation.executionFailed(agent, t)
+      executionInstrumentation.executionFailed(agent, t, elapsedTimeMs(startTimeMs))
       Status.FAILURE
     }
   }
