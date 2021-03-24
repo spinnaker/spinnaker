@@ -10,6 +10,7 @@ import { REACT_MODULE } from 'core/reactShims';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry';
 import * as State from 'core/state';
 import { IExecutionsProps, IExecutionsState, Executions } from './Executions';
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {
   let component: ReactWrapper<IExecutionsProps, IExecutionsState>;
@@ -47,12 +48,13 @@ describe('<Executions/>', () => {
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', (done) => {
     initializeApplication();
-    expect(component.state().loading).toBe(true);
+    expect(component.find(Spinner).length).toBe(1);
     application.executions.dataUpdated();
     application.pipelineConfigs.dataUpdated();
     scope.$digest();
     setTimeout(() => {
-      expect(component.state().loading).toBe(false);
+      component.setProps({});
+      expect(component.find(Spinner).length).toBe(0);
       done();
     }, 100);
   });
