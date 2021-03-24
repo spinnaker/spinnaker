@@ -16,7 +16,7 @@ export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {
-    const subscription = monitor?.statusUpdatedStream.subscribe(() => forceUpdate());
+    const subscription = monitor?.statusUpdatedStream?.subscribe(() => forceUpdate());
     return () => subscription?.unsubscribe();
   }, [monitor]);
 
