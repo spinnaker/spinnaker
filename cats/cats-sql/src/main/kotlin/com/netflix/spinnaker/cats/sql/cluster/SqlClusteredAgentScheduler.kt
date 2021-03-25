@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.ShardingFilter
 import com.netflix.spinnaker.cats.module.CatsModuleAware
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.config.ConnectionPools
@@ -67,7 +68,8 @@ class SqlClusteredAgentScheduler(
   ),
   lockPollingScheduler: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
     ThreadFactoryBuilder().setNameFormat(SqlClusteredAgentScheduler::class.java.simpleName + "-%d").build()
-  )
+  ),
+  private val shardingFilter: ShardingFilter
 ) : CatsModuleAware(), AgentScheduler<AgentLock>, Runnable {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -171,6 +173,7 @@ class SqlClusteredAgentScheduler(
     ).split(",").map { it.trim() }
 
     val candidateAgentLocks = agents
+      .filter { shardingFilter.filter(it.value.agent) }
       .filter { !activeAgents.containsKey(it.key) }
       .filter { enabledAgents.matcher(it.key).matches() }
       .filterNot { disabledAgents.contains(it.key) }

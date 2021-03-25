@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-caching-replicas-table
+      author: kirangodishala
+      changes:
+        - createTable:
+            tableName: caching_replicas
+            columns:
+              - column:
+                  name: pod_id
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: last_heartbeat_time
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: caching_replicas
+
+  - changeSet:
+      id: add-replica-unique-constraint
+      author: kirangodishala
+      changes:
+        - addUniqueConstraint:
+            tableName: caching_replicas
+            columnNames: pod_id, last_heartbeat_time
+            constraintName: pod_id_last_heartbeat_time
+      rollback:
+        - dropUniqueConstraint:
+            tableName: caching_replicas
+            constraintName: pod_id_last_heartbeat_time
