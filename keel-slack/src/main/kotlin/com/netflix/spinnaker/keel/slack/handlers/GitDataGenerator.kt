@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ScmInfo
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.artifacts.getScmBaseLink
+import com.netflix.spinnaker.keel.slack.SlackService
 import com.slack.api.model.kotlin_extension.block.SectionBlockBuilder
 import com.slack.api.model.kotlin_extension.block.dsl.LayoutBlockDsl
 import com.slack.api.model.kotlin_extension.view.blocks
@@ -24,11 +25,13 @@ import org.springframework.stereotype.Component
 @EnableConfigurationProperties(BaseUrlConfig::class)
 class GitDataGenerator(
   private val scmInfo: ScmInfo,
-  val config: BaseUrlConfig
+  val config: BaseUrlConfig,
+  val slackService: SlackService
 ) {
 
   companion object {
     const val GIT_COMMIT_MESSAGE_LENGTH = 100
+    const val EMPTY_COMMIT_TEXT = "_No commit message to display_"
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -65,9 +68,9 @@ class GitDataGenerator(
    * Doesn't do anything if there is no commit message or the commit message is not too long.
    */
   fun conditionallyAddFullCommitMsgButton(layoutBlockDsl: LayoutBlockDsl, gitMetadata: GitMetadata) {
-    val commitMessage = gitMetadata.commitInfo?.message ?: ""
-    val hash = gitMetadata.commitInfo?.sha ?: ""
-    if (commitMessage != "" && commitMessage.length > GIT_COMMIT_MESSAGE_LENGTH) {
+    val commitMessage = gitMetadata.commitInfo?.message ?: EMPTY_COMMIT_TEXT
+    val hash = gitMetadata.commitInfo?.sha ?: "no-hash"
+    if (commitMessage.length > GIT_COMMIT_MESSAGE_LENGTH) {
       layoutBlockDsl.actions {
         elements {
           button {
@@ -82,9 +85,9 @@ class GitDataGenerator(
     }
   }
 
-  fun formatCommitMessage(gitMetadata: GitMetadata): String {
-    val message = gitMetadata.commitInfo?.message ?: "No commit message for commit ${gitMetadata.commit}"
-    return if (gitMetadata.commitInfo?.message != null && message.length > GIT_COMMIT_MESSAGE_LENGTH) {
+  fun formatCommitMessage(gitMetadata: GitMetadata?): String {
+    val message = gitMetadata?.commitInfo?.message ?: EMPTY_COMMIT_TEXT
+    return if (message.length > GIT_COMMIT_MESSAGE_LENGTH) {
       message.take(GIT_COMMIT_MESSAGE_LENGTH) + "..."
     } else {
       message
@@ -97,7 +100,12 @@ class GitDataGenerator(
    * Or: "spkr/keel › master › c25a358" (if it's a commit without a PR)
    * Each component will have the corresponding link attached to SCM
    */
-  fun generateScmInfo(sectionBlockBuilder: SectionBlockBuilder, application: String, gitMetadata: GitMetadata, artifact: PublishedArtifact?): SectionBlockBuilder {
+  fun generateScmInfo(
+    sectionBlockBuilder: SectionBlockBuilder,
+    application: String,
+    gitMetadata: GitMetadata,
+    artifact: PublishedArtifact?
+  ): SectionBlockBuilder {
     with(sectionBlockBuilder) {
       var details = ""
       with(gitMetadata) {
@@ -149,28 +157,43 @@ class GitDataGenerator(
                          artifact: PublishedArtifact,
                          altText: String,
                          olderVersion: String?  = null,
-                         env: String? = null): SectionBlockBuilder {
+                         env: String? = null
+  ): SectionBlockBuilder {
     var details = ""
     if (olderVersion != null && olderVersion.isNotEmpty()) {
       details += "~$olderVersion~ →"
     }
     var envDetails = ""
     if (env != null) {
-      envDetails +=  "*Environment:* $env\n\n "
+      envDetails +=  "*Environment:* $env\n "
     }
+
+    var text = "*App:* $application\n $envDetails"
 
     val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
     with(sectionBlockBuilder) {
       with(artifact) {
-        if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-          markdownText("*App:* $application\n" +
-            "*Version:* $details <$artifactUrl|#${buildMetadata!!.number}> " +
-            "by @${gitMetadata!!.author}\n " + envDetails +
-            formatCommitMessage(gitMetadata!!))
+        if (buildMetadata == null && gitMetadata == null) {
+          // fall back to info on the artifact
+          text += "*Version:* ${artifact.version} for artifact reference ${artifact.reference}"
+        }
 
-          accessory {
-            image(imageUrl = imageUrl, altText = altText)
+        if (buildMetadata?.number != null) {
+          text += "*Version:* $details <$artifactUrl|#${buildMetadata?.number}> "
+        }
+
+        if (gitMetadata?.commitInfo != null) {
+          val author = gitMetadata?.author
+          if (author != null) {
+            val username = slackService.getUsernameByEmailPrefix(author)
+            text += "by $username"
           }
+          text += "\n\n ${formatCommitMessage(gitMetadata)}"
+        }
+
+        markdownText(text)
+        accessory {
+          image(imageUrl = imageUrl, altText = altText)
         }
       }
       return this
@@ -218,21 +241,36 @@ class GitDataGenerator(
                          imageUrl: String,
                          artifact: PublishedArtifact,
                          altText: String,
-                         env: String): SectionBlockBuilder {
+                         env: String,
+                         username: String? = null
+  ): SectionBlockBuilder {
     val artifactUrl = generateArtifactUrl(application, artifact.reference, artifact.version)
+    var text = "*App:* $application\n*Environment:* $env\n\n"
     with(sectionBlockBuilder) {
       with(artifact) {
-        if (buildMetadata != null && gitMetadata != null && gitMetadata!!.commitInfo != null) {
-          markdownText("*App:* $application\n" +
-            "*Environment:* $env\n\n " +
-            ":arrow_down: *PREVIOUSLY PINNED* :arrow_down:\n" +
-            "*Version:* <$artifactUrl|#${buildMetadata!!.number}> " +
-            "by @${gitMetadata!!.author}\n\n" +
-            formatCommitMessage(gitMetadata!!))
+        if (buildMetadata == null && gitMetadata == null) {
+          // fall back to info on the artifact
+          text += "*Version:* ${artifact.version} for artifact reference ${artifact.reference}"
+        }
 
-          accessory {
-            image(imageUrl = imageUrl, altText = altText)
+        if (buildMetadata?.number != null) {
+          text += ":arrow_down: *PREVIOUSLY PINNED* :arrow_down:\n" +
+            "*Version:* <$artifactUrl|#${buildMetadata?.number}> "
+        }
+
+        if (gitMetadata?.commitInfo != null && username != null) {
+          val author = gitMetadata?.author
+          if (author != null) {
+            val username = slackService.getUsernameByEmailPrefix(author)
+            text += "by $username"
           }
+          text += "\n\n${formatCommitMessage(gitMetadata)}"
+        }
+
+
+        markdownText(text)
+        accessory {
+          image(imageUrl = imageUrl, altText = altText)
         }
       }
       return this

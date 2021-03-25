@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration
 @ConfigurationProperties(prefix = "slack")
 class SlackConfiguration {
   var token: String? = null
+  var defaultEmailDomain: String? = null
 }
 
 @Configuration
