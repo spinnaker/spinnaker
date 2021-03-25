@@ -5,7 +5,7 @@ import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
+import { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from 'core/domain';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { Registry } from 'core/registry';
 import { ExecutionState } from 'core/state';
@@ -72,7 +72,7 @@ export class ExecutionFilterService {
     }
     const executions = application.executions.data || [];
     executions.forEach((execution: IExecution) => this.fixName(execution, application));
-    const filtered: IExecution[] = this.filterExecutionsForDisplay(application.executions.data);
+    const filtered: IExecution[] = this.filterExecutionsForDisplay(application.executions.data, application);
 
     const groups = this.groupExecutions(filtered, application);
     this.applyGroupsToModel(groups);
@@ -80,6 +80,38 @@ export class ExecutionFilterService {
     ExecutionState.filterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.groupsUpdatedStream.next(groups);
+  }
+
+  public static doesPipelineMatchCheckedTags(config: IPipeline, checkedTags: string[]): boolean {
+    if (checkedTags.length === 0 || !config.tags || config.tags.length === 0) {
+      return false;
+    }
+    const decoded: IPipelineTag[] = checkedTags
+      .map((encoded) => encoded.split(':').map(decodeURIComponent))
+      .map(([name, value]) => ({ name, value }));
+    const grouped = groupBy(decoded, 'name');
+    const groups = Object.keys(grouped);
+    // We use .every() to logically AND the different tags
+    return groups.every((group) => {
+      const checkedValues = grouped[group].map((tag) => tag.value);
+      const relevantValues = (config.tags || []).filter((tag) => tag.name === group).map((tag) => tag.value);
+      return checkedValues.some((checkedValue) => relevantValues.includes(checkedValue));
+    });
+  }
+
+  private static tagsFilter(execution: IExecution, application: Application): boolean {
+    const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
+    if (this.isFilterable(sortFilter.tags)) {
+      const checkedPipelines = application.pipelineConfigs.data.filter((config: IPipeline) =>
+        this.doesPipelineMatchCheckedTags(config, FilterModelService.getCheckValues(sortFilter.tags)),
+      );
+      return includes(
+        checkedPipelines.map((config: IPipeline) => config.id),
+        execution.pipelineConfigId,
+      );
+    } else {
+      return true;
+    }
   }
 
   private static pipelineNameFilter(execution: IExecution): boolean {
@@ -145,9 +177,10 @@ export class ExecutionFilterService {
     }
   }
 
-  public static filterExecutionsForDisplay(executions: IExecution[]): IExecution[] {
+  public static filterExecutionsForDisplay(executions: IExecution[], application: Application): IExecution[] {
     return chain(executions)
       .filter((e: IExecution) => this.textFilter(e))
+      .filter((e: IExecution) => this.tagsFilter(e, application))
       .filter((e: IExecution) => this.pipelineNameFilter(e))
       .filter((e: IExecution) => this.statusFilter(e))
       .value();
@@ -159,12 +192,18 @@ export class ExecutionFilterService {
     const groupNames: { [key: string]: any } = {};
     groups.forEach((g) => (groupNames[g.heading] = true));
     let toAdd = [];
-    if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
+    if (
+      !this.isFilterable(sortFilter.pipeline) &&
+      !this.isFilterable(sortFilter.status) &&
+      !sortFilter.filter &&
+      !this.isFilterable(sortFilter.tags)
+    ) {
       toAdd = configs.filter((config: any) => !groupNames[config.name]);
     } else {
       toAdd = configs.filter((config: any) => {
         const filterMatches = (sortFilter.filter || '').toLowerCase().includes(config.name.toLowerCase());
-        return !groupNames[config.name] && (sortFilter.pipeline[config.name] || filterMatches);
+        const tagsMatch = this.doesPipelineMatchCheckedTags(config, FilterModelService.getCheckValues(sortFilter.tags));
+        return !groupNames[config.name] && (sortFilter.pipeline[config.name] || filterMatches || tagsMatch);
       });
     }
 
