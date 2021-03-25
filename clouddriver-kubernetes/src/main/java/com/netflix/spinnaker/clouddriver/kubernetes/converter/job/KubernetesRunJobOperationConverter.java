@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @KubernetesOperation(RUN_JOB)
@@ -38,21 +37,16 @@ import org.springframework.stereotype.Component;
 public class KubernetesRunJobOperationConverter
     extends AbstractAtomicOperationsCredentialsConverter<KubernetesNamedAccountCredentials> {
   private final ResourceVersioner resourceVersioner;
-  private final boolean appendSuffix;
 
   @Autowired
-  public KubernetesRunJobOperationConverter(
-      ResourceVersioner resourceVersioner,
-      @Value("${kubernetes.jobs.append-suffix:false}") boolean appendSuffix) {
+  public KubernetesRunJobOperationConverter(ResourceVersioner resourceVersioner) {
     this.resourceVersioner = resourceVersioner;
-    this.appendSuffix = appendSuffix;
   }
 
   @Override
   public AtomicOperation<KubernetesRunJobDeploymentResult> convertOperation(
       Map<String, Object> input) {
-    return new KubernetesRunJobOperation(
-        convertDescription(input), resourceVersioner, appendSuffix);
+    return new KubernetesRunJobOperation(convertDescription(input), resourceVersioner);
   }
 
   @Override

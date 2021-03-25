@@ -50,8 +50,6 @@ import com.netflix.spinnaker.moniker.Namer;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
@@ -74,7 +72,7 @@ final class KubernetesRunJobOperationTest {
   @Test
   void deploysJobWithName() {
     KubernetesRunJobOperationDescription runJobDescription = baseJobDescription("job.yml");
-    OperationResult result = operate(runJobDescription, false);
+    OperationResult result = operate(runJobDescription);
 
     assertThat(result.getManifestNamesByNamespace()).containsOnlyKeys(NAMESPACE);
     assertThat(result.getManifestNamesByNamespace().get(NAMESPACE))
@@ -82,42 +80,22 @@ final class KubernetesRunJobOperationTest {
   }
 
   @Test
-  void deploysJobWithNameAndAddsSuffix() {
-    KubernetesRunJobOperationDescription runJobDescription = baseJobDescription("job.yml");
-    OperationResult result = operate(runJobDescription, true);
-
-    assertThat(result.getManifestNamesByNamespace()).containsOnlyKeys(NAMESPACE);
-    assertThat(result.getManifestNamesByNamespace().get(NAMESPACE)).hasSize(1);
-    String job =
-        Iterators.getOnlyElement(result.getManifestNamesByNamespace().get(NAMESPACE).iterator());
-    assertThat(job).startsWith(DEPLOYED_JOB);
-    String suffix = job.substring(DEPLOYED_JOB.length());
-    assertThat(suffix).startsWith("-");
-    // We're asserting that at least 4 characters are added after the hyphen; rather than
-    // overspecify the test by looking up exactly how many are added, we're just making sure that a
-    // reasonable number to guarantee randomness are added.
-    assertThat(suffix.length()).isGreaterThanOrEqualTo(5);
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void deploysJobWithGenerateName(boolean appendSuffix) {
+  void deploysJobWithGenerateName() {
     KubernetesRunJobOperationDescription runJobDescription =
         baseJobDescription("job-generate-name.yml");
-    OperationResult result = operate(runJobDescription, appendSuffix);
+    OperationResult result = operate(runJobDescription);
 
     assertThat(result.getManifestNamesByNamespace()).containsOnlyKeys(NAMESPACE);
     assertThat(result.getManifestNamesByNamespace().get(NAMESPACE))
         .containsExactlyInAnyOrder(DEPLOYED_JOB + GENERATE_SUFFIX);
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void overridesNamespace(boolean appendSuffix) {
+  @Test
+  void overridesNamespace() {
     String overrideNamespace = "override-namespace";
     KubernetesRunJobOperationDescription runJobDescription =
         baseJobDescription("job.yml").setNamespace(overrideNamespace);
-    OperationResult result = operate(runJobDescription, appendSuffix);
+    OperationResult result = operate(runJobDescription);
 
     assertThat(result.getManifestNamesByNamespace()).containsOnlyKeys(overrideNamespace);
     assertThat(result.getManifestNamesByNamespace().get(overrideNamespace)).hasSize(1);
@@ -192,8 +170,7 @@ final class KubernetesRunJobOperationTest {
     return credentialsMock;
   }
 
-  private static OperationResult operate(
-      KubernetesRunJobOperationDescription description, boolean appendSuffix) {
+  private static OperationResult operate(KubernetesRunJobOperationDescription description) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
             any(KubernetesKind.class),
@@ -202,7 +179,7 @@ final class KubernetesRunJobOperationTest {
             any(KubernetesCredentials.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
-    return new KubernetesRunJobOperation(description, resourceVersioner, appendSuffix)
+    return new KubernetesRunJobOperation(description, resourceVersioner)
         .operate(ImmutableList.of());
   }
 }

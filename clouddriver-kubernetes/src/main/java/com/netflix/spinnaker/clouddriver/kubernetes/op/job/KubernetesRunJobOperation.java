@@ -31,24 +31,17 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeploy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class KubernetesRunJobOperation
     implements AtomicOperation<KubernetesRunJobDeploymentResult> {
-  private static final Logger log = LoggerFactory.getLogger(KubernetesRunJobOperation.class);
   private static final String OP_NAME = "RUN_KUBERNETES_JOB";
   private final KubernetesRunJobOperationDescription description;
   private final ResourceVersioner resourceVersioner;
-  private final boolean appendSuffix;
 
   public KubernetesRunJobOperation(
-      KubernetesRunJobOperationDescription description,
-      ResourceVersioner resourceVersioner,
-      boolean appendSuffix) {
+      KubernetesRunJobOperationDescription description, ResourceVersioner resourceVersioner) {
     this.description = description;
     this.resourceVersioner = resourceVersioner;
-    this.appendSuffix = appendSuffix;
   }
 
   private static Task getTask() {
@@ -70,25 +63,16 @@ public class KubernetesRunJobOperation
       jobSpec.setNamespace(this.description.getNamespace());
     }
 
-    if (appendSuffix && !jobSpec.hasGenerateName()) {
-      log.warn(
-          "Appending a random suffix to job with name {} before deploying. In Spinnaker 1.22, this suffix"
-              + " will no longer be added. To continue having a random suffix added, please update the job"
-              + " to specify a metadata.generateName. To immediately disable this suffix, set"
-              + " kubernetes.jobs.addSuffix to false in your clouddriver config.",
-          jobSpec.getName());
-      String currentName = jobSpec.getName();
-      String postfix = Long.toHexString(Double.doubleToLongBits(Math.random()));
-      jobSpec.setName(currentName + "-" + postfix);
-    } else {
-      // We require that the recreate strategy be used; this is because jobs are immutable and
-      // trying to re-run a job with apply will either:
-      // (1) succeed and leave the job unchanged (but will not trigger a re-run)
-      // (2) fail if we try to change anything
-      // As the purpose of a run job stage is to ensure that each execution causes a job to run,
-      // we'll force a new job to be created each time.
-      KubernetesManifestAnnotater.setDeploymentStrategy(jobSpec, DeployStrategy.RECREATE);
-    }
+    // Jobs that don't specify 'generateName' require the recreate strategy because jobs are
+    // immutable and trying to re-run a job with apply will either:
+    // (1) succeed and leave the job unchanged (but will not trigger a re-run)
+    // (2) fail if we try to change anything
+    // As the purpose of a run job stage is to ensure that each execution causes a job to run,
+    // we'll force a new job to be created each time.
+    //
+    // The deployment strategy logic handles the generateName case, so don't add
+    // any additional logic here.
+    KubernetesManifestAnnotater.setDeploymentStrategy(jobSpec, DeployStrategy.RECREATE);
 
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription();
