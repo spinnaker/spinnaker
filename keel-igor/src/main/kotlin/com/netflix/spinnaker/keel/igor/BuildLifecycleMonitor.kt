@@ -194,7 +194,7 @@ class BuildLifecycleMonitor(
   }
 
   private fun buildUidToLink(task: MonitoredTask): String =
-    "${baseUrlConfig.baseUrl}/#/applications/${task.triggeringEvent.data["application"]}/builds/${task.link}/logs"
+    "${baseUrlConfig.baseUrl}/#/applications/${task.triggeringEvent.data["application"]}/builds/${task.link}?tab=logs"
 
   private fun jenkinsLink(buildData: BuildData): String? =
     buildData.buildMetadata?.job?.link ?: buildData.fallbackLink
