@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription.AzureInboundPortConfig
+import com.microsoft.azure.management.compute.ResourceIdentityType
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -352,6 +353,7 @@ class AzureServerGroupResourceTemplate {
   static class VirtualMachineScaleSet extends DependingResource {
     ScaleSetSkuProperty sku
     VirtualMachineScaleSetProperty properties
+    ManagedIdentity identity
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     List<String> zones
@@ -361,6 +363,15 @@ class AzureServerGroupResourceTemplate {
       name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
       location = "[parameters('${locationParameterName}')]"
+
+      String userAssignedIdentities = description.userAssignedIdentities
+      if (!userAssignedIdentities?.trim()){
+        // If the userAssignedIdentities is null or empty just attempt to create a system managed identity if it is enabled
+        identity = new ManagedIdentity(description.useSystemManagedIdentity)
+      }else{
+        // else create an user assigned identity with optional system managed identity (if it is enabled)
+        identity = new UserAndOptionalSystemAssignedIdentity(description.useSystemManagedIdentity, userAssignedIdentities)
+      }
 
       def currentTime = System.currentTimeMillis()
       tags = [:]
@@ -453,6 +464,40 @@ class AzureServerGroupResourceTemplate {
     TerminateNotificationProfile(AzureServerGroupDescription description) {
       enable = true
       notBeforeTimeout = "PT" + description.terminationNotBeforeTimeoutInMinutes + "M"
+    }
+  }
+
+  // ***Scale Set None/System Managed Identity
+  static class ManagedIdentity {
+    String type
+
+    ManagedIdentity(){}
+    /**
+     *
+     * @param description
+     */
+    ManagedIdentity(Boolean enableSystemAssigned) {
+      type = enableSystemAssigned ? ResourceIdentityType.SYSTEM_ASSIGNED: ResourceIdentityType.NONE
+    }
+  }
+
+  // ***Scale Set User assigned and optionaly system assigned Identity
+  static class UserAndOptionalSystemAssignedIdentity extends ManagedIdentity {
+    // user assigned identities needs to be added in the following format
+    // "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','<identityname>')]" : { }
+    Map<String, Map<String, String>> userAssignedIdentities = [:]
+
+    /**
+     *
+     * @param description
+     */
+    UserAndOptionalSystemAssignedIdentity(Boolean enableSystemAssigned, String userAssignedIdentities) {
+      type = enableSystemAssigned ? ResourceIdentityType.SYSTEM_ASSIGNED_USER_ASSIGNED.toString() : ResourceIdentityType.USER_ASSIGNED
+      if (userAssignedIdentities.length() > 0) {
+        for (String identity : userAssignedIdentities.split(",")) {
+          this.userAssignedIdentities.put(String.format("[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','%s')]", identity), [:])
+        }
+      }
     }
   }
 
