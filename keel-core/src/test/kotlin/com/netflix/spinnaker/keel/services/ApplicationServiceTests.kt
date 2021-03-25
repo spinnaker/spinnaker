@@ -534,19 +534,17 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "production") {
-                get { statelessConstraints }
-                  .hasSize(1)
-                  .first().and {
-                    get { type }.isEqualTo("depends-on")
-                    get { currentlyPassing }.isTrue()
+                get { constraints }
+                  .first { it.type == "depends-on" }
+                  .and {
+                    get { status }.isEqualTo(PASS)
                   }
               }
               .withVersionInEnvironment(version2, "production") {
-                get { statelessConstraints }
-                  .hasSize(1)
-                  .first().and {
-                    get { type }.isEqualTo("depends-on")
-                    get { currentlyPassing }.isFalse()
+                get { constraints }
+                  .first { it.type == "depends-on" }
+                  .and {
+                    get { status }.isEqualTo(PENDING)
                   }
               }
           }
@@ -556,12 +554,12 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             expectThat(summaries.first())
               .withVersionInEnvironment(version1, "production") {
-                get { statefulConstraints }
+                get { constraints }
                   .first { it.type == "pipeline" }
                   .get { status }.isEqualTo(PASS)
               }
               .withVersionInEnvironment(version2, "production") {
-                get { statefulConstraints }
+                get { constraints }
                   .first { it.type == "pipeline" }
                   .get { status }.isEqualTo(PENDING)
               }
@@ -572,7 +570,7 @@ class ApplicationServiceTests : JUnit5Minutests {
 
             expectThat(summaries.first { it.reference == releaseArtifact.reference })
               .withVersionInEnvironment(version1, "production") {
-                get { statefulConstraints }
+                get { constraints }
                   .first { it.type == "manual-judgement" }
                   .get { status }.isEqualTo(NOT_EVALUATED)
               }

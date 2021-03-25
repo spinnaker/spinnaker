@@ -51,9 +51,7 @@ data class ArtifactSummaryInEnvironment(
   val replacedBy: String? = null,
   val pinned: ActionMetadata? = null,
   val vetoed: ActionMetadata? = null,
-  val statefulConstraints: List<StatefulConstraintSummary> = emptyList(), //todo eb: remove in favor of [constraints]
-  val statelessConstraints: List<StatelessConstraintSummary> = emptyList(), //todo eb: remove in favor of [constraints]
-  val constraints: List<StatefulConstraintSummary> = emptyList(),
+  val constraints: List<ConstraintSummary> = emptyList(),
   val compareLink: String? = null,
   val verifications : List<VerificationSummary> = emptyList()
 )
@@ -77,7 +75,7 @@ data class ActionMetadata(
 )
 
 @JsonInclude(Include.NON_NULL)
-data class StatefulConstraintSummary(
+data class ConstraintSummary(
   val type: String,
   val status: ConstraintStatus,
   val startedAt: Instant? = null,
@@ -85,13 +83,6 @@ data class StatefulConstraintSummary(
   val judgedAt: Instant? = null,
   val comment: String? = null,
   val attributes: ConstraintStateAttributes? = null
-)
-
-@JsonInclude(Include.NON_NULL)
-data class StatelessConstraintSummary(
-  val type: String,
-  val currentlyPassing: Boolean,
-  val attributes: ConstraintMetadata? = null
 )
 
 abstract class ConstraintMetadata()
