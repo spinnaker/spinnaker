@@ -11,13 +11,14 @@ const statusToText: { [key in IVerification['status']]: string } = {
   PENDING: `Verification in progress`,
   PASS: `Verification passed`,
   FAIL: `Verification failed`,
-  OVERRIDE_FAIL: `TBD`,
-  OVERRIDE_PASS: `TBD`,
+  OVERRIDE_FAIL: `Failed verification has been overridden`,
+  OVERRIDE_PASS: `Verification has been overridden`,
 };
 
 const FINISHED_STATES: Array<IVerification['status']> = ['PASS', 'FAIL', 'OVERRIDE_FAIL', 'OVERRIDE_PASS'];
 
 const statusToAppearance: { [key in IVerification['status']]?: IStatusCardProps['appearance'] } = {
+  PENDING: 'progress',
   PASS: 'success',
   FAIL: 'error',
 };
