@@ -66,7 +66,8 @@ import java.time.Instant
   Type(value = ResourceActuationVetoed::class, name = "ResourceActuationVetoed"),
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded"),
-  Type(value = ResourceDiffNotActionable::class, name = "ResourceDiffNotActionable")
+  Type(value = ResourceDiffNotActionable::class, name = "ResourceDiffNotActionable"),
+  Type(value = VerificationBlockedActuation::class, name = "VerificationBlockedActuation")
 )
 abstract class ResourceEvent(
   open val message: String? = null,
