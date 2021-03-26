@@ -20,8 +20,5 @@ import com.netflix.spinnaker.clouddriver.model.Cluster;
 
 /**
  * (Optionally) used in clouddriver-web by the ClusterController to mutate server group API data.
- *
- * @param <T> the supported Cluster type
  */
-public interface ClusterViewModelPostProcessor<T extends Cluster>
-    extends ModelObjectViewModelPostProcessor<T> {}
+public interface ClusterViewModelPostProcessor extends ModelObjectViewModelPostProcessor<Cluster> {}

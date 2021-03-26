@@ -183,7 +183,7 @@ public interface ServerGroup {
   @NoArgsConstructor
   @AllArgsConstructor
   @Data
-  static class InstanceCounts {
+  class InstanceCounts {
     /** Total number of instances in the server group */
     private Integer total = 0;
     /** Total number of "Up" instances (all health indicators report "Up" or "Unknown") */
@@ -211,7 +211,7 @@ public interface ServerGroup {
   @NoArgsConstructor
   @AllArgsConstructor
   @Data
-  public static class Capacity {
+  class Capacity {
     /**
      * Minimum number of instances required in this server group. If provider specific {@code
      * ServerGroup} does not have a notion of min then this should be same as {@code desired}
@@ -238,7 +238,7 @@ public interface ServerGroup {
    * Cloud provider-specific data related to the build and VM image of the server group. Deprecated
    * in favor of Images summary
    */
-  public static interface ImageSummary extends Summary {
+  interface ImageSummary extends Summary {
     String getServerGroupName();
 
     String getImageId();
@@ -252,7 +252,7 @@ public interface ServerGroup {
   }
 
   /** Cloud provider-specific data related to the build and VM image of the server group. */
-  public static interface ImagesSummary extends Summary {
+  interface ImagesSummary extends Summary {
     List<? extends ImageSummary> getSummaries();
   }
 }

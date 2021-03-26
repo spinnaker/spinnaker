@@ -16,13 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.model.Application
-import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
-import com.netflix.spinnaker.clouddriver.model.Cluster
-import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.model.Summary
-import com.netflix.spinnaker.clouddriver.model.TargetServerGroup
+import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.model.view.ClusterViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
@@ -60,32 +54,33 @@ class ClusterController {
   ServerGroupController serverGroupController
 
   @Autowired
-  Optional<List<ClusterViewModelPostProcessor<? extends Cluster>>> clusterExtensions = Optional.empty()
+  Optional<List<ClusterViewModelPostProcessor>> clusterExtensions = Optional.empty()
 
   @Autowired
-  Optional<List<ServerGroupViewModelPostProcessor<? extends ServerGroup>>> serverGroupExtensions = Optional.empty()
+  Optional<List<ServerGroupViewModelPostProcessor>> serverGroupExtensions = Optional.empty()
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> listByAccount(@PathVariable String application) {
-    def apps = ((List<Application>) applicationProviders.collectMany {
-      [it.getApplication(application)] ?: []
-    }).findAll().sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
+    def apps = ((List<Application>) applicationProviders.findResults {
+      it.getApplication(application)
+    }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
+
     def clusterNames = [:]
     def lastApp = null
     for (app in apps) {
       if (!lastApp) {
         clusterNames = app.clusterNames
       } else {
-        clusterNames = mergeClusters.curry(lastApp, app).call()
+        clusterNames = mergeClusters(lastApp, app)
       }
       lastApp = app
     }
     clusterNames
   }
 
-  private Closure<Map<String, Set<String>>> mergeClusters = { Application a, Application b ->
+  private Map<String, Set<String>> mergeClusters(Application a, Application b) {
     [a, b].inject([:]) { Map map, source ->
       for (Map.Entry e in source.clusterNames) {
         if (!map.containsKey(e.key)) {
@@ -101,7 +96,7 @@ class ClusterController {
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
     def clusters = clusterProviders.collect {
-      Set<Cluster> clusters = applyExtensions(clusterExtensions, it.getClusters(application, account, false))
+      Collection<Cluster> clusters = applyExtensions(clusterExtensions, it.getClusters(application, account, false))
       def clusterViews = []
       for (cluster in clusters) {
         clusterViews << new ClusterViewModel(

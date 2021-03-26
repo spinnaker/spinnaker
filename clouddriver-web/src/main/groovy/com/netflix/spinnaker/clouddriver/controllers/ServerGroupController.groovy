@@ -20,27 +20,22 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.model.Cluster
-import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.Instance
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.model.ServerGroupManager
+import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.model.view.ClusterViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.moniker.Moniker
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
@@ -49,8 +44,8 @@ import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelP
 @RestController
 class ServerGroupController {
 
-  private static final String INSTANCE_LOAD_BALANCER_HEALTH_TYPE = 'LoadBalancer'
-  private static final String INSTANCE_TARGET_GROUP_HEALTH_TYPE = 'TargetGroup'
+  private static final String INSTANCE_LOAD_BALANCER_HEALTH_TYPE = "LoadBalancer"
+  private static final String INSTANCE_TARGET_GROUP_HEALTH_TYPE = "TargetGroup"
 
   @Autowired
   List<ClusterProvider> clusterProviders
@@ -59,16 +54,13 @@ class ServerGroupController {
   ObjectMapper objectMapper
 
   @Autowired
-  MessageSource messageSource
-
-  @Autowired
   RequestQueue requestQueue
 
   @Autowired
-  Optional<List<ClusterViewModelPostProcessor<? extends Cluster>>> clusterViewModelPostProcessors = Optional.empty()
+  Optional<List<ClusterViewModelPostProcessor>> clusterViewModelPostProcessors = Optional.empty()
 
   @Autowired
-  Optional<List<ServerGroupViewModelPostProcessor<? extends ServerGroup>>> serverGroupViewModelPostProcessors = Optional.empty()
+  Optional<List<ServerGroupViewModelPostProcessor>> serverGroupViewModelPostProcessors = Optional.empty()
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
@@ -77,9 +69,9 @@ class ServerGroupController {
                                           @PathVariable String account,
                                           @PathVariable String region,
                                           @PathVariable() String name,
-                                          @RequestParam(required = false, value = 'includeDetails', defaultValue = 'true') String includeDetails
+                                          @RequestParam(required = false, value = "includeDetails", defaultValue = "true") String includeDetails
   ) {
-    getServerGroup(account, region, name, includeDetails)
+    return getServerGroup(account, region, name, includeDetails)
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -89,90 +81,125 @@ class ServerGroupController {
   ServerGroup getServerGroupByMoniker(@PathVariable String account,
                                       @PathVariable String region,
                                       @PathVariable String name,
-                                      @RequestParam(required = false, value = 'includeDetails', defaultValue = 'true') String includeDetails) {
-    getServerGroup(account, region, name, includeDetails)
+                                      @RequestParam(required = false, value = "includeDetails", defaultValue = "true") String includeDetails) {
+    return getServerGroup(account, region, name, includeDetails)
   }
 
   private ServerGroup getServerGroup(String account,
-                         String region,
-                         String name,
-                         String includeDetails) {
+                                     String region,
+                                     String name,
+                                     String includeDetails) {
 
     Boolean shouldIncludeDetails = Boolean.valueOf(includeDetails)
 
-    def matches = (Set<ServerGroup>) clusterProviders.findResults { provider ->
-      requestQueue.execute(name, { provider.getServerGroup(account, region, name, shouldIncludeDetails) })
-    }
-    if (!matches) {
-      throw new NotFoundException("Server group not found (account: ${account}, region: ${region}, name: ${name})")
-    }
-    return applyExtensionsToObject(serverGroupViewModelPostProcessors, matches.first())
-  }
-
-  List<Map> expandedList(String application, String cloudProvider) {
-    return clusterProviders
-      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
-      .findResults { ClusterProvider cp ->
-      requestQueue.execute(application, {
-        cp.getClusterDetails(application)?.values()?.collect { Set<Cluster> clusters ->
-          applyExtensions(clusterViewModelPostProcessors, clusters)
-        }
+    ServerGroup serverGroup = clusterProviders.stream()
+      .map({ provider ->
+        requestQueue.execute(name, { -> provider.getServerGroup(account, region, name, shouldIncludeDetails) })
       })
-    }
-    .collectNested { Cluster c ->
-      c.serverGroups?.collect {
-        expanded(applyExtensionsToObject(serverGroupViewModelPostProcessors, it), c)
-      } ?: []
-    }.flatten()
+      .filter({ Objects.nonNull(it) })
+      .findFirst()
+      .orElseThrow({
+        new NotFoundException(String.format("Server group not found (account: %s, region: %s, name: %s)", account, region, name))
+      })
+
+    return applyExtensionsToObject(serverGroupViewModelPostProcessors, serverGroup)
   }
 
-  Map expanded(ServerGroup serverGroup, Cluster cluster) {
-    Map sg = objectMapper.convertValue(serverGroup, Map)
-    sg.accountName = cluster.accountName
-    def moniker = cluster.moniker
-    sg.cluster = moniker.cluster
-    sg.application = moniker.app
-    sg.stack = moniker.stack
-    sg.freeFormDetail = moniker.detail
-    sg.account = cluster.accountName
+  private List<Map<String, Object>> expandedList(String application, String cloudProvider) {
+    return clusterProviders.stream()
+      .filter({
+        cloudProvider != null
+          ? cloudProvider.equalsIgnoreCase(it.getCloudProviderId())
+          : true
+      })
+      .flatMap({ ClusterProvider cp ->
+        def details = requestQueue.execute(application, { cp.getClusterDetails(application) })
 
+        Optional.ofNullable(details)
+          .map({
+            it.values().stream()
+              .filter({ Objects.nonNull(it) })
+              .flatMap({ it.stream() })
+              .filter({ Objects.nonNull(it) })
+              .map( { cluster ->
+                applyExtensionsToObject(clusterViewModelPostProcessors, cluster)
+              })
+          })
+          .orElse(Stream.empty())
+      })
+      .flatMap({ Cluster c ->
+        Optional.ofNullable(c.getServerGroups())
+          .map({ groups ->
+            groups.stream()
+              .map({ serverGroup ->
+                applyExtensionsToObject(serverGroupViewModelPostProcessors, serverGroup)
+              })
+              .map({ serverGroup ->
+                expanded(serverGroup, c)
+              })
+          })
+          .orElse(Stream.empty())
+      })
+      .collect(Collectors.toList())
+  }
+
+  private Map<String, Object> expanded(ServerGroup serverGroup, Cluster cluster) {
+    Map<String, Object> sg = objectMapper.convertValue(serverGroup, Map)
+    sg.put("accountName", cluster.getAccountName())
+    Moniker moniker = cluster.getMoniker()
+    sg.put("cluster", moniker.getCluster())
+    sg.put("application", moniker.getApp())
+    sg.put("stack", moniker.getStack())
+    sg.put("freeFormDetail", moniker.getDetail())
+    sg.put("account", cluster.getAccountName())
     return sg
   }
 
-  List<ServerGroupViewModel> summaryList(String application, String cloudProvider) {
+  private List<ServerGroupViewModel> summaryList(String application, String cloudProvider) {
 
-    List<ServerGroupViewModel> serverGroupViews = []
+    List<ServerGroupViewModel> serverGroupViews = clusterProviders.stream()
+      .filter({
+        cloudProvider != null
+          ? cloudProvider.equalsIgnoreCase(it.getCloudProviderId())
+          : true
+      })
+      .flatMap({ provider ->
+        Map<String, Set<Cluster>> clusterMap = requestQueue.execute(application, {
+          provider.getClusterDetails(application)
+        })
 
-    def clusters = (Set<Cluster>) clusterProviders
-      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
-      .findResults { provider ->
-        requestQueue.execute(application, { provider.getClusterDetails(application)?.values() })?.collect {
-          applyExtensions(clusterViewModelPostProcessors, it)
-        }
-      }.flatten()
-    clusters.each { Cluster cluster ->
-      cluster.serverGroups.each { ServerGroup serverGroup ->
-        serverGroupViews << new ServerGroupViewModel(applyExtensionsToObject(serverGroupViewModelPostProcessors, serverGroup), cluster.name, cluster.accountName)
-      }
-    }
+        return Optional.ofNullable(clusterMap)
+          .map({ it.values() })
+          .map({ it.stream().flatMap({ it.stream() }) })
+          .orElse(Stream.empty())
+      })
+      .flatMap({ Cluster cluster ->
+        cluster.getServerGroups().stream()
+          .map({ serverGroup ->
+            new ServerGroupViewModel(applyExtensionsToObject(serverGroupViewModelPostProcessors, serverGroup), cluster.name, cluster.accountName)
+          })
 
-    serverGroupViews
+      })
+      .collect(Collectors.toList())
+
+    return serverGroupViews
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(value = "/applications/{application}/serverGroups", method = RequestMethod.GET)
-  List list(@PathVariable String application,
-            @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
-            @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
-            @RequestParam(required = false, value = 'clusters') Collection<String> clusters) {
+  List<Object> list(@PathVariable String application,
+                    @RequestParam(required = false, value = "expand", defaultValue = "false") String expand,
+                    @RequestParam(required = false, value = "cloudProvider") String cloudProvider,
+                    @RequestParam(required = false, value = "clusters") List<String> clusters) {
 
-    Boolean isExpanded = Boolean.valueOf(expand)
-    if (clusters) {
+    boolean isExpanded = Boolean.valueOf(expand)
+
+    if (clusters != null && !clusters.isEmpty()) {
       return buildSubsetForClusters(clusters, application, isExpanded)
     }
-    if (clusters?.empty) {
-      return []
+    if (clusters != null) {
+      return List.of()
     }
     if (isExpanded) {
       return expandedList(application, cloudProvider)
@@ -183,14 +210,18 @@ class ServerGroupController {
   @PostFilter("hasPermission(filterObject?.application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(value = "/serverGroups", method = RequestMethod.GET)
-  List getServerGroups(@RequestParam(required = false, value = 'applications') List<String> applications,
-                       @RequestParam(required = false, value = 'ids') List<String> ids,
-                       @RequestParam(required = false, value = 'cloudProvider') String cloudProvider) {
-    if ((applications && ids) || (!applications && !ids)) {
-      throw new IllegalArgumentException("Provide either 'applications' or 'ids' parameter (but not both)");
+  List<ServerGroupViewModel> getServerGroups(
+    @RequestParam(required = false, value = "applications") List<String> applications,
+    @RequestParam(required = false, value = "ids") List<String> ids,
+    @RequestParam(required = false, value = "cloudProvider") String cloudProvider) {
+
+    boolean hasApplications = applications != null && !applications.isEmpty()
+    boolean hasIds = ids != null && !ids.isEmpty()
+    if ((hasApplications && hasIds) || (!hasApplications && !hasIds)) {
+      throw new IllegalArgumentException("Provide either 'applications' or 'ids' parameter (but not both)")
     }
 
-    if (applications) {
+    if (hasApplications) {
       return getServerGroupsForApplications(applications, cloudProvider)
     } else {
       return getServerGroupsForIds(ids)
@@ -198,46 +229,76 @@ class ServerGroupController {
   }
 
   private List<ServerGroupViewModel> getServerGroupsForApplications(List<String> applications, String cloudProvider) {
-    return applications.collectMany { summaryList(it, cloudProvider) }
+    return applications.stream()
+      .flatMap({ it -> summaryList(it, cloudProvider).stream() })
+      .collect(Collectors.toList())
   }
 
   private List<ServerGroupViewModel> getServerGroupsForIds(List<String> serverGroupIds) {
-    List<String[]> allIdTokens = serverGroupIds.collect { it.split(':') }
+    List<String[]> allIdTokens = serverGroupIds.stream()
+      .map({ it.split(":") })
+      .collect(Collectors.toList())
 
-    def invalidIds = allIdTokens.findAll { it.size() != 3 }
-    if (invalidIds) {
+    String invalidIds = allIdTokens.stream()
+      .filter({ it.length != 3 })
+      .map({ String.join(":", it) })
+      .collect(Collectors.joining(", "))
+
+    if (!invalidIds.isBlank()) {
       throw new IllegalArgumentException("Expected ids in the format <account>:<region>:<name> but got invalid ids: " +
-        invalidIds.collect { it.join(':') }.join(', '))
+        invalidIds)
     }
 
-    allIdTokens.collect { String[] idTokens ->
-      def (String account, String region, String name) = idTokens
-      try {
-        def serverGroup = getServerGroup(account, region, name, "true")
-        return new ServerGroupViewModel(serverGroup, serverGroup.moniker.cluster, account)
-      } catch (e) {
-        log.error("Couldn't get server group ${idTokens.join(':')}", e)
-        return null
-      }
-    }.findAll();
+    allIdTokens.stream()
+      .map({ idTokens ->
+        String account = idTokens[0]
+        String region = idTokens[1]
+        String name = idTokens[2]
+        try {
+          ServerGroup serverGroup = getServerGroup(account, region, name, "true")
+          return new ServerGroupViewModel(serverGroup, serverGroup.getMoniker().getCluster(), account)
+        } catch (e) {
+          log.error("Couldn't get server group {}:{}:{}", account, region, name, e)
+          return null
+        }
+      })
+      .filter({ Objects.nonNull(it) })
+      .collect(Collectors.toList())
   }
 
-  private Collection buildSubsetForClusters(Collection<String> clusters, String application, Boolean isExpanded) {
-    Collection<Cluster> matches = clusters.findResults { accountAndName ->
-      def (account, clusterName) = accountAndName.split(':')
-      if (account && clusterName) {
-        return clusterProviders.findResults { clusterProvider ->
-          applyExtensionsToObject(clusterViewModelPostProcessors, requestQueue.execute(application, { clusterProvider.getCluster(application, account, clusterName) }))
+  private List<Object> buildSubsetForClusters(List<String> clusters, String application, boolean isExpanded) {
+    List<Cluster> matches = clusters.stream()
+      .flatMap({ accountAndName ->
+        String[] components = accountAndName.split(":")
+        if (components.length == 2) {
+          String account = components[0]
+          String clusterName = components[1]
+          if (!account.isEmpty() && !clusterName.isEmpty()) {
+            return clusterProviders.stream()
+              .map({ clusterProvider ->
+                Cluster cluster = requestQueue.execute(application, {
+                  clusterProvider.getCluster(application, account, clusterName)
+                })
+                return applyExtensionsToObject(clusterViewModelPostProcessors, cluster)
+              })
+          }
         }
-      }
-      return null
-    }.flatten()
-    return matches.findResults { cluster ->
-      cluster.serverGroups.collect {
-        ServerGroup sg = applyExtensionsToObject(serverGroupViewModelPostProcessors, it)
-        isExpanded ? expanded(sg, cluster) : new ServerGroupViewModel(sg, cluster.name, cluster.accountName)
-      }
-    }.flatten()
+        return null
+      })
+      .filter({ it != null })
+      .collect(Collectors.toList())
+
+    return matches.stream()
+      .flatMap({ cluster ->
+        cluster.getServerGroups().stream()
+          .map({
+            ServerGroup sg = applyExtensionsToObject(serverGroupViewModelPostProcessors, it)
+            isExpanded
+              ? expanded(sg, cluster)
+              : new ServerGroupViewModel(sg, cluster.name, cluster.accountName)
+          })
+      })
+      .collect(Collectors.toList())
   }
 
   static class ServerGroupViewModel {
@@ -276,16 +337,26 @@ class ServerGroupController {
     }
 
     ServerGroupViewModel(ServerGroup serverGroup, String clusterName, String accountName) {
+      def instanceViews = Optional.ofNullable(serverGroup.getInstances())
+        .map({ instances ->
+          instances.stream()
+            .filter({ it != null })
+            .map({ new InstanceViewModel(it) })
+            .collect(Collectors.toList())
+        })
+        .orElse(List.of())
+
+
       cluster = clusterName
-      type = serverGroup.type
-      cloudProvider = serverGroup.cloudProvider
-      name = serverGroup.name
-      application = Names.parseName(serverGroup.name).getApp()
+      type = serverGroup.getType()
+      cloudProvider = serverGroup.getCloudProvider()
+      name = serverGroup.getName()
+      application = Names.parseName(serverGroup.getName()).getApp()
       account = accountName
-      region = serverGroup.region
+      region = serverGroup.getRegion()
       createdTime = serverGroup.getCreatedTime()
       isDisabled = serverGroup.isDisabled()
-      instances = serverGroup.getInstances()?.findResults { it ? new InstanceViewModel(it) : null } ?: []
+      instances = instanceViews
       instanceCounts = serverGroup.getInstanceCounts()
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
@@ -293,14 +364,17 @@ class ServerGroupController {
       instanceType = serverGroup.getInstanceType()
       moniker = serverGroup.getMoniker()
 
-      if (serverGroup.tags) {
-        tags = serverGroup.tags
+      def tags = serverGroup.getTags()
+      if (tags != null && !tags.isEmpty()) {
+        this.tags = tags
       }
 
-      if (serverGroup.labels) {
-        labels = serverGroup.labels
+      def labels = serverGroup.getLabels()
+      if (labels != null && !labels.isEmpty()) {
+        this.labels = labels
       }
 
+      // TODO: deal with duck typing
       if (serverGroup.hasProperty("buildInfo")) {
         buildInfo = serverGroup.buildInfo
       }
@@ -323,7 +397,7 @@ class ServerGroupController {
   static class InstanceViewModel {
     String id
     String name
-    List<Map<String, Object>> health
+    List<Health> health
     String healthState
     Long launchTime
     String availabilityZone
@@ -335,27 +409,79 @@ class ServerGroupController {
       launchTime = instance.getLaunchTime()
       availabilityZone = instance.getZone()
       health = instance.health.collect { health ->
-        Map healthMetric = [type: health.type]
-        if (health.containsKey("state")) {
-          healthMetric.state = health.state.toString()
-        }
-        if (health.containsKey("status")) {
-          healthMetric.status = health.status
-        }
-        if (health.type == INSTANCE_LOAD_BALANCER_HEALTH_TYPE && health.containsKey("loadBalancers")) {
-          healthMetric.loadBalancers = health.loadBalancers.collect {
-            [name: it.loadBalancerName, state: it.state, description: it.description, healthState: it.healthState]
+
+        String type = (String) health.get("type")
+
+        String healthState = Optional.ofNullable(health.get("state"))
+          .map({ it.toString() })
+          .orElse(null)
+
+        Object status = health.get("status")
+        if (type == INSTANCE_LOAD_BALANCER_HEALTH_TYPE && health.containsKey("loadBalancers")) {
+          List<HealthDetail> loadBalancers
+
+          Object lbs = health.get("loadBalancers")
+          if (lbs instanceof Collection) {
+            loadBalancers = lbs.stream()
+              .map({
+                // TODO: deal with duck typing
+                new HealthDetail(it.loadBalancerName, it.state, it.description, it.healthState)
+              })
+              .collect(Collectors.toList())
           }
-        }
-        if (health.type == INSTANCE_TARGET_GROUP_HEALTH_TYPE && health.containsKey("targetGroups")) {
-          healthMetric.targetGroups = health.targetGroups.collect {
-            [name: it.targetGroupName, state: it.state, description: it.description, healthState: it.healthState]
+
+          def metric = new LoadBalancerHealth()
+          metric.setType(type)
+          metric.setState(healthState)
+          metric.setStatus(status)
+          metric.setLoadBalancers(loadBalancers)
+          return metric
+        } else if (type == INSTANCE_TARGET_GROUP_HEALTH_TYPE && health.containsKey("targetGroups")) {
+          List<HealthDetail> targetGroups
+
+          Object tgs = health.get("targetGroups")
+          if (tgs instanceof Collection) {
+            targetGroups = tgs.stream()
+              .map({
+                // TODO: deal with duck typing
+                new HealthDetail(it.targetGroupName, it.state, it.description, it.healthState)
+              })
+              .collect(Collectors.toList())
           }
+
+          def metric = new TargetGroupHealth()
+          metric.setType(type)
+          metric.setState(healthState)
+          metric.setStatus(status)
+          metric.setTargetGroups(targetGroups)
+          return metric
+        } else {
+          return new Health(type, healthState, status)
         }
-        healthMetric
       }
     }
   }
 
-}
+  @Canonical
+  static class Health {
+    String type
+    String state
+    Object status
+  }
 
+  static class LoadBalancerHealth extends Health {
+    List<HealthDetail> loadBalancers
+  }
+
+  static class TargetGroupHealth extends Health {
+    List<HealthDetail> targetGroups
+  }
+
+  @Canonical
+  static class HealthDetail {
+    Object name
+    Object state
+    Object description
+    Object healthState
+  }
+}

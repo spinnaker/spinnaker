@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 
 public interface ModelObjectViewModelPostProcessor<T> {
   static <R> R applyExtensionsToObject(
-      Optional<List<ModelObjectViewModelPostProcessor<? super Object>>> extensions, R object) {
+      Optional<List<ModelObjectViewModelPostProcessor<R>>> extensions, R object) {
     return extensions
         .map(exts -> exts.stream().filter(ext -> ext.supports(object)).collect(Collectors.toList()))
         .filter(exts -> !exts.isEmpty())
         .map(
             exts -> {
-              for (ModelObjectViewModelPostProcessor<? super Object> extension : exts) {
+              for (ModelObjectViewModelPostProcessor<R> extension : exts) {
                 extension.process(object);
               }
               return object;
@@ -37,13 +37,12 @@ public interface ModelObjectViewModelPostProcessor<T> {
         .orElse(object);
   }
 
-  static <R, C extends Collection<R>> C applyExtensions(
-      Optional<List<ModelObjectViewModelPostProcessor<? super Object>>> extensions, C objects) {
+  static <R> Collection<R> applyExtensions(
+      Optional<List<ModelObjectViewModelPostProcessor<R>>> extensions, Collection<R> objects) {
     return extensions
         .map(
             ext ->
-                // ifPresent not strictly necessary but saves a collection copy
-                (C)
+                (Collection<R>)
                     objects.stream()
                         .map(o -> applyExtensionsToObject(extensions, o))
                         .collect(Collectors.toList()))
