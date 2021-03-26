@@ -11,7 +11,7 @@ import './HoverablePopover.css';
 
 export interface IHoverablePopoverContentsProps extends IHoverablePopoverProps {
   // The popover contents can forcibly hide the popover by calling this function
-  hidePopover: () => void;
+  hidePopover?: () => void;
 }
 
 export interface IHoverablePopoverProps extends React.HTMLProps<any> {
