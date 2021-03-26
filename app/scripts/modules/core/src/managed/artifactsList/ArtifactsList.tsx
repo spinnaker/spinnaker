@@ -155,10 +155,11 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
   );
 };
 
+const ignoredConstraintTypes: Array<IConstraint['type']> = ['depends-on'];
+
 type ArtifactStatusList = IStatusBubbleStackProps['statuses'];
 function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactVersion): ArtifactStatusList {
   const statuses: ArtifactStatusList = [];
-  // TODO: ask Erik why we are doing this
 
   // NOTE: The order in which entries are added to `statuses` is important. The highest priority
   // item must be inserted first.
@@ -188,7 +189,7 @@ function getArtifactStatuses({ environments, lifecycleSteps }: IManagedArtifactV
 
     environment.constraints?.forEach((constraint: IConstraint) => {
       const icon = constraintsManager.getIcon(constraint);
-      if (constraint.status === 'PENDING') {
+      if (constraint.status === 'PENDING' && !ignoredConstraintTypes.includes(constraint.type)) {
         pendingConstraintIcons.add(icon);
       } else if (constraint.status === 'FAIL' || constraint.status === 'OVERRIDE_FAIL') {
         failedConstraintIcons.add(icon);
