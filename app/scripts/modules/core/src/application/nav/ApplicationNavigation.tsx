@@ -1,4 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
+import classnames from 'classnames';
 import { find, isEqual } from 'lodash';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
@@ -8,6 +9,7 @@ import { SETTINGS } from 'core/config/settings';
 import { PagerDutyWriter } from 'core/pagerDuty';
 
 import { AppRefresher } from './AppRefresher';
+import { BottomSection } from './BottomSection';
 import { NavSection } from './NavSection';
 import { Application } from '../application.model';
 import { verticalNavExpandedAtom } from './navAtoms';
@@ -65,37 +67,42 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
   }
 
   return (
-    <div className={`vertical-navigation flex-fill layer-high${!isExpanded ? ' vertical-nav-collapsed' : ''}`}>
+    <div className={classnames(['vertical-navigation', 'layer-high', { 'vertical-nav-collapsed': !isExpanded }])}>
       <h3 className="heading-2 horizontal middle nav-header sp-margin-m-xaxis sp-margin-l-top">
         <AppRefresher app={app} />
         <span className="application-name text-semibold heading-2 sp-margin-m-left">{app.name}</span>
       </h3>
-      {navSections
-        .filter((section) => section.length)
-        .map((section, i) => (
-          <NavSection key={`section-${i}`} dataSources={section} app={app} />
-        ))}
-      {SETTINGS.feature.pagerDuty && app.attributes.pdApiKey && (
-        <div className="nav-section sp-padding-s-yaxis">
-          <div
-            className="page-category flex-container-h middle text-semibold sp-padding-s-yaxis clickable"
-            onClick={pageApplicationOwner}
-          >
-            <div className="nav-row-item sp-margin-s-right">
-              {!isExpanded ? (
-                <Tooltip value="Page App Owner" placement="right">
-                  <div>
-                    <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
-                  </div>
-                </Tooltip>
-              ) : (
-                <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
-              )}
+      <div className="nav-content">
+        {navSections
+          .filter((section) => section.length)
+          .map((section, i) => (
+            <NavSection key={`section-${i}`} dataSources={section} app={app} />
+          ))}
+        {SETTINGS.feature.pagerDuty && app.attributes.pdApiKey && (
+          <div className="nav-section sp-padding-s-yaxis">
+            <div
+              className="page-category flex-container-h middle text-semibold sp-padding-s-yaxis clickable"
+              onClick={pageApplicationOwner}
+            >
+              <div className="nav-row-item sp-margin-s-right">
+                {!isExpanded ? (
+                  <Tooltip value="Page App Owner" placement="right">
+                    <div>
+                      <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
+                )}
+              </div>
+              <span className="nav-name"> Page App Owner</span>
             </div>
-            <span className="nav-name"> Page App Owner</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+      <div className="nav-bottom">
+        <BottomSection app={app} />
+      </div>
     </div>
   );
 };
