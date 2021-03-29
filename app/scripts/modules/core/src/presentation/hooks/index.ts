@@ -4,6 +4,7 @@ export * from './useData.hook';
 export * from './useDataSource.hook';
 export * from './useDebouncedValue.hook';
 export * from './useDeepObjectDiff.hook';
+export * from './useEscapeKeyCallback.hook';
 export * from './useEventListener.hook';
 export * from './useForceUpdate.hook';
 export * from './useInterval.hook';

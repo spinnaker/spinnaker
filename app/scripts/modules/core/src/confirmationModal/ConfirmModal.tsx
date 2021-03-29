@@ -3,7 +3,7 @@ import { Modal } from 'react-bootstrap';
 
 import { PlatformHealthOverride } from 'core/application/modal/PlatformHealthOverride';
 import { ModalClose } from 'core/modal';
-import { IModalComponentProps, Markdown } from 'core/presentation';
+import { IModalComponentProps, Markdown, useEscapeKeyPressed } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 import { TaskMonitor, TaskReason, UserVerification } from 'core/task';
 import { MultiTaskMonitor } from 'core/task/monitor/MultiTaskMonitor';
@@ -26,6 +26,8 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
 
   const [reason, setReason] = useState<string>();
   const [interestingHealthProviderNames, setInterestingHealthProviderNames] = useState<string[]>();
+
+  useEscapeKeyPressed(() => dismissModal());
 
   useEffect(() => {
     if (taskMonitor && !taskMonitor.modalInstance) {
