@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.slack
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -83,6 +82,20 @@ data class SlackManualJudgmentNotification(
   val deliveryArtifact: DeliveryArtifact,
   val stateUid: UID?,
   override val application: String
+) : SlackNotificationEvent(time, application)
+
+data class SlackManualJudgmentUpdateNotification(
+  val channel: String,
+  val timestamp: String,
+  val status: ConstraintStatus,
+  val user: String?,
+  val artifactCandidate: PublishedArtifact,
+  val currentArtifact: PublishedArtifact? = null,
+  val pinnedArtifact: PublishedArtifact? = null,
+  val targetEnvironment: String,
+  val deliveryArtifact: DeliveryArtifact,
+  override val application: String,
+  override val time: Instant,
 ) : SlackNotificationEvent(time, application)
 
 data class SlackVerificationCompletedNotification(

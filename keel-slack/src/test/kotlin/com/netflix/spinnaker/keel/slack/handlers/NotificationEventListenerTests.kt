@@ -229,7 +229,7 @@ class NotificationEventListenerTests : JUnit5Minutests {
 
         every {
           slackService.sendSlackNotification("test", any(), any(), any(), any())
-        } just Runs
+        } returns null
 
         every {
           gitDataGenerator.generateScmInfo(any(), any(), any(), any())

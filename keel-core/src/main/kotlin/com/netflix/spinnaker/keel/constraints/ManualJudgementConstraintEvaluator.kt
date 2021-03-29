@@ -20,10 +20,10 @@ class ManualJudgementConstraintEvaluator(
   override val repository: ConstraintRepository,
   private val clock: Clock,
   override val eventPublisher: EventPublisher
-) : StatefulConstraintEvaluator<ManualJudgementConstraint, DefaultConstraintAttributes> {
+) : StatefulConstraintEvaluator<ManualJudgementConstraint, ManualJudgementConstraintAttributes> {
 
   override val supportedType = SupportedConstraintType<ManualJudgementConstraint>("manual-judgement")
-  override val attributeType = SupportedConstraintAttributesType<DefaultConstraintAttributes>("manual-judgement")
+  override val attributeType = SupportedConstraintAttributesType<ManualJudgementConstraintAttributes>("manual-judgement")
 
   override fun canPromote(
     artifact: DeliveryArtifact,

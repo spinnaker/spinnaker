@@ -6,6 +6,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.SlackConfiguration
 import com.netflix.spinnaker.keel.notifications.NotificationType
 import com.slack.api.Slack
+import com.slack.api.methods.response.chat.ChatPostMessageResponse
 import com.slack.api.model.block.LayoutBlock
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -37,7 +38,7 @@ class SlackService(
    */
   fun sendSlackNotification(channel: String, blocks: List<LayoutBlock>,
                             application: String, type: List<NotificationType>,
-                            fallbackText: String) {
+                            fallbackText: String): ChatPostMessageResponse? {
     if (isSlackEnabled) {
       log.debug("Sending slack notification $type for application $application in channel $channel")
 
@@ -67,13 +68,55 @@ class SlackService(
             BasicTag("application", application)
           )
         ).safeIncrement()
-        return
+        return response
       }
 
       log.debug("slack notification $type for application $application in channel $channel was successfully sent.")
-
+      return response
     } else {
       log.debug("new slack integration is not enabled")
+      return null
+    }
+  }
+
+  /**
+   * Updates an existing slack message with new text by finding the message and editing it
+   */
+  fun updateSlackMessage(
+    channel: String,
+    timestamp: String,
+    blocks: List<LayoutBlock>,
+    fallbackText: String,
+    application: String
+  ) {
+    log.debug("Updating slack notification at timestamp $timestamp for application $application in channel $channel")
+    val response = slack.methods(configToken).chatUpdate { req ->
+      req
+        .channel(channel)
+        .ts(timestamp)
+        .blocks(blocks)
+        .text(fallbackText)
+    }
+
+    if (response.isOk) {
+      spectator.counter(
+        SLACK_MESSAGE_SENT,
+        listOf(
+          BasicTag("notificationType", "update"),
+          BasicTag("application", application)
+        )
+      ).safeIncrement()
+    }
+
+    if (!response.isOk) {
+      log.error("slack couldn't update the notification at timestamp $timestamp for application $application in channel $channel. error is: ${response.error}, response: $response")
+      spectator.counter(
+        SLACK_MESSAGE_FAILED,
+        listOf(
+          BasicTag("notificationType", "update"),
+          BasicTag("application", application)
+        )
+      ).safeIncrement()
     }
   }
 

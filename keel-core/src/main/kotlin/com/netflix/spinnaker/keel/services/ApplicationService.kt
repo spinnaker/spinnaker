@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
@@ -19,6 +20,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatelessConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.supporting
@@ -28,6 +30,8 @@ import com.netflix.spinnaker.keel.artifacts.generateCompareLink
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintAttributes
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator.Companion.toNumericTimeWindows
 import com.netflix.spinnaker.keel.constraints.DependsOnConstraintAttributes
+import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintAttributes
+import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.VerificationSummary
@@ -103,6 +107,18 @@ class ApplicationService(
     .filterIsInstance<StatelessConstraintEvaluator<*,*>>()
     .map { it.attributeType.name }
 
+  //attributes that should be stripped before being returned through the api
+  private val privateConstraintAttrs = listOf("manual-judgement")
+
+  fun List<ConstraintState>.removePrivateConstraintAttrs() =
+    map { state ->
+      if (state.attributes?.type in privateConstraintAttrs) {
+        state.copy(attributes = null)
+      } else {
+        state
+      }
+    }
+
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
   fun getDeliveryConfig(application: String) = repository.getDeliveryConfigForApplication(application)
@@ -116,10 +132,11 @@ class ApplicationService(
         // remove snapshotted "stateless" constraints from this list
         snapshottedStatelessConstraintAttrs.contains(it.type)
       }
+      .removePrivateConstraintAttrs()
 
   fun getConstraintStatesFor(application: String, environment: String, limit: Int): List<ConstraintState> {
     val config = repository.getDeliveryConfigForApplication(application)
-    return repository.constraintStateFor(config.name, environment, limit)
+    return repository.constraintStateFor(config.name, environment, limit).removePrivateConstraintAttrs()
   }
 
   fun updateConstraintStatus(user: String, application: String, environment: String, status: UpdatedConstraintStatus) {
@@ -134,14 +151,37 @@ class ApplicationService(
       "${config.name}/$environment/${status.type}/${status.artifactVersion}", "constraint not found"
     )
 
-    repository.storeConstraintState(
-      currentState.copy(
-        status = status.status,
-        comment = status.comment ?: currentState.comment,
-        judgedAt = Instant.now(),
-        judgedBy = user
-      )
+    val newState = currentState.copy(
+      status = status.status,
+      comment = status.comment ?: currentState.comment,
+      judgedAt = Instant.now(),
+      judgedBy = user
     )
+    repository.storeConstraintState(newState)
+
+    // publish changed notification so we can update any slack messages sent
+    val constraint = getConstraintForEnvironment(
+      config,
+      environment,
+      status.type
+    )
+    if (currentState.status != newState.status){
+      publisher.publishEvent(
+        ConstraintStateChanged(config.environments.first{ it.name == environment }, constraint, currentState, newState)
+      )
+    }
+  }
+
+  fun getConstraintForEnvironment(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String,
+    constraintType: String
+  ): Constraint {
+    val target = deliveryConfig.environments.firstOrNull { it.name == targetEnvironment }
+    requireNotNull(target) {
+      "No environment named $targetEnvironment exists in the configuration ${deliveryConfig.name}"
+    }
+    return target.constraints.first { it.type == constraintType }
   }
 
   fun pin(user: String, application: String, pin: EnvironmentArtifactPin) {
@@ -533,7 +573,9 @@ class ApplicationService(
      version: String,
      artifact: DeliveryArtifact
   ): ArtifactSummaryInEnvironment {
-    val persistedStates = repository.constraintStateFor(deliveryConfig.name, environment.name, version)
+    val persistedStates = repository
+      .constraintStateFor(deliveryConfig.name, environment.name, version)
+      .removePrivateConstraintAttrs()
     val notEvaluatedPersistedConstraints = environment.constraints.filter { constraint ->
       constraint is StatefulConstraint && persistedStates.none { it.type == constraint.type }
     }.map { constraint ->

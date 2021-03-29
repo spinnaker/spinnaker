@@ -28,7 +28,7 @@ sealed class ConstraintEvent(
 )
 
 /**
- * TODO: Docs.
+ * Event published when the state of a constraint changes.
  */
 data class ConstraintStateChanged(
   override val environment: Environment,

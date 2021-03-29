@@ -10,7 +10,9 @@ import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
+import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintAttributes
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
@@ -34,6 +36,7 @@ import com.netflix.spinnaker.keel.notifications.NotificationType.LIFECYCLE_EVENT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_APPROVED
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_AWAIT
 import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_REJECTED
+import com.netflix.spinnaker.keel.notifications.NotificationType.MANUAL_JUDGMENT_UPDATE
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_FAILED
 import com.netflix.spinnaker.keel.notifications.NotificationType.TEST_PASSED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -258,26 +261,23 @@ class NotificationEventListener(
   fun onConstraintStateChanged(notification: ConstraintStateChanged) {
     log.debug("Received constraint state changed event: $notification")
     with(notification) {
-      // if this is the first time the constraint was evaluated, send a notification
-      // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
-      if (constraint is ManualJudgementConstraint &&
-        previousState == null &&
-        currentState.status == ConstraintStatus.PENDING
-      ) {
-
-        val (config, artifact) = currentState.artifactReference?.let {
-          getConfigAndArtifact(
-            deliveryConfigName = currentState.deliveryConfigName,
-            artifactReference = it,
-            version = currentState.artifactVersion
-          )
-        } ?: return
+      if (shouldSendManualJudgementAwait() || shouldSendManualJudgementUpdate()) {
+        val (config, artifact) = getConfigAndArtifact(
+          deliveryConfigName = currentState.deliveryConfigName,
+          artifactReference = currentState.artifactReference,
+          version = currentState.artifactVersion
+        ) ?: return
 
         val deliveryArtifact = config.artifacts.find {
           it.reference == currentState.artifactReference
         } ?: return
 
-        val currentArtifact = repository.getArtifactVersionByPromotionStatus(config, currentState.environmentName, deliveryArtifact, PromotionStatus.CURRENT)
+        val currentArtifact = repository.getArtifactVersionByPromotionStatus(
+          config,
+          currentState.environmentName,
+          deliveryArtifact,
+          PromotionStatus.CURRENT
+        )
 
         // fetch the pinned artifact, if exists
         val pinnedArtifact =
@@ -286,23 +286,58 @@ class NotificationEventListener(
               ?.copy(reference = deliveryArtifact.reference)
           }
 
-        sendSlackMessage(
-          config,
-          SlackManualJudgmentNotification(
-            time = clock.instant(),
-            application = config.application,
-            artifactCandidate = artifact,
-            targetEnvironment = currentState.environmentName,
-            currentArtifact = currentArtifact,
-            deliveryArtifact = deliveryArtifact,
-            pinnedArtifact = pinnedArtifact,
-            stateUid = currentState.uid
-          ),
-          MANUAL_JUDGMENT_AWAIT,
-          environment.name)
+        if (shouldSendManualJudgementAwait()) {
+          // if this is the first time the constraint was evaluated, send a notification
+          // so the user can react via other interfaces outside the UI (e.g. Slack)
+          sendSlackMessage(
+            config,
+            SlackManualJudgmentNotification(
+              time = clock.instant(),
+              application = config.application,
+              artifactCandidate = artifact,
+              targetEnvironment = currentState.environmentName,
+              currentArtifact = currentArtifact,
+              deliveryArtifact = deliveryArtifact,
+              pinnedArtifact = pinnedArtifact,
+              stateUid = currentState.uid
+            ),
+            MANUAL_JUDGMENT_AWAIT,
+            environment.name
+          )
+        } else if (shouldSendManualJudgementUpdate()) {
+          // update all slack notifications we sent if the judgement came from the ui or api
+          (currentState.attributes as? ManualJudgementConstraintAttributes)?.let { attrs ->
+            attrs.slackDetails.forEach { slackDetail ->
+              sendSlackMessage(
+                config,
+                SlackManualJudgmentUpdateNotification(
+                  timestamp = slackDetail.timestamp,
+                  channel = slackDetail.channel,
+                  application = config.application,
+                  time = clock.instant(),
+                  status = currentState.status,
+                  user = currentState.judgedBy,
+                  artifactCandidate = artifact,
+                  targetEnvironment = currentState.environmentName,
+                  currentArtifact = currentArtifact,
+                  deliveryArtifact = deliveryArtifact,
+                  pinnedArtifact = pinnedArtifact,
+                ),
+                MANUAL_JUDGMENT_UPDATE,
+                environment.name
+              )
+            }
+          }
+        }
       }
     }
   }
+
+  fun ConstraintStateChanged.shouldSendManualJudgementAwait(): Boolean =
+    constraint is ManualJudgementConstraint && previousState == null && currentState.status == PENDING
+
+  fun ConstraintStateChanged.shouldSendManualJudgementUpdate(): Boolean =
+    constraint is ManualJudgementConstraint && previousState?.status == PENDING && currentState.complete()
 
   @EventListener(VerificationCompleted::class)
   fun onVerificationCompletedNotification(notification: VerificationCompleted) {
@@ -395,7 +430,7 @@ class NotificationEventListener(
 
   private fun translateFrequencyToEvents(frequency: NotificationFrequency): List<Type> {
     val quietNotifications = listOf(ARTIFACT_MARK_AS_BAD, ARTIFACT_PINNED, ARTIFACT_UNPINNED, LIFECYCLE_EVENT, APPLICATION_PAUSED,
-      APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
+      APPLICATION_RESUMED, MANUAL_JUDGMENT_AWAIT, MANUAL_JUDGMENT_UPDATE, ARTIFACT_DEPLOYMENT_FAILED, TEST_FAILED)
     val normalNotifications = quietNotifications + listOf(ARTIFACT_DEPLOYMENT_SUCCEEDED, DELIVERY_CONFIG_CHANGED, TEST_PASSED)
     val verboseNotifications = normalNotifications + listOf(MANUAL_JUDGMENT_REJECTED, MANUAL_JUDGMENT_APPROVED)
 

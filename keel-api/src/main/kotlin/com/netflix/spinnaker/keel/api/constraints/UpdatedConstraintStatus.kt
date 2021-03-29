@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.keel.api.constraints
 
 /**
- * TODO: Docs.
+ * Information received when a user judges a constraint
  */
 data class UpdatedConstraintStatus(
   val type: String,

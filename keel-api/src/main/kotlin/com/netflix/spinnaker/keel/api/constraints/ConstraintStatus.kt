@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.keel.api.constraints
 
 /**
- * TODO: Docs.
+ * Current status of a constraint
  */
 enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean) {
   NOT_EVALUATED(false, false),

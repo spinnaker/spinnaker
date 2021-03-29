@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.api.constraints
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 
 /**
- * TODO: Docs.
+ * Abstract class for data stored about a constraint.
+ * Implement this if the constraint needs to store extra data.
  */
 abstract class ConstraintStateAttributes(@Discriminator val type: String)

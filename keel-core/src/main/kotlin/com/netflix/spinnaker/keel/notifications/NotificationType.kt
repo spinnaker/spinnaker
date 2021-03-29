@@ -2,6 +2,9 @@ package com.netflix.spinnaker.keel.notifications
 
 /**
  * All valid notifiers
+ *
+ * When you add a new type, make sure you configure what level it should be sent at in
+ * [NotificationEventListener.translateFrequencyToEvents]
  */
 enum class NotificationType {
   RESOURCE_UNHEALTHY,
@@ -14,6 +17,7 @@ enum class NotificationType {
   APPLICATION_RESUMED,
   LIFECYCLE_EVENT,
   MANUAL_JUDGMENT_AWAIT,
+  MANUAL_JUDGMENT_UPDATE,
   MANUAL_JUDGMENT_REJECTED,
   MANUAL_JUDGMENT_APPROVED,
   TEST_PASSED,

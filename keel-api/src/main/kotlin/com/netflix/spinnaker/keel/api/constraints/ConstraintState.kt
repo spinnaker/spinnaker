@@ -40,6 +40,8 @@ data class ConstraintState(
 
   fun failed() = status.failed()
 
+  fun complete() = status.passes() || status.failed()
+
   fun timedOut(timeout: Duration?, now: Instant) =
     if (timeout == null) {
       false
