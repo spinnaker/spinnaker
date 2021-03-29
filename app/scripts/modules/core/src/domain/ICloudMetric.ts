@@ -9,7 +9,12 @@ export interface IMetricAlarmDimension {
   value: string;
 }
 
+interface IDataPoint {
+  timestamp: number;
+  average: number;
+}
+
 export interface ICloudMetricStatistics {
   unit: string;
-  datapoints: any[];
+  datapoints: IDataPoint[];
 }

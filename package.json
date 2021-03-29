@@ -48,6 +48,8 @@
     "ansi_up": "^4.0.4",
     "bootstrap": "3.4.1",
     "cachefactory": "^3.0.0",
+    "chart.js": "^3.0.0-rc.5",
+    "chartjs-adapter-luxon": "^1.0.0-beta.2",
     "classname": "^0.0.0",
     "clipboard": "^1.5.12",
     "commonmark": "^0.28.1",

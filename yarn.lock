@@ -6171,6 +6171,16 @@ charenc@~0.0.1:
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
   integrity sha1-wKHS86cJLgN3S/qD8UwPxXkKhmc=
 
+chart.js@^3.0.0-rc.5:
+  version "3.0.0-rc.5"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-3.0.0-rc.5.tgz#41dd15117f4638916f8f72f23c6b10389aafeb44"
+  integrity sha512-qQ77IwyiZchVMKZQwXjrXhLuopbqUWGVzywWS2w6heS0f/blebnTADA2RfR5WntcSp31GkuMtJnpHYW//93Mog==
+
+chartjs-adapter-luxon@^1.0.0-beta.2:
+  version "1.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/chartjs-adapter-luxon/-/chartjs-adapter-luxon-1.0.0-beta.2.tgz#512e9af92da1acef39dd793527a4851e79567509"
+  integrity sha512-1DKxf5jMXs5b1n+NPtzkeM7iAWCSCwCOVI6mmh1/U4rTzprxDRyWQcA9SOdScdZQNFHuij/VbmerQpnrKEHUJA==
+
 cheerio@^1.0.0-rc.2:
   version "1.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-1.0.0-rc.2.tgz#4b9f53a81b27e4d5dac31c0ffd0cfa03cc6830db"
