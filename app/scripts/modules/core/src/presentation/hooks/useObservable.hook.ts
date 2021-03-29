@@ -12,6 +12,9 @@ import { Observable } from 'rxjs';
  */
 export const useObservable = <T>(observable: Observable<T>, callback: (val: T) => void) => {
   useEffect(() => {
+    if (!observable) {
+      return undefined;
+    }
     const subscription = observable.subscribe(callback);
     return () => subscription.unsubscribe();
   }, [observable]);
