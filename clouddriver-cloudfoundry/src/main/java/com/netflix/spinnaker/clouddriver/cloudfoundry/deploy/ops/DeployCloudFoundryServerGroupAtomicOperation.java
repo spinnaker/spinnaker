@@ -115,7 +115,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       client.getApplications().startApplication(serverGroup.getId());
       ProcessStats.State state =
           operationPoller.waitForOperation(
-              () -> client.getApplications().getProcessState(serverGroup.getId()),
+              () -> client.getApplications().getAppState(serverGroup.getId()),
               inProgressState ->
                   inProgressState == ProcessStats.State.RUNNING
                       || inProgressState == ProcessStats.State.CRASHED,
@@ -474,8 +474,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         convertToMb("disk quota", description.getApplicationAttributes().getDiskQuota());
 
     client
-        .getApplications()
-        .scaleApplication(
+        .getProcesses()
+        .scaleProcess(
             serverGroupId,
             description.getApplicationAttributes().getInstances(),
             memoryAmount,
@@ -488,7 +488,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Updating process '" + description.getServerGroupName() + "'");
     client
-        .getApplications()
+        .getProcesses()
         .updateProcess(
             serverGroupId,
             description.getApplicationAttributes().getCommand(),

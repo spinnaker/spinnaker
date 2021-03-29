@@ -34,4 +34,6 @@ public interface CloudFoundryClient {
   Tasks getTasks();
 
   Logs getLogs();
+
+  Processes getProcesses();
 }

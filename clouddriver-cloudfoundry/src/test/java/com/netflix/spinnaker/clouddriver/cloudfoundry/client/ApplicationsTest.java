@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ProcessesService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
@@ -32,14 +33,9 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import io.vavr.collection.HashMap;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -48,6 +44,8 @@ import retrofit2.mock.Calls;
 
 class ApplicationsTest {
   private final ApplicationService applicationService = mock(ApplicationService.class);
+  private final ProcessesService processesService = mock(ProcessesService.class);
+  private final Processes processes = mock(Processes.class);
   private final Spaces spaces = mock(Spaces.class);
   private final Applications apps =
       new Applications(
@@ -56,6 +54,7 @@ class ApplicationsTest {
           "some-metrics-uri",
           applicationService,
           spaces,
+          processes,
           500,
           ForkJoinPool.commonPool());
   private final String spaceId = "space-guid";
@@ -84,24 +83,6 @@ class ApplicationsTest {
 
     assertThatThrownBy(() -> client.getApplications().all(emptyList()))
         .isInstanceOf(CloudFoundryApiException.class);
-  }
-
-  @Test
-  void dontScaleApplicationIfInputsAreNullOrZero() {
-    apps.scaleApplication("id", null, null, null);
-    apps.scaleApplication("id", 0, 0, 0);
-
-    verify(applicationService, never()).scaleApplication(any(), any());
-  }
-
-  @Test
-  void scaleApplicationIfInputsAreMixOfNullAndZero() {
-    when(applicationService.scaleApplication(any(), any()))
-        .thenReturn(Calls.response(Response.success(null)));
-
-    apps.scaleApplication("id", 0, null, null);
-
-    verify(applicationService).scaleApplication(any(), any());
   }
 
   @Test
@@ -172,7 +153,7 @@ class ApplicationsTest {
     when(applicationService.findApplicationEnvById(anyString()))
         .thenReturn(Calls.response(applicationEnv));
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
-    when(applicationService.findProcessById(any())).thenReturn(Calls.response(process));
+    when(processes.findProcessById(any())).thenReturn(Optional.of(process));
     when(applicationService.instances(anyString()))
         .thenReturn(
             Calls.response(
@@ -208,50 +189,14 @@ class ApplicationsTest {
   }
 
   @Test
-  void updateProcess() {
-    when(applicationService.updateProcess(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Process())));
-
-    apps.updateProcess("guid1", "command1", "http", "/endpoint");
-    verify(applicationService)
-        .updateProcess(
-            "guid1",
-            new UpdateProcess(
-                "command1",
-                new Process.HealthCheck()
-                    .setType("http")
-                    .setData(new Process.HealthCheckData().setEndpoint("/endpoint"))));
-
-    apps.updateProcess("guid1", "command1", "http", null);
-    verify(applicationService)
-        .updateProcess(
-            "guid1", new UpdateProcess("command1", new Process.HealthCheck().setType("http")));
-
-    apps.updateProcess("guid1", "command1", null, null);
-    verify(applicationService).updateProcess("guid1", new UpdateProcess("command1", null));
-  }
-
-  @Test
-  void getProcessState() {
-    ProcessStats processStats = new ProcessStats().setState(ProcessStats.State.RUNNING);
-    ProcessResources processResources =
-        new ProcessResources().setResources(Collections.singletonList(processStats));
-    when(applicationService.findProcessStatsById(anyString()))
-        .thenReturn(Calls.response(Response.success(processResources)));
-    ProcessStats.State result = apps.getProcessState("some-app-guid");
+  void getAppStateWhenProcessStateNotFound() {
+    when(processes.getProcessState(anyString())).thenReturn(Optional.empty());
+    Application app = new Application();
+    app.setState("STARTED");
+    when(applicationService.findById("some-app-guid"))
+        .thenReturn(Calls.response(Response.success(app)));
+    ProcessStats.State result = apps.getAppState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
-    verify(applicationService, never()).findById(anyString());
-  }
-
-  @Test
-  void getProcessStateWhenStatsNotFound() {
-    when(applicationService.findProcessStatsById(anyString()))
-        .thenReturn(
-            Calls.response(
-                Response.error(404, ResponseBody.create(MediaType.get("application/json"), "{}"))));
-    ProcessStats.State result = apps.getProcessState("some-app-guid");
-    assertThat(result).isEqualTo(ProcessStats.State.DOWN);
-    verify(applicationService, never()).findById(anyString());
   }
 
   @Test
@@ -267,11 +212,11 @@ class ApplicationsTest {
                     .toJavaMap());
     ProcessResources processResources =
         new ProcessResources().setResources(Collections.emptyList());
-    when(applicationService.findProcessStatsById(anyString()))
+    when(processesService.findProcessStatsById(anyString()))
         .thenReturn(Calls.response(Response.success(processResources)));
     when(applicationService.findById(anyString()))
         .thenReturn(Calls.response(Response.success(application)));
-    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    ProcessStats.State result = apps.getAppState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
     verify(applicationService).findById("some-app-guid");
   }
@@ -289,11 +234,11 @@ class ApplicationsTest {
                     .toJavaMap());
     ProcessResources processResources =
         new ProcessResources().setResources(Collections.emptyList());
-    when(applicationService.findProcessStatsById(anyString()))
+    when(processesService.findProcessStatsById(anyString()))
         .thenReturn(Calls.response(Response.success(processResources)));
     when(applicationService.findById(anyString()))
         .thenReturn(Calls.response(Response.success(application)));
-    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    ProcessStats.State result = apps.getAppState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.DOWN);
     verify(applicationService).findById("some-app-guid");
   }
@@ -375,6 +320,7 @@ class ApplicationsTest {
   void findServerGroupByNameAndSpaceId() {
     String serverGroupId = "server-group-guid";
     String serverGroupName = "server-group";
+    Process process = new Process().setDiskInMb(0).setMemoryInMb(0);
     Application application =
         new Application()
             .setCreatedAt(ZonedDateTime.now())
@@ -399,6 +345,7 @@ class ApplicationsTest {
 
     when(applicationService.all(any(), any(), any(), any()))
         .thenReturn(Calls.response(Response.success(applicationPagination)));
+    when(processes.findProcessById(any())).thenReturn(Optional.of(process));
     mockMap(cloudFoundrySpace, dropletId);
 
     CloudFoundryDroplet expectedDroplet = CloudFoundryDroplet.builder().id(dropletId).build();
@@ -463,7 +410,7 @@ class ApplicationsTest {
     when(applicationService.findApplicationEnvById(any()))
         .thenReturn(Calls.response(Response.success(applicationEnv)));
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
-    when(applicationService.findProcessById(any()))
+    when(processesService.findProcessById(any()))
         .thenReturn(Calls.response(Response.success(process)));
     when(applicationService.instances(any()))
         .thenReturn(Calls.response(Response.success(emptyMap())));

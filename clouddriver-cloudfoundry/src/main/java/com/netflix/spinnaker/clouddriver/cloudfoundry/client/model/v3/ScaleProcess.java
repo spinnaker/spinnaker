@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ScaleApplication {
+public class ScaleProcess {
   @Nullable private final Integer instances;
 
   @Nullable private final Integer memoryInMb;

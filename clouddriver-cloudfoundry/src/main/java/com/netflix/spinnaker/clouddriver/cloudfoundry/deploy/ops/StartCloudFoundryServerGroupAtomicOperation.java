@@ -50,7 +50,7 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
     ProcessStats.State state =
         operationPoller.waitForOperation(
-            () -> client.getApplications().getProcessState(description.getServerGroupId()),
+            () -> client.getApplications().getAppState(description.getServerGroupId()),
             inProgressState -> inProgressState != ProcessStats.State.STARTING,
             null,
             getTask(),

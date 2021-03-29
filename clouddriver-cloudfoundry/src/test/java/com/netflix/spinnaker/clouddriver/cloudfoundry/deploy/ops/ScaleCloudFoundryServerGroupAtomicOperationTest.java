@@ -78,7 +78,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest
     assertThat(runOperation(op).getHistory())
         .has(status("Resizing 'myapp'"), atIndex(1))
         .has(status("Resized 'myapp'"), atIndex(2));
-    verify(client.getApplications()).scaleApplication(any(), eq(3), any(), any());
+    verify(client.getProcesses()).scaleProcess(any(), eq(3), any(), any());
   }
 
   @Test

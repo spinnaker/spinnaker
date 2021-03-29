@@ -57,8 +57,8 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
             .orElse(null);
 
     client
-        .getApplications()
-        .scaleApplication(
+        .getProcesses()
+        .scaleProcess(
             description.getServerGroupId(),
             numInstances,
             description.getMemory(),
@@ -66,7 +66,7 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
     State state =
         operationPoller.waitForOperation(
-            () -> client.getApplications().getProcessState(description.getServerGroupId()),
+            () -> client.getApplications().getAppState(description.getServerGroupId()),
             inProgressState ->
                 (inProgressState == State.RUNNING
                     || inProgressState == State.CRASHED

@@ -84,12 +84,13 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
             new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
     final ServiceInstances serviceInstances = getServiceInstances();
+    final Processes processes = getProcesses();
 
     // When
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, serviceInstances, () -> atLeastOnce());
+    verifyInOrder(apps, serviceInstances, processes, () -> atLeastOnce());
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -107,12 +108,13 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
             new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
     final ServiceInstances serviceInstances = getServiceInstances();
+    final Processes processes = getProcesses();
 
     // When
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrderDockerDeploy(apps, serviceInstances, () -> atLeastOnce());
+    verifyInOrderDockerDeploy(apps, serviceInstances, processes, () -> atLeastOnce());
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -161,12 +163,13 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
             new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
     final ServiceInstances serviceInstances = getServiceInstances();
+    final Processes processes = getProcesses();
 
     // When
     final DeploymentResult result = operation.operate(Lists.emptyList());
 
     // Then
-    verifyInOrder(apps, serviceInstances, () -> never());
+    verifyInOrder(apps, serviceInstances, processes, () -> never());
 
     assertThat(testTask.getStatus().isFailed()).isFalse();
     assertThat(result.getServerGroupNames())
@@ -176,31 +179,36 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
   private void verifyInOrder(
       final Applications apps,
       ServiceInstances serviceInstances,
+      Processes processes,
       Supplier<VerificationMode> calls) {
-    InOrder inOrder = Mockito.inOrder(apps, serviceInstances);
+    InOrder inOrder = Mockito.inOrder(apps, serviceInstances, processes);
     inOrder.verify(apps).createApplication(any(), any(), any(), any());
     inOrder
         .verify(apps)
         .createPackage(eq(new CreatePackage("serverGroupId", CreatePackage.Type.BITS, null)));
     inOrder.verify(apps).uploadPackageBits(any(), any());
-    inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
+    inOrder.verify(serviceInstances).createServiceBinding(any());
     inOrder.verify(apps).createBuild(any());
-    inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
-    inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
+    inOrder.verify(apps).buildCompleted(any());
+    inOrder.verify(apps).findDropletGuidFromBuildId(any());
+    inOrder.verify(apps).setCurrentDroplet(any(), any());
+    inOrder.verify(processes).scaleProcess(any(), any(), any(), any());
+    inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health");
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
   }
 
   private void verifyInOrderDockerDeploy(
       final Applications apps,
       ServiceInstances serviceInstances,
+      Processes processes,
       Supplier<VerificationMode> calls) {
-    InOrder inOrder = Mockito.inOrder(apps, serviceInstances);
+    InOrder inOrder = Mockito.inOrder(apps, processes, serviceInstances);
     inOrder.verify(apps).createApplication(any(), any(), any(), any());
     inOrder.verify(apps).createPackage(any());
     inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
     inOrder.verify(apps).createBuild(any());
-    inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
-    inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
+    inOrder.verify(processes).scaleProcess("serverGroupId", 7, 1024, 2048);
+    inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health");
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
   }
 
@@ -209,6 +217,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     when(serviceInstances.findAllServicesBySpaceAndNames(any(), any()))
         .thenReturn(createServiceInstanceResource());
     return serviceInstances;
+  }
+
+  private Processes getProcesses() {
+    final Processes processes = cloudFoundryClient.getProcesses();
+    return processes;
   }
 
   private List<Resource<? extends AbstractServiceInstance>> createServiceInstanceResource() {
@@ -230,7 +243,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                 .id("serverGroupId")
                 .space(CloudFoundrySpace.builder().id("spaceId").build())
                 .build());
-    when(apps.getProcessState(any())).thenReturn(state);
+    when(apps.getAppState(any())).thenReturn(state);
     when(apps.createPackage(any()))
         .thenAnswer(
             (Answer<String>)
@@ -238,6 +251,10 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
                   Object[] args = invocation.getArguments();
                   return args[0].toString() + "_package";
                 });
+    when(apps.createBuild(any())).thenReturn("some-build");
+    when(apps.buildCompleted(any())).thenReturn(true);
+    when(apps.findDropletGuidFromBuildId(any())).thenReturn("droplet-guid");
+    doNothing().when(apps).setCurrentDroplet(any(), any());
     return apps;
   }
 

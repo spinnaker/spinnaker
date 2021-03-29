@@ -58,8 +58,8 @@ public class Applications {
   private final String metricsUri;
   private final ApplicationService api;
   private final Spaces spaces;
+  private final Processes processes;
   private final Integer resultsPerPage;
-
   private final ForkJoinPool forkJoinPool;
   private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache;
 
@@ -69,6 +69,7 @@ public class Applications {
       String metricsUri,
       ApplicationService api,
       Spaces spaces,
+      Processes processes,
       Integer resultsPerPage,
       ForkJoinPool forkJoinPool) {
     this.account = account;
@@ -76,8 +77,8 @@ public class Applications {
     this.metricsUri = metricsUri;
     this.api = api;
     this.spaces = spaces;
+    this.processes = processes;
     this.resultsPerPage = resultsPerPage;
-
     this.forkJoinPool = forkJoinPool;
     this.serverGroupCache =
         CacheBuilder.newBuilder()
@@ -265,7 +266,7 @@ public class Applications {
     String appId = application.getGuid();
     ApplicationEnv applicationEnv =
         safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
-    Process process = safelyCall(() -> api.findProcessById(appId)).orElse(null);
+    Process process = processes.findProcessById(appId).orElse(null);
 
     CloudFoundryDroplet droplet = null;
     try {
@@ -529,41 +530,6 @@ public class Applications {
                     "Cloud Foundry signaled that application creation succeeded but failed to provide a response."));
   }
 
-  public void scaleApplication(
-      String guid,
-      @Nullable Integer instances,
-      @Nullable Integer memInMb,
-      @Nullable Integer diskInMb)
-      throws CloudFoundryApiException {
-    if ((memInMb == null && diskInMb == null && instances == null)
-        || (Integer.valueOf(0).equals(memInMb)
-            && Integer.valueOf(0).equals(diskInMb)
-            && Integer.valueOf(0).equals(instances))) {
-      return;
-    }
-    safelyCall(
-        () -> api.scaleApplication(guid, new ScaleApplication(instances, memInMb, diskInMb)));
-  }
-
-  public void updateProcess(
-      String guid,
-      @Nullable String command,
-      @Nullable String healthCheckType,
-      @Nullable String healthCheckEndpoint)
-      throws CloudFoundryApiException {
-    final Process.HealthCheck healthCheck =
-        healthCheckType != null ? new Process.HealthCheck().setType(healthCheckType) : null;
-    if (healthCheckEndpoint != null && !healthCheckEndpoint.isEmpty() && healthCheck != null) {
-      healthCheck.setData(new Process.HealthCheckData().setEndpoint(healthCheckEndpoint));
-    }
-    if (command != null && command.isEmpty()) {
-      throw new IllegalArgumentException(
-          "Buildpack commands cannot be empty. Please specify a custom command or set it to null to use the original buildpack command.");
-    }
-
-    safelyCall(() -> api.updateProcess(guid, new UpdateProcess(command, healthCheck)));
-  }
-
   public String createPackage(CreatePackage createPackageRequest) throws CloudFoundryApiException {
     return safelyCall(() -> api.createPackage(createPackageRequest))
         .map(Package::getGuid)
@@ -656,27 +622,6 @@ public class Applications {
         () -> api.setCurrentDroplet(appGuid, new ToOneRelationship(new Relationship(dropletGuid))));
   }
 
-  @Nullable
-  public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
-    return safelyCall(() -> api.findProcessStatsById(appGuid))
-        .map(
-            pr ->
-                pr.getResources().stream()
-                    .findAny()
-                    .map(ProcessStats::getState)
-                    .orElseGet(
-                        () ->
-                            safelyCall(() -> api.findById(appGuid))
-                                .filter(
-                                    application ->
-                                        CloudFoundryServerGroup.State.STARTED.equals(
-                                            CloudFoundryServerGroup.State.valueOf(
-                                                application.getState())))
-                                .map(appState -> ProcessStats.State.RUNNING)
-                                .orElse(ProcessStats.State.DOWN)))
-        .orElse(ProcessStats.State.DOWN);
-  }
-
   public List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
       getTakenSlots(String clusterName, String spaceId) {
     String finalName = buildFinalAsgName(clusterName);
@@ -700,5 +645,19 @@ public class Applications {
 
   public void restageApplication(String appGuid) {
     safelyCall(() -> api.restageApplication(appGuid, ""));
+  }
+
+  public ProcessStats.State getAppState(String guid) {
+    return processes
+        .getProcessState(guid)
+        .orElseGet(
+            () ->
+                safelyCall(() -> api.findById(guid))
+                    .filter(
+                        application ->
+                            CloudFoundryServerGroup.State.STARTED.equals(
+                                CloudFoundryServerGroup.State.valueOf(application.getState())))
+                    .map(appState -> ProcessStats.State.RUNNING)
+                    .orElse(ProcessStats.State.DOWN));
   }
 }

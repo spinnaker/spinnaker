@@ -103,10 +103,7 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
       description.getClient().getApplications().stopApplication(description.getServerGroupId());
       operationPoller.waitForOperation(
           () ->
-              description
-                  .getClient()
-                  .getApplications()
-                  .getProcessState(description.getServerGroupId()),
+              description.getClient().getApplications().getAppState(description.getServerGroupId()),
           inProgressState ->
               inProgressState == ProcessStats.State.DOWN
                   || inProgressState == ProcessStats.State.CRASHED,
@@ -123,7 +120,7 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
                 description
                     .getClient()
                     .getApplications()
-                    .getProcessState(description.getServerGroupId()),
+                    .getAppState(description.getServerGroupId()),
             inProgressState ->
                 inProgressState == ProcessStats.State.RUNNING
                     || inProgressState == ProcessStats.State.CRASHED,
