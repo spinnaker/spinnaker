@@ -1,7 +1,6 @@
 'use strict';
 
 import { module } from 'angular';
-import 'n3-charts/build/LineChart';
 
 import { TaskMonitor } from '@spinnaker/core';
 
@@ -16,7 +15,6 @@ export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY
   'spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller';
 export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER; // for backwards compatibility
 module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER, [
-  'n3-line-chart',
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION_COMPONENT,
   STEP_POLICY_ACTION,
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT,

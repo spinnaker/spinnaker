@@ -1,5 +1,5 @@
 import { IComponentOptions, module } from 'angular';
-import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT } from '../chart/metricAlarmChart.component';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT } from '../chart/MetricAlarmChart';
 
 const scalingPolicyPopover: IComponentOptions = {
   bindings: {

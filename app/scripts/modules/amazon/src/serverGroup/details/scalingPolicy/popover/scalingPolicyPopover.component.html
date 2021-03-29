@@ -102,10 +102,6 @@
       {{ $ctrl.policy.estimatedInstanceWarmup }} seconds to warm up after each step.
     </dd>
   </dl>
-  <metric-alarm-chart
-    style="height: 100px"
-    alarm="$ctrl.policy.alarms[0]"
-    margins="{top: 5, left: 50}"
-    server-group="$ctrl.serverGroup"
-  ></metric-alarm-chart>
+
+  <metric-alarm-chart alarm="$ctrl.policy.alarms[0]" server-group="$ctrl.serverGroup"></metric-alarm-chart>
 </div>

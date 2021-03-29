@@ -12,7 +12,7 @@ import { CloudMetricsReader } from '@spinnaker/core';
 import './LineChartHack.css';
 import './metricAlarmChart.component.less';
 
-export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT =
+const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component';
 export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT; // for backwards compatibility
 module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT, ['n3-line-chart']).component(
