@@ -69,7 +69,7 @@ describe('Controller: Azure.CreateSecurityGroup', function () {
 
     it('initializes with no firewalls available for ingress permissions', async function () {
       const http = mockHttpClient();
-      http.expectGET('/networks').respond([]);
+      http.expectGET('/networks').respond(200, []);
       this.initializeCtrl();
       await http.flush();
       expect(this.$scope.securityGroup.securityRules.length).toBe(0);
