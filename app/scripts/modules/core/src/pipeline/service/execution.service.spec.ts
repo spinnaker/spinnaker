@@ -165,11 +165,10 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       http.expectGET(`/applications/deck/pipelines`).withParams({ limit: 3, expand: false }).respond(429, []);
 
-      const responsePromise = executionService.getExecutions('deck');
-      await http.flush();
-
       let error;
-      await responsePromise.catch((result) => (error = result));
+      executionService.getExecutions('deck').catch((result) => (error = result));
+      await http.flush().catch(() => null);
+
       expect(error).toBeDefined();
     });
   });
