@@ -6,7 +6,7 @@ import { Debounce, Throttle } from 'lodash-decorators';
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { IExecution, IPipeline } from 'core/domain';
+import type { IExecution, IPipeline } from 'core/domain';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 
 import { PipelineGraphLink } from './PipelineGraphLink';
