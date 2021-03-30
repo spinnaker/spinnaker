@@ -369,8 +369,11 @@ angular
         PipelineConfigService.savePipeline(toSave)
           .then(() => $scope.application.pipelineConfigs.refresh(true))
           .then(
-            () => {
-              setOriginal(toSave);
+            (pipelines) => {
+              const latestFromServer = pipelines.find((p) => p.id === toSave.id);
+              const latest = latestFromServer || toSave;
+              setOriginal(latest);
+              this.revertPipelineChanges();
               markDirty();
               this.setViewState({
                 saveError: false,
