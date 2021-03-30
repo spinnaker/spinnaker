@@ -28,7 +28,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: app/scripts/modules/assert_package_bumps_standalone.sh origin/${{ github.base_ref }}
 
       - name: Approve package bump
         if: steps.purebump.outputs.ispurebump == 'true'

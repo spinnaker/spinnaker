@@ -28,7 +28,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: app/scripts/modules/assert_package_bumps_standalone.sh origin/${{ github.base_ref }}
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -64,7 +64,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: app/scripts/modules/assert_package_bumps_standalone.sh origin/${{ github.base_ref }}
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -100,7 +100,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: app/scripts/modules/assert_package_bumps_standalone.sh origin/${{ github.base_ref }}
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
@@ -142,7 +142,7 @@ jobs:
 
       - name: Ensure package bumps are pure
         id: purebump
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
+        run: app/scripts/modules/assert_package_bumps_standalone.sh origin/${{ github.base_ref }}
 
       - uses: actions/setup-node@v1
         if: steps.purebump.outputs.ispurebump != 'true'
