@@ -114,6 +114,11 @@ public class DockerRegistryEditAccountCommand
       description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION)
   private Boolean trackDigests;
 
+  @Parameter(
+      names = "--repositories-regex",
+      description = DockerRegistryCommandProperties.REPOSITORIES_REGEX_DESCRIPTION)
+  private String repositoriesRegex;
+
   @Override
   protected Account editAccount(DockerRegistryAccount account) {
     account.setAddress(isSet(address) ? address : account.getAddress());
@@ -161,6 +166,7 @@ public class DockerRegistryEditAccountCommand
     account.setTrackDigests(isSet(trackDigests) ? trackDigests : account.getTrackDigests());
     account.setInsecureRegistry(
         isSet(insecureRegistry) ? insecureRegistry : account.getInsecureRegistry());
+    account.setRepositoriesRegex(repositoriesRegex);
 
     return account;
   }

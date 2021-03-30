@@ -67,4 +67,7 @@ class DockerRegistryCommandProperties {
 
   static final String TRACK_DIGESTS_DESCRIPTION =
       "Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.";
+
+  static final String REPOSITORIES_REGEX_DESCRIPTION =
+      "Allows to specify a Regular Expression to filter the repositories.";
 }

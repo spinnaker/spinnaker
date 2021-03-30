@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -225,6 +226,17 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
                   + " If you think this is causing authentication issues, you can strip the newline with the command:\n\n"
                   + " tr -d '\\n' < PASSWORD_FILE | tee PASSWORD_FILE");
       }
+    }
+
+    try {
+      Pattern.compile(n.getRepositoriesRegex());
+    } catch (PatternSyntaxException pse) {
+      p.addProblem(
+              Severity.ERROR,
+              "The string provided in repositoriesRegex for account \""
+                  + n.getName()
+                  + "\" could not compile")
+          .setRemediation("The repositoriesRegex must be a valid Regular Expression.");
     }
   }
 }

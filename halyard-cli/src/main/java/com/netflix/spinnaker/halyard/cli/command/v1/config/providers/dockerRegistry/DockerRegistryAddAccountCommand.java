@@ -106,6 +106,11 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
       description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION)
   private Boolean trackDigests = false;
 
+  @Parameter(
+      names = "--repositories-regex",
+      description = DockerRegistryCommandProperties.REPOSITORIES_REGEX_DESCRIPTION)
+  private String repositoriesRegex;
+
   @Override
   protected Account buildAccount(String accountName) {
     DockerRegistryAccount account =
@@ -125,6 +130,7 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
         .setPaginateSize(paginateSize)
         .setSortTagsByDate(sortTagsByDate)
         .setTrackDigests(trackDigests)
+        .setRepositoriesRegex(repositoriesRegex)
         .setInsecureRegistry(insecureRegistry);
 
     return account;

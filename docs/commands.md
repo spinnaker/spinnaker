@@ -8529,6 +8529,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
+ * `--repositories-regex`: Allows to specify a Regular Expression to filter the repositories.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--sort-tags-by-date`: (*Default*: `false`) Sort tags by creation date. Not recommended for use with large registries; sorting performance scales poorly due to limitations of the Docker V2 API.
  * `--track-digests`: (*Default*: `false`) Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
@@ -8593,6 +8594,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
+ * `--repositories-regex`: Allows to specify a Regular Expression to filter the repositories.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--sort-tags-by-date`: Sort tags by creation date. Not recommended for use with large registries; sorting performance scales poorly due to limitations of the Docker V2 API.
  * `--track-digests`: Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.

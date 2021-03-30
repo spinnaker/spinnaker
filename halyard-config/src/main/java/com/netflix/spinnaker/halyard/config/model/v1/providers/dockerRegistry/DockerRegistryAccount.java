@@ -43,6 +43,7 @@ public class DockerRegistryAccount extends Account {
   private Boolean trackDigests = false;
   private Boolean insecureRegistry = false;
   private List<String> repositories = new ArrayList<>();
+  private String repositoriesRegex;
   @LocalFile @SecretFile private String passwordFile;
   @LocalFile private String dockerconfigFile;
 
