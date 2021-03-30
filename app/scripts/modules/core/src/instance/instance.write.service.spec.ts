@@ -52,8 +52,9 @@ describe('Service: instance writer', function () {
 
       spyOn(TaskExecutor, 'executeTask').and.callFake((task: ITaskCommand) => {
         executedTask = task.job[0];
+        return undefined;
       });
-      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue($q.when(serverGroup));
+      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue($q.when(serverGroup as any));
 
       InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
       $scope.$digest();
@@ -100,7 +101,10 @@ describe('Service: instance writer', function () {
         instances: [],
       };
 
-      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => (task = command));
+      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => {
+        task = command;
+        return undefined;
+      });
     });
 
     it('only sends jobs for groups with instances', () => {

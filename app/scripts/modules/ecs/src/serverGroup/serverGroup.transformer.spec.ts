@@ -21,7 +21,7 @@ describe('ecsServerGroupTransformer', () => {
   describe('normalize server group', () => {
     beforeEach(() => {
       spyOn(VpcReader, 'listVpcs').and.returnValue(
-        $q.when([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' }]),
+        $q.when([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' } as any]),
       );
     });
 

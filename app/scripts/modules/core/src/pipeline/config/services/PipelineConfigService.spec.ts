@@ -128,7 +128,7 @@ describe('PipelineConfigService', () => {
       http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
       spyOn(http, 'post').and.callFake((request: any) => {
         posted.push(request.data);
-        return Promise.resolve();
+        return Promise.resolve(undefined);
       });
 
       PipelineConfigService.getPipelinesForApplication('app');

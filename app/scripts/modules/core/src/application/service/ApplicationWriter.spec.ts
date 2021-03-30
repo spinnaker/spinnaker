@@ -45,7 +45,7 @@ describe('ApplicationWriter', function () {
 
   describe('delete an application', function () {
     it('should execute task', function () {
-      spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when({}));
+      spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when({} as any));
 
       const application: IApplicationAttributes = {
         name: 'foo',

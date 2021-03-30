@@ -40,7 +40,7 @@ describe('Service: manualJudgment', () => {
       let succeeded = false;
 
       http.expectPATCH(requestUrl).respond(200, '');
-      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
+      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise as any);
       spyOn(executionService, 'updateExecution').and.stub();
 
       service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true));
@@ -63,7 +63,7 @@ describe('Service: manualJudgment', () => {
       let failed = false;
 
       http.expectPATCH(requestUrl).respond(200, '');
-      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
+      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise as any);
 
       service.provideJudgment(null, execution, stage, 'continue').then(
         () => (succeeded = true),

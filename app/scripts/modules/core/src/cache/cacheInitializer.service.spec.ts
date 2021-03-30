@@ -50,7 +50,7 @@ describe('Service: cacheInitializer', function () {
 
     beforeEach(() => {
       initialized = false;
-      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg as any));
       spyOn(AccountService, 'listProviders').and.returnValue($q.when([]));
     });
 

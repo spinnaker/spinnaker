@@ -20,7 +20,7 @@ describe('PermissionsConfigurer', () => {
   beforeEach(
     mock.inject(() => {
       spyOn(AuthenticationService, 'getAuthenticatedUser').and.callFake(() => {
-        return { roles: ['groupA', 'groupB', 'groupC'] };
+        return { roles: ['groupA', 'groupB', 'groupC'] } as any;
       });
     }),
   );

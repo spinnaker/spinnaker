@@ -44,7 +44,7 @@ describe('Application Model', function () {
     );
     spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when(loadBalancers));
     spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when(serverGroups));
-    spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([]));
+    spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([] as any));
     spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
       _app: Application,
       groupsByName: any[],

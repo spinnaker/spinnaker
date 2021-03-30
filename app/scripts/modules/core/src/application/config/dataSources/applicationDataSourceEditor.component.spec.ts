@@ -127,8 +127,8 @@ describe('Component: Application Data Source Editor', () => {
 
   describe('save', () => {
     it('sets state flags, saves, then updates existing data sources and refreshes application', () => {
-      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.when());
-      spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue($q.when());
+      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.when(undefined));
+      spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue($q.when(undefined));
       spyOn(application, 'refresh').and.returnValue(null);
       initialize();
       expect(ctrl.saving).toBe(false);

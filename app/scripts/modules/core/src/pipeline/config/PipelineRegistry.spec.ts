@@ -200,7 +200,7 @@ describe('PipelineRegistry: API', function () {
         parameters: [
           { name: 'param', description: 'description', defaultValue: 'abc', label: 'Param', type: 'string' },
         ],
-      } as Partial<IPreconfiguredJob>;
+      } as IPreconfiguredJob;
     };
 
     const spyOnReader = () =>

@@ -83,11 +83,13 @@ describe('Service: awsServerGroupConfiguration', function () {
 
   describe('configureCommand', function () {
     it('attempts to reload firewalls if some are not found on initialization, but does not set dirty flag', function () {
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
-      const getAllSecurityGroupsSpy = spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([] as any));
+      const getAllSecurityGroupsSpy = spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue(
+        $q.when([] as any),
+      );
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(SubnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([] as any));
       spyOn(KeyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
       spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
       const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));

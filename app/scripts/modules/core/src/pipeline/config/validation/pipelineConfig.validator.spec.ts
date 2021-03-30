@@ -247,7 +247,7 @@ describe('pipelineConfigValidator', () => {
 
       it('checks parent pipeline triggers for match', () => {
         spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
-          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
+          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]) as any,
         );
 
         pipeline = buildPipeline(
@@ -261,7 +261,7 @@ describe('pipelineConfigValidator', () => {
 
       it('caches pipeline configs', () => {
         spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
-          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
+          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }] as any),
         );
 
         pipeline = buildPipeline(
@@ -281,7 +281,7 @@ describe('pipelineConfigValidator', () => {
           $q.when([
             { id: 'abcd', triggers: [{ type: 'not-prereq' }] },
             { id: 'other', triggers: [{ type: 'prereq' }] },
-          ]),
+          ] as any),
         );
 
         pipeline = buildPipeline(
@@ -295,7 +295,7 @@ describe('pipelineConfigValidator', () => {
 
       it('does not check parent triggers unless specified in validator', () => {
         spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
-          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
+          $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }] as any),
         );
 
         pipeline = buildPipeline(

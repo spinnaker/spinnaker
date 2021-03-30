@@ -39,7 +39,7 @@ describe('ProviderSelectionService: API', () => {
   beforeEach(() => {
     spyOn(AccountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
     spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
-    spyOn(ProviderSelectionModal, 'show').and.returnValue($q.when('modalProvider'));
+    spyOn(ProviderSelectionModal, 'show').and.returnValue($q.when('modalProvider') as any);
   });
 
   beforeEach(() => {

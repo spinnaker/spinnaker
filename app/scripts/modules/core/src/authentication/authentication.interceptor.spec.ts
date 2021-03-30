@@ -55,7 +55,7 @@ describe('authenticationInterceptor', function () {
       const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
       const pendingRequests: Function[] = [];
 
-      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false });
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false } as any);
       spyOn(AuthenticationService, 'onAuthentication').and.callFake((pendingRequest: Function) =>
         pendingRequests.push(pendingRequest),
       );
@@ -80,7 +80,7 @@ describe('authenticationInterceptor', function () {
       spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({
         authenticated: true,
         lastAuthenticated: new Date().getTime(),
-      });
+      } as any);
 
       interceptor.request(request).then(function (result) {
         resolved = result;

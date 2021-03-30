@@ -27,7 +27,7 @@ describe('dockerImageAndTagSelector controller', () => {
   );
 
   const initialize = (accounts: IAccount[], images: IDockerImage[]) => {
-    spyOn(AccountService, 'listAccounts').and.returnValue($q.when(accounts));
+    spyOn(AccountService, 'listAccounts').and.returnValue($q.when(accounts as any));
     spyOn(DockerImageReader, 'findImages').and.returnValue($q.when(images));
     $ctrl = $componentController(
       'dockerImageAndTagSelector',

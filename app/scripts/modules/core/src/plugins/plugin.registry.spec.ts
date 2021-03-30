@@ -42,7 +42,7 @@ describe('PluginRegistry', () => {
   );
 
   it('loadPluginManifestFromGate() should fetch from gate /plugins/deck/plugin-manifest.json', async () => {
-    const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => Promise.resolve([]));
+    const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() => Promise.resolve([] as any));
     await pluginRegistry.loadPluginManifestFromGate();
     expect(spy).toHaveBeenCalled();
   });
