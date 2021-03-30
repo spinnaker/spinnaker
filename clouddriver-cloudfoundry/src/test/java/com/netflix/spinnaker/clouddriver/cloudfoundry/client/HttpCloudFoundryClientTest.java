@@ -78,6 +78,40 @@ class HttpCloudFoundryClientTest {
   }
 
   @Test
+  void createRetryInterceptorShouldRetryOnTimeoutErrors(
+      @WiremockResolver.Wiremock WireMockServer server) throws Exception {
+    stubServer(
+        server,
+        200,
+        STARTED,
+        "Will respond 200 delayed",
+        "{\"access_token\":\"token\",\"expires_in\":1000000}");
+    stubServerWithFixedDelay(
+        server,
+        200,
+        "Will respond 200 delayed",
+        "Will respond 200 without delay",
+        // successful but delayed and with diff org name
+        "{\"pagination\":{\"total_pages\":1},\"resources\":[{\"guid\": \"orgId\", \"name\":\"orgNameDelayed\"}]}",
+        10000);
+    stubServer(
+        server,
+        200,
+        "Will respond 200 without delay",
+        "END",
+        "{\"pagination\":{\"total_pages\":1},\"resources\":[{\"guid\": \"orgId\", \"name\":\"orgName\"}]}");
+
+    HttpCloudFoundryClient cloudFoundryClient = createDefaultCloudFoundryClient(server);
+
+    Optional<CloudFoundryOrganization> cloudFoundryOrganization =
+        cloudFoundryClient.getOrganizations().findByName("randomName");
+
+    assertThat(cloudFoundryOrganization.get())
+        .extracting(CloudFoundryOrganization::getId, CloudFoundryOrganization::getName)
+        .containsExactly("orgId", "orgName");
+  }
+
+  @Test
   void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials(
       @WiremockResolver.Wiremock WireMockServer server) throws Exception {
     stubServer(server, 401, STARTED, "Bad credentials");
@@ -132,15 +166,26 @@ class HttpCloudFoundryClientTest {
 
   private void stubServer(
       WireMockServer server, int status, String currentState, String nextState, String body) {
+    stubServerWithFixedDelay(server, status, currentState, nextState, body, null);
+  }
+
+  private void stubServerWithFixedDelay(
+      WireMockServer server,
+      int status,
+      String currentState,
+      String nextState,
+      String body,
+      Integer delayInMillis) {
     server.stubFor(
         any(UrlPattern.ANY)
             .inScenario("Retry Scenario")
             .whenScenarioStateIs(currentState)
             .willReturn(
                 aResponse()
-                    .withStatus(status) // request unsuccessful with status code 500
+                    .withStatus(status)
                     .withHeader("Content-Type", "application/json")
-                    .withBody(body))
+                    .withBody(body)
+                    .withFixedDelay(delayInMillis))
             .willSetStateTo(nextState));
   }
 
