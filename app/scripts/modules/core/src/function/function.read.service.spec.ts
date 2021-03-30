@@ -1,6 +1,11 @@
 import { mockHttpClient } from 'core/api/mock/jasmine';
 import { FunctionReader, IFunctionSourceData } from 'core';
+import { MockHttpClient } from 'core/api/mock/mockHttpClient';
 import { IFunctionTransformer } from 'core/function/function.transformer';
+
+function flush<T>(http: MockHttpClient, promise: PromiseLike<T>): Promise<T> {
+  return http.flush().then(() => promise);
+}
 
 describe('FunctionReadService', () => {
   const functionTransformerMock: IFunctionTransformer = {
@@ -13,7 +18,7 @@ describe('FunctionReadService', () => {
   };
 
   describe('loadFunctions', () => {
-    it(`should set cloudprovider if not set`, async (done) => {
+    it(`should set cloudprovider if not set`, async () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
@@ -22,19 +27,14 @@ describe('FunctionReadService', () => {
         { name: 'account1', provider: 'aws', type: 'aws' },
       ]);
 
-      functionReader.loadFunctions('app1').then((data) => {
-        expect(data).toEqual([
-          { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
-          { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
-        ]);
-
-        done();
-      });
-
-      await http.flush();
+      const data = await flush(http, functionReader.loadFunctions('app1'));
+      expect(data).toEqual([
+        { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
+        { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
+      ]);
     });
 
-    it(`should not set cloudprovider if provided`, async (done) => {
+    it(`should not set cloudprovider if provided`, async () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
@@ -43,21 +43,16 @@ describe('FunctionReadService', () => {
         { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
       ]);
 
-      functionReader.loadFunctions('app1').then((data) => {
-        expect(data).toEqual([
-          { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
-          { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
-        ]);
-
-        done();
-      });
-
-      await http.flush();
+      const data = await flush(http, functionReader.loadFunctions('app1'));
+      expect(data).toEqual([
+        { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
+        { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
+      ]);
     });
   });
 
   describe('getFunctionDetails', () => {
-    it(`should set cloudprovider if not set`, async (done) => {
+    it(`should set cloudprovider if not set`, async () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
@@ -69,19 +64,14 @@ describe('FunctionReadService', () => {
           { name: 'account1', provider: 'aws', type: 'aws' },
         ]);
 
-      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then((data) => {
-        expect(data).toEqual([
-          { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
-          { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
-        ]);
-
-        done();
-      });
-
-      await http.flush();
+      const data = await flush(http, functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1'));
+      expect(data).toEqual([
+        { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
+        { name: 'account1', cloudProvider: 'aws', provider: 'aws', type: 'aws' },
+      ]);
     });
 
-    it(`should not set cloudprovider if provided`, async (done) => {
+    it(`should not set cloudprovider if provided`, async () => {
       const http = mockHttpClient();
       const functionReader = new FunctionReader(functionTransformerMock);
 
@@ -93,16 +83,11 @@ describe('FunctionReadService', () => {
           { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
         ]);
 
-      functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1').then((data) => {
-        expect(data).toEqual([
-          { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
-          { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
-        ]);
-
-        done();
-      });
-
-      await http.flush();
+      const data = await flush(http, functionReader.getFunctionDetails('aws', 'acct1', 'us-west-1', 'runner1'));
+      expect(data).toEqual([
+        { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
+        { name: 'account1', cloudProvider: 'fluffyCloud', provider: 'aws', type: 'aws' },
+      ]);
     });
   });
 });

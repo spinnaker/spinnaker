@@ -68,7 +68,7 @@ describe('usePollingData hook', () => {
     });
   });
 
-  it('calls the factory on the specified polling interval', async (done) => {
+  it('calls the factory on the specified polling interval', async () => {
     const spy = jasmine.createSpy('onChange');
     let deferred = defer();
     const factory = jasmine.createSpy('factory').and.callFake(() => deferred.promise);
@@ -120,7 +120,5 @@ describe('usePollingData hook', () => {
       error: undefined,
       requestId: 1,
     });
-
-    done();
   });
 });

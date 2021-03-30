@@ -2,18 +2,16 @@ import { RequestBuilder } from 'core/api';
 import { SpelService } from './SpelService';
 
 describe('SpelService', () => {
-  it('extracts "result" from the payload', async (done) => {
+  it('extracts "result" from the payload', async () => {
     const spy = spyOn(RequestBuilder.defaultHttpClient, 'get').and.callFake(() =>
       Promise.resolve({ result: 'data' } as any),
     );
     const result = await SpelService.evaluateExpression('expression', null, null);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(result).toBe('data');
-
-    done();
   });
 
-  it('throws when the payload has "details"', async (done) => {
+  it('throws when the payload has "details"', async () => {
     const serverExpressionEvaluationFailure = {
       detail: {
         'bad expression': [
@@ -45,7 +43,5 @@ describe('SpelService', () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(rejection.message).toBe(`${errorDetail.exceptionType}: ${errorDetail.description}`);
-
-    done();
   });
 });

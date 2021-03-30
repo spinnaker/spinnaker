@@ -36,7 +36,7 @@ describe('useData hook', () => {
     expect(factory).toHaveBeenCalledTimes(0);
   });
 
-  it('the default result is returned until the promise resolves', async (done) => {
+  it('the default result is returned until the promise resolves', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred = defer();
     const factory = () => deferred.promise;
@@ -73,11 +73,9 @@ describe('useData hook', () => {
       requestId: 0,
       refresh: jasmine.any(Function),
     });
-
-    done();
   });
 
-  it('the default result is returned until the first result is seen (even if deps are falsey)', async (done) => {
+  it('the default result is returned until the first result is seen (even if deps are falsey)', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred = defer();
     const factory = () => deferred.promise;
@@ -121,7 +119,5 @@ describe('useData hook', () => {
       requestId: 1,
       refresh: jasmine.any(Function),
     });
-
-    done();
   });
 });

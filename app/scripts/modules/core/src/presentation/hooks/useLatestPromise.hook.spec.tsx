@@ -46,7 +46,7 @@ describe('useLatestPromise hook', () => {
     expect(promiseState(result)).toEqual({ status: 'PENDING', result: undefined, error: undefined, requestId: 0 });
   });
 
-  it('has status RESOLVED if a promise resolved', async (done) => {
+  it('has status RESOLVED if a promise resolved', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred = defer();
     const component = mount(<Component promiseFactory={() => deferred.promise} deps={[]} onChange={spy} />);
@@ -59,10 +59,9 @@ describe('useLatestPromise hook', () => {
     expect(spy).toHaveBeenCalledTimes(3);
     const result: IUseLatestPromiseResult<any> = spy.calls.mostRecent().args[0];
     expect(promiseState(result)).toEqual({ status: 'RESOLVED', result: 'payload', error: undefined, requestId: 0 });
-    done();
   });
 
-  it('has status REJECTED if a promise rejected', async (done) => {
+  it('has status REJECTED if a promise rejected', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred = defer();
     const component = mount(<Component promiseFactory={() => deferred.promise} deps={[]} onChange={spy} />);
@@ -77,10 +76,9 @@ describe('useLatestPromise hook', () => {
     expect(spy).toHaveBeenCalledTimes(3);
     const result: IUseLatestPromiseResult<any> = spy.calls.mostRecent().args[0];
     expect(promiseState(result)).toEqual({ status: 'REJECTED', result: undefined, error: 'error', requestId: 0 });
-    done();
   });
 
-  it('only handles the latest promise when multiple promises are pending', async (done) => {
+  it('only handles the latest promise when multiple promises are pending', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred1 = defer();
     const component = mount(<Component promiseFactory={() => deferred1.promise} deps={[1]} onChange={spy} />);
@@ -106,10 +104,9 @@ describe('useLatestPromise hook', () => {
     expect(spy).toHaveBeenCalledTimes(4);
     const result: IUseLatestPromiseResult<any> = spy.calls.mostRecent().args[0];
     expect(promiseState(result)).toEqual({ status: 'RESOLVED', result: 'payload2', error: undefined, requestId: 1 });
-    done();
   });
 
-  it('gets a new promise if refresh() is called', async (done) => {
+  it('gets a new promise if refresh() is called', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred = defer();
     const promiseFactorySpy = jasmine.createSpy('promiseFactory').and.callFake(() => deferred.promise);
@@ -124,11 +121,9 @@ describe('useLatestPromise hook', () => {
     spy.calls.mostRecent().args[0].refresh();
     component.setProps({});
     expect(promiseFactorySpy).toHaveBeenCalledTimes(2);
-
-    done();
   });
 
-  it('ignores old pending results if a newer promise is being processed', async (done) => {
+  it('ignores old pending results if a newer promise is being processed', async () => {
     const spy = jasmine.createSpy('onChange');
     const deferred1 = defer();
     const deferred2 = defer();
@@ -155,7 +150,5 @@ describe('useLatestPromise hook', () => {
     expect(allCalls[2]).toEqual({ status: 'PENDING', result: undefined, error: undefined, requestId: 1 });
     // resolved second request
     expect(allCalls[3]).toEqual({ status: 'RESOLVED', result: 'payload2', error: undefined, requestId: 1 });
-
-    done();
   });
 });
