@@ -228,11 +228,11 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged -p false"
     }
   },
   "lint-staged": {
-    "app/**/*.{js,jsx,ts,tsx,html,css,less}": "prettier --write",
-    "app/**/*.{js,jsx,ts,tsx}": "eslint --fix"
+    "app/**/*.{js,jsx,ts,tsx}": "eslint --fix",
+    "app/**/*.{js,jsx,ts,tsx,html,css,less}": "prettier --write"
   }
 }
