@@ -200,6 +200,7 @@ const helpContents: { [key: string]: string } = {
       <p>Select the types of executions to consider. When no selection is made, the default is "any execution".</p>
       <p>This will always evaluate to the most recent execution matching your provided criteria.</p>
   `,
+  'pipeline.config.tags': `<p>Pipeline tags let you filter pipelines/executions by addition dimensions in the executions page</p>`,
   'loadBalancer.advancedSettings.healthTimeout':
     '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
   'loadBalancer.advancedSettings.idleTimeout':
