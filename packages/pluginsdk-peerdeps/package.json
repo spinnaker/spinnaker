@@ -14,6 +14,7 @@
   "peerDependencies": {
     "@rollup/plugin-commonjs": "16.0.0",
     "@rollup/plugin-node-resolve": "10.0.0",
+    "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-typescript": "6.1.0",
     "@spinnaker/core": "0.0.554",
     "@spinnaker/eslint-plugin": "1.0.13",
@@ -41,22 +42,59 @@
     "utf-8-validate": "5.0.3"
   },
   "peerDependenciesMeta": {
-    "@rollup/plugin-commonjs": { "dev": true },
-    "@rollup/plugin-node-resolve": { "dev": true },
-    "@rollup/plugin-typescript": { "dev": true },
-    "@spinnaker/eslint-plugin": { "dev": true },
-    "@types/react": { "dev": true },
-    "bufferutil": { "dev": true },
-    "husky": { "dev": true },
-    "npm-run-all": { "dev": true },
-    "prettier": { "dev": true },
-    "pretty-quick": { "dev": true },
-    "rollup": { "dev": true },
-    "rollup-plugin-external-globals": { "dev": true },
-    "rollup-plugin-less": { "dev": true },
-    "rollup-plugin-postcss": { "dev": true },
-    "shx": { "dev": true },
-    "typescript": { "dev": true },
-    "utf-8-validate": { "dev": true }
+    "@rollup/plugin-commonjs": {
+      "dev": true
+    },
+    "@rollup/plugin-json": {
+      "dev": true
+    },
+    "@rollup/plugin-node-resolve": {
+      "dev": true
+    },
+    "@rollup/plugin-typescript": {
+      "dev": true
+    },
+    "@spinnaker/eslint-plugin": {
+      "dev": true
+    },
+    "@types/react": {
+      "dev": true
+    },
+    "bufferutil": {
+      "dev": true
+    },
+    "husky": {
+      "dev": true
+    },
+    "npm-run-all": {
+      "dev": true
+    },
+    "prettier": {
+      "dev": true
+    },
+    "pretty-quick": {
+      "dev": true
+    },
+    "rollup": {
+      "dev": true
+    },
+    "rollup-plugin-external-globals": {
+      "dev": true
+    },
+    "rollup-plugin-less": {
+      "dev": true
+    },
+    "rollup-plugin-postcss": {
+      "dev": true
+    },
+    "shx": {
+      "dev": true
+    },
+    "typescript": {
+      "dev": true
+    },
+    "utf-8-validate": {
+      "dev": true
+    }
   }
 }

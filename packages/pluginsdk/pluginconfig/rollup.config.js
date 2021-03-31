@@ -1,8 +1,10 @@
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
+
 const commonjs = require('@rollup/plugin-commonjs');
-const typescript = require('@rollup/plugin-typescript');
-const postCss = require('rollup-plugin-postcss');
 const externalGlobals = require('rollup-plugin-external-globals');
+const json = require('@rollup/plugin-json');
+const postCss = require('rollup-plugin-postcss');
+const typescript = require('@rollup/plugin-typescript');
 
 const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
 
@@ -11,6 +13,7 @@ module.exports = {
   plugins: [
     nodeResolve(),
     commonjs(),
+    json(),
     typescript({
       // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
       noEmitOnError: !ROLLUP_WATCH,
