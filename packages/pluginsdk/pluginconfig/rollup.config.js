@@ -44,7 +44,23 @@ function spinnakerSharedLibraries() {
     return `${prefix}.${sanitizedLibraryName}`;
   }
 
+  // This allows us to share libraries with plugin dependencies that would otherwise be double bundled
+  // @rollup/plugin-commonjs rewrites library names in commonjs imported code
+  // This block finds known permutations and replaces them with the shared global variable
   return libraries.reduce((globalsMap, libraryName) => {
-    return { ...globalsMap, [libraryName]: getGlobalVariable(libraryName) };
+    const globalVar = getGlobalVariable(libraryName);
+    const libName2 = libraryName + '?commonjs-proxy';
+    const libName3 = libraryName + '?commonjs-require';
+    const libName4 = '\u0000' + libraryName + '?commonjs-proxy';
+    const libName5 = '\u0000' + libraryName + '?commonjs-require';
+
+    return {
+      ...globalsMap,
+      [libraryName]: globalVar,
+      [libName2]: globalVar,
+      [libName3]: globalVar,
+      [libName4]: globalVar,
+      [libName5]: globalVar,
+    };
   }, {});
 }
