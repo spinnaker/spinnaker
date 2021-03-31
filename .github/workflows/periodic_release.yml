@@ -37,12 +37,15 @@ jobs:
 
       - name: Release build
         env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          RELEASE_VERSION: ${{ steps.changelog.outputs.version }}
+          ORG_GRADLE_PROJECT_version:  ${{ steps.changelog.outputs.version }}
+          ORG_GRADLE_PROJECT_nexusPublishEnabled: true
+          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          echo "Building keel release ${RELEASE_VERSION}"
-          ./gradlew --info -Pversion="${RELEASE_VERSION}" -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -PbintrayPublishDebEnabled=false publish
+          echo "Building release ${RELEASE_VERSION}"
+          ./gradlew --info publishToNexus closeAndReleaseNexusStagingRepository
 
       - name: Create release
         uses: actions/create-release@v1
