@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';

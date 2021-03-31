@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
 import * as React from 'react';
 

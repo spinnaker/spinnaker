@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';

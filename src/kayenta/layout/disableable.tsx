@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { ICanaryState } from 'kayenta/reducers';
 import { get, omit } from 'lodash';
 import * as React from 'react';

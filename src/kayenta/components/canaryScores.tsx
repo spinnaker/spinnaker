@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { isString } from 'lodash';
 import * as React from 'react';
 

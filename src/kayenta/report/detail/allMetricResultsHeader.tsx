@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
 import * as React from 'react';
 

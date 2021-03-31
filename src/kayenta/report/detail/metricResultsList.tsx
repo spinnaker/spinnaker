@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import { Table } from 'kayenta/layout/table';

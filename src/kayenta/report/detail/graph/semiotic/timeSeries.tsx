@@ -1,4 +1,4 @@
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
