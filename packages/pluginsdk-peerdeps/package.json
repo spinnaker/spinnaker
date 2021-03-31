@@ -37,6 +37,7 @@
     "rollup-plugin-external-globals": "0.6.1",
     "rollup-plugin-less": "1.1.2",
     "rollup-plugin-postcss": "3.1.8",
+    "rollup-plugin-visualizer": "4.2.2",
     "rxjs": "^5.4.2",
     "shx": "0.3.3",
     "typescript": "^4.0.0",
@@ -89,6 +90,9 @@
       "dev": true
     },
     "rollup-plugin-postcss": {
+      "dev": true
+    },
+    "rollup-plugin-visualizer": {
       "dev": true
     },
     "shx": {

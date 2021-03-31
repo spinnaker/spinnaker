@@ -6,28 +6,36 @@ const json = require('@rollup/plugin-json');
 const postCss = require('rollup-plugin-postcss');
 const replace = require('@rollup/plugin-replace');
 const typescript = require('@rollup/plugin-typescript');
+const visualizer = require('rollup-plugin-visualizer');
 
+const ROLLUP_STATS = !!process.env.ROLLUP_STATS;
 const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
-const NODE_ENV = JSON.stringify(process.env.NODE_ENV || 'development') 
+const NODE_ENV = JSON.stringify(process.env.NODE_ENV || 'development');
+
+const plugins = [
+  nodeResolve(),
+  commonjs(),
+  json(),
+  // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
+  replace({ 'process.env.NODE_ENV': NODE_ENV }),
+  typescript({
+    // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
+    noEmitOnError: !ROLLUP_WATCH,
+  }),
+  // map imports from shared libraries (react, etc) to global variables exposed by spinnaker
+  externalGlobals(spinnakerSharedLibraries()),
+  // import from .css, .less, and inject into the document <head></head>
+  postCss(),
+];
+
+if (ROLLUP_STATS) {
+  plugins.push(visualizer({ sourcemap: true }));
+}
 
 module.exports = {
   input: 'src/index.ts',
-  plugins: [
-    nodeResolve(),
-    commonjs(),
-    json(),
-    // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
-    replace({ 'process.env.NODE_ENV': NODE_ENV }),
-    typescript({
-      // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
-      noEmitOnError: !ROLLUP_WATCH,
-    }),
-    // map imports from shared libraries (react, etc) to global variables exposed by spinnaker
-    externalGlobals(spinnakerSharedLibraries()),
-    // import from .css, .less, and inject into the document <head></head>
-    postCss(),
-  ],
   output: [{ dir: 'build/dist', format: 'es', sourcemap: true }],
+  plugins,
 };
 
 function spinnakerSharedLibraries() {
