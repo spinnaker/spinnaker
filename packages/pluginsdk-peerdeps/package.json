@@ -15,6 +15,7 @@
     "@rollup/plugin-commonjs": "16.0.0",
     "@rollup/plugin-node-resolve": "10.0.0",
     "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "6.1.0",
     "@spinnaker/core": "0.0.554",
     "@spinnaker/eslint-plugin": "1.0.13",
@@ -49,6 +50,9 @@
       "dev": true
     },
     "@rollup/plugin-node-resolve": {
+      "dev": true
+    },
+    "@rollup/plugin-replace": {
       "dev": true
     },
     "@rollup/plugin-typescript": {

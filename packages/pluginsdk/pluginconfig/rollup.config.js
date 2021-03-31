@@ -4,9 +4,11 @@ const commonjs = require('@rollup/plugin-commonjs');
 const externalGlobals = require('rollup-plugin-external-globals');
 const json = require('@rollup/plugin-json');
 const postCss = require('rollup-plugin-postcss');
+const replace = require('@rollup/plugin-replace');
 const typescript = require('@rollup/plugin-typescript');
 
 const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
+const NODE_ENV = JSON.stringify(process.env.NODE_ENV || 'development') 
 
 module.exports = {
   input: 'src/index.ts',
@@ -14,6 +16,8 @@ module.exports = {
     nodeResolve(),
     commonjs(),
     json(),
+    // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
+    replace({ 'process.env.NODE_ENV': NODE_ENV }),
     typescript({
       // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
       noEmitOnError: !ROLLUP_WATCH,
