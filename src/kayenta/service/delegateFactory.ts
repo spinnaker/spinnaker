@@ -2,6 +2,11 @@ export interface IDelegate {
   name: string;
 }
 
+export interface IDelegateService<T extends IDelegate> {
+  register(delegate: T): void;
+  getDelegate(name: string): T;
+}
+
 export const buildDelegateService = <T extends IDelegate>() => {
   class DelegateService {
     private delegates: T[] = [];
@@ -15,5 +20,5 @@ export const buildDelegateService = <T extends IDelegate>() => {
     }
   }
 
-  return new DelegateService();
+  return new DelegateService() as IDelegateService<T>;
 };
