@@ -1,5 +1,4 @@
-import { UIRouter } from '@uirouter/angularjs';
-import { Transition } from '@uirouter/core';
+import { UIRouter, Transition } from '@uirouter/core';
 import { IWindowService, module } from 'angular';
 import * as Creators from 'kayenta/actions/creators';
 import Canary, { canaryStore } from 'kayenta/canary';

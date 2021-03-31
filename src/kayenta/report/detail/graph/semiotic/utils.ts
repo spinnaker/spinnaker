@@ -1,7 +1,7 @@
 import { quantile } from 'd3-array';
 import { format } from 'd3-format';
 import { scaleUtc } from 'd3-scale';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import { ISummaryStatistics } from './semiotic.service';
 

@@ -1,6 +1,6 @@
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import * as React from 'react';
 import { XYFrame } from 'semiotic';
 

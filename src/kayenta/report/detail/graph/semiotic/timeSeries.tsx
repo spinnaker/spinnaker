@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import * as React from 'react';
 import { IMinimapProps, IXYFrameHoverBaseArgs, IXYFrameProps, MinimapXYFrame, XYFrame } from 'semiotic';
 
