@@ -51,7 +51,7 @@ function checkPackageJson(report) {
 
   const checkPackageJsonField = assertJsonFile(report, 'package.json', pkgJson);
 
-  checkPackageJsonField('scripts.build', 'npm run clean && rollup -c');
+  checkPackageJsonField('scripts.build', 'npm run clean && NODE_ENV=production rollup -c');
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
   checkPackageJsonField('scripts.lint', 'eslint --ext js,jsx,ts,tsx src');
   checkPackageJsonField('scripts.develop', 'npm run clean && run-p watch proxy');
