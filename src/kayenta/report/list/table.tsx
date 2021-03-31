@@ -12,7 +12,7 @@ import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { ManualAnalysisModal } from 'kayenta/manualAnalysis/ManualAnalysisModal';
 import { ICanaryState } from 'kayenta/reducers';
 import { get, isEqual } from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
