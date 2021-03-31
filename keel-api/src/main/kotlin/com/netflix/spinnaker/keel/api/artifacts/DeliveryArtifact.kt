@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api.artifacts
 
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 import java.time.Instant
 
@@ -68,21 +69,26 @@ abstract class DeliveryArtifact {
   /** A friendly reference to use within a delivery config. */
   abstract val reference: String
   /** The delivery config this artifact is a part of. */
+  @get:ExcludedFromDiff
   abstract val deliveryConfigName: String?
   /** A set of release statuses to filter by. Mutually exclusive with [from] filters. */
   open val statuses: Set<ArtifactStatus> = emptySet()
   /** Filters for the artifact origin in source control. */
   open val from: ArtifactOriginFilter? = null
 
+  @get:ExcludedFromDiff
   val filteredByBranch: Boolean
     get() = from?.branch != null
 
+  @get:ExcludedFromDiff
   val filteredByPullRequest: Boolean
     get() = from?.pullRequestOnly == true
 
+  @get:ExcludedFromDiff
   val filteredBySource: Boolean
     get() = filteredByBranch || filteredByPullRequest
 
+  @get:ExcludedFromDiff
   val filteredByReleaseStatus: Boolean
     get() = statuses.isNotEmpty()
 

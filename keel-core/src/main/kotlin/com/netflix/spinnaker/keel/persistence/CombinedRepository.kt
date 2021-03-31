@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -27,7 +26,6 @@ import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
-import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
@@ -67,27 +65,7 @@ class CombinedRepository(
 
   @Transactional(propagation = REQUIRED)
   override fun upsertDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
-    val new = DeliveryConfig(
-      name = submittedDeliveryConfig.safeName,
-      application = submittedDeliveryConfig.application,
-      serviceAccount = submittedDeliveryConfig.serviceAccount
-        ?: error("No service account specified, and no default applied"),
-      artifacts = submittedDeliveryConfig.artifacts.transform(submittedDeliveryConfig.safeName),
-      environments = submittedDeliveryConfig.environments.mapTo(mutableSetOf()) { env ->
-        Environment(
-          name = env.name,
-          resources = env.resources.mapTo(mutableSetOf()) { resource ->
-            resource
-              .copy(metadata = mapOf("serviceAccount" to submittedDeliveryConfig.serviceAccount) + resource.metadata)
-              .normalize()
-          },
-          constraints = env.constraints,
-          verifyWith = env.verifyWith,
-          notifications = env.notifications
-        )
-      },
-      metadata = submittedDeliveryConfig.metadata ?: emptyMap()
-    )
+    val new = submittedDeliveryConfig.toDeliveryConfig()
     return upsertDeliveryConfig(new)
   }
 
@@ -182,13 +160,6 @@ class CombinedRepository(
         }
       }
   }
-
-  private fun Set<DeliveryArtifact>.transform(deliveryConfigName: String) =
-    map { artifact ->
-      val artifacAsMap: MutableMap<String, Any?> = objectMapper.convertValue(artifact)
-      artifacAsMap["deliveryConfigName"] = deliveryConfigName
-      objectMapper.convertValue(artifacAsMap, artifact.javaClass)
-    }.toSet()
 
   // START Delivery config methods
   override fun storeDeliveryConfig(deliveryConfig: DeliveryConfig) =

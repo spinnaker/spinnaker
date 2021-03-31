@@ -5,28 +5,25 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.diff.AdHocDiffer
-import com.netflix.spinnaker.keel.diff.EnvironmentDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.DeliveryConfigChangedNotification
+import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.schema.Generator
 import com.netflix.spinnaker.keel.schema.RootSchema
 import com.netflix.spinnaker.keel.schema.generateSchema
-import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
-import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.validators.applyAll
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -39,12 +36,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
+import org.springframework.core.env.Environment as SpringEnvironment
+
 
 @RestController
 @RequestMapping(path = ["/delivery-configs"])
 class DeliveryConfigController(
   private val repository: KeelRepository,
-  private val adHocDiffer: AdHocDiffer,
   private val validator: DeliveryConfigValidator,
   private val importer: DeliveryConfigImporter,
   private val authorizationSupport: AuthorizationSupport,
@@ -52,7 +51,7 @@ class DeliveryConfigController(
   private val generator: Generator,
   private val publisher: ApplicationEventPublisher,
   private val mapper: ObjectMapper,
-  private val springEnv: Environment
+  private val springEnv: SpringEnvironment
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -141,9 +140,24 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #deliveryConfig.application)")
-  fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> {
-    validator.validate(deliveryConfig)
-    return adHocDiffer.calculate(deliveryConfig)
+  fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): Map<String, Any?> {
+    val existing: DeliveryConfig? = try {
+      repository.getDeliveryConfigForApplication(deliveryConfig.application)
+    } catch (e: NoDeliveryConfigForApplication) {
+      null
+    }
+
+    val diff = deliveryConfigProcessors
+      .applyAll(deliveryConfig)
+      .let { processedDeliveryConfig ->
+        validator.validate(processedDeliveryConfig)
+        DefaultResourceDiff(
+          desired = processedDeliveryConfig.toDeliveryConfig(),
+          current = existing
+        ).toDeltaJson()
+      }
+
+    return diff
   }
 
   @PostMapping(

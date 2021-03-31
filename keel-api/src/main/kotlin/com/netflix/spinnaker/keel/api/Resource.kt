@@ -5,6 +5,7 @@ package com.netflix.spinnaker.keel.api
  */
 data class Resource<out T : ResourceSpec>(
   val kind: ResourceKind,
+  @get:ExcludedFromDiff
   val metadata: Map<String, Any?>,
   val spec: T
 ) {
@@ -16,8 +17,10 @@ data class Resource<out T : ResourceSpec>(
   val id: String
     get() = metadata.getValue("id").toString()
 
+  @get:ExcludedFromDiff
   val version: Int
-    get() = metadata.getValue("version") as Int
+    // version is not a mandatory metadata field, so we default to -1 when missing
+    get() = metadata.getValue("version") as? Int ?: -1
 
   val serviceAccount: String
     get() = metadata.getValue("serviceAccount").toString()

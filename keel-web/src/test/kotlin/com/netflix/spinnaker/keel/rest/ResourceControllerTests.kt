@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
@@ -50,9 +49,6 @@ internal class ResourceControllerTests
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
-
-  @MockkBean
-  lateinit var adHocDiffer: AdHocDiffer
 
   var resource = resource()
 

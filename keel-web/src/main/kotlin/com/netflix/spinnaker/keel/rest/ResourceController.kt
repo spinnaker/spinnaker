@@ -17,8 +17,9 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import com.netflix.spinnaker.keel.diff.AdHocDiffer
-import com.netflix.spinnaker.keel.diff.DiffResult
+import com.netflix.spinnaker.keel.core.api.id
+import com.netflix.spinnaker.keel.core.api.normalize
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
@@ -42,7 +43,6 @@ import org.springframework.web.bind.annotation.RestController
 class ResourceController(
   private val repository: KeelRepository,
   private val actuationPauser: ActuationPauser,
-  private val adHocDiffer: AdHocDiffer,
   private val resourceStatusService: ResourceStatusService
 ) {
 
@@ -107,8 +107,8 @@ class ResourceController(
   @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #resource.spec.application)")
   fun diff(
     @RequestBody resource: SubmittedResource<*>
-  ): DiffResult {
+  ): DefaultResourceDiff<Resource<*>> {
     log.debug("Diffing: $resource")
-    return runBlocking { adHocDiffer.calculate(resource) }
+    return runBlocking { DefaultResourceDiff(resource.normalize(), repository.getResource(resource.id)) }
   }
 }

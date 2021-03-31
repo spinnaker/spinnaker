@@ -2,8 +2,12 @@ package com.netflix.spinnaker.keel.diff
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.danielbechler.diff.NodeQueryService
 import de.danielbechler.diff.ObjectDiffer
@@ -15,6 +19,7 @@ import de.danielbechler.diff.differ.Differ
 import de.danielbechler.diff.differ.DifferDispatcher
 import de.danielbechler.diff.differ.DifferFactory
 import de.danielbechler.diff.filtering.ReturnableNodeService
+import de.danielbechler.diff.identity.IdentityStrategy
 import de.danielbechler.diff.inclusion.Inclusion
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.inclusion.Inclusion.INCLUDED
@@ -84,6 +89,19 @@ data class DefaultResourceDiff<T : Any>(
 
           override fun enablesStrictIncludeMode() = false
         })
+        identity().apply {
+          // These tell the differ how to match items within collections before comparing, so that it
+          // doesn't interpret changes in collections as if the entire parent object is different.
+          ofCollectionItems(DeliveryConfig::class.java, "artifacts").via { working, base ->
+            (working as? DeliveryArtifact)?.reference == (base as? DeliveryArtifact)?.reference
+          }
+          ofCollectionItems(DeliveryConfig::class.java, "environments").via { working, base ->
+            (working as? Environment)?.name == (base as? Environment)?.name
+          }
+          ofCollectionItems(Environment::class.java, "resources").via { working, base ->
+            (working as? Resource<*>)?.id == (base as? Resource<*>)?.id
+          }
+        }
         differs().register(PolymorphismAwareDifferFactory(this))
       }
       .build()

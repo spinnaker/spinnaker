@@ -24,6 +24,9 @@ internal interface DeliveryArtifactMixin {
   @get:JsonIgnore
   val filteredByReleaseStatus: Boolean
 
+  @get:JsonIgnore
+  val filteredBySource: Boolean
+
   @get:JsonInclude(NON_EMPTY)
   val statuses: Set<ArtifactStatus>
 }
