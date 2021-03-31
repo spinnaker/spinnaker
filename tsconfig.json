@@ -1,6 +1,10 @@
 {
   "extends": "@spinnaker/pluginsdk/pluginconfig/tsconfig.json",
   "compilerOptions": {
+    "paths": {
+      "kayenta": ["kayenta"]
+    },
+    "baseUrl": "src",
     "outDir": "build/dist",
     "rootDir": "src"
   }
