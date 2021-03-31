@@ -31,7 +31,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.Capacity;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.RollbackDetails;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.ArrayList;
@@ -235,7 +237,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
 
   /** Retrieve the details for the best rollback candidate */
   @Nonnull
-  private DetermineRollbackCandidatesTask.RollbackDetails getBestCandidate(
+  private RollbackDetails getBestCandidate(
       String cluster,
       String region,
       ServerGroup serverGroupToRollBack,
@@ -345,7 +347,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
   }
 
   @Nonnull
-  private DetermineRollbackCandidatesTask.RollbackDetails getDetailsUsingPreviousServerGroups(
+  private RollbackDetails getDetailsUsingPreviousServerGroups(
       List<ServerGroup> candidateServerGroupsInRegion,
       ServerGroup serverGroupToRollBack,
       String cluster,
@@ -360,7 +362,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
 
   /** Check for rollback candidates based on entity tags */
   @Nonnull
-  private DetermineRollbackCandidatesTask.RollbackDetails getDetailsUsingEntityTags(
+  private RollbackDetails getDetailsUsingEntityTags(
       List<ServerGroup> candidateServerGroupsInRegion,
       ServerGroup serverGroupToRollBack,
       ImageDetails imageDetails,
@@ -388,14 +390,14 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
       Moniker moniker, String credentials, String region, String serverGroupName) {
     if (moniker == null && serverGroupName != null) {
       try {
-        Map<String, Object> serverGroup =
+        ServerGroup serverGroup =
             retrySupport.retry(
-                () -> cloudDriverService.getServerGroup(credentials, region, serverGroupName),
+                () -> cloudDriverService.getServerGroupTyped(credentials, region, serverGroupName),
                 5,
                 1000,
                 false);
 
-        moniker = objectMapper.convertValue(serverGroup.get("moniker"), Moniker.class);
+        return serverGroup.getMoniker();
       } catch (Exception e) {
         logger.warn(
             "Failed to fetch server group, retrying! (account: {}, region: {}, serverGroup: {})",
@@ -523,7 +525,7 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
 
   /** Helper function useful for filtering streams */
   private static Predicate<ServerGroup> exclude(ServerGroup group) {
-    return s -> !(s.name.equalsIgnoreCase(group.name));
+    return s -> !s.getName().equalsIgnoreCase(group.getName());
   }
 
   private static class StageData {
@@ -536,67 +538,5 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
     public Moniker moniker;
     public List<String> regions;
     public Map<String, Object> additionalRollbackContext;
-  }
-
-  private static class ServerGroup {
-    public String name;
-    public String region;
-    public Long createdTime;
-    public Boolean disabled;
-
-    public Capacity capacity;
-    public Image image;
-    public BuildInfo buildInfo;
-
-    public String getImageName() {
-      return (image != null && image.name != null) ? image.name : null;
-    }
-
-    public String getBuildNumber() {
-      return (buildInfo != null && buildInfo.jenkins != null) ? buildInfo.jenkins.number : null;
-    }
-  }
-
-  public static class Capacity {
-    public Integer min;
-    public Integer max;
-    public Integer desired;
-  }
-
-  private static class Image {
-    public String imageId;
-    public String name;
-  }
-
-  private static class BuildInfo {
-    public Jenkins jenkins;
-
-    private static class Jenkins {
-      public String number;
-    }
-  }
-
-  private static class RollbackDetails {
-    RollbackServerGroupStage.RollbackType rollbackType;
-    Map<String, String> rollbackContext;
-
-    String imageName;
-    String buildNumber;
-
-    RollbackDetails(
-        RollbackServerGroupStage.RollbackType rollbackType,
-        Map<String, String> rollbackContext,
-        String imageName,
-        String buildNumber) {
-      this.rollbackType = rollbackType;
-      this.rollbackContext = rollbackContext;
-      this.imageName = imageName;
-      this.buildNumber = buildNumber;
-    }
-
-    RollbackDetails(String imageName, String buildNumber) {
-      this.imageName = imageName;
-      this.buildNumber = buildNumber;
-    }
   }
 }

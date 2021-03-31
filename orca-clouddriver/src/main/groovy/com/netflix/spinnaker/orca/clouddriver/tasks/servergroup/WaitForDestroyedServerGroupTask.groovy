@@ -48,6 +48,7 @@ class WaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTa
   TaskResult execute(StageExecution stage) {
     ClusterDescriptor clusterDescriptor = getClusterDescriptor(stage)
     try {
+      //TODO: figure out how to eliminate the response status code handling directly
       def response = oortService.getCluster(
           clusterDescriptor.app,
           clusterDescriptor.account,

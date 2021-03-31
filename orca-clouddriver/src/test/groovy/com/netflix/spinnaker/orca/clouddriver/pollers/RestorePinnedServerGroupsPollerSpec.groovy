@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
@@ -108,7 +109,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     1 * pollerSupport.fetchServerGroup("test", "us-east-1", "app-stack-details-v001") >> {
       return Optional.of(
         new ServerGroup(
-          moniker: [app: "app"],
+          moniker: new Moniker(app: "app"),
           capacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3)
         )
       )

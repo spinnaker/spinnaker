@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
@@ -90,7 +92,7 @@ class ClusterSizePreconditionTask implements CloudProviderAware, RetryableTask, 
     }
   }
 
-  Map readCluster(ComparisonConfig config, String credentials, String cloudProvider) {
+  Cluster readCluster(ComparisonConfig config, String credentials, String cloudProvider) {
     def response
     try {
       response = oortService.getCluster(config.application, credentials, config.cluster, cloudProvider)
@@ -103,9 +105,9 @@ class ClusterSizePreconditionTask implements CloudProviderAware, RetryableTask, 
 
     JacksonConverter converter = new JacksonConverter(objectMapper)
     try {
-      return converter.fromBody(response.body, Map) as Map
+      return (Cluster) converter.fromBody(response.body, Cluster)
     } catch (ConversionException ce) {
-      throw RetrofitError.conversionError(response.url, response, converter, Map, ce)
+      throw RetrofitError.conversionError(response.url, response, converter, Cluster, ce)
     }
   }
 
@@ -115,8 +117,8 @@ class ClusterSizePreconditionTask implements CloudProviderAware, RetryableTask, 
     ComparisonConfig config = stage.mapTo("/context", ComparisonConfig)
     config.validate()
 
-    Map cluster = readCluster(config, config.credentials, cloudProvider)
-    Map<String, List<Map>> serverGroupsByRegion = ((cluster.serverGroups as List<Map>) ?: []).groupBy { it.region }
+    Cluster cluster = readCluster(config, config.credentials, cloudProvider)
+    Map<String, List<ServerGroup>> serverGroupsByRegion = (cluster.serverGroups  ?: []).groupBy { it.region }
 
     def failures = []
     for (String region : config.regions) {

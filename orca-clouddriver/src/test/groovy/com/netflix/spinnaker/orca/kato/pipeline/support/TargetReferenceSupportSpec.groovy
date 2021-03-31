@@ -16,23 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class TargetReferenceSupportSpec extends Specification {
 
-  ObjectMapper mapper = OrcaObjectMapper.newInstance()
-  OortService oort
-  TargetReferenceSupport subject
+  CloudDriverService cloudDriverService = Mock()
+  TargetReferenceSupport subject = new TargetReferenceSupport(cloudDriverService: cloudDriverService)
 
   def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
@@ -84,11 +80,6 @@ class TargetReferenceSupportSpec extends Specification {
                                   ]
                                 ]]]
 
-  def setup() {
-    oort = Mock(OortService)
-    subject = new TargetReferenceSupport(mapper: mapper, oort: oort)
-  }
-
   @Unroll
   void "should resolve target (#target) reference appropriately"() {
     setup:
@@ -104,15 +95,7 @@ class TargetReferenceSupportSpec extends Specification {
     def targets = subject.getTargetAsgReferences(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          mapper.writeValueAsBytes(cluster)
-        )
-      )
-    }
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> cluster
     2 == targets.size()
     targets*.region == regions
     targets*.asg.name == asgNames
@@ -136,7 +119,7 @@ class TargetReferenceSupportSpec extends Specification {
       credentials : "prod"
     ]
     def stage = new StageExecutionImpl(pipeline, "test", config)
-    def response = mapper.writeValueAsBytes(
+    def response =
       [serverGroups: [[
         name  : "kato-main-v001",
         createdTime: 2,
@@ -148,15 +131,12 @@ class TargetReferenceSupportSpec extends Specification {
           ]
         ]
       ]]
-    )
 
     when:
     subject.getTargetAsgReferences(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", response))
-    }
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >>  response
     thrown TargetReferenceNotFoundException
   }
 
@@ -170,15 +150,13 @@ class TargetReferenceSupportSpec extends Specification {
       credentials : "prod"
     ]
     def stage = new StageExecutionImpl(pipeline, "test", config)
-    def response = mapper.writeValueAsBytes([serverGroups: []])
+    def response = [serverGroups: []]
 
     when:
     subject.getTargetAsgReferences(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", response))
-    }
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> response
     thrown TargetReferenceNotFoundException
 
     where:
@@ -200,15 +178,7 @@ class TargetReferenceSupportSpec extends Specification {
     subject.getTargetAsgReferences(stage)
 
     then:
-    oortCalls * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          mapper.writeValueAsBytes(cluster)
-        )
-      )
-    }
+    oortCalls * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> cluster
 
     where:
     target                 | type                       | oortCalls
@@ -252,7 +222,7 @@ class TargetReferenceSupportSpec extends Specification {
     def targets = subject.getTargetAsgReferences(stage)
 
     then:
-    0 * oort.getCluster(_, _, _, _)
+    0 * cloudDriverService._
     2 == targets.size()
     targets*.region == regions
     targets*.asg.name == asgNames
@@ -278,15 +248,7 @@ class TargetReferenceSupportSpec extends Specification {
     def targets = subject.getTargetAsgReferences(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          mapper.writeValueAsBytes(cluster)
-        )
-      )
-    }
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> cluster
     1 == targets.size()
     targets*.region == ["us-west-1"]
     targets*.asg.name == ["kato-main-v000"]
@@ -305,7 +267,7 @@ class TargetReferenceSupportSpec extends Specification {
     subject.getDynamicallyBoundTargetAsgReference(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
       throw new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, null, null)
     }
     thrown TargetReferenceNotFoundException
@@ -324,7 +286,7 @@ class TargetReferenceSupportSpec extends Specification {
     subject.getDynamicallyBoundTargetAsgReference(stage)
 
     then:
-    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+    1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
       throw new RetrofitError(null, null, new Response("http://clouddriver", 429, "null", [], null), null, null, null, null)
     }
     thrown RetrofitError

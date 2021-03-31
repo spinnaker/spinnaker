@@ -53,7 +53,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
       .forEach({ graph.append(it) })
   }
 
-  static enum RollbackType {
+  public static enum RollbackType {
     EXPLICIT(ExplicitRollback),
     PREVIOUS_IMAGE(PreviousImageRollback),
     TEST(TestRollback)

@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -105,12 +105,11 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    (shouldFetchServerGroup ? 1 : 0) * cloudDriverService.getServerGroup("test", "us-west-2", "servergroup-v002") >> [
-        moniker: [
+    (shouldFetchServerGroup ? 1 : 0) * cloudDriverService.getServerGroupTyped("test", "us-west-2", "servergroup-v002") >> new ServerGroup(
+        moniker: new Moniker(
             app: "app",
             cluster: "app-stack-details"
-        ]
-    ]
+        ))
 
     1 * cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
         serverGroups: [
@@ -232,7 +231,7 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
   @Unroll
   def "should calculate 'targetHealthyRollbackPercentage' when not explicitly provided"() {
     given:
-    def capacity = new DetermineRollbackCandidatesTask.Capacity(min: 1, max: 100, desired: desired)
+    def capacity = new ServerGroup.Capacity(min: 1, max: 100, desired: desired)
 
     expect:
     determineTargetHealthyRollbackPercentage(capacity, override) == expectedTargetHealthyRollbackPercentage

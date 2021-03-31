@@ -1,5 +1,10 @@
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Data;
 
 @Data
@@ -15,9 +20,29 @@ public class ServerGroup {
 
   public Capacity capacity;
 
-  @Data
-  public static class Moniker {
-    public String app;
+  public List<Instance> instances;
+  public Boolean disabled;
+  public Map<String, Object> launchConfig;
+  public Asg asg;
+  public Integer minSize;
+  public Map<String, Object> autoscalingPolicy;
+  public String credentials;
+
+  public Image image;
+  public BuildInfo buildInfo;
+
+  public String getImageName() {
+    return (image != null && image.name != null) ? image.name : null;
+  }
+
+  public String getBuildNumber() {
+    return (buildInfo != null && buildInfo.jenkins != null) ? buildInfo.jenkins.number : null;
+  }
+
+  public List<String> getSuspendedProcesses() {
+    return asg.getSuspendedProcesses().stream()
+        .map(Process::getProcessName)
+        .collect(Collectors.toList());
   }
 
   @Data
@@ -25,5 +50,56 @@ public class ServerGroup {
     public Integer min;
     public Integer desired;
     public Integer max;
+  }
+
+  @Data
+  public static class Asg {
+    Object desiredCapacity;
+    List<Process> suspendedProcesses;
+  }
+
+  @Data
+  public static class Process {
+    String processName;
+  }
+
+  @Data
+  public static class Image {
+    public String imageId;
+    public String name;
+  }
+
+  @Data
+  public static class BuildInfo {
+    public Jenkins jenkins;
+
+    @Data
+    public static class Jenkins {
+      public String number;
+    }
+  }
+
+  public static class RollbackDetails {
+    public RollbackServerGroupStage.RollbackType rollbackType;
+    public Map<String, String> rollbackContext;
+
+    public String imageName;
+    public String buildNumber;
+
+    public RollbackDetails(
+        RollbackServerGroupStage.RollbackType rollbackType,
+        Map<String, String> rollbackContext,
+        String imageName,
+        String buildNumber) {
+      this.rollbackType = rollbackType;
+      this.rollbackContext = rollbackContext;
+      this.imageName = imageName;
+      this.buildNumber = buildNumber;
+    }
+
+    public RollbackDetails(String imageName, String buildNumber) {
+      this.imageName = imageName;
+      this.buildNumber = buildNumber;
+    }
   }
 }
