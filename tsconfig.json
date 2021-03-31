@@ -1,38 +1,7 @@
 {
-  "buildOnSave": false,
-  "compileOnSave": true,
+  "extends": "@spinnaker/pluginsdk/pluginconfig/tsconfig.json",
   "compilerOptions": {
-    "allowJs": false,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "./src",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "jsx": "react",
-    "lib": ["es2016", "es2017", "dom", "es2018"],
-    "moduleResolution": "node",
-    "module": "esnext",
-    "noEmitHelpers": false,
-    "noErrorTruncation": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": false, // should really get to a place where we can turn this on
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "outDir": "transpiled",
-    "paths": {
-      "rxjs": ["../node_modules/rxjs"] // only needed when using npm link
-    },
-    "pretty": true,
-    "removeComments": true,
-    "rootDir": "./src",
-    "skipLibCheck": true,
-    "inlineSourceMap": true,
-    "strictNullChecks": false, // should really get to a place where we can turn this on
-    "target": "es6",
-    "typeRoots": ["node_modules/@types"]
-  },
-  "exclude": ["build", "node", "node_modules", "transpiled"],
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-  "inlineSourceMap": true,
-  "sourceMap": false
+    "outDir": "build/dist",
+    "rootDir": "src"
+  }
 }
