@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -31,26 +31,26 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
 class DetermineRollbackCandidatesTaskSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def oortService = Mock(OortService)
   def featuresService = Mock(FeaturesService)
+  CloudDriverService cloudDriverService = Mock()
 
   @Subject
   def task = new DetermineRollbackCandidatesTask(
-    objectMapper,
-    new RetrySupport(),
-    oortService,
-    featuresService
+      objectMapper,
+      new RetrySupport(),
+      cloudDriverService,
+      featuresService
   )
 
   def stage = stage {
     context = [
-      credentials  : "test",
-      cloudProvider: "aws",
-      regions      : ["us-west-2"],
-      moniker      : [
-        app    : "app",
-        cluster: "app-stack-details"
-      ]
+        credentials: "test",
+        cloudProvider: "aws",
+        regions: ["us-west-2"],
+        moniker: [
+            app: "app",
+            cluster: "app-stack-details"
+        ]
     ]
   }
 
@@ -60,19 +60,17 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
 
     and: "entity tags contain metadata with the image id of the original server group"
     featuresService.areEntityTagsAvailable() >> { return true }
-    oortService.getEntityTags(*_) >> {
+    cloudDriverService.getEntityTags(*_) >> {
       return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]
     }
 
     and: "there are at least two server groups"
-    oortService.getCluster("app", "test", "app-stack-details", "aws") >> {
-      return buildResponse([
-          serverGroups: [
-              buildServerGroup("servergroup-v001", "us-west-2",  100, true, [:], [:], 5),
-              buildServerGroup("servergroup-v002", "us-west-2" , 150, false, [:], [:], 5)
-          ]
-      ])
-    }
+    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
+        serverGroups: [
+            buildServerGroup("servergroup-v001", "us-west-2", 100, true, [:], [:], 5),
+            buildServerGroup("servergroup-v002", "us-west-2", 150, false, [:], [:], 5)
+        ]
+    ]
 
     when: "the task is executed"
     def result = task.execute(stage)
@@ -85,13 +83,13 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     ]
 
     result.outputs == [
-        rollbackTypes   : [
+        rollbackTypes: [
             "us-west-2": "EXPLICIT"
         ],
         rollbackContexts: [
             "us-west-2": [
-                rollbackServerGroupName        : "servergroup-v002",
-                restoreServerGroupName         : "servergroup-v001",
+                rollbackServerGroupName: "servergroup-v002",
+                restoreServerGroupName: "servergroup-v001",
                 targetHealthyRollbackPercentage: 100
             ]
         ]
@@ -107,51 +105,48 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    (shouldFetchServerGroup ? 1 : 0) * oortService.getServerGroup("test", "us-west-2", "servergroup-v002") >> {
-      return buildResponse([
+    (shouldFetchServerGroup ? 1 : 0) * cloudDriverService.getServerGroup("test", "us-west-2", "servergroup-v002") >> [
         moniker: [
-          app    : "app",
-          cluster: "app-stack-details"
+            app: "app",
+            cluster: "app-stack-details"
         ]
-      ])
-    }
-    1 * oortService.getCluster("app", "test", "app-stack-details", "aws") >> {
-      return buildResponse([
+    ]
+
+    1 * cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
         serverGroups: [
-          buildServerGroup("servergroup-v000", "us-west-2", 50, false, [name: "my_image-0"], [:], 5),
-          // disabled server groups should be skipped when evaluating rollback candidates, but only on automatic rollbacks after a failed deployment
-          buildServerGroup("servergroup-v001", "us-west-2", 100, true, [name: "my_image-1"], [:], 5),
-          buildServerGroup("servergroup-v002", "us-west-2", 150, false, [name: "my_image-2"], [:], 5)
+            buildServerGroup("servergroup-v000", "us-west-2", 50, false, [name: "my_image-0"], [:], 5),
+            // disabled server groups should be skipped when evaluating rollback candidates, but only on automatic rollbacks after a failed deployment
+            buildServerGroup("servergroup-v001", "us-west-2", 100, true, [name: "my_image-1"], [:], 5),
+            buildServerGroup("servergroup-v002", "us-west-2", 150, false, [name: "my_image-2"], [:], 5)
         ]
-      ])
-    }
-    1 * featuresService.areEntityTagsAvailable() >> { return areEntityTagsEnabled }
-    (shouldFetchEntityTags ? 1 : 0) * oortService.getEntityTags(*_) >> { return [] }
+    ]
+    1 * featuresService.areEntityTagsAvailable() >> areEntityTagsEnabled
+    (shouldFetchEntityTags ? 1 : 0) * cloudDriverService.getEntityTags(*_) >> { return [] }
 
     result.context == [
-      imagesToRestore: [
-        [region: "us-west-2", image: expectedImage, rollbackMethod: "EXPLICIT"]
-      ]
+        imagesToRestore: [
+            [region: "us-west-2", image: expectedImage, rollbackMethod: "EXPLICIT"]
+        ]
     ]
     result.outputs == [
-      rollbackTypes   : [
-        "us-west-2": "EXPLICIT"
-      ],
-      rollbackContexts: [
-        "us-west-2": [
-          rollbackServerGroupName        : "servergroup-v002",
-          restoreServerGroupName         : expectedCandidate,
-          targetHealthyRollbackPercentage: 100
+        rollbackTypes: [
+            "us-west-2": "EXPLICIT"
+        ],
+        rollbackContexts: [
+            "us-west-2": [
+                rollbackServerGroupName: "servergroup-v002",
+                restoreServerGroupName: expectedCandidate,
+                targetHealthyRollbackPercentage: 100
+            ]
         ]
-      ]
     ]
 
     where:
-    additionalStageContext                                  | areEntityTagsEnabled || shouldFetchServerGroup || shouldFetchEntityTags || expectedCandidate  || expectedImage
-    [:]                                                     | true                 || false                  || true                  || "servergroup-v001" || "my_image-1"
-    [moniker: null, serverGroup: "servergroup-v002"]        | false                || true                   || false                 || "servergroup-v001" || "my_image-1"
-    buildAdditionalStageContext("servergroup-v002", false)  | false                || true                   || false                 || "servergroup-v001" || "my_image-1"
-    buildAdditionalStageContext("servergroup-v002", true)   | false                || true                   || false                 || "servergroup-v000" || "my_image-0"
+    additionalStageContext                                 | areEntityTagsEnabled || shouldFetchServerGroup || shouldFetchEntityTags || expectedCandidate  || expectedImage
+    [:]                                                    | true                 || false                  || true                  || "servergroup-v001" || "my_image-1"
+    [moniker: null, serverGroup: "servergroup-v002"]       | false                || true                   || false                 || "servergroup-v001" || "my_image-1"
+    buildAdditionalStageContext("servergroup-v002", false) | false                || true                   || false                 || "servergroup-v001" || "my_image-1"
+    buildAdditionalStageContext("servergroup-v002", true)  | false                || true                   || false                 || "servergroup-v000" || "my_image-0"
   }
 
   private static def buildAdditionalStageContext(String serverGroup, boolean onlyEnabledServerGroups) {
@@ -161,19 +156,18 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
   def "should build EXPLICIT rollback context when entity tags contain previousServerGroup info and there's a corresponding active server group"() {
     given: "entity tags contain metadata with the image id of the previous server group"
     featuresService.areEntityTagsAvailable() >> { return true }
-    oortService.getEntityTags(*_) >> {
+    cloudDriverService.getEntityTags(*_) >> {
       return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]
     }
 
     and: "there's an enabled server group with the same image id"
-    oortService.getCluster("app", "test", "app-stack-details", "aws") >> {
-      return buildResponse([
-          serverGroups: [
-              buildServerGroup("servergroup-v001", "us-west-2",  100, false, [name: "my_image-0", imageId: "ami-xxxxx0"], [:], 5),
-              buildServerGroup("servergroup-v002", "us-west-2" , 150, false, [name: "my_image-1", imageId: "ami-xxxxx1"], [:], 5)
-          ]
-      ])
-    }
+    cloudDriverService.getCluster("app", "test", "app-stack-details", "aws") >> [
+        serverGroups: [
+            buildServerGroup("servergroup-v001", "us-west-2", 100, false, [name: "my_image-0", imageId: "ami-xxxxx0"], [:], 5),
+            buildServerGroup("servergroup-v002", "us-west-2", 150, false, [name: "my_image-1", imageId: "ami-xxxxx1"], [:], 5)
+        ]
+    ]
+
     when: "the task executes"
     def result = task.execute(stage)
 
@@ -186,14 +180,14 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
         ]
     ]
     result.outputs == [
-        rollbackTypes   : [
+        rollbackTypes: [
             "us-west-2": "EXPLICIT"
         ],
         rollbackContexts: [
             "us-west-2": [
-                rollbackServerGroupName         : "servergroup-v002",
-                restoreServerGroupName          : "servergroup-v001",
-                targetHealthyRollbackPercentage : 100
+                rollbackServerGroupName: "servergroup-v002",
+                restoreServerGroupName: "servergroup-v001",
+                targetHealthyRollbackPercentage: 100
             ]
         ]
     ]
@@ -204,36 +198,34 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * oortService.getCluster("app", _, "app-stack-details", _) >> {
-      return buildResponse([
+    1 * cloudDriverService.getCluster("app", _, "app-stack-details", _) >> [
         serverGroups: [
-          buildServerGroup("servergroup-v002", "us-west-2", 50, false, null, [:], 80),
-          buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:], 80),
+            buildServerGroup("servergroup-v002", "us-west-2", 50, false, null, [:], 80),
+            buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:], 80),
         ]
-      ])
-    }
+    ]
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * oortService.getEntityTags(*_) >> {
+    1 * cloudDriverService.getEntityTags(*_) >> {
       return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]
     }
 
     result.context == [
-      imagesToRestore: [
-        [region: "us-west-2", image: "my_image-0", buildNumber: "5", rollbackMethod: "PREVIOUS_IMAGE"]
-      ]
+        imagesToRestore: [
+            [region: "us-west-2", image: "my_image-0", buildNumber: "5", rollbackMethod: "PREVIOUS_IMAGE"]
+        ]
     ]
     result.outputs == [
-      rollbackTypes   : [
-        "us-west-2": "PREVIOUS_IMAGE"
-      ],
-      rollbackContexts: [
-        "us-west-2": [
-          rollbackServerGroupName          : "servergroup-v001",
-          "imageId"                        : "ami-xxxxx0",
-          "imageName"                      : "my_image-0",
-          "targetHealthyRollbackPercentage": 95             // calculated based on `capacity.desired` of server group
+        rollbackTypes: [
+            "us-west-2": "PREVIOUS_IMAGE"
+        ],
+        rollbackContexts: [
+            "us-west-2": [
+                rollbackServerGroupName: "servergroup-v001",
+                "imageId": "ami-xxxxx0",
+                "imageName": "my_image-0",
+                "targetHealthyRollbackPercentage": 95             // calculated based on `capacity.desired` of server group
+            ]
         ]
-      ]
     ]
   }
 
@@ -253,16 +245,6 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     10      | 100       | 100
   }
 
-  private Response buildResponse(Object value) {
-    return new Response(
-      "http://spinnaker",
-      200,
-      "OK",
-      [],
-      new TypedByteArray("application/json", objectMapper.writeValueAsBytes(value))
-    )
-  }
-
   private static Map buildServerGroup(String name,
                                       String region,
                                       Long createdTime,
@@ -271,38 +253,38 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
                                       Map buildInfo,
                                       int desiredCapacity) {
     return [
-      name       : name,
-      region     : region,
-      createdTime: createdTime,
-      disabled   : disabled,
-      image      : image,
-      buildInfo  : buildInfo,
-      capacity   : [
-        min    : 0,
-        max    : desiredCapacity * 2,
-        desired: desiredCapacity
-      ]
+        name: name,
+        region: region,
+        createdTime: createdTime,
+        disabled: disabled,
+        image: image,
+        buildInfo: buildInfo,
+        capacity: [
+            min: 0,
+            max: desiredCapacity * 2,
+            desired: desiredCapacity
+        ]
     ]
   }
 
   private static Map buildSpinnakerMetadata(String imageName, String imageId, String buildNumber) {
     return [
-      tags: [
-        [
-          name : "spinnaker:metadata",
-          value: [
-            previousServerGroup: [
-              imageName: imageName,
-              imageId  : imageId,
-              buildInfo: [
-                jenkins: [
-                  number: buildNumber
+        tags: [
+            [
+                name: "spinnaker:metadata",
+                value: [
+                    previousServerGroup: [
+                        imageName: imageName,
+                        imageId: imageId,
+                        buildInfo: [
+                            jenkins: [
+                                number: buildNumber
+                            ]
+                        ]
+                    ]
                 ]
-              ]
             ]
-          ]
         ]
-      ]
     ]
   }
 }

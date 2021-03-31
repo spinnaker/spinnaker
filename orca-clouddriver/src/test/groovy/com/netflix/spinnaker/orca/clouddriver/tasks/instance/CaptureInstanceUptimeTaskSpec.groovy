@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.commands.InstanceUptimeCommand
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -39,14 +40,10 @@ class CaptureInstanceUptimeTaskSpec extends Specification {
 
   def "should capture instance uptime for every instanceId"() {
     given:
-    def task = new CaptureInstanceUptimeTask() {
-      @Override
-      protected Map getInstance(String account, String region, String instanceId) {
-        return [
-            instanceId: instanceId
-        ]
-      }
-    }
+    def task = new CaptureInstanceUptimeTask()
+    CloudDriverService cloudDriverService = Mock()
+    task.cloudDriverService = cloudDriverService
+    cloudDriverService.getInstance(_,_,_) >> { a, r, instanceId -> [instanceId: instanceId] }
     task.instanceUptimeCommand = Mock(InstanceUptimeCommand)
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [instanceIds: ["1", "2", "3"]])
 

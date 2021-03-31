@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,18 +32,18 @@ public class PreviousImageRollbackSupport {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   private final ObjectMapper objectMapper;
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
   private final FeaturesService featuresService;
   private final RetrySupport retrySupport;
 
   public PreviousImageRollbackSupport(
       ObjectMapper objectMapper,
-      OortService oortService,
+      CloudDriverService cloudDriverService,
       FeaturesService featuresService,
       RetrySupport retrySupport) {
     this.objectMapper =
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    this.oortService = oortService;
+    this.cloudDriverService = cloudDriverService;
     this.featuresService = featuresService;
     this.retrySupport = retrySupport;
   }
@@ -60,7 +60,7 @@ public class PreviousImageRollbackSupport {
                   return Collections.emptyList();
                 }
 
-                return oortService.getEntityTags(
+                return cloudDriverService.getEntityTags(
                     cloudProvider, "serverGroup", serverGroupName, credentials, region);
               },
               15,

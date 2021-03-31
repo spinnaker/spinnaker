@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -28,6 +29,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class SourceResolverSpec extends Specification {
+
+  CloudDriverService cloudDriverService = Mock()
 
   @Unroll
   void "should populate deploy stage 'source' with latest ASG details if not explicitly specified"() {
@@ -141,7 +144,7 @@ class SourceResolverSpec extends Specification {
 
   void "should populate deploy stage 'source' with targeted server group if source contains the location of the target"() {
     given:
-    OortService oort = Mock(OortService)
+    OortService oort = Mock()
     ObjectMapper mapper = new ObjectMapper()
     RetrySupport retrySupport = Spy(RetrySupport) {
       _ * sleep(_) >> { /* do nothing */ }
@@ -190,7 +193,7 @@ class SourceResolverSpec extends Specification {
 
   void "should ignore target if source is explicitly specified"() {
     given:
-    SourceResolver resolver = new SourceResolver(mapper: new ObjectMapper())
+    SourceResolver resolver = new SourceResolver()
 
     when:
     def stage = new StageExecutionImpl(
@@ -216,46 +219,44 @@ class SourceResolverSpec extends Specification {
 
   void 'should sort oort server groups by createdTime'() {
     given:
-    OortService oort = Mock(OortService)
-    SourceResolver resolver = new SourceResolver(oortService: oort, mapper: new ObjectMapper())
+    SourceResolver resolver = new SourceResolver(cloudDriverService: cloudDriverService)
 
     when:
     def existing = resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws')
 
     then:
-    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString('''\
-    {
-      "serverGroups": [{
+    1 * cloudDriverService.getCluster('foo', 'test', 'foo-test', 'aws') >>
+    [
+      "serverGroups": [[
         "name": "foo-test-v001",
         "region": "us-west-1",
         "createdTime": 4
-      },{
+      ],[
         "name": "foo-test-v000",
         "region": "us-west-1",
         "createdTime": 3
-      },{
+      ],[
         "name": "foo-test-v000",
         "region": "us-east-1",
         "createdTime": 2
-      },{
+      ],[
         "name": "foo-test-v999",
         "region": "us-east-1",
         "createdTime": 1
-      }]
-    }'''.stripIndent()))
+      ]]
+    ]
     existing*.name == ['foo-test-v999', 'foo-test-v000', 'foo-test-v000', 'foo-test-v001']
   }
 
   void 'should prefer the largest oldest enabled server group'() {
     given:
-    OortService oort = Mock(OortService)
-    SourceResolver resolver = new SourceResolver(oortService: oort, mapper: new ObjectMapper(), resolver: Mock(TargetServerGroupResolver))
+    SourceResolver resolver = new SourceResolver(cloudDriverService: cloudDriverService, resolver: Mock(TargetServerGroupResolver))
 
     when:
     def source = resolver.getSource(stage)
 
     then:
-    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString(serverGroups))
+    1 * cloudDriverService.getCluster('foo', 'test', 'foo-test', 'aws') >> serverGroups
     source != null
 
     source.serverGroupName == "foo-test-v000"
@@ -275,35 +276,33 @@ class SourceResolverSpec extends Specification {
       ]
     )
 
-    serverGroups = '''\
-    {
-      "serverGroups": [{
+    serverGroups =
+    [
+      "serverGroups": [[
         "name": "foo-test-v001",
         "region": "us-west-1",
         "createdTime": 4,
         "disabled": false,
         "instances": [ 1, 2, 3 ]
-      },{
+      ],[
         "name": "foo-test-v000",
         "region": "us-west-1",
         "disabled": false,
         "instances": [ 1, 2, 3 ],
         "createdTime": 3
-      },{
+      ],[
         "name": "foo-test-v000",
         "region": "us-east-1",
         "disabled": false,
         "instances": [ 1, 2, 3 ],
         "createdTime": 2
-      },{
+      ],[
         "name": "foo-test-v999",
         "region": "us-east-1",
         "disabled": false,
         "instances": [ 1, 2, 3 ],
         "createdTime": 1
-      }]
-    }'''.stripIndent()
-
+      ]]
+    ]
   }
-
 }

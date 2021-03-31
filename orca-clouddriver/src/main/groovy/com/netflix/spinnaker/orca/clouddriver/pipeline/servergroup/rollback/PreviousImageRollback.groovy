@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
@@ -45,7 +45,7 @@ class PreviousImageRollback implements Rollback {
 
   @Autowired
   @JsonIgnore
-  OortService oortService
+  CloudDriverService cloudDriverService
 
   @Autowired
   @JsonIgnore
@@ -57,7 +57,7 @@ class PreviousImageRollback implements Rollback {
 
   @Override
   List<StageExecution> buildStages(StageExecution parentStage) {
-    def previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, featuresService, retrySupport)
+    def previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, cloudDriverService, featuresService, retrySupport)
     def stages = []
 
     def parentStageContext = parentStage.context

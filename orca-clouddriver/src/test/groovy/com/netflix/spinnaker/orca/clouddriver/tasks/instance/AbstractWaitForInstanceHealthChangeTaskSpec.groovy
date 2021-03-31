@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Shared
@@ -31,12 +32,12 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForDownInstances)'() {
     given:
     def localInstanceDetails = instanceDetails
-    def task = new WaitForDownInstanceHealthTask() {
-      @Override
-      protected Map getInstance(String account, String region, String instanceId) {
-        return localInstanceDetails.find { it.instanceId == instanceId }
-      }
-    }
+    def task = new WaitForDownInstanceHealthTask()
+
+    CloudDriverService cloudDriverService = Mock()
+    cloudDriverService.getInstance(_,_,_) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
+    task.cloudDriverService = cloudDriverService
+
     def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
@@ -72,16 +73,15 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForUpInstances)'() {
     given:
     def localInstanceDetails = instanceDetails
-    def task = new WaitForUpInstanceHealthTask() {
-      @Override
-      protected Map getInstance(String account, String region, String instanceId) {
-        return localInstanceDetails.find { it.instanceId == instanceId }
-      }
-    }
+    def task = new WaitForUpInstanceHealthTask()
     def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
     ])
+
+    CloudDriverService cloudDriverService = Mock()
+    cloudDriverService.getInstance(_,_,_) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
+    task.cloudDriverService = cloudDriverService
 
     expect:
     task.execute(stage).status == expectedResult

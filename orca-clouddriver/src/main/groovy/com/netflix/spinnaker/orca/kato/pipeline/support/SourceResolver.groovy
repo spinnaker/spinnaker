@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -35,6 +36,7 @@ import retrofit.RetrofitError
 @Slf4j
 class SourceResolver {
 
+  @Autowired CloudDriverService cloudDriverService
   @Autowired OortService oortService
   @Autowired ObjectMapper mapper
 
@@ -124,9 +126,7 @@ class SourceResolver {
 
   List<Map> getExistingAsgs(String app, String account, String cluster, String cloudProvider) throws RetrofitError, JsonParseException, JsonMappingException {
     try {
-      def response = oortService.getCluster(app, account, cluster, cloudProvider)
-      def json = response.body.in().text
-      def map = mapper.readValue(json, Map)
+      def map = cloudDriverService.getCluster(app, account, cluster, cloudProvider)
       (map.serverGroups as List<Map>).sort { it.createdTime }
     } catch (RetrofitError re) {
       if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {

@@ -18,21 +18,21 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import spock.lang.Specification
 import spock.lang.Subject;
 
 class PreviousImageRollbackSupportSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def oortService = Mock(OortService)
   def featuresService = Mock(FeaturesService)
+  CloudDriverService cloudDriverService = Mock()
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
 
   @Subject
-  def rollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, featuresService, retrySupport)
+  def rollbackSupport = new PreviousImageRollbackSupport(objectMapper, cloudDriverService, featuresService, retrySupport)
 
   def "should raise exception if multiple entity tags found"() {
     when:
@@ -40,7 +40,7 @@ class PreviousImageRollbackSupportSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * oortService.getEntityTags(*_) >> {
+    1 * cloudDriverService.getEntityTags(*_) >> {
       return [
         [id: "1"],
         [id: "2"]
@@ -57,7 +57,7 @@ class PreviousImageRollbackSupportSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return false }
-    0 * oortService.getEntityTags(*_)
+    0 * cloudDriverService.getEntityTags(*_)
 
     imageDetails == null
   }

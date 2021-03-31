@@ -19,12 +19,13 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags
 
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.entitytags.DeleteEntityTagsStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
@@ -53,7 +54,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder, For
   DeleteEntityTagsStage deleteEntityTagsStage
 
   @Autowired
-  OortService oortService
+  CloudDriverService cloudDriverService
 
   @Autowired
   RetrySupport retrySupport
@@ -80,7 +81,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder, For
         return
       }
 
-      def entityTags = fetchEntityTags(oortService, retrySupport, stage)?.getAt(0)
+      EntityTags entityTags = fetchEntityTags(cloudDriverService, retrySupport, stage)?.getAt(0)
       if (!entityTags) {
         return
       }
@@ -106,7 +107,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder, For
     }
   }
 
-  private static List<Map> fetchEntityTags(OortService oortService, RetrySupport retrySupport, StageExecution stage) {
+  private static List<EntityTags> fetchEntityTags(CloudDriverService oortService, RetrySupport retrySupport, StageExecution stage) {
     def serverGroupName = stage.context.serverGroupName
     def credentials = stage.context.credentials
     def region = getRegion(stage)
@@ -123,7 +124,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder, For
     }
 
     retrySupport.retry({
-      return oortService.getEntityTags([
+      return oortService.getEntityTagsTyped([
         ("tag:${PINNED_CAPACITY_TAG}".toString()): "*",
         entityId                                 : stage.context.serverGroupName,
         account                                  : stage.context.credentials,

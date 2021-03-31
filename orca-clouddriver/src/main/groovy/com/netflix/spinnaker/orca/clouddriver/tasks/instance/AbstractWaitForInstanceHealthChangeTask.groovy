@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTimeoutRetryableTask {
@@ -29,10 +28,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
   long timeout = 3600000
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
 
   @Override
   TaskResult execute(StageExecution stage) {
@@ -50,7 +46,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
     }
 
     def stillRunning = instanceIds.find {
-      def instance = getInstance(account, region, it)
+      def instance = cloudDriverService.getInstance(account, region, it)
       return !hasSucceeded(instance, healthProviderTypesToCheck)
     }
 
@@ -59,11 +55,6 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
 
   protected List<String> getInstanceIds(StageExecution stage) {
     return (List<String>) stage.context.instanceIds
-  }
-
-  protected Map getInstance(String account, String region, String instanceId) {
-    def response = oortService.getInstance(account, region, instanceId)
-    return objectMapper.readValue(response.body.in().text, Map)
   }
 
   abstract boolean hasSucceeded(Map instance, Collection<String> interestedHealthProviderNames);

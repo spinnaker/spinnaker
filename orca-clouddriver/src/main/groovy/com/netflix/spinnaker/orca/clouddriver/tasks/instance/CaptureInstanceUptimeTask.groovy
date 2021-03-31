@@ -17,12 +17,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.commands.InstanceUptimeCommand
 import groovy.util.logging.Slf4j
@@ -39,10 +38,7 @@ class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implement
   InstanceUptimeCommand instanceUptimeCommand;
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
 
   @Override
   TaskResult execute(StageExecution stage) {
@@ -55,7 +51,7 @@ class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implement
     def account = (stage.context.account ?: stage.context.credentials) as String
 
     def instanceUptimes = stage.context.instanceIds.inject([:]) { Map accumulator, String instanceId ->
-      def instance = getInstance(account, region, instanceId)
+      def instance = cloudDriverService.getInstance(account, region, instanceId)
       try {
         accumulator[instanceId] = instanceUptimeCommand.uptime(cloudProvider, instance).seconds
       } catch (Exception e) {
@@ -68,10 +64,5 @@ class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implement
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "instanceUptimes": instanceUptimes
     ]).build()
-  }
-
-  protected Map getInstance(String account, String region, String instanceId) {
-    def response = oortService.getInstance(account, region, instanceId)
-    return objectMapper.readValue(response.body.in().text, Map)
   }
 }

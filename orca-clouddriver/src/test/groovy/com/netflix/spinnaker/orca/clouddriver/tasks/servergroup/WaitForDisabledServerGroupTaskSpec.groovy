@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -16,7 +14,7 @@ class WaitForDisabledServerGroupTaskSpec extends Specification {
   WaitForDisabledServerGroupTask.ServerGroupFetcher fetcher = Mock()
 
   @Subject
-  WaitForDisabledServerGroupTask task = new WaitForDisabledServerGroupTask(null, null, fetcher)
+  WaitForDisabledServerGroupTask task = new WaitForDisabledServerGroupTask(null, fetcher)
 
   @Unroll
   def "handles wonky desiredPercentage=#desiredPercentage gracefully"() {

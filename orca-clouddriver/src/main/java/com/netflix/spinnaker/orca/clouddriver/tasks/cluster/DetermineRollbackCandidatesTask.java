@@ -29,12 +29,11 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 /**
  * The {@code DetermineRollbackCandidatesTask} task determines how one or more regions of a cluster
@@ -77,24 +75,25 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       LoggerFactory.getLogger(DetermineRollbackCandidatesTask.class);
 
   private static final TypeReference<List<ServerGroup>> listOfServerGroupsTypeReference =
-      new TypeReference<List<ServerGroup>>() {};
+      new TypeReference<>() {};
 
   private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
-  private final OortService oortService;
+  private final CloudDriverService cloudDriverService;
   private final PreviousImageRollbackSupport previousImageRollbackSupport;
 
   @Autowired
   public DetermineRollbackCandidatesTask(
       ObjectMapper objectMapper,
       RetrySupport retrySupport,
-      OortService oortService,
+      CloudDriverService cloudDriverService,
       FeaturesService featuresService) {
     this.objectMapper = objectMapper;
     this.retrySupport = retrySupport;
-    this.oortService = oortService;
+    this.cloudDriverService = cloudDriverService;
     this.previousImageRollbackSupport =
-        new PreviousImageRollbackSupport(objectMapper, oortService, featuresService, retrySupport);
+        new PreviousImageRollbackSupport(
+            objectMapper, cloudDriverService, featuresService, retrySupport);
   }
 
   @Override
@@ -392,7 +391,10 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       try {
         Map<String, Object> serverGroup =
             retrySupport.retry(
-                () -> fetchServerGroup(credentials, region, serverGroupName), 5, 1000, false);
+                () -> cloudDriverService.getServerGroup(credentials, region, serverGroupName),
+                5,
+                1000,
+                false);
 
         moniker = objectMapper.convertValue(serverGroup.get("moniker"), Moniker.class);
       } catch (Exception e) {
@@ -414,7 +416,9 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       Moniker moniker, String credentials, String cloudProvider) {
     try {
       return retrySupport.retry(
-          () -> fetchCluster(moniker.getApp(), credentials, moniker.getCluster(), cloudProvider),
+          () ->
+              cloudDriverService.getCluster(
+                  moniker.getApp(), credentials, moniker.getCluster(), cloudProvider),
           5,
           1000,
           false);
@@ -427,25 +431,6 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
           cloudProvider,
           e);
       return null;
-    }
-  }
-
-  private Map<String, Object> fetchCluster(
-      String application, String credentials, String cluster, String cloudProvider) {
-    try {
-      Response response = oortService.getCluster(application, credentials, cluster, cloudProvider);
-      return (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private Map<String, Object> fetchServerGroup(String account, String region, String serverGroup) {
-    try {
-      Response response = oortService.getServerGroup(account, region, serverGroup);
-      return (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 

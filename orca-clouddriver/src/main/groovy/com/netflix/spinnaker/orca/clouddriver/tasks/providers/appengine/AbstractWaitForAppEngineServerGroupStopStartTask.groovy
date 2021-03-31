@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
@@ -35,10 +34,7 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask extends Abstract
   long timeout = 1800000
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  CloudDriverService cloudDriverService
 
   abstract boolean isStart()
 
@@ -51,8 +47,7 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask extends Abstract
     String appName = stage.context.moniker?.app ?: names.app
     String clusterName = stage.context.moniker?.cluster ?: names.cluster
     try {
-      def response = oortService.getCluster(appName, account, clusterName, cloudProvider)
-      Map cluster = objectMapper.readValue(response.body.in().text, Map)
+      Map cluster = cloudDriverService.getCluster(appName, account, clusterName, cloudProvider)
 
       def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
       if (!serverGroup) {

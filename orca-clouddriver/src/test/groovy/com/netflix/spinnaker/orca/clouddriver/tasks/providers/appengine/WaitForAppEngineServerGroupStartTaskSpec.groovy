@@ -16,36 +16,25 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedString
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class WaitForAppEngineServerGroupStartTaskSpec extends Specification {
-  @Shared OortService oort
-  @Shared ObjectMapper mapper = OrcaObjectMapper.newInstance()
-  @Subject WaitForAppEngineServerGroupStartTask task = new WaitForAppEngineServerGroupStartTask() {
-    {
-      objectMapper = mapper
-    }
-  }
+  CloudDriverService cloudDriverService = Mock()
+  @Subject WaitForAppEngineServerGroupStartTask task = new WaitForAppEngineServerGroupStartTask()
 
   void "should properly wait for the server group to start"() {
     setup:
-      oort = Mock(OortService)
-      oort.getCluster("app",
+      cloudDriverService.getCluster("app",
                       "my-appengine-account",
                       "app-stack-detail",
-                      "appengine") >> { new Response("kato", 200, "ok", [], new TypedString(mapper.writeValueAsString(cluster))) }
+                      "appengine") >> cluster
 
-      task.oortService = oort
+      task.cloudDriverService = cloudDriverService
 
       def context = [
         account: "my-appengine-account",

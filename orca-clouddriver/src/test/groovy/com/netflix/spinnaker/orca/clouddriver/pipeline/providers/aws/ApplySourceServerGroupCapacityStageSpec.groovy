@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.EntityTags
 import com.netflix.spinnaker.orca.clouddriver.pipeline.entitytags.DeleteEntityTagsStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import spock.lang.Specification
@@ -29,7 +30,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ApplySourceServerGroupCapacityStageSpec extends Specification {
   def featuresService = Mock(FeaturesService)
-  def oortService = Mock(OortService)
+  CloudDriverService cloudDriverService = Mock()
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
@@ -45,7 +46,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
   @Subject
   def stageBuilder = new ApplySourceServerGroupCapacityStage(
     featuresService: featuresService,
-    oortService: oortService,
+    cloudDriverService: cloudDriverService,
     retrySupport: retrySupport,
     deleteEntityTagsStage: new DeleteEntityTagsStage()
   )
@@ -58,7 +59,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return false }
-    0 * oortService.getEntityTags(_)
+    0 * cloudDriverService.getEntityTagsTyped(_)
 
     afterStages.isEmpty()
   }
@@ -71,7 +72,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * oortService.getEntityTags(_) >> { return [] }
+    1 * cloudDriverService.getEntityTagsTyped(_) >> { return [] }
 
     afterStages.isEmpty()
   }
@@ -86,7 +87,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     notThrown(RuntimeException)
 
     1 * featuresService.areEntityTagsAvailable() >> { throw new RuntimeException("An Exception!") }
-    0 * oortService.getEntityTags(_)
+    0 * cloudDriverService.getEntityTagsTyped(_)
 
     afterStages.isEmpty()
   }
@@ -106,7 +107,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     notThrown(RuntimeException)
 
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    0 * oortService.getEntityTags(_)
+    0 * cloudDriverService.getEntityTagsTyped(_)
 
     afterStages.isEmpty()
 
@@ -128,14 +129,14 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
     then:
     1 * featuresService.areEntityTagsAvailable() >> { return true }
-    1 * oortService.getEntityTags([
+    1 * cloudDriverService.getEntityTagsTyped([
       "tag:spinnaker:pinned_capacity": "*",
       "entityId"                     : "app-stack-details-v001",
       "account"                      : "test",
       "region"                       : "us-east-1"
     ]) >> {
       return [
-        [id: "my-entity-tags-id"]
+        new EntityTags(id: "my-entity-tags-id")
       ]
     }
 

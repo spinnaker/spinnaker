@@ -82,6 +82,11 @@ public class CloudDriverService {
     return readBody(response, JSON_MAP);
   }
 
+  public Map<String, Object> getInstance(String account, String region, String instanceId) {
+    Response response = oortService.getInstance(account, region, instanceId);
+    return readBody(response, JSON_MAP);
+  }
+
   @SneakyThrows // code may have depended on the exceptions thrown that groovy was hiding
   private <T> T readBody(Response response, Class<T> type) {
     return objectMapper.readValue(response.getBody().in(), type);
