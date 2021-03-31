@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import 'kayenta/canary.less';
+import '../canary.less';
 
 export const STYLEGUIDE_CLASS = 'styleguide';
 export const KAYENTA_CLASS = 'kayenta';
