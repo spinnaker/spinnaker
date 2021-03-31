@@ -87,12 +87,12 @@
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
     "spel2js": "^0.2.6",
-    "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
     "ui-router-visualizer": "^4.0.0",
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "16.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "10.0.0",
     "@rollup/plugin-typescript": "6.1.0",
     "@spinnaker/amazon": "0.0.298",
@@ -210,6 +210,7 @@
     "rollup-plugin-external-globals": "0.6.1",
     "rollup-plugin-less": "1.1.2",
     "rollup-plugin-postcss": "3.1.8",
+    "rollup-plugin-visualizer": "^4.2.2",
     "semver": "5.7.0",
     "shx": "0.3.3",
     "source-map-loader": "1.1.3",
