@@ -38,7 +38,7 @@
     "@uirouter/react": "1.0.2",
     "@uirouter/react-hybrid": "1.0.2",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
-    "angular": "1.6.10",
+    "angular": "1.8.2",
     "angular-ui-bootstrap": "^2.5.0",
     "ansi_up": "^4.0.4",
     "bootstrap": "3.4.1",
