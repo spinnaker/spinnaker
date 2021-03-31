@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import { ICanaryState } from 'kayenta/reducers';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
 interface IMetricConfigurerDelegatorStateProps {
   editingMetric: ICanaryMetricConfig;

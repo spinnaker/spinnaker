@@ -1,8 +1,7 @@
+import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as React from 'react';
 
 import { Spinner } from '@spinnaker/core';
-
-import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 
 export interface ILoadStatesProps {
   state: AsyncRequestState;

@@ -1,13 +1,14 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { CopyToClipboard } from '@spinnaker/core';
-
+import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import { CanarySettings } from 'kayenta/canary.settings';
+import metricStoreConfigStore from 'kayenta/metricStore/metricStoreConfig.service';
 import { ICanaryState } from 'kayenta/reducers';
 import { selectedMetricConfigSelector } from 'kayenta/selectors';
-import metricStoreConfigStore from 'kayenta/metricStore/metricStoreConfig.service';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { CopyToClipboard } from '@spinnaker/core';
+
 import './metricResultActions.less';
 
 export interface IMetricResultStatsStateProps {

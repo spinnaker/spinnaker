@@ -1,12 +1,13 @@
-import * as React from 'react';
-import { get } from 'lodash';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
+import { get } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
+
 import GraphiteMetricTypeSelector from './metricTypeSelector';
-import { ICanaryMetricConfig } from 'kayenta/domain';
 
 interface IGraphiteMetricConfigurerDispatchProps {
   changeMetricName: (name: string) => void;

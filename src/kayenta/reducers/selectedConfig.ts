@@ -1,20 +1,20 @@
+import { chain, cloneDeep, flatMap, fromPairs, get, has, omit, pick, set, unset } from 'lodash';
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, set, unset, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
 
 import * as Actions from '../actions';
-import { IJudge } from '../domain/IJudge';
-import { IGroupWeights, ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { CanarySettings } from '../canary.settings';
-import { IGroupState, group } from './group';
-import { JudgeSelectRenderState } from '../edit/judgeSelect';
-import { ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
-import { IConfigValidationError } from './validators';
+import { CanarySettings } from '../canary.settings';
+import { ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
+import { IJudge } from '../domain/IJudge';
+import { ALL } from '../edit/groupTabs';
+import { JudgeSelectRenderState } from '../edit/judgeSelect';
 import { editingTemplate, IEditingTemplateState } from './editingTemplate';
+import { group, IGroupState } from './group';
 import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
 import { signalFxMetricConfigReducer } from './signalFxMetricConfig';
 import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
+import { IConfigValidationError } from './validators';
 
 export interface ILoadState {
   state: AsyncRequestState;

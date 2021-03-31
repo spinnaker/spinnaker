@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import OpenDeleteModalButton from './openDeleteModalButton';
-import OpenEditConfigJsonModalButton from './openConfigJsonModalButton';
 import CopyConfigButton from './copyConfigButton';
+import OpenEditConfigJsonModalButton from './openConfigJsonModalButton';
+import OpenDeleteModalButton from './openDeleteModalButton';
 
 /*
  * Layout for canary config action buttons.

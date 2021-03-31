@@ -1,20 +1,20 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
-import { get, omit } from 'lodash';
-
-import { JsonUtils, IJsonDiff, JsonEditor, DiffView } from '@spinnaker/core';
+import 'brace/ext/searchbox';
+import 'brace/mode/json';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers';
-import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
+import { DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import Styleguide from 'kayenta/layout/styleguide';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
-import { DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
+import { get, omit } from 'lodash';
+import * as React from 'react';
+import { Modal } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
+
+import { DiffView, IJsonDiff, JsonEditor, JsonUtils } from '@spinnaker/core';
 
 import './configJson.less';
-import 'brace/mode/json';
-import 'brace/ext/searchbox';
 
 interface IConfigJsonDispatchProps {
   closeModal: () => void;

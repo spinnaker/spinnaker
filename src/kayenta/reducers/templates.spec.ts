@@ -1,4 +1,3 @@
-import { selectedConfig as reducer } from './selectedConfig';
 import {
   DELETE_TEMPLATE,
   EDIT_TEMPLATE_BEGIN,
@@ -7,6 +6,8 @@ import {
   EDIT_TEMPLATE_NAME,
   EDIT_TEMPLATE_VALUE,
 } from 'kayenta/actions';
+
+import { selectedConfig as reducer } from './selectedConfig';
 
 describe('Reducer: selectedConfig (templates)', () => {
   const createAction = (type: string, payload: any = {}) => ({

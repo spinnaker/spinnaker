@@ -1,9 +1,8 @@
+import { CanaryScore } from 'kayenta/components/canaryScore';
 import { get } from 'lodash';
 import * as React from 'react';
 
-import { IExecutionStageSummary, IExecutionStage } from '@spinnaker/core';
-
-import { CanaryScore } from 'kayenta/components/canaryScore';
+import { IExecutionStage, IExecutionStageSummary } from '@spinnaker/core';
 
 export interface ICanaryExecutionLabelProps {
   stage: IExecutionStageSummary;

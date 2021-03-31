@@ -1,7 +1,8 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
+import * as React from 'react';
 
 import { vizConfig } from './config';
+
 import './chartLegend.less';
 
 interface IChartLegendProps {

@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { DISABLE_EDIT_CONFIG, DisableableInput } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
 
 interface IGroupNameStateProps {
   group: string;

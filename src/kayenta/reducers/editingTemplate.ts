@@ -1,6 +1,6 @@
-import { combineActions, handleActions } from 'redux-actions';
-import { Action, combineReducers } from 'redux';
 import * as Actions from 'kayenta/actions';
+import { Action, combineReducers } from 'redux';
+import { combineActions, handleActions } from 'redux-actions';
 
 export interface IEditingTemplateState {
   name: string;

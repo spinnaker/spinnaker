@@ -1,24 +1,27 @@
-import * as React from 'react';
-import { scaleUtc } from 'd3-scale';
-import { MinimapXYFrame, XYFrame, IXYFrameProps, IMinimapProps, IXYFrameHoverBaseArgs } from 'semiotic';
-import * as moment from 'moment-timezone';
-import { SETTINGS } from '@spinnaker/core';
-const { defaultTimeZone } = SETTINGS;
-import { curveStepAfter } from 'd3-shape';
 import * as classNames from 'classnames';
-
+import { scaleUtc } from 'd3-scale';
+import { curveStepAfter } from 'd3-shape';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import * as utils from './utils';
-import Tooltip from './tooltip';
+import * as moment from 'moment-timezone';
+import * as React from 'react';
+import { IMinimapProps, IXYFrameHoverBaseArgs, IXYFrameProps, MinimapXYFrame, XYFrame } from 'semiotic';
+
+import { SETTINGS } from '@spinnaker/core';
+
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
-import { ISemioticChartProps, IMargin, ITooltip } from './semiotic.service';
-import './timeSeries.less';
-import { vizConfig } from './config';
 import CircleIcon from './circleIcon';
+import { vizConfig } from './config';
+import CustomAxisTickLabel from './customAxisTickLabel';
 import DifferenceArea from './differenceArea';
 import SecondaryTSXAxis from './secondaryTSXAxis';
-import CustomAxisTickLabel from './customAxisTickLabel';
+import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import Tooltip from './tooltip';
+import * as utils from './utils';
+
+import './timeSeries.less';
+
+const { defaultTimeZone } = SETTINGS;
 
 moment.tz.setDefault(defaultTimeZone);
 
@@ -137,9 +140,9 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
     const stepMillis = scopes.control.stepMillis;
 
     /*
-    * To support dual-axis, use 'normalized' ts supplied to semiotic for both canary and baseline.
-    * We store the actual ts as 'actuals' (which can be different from the normalized ts for canary).
-    */
+     * To support dual-axis, use 'normalized' ts supplied to semiotic for both canary and baseline.
+     * We store the actual ts as 'actuals' (which can be different from the normalized ts for canary).
+     */
     const dataSets: IChartDataSet[] = groups.map((g: string) => {
       const dataPoints: IDataPoint[] = Array(maxDataCount)
         .fill(0)

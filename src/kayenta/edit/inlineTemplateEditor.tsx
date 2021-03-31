@@ -1,15 +1,14 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { isEmpty } from 'lodash';
-
-import FormRow from 'kayenta/layout/formRow';
-import { DISABLE_EDIT_CONFIG, DisableableTextarea } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
+import { DISABLE_EDIT_CONFIG, DisableableTextarea } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
+import { ICanaryState } from 'kayenta/reducers';
 import {
   inlineTemplateValueSelector,
   transformInlineTemplateForSave,
 } from 'kayenta/selectors/filterTemplatesSelectors';
+import { isEmpty } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
 interface IInlineTemplateEditorStateProps {
   templateValue: string;

@@ -1,17 +1,6 @@
 import { IComponentController, ILogService, IScope } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { cloneDeep, first, get, has, isEmpty, isFinite, isString, map, set, unset, uniq } from 'lodash';
-import {
-  AccountService,
-  AppListExtractor,
-  CloudProviderRegistry,
-  IAccountDetails,
-  NameUtils,
-  ProviderSelectionService,
-  ServerGroupCommandBuilderService,
-} from '@spinnaker/core';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { getCanaryConfigById, listKayentaAccounts } from 'kayenta/service/canaryConfig.service';
 import {
   ICanaryConfig,
   ICanaryConfigSummary,
@@ -22,7 +11,19 @@ import {
   KayentaAccountType,
   KayentaAnalysisType,
 } from 'kayenta/domain';
+import { getCanaryConfigById, listKayentaAccounts } from 'kayenta/service/canaryConfig.service';
 import { getDurationString, parseDurationString } from 'kayenta/utils/duration';
+import { cloneDeep, first, get, has, isEmpty, isFinite, isString, map, set, uniq, unset } from 'lodash';
+
+import {
+  AccountService,
+  AppListExtractor,
+  CloudProviderRegistry,
+  IAccountDetails,
+  NameUtils,
+  ProviderSelectionService,
+  ServerGroupCommandBuilderService,
+} from '@spinnaker/core';
 
 import './kayentaStage.less';
 

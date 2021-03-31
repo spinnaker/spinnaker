@@ -1,24 +1,23 @@
-import * as React from 'react';
-import { Option } from 'react-select';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
-import { get, isString } from 'lodash';
-
-import FormRow from 'kayenta/layout/formRow';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryFilterTemplateValidationMessages } from 'kayenta/edit/filterTemplatesValidation';
 import {
   DISABLE_EDIT_CONFIG,
   DisableableInput,
   DisableableReactSelect,
   DisableableTextarea,
 } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
 import { configTemplatesSelector, editingTemplateSelector } from 'kayenta/selectors';
 import {
   editingTemplateValidationSelector,
   selectedTemplateNameSelector,
 } from 'kayenta/selectors/filterTemplatesSelectors';
-import { ICanaryFilterTemplateValidationMessages } from 'kayenta/edit/filterTemplatesValidation';
+import { get, isString } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Option } from 'react-select';
+import { Dispatch } from 'redux';
 
 import './filterTemplateSelector.less';
 

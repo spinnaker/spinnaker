@@ -2,8 +2,8 @@ import {
   defaultDurationObject,
   defaultDurationString,
   getDurationString,
-  parseDurationString,
   IDuration,
+  parseDurationString,
 } from './duration';
 
 interface IDurationTest {

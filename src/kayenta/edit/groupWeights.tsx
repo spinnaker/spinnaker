@@ -1,6 +1,6 @@
+import { flatMap, uniq } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { flatMap, uniq } from 'lodash';
 
 import GroupWeight from './groupWeight';
 import { ICanaryState } from '../reducers/index';

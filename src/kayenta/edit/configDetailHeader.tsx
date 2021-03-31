@@ -1,11 +1,10 @@
+import { UISref } from '@uirouter/react';
+import { ICanaryConfig } from 'kayenta/domain';
+import FormattedDate from 'kayenta/layout/formattedDate';
+import { ICanaryState } from 'kayenta/reducers';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { UISref } from '@uirouter/react';
-
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryConfig } from 'kayenta/domain';
-import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
-import FormattedDate from 'kayenta/layout/formattedDate';
 
 import ConfigDetailActionButtons from './configDetailActionButtons';
 

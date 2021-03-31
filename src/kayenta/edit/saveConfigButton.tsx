@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 
 import { SubmitButton } from '@spinnaker/core';
 
-import { ICanaryState } from '../reducers';
 import * as Creators from '../actions/creators';
+import { ICanaryState } from '../reducers';
 import { AsyncRequestState } from '../reducers/asyncRequest';
 
 interface ISaveButtonStateProps {

@@ -1,11 +1,12 @@
 import * as classNames from 'classnames';
 import * as React from 'react';
+
 import { IKayentaAction } from '../actions/creators';
 import AddNewButton from './addNewButton';
 import DeleteButton from './deleteButton';
+import { DISABLE_EDIT_CONFIG, DisableableInput } from './disableable';
 
 import './keyValueList.less';
-import { DISABLE_EDIT_CONFIG, DisableableInput } from './disableable';
 
 export enum KeyValueListAction {
   ADD,

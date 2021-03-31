@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import Graph from './graph/graph';
-import MetricResultStats from './metricResultStats';
-import MetricResultActions from './metricResultActions';
 import GraphTypeSelector from './graphTypeSelector';
+import MetricResultActions from './metricResultActions';
+import MetricResultStats from './metricResultStats';
 
 /*
  * Responsible for layout of the metric result detail view after the metric set

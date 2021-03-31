@@ -1,9 +1,10 @@
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 
-import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
 import { GraphType } from './graph/metricSetPairGraph.service';
+
 import './graphTypeSelector.less';
 
 interface IGraphTypeSelectorStateProps {

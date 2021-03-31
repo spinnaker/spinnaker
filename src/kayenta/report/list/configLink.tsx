@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
 import { useSref } from '@uirouter/react';
 import { ICanaryState } from 'kayenta/reducers';
 import { resolveConfigIdFromExecutionId } from 'kayenta/selectors';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
 interface IConfigLinkOwnProps {
   configName: string;

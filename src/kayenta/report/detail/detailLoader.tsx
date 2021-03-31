@@ -1,11 +1,11 @@
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import * as Creators from 'kayenta/actions/creators';
 import ReportDetailLoadStates from './loadStates';
-import { ICanaryState } from 'kayenta/reducers';
 
 interface IResultLoaderStateParamsProps {
   resultIdStream: Observable<IResultLoaderStateParams>;

@@ -1,19 +1,18 @@
-import { API, ReactInjector } from '@spinnaker/core';
-
 import { CanarySettings } from 'kayenta/canary.settings';
 import {
-  IMetricSetPair,
-  ICanaryExecutionStatusResult,
   ICanaryExecutionRequest,
   ICanaryExecutionRequestParams,
   ICanaryExecutionResponse,
+  ICanaryExecutionStatusResult,
+  IMetricSetPair,
 } from 'kayenta/domain';
 
-export const getCanaryRun = (configId: string, canaryExecutionId: string): Promise<ICanaryExecutionStatusResult> =>
-  API.one('v2/canaries/canary')
-    .one(configId)
-    .one(canaryExecutionId)
-    .withParams({ storageAccountName: CanarySettings.storageAccountName })
+import { ReactInjector, REST } from '@spinnaker/core';
+
+export const getCanaryRun = (configId: string, canaryExecutionId: string): PromiseLike<ICanaryExecutionStatusResult> =>
+  REST('/v2/canaries/canary')
+    .path(configId, canaryExecutionId)
+    .query({ storageAccountName: CanarySettings.storageAccountName })
     .useCache()
     .get()
     .then((run: ICanaryExecutionStatusResult) => {
@@ -28,21 +27,24 @@ export const startCanaryRun = (
   configId: string,
   executionRequest: ICanaryExecutionRequest,
   params: ICanaryExecutionRequestParams = {},
-): Promise<ICanaryExecutionResponse> => {
-  return API.one('v2/canaries/canary').one(configId).withParams(params).post(executionRequest);
+): PromiseLike<ICanaryExecutionResponse> => {
+  return REST('/v2/canaries/canary')
+    .path(configId)
+    .query(params as any)
+    .post(executionRequest);
 };
 
-export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
-  API.one('v2/canaries/metricSetPairList')
-    .one(metricSetPairListId)
-    .withParams({ storageAccountName: CanarySettings.storageAccountName })
+export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): PromiseLike<IMetricSetPair> =>
+  REST('/v2/canaries/metricSetPairList')
+    .path(metricSetPairListId)
+    .query({ storageAccountName: CanarySettings.storageAccountName })
     .useCache()
     .get()
     .then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
 
-export const listCanaryExecutions = (application: string): Promise<ICanaryExecutionStatusResult[]> => {
+export const listCanaryExecutions = (application: string): PromiseLike<ICanaryExecutionStatusResult[]> => {
   const limit = ReactInjector.$stateParams.count || 20;
-  return API.one('v2/canaries').one(application).one('executions').withParams({ limit }).getList();
+  return REST('/v2/canaries').path(application, 'executions').query({ limit }).get();
 };
 
 export const getHealthLabel = (health: string, result: string): string => {

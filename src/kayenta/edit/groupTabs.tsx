@@ -1,12 +1,14 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { noop } from '@spinnaker/core';
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { Tabs, Tab } from 'kayenta/layout/tabs';
-import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
+import { Tab, Tabs } from 'kayenta/layout/tabs';
+import { ICanaryState } from 'kayenta/reducers';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
+
+import { noop } from '@spinnaker/core';
+
 import GroupName from './groupName';
 
 export const ALL = 'all';

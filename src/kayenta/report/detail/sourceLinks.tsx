@@ -1,10 +1,11 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { SETTINGS } from '@spinnaker/core';
 import { CanarySettings } from 'kayenta/canary.settings';
+import { ICanaryExecutionStatusResult } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import { runSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
-import { ICanaryExecutionStatusResult } from 'kayenta/domain';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { SETTINGS } from '@spinnaker/core';
 
 interface ISourceJsonStateProps {
   reportUrl: string;

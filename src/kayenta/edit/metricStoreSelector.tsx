@@ -1,12 +1,11 @@
-import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
-import { chain } from 'lodash';
-
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { KayentaAccountType } from 'kayenta/domain';
+import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { DisableableSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import { chain } from 'lodash';
+import * as React from 'react';
+import { connect, Dispatch } from 'react-redux';
 
 interface IMetricStoreSelectorStateProps {
   stores: string[];

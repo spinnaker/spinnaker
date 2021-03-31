@@ -1,11 +1,12 @@
 import * as React from 'react';
 import ContainerDimensions from 'react-container-dimensions';
 
-import { IMetricSetPairGraphProps, GraphType } from '../metricSetPairGraph.service';
-import TimeSeries from './timeSeries';
-import Histogram from './histogram';
 import BoxPlot from './boxplot';
+import Histogram from './histogram';
+import { GraphType, IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
 import NoValidDataSign from './noValidDataSign';
+import TimeSeries from './timeSeries';
+
 import './semioticGraph.less';
 
 export default class SemioticGraph extends React.Component<IMetricSetPairGraphProps> {

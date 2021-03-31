@@ -1,27 +1,27 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import * as moment from 'moment';
-import { isEqual, get } from 'lodash';
-
-import { Application, ReactInjector, Spinner, Tooltip } from '@spinnaker/core';
-
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ITableColumn, NativeTable } from 'kayenta/layout/table';
-import { ICanaryState } from 'kayenta/reducers';
 import {
+  CANARY_EXECUTION_NO_PIPELINE_STATUS,
   ICanaryExecutionStatusResult,
   ICanaryMetricConfig,
   ICanaryScopesByName,
-  CANARY_EXECUTION_NO_PIPELINE_STATUS,
   IKayentaAccount,
 } from 'kayenta/domain';
-import FormattedDate from 'kayenta/layout/formattedDate';
 import CenteredDetail from 'kayenta/layout/centeredDetail';
-import Score from '../detail/score';
-import ReportLink from './reportLink';
-import ConfigLink from './configLink';
-import { PipelineLink } from './pipelineLink';
+import FormattedDate from 'kayenta/layout/formattedDate';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { ManualAnalysisModal } from 'kayenta/manualAnalysis/ManualAnalysisModal';
+import { ICanaryState } from 'kayenta/reducers';
+import { get, isEqual } from 'lodash';
+import * as moment from 'moment';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { Application, ReactInjector, Spinner, Tooltip } from '@spinnaker/core';
+
+import ConfigLink from './configLink';
+import Score from '../detail/score';
+import { PipelineLink } from './pipelineLink';
+import ReportLink from './reportLink';
 
 import './executionList.less';
 

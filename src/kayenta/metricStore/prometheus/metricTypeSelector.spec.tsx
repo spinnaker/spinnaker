@@ -1,9 +1,9 @@
-import * as React from 'react';
 import { shallow } from 'enzyme';
+import { DisableableReactSelect } from 'kayenta/layout/disableable';
+import * as React from 'react';
 
 import { noop } from '@spinnaker/core';
 
-import { DisableableReactSelect } from 'kayenta/layout/disableable';
 import { IPrometheusMetricTypeSelectorProps, PrometheusMetricTypeSelector } from './metricTypeSelector';
 
 describe('<PrometheusMetricTypeSelector />', () => {

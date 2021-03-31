@@ -1,12 +1,12 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
-import FormRow from 'kayenta/layout/formRow';
-import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { get } from 'lodash';
 import { ICanaryMetricConfig } from 'kayenta/domain';
+import { DISABLE_EDIT_CONFIG, DisableableInput } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
+import { ICanaryState } from 'kayenta/reducers';
+import { get } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
 
 interface INewRelicMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;

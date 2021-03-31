@@ -1,6 +1,7 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
-import { ValidationMessage, HelpField } from '@spinnaker/core';
+import * as React from 'react';
+
+import { HelpField, ValidationMessage } from '@spinnaker/core';
 
 export interface IFormRowProps {
   label?: string | React.ReactFragment;

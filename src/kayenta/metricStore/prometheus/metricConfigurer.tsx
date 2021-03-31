@@ -1,25 +1,25 @@
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
+import { IUpdateListPayload, List } from 'kayenta/layout/list';
+import RadioChoice from 'kayenta/layout/radioChoice';
+import { ICanaryState } from 'kayenta/reducers';
+import { queryTypeSelector } from 'kayenta/selectors/filterTemplatesSelectors';
+import { get } from 'lodash';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { Option } from 'react-select';
 import { Action } from 'redux';
-import { connect } from 'react-redux';
-import { get } from 'lodash';
+import { createSelector } from 'reselect';
 
-import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
-import { IUpdateListPayload, List } from 'kayenta/layout/list';
-import * as Creators from 'kayenta/actions/creators';
-import PrometheusMetricTypeSelector from './metricTypeSelector';
-import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
-import RadioChoice from 'kayenta/layout/radioChoice';
 import {
   IPrometheusCanaryMetricSetQueryConfig,
   PrometheusQueryType,
 } from './domain/IPrometheusCanaryMetricSetQueryConfig';
-import { queryTypeSelector } from 'kayenta/selectors/filterTemplatesSelectors';
 import { ICanaryMetricValidationErrors } from '../../edit/editMetricValidation';
+import PrometheusMetricTypeSelector from './metricTypeSelector';
 import { editingMetricSelector } from '../../selectors';
-import { createSelector } from 'reselect';
 
 interface IPrometheusMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;

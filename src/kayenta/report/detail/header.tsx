@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
 import { UISref } from '@uirouter/react';
-
+import { ICanaryJudgeScore } from 'kayenta/domain/ICanaryJudgeResult';
 import { ICanaryState } from 'kayenta/reducers';
 import { judgeResultSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
-import { ICanaryJudgeScore } from 'kayenta/domain/ICanaryJudgeResult';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
 import ReportMetadata from './reportMetadata';
 import ReportScore from './score';
 

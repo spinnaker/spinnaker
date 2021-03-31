@@ -1,18 +1,18 @@
+import {
+  ICanaryConfig,
+  ICanaryConfigSummary,
+  ICanaryExecutionStatusResult,
+  IJudge,
+  IKayentaAccount,
+  IMetricsServiceMetadata,
+} from 'kayenta/domain';
+import { without } from 'lodash';
 import { Action, combineReducers, Reducer } from 'redux';
 import { handleActions } from 'redux-actions';
-import { without } from 'lodash';
 
 import { Application } from '@spinnaker/core';
 
 import * as Actions from '../actions';
-import {
-  ICanaryConfigSummary,
-  IJudge,
-  ICanaryConfig,
-  ICanaryExecutionStatusResult,
-  IMetricsServiceMetadata,
-  IKayentaAccount,
-} from 'kayenta/domain';
 import { AsyncRequestState } from './asyncRequest';
 
 interface IMetricsServiceMetadataState {

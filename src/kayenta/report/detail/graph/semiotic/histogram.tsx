@@ -1,25 +1,26 @@
+import { extent, histogram } from 'd3-array';
+import { scaleLinear } from 'd3-scale';
 import * as React from 'react';
 import {
-  OrdinalFrame,
   Annotation,
+  IAnnotationType,
   IOrFrameHoverArgs,
-  IOrPiece,
   IOrGroup,
+  IOrPiece,
   IOrXyData,
   ISemioticAnnotationArgs,
-  IAnnotationType,
+  OrdinalFrame,
 } from 'semiotic';
-import { histogram, extent } from 'd3-array';
-import { scaleLinear } from 'd3-scale';
 
-import * as utils from './utils';
-import { vizConfig } from './config';
-import { ISemioticChartProps, IMargin, ITooltip } from './semiotic.service';
-import './histogram.less';
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
-import Tooltip from './tooltip';
 import CircleIcon from './circleIcon';
+import { vizConfig } from './config';
+import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import Tooltip from './tooltip';
+import * as utils from './utils';
+
+import './histogram.less';
 
 interface IInputDataPoint {
   value: number;

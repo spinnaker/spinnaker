@@ -1,9 +1,11 @@
-import * as React from 'react';
-import { BreakString } from '@spinnaker/core';
 import { ITableColumn } from 'kayenta/layout/table';
-import { IMetricResultsTableRow } from './metricResultsList';
+import * as React from 'react';
+
+import { BreakString } from '@spinnaker/core';
+
 import MetricResultClassification from './metricResultClassification';
 import MetricResultDeviation from './metricResultDeviation';
+import { IMetricResultsTableRow } from './metricResultsList';
 
 export const metricResultsColumns: Array<ITableColumn<IMetricResultsTableRow>> = [
   {

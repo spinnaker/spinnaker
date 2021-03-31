@@ -1,9 +1,9 @@
-import { combineReducers, Action, Reducer } from 'redux';
-import { handleActions, combineActions } from 'redux-actions';
+import { Action, combineReducers, Reducer } from 'redux';
+import { combineActions, handleActions } from 'redux-actions';
 
 import * as Actions from '../actions';
-import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 import { CanarySettings } from '../canary.settings';
+import { ConfigJsonModalTabState } from '../edit/configJsonModal';
 
 export interface IAppState {
   deleteConfigModalOpen: boolean;

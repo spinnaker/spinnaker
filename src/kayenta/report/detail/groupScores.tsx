@@ -1,11 +1,10 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
-import { connect, Dispatch } from 'react-redux';
-
-import { ICanaryJudgeGroupScore, ICanaryScoreThresholds, IGroupWeights } from 'kayenta/domain';
 import * as Creators from 'kayenta/actions/creators';
+import { ICanaryJudgeGroupScore, ICanaryScoreThresholds, IGroupWeights } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
-import { serializedGroupWeightsSelector, canaryExecutionRequestSelector } from 'kayenta/selectors';
+import { canaryExecutionRequestSelector, serializedGroupWeightsSelector } from 'kayenta/selectors';
+import * as React from 'react';
+import { connect, Dispatch } from 'react-redux';
 
 import ClickableHeader from './clickableHeader';
 import { mapGroupToColor } from './colors';

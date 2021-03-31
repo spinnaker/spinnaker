@@ -1,5 +1,5 @@
-import metricStoreConfigStore from '../metricStoreConfig.service';
 import DatadogMetricConfigurer, { queryFinder } from './metricConfigurer';
+import metricStoreConfigStore from '../metricStoreConfig.service';
 
 metricStoreConfigStore.register({
   name: 'datadog',

@@ -1,15 +1,14 @@
-import * as React from 'react';
-import { round } from 'lodash';
-import { connect } from 'react-redux';
-
 import { ICanaryAnalysisResultsStats } from 'kayenta/domain';
-import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
 import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
-import { ICanaryState } from 'kayenta/reducers';
 import FormattedDate from 'kayenta/layout/formattedDate';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
+import { ICanaryState } from 'kayenta/reducers';
+import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
+import { round } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
 import './metricResultStats.less';
 

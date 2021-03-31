@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { createMockStore } from 'redux-test-utils';
-import { Provider } from 'react-redux';
 import { mount } from 'enzyme';
 import { identity } from 'lodash';
+import * as React from 'react';
+import { Provider } from 'react-redux';
+import { createMockStore } from 'redux-test-utils';
 
 import { noop, ValidationMessage } from '@spinnaker/core';
 

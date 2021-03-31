@@ -1,17 +1,17 @@
+import * as classNames from 'classnames';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import { Table } from 'kayenta/layout/table';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
-import * as classNames from 'classnames';
 
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
-import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
-import { Table } from 'kayenta/layout/table';
+import { MetricClassificationLabel } from '../../domain';
+import MetricFilters from './metricResultsClassificationFilters';
 import { metricResultsColumns } from './metricResultsColumns';
 import MultipleResultsTable from './multipleResultsTable';
 
 import './metricResultsList.less';
-import { MetricClassificationLabel } from '../../domain';
-import MetricFilters from './metricResultsClassificationFilters';
 
 export interface IResultsListOwnProps {
   results: ICanaryAnalysisResult[];

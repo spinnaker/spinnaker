@@ -1,12 +1,11 @@
+import * as Creators from 'kayenta/actions/creators';
+import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableReactSelect } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { Option } from 'react-select';
 import { Action } from 'redux';
-import { connect } from 'react-redux';
-
-import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
-import FormRow from 'kayenta/layout/formRow';
-import { DisableableInput, DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IJudgeSelectStateProps {
   judgeOptions: Option[];

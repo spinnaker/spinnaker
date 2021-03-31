@@ -1,8 +1,10 @@
-import * as React from 'react';
 import { UISref } from '@uirouter/react';
+import * as React from 'react';
 import { connect } from 'react-redux';
-import { ICanaryState } from '../reducers/index';
+
 import { UUIDGenerator } from '@spinnaker/core';
+
+import { ICanaryState } from '../reducers/index';
 
 interface ICreateConfigButtonStateProps {
   disabled: boolean;

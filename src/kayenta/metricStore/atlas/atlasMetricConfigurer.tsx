@@ -1,13 +1,14 @@
+import autoBindMethods from 'class-autobind-decorator';
+import { get } from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { get } from 'lodash';
-import { ICanaryState } from '../../reducers/index';
-import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import { Action } from 'redux';
+
 import { UPDATE_ATLAS_QUERY } from '../../actions/index';
 import { CanarySettings } from '../../canary.settings';
-import autoBindMethods from 'class-autobind-decorator';
+import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import { ICanaryState } from '../../reducers/index';
 
 interface IAtlasMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;

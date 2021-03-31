@@ -1,7 +1,7 @@
+import { KayentaAnalysisType } from 'kayenta/domain';
 import * as React from 'react';
 
 import { noop } from '@spinnaker/core';
-import { KayentaAnalysisType } from 'kayenta/domain';
 
 export interface IAnalysisTypeProps {
   analysisTypes: KayentaAnalysisType[];

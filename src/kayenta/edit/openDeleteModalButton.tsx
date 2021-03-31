@@ -1,10 +1,10 @@
+import * as Creators from 'kayenta/actions/creators';
+import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import * as Creators from 'kayenta/actions/creators';
 import DeleteConfigModal from './deleteModal';
-import { ICanaryState } from 'kayenta/reducers';
-import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IDeleteButtonStateProps {
   disabled: boolean;

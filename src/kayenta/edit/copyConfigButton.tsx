@@ -1,7 +1,7 @@
-import * as React from 'react';
 import { UISref } from '@uirouter/react';
-import { connect } from 'react-redux';
 import { get } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
 import { ICanaryState } from '../reducers/index';
 

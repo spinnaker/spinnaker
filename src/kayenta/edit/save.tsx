@@ -1,9 +1,9 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
+import * as React from 'react';
 
-import ValidationErrors from './validationErrors';
 import SaveConfigButton from './saveConfigButton';
 import SaveConfigError from './saveConfigError';
+import ValidationErrors from './validationErrors';
 
 /*
  * Responsible for canary config save component layout.

@@ -1,11 +1,12 @@
+import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
+import FormattedDate from 'kayenta/layout/formattedDate';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
-import FormattedDate from 'kayenta/layout/formattedDate';
-import SourceLinks from './sourceLinks';
 import { HoverablePopover } from '@spinnaker/core';
+
+import SourceLinks from './sourceLinks';
 
 interface IReportMetadata {
   run: ICanaryExecutionStatusResult;

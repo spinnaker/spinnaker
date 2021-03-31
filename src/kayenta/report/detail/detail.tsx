@@ -1,13 +1,13 @@
+import { ICanaryExecutionStatusResult } from 'kayenta/domain';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryExecutionStatusResult } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
 import ReportHeader from './header';
-import ReportScores from './reportScores';
 import MetricResults from './metricResults';
-import ReportExplanation from './reportExplanation';
 import ReportException from './reportException';
+import ReportExplanation from './reportExplanation';
+import ReportScores from './reportScores';
 
 import './detail.less';
 

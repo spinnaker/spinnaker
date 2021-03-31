@@ -1,24 +1,25 @@
+import { extent } from 'd3-array';
+import { Force, Node } from 'labella';
 import * as React from 'react';
 import {
-  OrdinalFrame,
   Annotation,
-  IOrSummaryPiece,
-  IOrFrameHoverArgs,
   IAnnotationType,
-  ISemioticAnnotationArgs,
+  IOrFrameHoverArgs,
   IOrGroup,
+  IOrSummaryPiece,
+  ISemioticAnnotationArgs,
+  OrdinalFrame,
 } from 'semiotic';
-import { extent } from 'd3-array';
-import { Node, Force } from 'labella';
 
-import * as utils from './utils';
-import { vizConfig } from './config';
-import { ISemioticChartProps, IMargin, ITooltip } from './semiotic.service';
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
-import './boxplot.less';
-import Tooltip from './tooltip';
 import CircleIcon from './circleIcon';
+import { vizConfig } from './config';
+import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import Tooltip from './tooltip';
+import * as utils from './utils';
+
+import './boxplot.less';
 
 interface IChartDataPoint {
   value: number;

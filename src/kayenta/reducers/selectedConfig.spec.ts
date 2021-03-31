@@ -1,12 +1,13 @@
 import * as Actions from 'kayenta/actions/index';
+
+import { ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
+import { IGroupState } from './group';
 import {
   changeMetricGroupConfirmReducer,
   editGroupConfirmReducer,
   ISelectedConfigState,
   updateGroupWeightsReducer,
 } from './selectedConfig';
-import { IGroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { IGroupState } from './group';
 
 describe('Reducer: editGroupConfirmReducer', () => {
   const createSelectedConfigState = (groupName: string): ISelectedConfigState =>

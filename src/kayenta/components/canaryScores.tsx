@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { isString } from 'lodash';
 import * as classNames from 'classnames';
+import { isString } from 'lodash';
+import * as React from 'react';
 
 import { HelpField } from '@spinnaker/core';
 

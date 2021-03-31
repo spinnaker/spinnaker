@@ -1,6 +1,9 @@
-import { createSelector } from 'reselect';
-import { get, identity, isEmpty } from 'lodash';
-
+import { validateTemplate } from 'kayenta/edit/filterTemplatesValidation';
+import { PrometheusQueryType } from 'kayenta/metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
+import {
+  getPrometheusQueryType,
+  prometheusQueryTypeToTransformFunction,
+} from 'kayenta/metricStore/prometheus/queryTypeSelectors';
 import { ICanaryState } from 'kayenta/reducers';
 import {
   configTemplatesSelector,
@@ -8,12 +11,8 @@ import {
   editingTemplateSelector,
   metricListSelector,
 } from 'kayenta/selectors';
-import {
-  getPrometheusQueryType,
-  prometheusQueryTypeToTransformFunction,
-} from 'kayenta/metricStore/prometheus/queryTypeSelectors';
-import { validateTemplate } from 'kayenta/edit/filterTemplatesValidation';
-import { PrometheusQueryType } from 'kayenta/metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
+import { get, identity, isEmpty } from 'lodash';
+import { createSelector } from 'reselect';
 
 // TODO(mneterval): More elegant separation of prometheus-specific logic
 

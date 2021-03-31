@@ -1,17 +1,17 @@
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
+import FormRow from 'kayenta/layout/formRow';
+import { IUpdateListPayload, List } from 'kayenta/layout/list';
+import { ICanaryState } from 'kayenta/reducers';
+import { get } from 'lodash';
 import * as React from 'react';
-import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { Option } from 'react-select';
-import { get } from 'lodash';
+import { Action } from 'redux';
 
-import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
-import { IUpdateListPayload, List } from 'kayenta/layout/list';
-import * as Creators from 'kayenta/actions/creators';
-import StackdriverMetricTypeSelector from './metricTypeSelector';
-import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
 import { IStackdriverCanaryMetricSetQueryConfig } from './domain/IStackdriverCanaryMetricSetQueryConfig';
+import StackdriverMetricTypeSelector from './metricTypeSelector';
 
 interface IStackdriverMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;

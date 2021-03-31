@@ -1,13 +1,13 @@
-import * as React from 'react';
 import { mount } from 'enzyme';
-import { createMockStore } from 'redux-test-utils';
+import { DisableableInput, DisableableTextarea } from 'kayenta/layout/disableable';
+import * as React from 'react';
 import { Provider } from 'react-redux';
 import Select, { Option } from 'react-select';
+import { createMockStore } from 'redux-test-utils';
 
 import { noop, ValidationMessage } from '@spinnaker/core';
 
 import { FilterTemplateSelector, IFilterTemplateSelectorProps } from './filterTemplateSelector';
-import { DisableableInput, DisableableTextarea } from 'kayenta/layout/disableable';
 
 const buildComponent = (props: IFilterTemplateSelectorProps) =>
   mount(

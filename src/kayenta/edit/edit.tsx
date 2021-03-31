@@ -1,9 +1,9 @@
-import * as React from 'react';
 import { UIView } from '@uirouter/react';
+import * as React from 'react';
 
-import ListDetail from '../layout/listDetail';
 import ConfigList from './configList';
 import Footer from './footer';
+import ListDetail from '../layout/listDetail';
 
 /*
  * Component for editing canary configurations for an application.

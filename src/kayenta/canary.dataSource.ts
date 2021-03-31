@@ -1,14 +1,14 @@
-import { module, IQService } from 'angular';
+import { IQService, module } from 'angular';
 import { CanarySettings } from 'kayenta/canary.settings';
 
-import { ApplicationDataSourceRegistry, Application } from '@spinnaker/core';
+import { Application, ApplicationDataSourceRegistry } from '@spinnaker/core';
 
-import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
-import { ICanaryConfigSummary, IJudge } from './domain/index';
-import { canaryStore } from './canary';
 import * as Creators from './actions/creators';
-import { listCanaryExecutions } from './service/canaryRun.service';
+import { canaryStore } from './canary';
 import { ICanaryExecutionStatusResult } from './domain/ICanaryExecutionStatusResult';
+import { ICanaryConfigSummary, IJudge } from './domain/index';
+import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
+import { listCanaryExecutions } from './service/canaryRun.service';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, []).run([

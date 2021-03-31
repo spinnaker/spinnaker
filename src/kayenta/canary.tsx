@@ -1,17 +1,17 @@
-import * as React from 'react';
-import { createStore, applyMiddleware } from 'redux';
-import { logger } from 'redux-logger';
 import { UIView } from '@uirouter/react';
+import * as React from 'react';
+import { Provider, Store } from 'react-redux';
+import { applyMiddleware, createStore } from 'redux';
+import { logger } from 'redux-logger';
 
 import { Application } from '@spinnaker/core';
 
-import { Provider, Store } from 'react-redux';
-import { ICanaryState, rootReducer } from './reducers';
-import { actionInterceptingMiddleware, epicMiddleware, asyncDispatchMiddleware } from './middleware';
-import { ICanaryConfigSummary, IJudge } from './domain';
 import { INITIALIZE } from './actions';
-import Styleguide from './layout/styleguide';
 import { CanarySettings } from './canary.settings';
+import { ICanaryConfigSummary, IJudge } from './domain';
+import Styleguide from './layout/styleguide';
+import { actionInterceptingMiddleware, asyncDispatchMiddleware, epicMiddleware } from './middleware';
+import { ICanaryState, rootReducer } from './reducers';
 
 export interface ICanaryProps {
   app: Application;

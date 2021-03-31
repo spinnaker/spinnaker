@@ -1,16 +1,16 @@
+import * as Creators from 'kayenta/actions/creators';
+import { KayentaAccountType } from 'kayenta/domain';
+import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
+import { chain, get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
 import { Option } from 'react-select';
+import { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
-import { get, chain } from 'lodash';
 
-import { KayentaAccountType } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
 import { IPrometheusMetricDescriptor } from './domain/IPrometheusMetricDescriptor';
-import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
-import * as Creators from 'kayenta/actions/creators';
-import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
 
 import './metricTypeSelector.less';
 

@@ -1,23 +1,23 @@
-import * as React from 'react';
+import { Field, Form, Formik, FormikActions, FormikErrors, FormikProps, FormikTouched } from 'formik';
 import { get } from 'lodash';
-import { Formik, Form, FormikProps, FormikErrors, FormikActions, FormikTouched, Field } from 'formik';
+import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import {
-  noop,
-  IModalComponentProps,
-  ReactModal,
   Application,
+  HelpField,
+  HoverablePopover,
+  IModalComponentProps,
+  MapEditor,
   ModalClose,
+  noop,
+  ReactModal,
   SubmitButton,
   TetheredSelect,
-  HelpField,
-  MapEditor,
-  HoverablePopover,
 } from '@spinnaker/core';
 
-import { ICanaryConfigSummary, IKayentaAccount, KayentaAccountType, ICanaryExecutionRequest } from '../domain';
 import { CanaryScores } from '../components/canaryScores';
+import { ICanaryConfigSummary, ICanaryExecutionRequest, IKayentaAccount, KayentaAccountType } from '../domain';
 import { startCanaryRun } from '../service/canaryRun.service';
 
 const RESOURCE_TYPES = {

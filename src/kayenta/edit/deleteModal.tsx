@@ -1,13 +1,13 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
 import * as classNames from 'classnames';
-
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from '../reducers/index';
+import * as React from 'react';
+import { Modal } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
+
 import Styleguide from '../layout/styleguide';
 import { AsyncRequestState } from '../reducers/asyncRequest';
+import { ICanaryState } from '../reducers/index';
 
 interface IDeleteModalDispatchProps {
   closeDeleteConfigModal: () => void;

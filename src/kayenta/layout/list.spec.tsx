@@ -1,11 +1,13 @@
-import * as React from 'react';
 import { mount } from 'enzyme';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import { IUpdateListPayload, List, ListAction, updateListReducer } from './list';
 import { IKayentaAction } from 'kayenta/actions/creators';
-import createSpy = jasmine.createSpy;
+import * as React from 'react';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+
+import { IUpdateListPayload, List, ListAction, updateListReducer } from './list';
 import { rootReducer } from '../reducers';
+
+import createSpy = jasmine.createSpy;
 
 describe('Reducer: updateListReducer', () => {
   const createAction = (payload: IUpdateListPayload): IKayentaAction<IUpdateListPayload> => ({

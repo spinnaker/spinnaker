@@ -1,12 +1,13 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
-import { Option } from 'react-select';
-import { ICanaryState } from 'kayenta/reducers';
-import { IDatadogMetricDescriptor } from './domain/IDatadogMetricDescriptor';
-import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as Creators from 'kayenta/actions/creators';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Option } from 'react-select';
+import { Dispatch } from 'redux';
+
+import { IDatadogMetricDescriptor } from './domain/IDatadogMetricDescriptor';
 
 interface IDatadogMetricTypeSelectorDispatchProps {
   load: (filter: string) => void;

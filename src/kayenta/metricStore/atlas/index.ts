@@ -1,5 +1,5 @@
-import metricStoreConfigStore from '../metricStoreConfig.service';
 import AtlasMetricConfigurer, { queryFinder } from './atlasMetricConfigurer';
+import metricStoreConfigStore from '../metricStoreConfig.service';
 
 metricStoreConfigStore.register({
   name: 'atlas',

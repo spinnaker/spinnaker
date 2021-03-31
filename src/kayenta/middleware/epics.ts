@@ -1,23 +1,25 @@
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/concat';
-import { Action, MiddlewareAPI } from 'redux';
-import { createEpicMiddleware, combineEpics, EpicMiddleware } from 'redux-observable';
+import * as Actions from 'kayenta/actions';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryConfigUpdateResponse, KayentaAccountType } from 'kayenta/domain';
+import { ICanaryState } from 'kayenta/reducers';
+import { runSelector } from 'kayenta/selectors';
 import {
   createCanaryConfig,
   deleteCanaryConfig,
   getCanaryConfigById,
+  listKayentaAccounts,
   mapStateToConfig,
   updateCanaryConfig,
-  listKayentaAccounts,
 } from 'kayenta/service/canaryConfig.service';
-import * as Actions from 'kayenta/actions';
-import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers';
-import { ReactInjector } from '@spinnaker/core';
-import { getCanaryRun, getMetricSetPair } from '../service/canaryRun.service';
-import { runSelector } from 'kayenta/selectors';
-import { ICanaryConfigUpdateResponse, KayentaAccountType } from 'kayenta/domain';
 import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetadata.service';
+import { Action, MiddlewareAPI } from 'redux';
+import { combineEpics, createEpicMiddleware, EpicMiddleware } from 'redux-observable';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/concat';
+
+import { ReactInjector } from '@spinnaker/core';
+
+import { getCanaryRun, getMetricSetPair } from '../service/canaryRun.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -36,7 +38,7 @@ const selectConfigEpic = (action$: Observable<Action & any>) =>
 const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$.filter(typeMatches(Actions.SAVE_CONFIG_REQUEST)).concatMap(() => {
     const config = mapStateToConfig(store.getState());
-    let saveAction: Promise<ICanaryConfigUpdateResponse>;
+    let saveAction: PromiseLike<ICanaryConfigUpdateResponse>;
     if (config.isNew) {
       delete config.isNew;
       saveAction = createCanaryConfig(config);

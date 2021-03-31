@@ -1,7 +1,7 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
-import { ScoreClassificationLabel } from '../domain/ScoreClassificationLabel';
+import * as React from 'react';
 
+import { ScoreClassificationLabel } from '../domain/ScoreClassificationLabel';
 import { getHealthLabel } from '../service/canaryRun.service';
 
 import './canaryScore.component.less';

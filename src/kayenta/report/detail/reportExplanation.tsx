@@ -1,8 +1,7 @@
+import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
-
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
 
 import './reportExplanation.less';
 

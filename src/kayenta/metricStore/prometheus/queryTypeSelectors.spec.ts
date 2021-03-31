@@ -1,6 +1,6 @@
-import { removePromQLPrefix, appendPromQLPrefix, isQueryPromQL, getPrometheusQueryType } from './queryTypeSelectors';
-import { PrometheusQueryType } from './domain/IPrometheusCanaryMetricSetQueryConfig';
 import { ICanaryMetricConfig } from '../../domain';
+import { PrometheusQueryType } from './domain/IPrometheusCanaryMetricSetQueryConfig';
+import { appendPromQLPrefix, getPrometheusQueryType, isQueryPromQL, removePromQLPrefix } from './queryTypeSelectors';
 
 describe('Prometheus query type selectors', () => {
   describe('isQueryPromQL', () => {

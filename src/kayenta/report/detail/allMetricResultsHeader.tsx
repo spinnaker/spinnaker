@@ -1,8 +1,8 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
 import { ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
-import { mapGroupToColor } from './colors';
+import * as React from 'react';
 
+import { mapGroupToColor } from './colors';
 import HeaderArrow from './headerArrow';
 
 export interface IAllMetricResultsHeader {

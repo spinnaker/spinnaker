@@ -1,12 +1,12 @@
+import { UISref } from '@uirouter/react';
+import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
+import FormattedDate from 'kayenta/layout/formattedDate';
+import { ICanaryState } from 'kayenta/reducers';
+import { sortBy } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { sortBy } from 'lodash';
-import { UISref } from '@uirouter/react';
 
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
 import CreateConfigButton from './createConfigButton';
-import FormattedDate from 'kayenta/layout/formattedDate';
 import { OwnedBy } from './ownedBy';
 
 import './configList.less';

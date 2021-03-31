@@ -2,7 +2,8 @@ import { module } from 'angular';
 import { get, last, round } from 'lodash';
 
 import { Application, IExecution, IExecutionStage, ITransformer, OrchestratedItemTransformer } from '@spinnaker/core';
-import { KAYENTA_CANARY, RUN_CANARY, WAIT, CREATE_SERVER_GROUP, DEPLOY_CANARY_SERVER_GROUPS } from './stageTypes';
+
+import { CREATE_SERVER_GROUP, DEPLOY_CANARY_SERVER_GROUPS, KAYENTA_CANARY, RUN_CANARY, WAIT } from './stageTypes';
 
 const stageTypesToAlwaysShow = [KAYENTA_CANARY, CREATE_SERVER_GROUP];
 

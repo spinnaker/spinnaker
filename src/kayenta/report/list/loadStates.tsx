@@ -1,10 +1,11 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
+import LoadStatesBuilder from 'kayenta/components/loadStates';
+import CenteredDetail from 'kayenta/layout/centeredDetail';
 import { ICanaryState } from 'kayenta/reducers';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
-import LoadStatesBuilder from 'kayenta/components/loadStates';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
 import ExecutionListTable from './table';
-import CenteredDetail from 'kayenta/layout/centeredDetail';
 
 interface IExecutionListLoadStatesStateProps {
   loadState: AsyncRequestState;

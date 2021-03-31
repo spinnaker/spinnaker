@@ -1,5 +1,5 @@
-import { ICanaryJudgeResult } from './ICanaryJudgeResult';
 import { ICanaryConfig } from './ICanaryConfig';
+import { ICanaryJudgeResult } from './ICanaryJudgeResult';
 import { ICanaryScoreThresholds } from './ICanaryScoreThresholds';
 
 export const CANARY_EXECUTION_NO_PIPELINE_STATUS = 'no-parent-pipeline-execution';

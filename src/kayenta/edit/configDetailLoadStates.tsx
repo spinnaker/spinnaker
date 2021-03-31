@@ -1,11 +1,11 @@
+import LoadStatesBuilder from 'kayenta/components/loadStates';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from '../reducers/index';
 import ConfigDetail from './configDetail';
 import CenteredDetail from '../layout/centeredDetail';
 import { AsyncRequestState } from '../reducers/asyncRequest';
-import LoadStatesBuilder from 'kayenta/components/loadStates';
+import { ICanaryState } from '../reducers/index';
 
 interface IConfigLoadStatesProps {
   configLoadState: AsyncRequestState;

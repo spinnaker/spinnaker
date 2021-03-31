@@ -1,12 +1,13 @@
+import { mountWithState, mountWithStore } from 'enzyme-redux';
+import * as Actions from 'kayenta/actions';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { mountWithState, mountWithStore } from 'enzyme-redux';
-import { createMockStore } from 'redux-test-utils';
 import Select, { Option, ReactSelectProps } from 'react-select';
+import { createMockStore } from 'redux-test-utils';
 
 import { noop } from '@spinnaker/core';
-import * as Actions from 'kayenta/actions';
-import { mapDispatchToProps, mapStateToProps, DatadogMetricTypeSelector } from './metricTypeSelector';
+
+import { DatadogMetricTypeSelector, mapDispatchToProps, mapStateToProps } from './metricTypeSelector';
 
 describe('<DatadogMetricTypeSelector />', () => {
   let Component: any;

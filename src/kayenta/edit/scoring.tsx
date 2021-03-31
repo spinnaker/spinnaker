@@ -1,11 +1,11 @@
+import TitledSubsection from 'kayenta/layout/titledSubsection';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import TitledSubsection from 'kayenta/layout/titledSubsection';
 import GroupWeights from './groupWeights';
 import JudgeSelect, { JudgeSelectRenderState } from './judgeSelect';
-import { ICanaryState } from '../reducers/index';
 import FormList from '../layout/formList';
+import { ICanaryState } from '../reducers/index';
 
 interface IScoringStateProps {
   renderJudgeSelect: boolean;

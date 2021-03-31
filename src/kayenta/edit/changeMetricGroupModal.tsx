@@ -1,15 +1,14 @@
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
+import Styleguide from 'kayenta/layout/styleguide';
+import { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
 
 import { noop } from '@spinnaker/core';
-
-import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
-import Styleguide from 'kayenta/layout/styleguide';
-import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
 
 interface IChangeMetricGroupModalOwnProps {
   metric: ICanaryMetricConfig;

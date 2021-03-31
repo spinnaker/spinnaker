@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { UIView } from '@uirouter/react';
+import * as React from 'react';
 
 export default () => {
   const noWrap = { wrap: false };

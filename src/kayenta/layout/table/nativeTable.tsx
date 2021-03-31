@@ -1,8 +1,8 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
+import * as React from 'react';
 
-import { ITableColumn } from './tableColumn';
 import { NativeTableHeader } from './nativeTableHeader';
+import { ITableColumn } from './tableColumn';
 
 export interface INativeTableProps<T> {
   rows: T[];

@@ -1,15 +1,17 @@
-import * as React from 'react';
-import { Action } from 'redux';
-import { connect } from 'react-redux';
-import { cloneDeep } from 'lodash';
 import * as classNames from 'classnames';
-import { Tooltip } from '@spinnaker/core';
-import { ICanaryMetricConfig } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { ITableColumn, NativeTable } from 'kayenta/layout/table';
-import ChangeMetricGroupModal from './changeMetricGroupModal';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
+import { ICanaryState } from 'kayenta/reducers';
+import { cloneDeep } from 'lodash';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { Action } from 'redux';
+
+import { Tooltip } from '@spinnaker/core';
+
+import ChangeMetricGroupModal from './changeMetricGroupModal';
 
 import './metricList.less';
 

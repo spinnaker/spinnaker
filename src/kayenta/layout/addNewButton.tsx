@@ -1,5 +1,6 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
+import * as React from 'react';
+
 import { DISABLE_EDIT_CONFIG, DisableableButton } from './disableable';
 
 interface IAddNewButtonProps {

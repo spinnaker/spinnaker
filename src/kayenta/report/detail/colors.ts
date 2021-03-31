@@ -1,9 +1,9 @@
 import {
+  ICanaryJudgeGroupScore,
+  ICanaryJudgeScore,
+  ICanaryScoreThresholds,
   MetricClassificationLabel,
   ScoreClassificationLabel,
-  ICanaryJudgeScore,
-  ICanaryJudgeGroupScore,
-  ICanaryScoreThresholds,
 } from 'kayenta/domain';
 
 // Standard Spinnaker styleguide colors.

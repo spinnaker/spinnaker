@@ -1,6 +1,6 @@
 import { IComponentController, module } from 'angular';
-import { $log } from 'ngimport';
 import { IKayentaStage, KayentaAnalysisType } from 'kayenta/domain';
+import { $log } from 'ngimport';
 
 class ForAnalysisTypeController implements IComponentController {
   private stage: IKayentaStage;

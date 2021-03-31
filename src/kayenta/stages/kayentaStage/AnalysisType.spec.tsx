@@ -1,7 +1,7 @@
-import * as React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
-
 import { KayentaAnalysisType } from 'kayenta/domain';
+import * as React from 'react';
+
 import { AnalysisType, AnalysisTypeWarning, IAnalysisTypeProps } from './AnalysisType';
 
 describe('<AnalysisType />', () => {

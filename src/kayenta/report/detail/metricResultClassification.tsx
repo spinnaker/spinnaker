@@ -1,7 +1,7 @@
-import * as React from 'react';
 import * as classNames from 'classnames';
-
 import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
+import * as React from 'react';
+
 import { mapMetricClassificationToColor } from './colors';
 
 interface IMetricResultClassificationProps {

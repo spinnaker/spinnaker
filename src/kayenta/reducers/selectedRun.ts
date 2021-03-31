@@ -1,10 +1,10 @@
-import { combineReducers, Action, Reducer } from 'redux';
+import * as Actions from 'kayenta/actions';
+import { ICanaryExecutionStatusResult, IMetricSetPair, MetricClassificationLabel } from 'kayenta/domain';
+import { GraphType } from 'kayenta/report/detail/graph/metricSetPairGraph.service';
+import { Action, combineReducers, Reducer } from 'redux';
 import { handleActions } from 'redux-actions';
 
-import * as Actions from 'kayenta/actions';
 import { AsyncRequestState } from './asyncRequest';
-import { IMetricSetPair, ICanaryExecutionStatusResult, MetricClassificationLabel } from 'kayenta/domain';
-import { GraphType } from 'kayenta/report/detail/graph/metricSetPairGraph.service';
 
 interface IMetricSetPairState {
   pair: IMetricSetPair;

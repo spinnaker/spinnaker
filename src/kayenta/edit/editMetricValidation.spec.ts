@@ -1,5 +1,5 @@
-import { ICanaryMetricValidationErrors, validateMetric, validateMetricName } from './editMetricValidation';
 import { ICanaryMetricConfig } from '../domain';
+import { ICanaryMetricValidationErrors, validateMetric, validateMetricName } from './editMetricValidation';
 
 describe('Canary metric validation', () => {
   let errors: ICanaryMetricValidationErrors;

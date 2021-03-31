@@ -1,8 +1,9 @@
-import * as React from 'react';
-import { DisableableInput, DISABLE_EDIT_CONFIG } from './disableable';
 import { IKayentaAction } from 'kayenta/actions/creators';
+import * as React from 'react';
+
 import AddNewButton from './addNewButton';
 import DeleteButton from './deleteButton';
+import { DISABLE_EDIT_CONFIG, DisableableInput } from './disableable';
 
 import './list.less';
 

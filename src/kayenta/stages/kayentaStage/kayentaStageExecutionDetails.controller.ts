@@ -1,10 +1,11 @@
-import { IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
+import { IScope, module } from 'angular';
+import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 
 import { ExecutionDetailsSectionService, IExecutionStage } from '@spinnaker/core';
-import { RUN_CANARY, KAYENTA_CANARY } from './stageTypes';
+
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
-import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
+import { KAYENTA_CANARY, RUN_CANARY } from './stageTypes';
 
 import './kayentaStageExecutionDetails.less';
 

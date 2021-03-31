@@ -1,18 +1,18 @@
-import { module, IWindowService } from 'angular';
 import { UIRouter } from '@uirouter/angularjs';
 import { Transition } from '@uirouter/core';
-
-import { INestedState, APPLICATION_STATE_PROVIDER, ApplicationStateProvider, IDeckRootScope } from '@spinnaker/core';
-
+import { IWindowService, module } from 'angular';
+import * as Creators from 'kayenta/actions/creators';
+import Canary, { canaryStore } from 'kayenta/canary';
 import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
 import CanaryConfigEdit from 'kayenta/edit/edit';
 import CanaryConfigSave from 'kayenta/edit/save';
-import Canary, { canaryStore } from 'kayenta/canary';
 import SelectConfig from 'kayenta/edit/selectConfig';
-import Report from 'kayenta/report/report';
 import ResultDetailLoader from 'kayenta/report/detail/detailLoader';
 import ExecutionListLoadStates from 'kayenta/report/list/loadStates';
-import * as Creators from 'kayenta/actions/creators';
+import Report from 'kayenta/report/report';
+
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, IDeckRootScope, INestedState } from '@spinnaker/core';
+
 import { CanarySettings } from '../canary.settings';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';

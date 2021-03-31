@@ -1,12 +1,14 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { HelpField, robotToHuman } from '@spinnaker/core';
+import * as Creators from 'kayenta/actions/creators';
 import { ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
 import RadioChoice from 'kayenta/layout/radioChoice';
-import { DISABLE_EDIT_CONFIG, DisableableInput } from '../layout/disableable';
 import { ICanaryState } from 'kayenta/reducers';
-import * as Creators from 'kayenta/actions/creators';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { HelpField, robotToHuman } from '@spinnaker/core';
+
+import { DISABLE_EDIT_CONFIG, DisableableInput } from '../layout/disableable';
 
 interface IEditMetricEffectSizesProps {
   metricId: string;

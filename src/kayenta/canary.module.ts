@@ -1,13 +1,12 @@
 import { module } from 'angular';
-
+import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
+import 'kayenta/canary.help';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { CANARY_COMPONENTS } from 'kayenta/components/components.module';
-import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
-import { CANARY_STAGES } from 'kayenta/stages/stages.module';
-import { CANARY_STATES } from 'kayenta/navigation/canary.states';
-import 'kayenta/canary.help';
 import 'kayenta/metricStore/index';
+import { CANARY_STATES } from 'kayenta/navigation/canary.states';
 import 'kayenta/report/detail/graph/semiotic';
+import { CANARY_STAGES } from 'kayenta/stages/stages.module';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);

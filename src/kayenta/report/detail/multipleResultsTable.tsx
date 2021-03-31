@@ -1,14 +1,14 @@
-import * as React from 'react';
-import { chain } from 'lodash';
-import { connect, Dispatch } from 'react-redux';
 import * as classNames from 'classnames';
-import { BreakString } from '@spinnaker/core';
-
+import * as Creators from 'kayenta/actions/creators';
 import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import { ITableColumn, Table } from 'kayenta/layout/table';
 import { ICanaryState } from 'kayenta/reducers';
 import { selectedMetricResultIdSelector } from 'kayenta/selectors';
-import * as Creators from 'kayenta/actions/creators';
+import { chain } from 'lodash';
+import * as React from 'react';
+import { connect, Dispatch } from 'react-redux';
+
+import { BreakString } from '@spinnaker/core';
 
 import MetricResultClassification from './metricResultClassification';
 import MetricResultDeviation from './metricResultDeviation';

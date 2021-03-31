@@ -1,12 +1,13 @@
-import * as React from 'react';
 import { scaleUtc } from 'd3-scale';
+import * as React from 'react';
 import { Axis } from 'semiotic';
 
+import { vizConfig } from './config';
+import CustomAxisTickLabel from './customAxisTickLabel';
 import { IMargin } from './semiotic.service';
 import * as utils from './utils';
-import CustomAxisTickLabel from './customAxisTickLabel';
+
 import './secondaryTSXAxis.less';
-import { vizConfig } from './config';
 
 interface ISecondaryTSXAxisProps {
   margin: IMargin;

@@ -1,5 +1,6 @@
-import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
 import * as Actions from 'kayenta/actions';
+
+import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
 
 describe('Reducer: prometheusMetricConfigReducer', () => {
   describe('update query field', () => {

@@ -1,15 +1,16 @@
-import * as React from 'react';
 import { scaleUtc } from 'd3-scale';
-import { XYFrame } from 'semiotic';
-import * as moment from 'moment-timezone';
 import { curveStepAfter } from 'd3-shape';
+import * as moment from 'moment-timezone';
+import * as React from 'react';
+import { XYFrame } from 'semiotic';
 
-import { ISemioticChartProps, IMargin } from './semiotic.service';
 import { vizConfig } from './config';
-import './differenceArea.less';
-import * as utils from './utils';
 import CustomAxisTickLabel from './customAxisTickLabel';
 import SecondaryTSXAxis from './secondaryTSXAxis';
+import { IMargin, ISemioticChartProps } from './semiotic.service';
+import * as utils from './utils';
+
+import './differenceArea.less';
 
 interface IDataPoint {
   timestampMillis: number;

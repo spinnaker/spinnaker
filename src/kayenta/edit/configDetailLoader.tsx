@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Action } from 'redux';
 import { connect } from 'react-redux';
+import { Action } from 'redux';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import ConfigDetailLoadStates from './configDetailLoadStates';
 import * as Creators from '../actions/creators';
+import ConfigDetailLoadStates from './configDetailLoadStates';
 
 interface IConfigLoaderStateParamsProps {
   configNameStream: Observable<IConfigDetailStateParams>;

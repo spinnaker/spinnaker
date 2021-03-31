@@ -1,5 +1,6 @@
-import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
 import * as Actions from 'kayenta/actions';
+
+import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
 
 describe('Reducer: stackdriverMetricConfigReducer', () => {
   describe('update query field', () => {

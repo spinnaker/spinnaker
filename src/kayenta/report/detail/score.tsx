@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { round } from 'lodash';
-import { ScoreClassificationLabel } from 'kayenta/domain/ScoreClassificationLabel';
-import { ICanaryJudgeScore } from 'kayenta/domain/ICanaryJudgeResult';
 import { CanaryScore } from 'kayenta/components/canaryScore';
+import { ICanaryJudgeScore } from 'kayenta/domain/ICanaryJudgeResult';
+import { ScoreClassificationLabel } from 'kayenta/domain/ScoreClassificationLabel';
+import { round } from 'lodash';
+import * as React from 'react';
 
 export interface ICanaryJudgeScoreProps {
   score: ICanaryJudgeScore;
