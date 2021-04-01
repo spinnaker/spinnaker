@@ -17,15 +17,22 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import spock.lang.Shared
+
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class WaitForDownInstanceHealthTaskSpec extends Specification {
-  CloudDriverService cloudDriverService = Mock()
-  def task = new WaitForDownInstanceHealthTask(cloudDriverService: cloudDriverService)
+  @Shared
+  PipelineExecutionImpl pipeline = PipelineExecutionImpl.newPipeline("orca")
 
-  @Unroll("#interestedHealthProviderNames with instnace: #instance => shouldBeDown: #shouldBeDown")
+  CloudDriverService cloudDriverService = Mock()
+  def task = new WaitForDownInstanceHealthTask(cloudDriverService)
+
+  @Unroll("#interestedHealthProviderNames with instance: #instance => status: #result.status")
   def "test if instance with a given interested health provider name should be considered down"() {
     given:
     def inputs = new InstanceHealthCheckInputs(
@@ -38,7 +45,6 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
       1 * cloudDriverService.getInstance(inputs.getAccount(), inputs.getRegion(), 'id') >> instance
     }
     expect:
-    task.hasSucceeded(instance, interestedHealthProviderNames) == shouldBeDown
     task.process(inputs).status == shouldBeDown ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
 
     where:
@@ -60,4 +66,46 @@ class WaitForDownInstanceHealthTaskSpec extends Specification {
     ["Discovery"]                 || [health: [[type: "Other", state: "Down"]]]                                                                          || true
   }
 
+  @Unroll
+  void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForDownInstances)'() {
+    given:
+    def localInstanceDetails = instanceDetails
+    cloudDriverService.getInstance(_, _, _) >> { a, r, instanceId -> localInstanceDetails.find { it.instanceId == instanceId } }
+
+    def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
+        instanceIds: localInstanceDetails*.instanceId,
+        interestingHealthProviderNames: interestingHealthProviderNames
+    ])
+
+    expect:
+    task.execute(stage).status == expectedResult
+
+    where:
+    instanceDetails                                                | interestingHealthProviderNames || expectedResult
+    []                                                             | null                            | ExecutionStatus.TERMINAL
+    []                                                             | []                              | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: [h("LB", "Up"), h("D", "Up")]]]     | null                            | ExecutionStatus.RUNNING
+    [[instanceId: "1", health: [h("LB", "Up"), h("D", "Up")]]]     | []                              | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | null                            | ExecutionStatus.RUNNING
+    [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | []                              | ExecutionStatus.SUCCEEDED
+    [
+        [instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]],
+        [instanceId: "2", health: [h("LB", "Up"), h("D", "Up")]]
+    ]                                                              | null                            | ExecutionStatus.RUNNING
+    [
+        [instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]],
+        [instanceId: "2", health: [h("LB", "Up"), h("D", "Up")]]
+    ]                                                              | []                              | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]]] | null                            | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: [h("LB", "Down"), h("D", "Down")]]] | []                              | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | ["D"]                           | ExecutionStatus.SUCCEEDED
+    [[instanceId: "1", health: []]]                                | ["D"]                           | ExecutionStatus.SUCCEEDED
+  }
+
+  private static Map h(String type, String state) {
+    return [
+        type: type,
+        state: state
+    ]
+  }
 }

@@ -8,8 +8,8 @@ public class InstanceHealthCheckInputs {
   private String region;
   private String account;
   private String credentials;
-  private List<String> instanceIds;
-  private List<String> interestingHealthProviderNames;
+  private List<String> instanceIds = null;
+  private List<String> interestingHealthProviderNames = null;
 
   public String accountToUse() {
     return account != null ? account : credentials;
