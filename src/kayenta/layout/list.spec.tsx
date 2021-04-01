@@ -7,8 +7,6 @@ import { createStore } from 'redux';
 import { IUpdateListPayload, List, ListAction, updateListReducer } from './list';
 import { rootReducer } from '../reducers';
 
-import createSpy = jasmine.createSpy;
-
 describe('Reducer: updateListReducer', () => {
   const createAction = (payload: IUpdateListPayload): IKayentaAction<IUpdateListPayload> => ({
     type: 'update_list',
@@ -66,7 +64,7 @@ describe('Component: List', () => {
   });
 
   it('emits the correct value and index on update', () => {
-    const spy = createSpy('actionCreator');
+    const spy = jest.fn();
     const component = mount(
       <Provider store={createStore(rootReducer)}>
         <List list={['a', 'b', 'c']} actionCreator={spy} />
