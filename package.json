@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
-    "@spinnaker/kayenta": "^0.0.108",
+    "@spinnaker/kayenta": "^0.0.109",
     "@spinnaker/presentation": "^0.0.2",
     "@spinnaker/styleguide": "^1.0.22",
     "@uirouter/react-hybrid": "1.0.2",
