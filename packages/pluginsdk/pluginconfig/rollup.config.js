@@ -7,6 +7,7 @@ const postCss = require('rollup-plugin-postcss');
 const replace = require('@rollup/plugin-replace');
 const { terser } = require('rollup-plugin-terser');
 const typescript = require('@rollup/plugin-typescript');
+const url = require('@rollup/plugin-url');
 const visualizer = require('rollup-plugin-visualizer');
 
 const ROLLUP_STATS = !!process.env.ROLLUP_STATS;
@@ -22,6 +23,10 @@ const plugins = [
   nodeResolve(),
   commonjs(),
   json(),
+  url({
+    include: ['**/*.html', '**/*.svg', '**/*.png', '**/*.jp(e)?g', '**/*.gif', '**/*.webp'],
+    fileName: '[dirname][hash][extname]',
+  }),
   // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
   replace({ 'process.env.NODE_ENV': NODE_ENV }),
   typescript({

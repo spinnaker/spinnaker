@@ -17,6 +17,7 @@
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "6.1.0",
+    "@rollup/plugin-url": "6.0.0",
     "@spinnaker/core": "0.0.554",
     "@spinnaker/eslint-plugin": "1.0.13",
     "@spinnaker/pluginsdk": "*",
@@ -58,6 +59,9 @@
       "dev": true
     },
     "@rollup/plugin-typescript": {
+      "dev": true
+    },
+    "@rollup/plugin-url": {
       "dev": true
     },
     "@spinnaker/eslint-plugin": {
