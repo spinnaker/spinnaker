@@ -7,3 +7,4 @@ updates:
     allow:
       - dependency-name: '@spinnaker/kayenta'
       - dependency-name: '@spinnaker/styleguide'
+      - dependency-name: '@spinnaker/presentation'
