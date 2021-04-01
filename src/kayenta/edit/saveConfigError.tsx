@@ -37,7 +37,7 @@ function SaveConfigError({
 }
 
 function buildErrorMessage(saveConfigErrorMessage: string): string {
-  const message = 'The was an error saving your config';
+  const message = 'There was an error saving your config';
   return saveConfigErrorMessage ? message + `: ${saveConfigErrorMessage}.` : message + '.';
 }
 
