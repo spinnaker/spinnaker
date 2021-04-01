@@ -28,7 +28,10 @@ const plugins = [
     fileName: '[dirname][hash][extname]',
   }),
   // Replace literal string 'process.env.NODE_ENV' with the current NODE_ENV
-  replace({ 'process.env.NODE_ENV': NODE_ENV }),
+  replace({
+    preventAssignment: true,
+    values: { 'process.env.NODE_ENV': NODE_ENV },
+  }),
   typescript({
     // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
     noEmitOnError: !ROLLUP_WATCH,
