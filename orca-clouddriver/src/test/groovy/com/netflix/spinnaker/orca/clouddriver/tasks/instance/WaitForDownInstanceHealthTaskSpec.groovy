@@ -16,14 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class WaitForDownInstanceHealthTaskSpec extends Specification {
+  CloudDriverService cloudDriverService = Mock()
+  def task = new WaitForDownInstanceHealthTask(cloudDriverService: cloudDriverService)
+
   @Unroll("#interestedHealthProviderNames with instnace: #instance => shouldBeDown: #shouldBeDown")
   def "test if instance with a given interested health provider name should be considered down"() {
+    given:
+    def inputs = new InstanceHealthCheckInputs(
+        interestingHealthProviderNames: interestedHealthProviderNames,
+        instanceIds: ['id'],
+        region: 'reg',
+        account: 'acct')
+
+    if (interestedHealthProviderNames != []) {
+      1 * cloudDriverService.getInstance(inputs.getAccount(), inputs.getRegion(), 'id') >> instance
+    }
     expect:
-    new WaitForDownInstanceHealthTask().hasSucceeded(instance, interestedHealthProviderNames) == shouldBeDown
+    task.hasSucceeded(instance, interestedHealthProviderNames) == shouldBeDown
+    task.process(inputs).status == shouldBeDown ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
 
     where:
     interestedHealthProviderNames || instance                                                                                                            || shouldBeDown
