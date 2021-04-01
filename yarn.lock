@@ -329,10 +329,10 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.298.tgz#523e4a070df624ede53667247bcb322dd9b4aee3"
   integrity sha512-kzsxEHU0k3WLadPDUDaHPxEA+bnB+theSLGYpqqR8/cgImqmBrWir/6MW3wwzS6auWbl4HA2HogjC60sQKYrhg==
 
-"@spinnaker/core@0.0.554":
-  version "0.0.554"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.554.tgz#47e3838108620d690b948cca5ef1e56f44e560ad"
-  integrity sha512-5Dp5x3bx/098DRoRvjARYHyZFU0R4G3xASMlnmXtnIv6eIOqepa6ALBnO0/XO0QSTj6LBtueiwMWaiHqLEIQXg==
+"@spinnaker/core@0.0.563":
+  version "0.0.563"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.563.tgz#a4d20a2c44a90c655164fd7f09f1d94b43b0b38a"
+  integrity sha512-V6MyqqcLnRg6A9OoZRQxhBH8IOtbHXB7lDkszGh08IqF918gh5IJNjlK5BtH81iYiZjE9I7eFMzNbz7PtoMeyg==
 
 "@spinnaker/eslint-plugin@1.0.13":
   version "1.0.13"
@@ -341,11 +341,15 @@
   dependencies:
     lodash "^4.17.20"
 
-"@spinnaker/pluginsdk-peerdeps@file:.yalc/@spinnaker/pluginsdk-peerdeps":
-  version "0.0.10"
+"@spinnaker/pluginsdk-peerdeps@0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@spinnaker/pluginsdk-peerdeps/-/pluginsdk-peerdeps-0.0.11.tgz#e92f2bbee735ca18147c688a9c5bfefe2920383e"
+  integrity sha512-FWtKY2g8rZhKZ0QF/CQDoZ241PCNq+wfadFLIdG7LYlmiHPRNWPJ9DLXjXNHBnXsgG6Om8sOgqnRHxifShnpDQ==
 
-"@spinnaker/pluginsdk@file:.yalc/@spinnaker/pluginsdk":
-  version "0.0.24"
+"@spinnaker/pluginsdk@0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@spinnaker/pluginsdk/-/pluginsdk-0.0.25.tgz#e21d905b4737db7d7ac31ff1cb0daa614da55667"
+  integrity sha512-T9HklzyDn6NcfeQGzN2RpMrFfHsm8MZZyltbj3/YkKHKbWKijQSvhzKf6NTCU09GuQ/IDYUyZLF39em6b3cNow==
   dependencies:
     check-peer-dependencies "^4.0.0"
     chokidar "^3.5.1"
@@ -357,10 +361,10 @@
     ws "^7.4.3"
     yargs "^16.2.0"
 
-"@spinnaker/presentation@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@spinnaker/presentation/-/presentation-0.0.2.tgz#d22b1fd962c3ccb0c37464677f50be6cf6067390"
-  integrity sha512-3rVI9z1wwsJHbL76E1l7tJYlBgP4IrU4mUUKuwyipZrnD4XQOR/CTK4L5uQLP9mOlmDVO0/GBNM1HZwGFKhGVQ==
+"@spinnaker/presentation@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@spinnaker/presentation/-/presentation-0.0.4.tgz#021ea6336a729a6af9126fbdf2564c2fb37dc65c"
+  integrity sha512-IOdtVnRGAHayJjPOUAXw7jqE2FtVheguwHR+Ztq1lQxW4LUsBDb4Ti2xB44qvtMxfmqAlYr9OLOTl2RY8jYPDw==
   dependencies:
     formik "^1.4.1"
 

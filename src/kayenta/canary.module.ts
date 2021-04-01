@@ -9,10 +9,10 @@ import 'kayenta/report/detail/graph/semiotic';
 import { CANARY_STAGES } from 'kayenta/stages/stages.module';
 
 // load all templates into the $templateCache
-const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach((key) => {
-  templates(key);
-});
+// const templates = require.context('./', true, /\.html$/);
+// templates.keys().forEach((key) => {
+//   templates(key);
+// });
 
 const modules = [CANARY_COMPONENTS, CANARY_DATA_SOURCE, CANARY_STATES];
 
