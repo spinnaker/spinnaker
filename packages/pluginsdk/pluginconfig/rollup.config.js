@@ -12,7 +12,7 @@ const visualizer = require('rollup-plugin-visualizer');
 
 const ROLLUP_STATS = !!process.env.ROLLUP_STATS;
 const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
-const NODE_ENV = JSON.stringify(process.env.NODE_ENV || '"development"');
+const NODE_ENV = JSON.stringify(process.env.NODE_ENV || 'development');
 const ENV_MINIFY = process.env.ROLLUP_MINIFY;
 const ROLLUP_MINIFY = ENV_MINIFY === 'true' || (NODE_ENV === '"production"' && ENV_MINIFY !== 'false');
 
