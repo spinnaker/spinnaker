@@ -18,14 +18,15 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +37,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTask {
+public class CloudFoundryDeployServiceTask implements CloudProviderAware, Task {
   private final ObjectMapper mapper;
   private final KatoService kato;
   private final ManifestEvaluator manifestEvaluator;

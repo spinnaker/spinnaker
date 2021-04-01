@@ -21,14 +21,13 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class ImageForceCacheRefreshTask implements CloudProviderAware, RetryableTask {
   static final String REFRESH_TYPE = "Image";
 
   @Autowired CloudDriverCacheService cacheService;

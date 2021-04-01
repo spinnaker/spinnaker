@@ -8,7 +8,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import java.io.IOException;
@@ -23,8 +23,8 @@ import retrofit.RetrofitError;
 
 @Component
 @Slf4j
-public class WaitForDisabledServerGroupTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask, SkippableTask {
+public class WaitForDisabledServerGroupTask
+    implements CloudProviderAware, RetryableTask, SkippableTask {
 
   private final CloudDriverService cloudDriverService;
 

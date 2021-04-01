@@ -17,18 +17,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nonnull
 
-abstract class AbstractInstanceLoadBalancerRegistrationTask extends AbstractCloudProviderAwareTask implements Task {
+abstract class AbstractInstanceLoadBalancerRegistrationTask implements CloudProviderAware, Task {
 
   @Autowired
   KatoService kato

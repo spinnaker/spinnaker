@@ -22,7 +22,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import groovy.transform.Canonical
 import groovy.transform.ToString
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
-abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProviderAware, OverridableTimeoutRetryableTask {
   private Logger log = LoggerFactory.getLogger(getClass())
 
   @Override

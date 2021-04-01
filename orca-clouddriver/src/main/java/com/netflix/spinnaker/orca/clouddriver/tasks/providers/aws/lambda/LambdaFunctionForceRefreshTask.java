@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LambdaFunctionForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+public class LambdaFunctionForceRefreshTask implements CloudProviderAware, Task {
 
   static final String REFRESH_TYPE = "Function";
 

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.launchtemplates.DeleteLaunchTemplateStage.DeleteLaunchTemplateRequest;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,8 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeleteLaunchTemplateTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class DeleteLaunchTemplateTask implements CloudProviderAware, RetryableTask {
   private final KatoService katoService;
 
   @Autowired

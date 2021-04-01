@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import groovy.transform.CompileStatic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,8 +36,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @CompileStatic
-public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class CloudFoundryMonitorKatoServicesTask implements CloudProviderAware, RetryableTask {
   private KatoService kato;
 
   @Autowired

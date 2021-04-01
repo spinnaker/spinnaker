@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +31,8 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 @Component
-public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAwareTask
-    implements OverridableTimeoutRetryableTask {
+public class CloudFormationForceCacheRefreshTask
+    implements CloudProviderAware, OverridableTimeoutRetryableTask {
   static final String REFRESH_TYPE = "CloudFormation";
 
   @Autowired CloudDriverCacheService cacheService;

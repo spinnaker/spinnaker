@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTask implements Task {
+public class FindArtifactsFromResourceTask implements CloudProviderAware, Task {
   public static final String TASK_NAME = "findArtifactsFromResource";
 
   @Autowired OortService oortService;

@@ -27,11 +27,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import org.springframework.beans.factory.annotation.Autowired
 
-abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+abstract class AbstractServerGroupTask implements CloudProviderAware, RetryableTask {
 
   @Override
   long getBackoffPeriod() {

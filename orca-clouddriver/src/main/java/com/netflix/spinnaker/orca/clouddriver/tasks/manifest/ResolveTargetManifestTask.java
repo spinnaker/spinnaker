@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResolveTargetManifestTask extends AbstractCloudProviderAwareTask implements Task {
+public class ResolveTargetManifestTask implements CloudProviderAware, Task {
   @Autowired OortService oortService;
 
   @Autowired ObjectMapper objectMapper;

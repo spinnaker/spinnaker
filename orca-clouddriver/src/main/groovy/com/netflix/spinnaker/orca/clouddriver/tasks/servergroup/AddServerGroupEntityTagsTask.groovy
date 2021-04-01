@@ -25,14 +25,15 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class AddServerGroupEntityTagsTask implements CloudProviderAware, RetryableTask {
   long backoffPeriod = TimeUnit.SECONDS.toMillis(30)
   long timeout = TimeUnit.MINUTES.toMillis(15)
 

@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
   essentially just passes an arbitrary operation over to Clouddriver.
 */
 @Component
-public class LambdaFunctionTask extends AbstractCloudProviderAwareTask implements Task {
+public class LambdaFunctionTask implements CloudProviderAware, Task {
 
   @Autowired KatoService katoService;
 

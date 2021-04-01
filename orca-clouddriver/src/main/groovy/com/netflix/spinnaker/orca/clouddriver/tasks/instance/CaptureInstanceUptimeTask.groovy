@@ -22,7 +22,8 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.commands.InstanceUptimeCommand
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class CaptureInstanceUptimeTask implements CloudProviderAware, RetryableTask {
   long backoffPeriod = 15000
   long timeout = 300000
 

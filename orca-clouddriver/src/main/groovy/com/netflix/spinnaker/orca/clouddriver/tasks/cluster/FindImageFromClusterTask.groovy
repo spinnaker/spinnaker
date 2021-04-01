@@ -27,7 +27,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -38,7 +39,7 @@ import retrofit.RetrofitError
 
 @Component
 @Slf4j
-class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
 
   static String SUMMARY_TYPE = "Images"
 

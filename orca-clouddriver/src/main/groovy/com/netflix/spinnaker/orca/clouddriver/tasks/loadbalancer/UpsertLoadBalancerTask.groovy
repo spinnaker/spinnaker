@@ -22,12 +22,13 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertLoadBalancerTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class UpsertLoadBalancerTask implements CloudProviderAware, RetryableTask {
 
   static final String CLOUD_OPERATION_TYPE = "upsertLoadBalancer"
 

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class FindImageFromTagsTask implements CloudProviderAware, RetryableTask {
   @Autowired ObjectMapper objectMapper;
 
   @Autowired List<ImageFinder> imageFinders;

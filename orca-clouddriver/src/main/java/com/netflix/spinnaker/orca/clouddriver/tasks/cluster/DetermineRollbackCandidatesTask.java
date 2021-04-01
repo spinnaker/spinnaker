@@ -33,7 +33,7 @@ import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,8 +69,7 @@ import org.springframework.stereotype.Component;
  * previous server group (if exists!)
  */
 @Component
-public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class DetermineRollbackCandidatesTask implements CloudProviderAware, RetryableTask {
   private static final Logger logger =
       LoggerFactory.getLogger(DetermineRollbackCandidatesTask.class);
 

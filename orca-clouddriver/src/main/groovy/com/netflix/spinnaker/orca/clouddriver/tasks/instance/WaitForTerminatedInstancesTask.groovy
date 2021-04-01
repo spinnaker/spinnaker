@@ -22,14 +22,15 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+class WaitForTerminatedInstancesTask implements CloudProviderAware, OverridableTimeoutRetryableTask {
 
   long backoffPeriod = 10000
   long timeout = 3600000

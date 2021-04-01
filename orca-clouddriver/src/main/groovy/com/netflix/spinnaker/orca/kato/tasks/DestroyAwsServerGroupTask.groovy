@@ -23,7 +23,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage.DESTROY_A
  */
 @Component
 @Deprecated
-class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+class DestroyAwsServerGroupTask implements CloudProviderAware, Task {
 
   @Autowired
   KatoService kato

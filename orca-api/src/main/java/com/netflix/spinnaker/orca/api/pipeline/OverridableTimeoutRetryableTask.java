@@ -19,11 +19,9 @@ import com.netflix.spinnaker.kork.annotations.Alpha;
 
 /**
  * A retryable task whose timeout is taken from the top level stage if that value has been
- * overridden.
+ * overridden. {@see com.netflix.spinnaker.orca.q.handler.RunTaskHandler} for the way this interface is used.
  *
  * <p>These are typically wait/monitor stages
- *
- * <p>TODO(rz): What even is the point of this interface?
  */
 @Alpha
 public interface OverridableTimeoutRetryableTask extends RetryableTask {}

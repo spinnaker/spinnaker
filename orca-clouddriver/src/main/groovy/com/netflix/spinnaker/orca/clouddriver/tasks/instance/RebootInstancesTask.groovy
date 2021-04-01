@@ -21,7 +21,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.Nonnull
 
 @Component
-class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task {
+class RebootInstancesTask implements CloudProviderAware, Task {
   static final String CLOUD_OPERATION_TYPE = "rebootInstances"
 
   @Autowired

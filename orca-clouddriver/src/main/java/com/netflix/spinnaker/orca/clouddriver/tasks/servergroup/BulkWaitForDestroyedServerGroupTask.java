@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import java.io.IOException;
@@ -36,8 +36,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 @Component
-public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTask {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(BulkWaitForDestroyedServerGroupTask.class);
 

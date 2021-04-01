@@ -27,7 +27,8 @@ import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
@@ -36,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 @Slf4j
-abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+abstract class AbstractInstancesCheckTask implements CloudProviderAware, OverridableTimeoutRetryableTask {
   long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.HOURS.toMillis(2)
   long serverGroupWaitTime = TimeUnit.MINUTES.toMillis(10)

@@ -21,7 +21,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +32,7 @@ import javax.annotation.Nonnull
 
 @Component
 @Slf4j
-class CleanupCanaryTask extends AbstractCloudProviderAwareTask implements Task {
+class CleanupCanaryTask implements CloudProviderAware, Task {
 
   @Autowired KatoService katoService
 

@@ -16,21 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nonnull
 
 @Slf4j
-abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareTask implements Task {
+abstract class AbstractAwsScalingProcessTask implements CloudProviderAware, Task {
   @Autowired
   KatoService katoService
 

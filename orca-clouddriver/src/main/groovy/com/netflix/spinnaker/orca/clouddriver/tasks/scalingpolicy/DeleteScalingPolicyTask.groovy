@@ -23,13 +23,14 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 
 @Component
-class DeleteScalingPolicyTask extends AbstractCloudProviderAwareTask implements Task {
+class DeleteScalingPolicyTask implements CloudProviderAware, Task {
 
   private final OperationsRunner operationsRunner
 

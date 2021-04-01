@@ -25,7 +25,8 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.Nonnull
 
 @Component
-class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements Task {
+class TerminateInstancesTask implements CloudProviderAware, Task {
 
   @Autowired
   KatoService kato

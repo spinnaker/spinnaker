@@ -25,7 +25,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
-public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, RetryableTask {
   static final String REFRESH_TYPE = "LoadBalancer"
 
   static final int MAX_CHECK_FOR_PENDING = 3

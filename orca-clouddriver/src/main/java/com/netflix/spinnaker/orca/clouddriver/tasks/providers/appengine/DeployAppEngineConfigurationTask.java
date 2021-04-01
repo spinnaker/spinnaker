@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,8 +37,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class DeployAppEngineConfigurationTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public class DeployAppEngineConfigurationTask implements CloudProviderAware, RetryableTask {
 
   private final ObjectMapper objectMapper;
   private final KatoService kato;

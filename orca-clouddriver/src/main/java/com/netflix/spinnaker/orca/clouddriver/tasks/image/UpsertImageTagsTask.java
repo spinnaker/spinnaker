@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 @Component
-public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class UpsertImageTagsTask implements CloudProviderAware, RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(UpsertImageTagsTask.class);
 
   @Autowired KatoService kato;

@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +31,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class DeleteCloudFormationChangeSetTask extends AbstractCloudProviderAwareTask
-    implements Task {
+public class DeleteCloudFormationChangeSetTask implements CloudProviderAware, Task {
 
   @Autowired KatoService katoService;
 

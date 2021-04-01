@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import java.util.*;
@@ -34,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderAwareTask
-    implements RetryableTask {
+public abstract class AbstractBulkServerGroupTask implements CloudProviderAware, RetryableTask {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBulkServerGroupTask.class);
 
   @Autowired protected OortHelper oortHelper;

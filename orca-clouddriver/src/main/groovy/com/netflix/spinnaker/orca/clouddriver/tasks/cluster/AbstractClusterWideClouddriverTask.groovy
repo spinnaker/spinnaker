@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -27,7 +28,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGr
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
@@ -38,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * A task that operates on some subset of the ServerGroups in a cluster.
  */
 @Slf4j
-abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+abstract class AbstractClusterWideClouddriverTask implements RetryableTask, CloudProviderAware, Task {
 
   @Override
   public long getBackoffPeriod() {

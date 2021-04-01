@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.image.DeleteImageStage;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -34,8 +34,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 @Component
-public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask
-    implements OverridableTimeoutRetryableTask {
+public class MonitorDeleteImageTask implements CloudProviderAware, OverridableTimeoutRetryableTask {
   private static final Logger log = LoggerFactory.getLogger(MonitorDeleteImageTask.class);
 
   private final CloudDriverService cloudDriverService;

@@ -28,7 +28,8 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUC
 
 @Component
 @Slf4j
-class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableTask {
   static final String REFRESH_TYPE = "ServerGroup"
 
   private final CloudDriverCacheStatusService cacheStatusService

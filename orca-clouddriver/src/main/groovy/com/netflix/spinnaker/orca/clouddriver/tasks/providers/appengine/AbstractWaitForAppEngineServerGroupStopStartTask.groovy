@@ -22,14 +22,15 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 @Slf4j
-abstract class AbstractWaitForAppEngineServerGroupStopStartTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+abstract class AbstractWaitForAppEngineServerGroupStopStartTask implements CloudProviderAware, RetryableTask {
   long backoffPeriod = 10000
   long timeout = 1800000
 

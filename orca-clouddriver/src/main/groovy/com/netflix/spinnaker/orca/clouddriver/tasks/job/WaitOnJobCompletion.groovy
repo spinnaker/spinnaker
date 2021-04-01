@@ -26,7 +26,8 @@ import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -40,7 +41,7 @@ import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 @Component
-public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeoutRetryableTask {
   private final Logger log = LoggerFactory.getLogger(getClass())
 
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)

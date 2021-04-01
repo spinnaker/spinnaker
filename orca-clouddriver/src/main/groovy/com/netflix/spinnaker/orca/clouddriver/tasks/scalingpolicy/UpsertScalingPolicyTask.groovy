@@ -25,13 +25,14 @@ import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.stereotype.Component
 import groovy.util.logging.Slf4j
 
 @Component
 @Slf4j
-class UpsertScalingPolicyTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class UpsertScalingPolicyTask implements CloudProviderAware, RetryableTask {
 
   long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
   long timeout = TimeUnit.SECONDS.toMillis(100)

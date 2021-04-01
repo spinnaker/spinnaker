@@ -21,14 +21,15 @@ import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 
 @Component
-class DeleteSecurityGroupForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+class DeleteSecurityGroupForceRefreshTask implements CloudProviderAware, Task {
   static final String REFRESH_TYPE = "SecurityGroup"
 
   @Autowired

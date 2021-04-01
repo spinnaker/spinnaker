@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTask implements Task {
+public class UpsertGceAutoscalingPolicyTask implements CloudProviderAware, Task {
   @Autowired private KatoService katoService;
 
   @Autowired private TargetServerGroupResolver resolver;

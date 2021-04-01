@@ -25,12 +25,13 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertAppEngineLoadBalancersTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+class UpsertAppEngineLoadBalancersTask implements CloudProviderAware, RetryableTask {
   static final String CLOUD_OPERATION_TYPE = "upsertLoadBalancer"
   static final String CLOUD_PROVIDER = "appengine"
 

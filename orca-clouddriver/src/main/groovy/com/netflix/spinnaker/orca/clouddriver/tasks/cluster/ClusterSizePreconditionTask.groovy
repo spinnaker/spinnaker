@@ -25,7 +25,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +36,7 @@ import retrofit.converter.ConversionException
 import retrofit.converter.JacksonConverter
 
 @Component
-class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask implements RetryableTask, PreconditionTask {
+class ClusterSizePreconditionTask implements CloudProviderAware, RetryableTask, PreconditionTask {
   public static final String PRECONDITION_TYPE = 'clusterSize'
 
   final String preconditionType = PRECONDITION_TYPE

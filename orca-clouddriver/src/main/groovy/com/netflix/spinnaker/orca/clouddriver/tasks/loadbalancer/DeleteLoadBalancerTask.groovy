@@ -20,7 +20,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -30,7 +31,7 @@ import javax.annotation.Nonnull
  * Created by aglover on 9/26/14.
  */
 @Component
-class DeleteLoadBalancerTask extends AbstractCloudProviderAwareTask implements Task {
+class DeleteLoadBalancerTask implements CloudProviderAware, Task {
 
   @Autowired
   KatoService kato
