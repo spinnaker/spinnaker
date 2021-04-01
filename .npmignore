@@ -19,7 +19,6 @@ npm-debug.log
 .awcache/
 .gradle/
 .happypack/
-build/
 dist/
 transpiled/
 

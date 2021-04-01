@@ -45,7 +45,7 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Unit Tests
-        run: CHOKIDAR_USEPOLLING=true yarn test --single-run --coverage --no-auto-watch
+        run: yarn test
 
   build:
     name: Production Build
@@ -71,5 +71,5 @@ jobs:
       - name: Install Dependencies
         run: yarn --frozen-lockfile
 
-      - name: Yarn Lib Build
-        run: yarn lib
+      - name: Yarn Build
+        run: yarn build

@@ -60,24 +60,8 @@ npm link @spinnaker/kayenta
 
 You should only have to run these commands once.
 
-Next, run `WATCH=true yarn lib` at the root of this repository. In a separate terminal,
+Next, run `yarn build --watch` at the root of this repository. In a separate terminal,
 run `yarn start` at the root of the main Deck repository.
-
-### Environment Variables
-
-`deck-kayenta` uses feature and development flags. These are fully configurable within `settings.js`,
-but it is usually easier to pass the flags as environment variables.
-
-These are good defaults:
-
-```bash
-REDUX_LOGGER=true \
-API_HOST=http://localhost:8084 \
-METRIC_STORE=stackdriver \
-CANARY_STAGES_ENABLED=true \
-TEMPLATES_ENABLED=true \
-yarn start
-```
 
 ## Publishing @spinnaker/kayenta
 
@@ -94,5 +78,4 @@ for a [PR](https://github.com/spinnaker/deck/pulls/app%2Fdependabot-preview) aga
 
 To run `deck-kayenta`'s tests, run `yarn test`.
 
-To run `deck-kayenta`'s tests and generate a code coverage report, run `yarn test-coverage`.
-Open `/coverage/html/index.html` in a browser to view the HTML version of the report.
+To debug `deck-kayenta`'s tests using https://jestjs.io/, run `yarn test:debug`. Add a `debugger` statement to the test you want to debug.
