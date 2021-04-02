@@ -1,6 +1,10 @@
 import React from 'react';
 
-import { IDependsOnConstraint } from 'core/domain';
+import { IConstraint, IDependsOnConstraint } from 'core/domain';
+
+export const isDependsOnConstraint = (constraint: IConstraint): constraint is IDependsOnConstraint => {
+  return constraint.type === 'depends-on';
+};
 
 const getTitle = (constraint: IDependsOnConstraint) => {
   const prerequisiteEnv = constraint.attributes.dependsOnEnvironment.toUpperCase();
