@@ -1,4 +1,4 @@
-import { StateParams } from '@uirouter/core';
+import { StateParams } from '@uirouter/angularjs';
 import { IScope, module } from 'angular';
 import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 

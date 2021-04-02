@@ -1,5 +1,6 @@
 import { IComponentController, module } from 'angular';
 import { IKayentaStage, KayentaAnalysisType } from 'kayenta/domain';
+import { $log } from 'ngimport';
 
 class ForAnalysisTypeController implements IComponentController {
   private stage: IKayentaStage;
@@ -7,10 +8,10 @@ class ForAnalysisTypeController implements IComponentController {
 
   public showForAnalysisType = (): boolean => {
     if (!this.stage) {
-      console.warn('No stage bound to <for-analysis-type> component');
+      $log.warn('No stage bound to <for-analysis-type> component');
     }
     if (!this.types) {
-      console.warn('No types bound to <for-analysis-type> component');
+      $log.warn('No types bound to <for-analysis-type> component');
     }
 
     return (this.types || '')
@@ -24,7 +25,7 @@ class ForAnalysisTypeController implements IComponentController {
             KayentaAnalysisType.RealTimeAutomatic,
           ].includes(val)
         ) {
-          console.warn(`${val} is not a Kayenta analysis type.`);
+          $log.warn(`${val} is not a Kayenta analysis type.`);
         }
         return val;
       })
