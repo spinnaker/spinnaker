@@ -37,4 +37,23 @@
     white-space: nowrap;
     flex: 1 1 auto;
   }
+
+  &:hover {
+    .resource-events-link {
+      display: flex;
+    }
+  }
+
+  .resource-events-link {
+    display: none;
+    padding: 6px;
+    margin-right: -6px;
+    border-radius: 999px;
+    &:not(:last-child) {
+      margin-right: 12px;
+    }
+    &:hover {
+      background-color: var(--color-accent-g2);
+    }
+  }
 }

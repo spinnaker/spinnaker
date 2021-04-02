@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import { DateTime } from 'luxon';
 import React, { useMemo } from 'react';
 
@@ -65,7 +64,7 @@ export const ArtifactDetail = ({
   const logEvent = useLogEvent(logCategories.artifactDetails);
 
   const keydownCallback = ({ key }: KeyboardEvent) => {
-    if (key === 'Esc') {
+    if (key === 'Escape') {
       onRequestClose();
     }
   };
@@ -178,7 +177,7 @@ export const ArtifactDetail = ({
           </div>
         </div>
         {environments.map((environment) => {
-          const { name: environmentName, state } = environment;
+          const { name: environmentName } = environment;
 
           return (
             <EnvironmentRow
@@ -200,22 +199,7 @@ export const ArtifactDetail = ({
                   .filter((resource) => shouldDisplayResource(reference, resource))
                   .sort((a, b) => `${a.kind}${a.displayName}`.localeCompare(`${b.kind}${b.displayName}`))
                   .map((resource) => (
-                    <div key={resource.id} className="flex-container-h middle">
-                      {state === 'deploying' && (
-                        <div
-                          className={classNames(
-                            'resource-badge flex-container-h center middle sp-margin-s-right',
-                            state,
-                          )}
-                        />
-                      )}
-                      <ManagedResourceObject
-                        application={application}
-                        key={resource.id}
-                        resource={resource}
-                        depth={state === 'deploying' ? 0 : 1}
-                      />
-                    </div>
+                    <ManagedResourceObject application={application} key={resource.id} resource={resource} depth={1} />
                   ))}
               </div>
             </EnvironmentRow>

@@ -104,7 +104,7 @@ export const ManagedResourceDetailsIndicator = ({
             <li>
               <a
                 onClick={() => {
-                  showManagedResourceHistoryModal({ resourceSummary });
+                  showManagedResourceHistoryModal(resourceSummary);
                   logClick('History', id);
                 }}
               >

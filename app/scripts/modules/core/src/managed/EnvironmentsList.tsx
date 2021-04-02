@@ -25,7 +25,6 @@ export function EnvironmentsList({
     <div>
       {environments.map(({ name, resources, artifacts }) => {
         const pinnedVersions = artifacts.filter(({ pinnedVersion }) => pinnedVersion);
-
         return (
           <EnvironmentRow
             key={name}
@@ -48,11 +47,12 @@ export function EnvironmentsList({
                     application={application}
                     key={resource.id}
                     resource={resource}
-                    environment={name}
-                    showReferenceName={allArtifacts.length > 1}
-                    artifactVersionsByState={artifactVersionsByState}
-                    artifactDetails={artifactDetails}
-                    depth={0}
+                    metadata={{
+                      environment: name,
+                      showReferenceName: allArtifacts.length > 1,
+                      artifactVersionsByState: artifactVersionsByState,
+                      artifactDetails: artifactDetails,
+                    }}
                   />
                 );
               })}

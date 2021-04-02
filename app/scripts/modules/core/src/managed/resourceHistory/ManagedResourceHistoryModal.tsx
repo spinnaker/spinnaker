@@ -18,9 +18,8 @@ import {
 
 import './ManagedResourceHistoryModal.less';
 
-export interface IManagedResourceHistoryModalProps extends IModalComponentProps {
-  resourceSummary: IManagedResourceSummary;
-}
+export type IManagedResourceHistoryModalProps = IModalComponentProps &
+  Pick<IManagedResourceSummary, 'id' | 'displayName'>;
 
 const EVENT_POLLING_INTERVAL = 10 * 1000;
 
@@ -29,9 +28,7 @@ export const showManagedResourceHistoryModal = (props: IManagedResourceHistoryMo
 
 const tableLayout = standardGridTableLayout([{ unit: 'px', size: 70 }, 8, 1.5]);
 
-export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
-  const { id } = resourceSummary;
-
+export const ManagedResourceHistoryModal = ({ id, displayName, dismissModal }: IManagedResourceHistoryModalProps) => {
   const { status: historyEventStatus, result: historyEvents, refresh } = usePollingData(
     () => ManagedReader.getResourceHistory(id),
     null,
@@ -44,7 +41,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
 
   return (
     <>
-      <ModalHeader>Resource history - {resourceSummary.displayName}</ModalHeader>
+      <ModalHeader>Resource history - {displayName}</ModalHeader>
       <ModalBody>
         <div
           className={classNames('ManagedResourceHistoryModal', {
