@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.TimeUnit
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 class WaitForAllNetflixAWSInstancesDownTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
-    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
+    return WaitingForInstancesTaskHelper.extractServerGroups(stage)
   }
 
   @Override

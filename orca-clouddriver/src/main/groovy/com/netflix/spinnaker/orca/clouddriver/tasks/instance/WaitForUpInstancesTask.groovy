@@ -143,7 +143,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
       targetDesiredSize = newTargetDesiredSize
     } else if (stage.context.desiredPercentage != null) {
       Integer percentage = (Integer) stage.context.desiredPercentage
-      targetDesiredSize = AbstractWaitingForInstancesTask.getDesiredInstanceCount(currentCapacity, percentage)
+      targetDesiredSize = WaitingForInstancesTaskHelper.getDesiredInstanceCount(currentCapacity, percentage)
       splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${currentCapacity}")
     }
 
@@ -173,7 +173,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
 
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
-    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
+    return WaitingForInstancesTaskHelper.extractServerGroups(stage)
   }
 
   @Override

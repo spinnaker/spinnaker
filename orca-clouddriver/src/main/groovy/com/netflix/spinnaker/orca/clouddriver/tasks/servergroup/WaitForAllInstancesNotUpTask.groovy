@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitingForInstancesTaskHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
 class WaitForAllInstancesNotUpTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
-    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
+    return WaitingForInstancesTaskHelper.extractServerGroups(stage)
   }
 
   @Override

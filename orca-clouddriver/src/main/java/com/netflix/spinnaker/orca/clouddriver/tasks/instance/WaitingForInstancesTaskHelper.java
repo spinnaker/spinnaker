@@ -24,14 +24,25 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class AbstractWaitingForInstancesTask {
+/**
+ * Helper functions that are used in tasks that check on the status of instances. These were
+ * previously exposed via a class hierarchy but are pure functions.
+ */
+public class WaitingForInstancesTaskHelper {
   private static final List<String> keys =
       List.of("disableAsg", "enableAsg", "enableServerGroup", "disableServerGroup");
 
-  // "Desired Percentage" implies that some fraction of the instances in a server group have been
-  // enabled
-  // or disabled -- likely during a rolling red/black operation.
-  protected static int getDesiredInstanceCount(
+  /**
+   * Calculate the number of instances that are required to meet the desired instance count for a
+   * task to complete. See
+   * https://docs.google.com/a/google.com/document/d/1rHe6JUkKGt58NaVO_3fHJt456Pw5kiX_sdVn1gwTZxk/edit?usp=sharing
+   *
+   * @param capacity TODO: use actual Capacity class
+   * @param desiredPercentage implies that some fraction of the instances in a server group have
+   *     been enabled or disabled -- likely during a rolling red/black operation.
+   * @return
+   */
+  public static int getDesiredInstanceCount(
       Map<String, Integer> capacity, Integer desiredPercentage) {
     if (desiredPercentage == null || desiredPercentage < 0 || desiredPercentage > 100) {
       throw new NumberFormatException("desiredPercentage must be an integer between 0 and 100");
@@ -43,11 +54,15 @@ public class AbstractWaitingForInstancesTask {
     Integer min = capacity.get("min") != null ? capacity.get("min") : desired;
     Integer max = capacity.get("max") != null ? capacity.get("max") : desired;
 
-    // See
-    // https://docs.google.com/a/google.com/document/d/1rHe6JUkKGt58NaVO_3fHJt456Pw5kiX_sdVn1gwTZxk/edit?usp=sharing
     return (int) Math.ceil(((desiredPercentage / 100D) - 1D) * max + min);
   }
 
+  /**
+   * Extracts the Server Groups from the stage context that are being monitored for status.
+   *
+   * @param stage
+   * @return A Map of Region to List of Server Groups
+   */
   public static Map<String, List<String>> extractServerGroups(StageExecution stage) {
     Map<String, Object> context = stage.getContext();
 
