@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
@@ -57,58 +59,59 @@ class AbstractServerGroupTaskSpec extends Specification {
 
   def "creates an enable ASG task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[1]
-          taskId
-        }
+    def operations
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
+    }
 
     when:
     task.execute(stage)
 
     then:
-      operations.size() == 1
-      with(operations[0].testAction) {
-        it instanceof Map
-        asgName == this.stageContext.asgName
-        serverGroupName == this.stageContext.asgName
-        regions == this.stageContext.regions
-        credentials == this.stageContext.credentials
-      }
+    operations.size() == 1
+    with(operations[0].testAction) {
+      it instanceof Map
+      asgName == this.stageContext.asgName
+      serverGroupName == this.stageContext.asgName
+      regions == this.stageContext.regions
+      credentials == this.stageContext.credentials
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> taskId
-      }
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId)
+    }
 
     when:
     def result = task.execute(stage)
 
     then:
-      result.status == ExecutionStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.context."kato.last.task.id" == taskId
     result.context."deploy.account.name" == stageContext.credentials
   }
 
   void "should get target dynamically when configured"() {
     setup:
-      stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> taskId
-      }
-      GroovyMock(TargetServerGroupResolver, global: true)
+    stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId)
+    }
+    GroovyMock(TargetServerGroupResolver, global: true)
 
     when:
     def result = task.execute(stage)
 
     then:
-      2 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
-        name: "foo-v001", region: "us-east-1"
-      )
+    2 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
+      name: "foo-v001", region: "us-east-1"
+    )
     result.context.asgName == "foo-v001"
     result.context.serverGroupName == "foo-v001"
     result.context."deploy.server.groups" == ["us-east-1": ["foo-v001"]]

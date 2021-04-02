@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import com.netflix.spinnaker.orca.api.operations.OperationsContext;
+import com.netflix.spinnaker.orca.api.operations.OperationsInput;
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.*;
 import javax.annotation.Nonnull;
@@ -31,11 +32,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class UpsertDisruptionBudgetTask implements CloudProviderAware, Task {
 
-  private final KatoService katoService;
+  private final OperationsRunner operationsRunner;
 
   @Autowired
-  public UpsertDisruptionBudgetTask(KatoService katoService) {
-    this.katoService = katoService;
+  public UpsertDisruptionBudgetTask(OperationsRunner operationsRunner) {
+    this.operationsRunner = operationsRunner;
   }
 
   @Override
@@ -51,12 +52,13 @@ public class UpsertDisruptionBudgetTask implements CloudProviderAware, Task {
     operation.put("disruptionBudget", request.get("disruptionBudget"));
     operations.add(Collections.singletonMap("upsertDisruptionBudget", operation));
 
-    TaskId taskId =
-        katoService.requestOperations(request.get("cloudProvider").toString(), operations);
+    OperationsInput operationsInput =
+        OperationsInput.of(request.get("cloudProvider").toString(), operations, stage);
+    OperationsContext operationsContext = operationsRunner.run(operationsInput);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "upsertDisruptionBudget");
-    outputs.put("kato.last.task.id", taskId);
+    outputs.put(operationsContext.contextKey(), operationsContext.contextValue());
 
     // TODO(rz): Why is titus namespacing these?
     outputs.put("titus.region", request.get("region"));

@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsContext
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,12 +34,13 @@ import javax.annotation.Nonnull
 class UpsertServerGroupTagsTask implements CloudProviderAware, Task {
 
   @Autowired
-  KatoService kato
+  OperationsRunner operationsRunner
 
   @Nonnull
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
-    def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertServerGroupTags: stage.context]])
+    OperationsInput operationsInput = OperationsInput.of(getCloudProvider(stage), [[upsertServerGroupTags: stage.context]], stage)
+    OperationsContext operationsContext = operationsRunner.run(operationsInput)
 
     def deployServerGroups = []
     if (stage.context.regions && (stage.context.serverGroupName || stage.context.asgName)) {
@@ -51,10 +54,10 @@ class UpsertServerGroupTagsTask implements CloudProviderAware, Task {
     }
 
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
-        "notification.type"   : "upsertservergrouptags",
-        "deploy.account.name" : getCredentials(stage),
-        "kato.last.task.id"   : taskId,
-        "deploy.server.groups": deployServerGroups,
+        "notification.type"             : "upsertservergrouptags",
+        "deploy.account.name"           : getCredentials(stage),
+        (operationsContext.contextKey()): operationsContext.contextValue(),
+        "deploy.server.groups"          : deployServerGroups,
     ]).build()
   }
 }

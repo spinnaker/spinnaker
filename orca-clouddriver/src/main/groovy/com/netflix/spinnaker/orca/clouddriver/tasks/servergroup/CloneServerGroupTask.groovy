@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.operations.OperationsContext
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.CloneDescriptionDecorator
@@ -40,7 +42,7 @@ class CloneServerGroupTask implements CloudProviderAware, Task, DeploymentDetail
   Collection<CloneDescriptionDecorator> cloneDescriptionDecorators = []
 
   @Autowired
-  KatoService kato
+  OperationsRunner operationsRunner
 
   @Autowired
   ObjectMapper mapper
@@ -65,13 +67,15 @@ class CloneServerGroupTask implements CloudProviderAware, Task, DeploymentDetail
     }
 
     String credentials = getCredentials(stage)
-    def taskId = kato.requestOperations(cloudProvider, getDescriptions(stage, operation))
+
+    OperationsInput operationsInput = OperationsInput.of(cloudProvider, getDescriptions(stage, operation), stage)
+    OperationsContext operationsContext = operationsRunner.run(operationsInput)
 
     def outputs = [
-      "notification.type"   : "createcopylastasg",
-      "kato.result.expected": true,
-      "kato.last.task.id"   : taskId,
-      "deploy.account.name" : credentials,
+      "notification.type"             : "createcopylastasg",
+      "kato.result.expected"          : true,
+      (operationsContext.contextKey()): operationsContext.contextValue(),
+      "deploy.account.name"           : credentials,
     ]
 
     if (stage.context.suspendedProcesses) {

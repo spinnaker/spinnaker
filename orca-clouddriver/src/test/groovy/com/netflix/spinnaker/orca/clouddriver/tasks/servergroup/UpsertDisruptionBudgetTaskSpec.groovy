@@ -15,8 +15,10 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -38,13 +40,14 @@ class UpsertDisruptionBudgetTaskSpec extends Specification {
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "upsertDisruptionBudget", context)
     and:
     List<Map> operations = []
-    def katoService = Mock(KatoService) {
-      1 * requestOperations("titus", _) >> {
-        operations = it[1]
-        new TaskId(UUID.randomUUID().toString())
+    def operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(new TaskId(UUID.randomUUID().toString()), null)
       }
     }
-    def task = new UpsertDisruptionBudgetTask(katoService)
+    def task = new UpsertDisruptionBudgetTask(operationsRunner)
 
     when:
     def result = task.execute(stage)

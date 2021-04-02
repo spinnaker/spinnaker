@@ -32,4 +32,20 @@ public class OperationsInput {
   public boolean hasCloudProvider() {
     return this.cloudProvider != null && !this.cloudProvider.isEmpty();
   }
+
+  public static OperationsInput of(
+      String cloudProvider,
+      Collection<? extends Map<String, Map>> operations,
+      StageExecution stageExecution) {
+    return builder()
+        .cloudProvider(cloudProvider)
+        .operations(operations)
+        .stageExecution(stageExecution)
+        .build();
+  }
+
+  public static OperationsInput of(
+      Collection<? extends Map<String, Map>> operations, StageExecution stageExecution) {
+    return of(null, operations, stageExecution);
+  }
 }

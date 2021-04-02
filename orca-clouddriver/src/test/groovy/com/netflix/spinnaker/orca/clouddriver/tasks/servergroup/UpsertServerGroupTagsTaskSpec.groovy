@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,44 +46,45 @@ class UpsertServerGroupTagsTaskSpec extends Specification {
 
   def "creates an upsert google server group tags task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations("abc", _) >> {
-          operations = it[1]
-          taskId
-        }
+    def operations
+    task.operationsRunner =  Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
+    }
 
     when:
     task.execute(stage)
 
     then:
-      operations.size() == 1
-      with(operations[0].upsertServerGroupTags) {
-        it instanceof Map
-        serverGroupName == this.upsertServerGroupTagsConfig.serverGroupName
-        regions == this.upsertServerGroupTagsConfig.regions
-        zone == this.upsertServerGroupTagsConfig.zone
-        credentials == this.upsertServerGroupTagsConfig.credentials
-        tags == this.upsertServerGroupTagsConfig.tags
-      }
+    operations.size() == 1
+    with(operations[0].upsertServerGroupTags) {
+      it instanceof Map
+      serverGroupName == this.upsertServerGroupTagsConfig.serverGroupName
+      regions == this.upsertServerGroupTagsConfig.regions
+      zone == this.upsertServerGroupTagsConfig.zone
+      credentials == this.upsertServerGroupTagsConfig.credentials
+      tags == this.upsertServerGroupTagsConfig.tags
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> taskId
-      }
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId, null)
+    }
 
     when:
     def result = task.execute(stage)
 
     then:
-      result.status == ExecutionStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.context."kato.last.task.id" == taskId
     result.context."deploy.account.name" == upsertServerGroupTagsConfig.credentials
     result.context."deploy.server.groups" == [
-          (upsertServerGroupTagsConfig.regions[0]): [upsertServerGroupTagsConfig.serverGroupName]
-      ]
+      (upsertServerGroupTagsConfig.regions[0]): [upsertServerGroupTagsConfig.serverGroupName]
+    ]
   }
 }

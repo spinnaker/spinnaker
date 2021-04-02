@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
@@ -46,10 +48,11 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
     ]
 
     List<Map> operations = []
-    task.katoService = Mock(KatoService) {
-      1 * requestOperations('titus', _) >> {
-        operations += it[1]
-        new TaskId(UUID.randomUUID().toString())
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations += operationsInput.getOperations()
+        new KatoOperationsContext(new TaskId(UUID.randomUUID().toString()), null)
       }
     }
 

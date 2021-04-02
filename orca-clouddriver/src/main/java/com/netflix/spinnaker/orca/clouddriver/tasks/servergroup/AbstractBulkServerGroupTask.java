@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.api.operations.OperationsContext;
+import com.netflix.spinnaker.orca.api.operations.OperationsInput;
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
@@ -41,7 +42,7 @@ public abstract class AbstractBulkServerGroupTask implements CloudProviderAware,
 
   @Autowired protected MonikerHelper monikerHelper;
 
-  @Autowired protected KatoService katoService;
+  @Autowired protected OperationsRunner operationsRunner;
 
   abstract void validateClusterStatus(Map<String, Object> operation, Moniker moniker);
 
@@ -118,11 +119,12 @@ public abstract class AbstractBulkServerGroupTask implements CloudProviderAware,
           operations.add(tmp);
         });
 
-    TaskId taskId = katoService.requestOperations(request.cloudProvider, operations);
+    OperationsInput operationsInput = OperationsInput.of(request.cloudProvider, operations, stage);
+    OperationsContext operationsContext = operationsRunner.run(operationsInput);
 
     Map<String, Object> result = new HashMap<>();
     result.put("deploy.account.name", request.getCredentials());
-    result.put("kato.last.task.id", taskId);
+    result.put(operationsContext.contextKey(), operationsContext.contextValue());
     Map<String, List<String>> regionToServerGroupNames = new HashMap<>();
     regionToServerGroupNames.put(
         request.getRegion(),

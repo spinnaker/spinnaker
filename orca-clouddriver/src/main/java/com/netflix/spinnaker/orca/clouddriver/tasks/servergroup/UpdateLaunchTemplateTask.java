@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import com.netflix.spinnaker.orca.api.operations.OperationsContext;
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +32,13 @@ public class UpdateLaunchTemplateTask extends AbstractUpdateLaunchSettingsTask {
 
   @Autowired
   public UpdateLaunchTemplateTask(
-      KatoService kato, @Value("${default.bake.account:default}") String defaultBakeAccount) {
-    super(kato, defaultBakeAccount);
+      OperationsRunner operationsRunner,
+      @Value("${default.bake.account:default}") String defaultBakeAccount) {
+    super(operationsRunner, defaultBakeAccount);
   }
 
   @Override
-  public Map<String, Object> getContext(StageExecution stage, TaskId taskId) {
+  public Map<String, Object> getContext(StageExecution stage, OperationsContext operationsContext) {
     final Map<String, Object> ctx = new HashMap<>();
     final String region = (String) stage.getContext().get("region");
     final String serverGroupName =
@@ -50,7 +51,7 @@ public class UpdateLaunchTemplateTask extends AbstractUpdateLaunchSettingsTask {
     ctx.put("notification.type", "modifyservergrouplaunchtemplate");
     ctx.put("modifyservergrouplaunchtemplate.account.name", getCredentials(stage));
     ctx.put("modifyservergrouplaunchtemplate.region", region);
-    ctx.put("kato.last.task.id", taskId);
+    ctx.put(operationsContext.contextKey(), operationsContext.contextValue());
     ctx.put(
         "deploy.server.groups",
         Collections.singletonMap(region, Collections.singletonList(serverGroupName)));

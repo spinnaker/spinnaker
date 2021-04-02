@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
@@ -52,52 +55,53 @@ class DestroyServerGroupTaskSpec extends Specification {
 
   def "creates a destroy ASG task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations('aws', _) >> {
-          operations = it[1]
-          taskId
-        }
+    def operations
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
+    }
 
     when:
     task.execute(stage)
 
     then:
-      operations.size() == 1
-      with(operations[0].destroyServerGroup) {
-        it instanceof Map
-        asgName == this.destroyASGConfig.asgName
-        regions == this.destroyASGConfig.regions
-        credentials == this.destroyASGConfig.credentials
-      }
+    operations.size() == 1
+    with(operations[0].destroyServerGroup) {
+      it instanceof Map
+      asgName == this.destroyASGConfig.asgName
+      regions == this.destroyASGConfig.regions
+      credentials == this.destroyASGConfig.credentials
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> taskId
-      }
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId)
+    }
 
     when:
     def result = task.execute(stage)
 
     then:
-      result.status == ExecutionStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.context."kato.last.task.id" == taskId
     result.context."deploy.account.name" == destroyASGConfig.credentials
   }
 
   void "should get target dynamically when configured"() {
     setup:
-      stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
-      task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> taskId
-      }
-      GroovyMock(TargetServerGroupResolver, global: true)
-      TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(region: "us-west-1", name: "foo-v001")
-      GroovyMock(TargetServerGroup, global: true)
-      TargetServerGroup.isDynamicallyBound(_) >> true
+    stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId)
+    }
+    GroovyMock(TargetServerGroupResolver, global: true)
+    TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(region: "us-west-1", name: "foo-v001")
+    GroovyMock(TargetServerGroup, global: true)
+    TargetServerGroup.isDynamicallyBound(_) >> true
 
     when:
     def result = task.execute(stage)
@@ -116,9 +120,9 @@ class DestroyServerGroupTaskSpec extends Specification {
         regions        : ["us-west-1"],
         credentials    : "test"
       ]
-      task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> taskId
-      }
+    task.operationsRunner = Stub(OperationsRunner) {
+      run(_) >> new KatoOperationsContext(taskId)
+    }
 
     when:
     def result = task.execute(stage)

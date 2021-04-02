@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.BakeryImageAccessDescriptionDecorator
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -56,10 +58,11 @@ class CloneServerGroupTaskSpec extends Specification {
   def "creates a deployment based on job parameters"() {
     given:
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -80,10 +83,11 @@ class CloneServerGroupTaskSpec extends Specification {
     stage.context.stack = "hodork"
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -109,10 +113,11 @@ class CloneServerGroupTaskSpec extends Specification {
 
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -145,10 +150,11 @@ class CloneServerGroupTaskSpec extends Specification {
 
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -180,10 +186,11 @@ class CloneServerGroupTaskSpec extends Specification {
 
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -208,10 +215,11 @@ class CloneServerGroupTaskSpec extends Specification {
 
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 
@@ -236,10 +244,11 @@ class CloneServerGroupTaskSpec extends Specification {
     stage.context.region = "eu-west-1"
 
     def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(_, _) >> {
-        operations = it[1]
-        taskId
+    task.operationsRunner = Mock(OperationsRunner) {
+      1 * run(_) >> {
+        OperationsInput operationsInput = it[0]
+        operations = operationsInput.getOperations()
+        new KatoOperationsContext(taskId, null)
       }
     }
 

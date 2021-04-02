@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
@@ -67,8 +70,8 @@ class CreateServerGroupTaskSpec extends Specification {
   @Unroll
   def "should have cloud provider-specific outputs"() {
     given:
-    KatoService katoService = Mock(KatoService)
-    def task = new CreateServerGroupTask(kato: katoService, serverGroupCreators: [aCreator, bCreator, cCreator])
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
+    def task = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: [aCreator, bCreator, cCreator])
     def stage = ExecutionBuilder.stage {
       type = "whatever"
       context["credentials"] = "abc"
@@ -79,7 +82,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(cloudProvider, ops) >> { taskId }
+    1 * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result
     result.context == outputs
 
@@ -96,7 +99,7 @@ class CreateServerGroupTaskSpec extends Specification {
       bake -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def pipeline = ExecutionBuilder.pipeline {}
@@ -114,18 +117,20 @@ class CreateServerGroupTaskSpec extends Specification {
     ]
     makeDependentOn(deployStage, bakeStage1)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
+    }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> { taskId }
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -145,7 +150,7 @@ class CreateServerGroupTaskSpec extends Specification {
                                           childPipeline: manualJudgment -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def parentDeploymentDetails = [
@@ -171,20 +176,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -207,7 +212,7 @@ class CreateServerGroupTaskSpec extends Specification {
                                                                  childPipeline: manualJudgment -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def grandparentDeploymentDetails = [
@@ -247,20 +252,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -280,7 +285,7 @@ class CreateServerGroupTaskSpec extends Specification {
                              childPipeline: manualJudgment -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def parentPipeline = pipeline { name = "parent" }
@@ -304,20 +309,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -340,7 +345,7 @@ class CreateServerGroupTaskSpec extends Specification {
                                                childPipeline: manualJudgment -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def grandparentPipeline = pipeline { name = "grandparent" }
@@ -373,20 +378,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -406,7 +411,7 @@ class CreateServerGroupTaskSpec extends Specification {
                                                            childPipeline: manualJudgment -> createServerGroup
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def parentDeploymentDetails = [
@@ -439,20 +444,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTask = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def result = deployTask.execute(deployStage)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     result?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
@@ -478,7 +483,7 @@ class CreateServerGroupTaskSpec extends Specification {
 
      */
     given:
-    KatoService katoService = Mock(KatoService)
+    OperationsRunner operationsRunner = Mock(OperationsRunner)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
     def parentPipeline = pipeline { name = "parent" }
@@ -515,7 +520,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStageA = buildStageForPipeline(childPipelineA, "createServerGroup", deployConfig)
     makeDependentOn(deployStageA, manualJudgmentStageA)
 
-    def deployTaskA = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTaskA = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     def pipelineStageB = buildStageForPipeline(parentPipeline, "pipeline")
     makeDependentOn(pipelineStageB, bakeStage2)
@@ -534,20 +539,20 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStageB = buildStageForPipeline(childPipelineB, "createServerGroup", deployConfig)
     makeDependentOn(deployStageB, manualJudgmentStageB)
 
-    def deployTaskB = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
+    def deployTaskB = new CreateServerGroupTask(operationsRunner: operationsRunner, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
     def resultA = deployTaskA.execute(deployStageA)
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchA
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchA
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     resultA?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     when:
@@ -555,13 +560,13 @@ class CreateServerGroupTaskSpec extends Specification {
 
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
-    1 * katoService.requestOperations(operationCloudProvider, {
-      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchB
-    }) >> { taskId }
-    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
-    _ * katoService.requestOperations(operationCloudProvider, _) >> {
-      taskId
+    1 * operationsRunner.run(_) >> {
+      OperationsInput operationsInput = it[0]
+      operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchB
+      new KatoOperationsContext(taskId, null)
     }
+    // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
+    _ * operationsRunner.run(_) >> { new KatoOperationsContext(taskId, null) }
     resultB?.context == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:

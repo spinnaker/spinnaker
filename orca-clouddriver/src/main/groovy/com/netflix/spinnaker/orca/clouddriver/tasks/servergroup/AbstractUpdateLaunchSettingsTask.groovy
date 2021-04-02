@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsContext
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import groovy.util.logging.Slf4j
@@ -29,10 +30,11 @@ import javax.annotation.Nonnull
 
 @Slf4j
 abstract class AbstractUpdateLaunchSettingsTask implements Task, DeploymentDetailsAware, CloudProviderAware {
-  KatoService kato
+  OperationsRunner operationsRunner
   String defaultBakeAccount
-  AbstractUpdateLaunchSettingsTask(KatoService kato, String defaultBakeAccount) {
-    this.kato = kato
+
+  AbstractUpdateLaunchSettingsTask(OperationsRunner operationsRunner, String defaultBakeAccount) {
+    this.operationsRunner = operationsRunner
     this.defaultBakeAccount = defaultBakeAccount
   }
 
@@ -49,10 +51,11 @@ abstract class AbstractUpdateLaunchSettingsTask implements Task, DeploymentDetai
       ops = [[(getOperation()): stage.context]]
     }
 
-    def taskId = kato.requestOperations(cloudProvider, ops)
+    OperationsInput operationsInput = OperationsInput.of(cloudProvider, ops, stage)
+    OperationsContext operationsContext = operationsRunner.run(operationsInput)
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
-      .context(getContext(stage, taskId))
+      .context(getContext(stage, operationsContext))
       .build()
   }
 
@@ -92,5 +95,5 @@ abstract class AbstractUpdateLaunchSettingsTask implements Task, DeploymentDetai
   }
 
   abstract String getOperation()
-  abstract Map<String, Object> getContext(StageExecution stage, TaskId taskId)
+  abstract Map<String, Object> getContext(StageExecution stage, OperationsContext operationsContext)
 }

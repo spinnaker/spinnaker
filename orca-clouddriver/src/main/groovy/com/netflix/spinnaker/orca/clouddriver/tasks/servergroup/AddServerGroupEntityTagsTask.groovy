@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsContext
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
 import java.util.concurrent.TimeUnit
@@ -23,8 +26,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import groovy.util.logging.Slf4j
@@ -38,7 +39,7 @@ class AddServerGroupEntityTagsTask implements CloudProviderAware, RetryableTask 
   long timeout = TimeUnit.MINUTES.toMillis(15)
 
   @Autowired
-  KatoService kato
+  OperationsRunner operationsRunner
 
   @Autowired
   Collection<ServerGroupEntityTagGenerator> tagGenerators
@@ -50,11 +51,14 @@ class AddServerGroupEntityTagsTask implements CloudProviderAware, RetryableTask 
       if (!tagOperations) {
         return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       }
-      TaskId taskId = kato.requestOperations(tagOperations)
+
+      OperationsInput operationsInput = OperationsInput.of(tagOperations, stage)
+      OperationsContext operationsContext = operationsRunner.run(operationsInput)
+
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {
         {
           put("notification.type", "upsertentitytags")
-          put("kato.last.task.id", taskId)
+          put(operationsContext.contextKey(), operationsContext.contextValue())
         }
       }).build()
     } catch (Exception e) {

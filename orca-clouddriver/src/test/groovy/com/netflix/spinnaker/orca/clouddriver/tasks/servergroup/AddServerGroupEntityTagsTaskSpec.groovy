@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -27,7 +27,7 @@ import spock.lang.Subject
 
 class AddServerGroupEntityTagsTaskSpec extends Specification {
 
-  def katoService = Mock(KatoService)
+  def operationsRunner = Mock(OperationsRunner)
   def oortService = Mock(OortService)
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
@@ -36,7 +36,7 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
   ServerGroupEntityTagGenerator tagGenerator = new SpinnakerMetadataServerGroupTagGenerator(oortService, retrySupport)
 
   @Subject
-  AddServerGroupEntityTagsTask task = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [tagGenerator])
+  AddServerGroupEntityTagsTask task = new AddServerGroupEntityTagsTask(operationsRunner: operationsRunner, tagGenerators: [tagGenerator])
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
@@ -49,12 +49,12 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.FAILED_CONTINUE
-    1 * katoService.requestOperations(_) >> { throw new RuntimeException("something went wrong") }
+    1 * operationsRunner.run(_) >> { throw new RuntimeException("something went wrong") }
   }
 
   void "just completes when no tag generators or generators do not produce any tags"() {
     given:
-    AddServerGroupEntityTagsTask emptyTask = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [])
+    AddServerGroupEntityTagsTask emptyTask = new AddServerGroupEntityTagsTask(operationsRunner: operationsRunner, tagGenerators: [])
 
     when:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
