@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import groovy.util.logging.Slf4j
@@ -26,7 +27,12 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @Deprecated
-class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
+class WaitForAllInstancesDownTask extends AbstractInstancesCheckTask {
+  @Override
+  protected Map<String, List<String>> getServerGroups(StageExecution stage) {
+    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
+  }
+
   @Override
   protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
@@ -39,7 +45,7 @@ class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
     if (stage.context.desiredPercentage != null) {
       Map capacity = (Map) serverGroup.capacity
       Integer percentage = (Integer) stage.context.desiredPercentage
-      targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
+      targetDesiredSize = AbstractWaitingForInstancesTask.getDesiredInstanceCount(capacity, percentage)
     }
 
     // We need at least target instances to be disabled.

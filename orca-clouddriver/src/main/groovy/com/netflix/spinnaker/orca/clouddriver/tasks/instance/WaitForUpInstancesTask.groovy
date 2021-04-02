@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
+class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
 
   static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
 
@@ -143,7 +143,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       targetDesiredSize = newTargetDesiredSize
     } else if (stage.context.desiredPercentage != null) {
       Integer percentage = (Integer) stage.context.desiredPercentage
-      targetDesiredSize = getDesiredInstanceCount(currentCapacity, percentage)
+      targetDesiredSize = AbstractWaitingForInstancesTask.getDesiredInstanceCount(currentCapacity, percentage)
       splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${currentCapacity}")
     }
 
@@ -169,6 +169,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
     return (configured.min == configured.max && configured.min == configured.desired) ||
       (current.min == current.max && current.min == current.desired)
+  }
+
+  @Override
+  protected Map<String, List<String>> getServerGroups(StageExecution stage) {
+    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
   }
 
   @Override

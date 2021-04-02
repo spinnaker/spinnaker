@@ -17,13 +17,19 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstancesCheckTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.TimeUnit
 
 @Component
-class WaitForAllNetflixAWSInstancesDownTask extends AbstractWaitingForInstancesTask {
+class WaitForAllNetflixAWSInstancesDownTask extends AbstractInstancesCheckTask {
+  @Override
+  protected Map<String, List<String>> getServerGroups(StageExecution stage) {
+    return AbstractWaitingForInstancesTask.extractServerGroups(stage)
+  }
+
   @Override
   protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
