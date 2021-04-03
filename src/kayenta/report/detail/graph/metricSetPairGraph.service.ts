@@ -24,7 +24,7 @@ export interface IMetricSetPairGraph {
   /*
    * Returns top-level graph component class.
    * */
-  getGraph: () => React.ComponentClass<IMetricSetPairGraphProps>;
+  getGraph: () => React.ComponentType<IMetricSetPairGraphProps>;
 
   /*
    * Returns true if the graph implementation supports a given graph type.

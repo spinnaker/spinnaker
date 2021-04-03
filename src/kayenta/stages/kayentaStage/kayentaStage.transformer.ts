@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { get, last, round } from 'lodash';
 
 import { Application, IExecution, IExecutionStage, ITransformer, OrchestratedItemTransformer } from '@spinnaker/core';
@@ -178,6 +177,3 @@ export class KayentaStageTransformer implements ITransformer {
     }
   }
 }
-
-export const KAYENTA_STAGE_TRANSFORMER = 'spinnaker.kayenta.kayentaStageTransformer';
-module(KAYENTA_STAGE_TRANSFORMER, []).service('kayentaStageTransformer', KayentaStageTransformer);

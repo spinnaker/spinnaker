@@ -16,6 +16,8 @@ const externals = [
   'luxon',
   'prop-types',
   'react',
+  'react-bootstrap',
+  'react-select',
   'react-dom',
   'semiotic',
 ];

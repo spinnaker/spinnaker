@@ -1,1 +1,1 @@
-export * from './kayenta';
+export * from './stub';
