@@ -2,9 +2,7 @@ import { flatMap, get, set } from 'lodash';
 
 import { REST } from 'core/api';
 import {
-  IManagedApplicationEnvironmentSummary,
   IManagedApplicationSummary,
-  IManagedArtifactVersionEnvironment,
   IManagedResourceDiff,
   IManagedResourceEvent,
   IManagedResourceEventHistory,
@@ -12,7 +10,7 @@ import {
   ManagedResourceStatus,
 } from 'core/domain';
 
-import { isDependsOnConstraint } from './constraints/DependsOn';
+import { sortEnvironments } from './utils/sortEnvironments';
 
 const KIND_NAME_MATCHER = /.*\/(.*?)@/i;
 const RESOURCE_DIFF_LIST_MATCHER = /^(.*)\[(.*)\]$/i;
@@ -73,22 +71,8 @@ const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse
   }, {} as IManagedResourceDiff);
 };
 
-const isEnvDependsOn = (
-  env: IManagedArtifactVersionEnvironment,
-  maybeDependsOnEnv: IManagedArtifactVersionEnvironment,
-) => {
-  return env.constraints?.some(
-    (constraint) =>
-      isDependsOnConstraint(constraint) && constraint.attributes.dependsOnEnvironment === maybeDependsOnEnv.name,
-  );
-};
-
-const envHasAnyDependsOn = (env: IManagedArtifactVersionEnvironment) => {
-  return env.constraints?.some((constraint) => constraint.type === 'depends-on');
-};
-
 export class ManagedReader {
-  private static decorateResources(response: IManagedApplicationEnvironmentSummary) {
+  private static decorateResources(response: IManagedApplicationSummary) {
     // Individual resources don't update their status when an application is paused/resumed,
     // so for now let's swap to a PAUSED status and keep things simpler in downstream components.
     if (response.applicationPaused) {
@@ -100,41 +84,17 @@ export class ManagedReader {
     return response;
   }
 
-  private static sortEnvironments(response: IManagedApplicationEnvironmentSummary) {
-    // TODO: move this function to keel or optimize it and write some tests
-    try {
-      response.artifacts.map((artifact) => {
-        artifact.versions.map((version) => {
-          version.environments.sort((a, b) => {
-            if (isEnvDependsOn(a, b)) {
-              return -1;
-            } else if (isEnvDependsOn(b, a)) {
-              return 1;
-            }
-            // Prioritize if has any depends on
-            if (envHasAnyDependsOn(a)) return -1;
-            if (envHasAnyDependsOn(b)) return 1;
-            return 0;
-          });
-        });
-      });
-    } catch (e) {
-      console.error('Failed to sort environments');
-    }
-    return response;
-  }
-
   public static getApplicationSummary(app: string): PromiseLike<IManagedApplicationSummary<'resources'>> {
     return REST('/managed/application').path(app).query({ entities: 'resources' }).get().then(this.decorateResources);
   }
 
-  public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationEnvironmentSummary> {
+  public static getEnvironmentsSummary(app: string): PromiseLike<IManagedApplicationSummary> {
     return REST('/managed/application')
       .path(app)
       .query({ entities: ['resources', 'artifacts', 'environments'], maxArtifactVersions: 30 })
       .get()
       .then(this.decorateResources)
-      .then(this.sortEnvironments);
+      .then(sortEnvironments);
   }
 
   public static getResourceHistory(resourceId: string): PromiseLike<IManagedResourceEventHistory> {
