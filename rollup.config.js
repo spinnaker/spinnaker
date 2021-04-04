@@ -21,8 +21,7 @@ const external = [
   'rxjs/Observable',
 ];
 
-export default {
-  ...basePluginConfig,
-  input: 'src/index.ts',
-  external,
-};
+basePluginConfig.input = 'src/index.ts';
+basePluginConfig.external = external;
+
+export default basePluginConfig;
