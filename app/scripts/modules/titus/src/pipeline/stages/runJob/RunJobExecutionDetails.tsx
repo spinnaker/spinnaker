@@ -67,7 +67,7 @@ export class RunJobExecutionDetails extends React.Component<
               <LabeledValue label="Account" value={<AccountTag account={context.credentials} />} />
               {cluster && (
                 <>
-                  <LabeledValue label="Image" value={cluster.imageid} />
+                  <LabeledValue label="Image" value={cluster.imageId} />
                   {cluster.entryPoint && <LabeledValue label="Entrypoint" value={cluster.entryPoint} />}
                 </>
               )}
