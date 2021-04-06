@@ -1,7 +1,9 @@
 import { quantile } from 'd3-array';
 import { format } from 'd3-format';
 import { scaleUtc } from 'd3-scale';
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
+
+import { SETTINGS } from '@spinnaker/core';
 
 import { ISummaryStatistics } from './semiotic.service';
 
@@ -22,16 +24,21 @@ export const formatMetricValue = (value: any) => {
   }
 };
 
+const fromMillis = (millis: number) => {
+  const luxonOpts = SETTINGS.feature.displayTimestampsInUserLocalTime ? undefined : { zone: SETTINGS.defaultTimeZone };
+  return DateTime.fromMillis(millis, luxonOpts);
+};
+
 /*
 Formatter for timestamps. If the timestamp value is a date boundary (e.g. 04-01-2019 00:00:00),
 an additional date label is returned, otherwise only a single label showing hour & minute is returned
 */
 export const dateTimeTickFormatter = (d: number) => {
-  const m = moment(d);
-  if (m.clone().startOf('day').unix() === m.unix()) {
-    return [m.format('HH:mm'), m.format('MMM DD')];
+  const datetime = fromMillis(d);
+  if (datetime.hour === 0 && datetime.minute === 0) {
+    return [datetime.toFormat('HH:mm'), datetime.toFormat('MMM DD')];
   } else {
-    return [m.format('HH:mm')];
+    return [datetime.toFormat('HH:mm')];
   }
 };
 
@@ -48,7 +55,7 @@ export const calculateDateTimeTicks = (millisSet: number[]) => {
    * 2)have d3 calculate the ideal tick values as usual, and
    * 3)shift back the result
    */
-  const offsetMillis = moment(minMillis).utcOffset() * 60000;
+  const offsetMillis = fromMillis(minMillis).offset * 60000;
   const minMillisShifted = minMillis + offsetMillis;
   const maxMillisShifted = maxMillis + offsetMillis;
   const scale = scaleUtc().domain([new Date(minMillisShifted), new Date(maxMillisShifted)]);

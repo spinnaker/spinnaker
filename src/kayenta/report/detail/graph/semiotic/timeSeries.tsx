@@ -2,11 +2,10 @@ import classNames from 'classnames';
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import moment from 'moment-timezone';
 import * as React from 'react';
 import { IMinimapProps, IXYFrameHoverBaseArgs, IXYFrameProps, MinimapXYFrame, XYFrame } from 'semiotic';
 
-import { SETTINGS } from '@spinnaker/core';
+import { SETTINGS, timestamp } from '@spinnaker/core';
 
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
@@ -22,8 +21,6 @@ import * as utils from './utils';
 import './timeSeries.less';
 
 const { defaultTimeZone } = SETTINGS;
-
-moment.tz.setDefault(defaultTimeZone);
 
 interface IDataPoint {
   value: number | null;
@@ -269,7 +266,7 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
       margin: { ...this.marginMain, bottom: totalXAxisHeight },
       matte: true,
       size: [parentWidth, shouldDisplayMinimap ? this.mainMinimapHeight - minimapHeight : this.mainMinimapHeight],
-      xAccessor: (d: IDataPoint) => moment(d.timestampMillisNormalizedMain).toDate(),
+      xAccessor: (d: IDataPoint) => new Date(d.timestampMillisNormalizedMain),
     };
 
     if (shouldDisplayMinimap) {
@@ -291,7 +288,7 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
             },
           ],
           margin: this.marginMinimap,
-          xAccessor: (d: IDataPoint) => moment(d.timestampMillisNormalizedMinimap).toDate(),
+          xAccessor: (d: IDataPoint) => new Date(d.timestampMillisNormalizedMinimap),
           xExtent: xExtentNormalizedMinimap,
         } as IMinimapProps<IChartDataSet, IDataPoint>,
       };
@@ -401,9 +398,7 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
           .sort((a: ITooltipDataPoint, b: ITooltipDataPoint) => b.value - a.value)
           .map((o: ITooltipDataPoint) => {
             // if there's a ts offset, timestamp should be displayed for each group
-            const tsRow = shouldUseSecondaryXAxis ? (
-              <div className="tooltip-ts">{moment(o.ts).format('YYYY-MM-DD HH:mm:ss z')}</div>
-            ) : null;
+            const tsRow = shouldUseSecondaryXAxis ? <div className="tooltip-ts">{timestamp(o.ts)}</div> : null;
 
             return (
               <div key={o.label} className={classNames({ 'tooltip-dual-axis-row': shouldUseSecondaryXAxis })}>
@@ -432,7 +427,7 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
             {/* if no dual axes, display timestamp row at the top level */}
             {shouldUseSecondaryXAxis ? null : (
               <div key="ts" className="tooltip-ts">
-                {moment(tooltipData[0].ts).format('YYYY-MM-DD HH:mm:ss z')}
+                {timestamp(tooltipData[0].ts)}
               </div>
             )}
             {tooltipRows}

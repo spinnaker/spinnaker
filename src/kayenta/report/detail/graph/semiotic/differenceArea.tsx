@@ -1,6 +1,5 @@
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
-import moment from 'moment-timezone';
 import * as React from 'react';
 import { XYFrame } from 'semiotic';
 
@@ -154,7 +153,7 @@ export default class DifferenceArea extends React.Component<IDifferenceAreaProps
               strokeWidth: 2,
               strokeDasharray: 5,
             },
-      xAccessor: (d: IDataPoint) => moment(d.timestampMillis).toDate(),
+      xAccessor: (d: IDataPoint) => new Date(d.timestampMillis),
       yAccessor: 'value',
       xScaleType: scaleUtc(),
       axes: [

@@ -12,6 +12,7 @@ const external = [
   '@uirouter/react',
   '@uirouter/core',
   'lodash',
+  'luxon',
   'prop-types',
   'formik',
   'react',

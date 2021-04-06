@@ -12,11 +12,10 @@ import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { ManualAnalysisModal } from 'kayenta/manualAnalysis/ManualAnalysisModal';
 import { ICanaryState } from 'kayenta/reducers';
 import { get, isEqual } from 'lodash';
-import moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { Application, ReactInjector, Spinner, Tooltip } from '@spinnaker/core';
+import { Application, ReactInjector, relativeTime, Spinner, Tooltip } from '@spinnaker/core';
 
 import ConfigLink from './configLink';
 import Score from '../detail/score';
@@ -68,7 +67,9 @@ const baseColumns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
           <FormattedDate dateIso={execution.startTimeIso} />
         </ReportLink>
         {execution.startTimeIso && (
-          <div className="color-text-caption body-small">{moment(execution.startTimeIso).fromNow()}</div>
+          <div className="color-text-caption body-small">
+            {relativeTime(new Date(execution.startTimeIso).getTime())}
+          </div>
         )}
       </div>
     ),
