@@ -121,6 +121,14 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   )
 
   /**
+   * @return `true` if any versions are in the process of deploying to [targetEnvironment]
+   */
+  fun isDeployingTo(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String
+  ) : Boolean
+
+  /**
    * @return `true` if [version] has (previously or currently) been deployed successfully to
    * [targetEnvironment].
    */

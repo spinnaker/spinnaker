@@ -17,6 +17,8 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
+import com.netflix.spinnaker.keel.persistence.Lease
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -51,6 +53,9 @@ class IntermittentFailureTests : JUnit5Minutests {
   class Fixture {
     val resourceRepository = mockk<ResourceRepository>()
     val artifactRepository = mockk<ArtifactRepository>()
+    val environmentLeaseRepository = mockk<EnvironmentLeaseRepository>(relaxUnitFun = true) {
+      every { tryAcquireLease(any(), any(), any()) } returns mockk(relaxUnitFun = true)
+    }
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
     val diffFingerprintRepository = mockk<DiffFingerprintRepository>(relaxUnitFun = true)
     val actuationPauser: ActuationPauser = mockk() {
@@ -77,7 +82,7 @@ class IntermittentFailureTests : JUnit5Minutests {
       every { getContextsWithStatus(any(), any(), any()) }  returns emptyList()
     }
 
-    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, NoopRegistry(), clock)
+    val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
 
     val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {

@@ -1,28 +1,23 @@
 package com.netflix.spinnaker.keel.enforcers
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import org.springframework.core.env.Environment as SpringEnvironment
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.verification.VerificationContext
 import com.netflix.spinnaker.keel.api.verification.VerificationRepository
+import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-
-/**
- * Exception thrown when it's not safe to take action against the environment because
- * something is already acting on it.
- */
-open class EnvironmentCurrentlyBeingActedOn(message: String) : Exception(message) { }
+import org.springframework.core.env.Environment as SpringEnvironment
 
 class ActiveVerifications(val active: Collection<VerificationContext>, deliveryConfig: DeliveryConfig, environment: Environment) :
   EnvironmentCurrentlyBeingActedOn("active verifications in ${deliveryConfig.name} ${environment.name} against versions ${active.map {it.version}}")
+
+class ActiveDeployments(deliveryConfig: DeliveryConfig, environment: Environment ) :
+  EnvironmentCurrentlyBeingActedOn("currently deploying into ${deliveryConfig.name} ${environment.name}")
 
 /**
  * This class enforces two safety properties of the verification behavior:
@@ -48,21 +43,13 @@ class ActiveVerifications(val active: Collection<VerificationContext>, deliveryC
 @Component
 class EnvironmentExclusionEnforcer(
   private val springEnv: SpringEnvironment,
-  private val repository: VerificationRepository,
-  spectator: Registry,
-  private val clock: Clock
-  ) {
+  private val verificationRepository: VerificationRepository,
+  private val artifactRepository: ArtifactRepository,
+  private val environmentLeaseRepository: EnvironmentLeaseRepository
+) {
 
   private val enforcementEnabled: Boolean
     get() = springEnv.getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, true)
-
-
-  /**
-   * Percentile timer builder for measuring how long the checks take.
-   *
-   * We use the default percentile time range: 10ms to 1 minute
-   */
-  private val timerBuilder = PercentileTimer.builder(spectator).withName("keel.enforcement.environment.check.duration")
 
   /**
    * To get a verification lease against an environment, need:
@@ -72,18 +59,21 @@ class EnvironmentExclusionEnforcer(
    * 3. No active verifications
    */
   fun <T> withVerificationLease(context: VerificationContext, action: () -> T) : T {
-    val startTime = clock.instant()
-
-    if (enforcementEnabled) {
-      val environment = context.environment
-      val deliveryConfig = context.deliveryConfig
-
-      ensureNoActiveDeployments(deliveryConfig, environment)
-      ensureNoActiveVerifications(deliveryConfig, environment)
+    if(!enforcementEnabled) {
+      return action.invoke()
     }
 
-    recordDuration("verification", startTime)
-    return action.invoke()
+    with(context) {
+      environmentLeaseRepository.tryAcquireLease(deliveryConfig, environment, "verification").use {
+
+        // These will throw exceptions if the checks fail
+        ensureNoActiveDeployments(deliveryConfig, environment)
+        ensureNoActiveVerifications(deliveryConfig, environment)
+
+        // it's now safe to do the action
+        return action.invoke()
+      }
+    }
   }
 
   /**
@@ -95,26 +85,30 @@ class EnvironmentExclusionEnforcer(
    * It's ok if other actuations (e.g., deployments) are going on.
    */
   suspend fun <T> withActuationLease(deliveryConfig: DeliveryConfig, environment: Environment, action: suspend () -> T) : T {
-    val startTime = clock.instant()
-
-    if (enforcementEnabled) {
-      // use IO context since the checks call the database, which wil block the coroutine's thread
-      withContext(IO) {
-        ensureNoActiveVerifications(deliveryConfig, environment)
-      }
+    if(!enforcementEnabled) {
+      return action.invoke()
     }
 
-    recordDuration("actuation", startTime)
-    return action.invoke()
+    // use IO context since the checks call the database, which will block the coroutine's thread
+    return withContext(IO) {
+      environmentLeaseRepository.tryAcquireLease(deliveryConfig, environment, "actuation").use {
+
+        // This will throw an exception if the check fails
+        ensureNoActiveVerifications(deliveryConfig, environment)
+
+        // it's now safe to do the action
+        return@withContext action.invoke()
+      }
+    }
   }
 
   /**
-   * @throws EnvironmentCurrentlyBeingActedOn if there's an active deployment
+   * @throws ActiveDeployments if there's an active deployment in [environment]
    */
   private fun ensureNoActiveDeployments(deliveryConfig: DeliveryConfig, environment: Environment) {
-    /**
-     * To be implemented in a future PR.
-     */
+    if(artifactRepository.isDeployingTo(deliveryConfig, environment.name)) {
+      throw ActiveDeployments(deliveryConfig, environment)
+    }
   }
 
   /**
@@ -124,21 +118,9 @@ class EnvironmentExclusionEnforcer(
    * @throws ActiveVerifications if there's an active verification
    */
   private fun ensureNoActiveVerifications(deliveryConfig: DeliveryConfig, environment: Environment)  {
-    val activeVerifications = repository.getContextsWithStatus(deliveryConfig, environment, PENDING)
+    val activeVerifications = verificationRepository.getContextsWithStatus(deliveryConfig, environment, PENDING)
     if(activeVerifications.isNotEmpty()) {
       throw ActiveVerifications(activeVerifications, deliveryConfig, environment)
     }
-  }
-
-  /**
-   * Emit a metric with the duration of the check time from [startTime] to now.
-   *
-   * Tag with key: "action", value: [actionType]
-   */
-  private fun recordDuration(actionType: String, startTime: Instant) {
-    timerBuilder
-      .withTag("action", actionType)
-      .build()
-      .record(Duration.between(startTime, clock.instant()))
   }
 }

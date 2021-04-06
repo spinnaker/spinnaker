@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
+import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -201,8 +202,10 @@ class ResourceActuator(
         log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
         publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
       } catch (e: ActiveVerifications) {
-        log.warn("Resource {} can't be actuated because a verification is running", id, e)
+        log.info("Resource {} can't be actuated because a verification is running", id, e.message)
         publisher.publishEvent(VerificationBlockedActuation(resource, e, clock))
+      } catch (e: EnvironmentCurrentlyBeingActedOn) {
+        log.info("Resource {} can't be actuated on because something else is happening in the environment", id, e.message)
       } catch (e: Exception) {
         log.error("Resource check for $id failed", e)
         publisher.publishEvent(ResourceCheckError(resource, e.toSpinnakerException(), clock))

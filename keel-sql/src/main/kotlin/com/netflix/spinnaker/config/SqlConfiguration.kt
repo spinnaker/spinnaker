@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlBakedImageRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
+import com.netflix.spinnaker.keel.sql.SqlEnvironmentLeaseRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleEventRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleMonitorRepository
 import com.netflix.spinnaker.keel.sql.SqlNotificationRepository
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
@@ -35,18 +37,23 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.env.Environment
 import java.time.Clock
+import java.time.Duration
 import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@Import(DefaultSqlConfiguration::class, SqlRetryProperties::class)
-class SqlConfiguration {
+@Import(DefaultSqlConfiguration::class, SqlRetryProperties::class, EnvironmentExclusionConfig::class)
+class SqlConfiguration
+ {
 
   @Autowired
   lateinit var jooqConfiguration: DefaultConfiguration
 
   @Autowired
   lateinit var sqlRetryProperties: SqlRetryProperties
+
+  @Autowired
+  lateinit var environmentExclusionConfig: EnvironmentExclusionConfig
 
   // This allows us to run tests with a testcontainers database that has a different schema name to
   // the real one used by the JOOQ code generator. It _is_ possible to change the schema used by
@@ -199,4 +206,12 @@ class SqlConfiguration {
     properties: SqlProperties,
     objectMapper: ObjectMapper
   ) = SqlBakedImageRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
+
+
+  @Bean
+  fun environmentLeaseRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    registry: Registry
+  ) = SqlEnvironmentLeaseRepository(jooq, clock, registry, environmentExclusionConfig.leaseDuration)
 }

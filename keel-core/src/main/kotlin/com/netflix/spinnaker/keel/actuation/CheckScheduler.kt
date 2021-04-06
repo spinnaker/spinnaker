@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
-import com.netflix.spinnaker.keel.enforcers.EnvironmentCurrentlyBeingActedOn
+import com.netflix.spinnaker.keel.exceptions.EnvironmentCurrentlyBeingActedOn
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.blankMDC
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -192,7 +192,7 @@ class CheckScheduler(
                     try {
                       verificationRunner.runVerificationsFor(it)
                     } catch (e: EnvironmentCurrentlyBeingActedOn) {
-                      log.warn("Couldn't verify ${it.version} in ${it.deliveryConfig.application}/${it.environmentName} because environment is currently being acted on", e)
+                      log.info("Couldn't verify ${it.version} in ${it.deliveryConfig.application}/${it.environmentName} because environment is currently being acted on", e.message)
                     }
                   }
                 }

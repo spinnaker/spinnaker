@@ -296,6 +296,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         test("listing versions returns an empty list") {
           expectThat(subject.versions(versionedSnapshotDebian)).isEmpty()
         }
+
+        test("no version is deploying") {
+          expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
+        }
       }
 
       context("an artifact version already exists") {
@@ -442,6 +446,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             get(ArtifactVersionStatus::deploying).isNull()
             get(ArtifactVersionStatus::previous).isEmpty()
           }
+
+          expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
         }
 
         test("an artifact version can be vetoed even if it was not previously deployed") {
@@ -521,12 +527,16 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             get(ArtifactVersionStatus::previous).isEmpty()
           }
 
+          expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isTrue()
+
           expectThat(versionsIn(stagingEnvironment, versionedDockerArtifact)) {
             get(ArtifactVersionStatus::pending).isEmpty()
             get(ArtifactVersionStatus::current).isNull()
             get(ArtifactVersionStatus::deploying).isEqualTo(version6)
             get(ArtifactVersionStatus::previous).isEmpty()
           }
+
+          expectThat(subject.isDeployingTo(manifest, stagingEnvironment.name)).isTrue()
         }
 
         test("promoting the same version again returns false") {
@@ -574,6 +584,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               get(ArtifactVersionStatus::deploying).isNull()
               get(ArtifactVersionStatus::previous).isEmpty()
             }
+
+            expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
           }
 
           test("querying for current returns the full artifact") {
@@ -608,6 +620,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                 get(ArtifactVersionStatus::deploying).isEqualTo(version2)
                 get(ArtifactVersionStatus::previous).isEmpty()
               }
+
+              expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isTrue()
+
             }
 
             context("the new version is marked as successfully deployed") {
@@ -637,6 +652,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                   get(ArtifactVersionStatus::deploying).isNull()
                   get(ArtifactVersionStatus::previous).containsExactly(version1)
                 }
+
+                expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
+
               }
             }
           }
@@ -658,6 +676,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                 get(ArtifactVersionStatus::previous).containsExactly(version1)
                 get(ArtifactVersionStatus::skipped).containsExactly(version2)
               }
+
+              expectThat(subject.isDeployingTo(manifest, testEnvironment.name)).isFalse()
             }
           }
         }

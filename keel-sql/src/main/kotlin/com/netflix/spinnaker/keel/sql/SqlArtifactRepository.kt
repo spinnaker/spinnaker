@@ -508,6 +508,17 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun isDeployingTo(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String
+  ) : Boolean =
+    jooq.selectCount()
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(targetEnvironment)))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING))
+      .fetchOneInto(Int::class.java) > 0
+
+
   override fun markAsSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

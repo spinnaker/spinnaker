@@ -266,3 +266,6 @@ databaseChangeLog:
   - include:
       file: changelog/20210331-fix-resource-with-metadata-view.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210331-add-environment-lease-repository.yml
+      relativeToChangelogFile: true

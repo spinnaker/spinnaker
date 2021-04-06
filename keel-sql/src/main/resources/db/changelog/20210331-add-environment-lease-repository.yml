@@ -1,0 +1,54 @@
+databaseChangeLog:
+- changeSet:
+    id: add-environment-lease-repository
+    author: lhochstein
+    changes:
+    - createTable:
+        tableName: environment_lease
+        columns:
+          - column:
+              name: uid
+              type: char(26)
+              constraints:
+                nullable: false
+          - column:
+              name: environment_uid
+              type: char(26)
+              constraints:
+                nullable: false
+          - column:
+              name: leased_by
+              type: varchar(63)
+              constraints:
+                nullable: false
+          - column:
+              name: leased_at
+              type: timestamp(3)
+              constraints:
+                nullable: false
+          - column:
+              name: comment
+              type: varchar(511)
+              constraints:
+                nullable: false
+    - addPrimaryKey:
+        constraintName: environment_lease_pk
+        tableName: environment_lease
+        columnNames: uid
+    - addForeignKeyConstraint:
+        baseTableName: environment_lease
+        baseColumnNames: environment_uid
+        constraintName: fk_environment_lease_environment_uid
+        referencedTableName: environment
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - createIndex:
+        indexName: environment_lease_environment_uid_idx
+        tableName: environment_lease
+        columns:
+        - column:
+            name: environment_uid
+    rollback:
+    - dropTable:
+        tableName: environment_lease
