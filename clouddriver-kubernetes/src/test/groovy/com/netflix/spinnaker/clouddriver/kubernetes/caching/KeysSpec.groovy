@@ -57,9 +57,9 @@ class KeysSpec extends Specification {
 
     where:
     kind                       | apiVersion                              | account | namespace   | name      || key
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:ac:namespace:v1-v000"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1            | "ac"    | "namespace" | "v1-v000" || "kubernetes.v2:infrastructure:replicaSet:ac:namespace:v1-v000"
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:service:ac:namespace:v1"
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:ac:namespace:v1"
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1            | "ac"    | "namespace" | "v1"      || "kubernetes.v2:infrastructure:deployment:ac:namespace:v1"
   }
 
   @Unroll
@@ -115,11 +115,12 @@ class KeysSpec extends Specification {
     parsedInfrastructureKey.name == name
 
     where:
-    kind                       | version                                 | account   | namespace   | name
-    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1BETA1       | "ac"      | "name"      | "nameer"
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.EXTENSIONS_V1BETA1 | ""        | ""          | ""
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "account" | "namespace" | ""
-    KubernetesKind.INGRESS     | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"      | ""          | "nameer"
+    kind                       | version                                   | account   | namespace   | name
+    KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1              | "ac"      | "name"      | "nameer"
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1              | ""        | ""          | ""
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1                   | "account" | "namespace" | ""
+    KubernetesKind.INGRESS     | KubernetesApiVersion.EXTENSIONS_V1BETA1   | "ac"      | ""          | "nameer"
+    KubernetesKind.INGRESS     | KubernetesApiVersion.NETWORKING_K8S_IO_V1 | "ac"      | ""          | "nameer"
   }
 
   def "correctly unpacks resource names containing a ';' character"() {

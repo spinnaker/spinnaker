@@ -18,9 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1BETA1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 import com.google.common.collect.ImmutableList;
@@ -57,7 +54,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
         ServerGroupManagerHandler {
 
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
-      ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA1, APPS_V1BETA2, APPS_V1);
+      ImmutableSet.of(APPS_V1);
 
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {

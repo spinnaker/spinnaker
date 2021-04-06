@@ -1,5 +1,5 @@
 # Base daemonset with update strategy set to OnDelete
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   generation: 2

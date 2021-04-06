@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
-import io.kubernetes.client.openapi.models.V1Event;
+import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,13 +86,13 @@ public class KubernetesEventHandler extends KubernetesHandler {
                     ImmutablePair.of(
                         m,
                         involvedManifest(
-                            KubernetesCacheDataConverter.getResource(m, V1Event.class))))
+                            KubernetesCacheDataConverter.getResource(m, CoreV1Event.class))))
             .filter(p -> p.getRight() != null)
             .collect(
                 Collectors.toMap(ImmutablePair::getLeft, p -> ImmutableList.of(p.getRight()))));
   }
 
-  private KubernetesManifest involvedManifest(V1Event event) {
+  private KubernetesManifest involvedManifest(CoreV1Event event) {
     if (event == null) {
       return null;
     }

@@ -69,6 +69,6 @@ class KubernetesApiVersionSpec extends Specification {
     ""                       | KubernetesApiGroup.NONE
     "test.api.group"         | KubernetesApiGroup.NONE
     "test.api.group/version" | KubernetesApiGroup.fromString("test.api.group")
-    "apps/v1beta1"           | KubernetesApiGroup.APPS
+    "apps/v1"                | KubernetesApiGroup.APPS
   }
 }

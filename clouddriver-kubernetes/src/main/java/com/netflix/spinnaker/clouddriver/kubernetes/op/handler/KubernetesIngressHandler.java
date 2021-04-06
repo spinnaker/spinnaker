@@ -17,19 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind.INGRESS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind.SERVICE;
 import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
@@ -38,6 +36,11 @@ import io.kubernetes.client.openapi.models.NetworkingV1beta1HTTPIngressRuleValue
 import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
 import io.kubernetes.client.openapi.models.NetworkingV1beta1IngressBackend;
 import io.kubernetes.client.openapi.models.NetworkingV1beta1IngressRule;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
+import io.kubernetes.client.openapi.models.V1IngressRule;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,8 +57,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesIngressHandler extends KubernetesHandler {
   private static final Logger log = LoggerFactory.getLogger(KubernetesIngressHandler.class);
-  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
-      ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1);
 
   @Override
   public int deployPriority() {
@@ -118,12 +119,16 @@ public class KubernetesIngressHandler extends KubernetesHandler {
   }
 
   private static List<String> attachedServices(KubernetesManifest manifest) {
-    if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
+    if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1BETA1)) {
+      NetworkingV1beta1Ingress v1beta1Ingress =
+          KubernetesCacheDataConverter.getResource(manifest, NetworkingV1beta1Ingress.class);
+      return attachedServices(v1beta1Ingress);
+    } else if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)) {
+      V1Ingress v1Ingress = KubernetesCacheDataConverter.getResource(manifest, V1Ingress.class);
+      return attachedServices(v1Ingress);
+    } else {
       throw new UnsupportedVersionException(manifest);
     }
-    NetworkingV1beta1Ingress v1beta1Ingress =
-        KubernetesCacheDataConverter.getResource(manifest, NetworkingV1beta1Ingress.class);
-    return attachedServices(v1beta1Ingress);
   }
 
   private static List<String> attachedServices(NetworkingV1beta1Ingress ingress) {
@@ -142,6 +147,30 @@ public class KubernetesIngressHandler extends KubernetesHandler {
           backend = path.getBackend();
           if (backend != null) {
             result.add(backend.getServiceName());
+          }
+        }
+      }
+    }
+
+    return new ArrayList<>(result);
+  }
+
+  private static List<String> attachedServices(V1Ingress ingress) {
+    Set<String> result = new HashSet<>();
+    V1IngressBackend backend = ingress.getSpec().getDefaultBackend();
+    if (backend != null) {
+      result.add(backend.getService().getName());
+    }
+
+    List<V1IngressRule> rules = ingress.getSpec().getRules();
+    rules = rules == null ? new ArrayList<>() : rules;
+    for (V1IngressRule rule : rules) {
+      V1HTTPIngressRuleValue http = rule.getHttp();
+      if (http != null) {
+        for (V1HTTPIngressPath path : http.getPaths()) {
+          backend = path.getBackend();
+          if (backend != null) {
+            result.add(backend.getService().getName());
           }
         }
       }

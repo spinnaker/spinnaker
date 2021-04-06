@@ -39,7 +39,7 @@ class KubernetesDeploymentHandlerSpec extends Specification {
   def ACCOUNT = "my-account"
 
   def BASIC_DEPLOYMENT = """
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment

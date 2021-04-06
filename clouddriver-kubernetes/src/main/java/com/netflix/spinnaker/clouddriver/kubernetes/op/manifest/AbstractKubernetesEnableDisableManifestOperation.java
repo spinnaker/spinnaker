@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 @ParametersAreNonnullByDefault
 public abstract class AbstractKubernetesEnableDisableManifestOperation

@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 import com.google.common.collect.ImmutableList;
@@ -41,8 +39,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
 import io.kubernetes.client.openapi.models.V1ReplicaSetSpec;
 import io.kubernetes.client.openapi.models.V1ReplicaSetStatus;
-import io.kubernetes.client.openapi.models.V1beta1ReplicaSet;
-import io.kubernetes.client.openapi.models.V1beta2ReplicaSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +51,7 @@ import org.springframework.stereotype.Component;
 public class KubernetesReplicaSetHandler extends KubernetesHandler
     implements CanResize, CanScale, HasPods, ServerGroupHandler {
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
-      ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA2, APPS_V1);
+      ImmutableSet.of(APPS_V1);
 
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {
@@ -163,29 +159,13 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
   }
 
   public static Map<String, String> getPodTemplateLabels(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
-      V1beta1ReplicaSet v1beta1ReplicaSet =
-          KubernetesCacheDataConverter.getResource(manifest, V1beta1ReplicaSet.class);
-      return getPodTemplateLabels(v1beta1ReplicaSet);
-    } else if (manifest.getApiVersion().equals(APPS_V1BETA2)) {
-      V1beta2ReplicaSet v1beta2ReplicaSet =
-          KubernetesCacheDataConverter.getResource(manifest, V1beta2ReplicaSet.class);
-      return getPodTemplateLabels(v1beta2ReplicaSet);
-    } else if (manifest.getApiVersion().equals(APPS_V1)) {
+    if (manifest.getApiVersion().equals(APPS_V1)) {
       V1ReplicaSet v1ReplicaSet =
           KubernetesCacheDataConverter.getResource(manifest, V1ReplicaSet.class);
       return getPodTemplateLabels(v1ReplicaSet);
     } else {
       throw new UnsupportedVersionException(manifest);
     }
-  }
-
-  private static Map<String, String> getPodTemplateLabels(V1beta1ReplicaSet replicaSet) {
-    return replicaSet.getSpec().getTemplate().getMetadata().getLabels();
-  }
-
-  private static Map<String, String> getPodTemplateLabels(V1beta2ReplicaSet replicaSet) {
-    return replicaSet.getSpec().getTemplate().getMetadata().getLabels();
   }
 
   private static Map<String, String> getPodTemplateLabels(V1ReplicaSet replicaSet) {

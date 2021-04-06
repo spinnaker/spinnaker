@@ -34,8 +34,6 @@ public class KubernetesApiVersion {
   public static final KubernetesApiVersion NETWORKING_K8S_IO_V1BETA1 =
       new KubernetesApiVersion("networking.k8s.io/v1beta1");
   public static final KubernetesApiVersion APPS_V1 = new KubernetesApiVersion("apps/v1");
-  public static final KubernetesApiVersion APPS_V1BETA1 = new KubernetesApiVersion("apps/v1beta1");
-  public static final KubernetesApiVersion APPS_V1BETA2 = new KubernetesApiVersion("apps/v1beta2");
   public static final KubernetesApiVersion BATCH_V1 = new KubernetesApiVersion("batch/v1");
   public static final KubernetesApiVersion NONE = new KubernetesApiVersion("");
 

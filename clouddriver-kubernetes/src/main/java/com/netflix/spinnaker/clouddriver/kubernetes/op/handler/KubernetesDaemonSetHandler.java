@@ -17,21 +17,24 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.APPS_V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
+import io.kubernetes.client.openapi.models.V1DaemonSet;
+import io.kubernetes.client.openapi.models.V1DaemonSetStatus;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1beta2DaemonSet;
-import io.kubernetes.client.openapi.models.V1beta2DaemonSetStatus;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -46,6 +49,9 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
         CanUndoRollout,
         CanRollingRestart,
         ServerGroupHandler {
+
+  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      ImmutableSet.of(APPS_V1);
 
   @Nonnull
   @Override
@@ -91,9 +97,11 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    V1beta2DaemonSet v1beta2DaemonSet =
-        KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
-    return status(v1beta2DaemonSet);
+    if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
+      throw new UnsupportedVersionException(manifest);
+    }
+    V1DaemonSet v1DaemonSet = KubernetesCacheDataConverter.getResource(manifest, V1DaemonSet.class);
+    return status(v1DaemonSet);
   }
 
   @Override
@@ -104,8 +112,8 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
     return result;
   }
 
-  private Status status(V1beta2DaemonSet daemonSet) {
-    V1beta2DaemonSetStatus status = daemonSet.getStatus();
+  private Status status(V1DaemonSet daemonSet) {
+    V1DaemonSetStatus status = daemonSet.getStatus();
     if (status == null) {
       return Status.noneReported();
     }
@@ -148,7 +156,7 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
     return Status.defaultStatus();
   }
 
-  private boolean generationMatches(V1beta2DaemonSet daemonSet, V1beta2DaemonSetStatus status) {
+  private boolean generationMatches(V1DaemonSet daemonSet, V1DaemonSetStatus status) {
     Optional<Long> metadataGeneration =
         Optional.ofNullable(daemonSet.getMetadata()).map(V1ObjectMeta::getGeneration);
     Optional<Long> statusGeneration = Optional.ofNullable(status.getObservedGeneration());

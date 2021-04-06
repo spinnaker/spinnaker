@@ -1,5 +1,5 @@
 # Deployment with spec of 0 replicas
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   generation: 3
