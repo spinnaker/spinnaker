@@ -33,9 +33,11 @@
   </div>
 
   <div class="form-group" ng-if="$ctrl.capacityProviderState.useCapacityProviders">
-    <ecs-capacity-provider-react command="$ctrl.command"
-                                 notify-angular="$ctrl.notifyAngular"
-                                 configure-command="$ctrl.configureCommand"/>
+    <ecs-capacity-provider-react
+      command="$ctrl.command"
+      notify-angular="$ctrl.notifyAngular"
+      configure-command="$ctrl.configureCommand"
+    ></ecs-capacity-provider-react>
   </div>
 
   <div class="form-group" ng-if="!$ctrl.capacityProviderState.useCapacityProviders" style="padding-top: 10px">

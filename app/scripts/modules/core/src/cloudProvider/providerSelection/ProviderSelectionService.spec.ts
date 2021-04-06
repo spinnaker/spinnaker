@@ -175,4 +175,95 @@ describe('ProviderSelectionService: API', () => {
     $scope.$digest();
     expect(provider).toBe('titus');
   });
+
+  it('should return k8s provider in case the kubernetesAdHocInfraWritesEnabled is set to true and is the only provider configured', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.type = 'kubernetes';
+    accounts = [k8s];
+    let configuration = {
+      name: 'Kubernetes',
+      kubernetesAdHocInfraWritesEnabled: true,
+    };
+    CloudProviderRegistry.registerProvider('kubernetes', configuration);
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('kubernetes');
+  });
+
+  it('should use "aws" as the default provider in case the only provider is k8s and the kubernetesAdHocInfraWritesEnabled is set to false', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.type = 'kubernetes';
+    accounts = [k8s];
+    let configuration = {
+      name: 'Kubernetes',
+      kubernetesAdHocInfraWritesEnabled: false,
+    };
+    CloudProviderRegistry.registerProvider('kubernetes', configuration);
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('aws');
+  });
+
+  it('should use "aws" as the default provider in case the only provider is k8s and the kubernetesAdHocInfraWritesEnabled is not specified', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.type = 'kubernetes';
+    accounts = [k8s];
+    let configuration = {
+      name: 'Kubernetes',
+    };
+    CloudProviderRegistry.registerProvider('kubernetes', configuration);
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('aws');
+  });
+
+  it('should not use "k8s" as an option for the modal when the k8s kubernetesAdHocInfraWritesEnabled is set to false and there are others providers', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.type = 'kubernetes';
+    accounts = [k8s, fakeAccount('gce')];
+    let configuration = {
+      name: 'Kubernetes',
+      kubernetesAdHocInfraWritesEnabled: false,
+    };
+    CloudProviderRegistry.registerProvider('kubernetes', configuration);
+    CloudProviderRegistry.registerProvider('gce', config);
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('gce');
+  });
+
+  it('should use "modalProvider" when the k8s kubernetesAdHocInfraWritesEnabled is set to true and there are others providers', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.type = 'kubernetes';
+    accounts = [k8s, fakeAccount('gce')];
+    let configuration = {
+      name: 'Kubernetes',
+      kubernetesAdHocInfraWritesEnabled: true,
+    };
+    CloudProviderRegistry.registerProvider('kubernetes', configuration);
+    CloudProviderRegistry.registerProvider('gce', config);
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('modalProvider');
+  });
 });

@@ -12,6 +12,7 @@ import {
   IServerGroupManagerStateParams,
   ManifestReader,
   NameUtils,
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroupManager } from '../../interfaces';
@@ -37,9 +38,11 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       .ready()
       .then(() => {
         this.extractServerGroupManager(serverGroupManager);
+        this.$scope.isDisabled = !SETTINGS.kubernetesAdHocInfraWritesEnabled;
         dataSource.onRefresh(this.$scope, () => this.extractServerGroupManager(serverGroupManager));
       })
       .catch(() => this.autoClose());
+    this.$scope.isDisabled = !SETTINGS.kubernetesAdHocInfraWritesEnabled;
   }
 
   public pauseRolloutServerGroupManager(): void {

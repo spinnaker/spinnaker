@@ -136,6 +136,7 @@ export interface ISpinnakerSettings {
   searchVersion: 1 | 2;
   triggerTypes: string[];
   useClassicFirewallLabels: boolean;
+  kubernetesAdHocInfraWritesEnabled: boolean;
 }
 
 export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings || {};

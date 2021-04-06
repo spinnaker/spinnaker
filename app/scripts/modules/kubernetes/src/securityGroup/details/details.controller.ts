@@ -9,6 +9,7 @@ import {
   ManifestReader,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { IKubernetesSecurityGroup } from '../../interfaces';
@@ -49,6 +50,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
       .ready()
       .then(() => {
         this.extractSecurityGroup(resolvedSecurityGroup);
+        this.$scope.isDisabled = !SETTINGS.kubernetesAdHocInfraWritesEnabled;
         dataSource.onRefresh(this.$scope, () => this.extractSecurityGroup(resolvedSecurityGroup));
       })
       .catch(() => this.autoClose());

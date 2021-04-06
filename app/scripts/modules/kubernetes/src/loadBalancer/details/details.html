@@ -40,7 +40,7 @@
     </div>
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
-        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
           {{ctrl.loadBalancer.kind | robotToHuman}} Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">

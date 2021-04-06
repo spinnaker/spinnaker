@@ -41,7 +41,7 @@
     </div>
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
-        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
           <firewall-label label="{{ctrl.securityGroup.kind | robotToHuman}}"></firewall-label> Actions
           <span class="caret"></span>
         </button>

@@ -12,6 +12,7 @@ import {
   ManifestReader,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from '../../interfaces';
@@ -45,6 +46,7 @@ class KubernetesServerGroupDetailsController implements IController {
       .ready()
       .then(() => {
         this.extractServerGroup(serverGroup);
+        this.$scope.isDisabled = !SETTINGS.kubernetesAdHocInfraWritesEnabled;
         dataSource.onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
       })
       .catch(() => this.autoClose());

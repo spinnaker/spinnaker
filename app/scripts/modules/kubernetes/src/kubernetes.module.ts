@@ -105,6 +105,7 @@ if (SETTINGS.feature.kubernetesRawResources) {
 module(KUBERNETES_MODULE, requires).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
+    kubernetesAdHocInfraWritesEnabled: SETTINGS.kubernetesAdHocInfraWritesEnabled,
     logo: {
       path: kubernetesLogo,
     },

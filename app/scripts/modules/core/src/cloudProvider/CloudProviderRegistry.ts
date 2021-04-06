@@ -1,5 +1,5 @@
 /* tslint:disable: no-console */
-import { cloneDeep, uniq, without } from 'lodash';
+import { cloneDeep, uniq, without, isNil } from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -104,5 +104,16 @@ export class CloudProviderRegistry {
       return null;
     }
     return current;
+  }
+
+  //If the flag kubernetesAdHocInfraWritesEnabled is set to "false" then is disabled
+  public static isDisabled(cloudProvider: string) {
+    if (cloudProvider !== 'kubernetes') {
+      return false;
+    }
+    return (
+      isNil(CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled')) ||
+      CloudProviderRegistry.getValue(cloudProvider, 'kubernetesAdHocInfraWritesEnabled') === false
+    );
   }
 }

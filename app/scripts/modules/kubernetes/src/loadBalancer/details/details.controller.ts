@@ -2,7 +2,7 @@ import { StateService } from '@uirouter/angularjs';
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { Application, ILoadBalancer, IManifest, ManifestReader } from '@spinnaker/core';
+import { Application, ILoadBalancer, IManifest, ManifestReader, SETTINGS } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from '../../interfaces';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
@@ -32,6 +32,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
       .ready()
       .then(() => {
         this.extractLoadBalancer(loadBalancer);
+        this.$scope.isDisabled = !SETTINGS.kubernetesAdHocInfraWritesEnabled;
         dataSource.onRefresh(this.$scope, () => this.extractLoadBalancer(loadBalancer));
       })
       .catch(() => this.autoClose());
