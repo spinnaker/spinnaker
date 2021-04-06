@@ -7,8 +7,6 @@ data class Environment(
   val verifyWith: List<Verification> = emptyList(),
   val notifications: Set<NotificationConfig> = emptySet() // applies to each resource
 ) {
-  override fun toString(): String = "Environment $name"
-
   val resourceIds: Set<String>
     get() = resources.map { it.id }.toSet()
 }

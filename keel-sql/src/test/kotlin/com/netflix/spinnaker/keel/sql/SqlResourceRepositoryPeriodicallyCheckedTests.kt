@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
@@ -7,6 +8,7 @@ import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.TEST_API_V1
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -25,6 +27,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 import java.time.Clock
+import java.time.Clock.systemUTC
 import java.time.Duration
 
 internal object SqlResourceRepositoryPeriodicallyCheckedTests :
@@ -37,6 +40,10 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   override val factory: (clock: Clock) -> SqlResourceRepository = { clock ->
     SqlResourceRepository(jooq, clock, DummyResourceSpecIdentifier, emptyList(), configuredObjectMapper(), sqlRetry)
   }
+
+  val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, systemUTC(), DummyResourceSpecIdentifier, configuredObjectMapper(), sqlRetry)
+
+  override val storeDeliveryConfig: (DeliveryConfig) -> Unit = deliveryConfigRepository::store
 
   override fun flush() {
     cleanupDb(jooq)
@@ -55,10 +62,11 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
      */
     context("many threads are checking simultaneously") {
       before {
-        repeat(1000) { i ->
+        val resources = (0..1000).mapTo(mutableSetOf()) { i ->
           val resource = resource(id = "fnord-$i")
           subject.store(resource)
         }
+        storeDeliveryConfig(deliveryConfig(resources = resources))
       }
 
       test("each thread gets a unique set of resources") {
@@ -77,12 +85,18 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       Fixture(
         factory,
         { count ->
-          listOf(
-            resource(kind = TEST_API_V1.qualify("unreadable"), id = "unreadable").also(subject::store)
-          ) +
-            (2..count).map { i ->
-              resource(id = "readable-$i").also(subject::store)
+          val unreadableResource = resource(
+            kind = TEST_API_V1.qualify("unreadable"),
+            id = "unreadable"
+          ).also(subject::store)
+          val readableResources = (2..count).mapTo(mutableSetOf()) { i ->
+            resource(id = "readable-$i").also {
+              subject.store(it)
             }
+          }
+          (setOf(unreadableResource) + readableResources).also { resources ->
+            storeDeliveryConfig(deliveryConfig(resources = resources))
+          }
         },
         updateOne
       )

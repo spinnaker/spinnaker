@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
@@ -34,7 +35,9 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
@@ -49,10 +52,13 @@ import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.selectOne
+import org.jooq.impl.DSL.value
 import org.jooq.util.mysql.MySQLDSL.values
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -231,14 +237,14 @@ class SqlDeliveryConfigRepository(
   // from where this is called: https://github.com/spinnaker/keel/issues/740
   override fun store(deliveryConfig: DeliveryConfig) {
     with(deliveryConfig) {
-      val uid = jooq
+      val deliveryConfigUid = jooq
         .select(DELIVERY_CONFIG.UID)
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
         .fetchOne(DELIVERY_CONFIG.UID)
         ?: randomUID().toString()
       jooq.insertInto(DELIVERY_CONFIG)
-        .set(DELIVERY_CONFIG.UID, uid)
+        .set(DELIVERY_CONFIG.UID, deliveryConfigUid)
         .set(DELIVERY_CONFIG.NAME, name)
         .set(DELIVERY_CONFIG.APPLICATION, application)
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
@@ -249,7 +255,7 @@ class SqlDeliveryConfigRepository(
         .execute()
       artifacts.forEach { artifact ->
         jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)
-          .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
+          .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, deliveryConfigUid)
           .set(
             DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID,
             jooq
@@ -264,19 +270,18 @@ class SqlDeliveryConfigRepository(
           .execute()
       }
       environments.forEach { environment ->
-        val environmentUID = (
+        val environmentUid = (
           jooq
             .select(ENVIRONMENT.UID)
             .from(ENVIRONMENT)
-            .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+            .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
             .and(ENVIRONMENT.NAME.eq(environment.name))
             .fetchOne(ENVIRONMENT.UID)
             ?: randomUID().toString()
           )
-          .also {
             jooq.insertInto(ENVIRONMENT)
-              .set(ENVIRONMENT.UID, it)
-              .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
+              .set(ENVIRONMENT.UID, environmentUid)
+              .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfigUid)
               .set(ENVIRONMENT.NAME, environment.name)
               .set(
                 ENVIRONMENT.CONSTRAINTS,
@@ -304,12 +309,33 @@ class SqlDeliveryConfigRepository(
                 objectMapper.writeValueAsString(environment.verifyWith)
               )
               .execute()
-          }
+            val currentVersion = jooq
+              .select(coalesce(max(ENVIRONMENT_VERSION.VERSION), value(0)))
+              .from(ENVIRONMENT_VERSION)
+              .where(ENVIRONMENT_VERSION.ENVIRONMENT_UID.eq(environmentUid))
+              .fetchOneInto(Int::class.java)
+            val unlinkedResources = jooq
+              .selectCount()
+              .from(RESOURCE)
+              .where(RESOURCE.ID.`in`(environment.resources.map(Resource<*>::id)))
+              .andNotExists(
+                selectOne()
+                  .from(ENVIRONMENT_RESOURCE)
+                  .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
+              )
+              .fetchOneInto<Int>()
+            if (currentVersion == 0 || unlinkedResources > 0) {
+              jooq.insertInto(ENVIRONMENT_VERSION)
+                .set(ENVIRONMENT_VERSION.ENVIRONMENT_UID, environmentUid)
+                .set(ENVIRONMENT_VERSION.VERSION, currentVersion + 1)
+                .execute()
+            }
+
         environment.resources.forEach { resource ->
           jooq.insertInto(ENVIRONMENT_RESOURCE)
-            .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
-            .set(
-              ENVIRONMENT_RESOURCE.RESOURCE_UID,
+            .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUid)
+            .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION, currentVersion + 1)
+            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID,
               select(RESOURCE.UID)
                 .from(RESOURCE)
                 .innerJoin(
@@ -327,7 +353,7 @@ class SqlDeliveryConfigRepository(
           // delete any other environment's link to any version of this same resource (in case we
           // are moving it from one environment to another)
           jooq.deleteFrom(ENVIRONMENT_RESOURCE)
-            .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.notEqual(environmentUID))
+            .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.notEqual(environmentUid))
             .and(
               ENVIRONMENT_RESOURCE.RESOURCE_UID.`in`(
                 select(RESOURCE.UID)
@@ -339,7 +365,7 @@ class SqlDeliveryConfigRepository(
         }
       }
       jooq.insertInto(DELIVERY_CONFIG_LAST_CHECKED)
-        .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
+        .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, deliveryConfigUid)
         .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
         .onDuplicateKeyUpdate()
         .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1))
@@ -354,17 +380,19 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          ENVIRONMENT.UID,
-          ENVIRONMENT.NAME,
-          ENVIRONMENT.CONSTRAINTS,
-          ENVIRONMENT.NOTIFICATIONS,
-          ENVIRONMENT.VERIFICATIONS
+          LATEST_ENVIRONMENT.UID,
+          LATEST_ENVIRONMENT.NAME,
+          LATEST_ENVIRONMENT.VERSION,
+          LATEST_ENVIRONMENT.CONSTRAINTS,
+          LATEST_ENVIRONMENT.NOTIFICATIONS,
+          LATEST_ENVIRONMENT.VERIFICATIONS
         )
-        .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
+        .from(LATEST_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
-        .fetchOne { (uid, name, constraintsJson, notificationsJson, verifyWithJson) ->
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
+        .fetchOne { (uid, name, _, constraintsJson, notificationsJson, verifyWithJson) ->
           Environment(
             name = name,
             resources = resourcesForEnvironment(uid),
@@ -385,11 +413,11 @@ class SqlDeliveryConfigRepository(
         ?: randomUID().toString()
       jooq
         .select(
-          ENVIRONMENT.NOTIFICATIONS,
+          LATEST_ENVIRONMENT.NOTIFICATIONS,
         )
-        .from(ENVIRONMENT)
-        .where(ENVIRONMENT.NAME.eq(environmentName))
-        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+        .from(LATEST_ENVIRONMENT)
+        .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
+        .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
         .fetchOne { (notificationsJson) ->
              notificationsJson?.let { objectMapper.readValue(it) }
         } ?: emptySet()
@@ -400,11 +428,12 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_CONFIG.NAME)
-        .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
+        .from(LATEST_ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
         .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
-        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
-        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+        .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION.eq(LATEST_ENVIRONMENT.VERSION))
+        .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
         .fetchOne { (name) ->
           get(name)
         }
@@ -1092,36 +1121,36 @@ class SqlDeliveryConfigRepository(
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {
       jooq
-        .select(ENVIRONMENT.UID)
+        .select(LATEST_ENVIRONMENT.UID)
         .from(DELIVERY_CONFIG)
-        .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(
           DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-          ENVIRONMENT.NAME.eq(environmentName)
+          LATEST_ENVIRONMENT.NAME.eq(environmentName)
         )
-        .fetchOne(ENVIRONMENT.UID)
+        .fetchOne(LATEST_ENVIRONMENT.UID)
     }
       ?: null
 
   private fun envUid(deliveryConfigName: String, environmentName: String): Select<Record1<String>> =
-    select(ENVIRONMENT.UID)
+    select(LATEST_ENVIRONMENT.UID)
       .from(DELIVERY_CONFIG)
-      .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(
         DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-        ENVIRONMENT.NAME.eq(environmentName)
+        LATEST_ENVIRONMENT.NAME.eq(environmentName)
       )
 
   private fun envUidString(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {
-      jooq.select(ENVIRONMENT.UID)
+      jooq.select(LATEST_ENVIRONMENT.UID)
         .from(DELIVERY_CONFIG)
-        .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .innerJoin(LATEST_ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(
           DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
-          ENVIRONMENT.NAME.eq(environmentName)
+          LATEST_ENVIRONMENT.NAME.eq(environmentName)
         )
-        .fetchOne(ENVIRONMENT.UID)
+        .fetchOne(LATEST_ENVIRONMENT.UID)
     }
 
   private fun applicationByDeliveryConfigName(name: String): String =

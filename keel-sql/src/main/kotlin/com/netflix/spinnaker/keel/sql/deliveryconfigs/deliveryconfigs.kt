@@ -9,8 +9,8 @@ import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.SqlStorageContext
@@ -73,15 +73,16 @@ internal fun SqlStorageContext.attachDependents(deliveryConfig: DeliveryConfig):
         sqlRetry.withRetry(READ) {
           jooq
             .select(
-              ENVIRONMENT.UID,
-              ENVIRONMENT.NAME,
-              ENVIRONMENT.CONSTRAINTS,
-              ENVIRONMENT.NOTIFICATIONS,
-              ENVIRONMENT.VERIFICATIONS
+              LATEST_ENVIRONMENT.UID,
+              LATEST_ENVIRONMENT.NAME,
+              LATEST_ENVIRONMENT.VERSION,
+              LATEST_ENVIRONMENT.CONSTRAINTS,
+              LATEST_ENVIRONMENT.NOTIFICATIONS,
+              LATEST_ENVIRONMENT.VERIFICATIONS
             )
-            .from(ENVIRONMENT)
-            .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-            .fetch { (environmentUid, name, constraintsJson, notificationsJson, verifyWithJson) ->
+            .from(LATEST_ENVIRONMENT)
+            .where(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
+            .fetch { (environmentUid, name, _, constraintsJson, notificationsJson, verifyWithJson) ->
               Environment(
                 name = name,
                 resources = resourcesForEnvironment(environmentUid),
@@ -110,9 +111,10 @@ internal fun SqlStorageContext.resourcesForEnvironment(uid: String) =
         RESOURCE_WITH_METADATA.METADATA,
         RESOURCE_WITH_METADATA.SPEC
       )
-      .from(RESOURCE_WITH_METADATA, ENVIRONMENT_RESOURCE)
+      .from(RESOURCE_WITH_METADATA, ENVIRONMENT_RESOURCE, LATEST_ENVIRONMENT)
       .where(RESOURCE_WITH_METADATA.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
-      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
+      .and(LATEST_ENVIRONMENT.UID.eq(uid))
       .fetch { (kind, metadata, spec) ->
         resourceFactory.invoke(kind, metadata, spec)
       }

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
@@ -64,6 +65,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
   protected val clock = MutableClock()
 
   abstract fun factory(clock: Clock): T
+
+  abstract val storeDeliveryConfig: (DeliveryConfig) -> Unit
 
   open fun flush() {}
 
@@ -111,10 +114,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
     context("a resource exists") {
       val resource = resource()
+      val deliveryConfig = deliveryConfig(resource = resource)
       val anotherResource = resource(application = "wow")
+      val anotherDeliveryConfig = deliveryConfig(application = "wow", resource = anotherResource)
 
       before {
         subject.store(resource)
+        storeDeliveryConfig(deliveryConfig)
         subject.appendHistory(ResourceCreated(resource, clock))
       }
 
@@ -134,6 +140,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("storing another resource with a different name") {
         before {
           subject.store(anotherResource)
+          storeDeliveryConfig(anotherDeliveryConfig)
           subject.appendHistory(ResourceCreated(anotherResource, clock))
         }
 
@@ -149,8 +156,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("retrieving resources by application") {
         val lr = locatableResource(application = "toast")
+        val deliveryConfig = deliveryConfig(application = "toast", resource = lr)
         before {
           subject.store(lr)
+          storeDeliveryConfig(deliveryConfig)
           subject.appendHistory(ResourceCreated(lr, clock))
         }
 

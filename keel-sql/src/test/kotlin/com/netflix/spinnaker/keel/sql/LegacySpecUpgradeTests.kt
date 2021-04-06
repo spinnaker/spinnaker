@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -76,7 +77,14 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
         SpecV3(spec.name, spec.number, EPOCH)
     }
 
-    val repository = SqlResourceRepository(
+    val deliveryConfigRepository = SqlDeliveryConfigRepository(
+      jooq,
+      systemUTC(),
+      resourceTypeIdentifier,
+      configuredObjectMapper(),
+      sqlRetry
+    )
+    val resourceRepository = SqlResourceRepository(
       jooq,
       systemUTC(),
       resourceTypeIdentifier,
@@ -102,12 +110,13 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
 
     context("a spec with the old kind exists in the database") {
       before {
-        repository.store(oldResource)
+        resourceRepository.store(oldResource)
+        deliveryConfigRepository.store(deliveryConfig(resource = oldResource))
       }
 
       context("retrieving the resource") {
         test("the spec is converted to the new kind before being returned") {
-          expectCatching { repository.get(oldResource.id) }
+          expectCatching { resourceRepository.get(oldResource.id) }
             .isSuccess()
             .isA<Resource<SpecV3>>()
             .and {
@@ -121,12 +130,13 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
 
     context("a spec with an even older kind exists in the database") {
       before {
-        repository.store(ancientResource)
+        resourceRepository.store(ancientResource)
+        deliveryConfigRepository.store(deliveryConfig(resource = ancientResource))
       }
 
       context("retrieving the resource") {
         test("the spec is converted to the newest kind before being returned") {
-          expectCatching { repository.get(oldResource.id) }
+          expectCatching { resourceRepository.get(ancientResource.id) }
             .isSuccess()
             .isA<Resource<SpecV3>>()
             .and {

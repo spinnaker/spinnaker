@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
@@ -358,11 +359,11 @@ open class SqlResourceRepository(
         val resourceUids =
           txn.select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
             .from(ENVIRONMENT_RESOURCE)
-            .innerJoin(ENVIRONMENT)
-            .on(ENVIRONMENT.UID.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID))
+            .innerJoin(LATEST_ENVIRONMENT)
+            .on(LATEST_ENVIRONMENT.UID.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID))
             .innerJoin(DELIVERY_CONFIG)
-            .on(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-            .where(ENVIRONMENT.NAME.eq(environmentName))
+            .on(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+            .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
             .and(DELIVERY_CONFIG.APPLICATION.eq(application))
             .fetch()
 

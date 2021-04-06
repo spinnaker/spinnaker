@@ -254,3 +254,15 @@ databaseChangeLog:
   - include:
       file: changelog/20210316-update-env-artifact-constr.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20210322-environment-version-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210325-latest-environment-view.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210331-fix-environment-resource-pk.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20210331-fix-resource-with-metadata-view.yml
+      relativeToChangelogFile: true

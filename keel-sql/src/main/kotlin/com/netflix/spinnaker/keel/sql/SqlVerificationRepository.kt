@@ -13,9 +13,9 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_LAST_VERIFIED
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.VERIFICATION_STATE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
@@ -69,16 +69,16 @@ class SqlVerificationRepository(
         select(
           DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
-          ENVIRONMENT.UID,
-          ENVIRONMENT.NAME,
+          LATEST_ENVIRONMENT.UID,
+          LATEST_ENVIRONMENT.NAME,
           DELIVERY_ARTIFACT.UID,
           DELIVERY_ARTIFACT.REFERENCE,
           ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION
         )
-          .from(ENVIRONMENT)
+          .from(LATEST_ENVIRONMENT)
           // join delivery config
           .join(DELIVERY_CONFIG)
-          .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+          .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
           // the application is not paused
           .andNotExists(
             selectOne()
@@ -88,14 +88,14 @@ class SqlVerificationRepository(
           )
           // join currently deployed artifact version
           .join(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+          .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT))
           // join artifact
           .join(DELIVERY_ARTIFACT)
           .on(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
           // left join so we get results even if there is no row in ENVIRONMENT_LAST_VERIFIED
           .leftJoin(ENVIRONMENT_LAST_VERIFIED)
-          .on(ENVIRONMENT_LAST_VERIFIED.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+          .on(ENVIRONMENT_LAST_VERIFIED.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
           .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           .and(ENVIRONMENT_LAST_VERIFIED.ARTIFACT_VERSION.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION))
           // has not been checked recently (or has never been checked)
@@ -178,12 +178,12 @@ class SqlVerificationRepository(
       .from(VERIFICATION_STATE)
       .join(DELIVERY_ARTIFACT)
       .on(DELIVERY_ARTIFACT.UID.eq(VERIFICATION_STATE.ARTIFACT_UID))
-      .join(ENVIRONMENT)
-      .on(ENVIRONMENT.UID.eq(VERIFICATION_STATE.ENVIRONMENT_UID))
+      .join(LATEST_ENVIRONMENT)
+      .on(LATEST_ENVIRONMENT.UID.eq(VERIFICATION_STATE.ENVIRONMENT_UID))
       .join(DELIVERY_CONFIG)
-      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(ENVIRONMENT.NAME.eq(environment.name))
+      .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
       .and(VERIFICATION_STATE.STATUS.eq(status))
       .fetch()
       .map { (artifactReference, version) ->
@@ -233,17 +233,17 @@ class SqlVerificationRepository(
         VERIFICATION_STATE.METADATA
       )
         .from(ctxTable)
-        .leftJoin(ENVIRONMENT)
-        .on(ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
+        .leftJoin(LATEST_ENVIRONMENT)
+        .on(LATEST_ENVIRONMENT.NAME.eq(contextTable.ENVIRONMENT_NAME))
         .leftJoin(DELIVERY_CONFIG)
-        .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .on(DELIVERY_CONFIG.UID.eq(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID))
         .leftJoin(DELIVERY_ARTIFACT)
         .on(DELIVERY_ARTIFACT.REFERENCE.eq(contextTable.ARTIFACT_REFERENCE))
         .leftJoin(VERIFICATION_STATE)
         .on(VERIFICATION_STATE.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
         .and(VERIFICATION_STATE.ARTIFACT_VERSION.eq(contextTable.ARTIFACT_VERSION))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(DELIVERY_CONFIG.NAME))
-        .and(VERIFICATION_STATE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .and(VERIFICATION_STATE.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
 
         // execute the query
         .fetch()
@@ -333,11 +333,11 @@ class SqlVerificationRepository(
   private fun currentTimestamp() = clock.instant()
 
   private val VerificationContext.environmentUid: Select<Record1<String>>
-    get() = select(ENVIRONMENT.UID)
-      .from(DELIVERY_CONFIG, ENVIRONMENT)
+    get() = select(LATEST_ENVIRONMENT.UID)
+      .from(DELIVERY_CONFIG, LATEST_ENVIRONMENT)
       .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-      .and(ENVIRONMENT.NAME.eq(environment.name))
-      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+      .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
+      .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
 
   private val VerificationContext.artifactUid: Select<Record1<String>>
     get() = select(DELIVERY_ARTIFACT.UID)

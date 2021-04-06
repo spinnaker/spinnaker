@@ -14,11 +14,30 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 fun deliveryConfig(
   resource: Resource<*> = resource(),
   env: Environment = Environment("test", setOf(resource)),
+  application: String = "fnord",
   configName: String = "myconfig",
   artifact: DeliveryArtifact = DebianArtifact(name = "fnord", deliveryConfigName = configName, vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))),
   deliveryConfig: DeliveryConfig = DeliveryConfig(
     name = configName,
-    application = "fnord",
+    application = application,
+    serviceAccount = "keel@spinnaker",
+    artifacts = setOf(artifact),
+    environments = setOf(env),
+    metadata = mapOf("some" to "meta")
+  )
+): DeliveryConfig {
+  return deliveryConfig
+}
+
+fun deliveryConfig(
+  resources: Set<Resource<*>>,
+  env: Environment = Environment("test", resources),
+  application: String = "fnord",
+  configName: String = "myconfig",
+  artifact: DeliveryArtifact = DebianArtifact(name = "fnord", deliveryConfigName = configName, vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))),
+  deliveryConfig: DeliveryConfig = DeliveryConfig(
+    name = configName,
+    application = application,
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(env),

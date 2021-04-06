@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.LATEST_ENVIRONMENT
 import com.netflix.spinnaker.keel.services.StatusInfoForArtifactInEnvironment
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -987,7 +988,7 @@ class SqlArtifactRepository(
             ENVIRONMENT_ARTIFACT_VERSIONS,
             ARTIFACT_VERSIONS,
             DELIVERY_ARTIFACT,
-            ENVIRONMENT,
+            LATEST_ENVIRONMENT,
             DELIVERY_CONFIG
           )
           .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
@@ -996,9 +997,9 @@ class SqlArtifactRepository(
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
-          .and(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
-          .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-          .and(ENVIRONMENT.NAME.eq(environment.name))
+          .and(LATEST_ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
+          .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+          .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
@@ -1022,16 +1023,16 @@ class SqlArtifactRepository(
           .from(
             ARTIFACT_VERSIONS,
             DELIVERY_ARTIFACT,
-            ENVIRONMENT,
+            LATEST_ENVIRONMENT,
             DELIVERY_CONFIG
           )
           .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
           .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
-          .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+          .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-          .and(ENVIRONMENT.NAME.eq(environment.name))
+          .and(LATEST_ENVIRONMENT.NAME.eq(environment.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
           .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.toTypedArray())) }
@@ -1039,7 +1040,7 @@ class SqlArtifactRepository(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
               .where(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
-              .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+              .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(LATEST_ENVIRONMENT.UID))
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           )
 
@@ -1514,23 +1515,23 @@ class SqlArtifactRepository(
     }
 
   private fun DeliveryConfig.getUidFor(environment: Environment): Select<Record1<String>> =
-    select(ENVIRONMENT.UID)
-      .from(ENVIRONMENT)
-      .where(ENVIRONMENT.NAME.eq(environment.name))
-      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+    select(LATEST_ENVIRONMENT.UID)
+      .from(LATEST_ENVIRONMENT)
+      .where(LATEST_ENVIRONMENT.NAME.eq(environment.name))
+      .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
 
   private fun DeliveryConfig.getUidFor(environmentName: String): Select<Record1<String>> =
-    select(ENVIRONMENT.UID)
-      .from(ENVIRONMENT)
-      .where(ENVIRONMENT.NAME.eq(environmentName))
-      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+    select(LATEST_ENVIRONMENT.UID)
+      .from(LATEST_ENVIRONMENT)
+      .where(LATEST_ENVIRONMENT.NAME.eq(environmentName))
+      .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
 
   private fun DeliveryConfig.getUidStringFor(environment: Environment): String =
-    jooq.select(ENVIRONMENT.UID)
-      .from(ENVIRONMENT)
-      .where(ENVIRONMENT.NAME.eq(environment.name))
-      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
-      .fetchOne(ENVIRONMENT.UID) ?: error("environment not found for $name / ${environment.name}")
+    jooq.select(LATEST_ENVIRONMENT.UID)
+      .from(LATEST_ENVIRONMENT)
+      .where(LATEST_ENVIRONMENT.NAME.eq(environment.name))
+      .and(LATEST_ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+      .fetchOne(LATEST_ENVIRONMENT.UID) ?: error("environment not found for $name / ${environment.name}")
 
   private val DeliveryArtifact.uid: Select<Record1<String>>
     get() = select(DELIVERY_ARTIFACT.UID)

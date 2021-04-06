@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -12,6 +13,13 @@ internal class SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceR
   private val jooq = testDatabase.context
   private val retryProperties = RetryProperties(5, 100)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
+  private val deliveryConfigRepository = SqlDeliveryConfigRepository(
+    jooq,
+    clock,
+    DummyResourceSpecIdentifier,
+    configuredObjectMapper(),
+    sqlRetry
+  )
 
   override fun factory(clock: Clock): SqlResourceRepository {
     return SqlResourceRepository(
@@ -23,6 +31,8 @@ internal class SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceR
       sqlRetry
     )
   }
+
+  override val storeDeliveryConfig: (DeliveryConfig) -> Unit = deliveryConfigRepository::store
 
   override fun flush() {
     cleanupDb(jooq)
