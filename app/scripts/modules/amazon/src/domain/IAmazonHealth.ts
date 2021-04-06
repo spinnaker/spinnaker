@@ -11,4 +11,5 @@ export interface IAmazonTargetGroupHealth extends ILoadBalancerHealth {
   // Augmented to backend data in applyHealthCheckInfoToTargetGroups()
   healthCheckProtocol?: string;
   healthCheckPath?: string;
+  instanceId?: string;
 }

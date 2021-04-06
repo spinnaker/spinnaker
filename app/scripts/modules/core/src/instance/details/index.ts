@@ -5,3 +5,4 @@ export * from './InstanceDetailsHeader';
 export * from './InstanceDetailsPane';
 export * from './InstanceInsights';
 export * from './InstanceLinks';
+export * from './console/ConsoleOutputLink';
