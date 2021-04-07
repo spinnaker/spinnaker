@@ -34,6 +34,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
@@ -125,7 +126,8 @@ class CacheRepositoryTest {
         null,
         ForkJoinPool.commonPool(),
         emptyMap(),
-        new OkHttpClient());
+        new OkHttpClient(),
+        new CloudFoundryConfigurationProperties.ClientConfig());
   }
 
   @Test

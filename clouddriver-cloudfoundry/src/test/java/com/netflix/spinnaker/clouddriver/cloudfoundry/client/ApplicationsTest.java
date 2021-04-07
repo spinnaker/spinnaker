@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import io.vavr.collection.HashMap;
 import java.time.ZonedDateTime;
@@ -67,6 +68,8 @@ class ApplicationsTest {
 
   @Test
   void errorHandling() {
+    final CloudFoundryConfigurationProperties.ClientConfig retryParameters =
+        new CloudFoundryConfigurationProperties.ClientConfig();
     CloudFoundryClient client =
         new HttpCloudFoundryClient(
             "pws",
@@ -79,7 +82,8 @@ class ApplicationsTest {
             false,
             500,
             ForkJoinPool.commonPool(),
-            new OkHttpClient().newBuilder());
+            new OkHttpClient().newBuilder(),
+            new CloudFoundryConfigurationProperties.ClientConfig());
 
     assertThatThrownBy(() -> client.getApplications().all(emptyList()))
         .isInstanceOf(CloudFoundryApiException.class);

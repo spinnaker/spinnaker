@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.retry.RetryIntercep
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenAuthenticator;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenInterceptor;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -76,7 +77,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       boolean skipSslValidation,
       Integer resultsPerPage,
       ForkJoinPool forkJoinPool,
-      OkHttpClient.Builder okHttpClientBuilder) {
+      OkHttpClient.Builder okHttpClientBuilder,
+      CloudFoundryConfigurationProperties.ClientConfig clientConfig) {
 
     this.apiHost = apiHost;
     this.user = user;
@@ -108,7 +110,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             .newBuilder()
             .authenticator(new AccessTokenAuthenticator(accessTokenProvider))
             .addInterceptor(new AccessTokenInterceptor(accessTokenProvider))
-            .addInterceptor(new RetryInterceptor())
+            .addInterceptor(new RetryInterceptor(clientConfig.getMaxRetries()))
             .build();
 
     // Shared retrofit targeting cf api with preconfigured okhttpclient and jackson converter

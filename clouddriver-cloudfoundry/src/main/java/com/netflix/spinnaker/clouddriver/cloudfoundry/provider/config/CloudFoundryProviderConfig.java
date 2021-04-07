@@ -101,7 +101,8 @@ public class CloudFoundryProviderConfig {
                 a.getPermissions().build(),
                 cloudFoundryThreadPool,
                 a.getSpaceFilter(),
-                okHttpClient),
+                okHttpClient,
+                configurationProperties.getClient()),
         cloudFoundryCredentialsRepository);
   }
 

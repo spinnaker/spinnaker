@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -100,7 +101,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
       Permissions permissions,
       ForkJoinPool forkJoinPool,
       Map<String, Set<String>> spaceFilter,
-      OkHttpClient okHttpClient) {
+      OkHttpClient okHttpClient,
+      CloudFoundryConfigurationProperties.ClientConfig clientConfig) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -125,7 +127,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
             skipSslValidation,
             resultsPerPage,
             forkJoinPool,
-            okHttpClient.newBuilder());
+            okHttpClient.newBuilder(),
+            clientConfig);
     this.filteredSpaces = createFilteredSpaces(spaceFilter);
   }
 

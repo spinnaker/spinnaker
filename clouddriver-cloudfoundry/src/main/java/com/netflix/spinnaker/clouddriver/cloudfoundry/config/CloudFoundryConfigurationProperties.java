@@ -75,7 +75,7 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
   }
 
   @Data
-  public class ClientConfig {
+  public static class ClientConfig {
     private int connectionTimeout = 10000;
     private int writeTimeout = 10000;
     private int readTimeout = 10000;

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredenti
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -94,7 +95,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         null,
         ForkJoinPool.commonPool(),
         emptyMap(),
-        new OkHttpClient()) {
+        new OkHttpClient(),
+        new CloudFoundryConfigurationProperties.ClientConfig()) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }

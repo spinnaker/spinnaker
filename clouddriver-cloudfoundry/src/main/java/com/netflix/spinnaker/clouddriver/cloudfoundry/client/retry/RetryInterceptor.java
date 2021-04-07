@@ -34,11 +34,15 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class RetryInterceptor implements Interceptor {
   private Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
+  private final int maxAttempts;
+
+  public RetryInterceptor(int maxAttempts) {
+    this.maxAttempts = maxAttempts;
+  }
 
   @Override
   public Response intercept(Chain chain) throws IOException {
     final String callName = "cf.api.call";
-    final int maxAttempts = RetryConfig.ofDefaults().getMaxAttempts();
     AtomicInteger currentAttempts = new AtomicInteger();
     Retry retry =
         Retry.of(

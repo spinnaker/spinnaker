@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
@@ -103,7 +104,8 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
           null,
           ForkJoinPool.commonPool(),
           emptyMap(),
-          new OkHttpClient()) {
+          new OkHttpClient(),
+          new CloudFoundryConfigurationProperties.ClientConfig()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

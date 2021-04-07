@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
@@ -112,6 +113,40 @@ class HttpCloudFoundryClientTest {
   }
 
   @Test
+  void createRetryInterceptorShouldNotRetryOnTimeoutErrorsWhenConfigIsOverridden(
+      @WiremockResolver.Wiremock WireMockServer server) throws Exception {
+    stubServer(
+        server,
+        200,
+        STARTED,
+        "Will respond 200 delayed",
+        "{\"access_token\":\"token\",\"expires_in\":1000000}");
+    stubServerWithFixedDelay(
+        server,
+        200,
+        "Will respond 200 delayed",
+        "Will respond 200 without delay",
+        // successful but delayed and with diff org name
+        "{\"pagination\":{\"total_pages\":1},\"resources\":[{\"guid\": \"orgId\", \"name\":\"orgNameDelayed\"}]}",
+        10000);
+
+    CloudFoundryConfigurationProperties.ClientConfig clientConfig =
+        new CloudFoundryConfigurationProperties.ClientConfig();
+    clientConfig.setMaxRetries(1);
+    clientConfig.setConnectionTimeout(1);
+    clientConfig.setReadTimeout(1);
+    clientConfig.setWriteTimeout(1);
+    HttpCloudFoundryClient cloudFoundryClient =
+        createCloudFoundryClientWithRetryConfig(server, clientConfig);
+
+    CloudFoundryApiException thrown =
+        assertThrows(
+            CloudFoundryApiException.class,
+            () -> cloudFoundryClient.getOrganizations().findByName("randomName"),
+            "Expected thrown 'Cloud Foundry API returned with error(s): java.net.SocketTimeoutException', but it didn't");
+  }
+
+  @Test
   void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials(
       @WiremockResolver.Wiremock WireMockServer server) throws Exception {
     stubServer(server, 401, STARTED, "Bad credentials");
@@ -191,6 +226,14 @@ class HttpCloudFoundryClientTest {
 
   @NotNull
   private HttpCloudFoundryClient createDefaultCloudFoundryClient(WireMockServer server) {
+    CloudFoundryConfigurationProperties.ClientConfig clientConfig =
+        new CloudFoundryConfigurationProperties.ClientConfig();
+    return createCloudFoundryClientWithRetryConfig(server, clientConfig);
+  }
+
+  @NotNull
+  private HttpCloudFoundryClient createCloudFoundryClientWithRetryConfig(
+      WireMockServer server, CloudFoundryConfigurationProperties.ClientConfig clientConfig) {
     return new HttpCloudFoundryClient(
         "account",
         "appsManUri",
@@ -202,6 +245,7 @@ class HttpCloudFoundryClientTest {
         true,
         500,
         ForkJoinPool.commonPool(),
-        new OkHttpClient.Builder());
+        new OkHttpClient.Builder(),
+        clientConfig);
   }
 }
