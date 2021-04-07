@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Docker;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessRequest;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServerGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
@@ -181,6 +182,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
               attrs.setEnv(app.getEnv());
               attrs.setStack(app.getStack());
               attrs.setCommand(app.getCommand());
+              attrs.setProcesses(app.getProcesses());
               return attrs;
             })
         .get();
@@ -213,5 +215,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     @Nullable private String stack;
 
     @Nullable private String command;
+
+    private List<ProcessRequest> processes = Collections.emptyList();
   }
 }

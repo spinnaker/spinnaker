@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessResources;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ScaleProcess;
@@ -25,6 +26,10 @@ import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface ProcessesService {
+
+  @GET("/v3/processes")
+  Call<Pagination<Process>> getProcesses(
+      @Query("page") Integer page, @Query("app_guids") String appGuids);
 
   @POST("/v3/processes/{guid}/actions/scale")
   Call<ResponseBody> scaleProcess(@Path("guid") String guid, @Body ScaleProcess scaleProcess);

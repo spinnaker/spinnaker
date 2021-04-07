@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Docker;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessRequest;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -69,5 +71,7 @@ public class DeployCloudFoundryServerGroupDescription
     @Nullable private String stack;
 
     @Nullable private String command;
+
+    private List<ProcessRequest> processes = Collections.emptyList();
   }
 }

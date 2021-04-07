@@ -192,8 +192,8 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     inOrder.verify(apps).buildCompleted(any());
     inOrder.verify(apps).findDropletGuidFromBuildId(any());
     inOrder.verify(apps).setCurrentDroplet(any(), any());
-    inOrder.verify(processes).scaleProcess(any(), any(), any(), any());
     inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health");
+    inOrder.verify(processes).scaleProcess(any(), any(), any(), any());
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
   }
 
@@ -207,8 +207,8 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     inOrder.verify(apps).createPackage(any());
     inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
     inOrder.verify(apps).createBuild(any());
-    inOrder.verify(processes).scaleProcess("serverGroupId", 7, 1024, 2048);
     inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health");
+    inOrder.verify(processes).scaleProcess("serverGroupId", 7, 1024, 2048);
     inOrder.verify(apps, calls.get()).startApplication("serverGroupId");
   }
 

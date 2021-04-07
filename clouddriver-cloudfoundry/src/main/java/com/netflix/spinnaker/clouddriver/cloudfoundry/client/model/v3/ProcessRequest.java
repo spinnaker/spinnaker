@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2021 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,32 +17,20 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import javax.annotation.Nullable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class Process {
-  private String type;
-  private String guid;
-  private int instances;
-  private int memoryInMb;
-  private int diskInMb;
-
-  @Nullable private HealthCheck healthCheck;
-
-  @Data
-  public static class HealthCheck {
-    @Nullable private String type;
-
-    @Nullable private HealthCheckData data;
-  }
-
-  @Data
-  public static class HealthCheckData {
-
-    @Nullable private String endpoint;
-
-    @Nullable private Integer timeout;
-
-    @Nullable private Integer invocationTimeout;
-  }
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProcessRequest {
+  @Nullable private String type;
+  @Nullable private String command;
+  @Nullable private String diskQuota;
+  @Nullable private String healthCheckType;
+  @Nullable private String healthCheckHttpEndpoint;
+  @Nullable private Integer healthCheckInvocationTimeout;
+  @Nullable private Integer instances;
+  @Nullable private String memory;
 }

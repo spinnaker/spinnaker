@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ProcessesService;
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessSta
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ScaleProcess;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.UpdateProcess;
 import groovy.util.logging.Slf4j;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,14 @@ import lombok.RequiredArgsConstructor;
 public class Processes {
 
   private final ProcessesService api;
+
+  public List<Process> getAllProcessesByAppId(String appGuid) {
+    if (appGuid == null || appGuid.isEmpty()) {
+      throw new IllegalArgumentException(
+          "An application guid must be provided in order to return processes by app.");
+    }
+    return collectPages("processes", page -> api.getProcesses(page, appGuid));
+  }
 
   public void scaleProcess(
       String guid,

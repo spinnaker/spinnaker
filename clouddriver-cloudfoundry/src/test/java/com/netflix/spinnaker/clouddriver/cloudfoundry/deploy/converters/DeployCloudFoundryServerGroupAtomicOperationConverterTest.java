@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredenti
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessRequest;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -176,7 +177,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                 .setServices(List.of("service1"))
                 .setRoutes(List.of("www.example.com/foo"))
                 .setEnv(Map.of("token", "ASDF"))
-                .setCommand("some-command"));
+                .setCommand("some-command")
+                .setProcesses(emptyList()));
   }
 
   @Test
@@ -189,7 +191,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                 .setInstances(1)
                 .setMemory("1024")
                 .setDiskQuota("1024")
-                .setBuildpacks(List.of("buildpack1")));
+                .setBuildpacks(List.of("buildpack1"))
+                .setProcesses(emptyList()));
   }
 
   @Test
@@ -202,7 +205,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                 .setInstances(1)
                 .setMemory("1024")
                 .setDiskQuota("1024")
-                .setBuildpacks(Collections.emptyList()));
+                .setBuildpacks(Collections.emptyList())
+                .setProcesses(emptyList()));
   }
 
   @Test
@@ -215,7 +219,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                 .setInstances(1)
                 .setMemory("1024")
                 .setDiskQuota("1024")
-                .setBuildpacks(Collections.emptyList()));
+                .setBuildpacks(Collections.emptyList())
+                .setProcesses(emptyList()));
   }
 
   @Test
@@ -246,5 +251,28 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     assertThat(result.getApplicationArtifact().getArtifactAccount())
         .isEqualTo("destinationAccount");
     assertThat(result.getApplicationArtifact().getUuid()).isEqualTo("servergroup-id");
+  }
+
+  @Test
+  void convertDescriptionWithProcesses() {
+    final Map input =
+        Map.of(
+            "applications",
+            List.of(
+                Map.of(
+                    "processes",
+                    List.of(
+                        new ProcessRequest().setType("web").setInstances(2).setMemory("800M")))));
+
+    assertThat(converter.convertManifest(input))
+        .isEqualToComparingFieldByFieldRecursively(
+            new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+                .setInstances(1)
+                .setMemory("1024")
+                .setDiskQuota("1024")
+                .setBuildpacks(Collections.emptyList())
+                .setProcesses(
+                    List.of(
+                        new ProcessRequest().setType("web").setInstances(2).setMemory("800M"))));
   }
 }
