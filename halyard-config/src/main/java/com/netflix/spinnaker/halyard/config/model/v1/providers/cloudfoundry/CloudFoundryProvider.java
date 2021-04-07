@@ -23,6 +23,17 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CloudFoundryProvider extends Provider<CloudFoundryAccount> implements Cloneable {
+
+  private ClientConfig clientConfig;
+
+  @Data
+  public static class ClientConfig {
+    private Integer connectionTimeout;
+    private Integer writeTimeout;
+    private Integer readTimeout;
+    private Integer maxRetries;
+  }
+
   @Override
   public ProviderType providerType() {
     return ProviderType.CLOUDFOUNDRY;
