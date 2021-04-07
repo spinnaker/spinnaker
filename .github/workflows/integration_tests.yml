@@ -46,3 +46,5 @@ jobs:
       run: ./gradlew --build-cache :clouddriver-ecs:integrationTest
     - name: Artifacts Integration Tests
       run: ./gradlew --build-cache :clouddriver-artifacts:integrationTest
+    - name: AWS EC2 Provider Integration Tests
+      run: ./gradlew --build-cache :clouddriver-aws:integrationTest

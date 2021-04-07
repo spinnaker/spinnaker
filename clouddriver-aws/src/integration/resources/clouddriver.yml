@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: clouddriver
+
+aws:
+  enabled: true
+  primaryAccount: aws-account1
+  accounts:
+    - name: aws-account1
+      requiredGroupMembership: []
+      providerVersion: V1
+      permissions: {}
+      accountId: '123456789012'
+      regions:
+        - name: us-west-1
+      assumeRole: role/SpinnakerManaged
+  bakeryDefaults:
+    baseImages: []
+  defaultKeyPairTemplate: '{{name}}-keypair'
+  defaultRegions:
+    - name: us-west-1
+  defaults:
+    iamRole: BaseIAMRole
+
+redis:
+  enabled: false
+  cache:
+    enabled: false
+  scheduler:
+    enabled: false
+  taskRepository:
+    enabled: false
+
+services:
+  fiat:
+    baseUrl: http://fiat.net
+  front50:
+    baseUrl: http://front50.net
+
+---
+
+spring:
+  profiles: launch-templates
+
+aws:
+  enabled: true
+  features:
+    launch-templates:
+      enabled: true
+      allowed-applications: "myAwsApp:aws-account1:us-west-1"
+      excluded-applications: "myExcludedApp:aws-account1:us-west-1"
