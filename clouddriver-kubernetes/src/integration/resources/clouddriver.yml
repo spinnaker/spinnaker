@@ -9,7 +9,7 @@ kubernetes:
   primaryAccount: account1
   accounts:
     - name: account1
-      cacheIntervalSeconds: 10
+      cacheIntervalSeconds: 5
       requiredGroupMembership: []
       providerVersion: V2
       permissions: {}
@@ -22,32 +22,6 @@ kubernetes:
         - testns02
         - testns03
         - testns04
-        - testns05
-        - testns06
-        - testns07
-        - testns08
-        - testns09
-        - testns10
-        - testns11
-        - testns12
-        - testns13
-        - testns14
-        - testns15
-        - testns16
-        - testns17
-        - testns18
-        - testns19
-        - testns20
-        - testns21
-        - testns22
-        - testns23
-        - testns24
-        - testns25
-        - testns26
-        - testns27
-        - testns28
-        - testns29
-        - testns30
       omitNamespaces: []
       kinds:
         - pod
@@ -84,7 +58,8 @@ kubernetes:
       metrics: false
       kubeconfigFile: ${KUBECONFIGS_HOME}/kubecfg-${account1_containername}.yml  # File is automatically created during initialization
 
-logging.level.com.netflix.spinnaker.cats.sql.cluster: DEBUG
+logging.level.com.netflix.spinnaker.cats.sql.cluster: INFO
+logging.level.com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter: WARN
 
 sql:
   enabled: true
