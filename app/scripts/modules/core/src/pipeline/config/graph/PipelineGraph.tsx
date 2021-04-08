@@ -484,7 +484,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
                   transform={`translate(${node.x},${node.y})`}
                 >
                   {node.childLinks.map((link) => (
-                    <PipelineGraphLink key={link.child.name + link.parent.name} link={link} x={node.x} y={node.y} />
+                    <PipelineGraphLink key={`${link.child.id}_${link.parent.name}`} link={link} x={node.x} y={node.y} />
                   ))}
                   <PipelineGraphNode
                     isExecution={!!execution}
