@@ -22,6 +22,7 @@ export interface IAmazonServerGroup extends IServerGroup {
   targetGroups?: string[];
   asg: IAmazonAsg;
   launchTemplate?: IAmazonLaunchTemplate;
+  mixedInstancesPolicy?: IAmazonMixedInstancesPolicy;
 }
 
 export interface IScheduledAction {
@@ -29,6 +30,27 @@ export interface IScheduledAction {
   minSize: number;
   maxSize: number;
   desiredCapacity: number;
+}
+
+export interface IAmazonMixedInstancesPolicy {
+  allowedInstanceTypes: string[];
+  instancesDiversification: IAmazonInstancesDiversification;
+  launchTemplates: IAmazonLaunchTemplate[];
+  launchTemplateOverridesForInstanceType: IAmazonLaunchTemplateOverrides[];
+}
+
+export interface IAmazonInstancesDiversification {
+  onDemandAllocationStrategy: string;
+  onDemandBaseCapacity: number;
+  onDemandPercentageAboveBaseCapacity: number;
+  spotAllocationStrategy: string;
+  spotInstancePools?: number;
+  spotMaxPrice: string;
+}
+
+export interface IAmazonLaunchTemplateOverrides {
+  instanceType: string;
+  weightedCapacity: string;
 }
 
 export interface IAmazonServerGroupView extends IAmazonServerGroup {

@@ -224,7 +224,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         {!AWSProviderSettings.disableSpotPricing && (
           <div className="form-group">
             <div className="col-md-5 sm-label-right">
-              <b>Spot Instances Price (optional)</b> <HelpField id="aws.serverGroup.spotPrice" />
+              <b>Spot Instances Price (optional)</b> <HelpField id="aws.serverGroup.spotMaxPrice" />
             </div>
             <div className="col-md-2">
               <Field type="text" className="form-control input-sm" name="spotPrice" />
